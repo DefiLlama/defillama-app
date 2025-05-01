@@ -44,6 +44,8 @@ export interface IProtocolMetadata {
 	treasury?: boolean
 	nfts?: boolean
 	emissions?: boolean
+	bribeRevenue?: boolean
+	tokenTax?: boolean
 }
 
 export interface IChainOverviewData {

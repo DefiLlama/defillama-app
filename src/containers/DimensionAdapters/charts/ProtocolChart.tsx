@@ -39,6 +39,8 @@ export interface IDexChartsProps {
 		total7d: IProtocolContainerProps['protocolSummary']['total7d']
 		disabled: IProtocolContainerProps['protocolSummary']['disabled']
 		dailyRevenue?: IProtocolContainerProps['protocolSummary']['dailyRevenue']
+		dailyBribesRevenue?: IProtocolContainerProps['protocolSummary']['dailyBribesRevenue']
+		dailyTokenTaxes?: IProtocolContainerProps['protocolSummary']['dailyTokenTaxes']
 		change_1d: IProtocolContainerProps['protocolSummary']['change_1d']
 		change_1m?: IProtocolContainerProps['protocolSummary']['change_1m']
 		change_7dover7d?: IOverviewProps['dexsDominance']
@@ -133,7 +135,7 @@ export const ProtocolChart = ({
 								</span>
 							</p>
 						) : null}
-						{data.dailyRevenue || data.dailyRevenue === 0 ? (
+						{data.dailyRevenue != null || data.dailyBribesRevenue != null ? (
 							<p className="flex flex-col gap-1 text-base">
 								<span className="text-[#545757] dark:text-[#cccccc]">
 									{data.disabled === true
