@@ -31,24 +31,44 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 	)
 }
 
+const standardGroupColors = {
+	noncirculating: '#546fc6',
+	insiders: '#90cc74',
+	publicsale: '#fac759',
+	privatesale: '#fd8353',
+	farming: '#ed6666',
+	airdrop: '#73c0de',
+	liquidity: '#39a371'
+}
+
+function processGroupedChartData(
+	chartData: Array<{ [label: string]: number }>,
+	categoriesBreakdown: Record<string, string[]>
+) {
+	return chartData.map((entry) => {
+		const groupedEntry = { date: entry.date }
+		Object.entries(categoriesBreakdown).forEach(([group, categories]) => {
+			groupedEntry[group] = categories.reduce((sum, category) => {
+				return sum + (entry[category] || 0)
+			}, 0)
+		})
+
+		return groupedEntry
+	})
+}
+
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const { width } = useWindowSize()
 	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
-	const [isTreasuryIncluded, setIsTreasuryIncluded] = useState(false)
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
+	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
 	useEffect(() => {
 		if (data?.categories?.[dataType]) {
-			setSelectedCategories(
-				data.categories[dataType].filter(
-					(cat) =>
-						!['Market Cap', 'Price'].includes(cat) &&
-						!(data.categoriesBreakdown?.noncirculating?.includes(cat) && !isTreasuryIncluded)
-				)
-			)
+			setSelectedCategories(data.categories[dataType].filter((cat) => !['Market Cap', 'Price'].includes(cat)))
 		}
-	}, [data, dataType, isTreasuryIncluded])
+	}, [data, dataType])
 	const { data: geckoId } = useGeckoId(data.token ?? null)
 
 	const priceChart = usePriceChart(data.geckoId ?? geckoId)
@@ -79,16 +99,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		return index === -1 ? 0 : index
 	}, [sortedEvents])
 
-	if (!data) return null
-
 	const chartData = data.chartData?.[dataType]
 		?.map((chartItem) => {
 			const date = chartItem.date
 			const res = Object.entries(chartItem).reduce((acc, [key, value]) => {
-				if (data?.categoriesBreakdown?.noncirculating?.includes(key)) {
-					if (isTreasuryIncluded) acc[key] = value
-					else return acc
-				}
 				acc[key] = value
 				return acc
 			}, {})
@@ -115,19 +129,61 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		})
 		.filter((chartItem) => sum(Object.values(omit(chartItem, 'date'))) > 0)
 
+	const availableCategories = useMemo(() => {
+		if (allocationMode === 'standard') {
+			return Object.keys(data.categoriesBreakdown || {})
+		}
+		return data.categories?.[dataType]?.filter((cat) => !['Market Cap', 'Price'].includes(cat)) || []
+	}, [allocationMode, data, dataType])
+
+	const displayData = useMemo(() => {
+		if (allocationMode === 'standard' && data.categoriesBreakdown) {
+			return processGroupedChartData(chartData || [], data.categoriesBreakdown)
+		}
+		return chartData
+	}, [allocationMode, chartData, data.categoriesBreakdown])
+
+	const displayColors = useMemo(() => {
+		if (allocationMode === 'standard') {
+			return standardGroupColors
+		}
+		return data.stackColors?.[dataType] || {}
+	}, [allocationMode, data.stackColors, dataType])
+
+	useEffect(() => {
+		if (allocationMode === 'standard' && data.categoriesBreakdown) {
+			setSelectedCategories(Object.keys(data.categoriesBreakdown))
+		} else if (data.categories?.[dataType]) {
+			setSelectedCategories(data.categories[dataType].filter((cat) => !['Market Cap', 'Price'].includes(cat)))
+		}
+	}, [allocationMode, data, dataType])
+
+	const groupAllocation = useMemo(() => {
+		const finalAllocation = data.tokenAllocation?.[dataType]?.final
+		if (!finalAllocation || Object.keys(finalAllocation).length === 0) {
+			return []
+		}
+		return Object.entries(finalAllocation)
+			.filter(([_, value]) => Number(value) > 0)
+			.map(([name, value]) => ({
+				name: name,
+				value: Number(value)
+			}))
+	}, [data.tokenAllocation, dataType])
+
 	const pieChartDataAllocation = data.pieChartData?.[dataType]
 		?.map((pieChartItem) => {
-			if (data?.categoriesBreakdown?.noncirculating?.includes(pieChartItem.name)) {
-				if (isTreasuryIncluded) return pieChartItem
-				else return null
-			}
 			if (!selectedCategories.includes(pieChartItem.name)) {
 				return null
 			}
 			return pieChartItem
 		})
 		.filter(Boolean)
+
+	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
+
 	const unlockedPercent = 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
+	if (!data) return null
 
 	return (
 		<>
@@ -140,12 +196,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				) : null}
 				<div className="flex flex-wrap gap-2 justify-center sm:justify-end w-full sm:w-auto">
 					<Switch
-						label="Include Treasury"
-						value="include-treasury"
-						onChange={() => setIsTreasuryIncluded((prev) => !prev)}
-						help="Include Non-Circulating Supply in the chart."
-						checked={isTreasuryIncluded}
+						label="Group Allocation"
+						value="group-allocation"
+						onChange={() => setAllocationMode((prev) => (prev === 'current' ? 'standard' : 'current'))}
+						help="Group token allocations into standardized categories."
+						checked={allocationMode === 'standard'}
 					/>
+
 					{normilizePriceChart?.prices ? (
 						<Switch
 							label="Show Price and Market Cap"
@@ -240,11 +297,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<LazyChart className="bg-[var(--cards-bg)] rounded-md min-h-[384px] p-3 relative">
 						<div className="absolute right-4 z-10">
 							<SelectWithCombobox
-								allValues={data.categories[dataType].filter(
-									(cat) =>
-										!['Market Cap', 'Price'].includes(cat) &&
-										!(data.categoriesBreakdown?.noncirculating?.includes(cat) && !isTreasuryIncluded)
-								)}
+								allValues={availableCategories}
 								selectedValues={selectedCategories}
 								setSelectedValues={(newCategories) => {
 									if (newCategories.length === 0) return
@@ -256,15 +309,19 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 										setSelectedCategories([selectedCategories[0]])
 									}
 								}}
-								toggleAll={() =>
-									setSelectedCategories(
-										data.categories[dataType].filter(
-											(cat) =>
-												!['Market Cap', 'Price'].includes(cat) &&
-												!(data.categoriesBreakdown?.noncirculating?.includes(cat) && !isTreasuryIncluded)
+								toggleAll={() => {
+									if (allocationMode === 'standard' && data.categoriesBreakdown) {
+										setSelectedCategories(Object.keys(data.categoriesBreakdown))
+									} else {
+										setSelectedCategories(
+											data.categories[dataType].filter(
+												(cat) =>
+													!['Market Cap', 'Price'].includes(cat) &&
+													!data.categoriesBreakdown?.noncirculating?.includes(cat)
+											)
 										)
-									)
-								}
+									}
+								}}
 								labelType="smol"
 								triggerProps={{
 									className:
@@ -276,9 +333,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							customYAxis={isPriceEnabled ? ['Market Cap', 'Price'] : []}
 							title="Schedule"
 							stacks={[...selectedCategories, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean)}
-							chartData={chartData}
+							chartData={displayData}
 							hallmarks={data.hallmarks[dataType]}
-							stackColors={data.stackColors[dataType]}
+							stackColors={displayColors}
 							isStackedChart
 						/>
 					</LazyChart>
@@ -290,8 +347,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<PieChart
 								showLegend
 								title="Allocation"
-								chartData={pieChartDataAllocation}
-								stackColors={data.stackColors[dataType]}
+								chartData={pieChartDataAllocationMode}
+								stackColors={displayColors}
 								usdFormat={false}
 								legendPosition={
 									!width
