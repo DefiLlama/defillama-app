@@ -64,7 +64,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			appRevenue,
 			chainFees,
 			chainRevenue,
-			chainBribes,
 			perps,
 			cexVolume,
 			etfData,
@@ -105,7 +104,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			IAdapterSummary | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
-			IAdapterOverview | null,
 			IAdapterOverview | null,
 			number | null,
 			Array<[number, number]> | null,
@@ -240,18 +238,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyRevenue'
-				  }).catch((err) => {
-						console.log(err)
-						return null
-				  })
-				: Promise.resolve(null),
-			metadata.chainFees
-				? getAdapterChainOverview({
-						type: 'fees',
-						chain: metadata.name,
-						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: true,
-						dataType: 'dailyBribesRevenue'
 				  }).catch((err) => {
 						console.log(err)
 						return null
@@ -409,7 +395,14 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		}) as Array<[number, Record<string, number>]>
 
 		const chainRev =
-			(chainBribes?.protocols?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? 0) + (chainFees?.total24h ?? 0)
+			chainFees && fees
+				? (fees?.protocols?.reduce((acc, curr) => {
+						if (curr.category === 'MEV') {
+							acc += curr.total24h || 0
+						}
+						return acc
+				  }, 0) ?? 0) + (chainFees?.total24h ?? 0)
+				: null
 
 		return {
 			chain,
@@ -432,7 +425,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				total24h: chainFees?.total24h ?? null,
 				feesGenerated24h: feesGenerated24h,
 				topProtocolsChart: topProtocolsByFeesChart,
-				totalRev24h: chainFees && chainBribes ? chainRev : null
+				totalRev24h: chainRev
 			},
 			chainRevenue: { total24h: chainRevenue?.total24h ?? null },
 			appRevenue: { total24h: appRevenue?.total24h ?? null },
