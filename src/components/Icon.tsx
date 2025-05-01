@@ -71,6 +71,7 @@ type Name =
 	| 'key'
 	| 'linear-unlock'
 	| 'cliff-unlock'
+	| 'calendar-plus'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name

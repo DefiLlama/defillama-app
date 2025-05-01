@@ -34,8 +34,8 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 const standardGroupColors = {
 	noncirculating: '#546fc6',
 	insiders: '#90cc74',
-	publicsale: '#fac759',
-	privatesale: '#fd8353',
+	publicSale: '#fac759',
+	privateSale: '#fd8353',
 	farming: '#ed6666',
 	airdrop: '#73c0de',
 	liquidity: '#39a371'

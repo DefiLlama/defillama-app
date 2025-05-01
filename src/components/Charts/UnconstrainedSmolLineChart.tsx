@@ -121,7 +121,7 @@ export function UnconstrainedSmolLineChart({
 							if (uniqueCategories.length > 0) {
 								tooltipHtml += `<div style="color: #666666; font-size: 11px;">`
 								tooltipHtml += `Categories: ${uniqueCategories
-									.map((cat) => cat.charAt(0).toUpperCase() + cat.slice(1))
+									.map((cat: string) => cat.charAt(0).toUpperCase() + cat.slice(1))
 									.join(', ')}`
 								tooltipHtml += `</div>`
 							}

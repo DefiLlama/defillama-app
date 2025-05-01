@@ -11,7 +11,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue }) => {
 	return (
 		<Ariakit.MenuProvider>
 			<Ariakit.MenuButton className="flex items-center gap-2 hover:bg-[var(--bg2)] p-2 rounded">
-				<Icon name="calendar" width={16} height={16} />
+				<Icon name="calendar-plus" width={16} height={16} />
 				Add to Calendar
 			</Ariakit.MenuButton>
 
@@ -41,7 +41,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue }) => {
 					className="flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md"
 				>
 					<Icon name="download-cloud" width={16} height={16} />
-					iCal File (Most Calendar Apps)
+					Other Calendars Apps
 				</Ariakit.MenuItem>
 			</Ariakit.Menu>
 		</Ariakit.MenuProvider>
