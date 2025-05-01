@@ -64,6 +64,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			appRevenue,
 			chainFees,
 			chainRevenue,
+			chainBribes,
 			perps,
 			cexVolume,
 			etfData,
@@ -104,6 +105,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			IAdapterSummary | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
+			IAdapterOverview | null,
 			IAdapterOverview | null,
 			number | null,
 			Array<[number, number]> | null,
@@ -238,6 +240,18 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyRevenue'
+				  }).catch((err) => {
+						console.log(err)
+						return null
+				  })
+				: Promise.resolve(null),
+			metadata.chainFees
+				? getAdapterChainOverview({
+						type: 'fees',
+						chain: metadata.name,
+						excludeTotalDataChart: true,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyBribesRevenue'
 				  }).catch((err) => {
 						console.log(err)
 						return null
@@ -394,6 +408,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			return [+date, finalTokens]
 		}) as Array<[number, Record<string, number>]>
 
+		const chainRev =
+			(chainBribes?.protocols?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? 0) + (chainFees?.total24h ?? 0)
+
 		return {
 			chain,
 			metadata,
@@ -414,7 +431,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chainFees: {
 				total24h: chainFees?.total24h ?? null,
 				feesGenerated24h: feesGenerated24h,
-				topProtocolsChart: topProtocolsByFeesChart
+				topProtocolsChart: topProtocolsByFeesChart,
+				totalRev24h: chainFees && chainBribes ? chainRev : null
 			},
 			chainRevenue: { total24h: chainRevenue?.total24h ?? null },
 			appRevenue: { total24h: appRevenue?.total24h ?? null },
