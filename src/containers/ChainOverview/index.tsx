@@ -6,6 +6,7 @@ import { Suspense, lazy } from 'react'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Icon } from '~/components/Icon'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { Announcement } from '~/components/Announcement'
 
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
@@ -15,6 +16,13 @@ export function ChainOverview(props: IChainOverviewData) {
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
 			defaultSEO
 		>
+			<Announcement>
+				We just launched{' '}
+				<a href="https://llamafeed.io/" target="_blank" rel="noreferrer noopener" className="underline">
+					LlamaFeed Pro
+				</a>
+				, stay updated without having to doomscroll twitter
+			</Announcement>
 			<ProtocolsChainsSearch />
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
 			<Stats {...props} />
@@ -91,7 +99,7 @@ const linksToOtherLlamaApps = [
 	{
 		name: 'LlamaFeed',
 		description: 'The ultimate crypto feed',
-		href: 'https://feed.defillama.com',
+		href: 'https://llamafeed.io/',
 		icon: (
 			<img src="/llama-apps/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="object-contain" />
 		),

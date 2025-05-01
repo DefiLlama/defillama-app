@@ -1,6 +1,6 @@
 import { last } from 'lodash'
 
-import { formatPercentage, selectColor, slug, timeFromNow, tokenIconPaletteUrl } from '~/utils'
+import { formatPercentage, getNDistinctColors, slug, timeFromNow, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
@@ -405,8 +405,9 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 	)
 
 	const backgroundColor = isDarkColor(bgColor) ? '#1f67d2' : bgColor
+	const colors = getNDistinctColors(chartTypes.length, backgroundColor)
 	const colorTones = {
-		...Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)])),
+		...Object.fromEntries(chartTypes.map((type, index) => [type, colors[index]])),
 		TVL: backgroundColor
 	}
 
@@ -754,9 +755,9 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 
 	const backgroundColor =
 		!props.backgroundColor || isDarkColor(props.backgroundColor) ? '#1f67d2' : props.backgroundColor
-
+	const colors = getNDistinctColors(chartTypes.length, backgroundColor)
 	const colorTones = {
-		...Object.fromEntries(chartTypes.map((type, index) => [type, selectColor(index, backgroundColor)])),
+		...Object.fromEntries(chartTypes.map((type, index) => [type, colors[index]])),
 		TVL: backgroundColor
 	}
 

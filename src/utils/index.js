@@ -340,20 +340,26 @@ export function getRandomColor() {
 	return color
 }
 
-export function selectColor(number, color) {
-	const hue = number * 137.508 // use golden angle approximation
+export function getNDistinctColors(n, startColor) {
+	const colors = []
+	const startHsl = hexToHSL(startColor || '#2172E5')
+	
+	// Use golden ratio for better hue distribution
+	const goldenRatio = 0.618033988749895
+	let hue = startHsl.h / 360 // Normalize to [0,1]
 
-	const { h, s, l, a } = colord(color).toHsl()
+	for (let i = 0; i < n; i++) {
+		hue += goldenRatio
+		hue %= 1 // Keep in [0,1] range
+		
+		// Use fixed saturation and lightness for better distinction
+		colors.push(hslToHex(hue * 360, 85, 60))
+	}
 
-	return colord({
-		h: h + hue,
-		s: number !== 0 && l < 70 ? 70 : s,
-		l: number !== 0 && l < 60 ? 60 : l,
-		a: number !== 0 && a < 0.6 ? 1 : a
-	}).toHex()
+	return colors
 }
 
-export const getColorFromNumber = (index, length) => {
+export function getColorFromNumber(index, length) {
 	//use defillama blue as starting
 	return colord({
 		l: 48.792 + (index / (length + 1)) * 30,
@@ -518,6 +524,8 @@ function hslToHex(h, s, l) {
 
 	return `#${f(0)}${f(8)}${f(4)}`
 }
+
+
 
 export const chunks = (array, size) => {
 	const result = []

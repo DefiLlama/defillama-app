@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-
 import dynamic from 'next/dynamic'
 import { useLocalStorageSettingsManager, useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IChartProps } from '~/components/ECharts/types'
@@ -10,6 +9,7 @@ import { BAR_CHARTS } from './utils'
 import { useFetchAndFormatChartData } from './useFetchAndFormatChartData'
 import { EmbedChart } from '~/components/EmbedChart'
 import { IFusedProtocolData, NftVolumeData } from '~/api/types'
+import { transparentize } from 'polished'
 
 const AreaChart = dynamic(() => import('.'), {
 	ssr: false
@@ -96,7 +96,6 @@ const ProtocolChart = React.memo(function ProtocolChart({
 	enabled = null
 }: IProps) {
 	const router = useRouter()
-
 	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 	const [isThemeDark] = useDarkModeManager()
 
@@ -209,7 +208,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 	}, false)
 
 	const { chartOptions } = React.useMemo(() => {
-		const options: Array<{ label: string; key: string }> = []
+		const options: Array<{ label: string; key: string; colors?: Record<string, string> }> = []
 		if (protocolData?.tvlByChain?.length > 0) {
 			options.push({ label: isCEX ? 'Total Assets' : 'TVL', key: 'tvl' })
 		}
@@ -283,8 +282,26 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		if (metrics?.bridgeAggregators) {
 			options.push({ label: 'Bridge Aggregators Volume', key: 'bridgeAggregators' })
 		}
+
 		return {
-			chartOptions: options
+			chartOptions: options.map((option) => {
+				const primaryColor =
+					option.label === 'Total Assets'
+						? chartColors['TVL']
+						: option.label === 'Developer Commits'
+						? chartColors['Devs Commits']
+						: chartColors[option.label.startsWith('$') ? `Token ${option.label.split(' ')[1]}` : option.label]
+				return {
+					...option,
+					colors: primaryColor
+						? {
+								'--primary-color': primaryColor,
+								'--btn-bg': transparentize(0.9, primaryColor),
+								'--btn-hover-bg': transparentize(0.8, primaryColor)
+						  }
+						: {}
+				}
+			})
 		}
 	}, [
 		metrics,
@@ -296,7 +313,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		hallmarks,
 		tokenSymbol,
 		isCEX,
-		protocolData
+		protocolData,
+		chartColors
 	])
 
 	if (enabled)
@@ -327,6 +345,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 						<label
 							className="text-sm cursor-pointer flex items-center gap-1 flex-nowrap"
 							key={`${protocolData.name}-${coption.key}`}
+							style={coption.colors as any}
 						>
 							<input
 								type="checkbox"

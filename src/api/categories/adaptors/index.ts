@@ -80,6 +80,7 @@ export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummary
 	type: string
 	totalDataChart: [IJoin2ReturnType, string[]]
 	allAddresses?: Array<string>
+	totalAllTimeTokenTaxes?: number
 }
 
 export const generateGetOverviewItemPageDate = async (
@@ -118,6 +119,12 @@ export const generateGetOverviewItemPageDate = async (
 
 	if (thirdType?.totalDataChart && !(thirdType.totalDataChart.length === 1 && thirdType.totalDataChart[0][1] === 0)) {
 		allCharts.push(['Bribes', thirdType.totalDataChart])
+	}
+	if (
+		fourthType?.totalDataChart &&
+		!(fourthType.totalDataChart.length === 1 && fourthType.totalDataChart[0][1] === 0)
+	) {
+		allCharts.push(['TokenTax', fourthType.totalDataChart])
 	}
 
 	return {

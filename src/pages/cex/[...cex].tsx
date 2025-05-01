@@ -34,15 +34,38 @@ export const getStaticProps = withPerformanceLogging(
 
 		let inflowsExist = false
 
-		if (protocolRes?.chainTvls) {
-			Object.keys(protocolRes.chainTvls).forEach((chain) => {
-				if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
-					inflowsExist = true
-				}
+		let cexCoin = cexData.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())?.coin
 
-				delete protocolRes.chainTvls[chain].tokensInUsd
-				delete protocolRes.chainTvls[chain].tokens
-			})
+		if (protocolRes?.chainTvls) {
+			if (cexCoin) {
+				let chainTvls = {}
+				for (const chain in protocolRes?.chainTvls ?? {}) {
+					let tvls = {}
+					for (const item of protocolRes.chainTvls[chain].tokensInUsd ?? []) {
+						for (const token in item.tokens ?? {}) {
+							if (token !== cexCoin) {
+								tvls[item.date] = (tvls[item.date] ?? 0) + item.tokens[token]
+							}
+						}
+					}
+					chainTvls[chain] = { tvl: Object.entries(tvls).map((x) => ({ date: x[0], totalLiquidityUSD: x[1] })) }
+				}
+				protocolRes.chainTvls = chainTvls
+				const currentChainTvls = {}
+				for (const chain in chainTvls) {
+					if (chainTvls[chain].tvl.length === 0) continue
+					currentChainTvls[chain] = chainTvls[chain].tvl[chainTvls[chain].tvl.length - 1].totalLiquidityUSD
+				}
+				protocolRes.currentChainTvls = currentChainTvls
+			} else {
+				Object.keys(protocolRes.chainTvls).forEach((chain) => {
+					if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
+						inflowsExist = true
+					}
+					delete protocolRes.chainTvls[chain].tokensInUsd
+					delete protocolRes.chainTvls[chain].tokens
+				})
+			}
 		}
 
 		const protocolData = fuseProtocolData(protocolRes)

@@ -335,7 +335,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		const raisesChart =
 			metadata.name !== 'All' && raisesData
 				? (raisesData?.raises ?? []).reduce((acc, curr) => {
-						if (curr.date) {
+						if (curr.date && curr.defillamaId === `chain#${slug(metadata.name)}`) {
 							acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
 						}
 						return acc
@@ -640,7 +640,10 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				tvlChange: protocol.tvl != null ? tvlChange : null,
 				mcap: protocol.mcap ?? null,
 				mcaptvl: protocol.mcap && tvls?.default?.tvl ? +(protocol.mcap / tvls.default.tvl).toFixed(2) : null,
-				strikeTvl: toStrikeTvl(protocol, {})
+				strikeTvl: toStrikeTvl(protocol, {
+					liquidstaking: tvls?.liquidstaking ? true : false,
+					doublecounted: tvls?.doublecounted ? true : false
+				})
 			}
 
 			if (protocol.deprecated) {

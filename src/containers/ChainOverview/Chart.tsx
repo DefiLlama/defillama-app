@@ -273,9 +273,11 @@ export function ChainChart({
 				})
 			}
 
-			if (route.users === 'true' && data?.usersData?.length > 0) {
-				const color = getColor(isCompare) || colors.returningUsers
-				const areaColor = getAreaColor(color, isThemeDark)
+			if (route.addresses === 'true' && data?.usersData?.length > 0) {
+				const color1 = getColor(isCompare) || colors.returningUsers
+				const color2 = getColor(isCompare) || colors.newUsers
+
+				const areaColor = getAreaColor(color1, isThemeDark)
 				series.push({
 					name: namePrefix + 'Returning Users',
 					chartId: 'Users',
@@ -285,7 +287,7 @@ export function ChainChart({
 					data: [],
 					yAxisIndex: 6,
 					itemStyle: {
-						color
+						color: color1
 					},
 					areaStyle: areaColor
 				})
@@ -301,7 +303,7 @@ export function ChainChart({
 					data: [],
 					yAxisIndex: 6,
 					itemStyle: {
-						color
+						color: color2
 					},
 					areaStyle: areaColor
 				})
