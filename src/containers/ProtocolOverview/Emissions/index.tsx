@@ -64,11 +64,21 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
+	const categories = useMemo(() => data.categories?.[dataType] || [], [data.categories, dataType])
+	const stackColors = useMemo(() => data.stackColors?.[dataType] || {}, [data.stackColors, dataType])
+	const tokenAllocation = useMemo(
+		() => data.tokenAllocation?.[dataType] || { current: {}, final: {} },
+		[data.tokenAllocation, dataType]
+	)
+	const rawChartData = useMemo(() => data.chartData?.[dataType] || [], [data.chartData, dataType])
+	const pieChartData = useMemo(() => data.pieChartData?.[dataType] || [], [data.pieChartData, dataType])
+	const hallmarks = useMemo(() => data.hallmarks?.[dataType] || [], [data.hallmarks, dataType])
+
 	useEffect(() => {
-		if (data?.categories?.[dataType]) {
-			setSelectedCategories(data.categories[dataType].filter((cat) => !['Market Cap', 'Price'].includes(cat)))
+		if (categories.length > 0) {
+			setSelectedCategories(categories.filter((cat) => !['Market Cap', 'Price'].includes(cat)))
 		}
-	}, [data, dataType])
+	}, [categories])
 	const { data: geckoId } = useGeckoId(data.token ?? null)
 
 	const priceChart = usePriceChart(data.geckoId ?? geckoId)
@@ -99,7 +109,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		return index === -1 ? 0 : index
 	}, [sortedEvents])
 
-	const chartData = data.chartData?.[dataType]
+	const chartData = rawChartData
 		?.map((chartItem) => {
 			const date = chartItem.date
 			const res = Object.entries(chartItem).reduce((acc, [key, value]) => {
@@ -113,6 +123,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				res['Market Cap'] = mcap
 
 				if (!data.categories?.[dataType]?.includes('Market Cap')) {
+					if (!data.categories[dataType]) data.categories[dataType] = []
+					if (!data.stackColors[dataType]) data.stackColors[dataType] = {}
 					data.categories[dataType].push('Market Cap')
 					data.stackColors[dataType]['Market Cap'] = '#0c5dff'
 				}
@@ -120,6 +132,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			if (price && isPriceEnabled) {
 				res['Price'] = price
 				if (!data.categories?.[dataType]?.includes('Price')) {
+					if (!data.categories[dataType]) data.categories[dataType] = []
+					if (!data.stackColors[dataType]) data.stackColors[dataType] = {}
 					data.categories[dataType].push('Price')
 					data.stackColors[dataType]['Price'] = '#ff4e21'
 				}
@@ -133,8 +147,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		if (allocationMode === 'standard') {
 			return Object.keys(data.categoriesBreakdown || {})
 		}
-		return data.categories?.[dataType]?.filter((cat) => !['Market Cap', 'Price'].includes(cat)) || []
-	}, [allocationMode, data, dataType])
+		return categories.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+	}, [allocationMode, data.categoriesBreakdown, categories])
 
 	const displayData = useMemo(() => {
 		if (allocationMode === 'standard' && data.categoriesBreakdown) {
@@ -147,19 +161,19 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		if (allocationMode === 'standard') {
 			return standardGroupColors
 		}
-		return data.stackColors?.[dataType] || {}
-	}, [allocationMode, data.stackColors, dataType])
+		return stackColors
+	}, [allocationMode, stackColors])
 
 	useEffect(() => {
 		if (allocationMode === 'standard' && data.categoriesBreakdown) {
 			setSelectedCategories(Object.keys(data.categoriesBreakdown))
-		} else if (data.categories?.[dataType]) {
-			setSelectedCategories(data.categories[dataType].filter((cat) => !['Market Cap', 'Price'].includes(cat)))
+		} else if (categories.length > 0) {
+			setSelectedCategories(categories.filter((cat) => !['Market Cap', 'Price'].includes(cat)))
 		}
-	}, [allocationMode, data, dataType])
+	}, [allocationMode, data.categoriesBreakdown, categories])
 
 	const groupAllocation = useMemo(() => {
-		const finalAllocation = data.tokenAllocation?.[dataType]?.final
+		const finalAllocation = tokenAllocation?.final
 		if (!finalAllocation || Object.keys(finalAllocation).length === 0) {
 			return []
 		}
@@ -169,10 +183,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				name: name,
 				value: Number(value)
 			}))
-	}, [data.tokenAllocation, dataType])
+	}, [tokenAllocation])
 
-	const pieChartDataAllocation = data.pieChartData?.[dataType]
-		?.map((pieChartItem) => {
+	const pieChartDataAllocation = pieChartData
+		.map((pieChartItem) => {
 			if (!selectedCategories.includes(pieChartItem.name)) {
 				return null
 			}
@@ -293,7 +307,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			)}
 
 			<div className="flex flex-col gap-1">
-				{data.categories?.[dataType] && data.chartData?.[dataType] && data.stackColors?.[dataType] && (
+				{categories.length > 0 && rawChartData.length > 0 && (
 					<LazyChart className="bg-[var(--cards-bg)] rounded-md min-h-[384px] p-3 relative">
 						<div className="absolute right-4 z-10">
 							<SelectWithCombobox
@@ -313,13 +327,12 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									if (allocationMode === 'standard' && data.categoriesBreakdown) {
 										setSelectedCategories(Object.keys(data.categoriesBreakdown))
 									} else {
-										setSelectedCategories(
-											data.categories[dataType].filter(
-												(cat) =>
-													!['Market Cap', 'Price'].includes(cat) &&
-													!data.categoriesBreakdown?.noncirculating?.includes(cat)
-											)
+										const filteredCategories = categories.filter(
+											(cat) =>
+												!['Market Cap', 'Price'].includes(cat) &&
+												!data.categoriesBreakdown?.noncirculating?.includes(cat)
 										)
+										setSelectedCategories(filteredCategories)
 									}
 								}}
 								labelType="smol"
@@ -334,7 +347,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							title="Schedule"
 							stacks={[...selectedCategories, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean)}
 							chartData={displayData}
-							hallmarks={data.hallmarks[dataType]}
+							hallmarks={hallmarks}
 							stackColors={displayColors}
 							isStackedChart
 						/>
@@ -399,15 +412,15 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div>
 				{data.token &&
-				Object.entries(data.tokenAllocation?.[dataType]?.current || {}).length &&
-				Object.entries(data.tokenAllocation?.[dataType]?.final || {}).length ? (
+				Object.entries(tokenAllocation.current || {}).length &&
+				Object.entries(tokenAllocation.final || {}).length ? (
 					<div className="flex flex-col items-center justify-start p-3 w-full bg-[var(--cards-bg)] rounded-md h-full">
 						<h1 className="text-center text-xl font-semibold">Token Allocation</h1>
 						<div className="flex flex-col text-base gap-2 w-full">
 							<h4 style={{ fontSize: '16px' }}>Current</h4>
 
 							<div className="flex justify-between flex-wrap">
-								{chunk(Object.entries(data.tokenAllocation[dataType].current)).map((currentChunk) =>
+								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
 										<p className="text-base text-[var(--text3)]" key={cat}>{`${capitalizeFirstLetter(
 											cat
@@ -420,7 +433,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<h4 style={{ fontSize: '16px' }}>Final</h4>
 
 							<div className="flex justify-between flex-wrap">
-								{chunk(Object.entries(data.tokenAllocation[dataType].final)).map((currentChunk) =>
+								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
 										<p className="text-base text-[var(--text3)]" key={cat}>{`${capitalizeFirstLetter(
 											cat
