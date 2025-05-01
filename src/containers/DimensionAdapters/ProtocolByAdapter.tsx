@@ -63,9 +63,12 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 		}
 		if (props.protocolSummary.type === 'fees') {
 			chartData = chartData.map((val) => ({
-				...val,
-				Revenue: +val.Revenue + +(enabledSettings.bribes ? val.Bribes || 0 : 0),
-				Bribes: undefined
+				date: val.date,
+				Fees: +val.Fees + +(enabledSettings.tokentax ? val.TokenTax || 0 : 0),
+				Revenue:
+					+val.Revenue +
+					+(enabledSettings.bribes ? val.Bribes || 0 : 0) +
+					+(enabledSettings.tokentax ? val.TokenTax || 0 : 0)
 			}))
 			legend = legend.filter((r) => r !== 'Bribes')
 		}

@@ -79,7 +79,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 			if (tokenTaxData) {
 				totalDataChart[item.date].TokenTax =
-					tokenTaxData.totalDataChart[0].find((i) => i.date === item.date)?.Bribes ?? 0
+					tokenTaxData.totalDataChart[0].find((i) => i.date === item.date)?.TokenTax ?? 0
 			}
 		}
 
@@ -90,13 +90,14 @@ export const getStaticProps = withPerformanceLogging(
 				...totalDataChart[date]
 			})
 		}
+
 		return {
 			props: {
 				protocolSummary: {
 					...feesData,
 					totalDataChart: [finalChartData, feesData.totalDataChart[1]],
 					type: ADAPTOR_TYPE,
-					tokenTaxData
+					...(tokenTaxData ? { totalAllTimeTokenTaxes: tokenTaxData.totalAllTime } : {})
 				},
 				title: `${feesData.name} Fees - DefiLlama`
 			},
