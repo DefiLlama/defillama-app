@@ -59,6 +59,11 @@ export interface IEmission {
 	mcap: number | null
 	unlocksPerDay: number | null
 	historicalPrice?: [string, number][]
+	lastEvent?: Array<{
+		description: string
+		noOfTokens: number[]
+		timestamp: number
+	}>
 	upcomingEvent: Array<{
 		description: string
 		noOfTokens: number[]

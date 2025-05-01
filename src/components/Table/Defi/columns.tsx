@@ -381,10 +381,11 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		}
 	},
 	{
-		header: 'Previous Unlock Analysis',
+		header: 'Prev. Unlock Analysis',
 		id: 'prevUnlock',
 		sortUndefined: 'last',
 		accessorFn: (row) => (row.historicalPrice ? row.historicalPrice : undefined),
+
 		cell: ({ getValue, row }) => {
 			return (
 				<div className="relative">
@@ -401,13 +402,36 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 									: 'green'
 							}
 							className="my-auto h-[53px]"
+							extraData={{
+								lastEvent: row.original.lastEvent
+							}}
 						/>
 					</Suspense>
 				</div>
 			)
 		},
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText:
+				"Price trend shown from 7 days before to 7 days after the most recent major unlock event. Doesn't include Non-Circulating and Farming emissions."
+		}
+	},
+	{
+		header: '7d Post Unlock',
+		id: 'postUnlock',
+		sortUndefined: 'last',
+		accessorFn: (row) => {
+			if (!row.historicalPrice?.length) return undefined
+			const priceAtUnlock = row.historicalPrice[7][1]
+			const priceAfter7d = row.historicalPrice[row.historicalPrice.length - 1][1]
+			return ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
+		},
+		cell: ({ getValue }) => {
+			return <>{getValue() ? formattedPercent(getValue()) : ''}</>
+		},
+		meta: {
+			align: 'end',
+			headerHelperText: 'Price change 7 days after the most recent unlock event'
 		}
 	},
 	{

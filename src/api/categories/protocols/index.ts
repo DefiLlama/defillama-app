@@ -176,7 +176,12 @@ export const getAllProtocolEmissions = async ({
 		res.forEach((protocol) => {
 			if (!protocol.gecko_id) return
 			let lastEventTimestamp = protocol.events
-				?.filter((e) => e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60)
+				?.filter(
+					(e) =>
+						e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60 &&
+						e.category !== 'noncirculating' &&
+						e.category !== 'farming'
+				)
 				.sort((a, b) => b.timestamp - a.timestamp)[0]?.timestamp
 
 			if (!lastEventTimestamp) return
@@ -209,7 +214,11 @@ export const getAllProtocolEmissions = async ({
 						}))
 					}
 					let event = protocol.events?.find((e) => e.timestamp >= Date.now() / 1000)
+					let lastEventTimestamp = protocol.events
+						?.filter((e) => e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60)
+						.sort((a, b) => b.timestamp - a.timestamp)[0]?.timestamp
 
+					let lastEvent = []
 					let upcomingEvent = []
 
 					if (!event || (event.noOfTokens.length === 1 && event.noOfTokens[0] === 0)) {
@@ -217,6 +226,13 @@ export const getAllProtocolEmissions = async ({
 					} else {
 						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
 						upcomingEvent = [...comingEvents]
+					}
+					if (lastEventTimestamp) {
+						lastEvent = protocol.events.filter(
+							(e) => e.timestamp === lastEventTimestamp && e.category !== 'noncirculating' && e.category !== 'farming'
+						)
+					} else {
+						lastEvent = []
 					}
 
 					let filteredEvents = protocol.events || []
@@ -236,11 +252,13 @@ export const getAllProtocolEmissions = async ({
 						upcomingEvent,
 						events: filteredEvents,
 						tPrice: coin?.price ?? null,
-						historicalPrice: historicalPrice?.prices
-							? historicalPrice.prices
-									.sort((a, b) => a.timestamp - b.timestamp)
-									.map((price) => [price.timestamp * 1000, price.price])
-							: [],
+						historicalPrice:
+							lastEvent.length > 0 && historicalPrice?.prices
+								? historicalPrice.prices
+										.sort((a, b) => a.timestamp - b.timestamp)
+										.map((price) => [price.timestamp * 1000, price.price])
+								: [],
+						lastEvent,
 						tSymbol
 					}
 				} catch (e) {
