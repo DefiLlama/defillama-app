@@ -70,7 +70,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 					+(enabledSettings.bribes ? val.Bribes || 0 : 0) +
 					+(enabledSettings.tokentax ? val.TokenTax || 0 : 0)
 			}))
-			legend = legend.filter((r) => r !== 'Bribes')
+			legend = legend.filter((r) => r !== 'Bribes' && r !== 'TokenTax')
 		}
 		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(typeSimple)} by chain` : ''
 		return {
