@@ -54,12 +54,12 @@ export const getStaticProps = withPerformanceLogging(
 			getOverviewItemPageData(ADAPTOR_TYPE, protocol).catch((e) =>
 				console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e)
 			),
-			metadata.bribeRevenue
+			metadata?.bribeRevenue
 				? getOverviewItemPageData(ADAPTOR_TYPE, protocol, 'dailyBribesRevenue').catch((e) =>
 						console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e)
 				  )
 				: Promise.resolve(null),
-			metadata.tokenTax
+			metadata?.tokenTax
 				? getOverviewItemPageData(ADAPTOR_TYPE, protocol, 'dailyTokenTaxes').catch((e) =>
 						console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e)
 				  )
@@ -79,7 +79,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 			if (tokenTaxData) {
 				totalDataChart[item.date].TokenTax =
-					tokenTaxData.totalDataChart[0].find((i) => i.date === item.date)?.TokenTax ?? 0
+					tokenTaxData.totalDataChart[0].find((i) => i.date === item.date)?.Bribes ?? 0
 			}
 		}
 
