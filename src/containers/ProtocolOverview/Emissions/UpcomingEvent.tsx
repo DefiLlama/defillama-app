@@ -5,7 +5,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
-import { downloadICSFile, generateGoogleCalendarUrl } from '~/utils/calendar'
+import { generateGoogleCalendarUrl } from '~/utils/calendar'
 
 export const CalendarButton = ({ event, tokenName, tokenValue }) => {
 	return (
@@ -35,7 +35,9 @@ export const CalendarButton = ({ event, tokenName, tokenValue }) => {
 				</Ariakit.MenuItem>
 
 				<Ariakit.MenuItem
-					onClick={() => downloadICSFile(event, tokenName, tokenValue)}
+					render={
+						<a href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue}&name=${tokenName}`} />
+					}
 					className="flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md"
 				>
 					<Icon name="download-cloud" width={16} height={16} />

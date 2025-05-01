@@ -31,7 +31,7 @@ export function generateGoogleCalendarUrl(event: UnlockEvent, tokenName: string,
 	return `https://calendar.google.com/calendar/render?action=TEMPLATE&${new URLSearchParams(params)}`
 }
 
-export function generateICSContent(event: UnlockEvent, tokenName: string, tokenValue: number) {
+export function generateICSContent(event: UnlockEvent, tokenName: string, tokenValue: string) {
 	const start = dayjs.unix(event.timestamp).utc()
 	const end = start.add(1, 'day')
 
@@ -58,15 +58,4 @@ DESCRIPTION:Reminder: ${tokenName} Token Unlock in 24 hours
 END:VALARM
 END:VEVENT
 END:VCALENDAR`
-}
-
-export function downloadICSFile(event: UnlockEvent, tokenName: string, tokenValue: number) {
-	const content = generateICSContent(event, tokenName, tokenValue)
-	const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' })
-	const link = document.createElement('a')
-	link.href = window.URL.createObjectURL(blob)
-	link.download = `${slug(tokenName)}-unlock-${dayjs.unix(event.timestamp).format('YYYYMMDD')}.ics`
-	document.body.appendChild(link)
-	link.click()
-	document.body.removeChild(link)
 }
