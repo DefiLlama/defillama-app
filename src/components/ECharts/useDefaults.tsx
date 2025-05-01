@@ -389,14 +389,14 @@ const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 
 // timestamps in monthly chart date is 1st of every month
 // timestamps in weekly chart date is last day of week i.e., sunday
-export function formatTooltipChartDate(value: number, groupBy: 'daily' | 'weekly' | 'monthly') {
+export function formatTooltipChartDate(value: number, groupBy: 'daily' | 'weekly' | 'monthly', hideTime?: boolean) {
 	const date = new Date(value)
 
 	return groupBy === 'monthly'
 		? `${monthNames[date.getUTCMonth()]} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
 		: groupBy === 'weekly'
 		? getStartAndEndDayOfTheWeek(value)
-		: date.getUTCHours() !== 0
+		: date.getUTCHours() !== 0 && !hideTime
 		? `${date.toLocaleDateString(undefined, {
 				year: 'numeric',
 				month: '2-digit',

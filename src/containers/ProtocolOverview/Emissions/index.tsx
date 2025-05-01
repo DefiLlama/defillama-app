@@ -31,24 +31,54 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 	)
 }
 
+const standardGroupColors = {
+	noncirculating: '#546fc6',
+	insiders: '#90cc74',
+	publicSale: '#fac759',
+	privateSale: '#fd8353',
+	farming: '#ed6666',
+	airdrop: '#73c0de',
+	liquidity: '#39a371'
+}
+
+function processGroupedChartData(
+	chartData: Array<{ [label: string]: number }>,
+	categoriesBreakdown: Record<string, string[]>
+) {
+	return chartData.map((entry) => {
+		const groupedEntry = { date: entry.date }
+		Object.entries(categoriesBreakdown).forEach(([group, categories]) => {
+			groupedEntry[group] = categories.reduce((sum, category) => {
+				return sum + (entry[category] || 0)
+			}, 0)
+		})
+
+		return groupedEntry
+	})
+}
+
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const { width } = useWindowSize()
 	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
-	const [isTreasuryIncluded, setIsTreasuryIncluded] = useState(false)
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
+	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
+	const categories = useMemo(() => data.categories?.[dataType] || [], [data.categories, dataType])
+	const stackColors = useMemo(() => data.stackColors?.[dataType] || {}, [data.stackColors, dataType])
+	const tokenAllocation = useMemo(
+		() => data.tokenAllocation?.[dataType] || { current: {}, final: {} },
+		[data.tokenAllocation, dataType]
+	)
+	const rawChartData = useMemo(() => data.chartData?.[dataType] || [], [data.chartData, dataType])
+	const pieChartData = useMemo(() => data.pieChartData?.[dataType] || [], [data.pieChartData, dataType])
+	const hallmarks = useMemo(() => data.hallmarks?.[dataType] || [], [data.hallmarks, dataType])
+
 	useEffect(() => {
-		if (data?.categories?.[dataType]) {
-			setSelectedCategories(
-				data.categories[dataType].filter(
-					(cat) =>
-						!['Market Cap', 'Price'].includes(cat) &&
-						!(data.categoriesBreakdown?.noncirculating?.includes(cat) && !isTreasuryIncluded)
-				)
-			)
+		if (categories.length > 0) {
+			setSelectedCategories(categories.filter((cat) => !['Market Cap', 'Price'].includes(cat)))
 		}
-	}, [data, dataType, isTreasuryIncluded])
+	}, [categories])
 	const { data: geckoId } = useGeckoId(data.token ?? null)
 
 	const priceChart = usePriceChart(data.geckoId ?? geckoId)
@@ -79,16 +109,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		return index === -1 ? 0 : index
 	}, [sortedEvents])
 
-	if (!data) return null
-
-	const chartData = data.chartData?.[dataType]
+	const chartData = rawChartData
 		?.map((chartItem) => {
 			const date = chartItem.date
 			const res = Object.entries(chartItem).reduce((acc, [key, value]) => {
-				if (data?.categoriesBreakdown?.noncirculating?.includes(key)) {
-					if (isTreasuryIncluded) acc[key] = value
-					else return acc
-				}
 				acc[key] = value
 				return acc
 			}, {})
@@ -99,6 +123,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				res['Market Cap'] = mcap
 
 				if (!data.categories?.[dataType]?.includes('Market Cap')) {
+					if (!data.categories[dataType]) data.categories[dataType] = []
+					if (!data.stackColors[dataType]) data.stackColors[dataType] = {}
 					data.categories[dataType].push('Market Cap')
 					data.stackColors[dataType]['Market Cap'] = '#0c5dff'
 				}
@@ -106,6 +132,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			if (price && isPriceEnabled) {
 				res['Price'] = price
 				if (!data.categories?.[dataType]?.includes('Price')) {
+					if (!data.categories[dataType]) data.categories[dataType] = []
+					if (!data.stackColors[dataType]) data.stackColors[dataType] = {}
 					data.categories[dataType].push('Price')
 					data.stackColors[dataType]['Price'] = '#ff4e21'
 				}
@@ -115,19 +143,61 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		})
 		.filter((chartItem) => sum(Object.values(omit(chartItem, 'date'))) > 0)
 
-	const pieChartDataAllocation = data.pieChartData?.[dataType]
-		?.map((pieChartItem) => {
-			if (data?.categoriesBreakdown?.noncirculating?.includes(pieChartItem.name)) {
-				if (isTreasuryIncluded) return pieChartItem
-				else return null
-			}
+	const availableCategories = useMemo(() => {
+		if (allocationMode === 'standard') {
+			return Object.keys(data.categoriesBreakdown || {})
+		}
+		return categories.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+	}, [allocationMode, data.categoriesBreakdown, categories])
+
+	const displayData = useMemo(() => {
+		if (allocationMode === 'standard' && data.categoriesBreakdown) {
+			return processGroupedChartData(chartData || [], data.categoriesBreakdown)
+		}
+		return chartData
+	}, [allocationMode, chartData, data.categoriesBreakdown])
+
+	const displayColors = useMemo(() => {
+		if (allocationMode === 'standard') {
+			return standardGroupColors
+		}
+		return stackColors
+	}, [allocationMode, stackColors])
+
+	useEffect(() => {
+		if (allocationMode === 'standard' && data.categoriesBreakdown) {
+			setSelectedCategories(Object.keys(data.categoriesBreakdown))
+		} else if (categories.length > 0) {
+			setSelectedCategories(categories.filter((cat) => !['Market Cap', 'Price'].includes(cat)))
+		}
+	}, [allocationMode, data.categoriesBreakdown, categories])
+
+	const groupAllocation = useMemo(() => {
+		const finalAllocation = tokenAllocation?.final
+		if (!finalAllocation || Object.keys(finalAllocation).length === 0) {
+			return []
+		}
+		return Object.entries(finalAllocation)
+			.filter(([_, value]) => Number(value) > 0)
+			.map(([name, value]) => ({
+				name: name,
+				value: Number(value)
+			}))
+	}, [tokenAllocation])
+
+	const pieChartDataAllocation = pieChartData
+		.map((pieChartItem) => {
 			if (!selectedCategories.includes(pieChartItem.name)) {
 				return null
 			}
 			return pieChartItem
 		})
 		.filter(Boolean)
+
+	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
+
 	const unlockedPercent = 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
+	if (!data) return null
 
 	return (
 		<>
@@ -140,12 +210,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				) : null}
 				<div className="flex flex-wrap gap-2 justify-center sm:justify-end w-full sm:w-auto">
 					<Switch
-						label="Include Treasury"
-						value="include-treasury"
-						onChange={() => setIsTreasuryIncluded((prev) => !prev)}
-						help="Include Non-Circulating Supply in the chart."
-						checked={isTreasuryIncluded}
+						label="Group Allocation"
+						value="group-allocation"
+						onChange={() => setAllocationMode((prev) => (prev === 'current' ? 'standard' : 'current'))}
+						help="Group token allocations into standardized categories."
+						checked={allocationMode === 'standard'}
 					/>
+
 					{normilizePriceChart?.prices ? (
 						<Switch
 							label="Show Price and Market Cap"
@@ -236,15 +307,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			)}
 
 			<div className="flex flex-col gap-1">
-				{data.categories?.[dataType] && data.chartData?.[dataType] && data.stackColors?.[dataType] && (
+				{categories.length > 0 && rawChartData.length > 0 && (
 					<LazyChart className="bg-[var(--cards-bg)] rounded-md min-h-[384px] p-3 relative">
 						<div className="absolute right-4 z-10">
 							<SelectWithCombobox
-								allValues={data.categories[dataType].filter(
-									(cat) =>
-										!['Market Cap', 'Price'].includes(cat) &&
-										!(data.categoriesBreakdown?.noncirculating?.includes(cat) && !isTreasuryIncluded)
-								)}
+								allValues={availableCategories}
 								selectedValues={selectedCategories}
 								setSelectedValues={(newCategories) => {
 									if (newCategories.length === 0) return
@@ -256,15 +323,18 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 										setSelectedCategories([selectedCategories[0]])
 									}
 								}}
-								toggleAll={() =>
-									setSelectedCategories(
-										data.categories[dataType].filter(
+								toggleAll={() => {
+									if (allocationMode === 'standard' && data.categoriesBreakdown) {
+										setSelectedCategories(Object.keys(data.categoriesBreakdown))
+									} else {
+										const filteredCategories = categories.filter(
 											(cat) =>
 												!['Market Cap', 'Price'].includes(cat) &&
-												!(data.categoriesBreakdown?.noncirculating?.includes(cat) && !isTreasuryIncluded)
+												!data.categoriesBreakdown?.noncirculating?.includes(cat)
 										)
-									)
-								}
+										setSelectedCategories(filteredCategories)
+									}
+								}}
 								labelType="smol"
 								triggerProps={{
 									className:
@@ -276,9 +346,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							customYAxis={isPriceEnabled ? ['Market Cap', 'Price'] : []}
 							title="Schedule"
 							stacks={[...selectedCategories, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean)}
-							chartData={chartData}
-							hallmarks={data.hallmarks[dataType]}
-							stackColors={data.stackColors[dataType]}
+							chartData={displayData}
+							hallmarks={hallmarks}
+							stackColors={displayColors}
 							isStackedChart
 						/>
 					</LazyChart>
@@ -290,8 +360,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<PieChart
 								showLegend
 								title="Allocation"
-								chartData={pieChartDataAllocation}
-								stackColors={data.stackColors[dataType]}
+								chartData={pieChartDataAllocationMode}
+								stackColors={displayColors}
 								usdFormat={false}
 								legendPosition={
 									!width
@@ -342,15 +412,15 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div>
 				{data.token &&
-				Object.entries(data.tokenAllocation?.[dataType]?.current || {}).length &&
-				Object.entries(data.tokenAllocation?.[dataType]?.final || {}).length ? (
+				Object.entries(tokenAllocation.current || {}).length &&
+				Object.entries(tokenAllocation.final || {}).length ? (
 					<div className="flex flex-col items-center justify-start p-3 w-full bg-[var(--cards-bg)] rounded-md h-full">
 						<h1 className="text-center text-xl font-semibold">Token Allocation</h1>
 						<div className="flex flex-col text-base gap-2 w-full">
 							<h4 style={{ fontSize: '16px' }}>Current</h4>
 
 							<div className="flex justify-between flex-wrap">
-								{chunk(Object.entries(data.tokenAllocation[dataType].current)).map((currentChunk) =>
+								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
 										<p className="text-base text-[var(--text3)]" key={cat}>{`${capitalizeFirstLetter(
 											cat
@@ -363,7 +433,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<h4 style={{ fontSize: '16px' }}>Final</h4>
 
 							<div className="flex justify-between flex-wrap">
-								{chunk(Object.entries(data.tokenAllocation[dataType].final)).map((currentChunk) =>
+								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
 										<p className="text-base text-[var(--text3)]" key={cat}>{`${capitalizeFirstLetter(
 											cat

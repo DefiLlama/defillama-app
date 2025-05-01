@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 import { Bookmark } from '~/components/Bookmark'
@@ -33,7 +33,13 @@ import type {
 	ILSDRow
 } from './types'
 import * as Ariakit from '@ariakit/react'
-
+import dynamic from 'next/dynamic'
+const UnconstrainedSmolLineChart = dynamic(
+	() => import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => m.UnconstrainedSmolLineChart),
+	{
+		ssr: false
+	}
+)
 export const forksColumn: ColumnDef<IForksRow>[] = [
 	{
 		header: 'Name',
@@ -281,13 +287,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative pl-6">
-					<Bookmark
-						readableProtocolName={getValue() as string}
-						data-lgonly
-						data-bookmark
-						className="absolute -left-[2px]"
-					/>
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<Bookmark readableProtocolName={getValue() as string} data-bookmark className="absolute -left-[2px]" />
+					<TokenLogo logo={tokenIconUrl(getValue())} />
 					<CustomLink
 						href={`/unlocks/${slug(getValue() as string)}`}
 						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
@@ -377,6 +378,60 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		},
 		meta: {
 			align: 'end'
+		}
+	},
+	{
+		header: 'Prev. Unlock Analysis',
+		id: 'prevUnlock',
+		sortUndefined: 'last',
+		accessorFn: (row) => (row.historicalPrice ? row.historicalPrice : undefined),
+
+		cell: ({ getValue, row }) => {
+			return (
+				<div className="relative">
+					<Suspense fallback={<></>}>
+						<UnconstrainedSmolLineChart
+							series={row.original.historicalPrice}
+							name=""
+							color={
+								!row.original.historicalPrice?.length
+									? 'red'
+									: row.original.historicalPrice[Math.floor(row.original.historicalPrice.length / 2)][1] >=
+									  row.original.historicalPrice[row.original.historicalPrice.length - 1][1]
+									? 'red'
+									: 'green'
+							}
+							className="my-auto h-[53px]"
+							extraData={{
+								lastEvent: row.original.lastEvent
+							}}
+						/>
+					</Suspense>
+				</div>
+			)
+		},
+		meta: {
+			align: 'end',
+			headerHelperText:
+				"Price trend shown from 7 days before to 7 days after the most recent major unlock event. Doesn't include Non-Circulating and Farming emissions."
+		}
+	},
+	{
+		header: '7d Post Unlock',
+		id: 'postUnlock',
+		sortUndefined: 'last',
+		accessorFn: (row) => {
+			if (!row.historicalPrice?.length) return undefined
+			const priceAtUnlock = row.historicalPrice[7][1]
+			const priceAfter7d = row.historicalPrice[row.historicalPrice.length - 1][1]
+			return ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
+		},
+		cell: ({ getValue }) => {
+			return <>{getValue() ? formattedPercent(getValue()) : ''}</>
+		},
+		meta: {
+			align: 'end',
+			headerHelperText: 'Price change 7 days after the most recent unlock event'
 		}
 	},
 	{

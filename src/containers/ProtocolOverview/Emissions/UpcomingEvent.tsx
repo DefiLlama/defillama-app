@@ -5,6 +5,48 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
+import { generateGoogleCalendarUrl } from '~/utils/calendar'
+
+export const CalendarButton = ({ event, tokenName, tokenValue }) => {
+	return (
+		<Ariakit.MenuProvider>
+			<Ariakit.MenuButton className="flex items-center gap-2 hover:bg-[var(--bg2)] p-2 rounded">
+				<Icon name="calendar-plus" width={16} height={16} />
+				Add to Calendar
+			</Ariakit.MenuButton>
+
+			<Ariakit.Menu
+				unmountOnHide
+				gutter={8}
+				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+			>
+				<Ariakit.MenuItem
+					render={
+						<a
+							href={generateGoogleCalendarUrl(event, tokenName, tokenValue)}
+							target="_blank"
+							rel="noopener noreferrer"
+						/>
+					}
+					className="flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md border-b border-[var(--form-control-border)]"
+				>
+					<Icon name="external-link" width={16} height={16} />
+					Google Calendar
+				</Ariakit.MenuItem>
+
+				<Ariakit.MenuItem
+					render={
+						<a href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue}&name=${tokenName}`} />
+					}
+					className="flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md"
+				>
+					<Icon name="download-cloud" width={16} height={16} />
+					Other Calendars Apps
+				</Ariakit.MenuItem>
+			</Ariakit.Menu>
+		</Ariakit.MenuProvider>
+	)
+}
 
 export const UpcomingEvent = ({
 	noOfTokens = [],
@@ -34,6 +76,7 @@ export const UpcomingEvent = ({
 	})
 
 	const totalAmount = sum(currentUnlockBreakdown.map((item) => item.amount))
+	const totalUsdValue = price ? totalAmount * price : null
 	const tokenValue = price ? totalAmount * price : null
 	const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
 	const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
@@ -141,6 +184,14 @@ export const UpcomingEvent = ({
 						)
 					})}
 				</span>
+
+				{timeLeft > 0 && (
+					<CalendarButton
+						event={{ timestamp, noOfTokens, symbol, description: '' }}
+						tokenName={name}
+						tokenValue={totalUsdValue ? formattedNum(totalUsdValue, true) : '-'}
+					/>
+				)}
 			</span>
 		)
 	}
@@ -249,6 +300,14 @@ export const UpcomingEvent = ({
 						)
 					})}
 				</span>
+
+				{timeLeft > 0 && (
+					<CalendarButton
+						event={{ timestamp, noOfTokens, symbol, description: '' }}
+						tokenName={name}
+						tokenValue={totalUsdValue ? formattedNum(totalUsdValue, true) : '-'}
+					/>
+				)}
 			</Ariakit.Hovercard>
 		</Ariakit.HovercardProvider>
 	)

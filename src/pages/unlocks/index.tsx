@@ -12,8 +12,15 @@ import { formattedNum, slug } from '~/utils'
 import { UpcomingUnlockVolumeChart } from '~/components/Charts/UpcomingUnlockVolumeChart'
 import { useWatchlist } from '~/contexts/LocalStorage'
 
+import dayjs from 'dayjs'
+import weekOfYear from 'dayjs/plugin/weekOfYear'
+
+dayjs.extend(weekOfYear)
+
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
-	const data = await getAllProtocolEmissions()
+	const data = await getAllProtocolEmissions({
+		endDate: Date.now() / 1000 + 30 * 24 * 60 * 60
+	})
 
 	return {
 		props: {
@@ -32,31 +39,40 @@ export default function Protocols({ data }) {
 	const { savedProtocols } = useWatchlist()
 
 	const filteredData = React.useMemo(() => {
-		const searchTerm = projectName.toLowerCase()
-		let filtered =
-			searchTerm || showOnlyWatchlist || showOnlyInsider
-				? data.filter((protocol) => {
-						let toFilter = false
+		const searchTerm = projectName.toLowerCase().trim()
 
-						if (searchTerm) {
-							toFilter =
-								protocol.name.toLowerCase().includes(searchTerm) ||
-								(protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm))
-						}
+		const isAnyFilterActive = searchTerm || showOnlyWatchlist || showOnlyInsider
 
-						if (showOnlyWatchlist && !savedProtocols[slug(protocol.name)]) {
-							toFilter = false
-						}
+		if (!isAnyFilterActive) {
+			return data
+		}
 
-						if (showOnlyInsider && !protocol.upcomingEvent?.some((event) => event.category === 'insiders')) {
-							toFilter = false
-						}
+		return data.filter((protocol) => {
+			let shouldInclude = true
 
-						return toFilter
-				  })
-				: data
+			if (searchTerm) {
+				const nameMatch = protocol.name.toLowerCase().includes(searchTerm)
+				const symbolMatch = protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm)
+				if (!nameMatch && !symbolMatch) {
+					shouldInclude = false
+				}
+			}
 
-		return filtered
+			if (shouldInclude && showOnlyWatchlist) {
+				if (!savedProtocols[slug(protocol.name)]) {
+					shouldInclude = false
+				}
+			}
+
+			if (shouldInclude && showOnlyInsider) {
+				const hasInsiderEvent = protocol.upcomingEvent?.some((event) => event.category === 'insiders')
+				if (!hasInsiderEvent) {
+					shouldInclude = false
+				}
+			}
+
+			return shouldInclude
+		})
 	}, [data, projectName, savedProtocols, showOnlyInsider, showOnlyWatchlist])
 
 	const instance = useReactTable({
@@ -75,7 +91,7 @@ export default function Protocols({ data }) {
 		const now = Date.now() / 1000
 		const thirtyDaysLater = now + 30 * 24 * 60 * 60
 
-		filteredData?.forEach((protocol) => {
+		data?.forEach((protocol) => {
 			if (!protocol.upcomingEvent || protocol.tPrice === null || protocol.tPrice === undefined) {
 				return
 			}
@@ -98,7 +114,7 @@ export default function Protocols({ data }) {
 		})
 
 		return { upcomingUnlocks30dValue }
-	}, [filteredData])
+	}, [data])
 
 	return (
 		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
@@ -127,7 +143,7 @@ export default function Protocols({ data }) {
 					</p>
 				</div>
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
-					<UpcomingUnlockVolumeChart protocols={filteredData} />
+					<UpcomingUnlockVolumeChart protocols={data} />
 				</div>
 			</div>
 

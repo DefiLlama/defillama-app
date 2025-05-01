@@ -1,4 +1,10 @@
-import { capitalizeFirstLetter, getColorFromNumber, slug } from '~/utils'
+import {
+	batchFetchHistoricalPrices,
+	capitalizeFirstLetter,
+	getColorFromNumber,
+	roundToNearestHalfHour,
+	slug
+} from '~/utils'
 import type { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 import {
 	CATEGORY_API,
@@ -148,7 +154,13 @@ export const getProtocolEmissionsList = async () => {
 	}
 }
 
-export const getAllProtocolEmissions = async () => {
+export const getAllProtocolEmissions = async ({
+	startDate,
+	endDate
+}: {
+	startDate?: number
+	endDate?: number
+} = {}) => {
 	try {
 		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
 		const coins = await fetchWithErrorLogging(
@@ -157,11 +169,56 @@ export const getAllProtocolEmissions = async () => {
 				.map((p) => 'coingecko:' + p.gecko_id)
 				.join(',')}`
 		).then((res) => res.json())
+
 		const parsedRes = res
+
+		const priceReqs = {}
+		res.forEach((protocol) => {
+			if (!protocol.gecko_id) return
+			let lastEventTimestamp = protocol.events
+				?.filter(
+					(e) =>
+						e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60 &&
+						e.category !== 'noncirculating' &&
+						e.category !== 'farming'
+				)
+				.sort((a, b) => b.timestamp - a.timestamp)[0]?.timestamp
+
+			if (!lastEventTimestamp) return
+
+			const earliestEvent = protocol.events?.sort((a, b) => a.timestamp - b.timestamp)[0]?.timestamp
+
+			if (lastEventTimestamp === earliestEvent) return
+
+			lastEventTimestamp = Math.floor(lastEventTimestamp / 86400) * 86400
+
+			const daysRange = [...Array(7).keys()].map((i) => i + 1)
+			const timestamps = [
+				...daysRange.map((days) => lastEventTimestamp - days * 24 * 60 * 60),
+				lastEventTimestamp,
+				...daysRange.map((days) => lastEventTimestamp + days * 24 * 60 * 60)
+			].sort((a, b) => a - b)
+
+			priceReqs[`coingecko:${protocol.gecko_id}`] = timestamps
+		})
+
+		const historicalPrices = (await batchFetchHistoricalPrices(priceReqs)).results
+
 		return parsedRes
 			.map((protocol) => {
 				try {
+					if (protocol.events) {
+						protocol.events = protocol.events.map((event) => ({
+							...event,
+							timestamp: roundToNearestHalfHour(event.timestamp)
+						}))
+					}
 					let event = protocol.events?.find((e) => e.timestamp >= Date.now() / 1000)
+					let lastEventTimestamp = protocol.events
+						?.filter((e) => e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60)
+						.sort((a, b) => b.timestamp - a.timestamp)[0]?.timestamp
+
+					let lastEvent = []
 					let upcomingEvent = []
 
 					if (!event || (event.noOfTokens.length === 1 && event.noOfTokens[0] === 0)) {
@@ -170,14 +227,38 @@ export const getAllProtocolEmissions = async () => {
 						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
 						upcomingEvent = [...comingEvents]
 					}
+					if (lastEventTimestamp) {
+						lastEvent = protocol.events.filter(
+							(e) => e.timestamp === lastEventTimestamp && e.category !== 'noncirculating' && e.category !== 'farming'
+						)
+					} else {
+						lastEvent = []
+					}
+
+					let filteredEvents = protocol.events || []
+					if (startDate) {
+						filteredEvents = filteredEvents.filter((e) => e.timestamp >= startDate)
+					}
+					if (endDate) {
+						filteredEvents = filteredEvents.filter((e) => e.timestamp <= endDate)
+					}
+
 					const coin = coins.coins['coingecko:' + protocol.gecko_id]
 					const tSymbol = coin?.symbol ?? null
+					const historicalPrice = historicalPrices[`coingecko:${protocol.gecko_id}`]
 
 					return {
 						...protocol,
 						upcomingEvent,
-						events: protocol.events || [],
+						events: filteredEvents,
 						tPrice: coin?.price ?? null,
+						historicalPrice:
+							lastEvent.length > 0 && historicalPrice?.prices
+								? historicalPrice.prices
+										.sort((a, b) => a.timestamp - b.timestamp)
+										.map((price) => [price.timestamp * 1000, price.price])
+								: [],
+						lastEvent,
 						tSymbol
 					}
 				} catch (e) {
@@ -286,6 +367,13 @@ export const getProtocolEmissons = async (protocolName: string) => {
 				}
 			})
 		})
+
+		if (metadata.events) {
+			metadata.events = metadata.events.map((event) => ({
+				...event,
+				timestamp: roundToNearestHalfHour(event.timestamp)
+			}))
+		}
 
 		let upcomingEvent = []
 		if (metadata?.events?.length > 0) {

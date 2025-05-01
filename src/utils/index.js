@@ -5,6 +5,7 @@ export * from './blockExplorers'
 import { colord, extend } from 'colord'
 import lchPlugin from 'colord/plugins/lch'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { fetchWithErrorLogging } from './async'
 
 extend([lchPlugin])
 dayjs.extend(utc)
@@ -77,8 +78,7 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	noOfTokens.forEach((tokens, i) => {
 		description = description.replace(
 			`{tokens[${i}]}`,
-			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
-				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
+			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
 			}`
 		)
 	})
@@ -523,4 +523,50 @@ function hslToHex(h, s, l) {
 	}
 
 	return `#${f(0)}${f(8)}${f(4)}`
+}
+
+
+
+export const chunks = (array, size) => {
+	const result = []
+	for (let i = 0; i < array.length; i += size) {
+		result.push(array.slice(i, i + size))
+	}
+	return result
+}
+
+export async function batchFetchHistoricalPrices(priceReqs, batchSize = 15) {
+	const entries = Object.entries(priceReqs)
+	const batches = chunks(entries, batchSize)
+
+	const results = {}
+
+	for (const batch of batches) {
+		const batchReqs = Object.fromEntries(batch)
+		const response = await fetchWithErrorLogging(
+			`https://coins.llama.fi/batchHistorical?coins=${JSON.stringify(batchReqs)}&searchWidth=6h`
+		).then(res => res.json())
+
+		for (const coinId of batch) {
+			if (response.coins[coinId]?.prices) {
+				response.coins[coinId].prices = response.coins[coinId].prices.map(price => ({
+					...price,
+				}))
+			}
+		}
+
+		Object.assign(results, response.coins)
+	}
+
+	return { results }
+}
+
+export function roundToNearestHalfHour(timestamp) {
+	const date = new Date(timestamp * 1000)
+	const minutes = date.getMinutes()
+	const roundedMinutes = minutes >= 30 ? 30 : 0
+	date.setMinutes(roundedMinutes)
+	date.setSeconds(0)
+	date.setMilliseconds(0)
+	return Math.floor(date.getTime() / 1000)
 }
