@@ -98,7 +98,7 @@ export function SelectWithCombobox({
 									<span>{option}</span>
 								) : option.help ? (
 									<Tooltip content={option.help}>
-										<span>{option.name}</span>
+										<span className="mr-1">{option.name}</span>
 										<Icon name="help-circle" height={15} width={15} />
 									</Tooltip>
 								) : (
@@ -204,7 +204,7 @@ export function SelectWithCombobox({
 											<span>{option}</span>
 										) : option.help ? (
 											<Tooltip content={option.help}>
-												<span>{option.name}</span>
+												<span className="mr-1">{option.name}</span>
 												<Icon name="help-circle" height={15} width={15} />
 											</Tooltip>
 										) : (
