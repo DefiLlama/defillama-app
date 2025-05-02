@@ -97,7 +97,8 @@ export const getStaticProps = withPerformanceLogging(
 					...feesData,
 					totalDataChart: [finalChartData, feesData.totalDataChart[1]],
 					type: ADAPTOR_TYPE,
-					...(tokenTaxData ? { totalAllTimeTokenTaxes: tokenTaxData.totalAllTime } : {})
+					...(tokenTaxData ? { totalAllTimeTokenTaxes: tokenTaxData.totalAllTime } : {}),
+					...(bribesData ? { totalAllTimeBribes: bribesData.totalAllTime } : {})
 				},
 				title: `${feesData.name} Fees - DefiLlama`
 			},

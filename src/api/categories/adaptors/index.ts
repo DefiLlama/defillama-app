@@ -81,6 +81,7 @@ export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummary
 	totalDataChart: [IJoin2ReturnType, string[]]
 	allAddresses?: Array<string>
 	totalAllTimeTokenTaxes?: number
+	totalAllTimeBribes?: number
 }
 
 export const generateGetOverviewItemPageDate = async (

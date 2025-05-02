@@ -42,6 +42,7 @@ export interface IDexChartsProps {
 		dailyBribesRevenue?: IProtocolContainerProps['protocolSummary']['dailyBribesRevenue']
 		dailyTokenTaxes?: IProtocolContainerProps['protocolSummary']['dailyTokenTaxes']
 		totalAllTimeTokenTaxes?: IProtocolContainerProps['protocolSummary']['totalAllTimeTokenTaxes']
+		totalAllTimeBribes?: IProtocolContainerProps['protocolSummary']['totalAllTimeBribes']
 		change_1d: IProtocolContainerProps['protocolSummary']['change_1d']
 		change_1m?: IProtocolContainerProps['protocolSummary']['change_1m']
 		change_7dover7d?: IOverviewProps['dexsDominance']
@@ -133,7 +134,9 @@ export const ProtocolChart = ({
 								</span>
 								<span className="font-jetbrains font-semibold text-2xl">
 									{formattedNum(
-										(data.total24h ?? 0) + (enabledSettings.tokentax ? (data as any).dailyTokenTaxes ?? 0 : 0),
+										(data.total24h ?? 0) +
+											(enabledSettings.bribes ? (data as any).dailyBribesRevenue ?? 0 : 0) +
+											(enabledSettings.tokentax ? (data as any).dailyTokenTaxes ?? 0 : 0),
 										true
 									)}
 								</span>
@@ -161,7 +164,9 @@ export const ProtocolChart = ({
 								<span className="text-[#545757] dark:text-[#cccccc]">{`All time ${typeSimple}`}</span>
 								<span className="font-jetbrains font-semibold text-2xl">
 									{formattedNum(
-										(totalAllTime ?? 0) + (enabledSettings.tokentax ? (data as any).totalAllTimeTokenTaxes ?? 0 : 0),
+										(totalAllTime ?? 0) +
+											(enabledSettings.bribes ? (data as any).totalAllTimeBribes ?? 0 : 0) +
+											(enabledSettings.tokentax ? (data as any).totalAllTimeTokenTaxes ?? 0 : 0),
 										true
 									)}
 								</span>
