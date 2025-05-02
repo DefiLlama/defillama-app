@@ -8,14 +8,8 @@ const queryClient = new QueryClient()
 
 export default function Subscribe() {
 	return (
-		<WalletProvider>
-			<QueryClientProvider client={queryClient}>
-				<AuthProvider>
-					<SubscribeLayout>
-						<SubscribeHome />
-					</SubscribeLayout>
-				</AuthProvider>
-			</QueryClientProvider>
-		</WalletProvider>
+		<SubscribeLayout>
+			<SubscribeHome />
+		</SubscribeLayout>
 	)
 }

@@ -5,6 +5,7 @@ import { slug } from '~/utils'
 import { useIsClient } from '~/hooks'
 import { useRouter } from 'next/router'
 import { IWatchlist } from './types'
+import { useUserConfig } from '~/hooks/useUserConfig'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
@@ -226,13 +227,26 @@ function init() {
 
 export default function Provider({ children }) {
 	const [state, dispatch] = useReducer(reducer, undefined, init)
+	const { userConfig, saveUserConfig, isLoadingConfig } = useUserConfig()
+
+	useEffect(() => {
+		if (userConfig && Object.keys(userConfig).length > 0 && !isLoadingConfig) {
+			const currentLocalStorage = init()
+			const mergedConfig = { ...currentLocalStorage, ...userConfig }
+			window.localStorage.setItem(DEFILLAMA, JSON.stringify(mergedConfig))
+		}
+	}, [userConfig])
 
 	const updateKey = useCallback((key, value) => {
 		dispatch({ type: UPDATE_KEY, payload: { key, value } })
+		const newState = reducer(state, { type: UPDATE_KEY, payload: { key, value } })
+		saveUserConfig(newState)
 	}, [])
 
 	const updateKeyOptionallyPersist = useCallback((key, value, persist: boolean = false) => {
 		dispatch({ type: UPDATE_KEY_OPTIONALLY_PERSIST, payload: { key, value, persist } })
+		const newState = reducer(state, { type: UPDATE_KEY_OPTIONALLY_PERSIST, payload: { key, value, persist } })
+		saveUserConfig(newState)
 	}, [])
 
 	// Change format from save addresses to save protocol names, so backwards compatible

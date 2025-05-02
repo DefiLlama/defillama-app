@@ -5,6 +5,7 @@ import { isActiveCategory } from '../utils'
 import { useYieldApp } from '~/hooks'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export function Menu() {
 	const [show, setShow] = useState(false)
@@ -13,6 +14,7 @@ export function Menu() {
 
 	const router = useRouter()
 	const isYieldApp = useYieldApp()
+	const { isAuthenticated, user, logout } = useAuthContext()
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	useEffect(() => {
@@ -127,6 +129,26 @@ export function Menu() {
 							)
 						}
 					})}
+
+					<hr className="border-black/20 dark:border-white/20 my-3" />
+
+					{isAuthenticated ? (
+						<div className="flex flex-col gap-2">
+							{user && <span className="text-sm text-[#8a8c90] p-3">{user.email}</span>}
+							<button
+								onClick={logout}
+								className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 p-3 text-left"
+							>
+								Logout
+							</button>
+						</div>
+					) : (
+						<Link href="/subscription" passHref>
+							<a className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 p-3">
+								Sign In / Subscribe
+							</a>
+						</Link>
+					)}
 				</nav>
 			</div>
 		</>
