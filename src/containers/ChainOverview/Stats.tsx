@@ -299,7 +299,10 @@ export const Stats = (props: IChainOverviewData) => {
 						{props.chainFees?.totalRev24h ? (
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
-									<Tooltip content="Transaction fees and out-of-protocol tips" className="underline decoration-dotted">
+									<Tooltip
+										content="REV (Real Economic Value) is the sum of chain fees and MEV tips"
+										className="underline decoration-dotted"
+									>
 										Chain REV (24h)
 									</Tooltip>
 								</th>

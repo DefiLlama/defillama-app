@@ -7,7 +7,8 @@ import {
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
-	RAISES_API
+	RAISES_API,
+	REV_PROTOCOLS
 } from '~/constants'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import {
@@ -397,7 +398,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		const chainRev =
 			chainFees && fees
 				? (fees?.protocols?.reduce((acc, curr) => {
-						if (curr.category === 'MEV') {
+						if (REV_PROTOCOLS[slug(metadata.name)]?.includes(curr.slug)) {
 							acc += curr.total24h || 0
 						}
 						return acc

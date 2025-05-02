@@ -203,3 +203,11 @@ export const scams = [
 ]
 
 export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Staking Pool']
+
+export const REV_PROTOCOLS = {
+	ethereum: ['flashbots'],
+	solana: ['jito'],
+	arbitrum: ['arbitrum-timeboost'],
+	polygon: ['fastlane'],
+	bsc: ['blocxroute']
+}
