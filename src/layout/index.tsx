@@ -44,7 +44,7 @@ export default function Layout({
 					<AuthProvider>
 						<main
 							{...props}
-							className={`flex flex-col gap-1 w-full text-[var(--text1)] isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen w-[100vw]${
+							className={`flex flex-col gap-1 text-[var(--text1)] isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen w-[100vw]${
 								className ?? ''
 							}`}
 						>
