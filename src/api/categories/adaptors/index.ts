@@ -185,12 +185,22 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 		return null
 	}
 
-	const [request, protocolsData, feesOrRevenue, cexVolume, emissionBreakdown, bribesData, holdersRevenueData]: [
+	const [
+		request,
+		protocolsData,
+		feesOrRevenue,
+		cexVolume,
+		emissionBreakdown,
+		bribesData,
+		holdersRevenueData,
+		tokenTaxData
+	]: [
 		IGetOverviewResponseBody,
 		{ protocols: Array<ILiteProtocol>; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number,
 		Record<string, Record<string, number>>,
+		IGetOverviewResponseBody,
 		IGetOverviewResponseBody,
 		IGetOverviewResponseBody
 	] = await Promise.all([
@@ -208,6 +218,9 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 			: Promise.resolve({ protocols: [] }),
 		type === 'fees'
 			? fetch(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue')).then(handleFetchResponse)
+			: Promise.resolve({ protocols: [] }),
+		type === 'fees'
+			? fetch(getAPIUrl(type, chain, true, true, 'dailyTokenTaxes')).then(handleFetchResponse)
 			: Promise.resolve({ protocols: [] })
 	])
 
@@ -300,6 +313,8 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 
 		const holdersRev = holderRevenueProtocols?.[protocol.name]
 
+		const protocolTokenTax = tokenTaxData?.protocols?.find(({ name }) => name === protocol.name)
+
 		const mainRow: IOverviewProps['protocols'][number] = {
 			...protocol,
 			...(protocol.parentProtocol ? acc[protocol.parentProtocol] : {}),
@@ -317,6 +332,13 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 			bribes24h: protocolBribes?.total24h ?? null,
 			bribes7d: protocolBribes?.total7d ?? null,
 			bribes30d: protocolBribes?.total30d ?? null,
+			bribes1y: protocolBribes?.total1y ?? null,
+			tokenTax24h: protocolTokenTax?.total24h ?? null,
+			tokenTax7d: protocolTokenTax?.total7d ?? null,
+			tokenTax30d: protocolTokenTax?.total30d ?? null,
+			tokenTax1y: protocolTokenTax?.total1y ?? null,
+			totalAllTimeBribes: protocolBribes?.totalAllTime ?? null,
+			totalAllTimeTokenTax: protocolTokenTax?.totalAllTime ?? null,
 			dailyHoldersRevenue: holdersRev?.total24h ?? null,
 			holdersRevenue7d: holdersRev?.total7d ?? null,
 			holdersRevenue30d: holdersRev?.total30d ?? null,
@@ -408,7 +430,7 @@ export const groupProtocolsByParent = ({
 		let mainRow
 
 		if (protocol.parentProtocol && parentProtocolsMap[protocol.parentProtocol]) {
-			mainRow = acc[protocol.parentProtocol] || parentProtocolsMap[protocol.parentProtocol]
+			mainRow = { ...(acc[protocol.parentProtocol] || parentProtocolsMap[protocol.parentProtocol]) }
 
 			if (!protocol.total24h) protocol.total24h = 0
 
@@ -420,6 +442,8 @@ export const groupProtocolsByParent = ({
 			mainRow.total1y = subRows.reduce(reduceSumByAttribute('total1y'), null)
 			mainRow.average1y = subRows.reduce(reduceSumByAttribute('average1y'), null)
 			mainRow.totalAllTime = subRows.reduce(reduceSumByAttribute('totalAllTime'), null)
+			mainRow.totalAllTimeBribes = subRows.reduce(reduceSumByAttribute('totalAllTimeBribes'), null)
+			mainRow.totalAllTimeTokenTax = subRows.reduce(reduceSumByAttribute('totalAllTimeTokenTax'), null)
 			const total48hto24h = subRows.reduce(reduceSumByAttribute('total48hto24h'), null)
 			const total7DaysAgo = subRows.reduce(reduceSumByAttribute('total7DaysAgo'), null)
 			const total30DaysAgo = subRows.reduce(reduceSumByAttribute('total30DaysAgo'), null)
@@ -430,6 +454,14 @@ export const groupProtocolsByParent = ({
 			mainRow.revenue24h = subRows.reduce(reduceSumByAttribute('revenue24h'), null)
 			mainRow.revenue7d = subRows.reduce(reduceSumByAttribute('revenue7d'), null)
 			mainRow.revenue30d = subRows.reduce(reduceSumByAttribute('revenue30d'), null)
+			mainRow.bribes24h = subRows.reduce(reduceSumByAttribute('bribes24h'), null)
+			mainRow.bribes7d = subRows.reduce(reduceSumByAttribute('bribes7d'), null)
+			mainRow.bribes30d = subRows.reduce(reduceSumByAttribute('bribes30d'), null)
+			mainRow.bribes1y = subRows.reduce(reduceSumByAttribute('bribes1y'), null)
+			mainRow.tokenTax24h = subRows.reduce(reduceSumByAttribute('tokenTax24h'), null)
+			mainRow.tokenTax7d = subRows.reduce(reduceSumByAttribute('tokenTax7d'), null)
+			mainRow.tokenTax30d = subRows.reduce(reduceSumByAttribute('tokenTax30d'), null)
+			mainRow.tokenTax1y = subRows.reduce(reduceSumByAttribute('tokenTax1y'), null)
 			mainRow.revenue1y = subRows.reduce(reduceSumByAttribute('revenue1y'), null)
 			mainRow.averageRevenue1y = subRows.reduce(reduceSumByAttribute('averageRevenue1y'), null)
 			mainRow.dailyRevenue = subRows.reduce(reduceSumByAttribute('dailyRevenue'), null)
@@ -456,7 +488,7 @@ export const groupProtocolsByParent = ({
 			mainRow.subRows = subRows
 			mainRow.displayName =
 				parentProtocolsMap[protocol.parentProtocol].displayName ?? parentProtocolsMap[protocol.parentProtocol].name
-		} else mainRow = protocol
+		} else mainRow = { ...protocol }
 
 		// Computed stats
 		mainRow.volumetvl = mainRow.total24h !== null && mainRow.tvl !== null ? mainRow.total24h / mainRow.tvl : null
@@ -466,34 +498,68 @@ export const groupProtocolsByParent = ({
 		}
 
 		if (type === 'fees') {
+			let total24h = mainRow.total24h
+			let total7d = mainRow.total7d
+			let total30d = mainRow.total30d
+			let total1y = mainRow.total1y
+			let totalAllTime = mainRow.totalAllTime
+
 			let revenue24h = mainRow.revenue24h
 			let revenue7d = mainRow.revenue7d
 			let revenue30d = mainRow.revenue30d
+			let revenue1y = mainRow.revenue1y
 
 			let dailyHoldersRevenue = mainRow.dailyHoldersRevenue
 			let holdersRevenue7d = mainRow.holdersRevenue7d
 			let holdersRevenue30d = mainRow.holdersRevenue30d
 
-			if (revenue24h && !Number.isNaN(Number(revenue24h))) {
-				revenue24h =
-					+revenue24h +
-					(enabledSettings.bribes ? mainRow.bribes24h ?? 0 : 0) +
-					(enabledSettings.tokentax ? mainRow.dailyTokenTaxes ?? 0 : 0)
-				revenue7d = +revenue7d + (enabledSettings.bribes ? mainRow.bribes7d ?? 0 : 0)
-				revenue30d = +revenue30d + (enabledSettings.bribes ? mainRow.bribes30d ?? 0 : 0)
-			}
-			if (dailyHoldersRevenue && !Number.isNaN(Number(dailyHoldersRevenue))) {
+			if (enabledSettings.bribes && mainRow.bribes24h != null) {
+				total24h = total24h + (enabledSettings.bribes ? mainRow.bribes24h ?? 0 : 0)
+				total7d = total7d + (enabledSettings.bribes ? mainRow.bribes7d ?? 0 : 0)
+				total30d = total30d + (enabledSettings.bribes ? mainRow.bribes30d ?? 0 : 0)
+				total1y = total1y + (enabledSettings.bribes ? mainRow.bribes1y ?? 0 : 0)
+				totalAllTime = totalAllTime + (enabledSettings.bribes ? mainRow.totalAllTimeBribes ?? 0 : 0)
+
+				revenue24h = (revenue24h ?? 0) + (enabledSettings.bribes ? mainRow.bribes24h ?? 0 : 0)
+				revenue7d = (revenue7d ?? 0) + (enabledSettings.bribes ? mainRow.bribes7d ?? 0 : 0)
+				revenue30d = (revenue30d ?? 0) + (enabledSettings.bribes ? mainRow.bribes30d ?? 0 : 0)
+				revenue1y = (revenue1y ?? 0) + (enabledSettings.bribes ? mainRow.bribes1y ?? 0 : 0)
+
 				dailyHoldersRevenue = +dailyHoldersRevenue + (enabledSettings.bribes ? mainRow.bribes24h ?? 0 : 0)
 				holdersRevenue7d = +holdersRevenue7d + (enabledSettings.bribes ? mainRow.bribes7d ?? 0 : 0)
 				holdersRevenue30d = +holdersRevenue30d + (enabledSettings.bribes ? mainRow.bribes30d ?? 0 : 0)
 			}
 
+			if (enabledSettings.tokentax && mainRow.tokenTax24h != null) {
+				total24h = total24h + (enabledSettings.tokentax ? mainRow.tokenTax24h ?? 0 : 0)
+				total7d = total7d + (enabledSettings.tokentax ? mainRow.tokenTax7d ?? 0 : 0)
+				total30d = total30d + (enabledSettings.tokentax ? mainRow.tokenTax30d ?? 0 : 0)
+				total1y = total1y + (enabledSettings.tokentax ? mainRow.tokenTax1y ?? 0 : 0)
+				totalAllTime = totalAllTime + (enabledSettings.tokentax ? mainRow.totalAllTimeTokenTax ?? 0 : 0)
+
+				revenue24h = (revenue24h ?? 0) + (enabledSettings.tokentax ? mainRow.tokenTax24h ?? 0 : 0)
+				revenue7d = (revenue7d ?? 0) + (enabledSettings.tokentax ? mainRow.tokenTax7d ?? 0 : 0)
+				revenue30d = (revenue30d ?? 0) + (enabledSettings.tokentax ? mainRow.tokenTax30d ?? 0 : 0)
+				revenue1y = (revenue1y ?? 0) + (enabledSettings.tokentax ? mainRow.tokenTax1y ?? 0 : 0)
+			}
+
+			mainRow.total24h = total24h
+			mainRow.total7d = total7d
+			mainRow.total30d = total30d
+			mainRow.total1y = total1y
+			mainRow.totalAllTime = totalAllTime
+
 			mainRow.revenue24h = revenue24h
 			mainRow.revenue30d = revenue30d
 			mainRow.revenue7d = revenue7d
+			mainRow.revenue1y = revenue1y
+
 			mainRow.dailyHoldersRevenue = dailyHoldersRevenue
 			mainRow.holdersRevenue7d = holdersRevenue7d
 			mainRow.holdersRevenue30d = holdersRevenue30d
+
+			mainRow.pf = getAnnualizedRatio(mainRow.mcap, total30d)
+			mainRow.ps = getAnnualizedRatio(mainRow.mcap, revenue30d)
 		}
 
 		acc[protocol.parentProtocol ?? protocol.module] = mainRow

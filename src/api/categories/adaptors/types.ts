@@ -82,6 +82,13 @@ export type ProtocolAdaptorSummary = {
 	bribes24h?: number
 	bribes7d?: number
 	bribes30d?: number
+	bribes1y?: number
+	totalAllTimeBribes?: number
+	tokenTax24h?: number
+	tokenTax7d?: number
+	tokenTax30d?: number
+	tokenTax1y?: number
+	totalAllTimeTokenTax?: number
 	averageRevenue1y?: number
 	emission24h?: number
 	emission7d?: number
