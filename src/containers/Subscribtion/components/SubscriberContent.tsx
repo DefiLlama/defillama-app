@@ -2,6 +2,9 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import toast from 'react-hot-toast'
 import { Subscription } from '~/hooks/useSubscribe'
+import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
+import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 
 interface SubscriberContentProps {
 	apiKey: string | null
@@ -10,8 +13,10 @@ interface SubscriberContentProps {
 	credits: number | null
 	isCreditsLoading: boolean
 	subscription: Subscription
-	createPortalSession: () => Promise<string | null>
+	createPortalSession: (type: 'llamafeed' | 'api') => Promise<string | null>
 	isPortalSessionLoading: boolean
+	apiSubscription: Subscription
+	llamafeedSubscription: Subscription
 }
 
 export const SubscriberContent = ({
@@ -22,14 +27,57 @@ export const SubscriberContent = ({
 	isCreditsLoading,
 	subscription,
 	createPortalSession,
-	isPortalSessionLoading
+	isPortalSessionLoading,
+	apiSubscription,
+	llamafeedSubscription
 }: SubscriberContentProps) => {
-	const isLlamaFeed = subscription?.type === 'llamafeed'
+	const isLlamaFeed = llamafeedSubscription?.status === 'active'
+	const isPro = apiSubscription?.status === 'active'
 	const creditsLimit = isLlamaFeed ? 0 : 1_000_000
-	console.log(subscription)
+
+	async function handleManageSubscription(type: 'llamafeed' | 'api') {
+		const sub = type === 'llamafeed' ? llamafeedSubscription : apiSubscription
+		if (sub?.provider === 'stripe') {
+			await createPortalSession(type)
+		} else {
+			window.open('https://subscriptions.llamapay.io/', '_blank')
+		}
+	}
+
 	return (
 		<>
-			{!isLlamaFeed && (
+			<div className="flex flex-col items-center mb-4">
+				<span className="text-xl font-semibold text-white mb-1">Change Subscription</span>
+			</div>
+			<div className="mb-6 w-full">
+				<div className="flex items-center gap-3 bg-gradient-to-r from-yellow-400/10 to-yellow-900/30 border border-yellow-500 text-yellow-100 rounded-xl px-6 py-4 w-full shadow-sm">
+					<svg width="24" height="24" fill="none" viewBox="0 0 24 24" className="text-yellow-400 flex-shrink-0">
+						<path
+							fill="currentColor"
+							d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 14a1.25 1.25 0 1 0 0 2.5A1.25 1.25 0 0 0 12 16Zm-1-9v6a1 1 0 1 0 2 0V7a1 1 0 1 0-2 0Z"
+						/>
+					</svg>
+					<span className="text-base font-medium">
+						Before changing your subscription tier, you need to cancel your current subscription. Your current
+						subscription will remain active until the end of the billing period.
+					</span>
+				</div>
+			</div>
+			<div className="flex flex-row gap-4 justify-center mb-8">
+				<SubscribePlusCard
+					context="account"
+					active={isLlamaFeed}
+					onCancelSubscription={isLlamaFeed ? () => handleManageSubscription('llamafeed') : undefined}
+				/>
+				<SubscribeProCard
+					context="account"
+					active={isPro}
+					onCancelSubscription={isPro ? () => handleManageSubscription('api') : undefined}
+				/>
+				<SubscribeEnterpriseCard active={subscription?.type === 'enterprise'} />
+			</div>
+
+			{isPro && (
 				<div className="relative overflow-hidden bg-gradient-to-b from-[#222429] to-[#1d1f24] border border-[#39393E] rounded-xl shadow-xl">
 					<div className="absolute -inset-1 blur-[100px] bg-gradient-to-r from-[#5C5EFC]/20 to-[#462A92]/20 opacity-70 -z-10"></div>
 
@@ -276,7 +324,8 @@ export const SubscriberContent = ({
 						<div>
 							<h3 className="text-xl font-bold">Subscription</h3>
 							<p className="text-sm text-[#b4b7bc]">
-								Manage your <span className="font-bold">{isLlamaFeed ? 'Llama+' : 'Pro'}</span> subscription details
+								Manage your <span className="font-bold">{isLlamaFeed ? 'Llama+' : isPro ? 'Pro' : ''}</span>{' '}
+								subscription details
 							</p>
 						</div>
 					</div>
@@ -288,7 +337,7 @@ export const SubscriberContent = ({
 							<div className="flex justify-between items-center mb-4">
 								<h4 className="font-medium flex items-center gap-2">
 									<Icon name="bookmark" height={16} width={16} className="text-[#5C5CF9]" />
-									<span>{isLlamaFeed ? 'Llama+' : 'Pro'} Plan</span>
+									<span>{isLlamaFeed ? 'Llama+' : isPro ? 'Pro' : ''} Plan</span>
 								</h4>
 								<div className="flex items-center gap-4">
 									<div className="flex items-center gap-2">
@@ -297,9 +346,11 @@ export const SubscriberContent = ({
 									</div>
 									<button
 										onClick={
-											subscription.provider === 'stripe'
-												? createPortalSession
-												: () => window.open('https://subscriptions.llamapay.io/', '_blank')
+											isLlamaFeed
+												? () => handleManageSubscription('llamafeed')
+												: isPro
+												? () => handleManageSubscription('api')
+												: undefined
 										}
 										disabled={isPortalSessionLoading}
 										className="px-4 py-2 bg-[#5C5CF9]/10 hover:bg-[#5C5CF9]/20 text-[#5C5CF9] rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
@@ -327,14 +378,20 @@ export const SubscriberContent = ({
 
 								<div className="bg-[#13141a]/60 p-3 rounded-lg">
 									<p className="text-xs text-[#8a8c90] mb-1">Price</p>
-									<p className="font-medium">{isLlamaFeed ? '$49.00 USD' : '$300.00 USD'}</p>
+									<p className="font-medium">{isLlamaFeed ? '$49.00 USD' : isPro ? '$300.00 USD' : ''}</p>
 								</div>
 
 								<div className="bg-[#13141a]/60 p-3 rounded-lg">
 									<p className="text-xs text-[#8a8c90] mb-1">Next billing date</p>
 									<p className="font-medium">
-										{subscription?.expires_at
-											? new Date(+subscription.expires_at * 1000).toLocaleDateString('en-US', {
+										{isLlamaFeed && llamafeedSubscription?.expires_at
+											? new Date(+llamafeedSubscription.expires_at * 1000).toLocaleDateString('en-US', {
+													month: 'short',
+													day: 'numeric',
+													year: 'numeric'
+											  })
+											: isPro && apiSubscription?.expires_at
+											? new Date(+apiSubscription.expires_at * 1000).toLocaleDateString('en-US', {
 													month: 'short',
 													day: 'numeric',
 													year: 'numeric'

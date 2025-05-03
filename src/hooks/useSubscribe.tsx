@@ -268,7 +268,7 @@ export const useSubscribe = () => {
 	}, [apiKey])
 
 	const createPortalSessionMutation = useMutation({
-		mutationFn: async () => {
+		mutationFn: async (subscriptionType?: string) => {
 			if (!isAuthenticated) {
 				throw new Error('Not authenticated')
 			}
@@ -281,7 +281,8 @@ export const useSubscribe = () => {
 						'Content-Type': 'application/json'
 					},
 					body: JSON.stringify({
-						returnUrl: window.location.href
+						returnUrl: window.location.href,
+						type: subscriptionType
 					})
 				},
 				true
@@ -301,7 +302,7 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const createPortalSession = async () => {
+	const createPortalSession = async (subscriptionType?: string) => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to manage your subscription')
 			return null
@@ -316,7 +317,8 @@ export const useSubscribe = () => {
 		}
 
 		try {
-			const url = await createPortalSessionMutation.mutateAsync()
+			const typeToSend = subscriptionType || subscriptionData.type
+			const url = await createPortalSessionMutation.mutateAsync(typeToSend)
 			if (url) {
 				window.open(url, '_blank')
 			}

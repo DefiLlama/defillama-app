@@ -23,7 +23,9 @@ export const AccountInfo = () => {
 		credits,
 		isCreditsLoading,
 		createPortalSession,
-		isPortalSessionLoading
+		isPortalSessionLoading,
+		apiSubscription,
+		llamafeedSubscription
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 
@@ -127,6 +129,8 @@ export const AccountInfo = () => {
 					subscription={subscription}
 					createPortalSession={createPortalSession}
 					isPortalSessionLoading={isPortalSessionLoading}
+					apiSubscription={apiSubscription}
+					llamafeedSubscription={llamafeedSubscription}
 				/>
 			</div>
 

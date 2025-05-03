@@ -5,10 +5,15 @@ import Link from 'next/link'
 import { StyledButton } from '~/components/ButtonStyled/StyledButton'
 
 interface SubscribePlusCardProps {
-	context?: 'modal' | 'page'
+	context?: 'modal' | 'page' | 'account'
+	active?: boolean
 }
 
-export function SubscribePlusCard({ context = 'page' }: SubscribePlusCardProps) {
+export function SubscribePlusCard({
+	context = 'page',
+	active = false,
+	onCancelSubscription
+}: SubscribePlusCardProps & { onCancelSubscription?: () => void }) {
 	return (
 		<div className="price-card py-8 flex flex-col w-[92vw] px-4 snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden relative transition-all duration-300 hover:transform md:hover:scale-[1.02]">
 			<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#5c5cf9] to-transparent opacity-20"></div>
@@ -60,18 +65,39 @@ export function SubscribePlusCard({ context = 'page' }: SubscribePlusCardProps) 
 				</li>
 			</ul>
 			<div className="w-full max-w-[408px] mx-auto flex flex-col gap-3 relative z-10">
-				{context === 'page' ? (
-					<>
-						<SignIn text="Already a subscriber? Sign In" />
-						<div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1 max-sm:w-full">
-							<PaymentButton paymentMethod="llamapay" type="llamafeed" />
-							<PaymentButton paymentMethod="stripe" type="llamafeed" />
-						</div>
-					</>
+				{active ? (
+					<div className="flex flex-col gap-2">
+						<span className="text-center text-green-400 font-bold">Current Plan</span>
+						{onCancelSubscription && (
+							<button
+								className="w-full mt-2 px-4 py-2 bg-[#222429] hover:bg-[#39393E] text-white rounded-lg transition-colors"
+								onClick={onCancelSubscription}
+							>
+								Cancel Subscription
+							</button>
+						)}
+					</div>
 				) : (
-					<Link href="/subscription" passHref legacyBehavior>
-						<StyledButton>Go to Subscription Page</StyledButton>
-					</Link>
+					<>
+						{(context === 'page' || context === 'account') && (
+							<>
+								<SignIn text="Already a subscriber? Sign In" />
+								<div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1 max-sm:w-full">
+									{context === 'account' ? (
+										<>
+											<PaymentButton paymentMethod="llamapay" type="llamafeed" />
+											<PaymentButton paymentMethod="stripe" type="llamafeed" />
+										</>
+									) : (
+										<>
+											<PaymentButton paymentMethod="llamapay" type="llamafeed" />
+											<PaymentButton paymentMethod="stripe" type="llamafeed" />
+										</>
+									)}
+								</div>
+							</>
+						)}
+					</>
 				)}
 			</div>
 		</div>
