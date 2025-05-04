@@ -291,17 +291,17 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 					<TokenLogo logo={tokenIconUrl(getValue())} />
 					<CustomLink
 						href={`/unlocks/${slug(getValue() as string)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="overflow-hidden whitespace-nowrap font-bold text-ellipsis hover:underline"
 					>
 						{getValue() as string}
 					</CustomLink>
 				</span>
 			)
 		},
-		size: 220
+		size: 140
 	},
 	{
-		header: 'Token Price',
+		header: 'Price',
 		accessorKey: 'tPrice',
 		accessorFn: (row) => (row.tPrice ? +row.tPrice : undefined),
 		sortUndefined: 'last',
@@ -311,10 +311,10 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 120
+		size: 80
 	},
 	{
-		header: 'Mcap',
+		header: 'MCap',
 		accessorKey: 'mcap',
 		accessorFn: (row) => (row.mcap ? +row.mcap : undefined),
 		sortUndefined: 'last',
@@ -329,7 +329,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	},
 
 	{
-		header: 'Unlocked % | Max',
+		header: 'Total Unlocked',
 		id: 'totalLocked',
 		accessorFn: (row) => (row.maxSupply && row.totalLocked ? row.totalLocked / row.maxSupply : 0),
 		cell: ({ row }) => {
@@ -339,9 +339,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 				<div className="flex flex-col gap-2 px-2">
 					<span className="flex items-center gap-2 justify-between">
 						<span className="text-[#3255d7]">{formattedNum(percetage)}%</span>
-						<span className="text-[var(--text2)]">
-							{formattedNum(row.original.maxSupply)} {row.original.tSymbol}
-						</span>
 					</span>
 					<div
 						className="h-2 rounded-full w-full"
@@ -352,30 +349,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 				</div>
 			)
 		},
-		size: 240,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Daily unlocks',
-		id: 'nextEvent',
-		sortUndefined: 'last',
-		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
-		cell: ({ getValue, row }) => {
-			const symbol = row.original.tSymbol
-
-			if (!row.original.unlocksPerDay) return '-'
-
-			return (
-				<span className="flex flex-col gap-1">
-					{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}
-					<span className="min-w-[120px] opacity-60">
-						{formattedNum(row.original.unlocksPerDay) + (symbol ? ` ${symbol.toUpperCase()}` : '')}
-					</span>
-				</span>
-			)
-		},
+		size: 100,
 		meta: {
 			align: 'end'
 		}
@@ -421,17 +395,39 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		id: 'postUnlock',
 		sortUndefined: 'last',
 		accessorFn: (row) => {
-			if (!row.historicalPrice?.length) return undefined
+			if (!row.historicalPrice?.length || row.historicalPrice.length < 8) return undefined
 			const priceAtUnlock = row.historicalPrice[7][1]
 			const priceAfter7d = row.historicalPrice[row.historicalPrice.length - 1][1]
 			return ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
 		},
 		cell: ({ getValue }) => {
-			return <>{getValue() ? formattedPercent(getValue()) : ''}</>
+			return <span className="font-medium text-lg">{getValue() ? formattedPercent(getValue()) : ''}</span>
 		},
 		meta: {
 			align: 'end',
-			headerHelperText: 'Price change 7 days after the most recent unlock event'
+			headerHelperText: 'Price change 7 days after the most recent major unlock event'
+		},
+		size: 140
+	},
+	{
+		header: 'Daily Unlocks',
+		id: 'nextEvent',
+		sortUndefined: 'last',
+		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
+		cell: ({ getValue, row }) => {
+			const symbol = row.original.tSymbol
+
+			if (!row.original.unlocksPerDay) return '-'
+
+			return (
+				<span className="flex flex-col gap-1">
+					{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}
+				</span>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end'
 		}
 	},
 	{
@@ -465,7 +461,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 				/>
 			)
 		},
-		size: 420
+		size: 180
 	}
 ]
 

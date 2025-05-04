@@ -29,7 +29,7 @@ export function UnconstrainedSmolLineChart({
 	}, [id])
 
 	useEffect(() => {
-		if (!series?.length) return
+		if (!series?.length || series.length < 8) return
 
 		const chartInstance = createInstance()
 		chartInstance.setOption({
@@ -189,7 +189,7 @@ export function UnconstrainedSmolLineChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, series, color, isThemeDark, name])
+	}, [createInstance, series, color, isThemeDark, name, extraData.lastEvent])
 
 	return (
 		<div className="relative overflow-visible">
