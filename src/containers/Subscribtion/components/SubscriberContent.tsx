@@ -51,12 +51,8 @@ export const SubscriberContent = ({
 			</div>
 			<div className="mb-6 w-full">
 				<div className="flex items-center gap-3 bg-gradient-to-r from-yellow-400/10 to-yellow-900/30 border border-yellow-500 text-yellow-100 rounded-xl px-6 py-4 w-full shadow-sm">
-					<svg width="24" height="24" fill="none" viewBox="0 0 24 24" className="text-yellow-400 flex-shrink-0">
-						<path
-							fill="currentColor"
-							d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 14a1.25 1.25 0 1 0 0 2.5A1.25 1.25 0 0 0 12 16Zm-1-9v6a1 1 0 1 0 2 0V7a1 1 0 1 0-2 0Z"
-						/>
-					</svg>
+					<Icon name="alert-triangle" className="text-yellow-400 flex-shrink-0" height={24} width={24} />
+
 					<span className="text-base font-medium">
 						Before changing your subscription tier, you need to cancel your current subscription. Your current
 						subscription will remain active until the end of the billing period.

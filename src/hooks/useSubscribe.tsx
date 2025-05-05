@@ -51,7 +51,7 @@ const defaultInactiveSubscription = {
 	}
 }
 
-const useSubscription = (type: 'api' | 'llamafeed') => {
+const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 	const { isAuthenticated } = useAuthContext()!
 
 	const data = useQuery<SubscriptionResponse>({
@@ -186,6 +186,13 @@ export const useSubscribe = () => {
 		isPending: isLlamafeedSubscriptionPending,
 		isError: isLlamafeedSubscriptionError
 	} = useSubscription('llamafeed')
+	const {
+		data: legacySubscription,
+		isLoading: isLegacySubscriptionLoading,
+		isFetching: isLegacySubscriptionFetching,
+		isPending: isLegacySubscriptionPending,
+		isError: isLegacySubscriptionError
+	} = useSubscription('legacy')
 
 	useEffect(() => {
 		const fetchApiKey = async () => {
@@ -231,7 +238,7 @@ export const useSubscribe = () => {
 	}
 
 	const subscriptionData =
-		[apiSubscription?.subscription, llamafeedSubscription?.subscription].find(
+		[apiSubscription?.subscription, llamafeedSubscription?.subscription, legacySubscription?.subscription].find(
 			(subscription) => subscription?.status === 'active'
 		) || defaultInactiveSubscription.subscription
 
@@ -310,7 +317,8 @@ export const useSubscribe = () => {
 
 		if (
 			apiSubscription?.subscription?.status !== 'active' &&
-			llamafeedSubscription?.subscription?.status !== 'active'
+			llamafeedSubscription?.subscription?.status !== 'active' &&
+			legacySubscription?.subscription?.status !== 'active'
 		) {
 			toast.error('No active subscription found')
 			return null
@@ -335,10 +343,14 @@ export const useSubscribe = () => {
 		error: createSubscription.error,
 		subscription: subscriptionData,
 		loading: isStripeLoading ? 'stripe' : isLlamaLoading ? 'llamapay' : null,
-		isSubscriptionLoading: isAuthenticated && (isApiSubscriptionLoading || isLlamafeedSubscriptionLoading),
-		isSubscriptionFetching: isAuthenticated && (isApiSubscriptionFetching || isLlamafeedSubscriptionFetching),
-		isSubscriptionPending: isAuthenticated && (isApiSubscriptionPending || isLlamafeedSubscriptionPending),
-		isSubscriptionError: isAuthenticated && (isApiSubscriptionError || isLlamafeedSubscriptionError),
+		isSubscriptionLoading:
+			isAuthenticated && (isApiSubscriptionLoading || isLlamafeedSubscriptionLoading || isLegacySubscriptionLoading),
+		isSubscriptionFetching:
+			isAuthenticated && (isApiSubscriptionFetching || isLlamafeedSubscriptionFetching || isLegacySubscriptionFetching),
+		isSubscriptionPending:
+			isAuthenticated && (isApiSubscriptionPending || isLlamafeedSubscriptionPending || isLegacySubscriptionPending),
+		isSubscriptionError:
+			isAuthenticated && (isApiSubscriptionError || isLlamafeedSubscriptionError || isLegacySubscriptionError),
 		apiKey,
 		isApiKeyLoading,
 		generateNewKey,
@@ -349,6 +361,7 @@ export const useSubscribe = () => {
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
 		isContributor: false,
 		apiSubscription: apiSubscription?.subscription,
-		llamafeedSubscription: llamafeedSubscription?.subscription
+		llamafeedSubscription: llamafeedSubscription?.subscription,
+		legacySubscription: legacySubscription?.subscription
 	}
 }

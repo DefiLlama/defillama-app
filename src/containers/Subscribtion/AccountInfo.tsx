@@ -25,9 +25,11 @@ export const AccountInfo = () => {
 		createPortalSession,
 		isPortalSessionLoading,
 		apiSubscription,
-		llamafeedSubscription
+		llamafeedSubscription,
+		legacySubscription
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
+	const isLegacyActive = legacySubscription?.status === 'active'
 
 	const isVerified = user?.verified
 	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
@@ -102,6 +104,23 @@ export const AccountInfo = () => {
 				isLoading={loaders.logout}
 				subscription={subscription}
 			/>
+			{isLegacyActive && (
+				<div className="flex items-center gap-3 bg-gradient-to-r from-yellow-400/10 to-yellow-900/30 border border-yellow-500 text-yellow-100 rounded-xl px-6 py-4 w-full shadow-sm mb-4">
+					<Icon name="alert-triangle" className="text-yellow-400 flex-shrink-0" height={24} width={24} />
+					<span className="text-base font-medium">
+						Your current subscription is a legacy plan. You need to unsubscribe via{' '}
+						<a
+							href="https://subscriptions.llamapay.io/"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="underline text-yellow-300"
+						>
+							LlamaPay
+						</a>{' '}
+						and subscribe again after current subscription expires. This is required due to technical reasons.
+					</span>
+				</div>
+			)}
 
 			<div className="space-y-6">
 				<AccountStatus
