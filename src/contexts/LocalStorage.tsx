@@ -68,6 +68,9 @@ const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
 const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
 export const DEFAULT_PORTFOLIO_NAME = 'main'
 
+// YIELDS SAVED FILTERS
+const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS'
+
 // LIQUIDATIONS
 const LIQS_USING_USD = 'LIQS_USING_USD'
 const LIQS_SHOWING_INSPECTOR = 'LIQS_SHOWING_INSPECTOR'
@@ -165,7 +168,7 @@ export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
 export const BRIDGES_SETTINGS_KEYS = Object.values(BRIDGES_SETTINGS)
 
-const UPDATABLE_KEYS = [DEFI_WATCHLIST, YIELDS_WATCHLIST, SELECTED_PORTFOLIO]
+const UPDATABLE_KEYS = [DEFI_WATCHLIST, YIELDS_WATCHLIST, SELECTED_PORTFOLIO, YIELDS_SAVED_FILTERS]
 
 const UPDATE_KEY = 'UPDATE_KEY'
 const UPDATE_KEY_OPTIONALLY_PERSIST = 'UPDATE_KEY_OPTIONALLY_PERSIST'
@@ -210,7 +213,8 @@ function init() {
 	const defaultLocalStorage = {
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
-		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME
+		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME,
+		[YIELDS_SAVED_FILTERS]: {}
 	}
 
 	try {
@@ -433,6 +437,32 @@ export function useManageAppSettings(): [Record<string, boolean>, (keys: Record<
 	const toggledSettings = useMemo(() => JSON.parse(store), [store])
 
 	return [toggledSettings, updateAllSettings]
+}
+
+// YIELDS SAVED FILTERS HOOK
+export function useYieldFilters() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const savedFilters = state?.[YIELDS_SAVED_FILTERS] ?? {}
+
+	function saveFilter(name: string, filters: any) {
+		const newFilters = {
+			...savedFilters,
+			[name]: filters
+		}
+		updateKey(YIELDS_SAVED_FILTERS, newFilters)
+	}
+
+	function deleteFilter(name: string) {
+		const newFilters = { ...savedFilters }
+		delete newFilters[name]
+		updateKey(YIELDS_SAVED_FILTERS, newFilters)
+	}
+
+	return {
+		savedFilters,
+		saveFilter,
+		deleteFilter
+	}
 }
 
 // DEFI AND YIELDS WATCHLIST

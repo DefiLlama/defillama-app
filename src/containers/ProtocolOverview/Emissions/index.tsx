@@ -42,14 +42,19 @@ const standardGroupColors = {
 }
 
 function processGroupedChartData(
-	chartData: Array<{ [label: string]: number }>,
+	chartData: Array<{ date: string } & { [label: string]: number }>,
 	categoriesBreakdown: Record<string, string[]>
 ) {
 	return chartData.map((entry) => {
-		const groupedEntry = { date: entry.date }
+		const groupedEntry: { date: string } & { [key: string]: number } = { date: entry.date } as { date: string } & {
+			[key: string]: number
+		}
+
 		Object.entries(categoriesBreakdown).forEach(([group, categories]) => {
 			groupedEntry[group] = categories.reduce((sum, category) => {
-				return sum + (entry[category] || 0)
+				const actualKey = Object.keys(entry).find((key) => key.toLowerCase() === category.toLowerCase())
+				const value = actualKey ? Number(entry[actualKey]) || 0 : 0
+				return sum + value
 			}, 0)
 		})
 
@@ -82,7 +87,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const { data: geckoId } = useGeckoId(data.token ?? null)
 
 	const priceChart = usePriceChart(data.geckoId ?? geckoId)
-
+	const tokenMaxSupply = priceChart.data?.data.coinData.market_data.max_supply_infinite
+		? Infinity
+		: priceChart.data?.data.coinData.market_data.max_supply
+	const tokenCircSupply = priceChart.data?.data.coinData.market_data.circulating_supply
 	const tokenPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
 	const tokenMcap = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
 	const tokenVolume = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
@@ -256,7 +264,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<div className="flex flex-col items-center">
 								<span className="text-[var(--text3)]">Circulating Supply</span>
 								<span className="text-lg font-medium">
-									{formattedNum(data.meta.circSupply)} {data.tokenPrice.symbol}
+									{formattedNum(tokenCircSupply)} {data.tokenPrice.symbol}
 								</span>
 							</div>
 						) : null}
@@ -265,7 +273,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<div className="flex flex-col items-center">
 								<span className="text-[var(--text3)]">Max Supply</span>
 								<span className="text-lg font-medium">
-									{formattedNum(data.meta.maxSupply)} {data.tokenPrice.symbol}
+									{tokenMaxSupply != Infinity ? formattedNum(tokenMaxSupply) : '∞'} {data.tokenPrice.symbol}
 								</span>
 							</div>
 						) : null}
