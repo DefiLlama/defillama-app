@@ -66,7 +66,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 							<React.Fragment key={link.name}>
 								<Link href={link.path} key={link.path} prefetch={false} passHref>
 									<a
-										target={link.external && '_blank'}
+										{...(link.external ? { target: '_blank' } : {})}
 										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 										data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
 										className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
@@ -98,7 +98,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 							<React.Fragment key={link.name}>
 								<Link href={link.path} key={link.path} prefetch={false} passHref>
 									<a
-										target={link.external && '_blank'}
+										{...(link.external ? { target: '_blank' } : {})}
 										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 										data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
 										className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"

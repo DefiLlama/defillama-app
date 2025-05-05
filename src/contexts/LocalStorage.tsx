@@ -317,7 +317,8 @@ export function subscribeToLocalStorage(callback: () => void) {
 }
 
 const toggleDarkMode = () => {
-	localStorage.setItem(DARK_MODE, localStorage.getItem(DARK_MODE) === 'true' ? 'false' : 'true')
+	const isDarkMode = localStorage.getItem(DARK_MODE) === 'true'
+	localStorage.setItem(DARK_MODE, isDarkMode ? 'false' : 'true')
 	window.dispatchEvent(new Event('storage'))
 }
 
@@ -331,7 +332,7 @@ export function useDarkModeManager() {
 	const isDarkMode = store === 'true'
 
 	useEffect(() => {
-		if (!isDarkMode) {
+		if (!isDarkMode && !window.location.pathname.startsWith('/subscription')) {
 			document.documentElement.classList.remove('dark')
 			document.documentElement.classList.add('light')
 		} else {
