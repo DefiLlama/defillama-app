@@ -2,6 +2,7 @@ import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
 import { useState } from 'react'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export function SubscribeProCard({
 	context = 'page',
@@ -12,12 +13,17 @@ export function SubscribeProCard({
 	active?: boolean
 	onCancelSubscription?: () => void
 }) {
+	const [isDarkMode] = useDarkModeManager()
 	return (
 		<div
-			className={`price-card py-8 px-5 flex flex-col w-[92vw] snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink relative transition-all duration-300 hover:transform md:hover:scale-[1.02] bg-[#22242966] backdrop-blur-xl rounded-xl border-2 ${
-				active ? 'border-[#6e6edb]' : 'border-[#4a4a50]'
-			} shadow-2xl overflow-hidden`}
-			style={{ boxShadow: '0 0 15px rgba(138, 138, 255, 0.12), 0 0 5px rgba(92, 92, 249, 0.08)' }}
+			className={`price-card py-8 px-5 flex flex-col w-[92vw] snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink relative transition-all duration-300 hover:transform md:hover:scale-[1.02] ${
+				isDarkMode ? 'bg-[#22242966] border-2 border-[#4a4a50]' : 'bg-[#f8f9fa] border-2 border-[#e5e7eb]'
+			} backdrop-blur-xl rounded-xl shadow-2xl overflow-hidden`}
+			style={
+				isDarkMode
+					? { boxShadow: '0 0 15px rgba(138, 138, 255, 0.12), 0 0 5px rgba(92, 92, 249, 0.08)' }
+					: { boxShadow: '0 0 15px rgba(0,0,0,0.04), 0 0 5px rgba(0,0,0,0.02)' }
+			}
 		>
 			<div className="absolute inset-0 overflow-hidden">
 				<div

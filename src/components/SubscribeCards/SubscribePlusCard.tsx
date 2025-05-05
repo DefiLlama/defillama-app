@@ -3,6 +3,7 @@ import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
 import Link from 'next/link'
 import { StyledButton } from '~/components/ButtonStyled/StyledButton'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 interface SubscribePlusCardProps {
 	context?: 'modal' | 'page' | 'account'
@@ -14,8 +15,16 @@ export function SubscribePlusCard({
 	active = false,
 	onCancelSubscription
 }: SubscribePlusCardProps & { onCancelSubscription?: () => void }) {
+	const [isDarkMode] = useDarkModeManager()
+	const isModal = context === 'modal'
 	return (
-		<div className="price-card py-8 flex flex-col w-[92vw] px-4 snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden relative transition-all duration-300 hover:transform md:hover:scale-[1.02]">
+		<div
+			className={`price-card py-8 flex flex-col w-[92vw] px-4 snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink ${
+				isDarkMode ? 'bg-[#22242930] border-[#4a4a50]' : 'bg-[#f8f9fa] border-[#e5e7eb]'
+			} backdrop-blur-md rounded-xl border shadow-md overflow-hidden relative transition-all duration-300${
+				isModal ? '' : ' hover:transform md:hover:scale-[1.02]'
+			}`}
+		>
 			<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#5c5cf9] to-transparent opacity-20"></div>
 			<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-[#5c5cf9] opacity-5 blur-2xl"></div>
 			<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center text-[#5C5CF9] relative z-10">Llama+</h2>
@@ -96,6 +105,13 @@ export function SubscribePlusCard({
 									)}
 								</div>
 							</>
+						)}
+						{isModal && (
+							<Link href="/subscription" legacyBehavior>
+								<a className="w-full mt-3 px-4 py-2 bg-[#5C5CF9] hover:bg-[#4A4AF0] text-white rounded-lg transition-colors text-center font-medium block">
+									Go to Subscription Page
+								</a>
+							</Link>
 						)}
 					</>
 				)}
