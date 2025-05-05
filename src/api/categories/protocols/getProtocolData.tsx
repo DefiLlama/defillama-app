@@ -404,7 +404,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const backgroundColor = isDarkColor(bgColor) ? '#1f67d2' : bgColor
+	const bgColor2 = bgColor.length < 7 ? '#1f67d2' : bgColor
+	const backgroundColor = isDarkColor(bgColor2) ? '#1f67d2' : bgColor2
 	const colors = getNDistinctColors(chartTypes.length, backgroundColor)
 	const colorTones = {
 		...Object.fromEntries(chartTypes.map((type, index) => [type, colors[index]])),
@@ -752,7 +753,7 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 	}
 
 	pregenMetrics.inflows = inflowsExist
-
+	if (props.backgroundColor.length < 7) props.backgroundColor = '#1f67d2'
 	const backgroundColor =
 		!props.backgroundColor || isDarkColor(props.backgroundColor) ? '#1f67d2' : props.backgroundColor
 	const colors = getNDistinctColors(chartTypes.length, backgroundColor)
@@ -783,7 +784,9 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 }
 
 export function getProtocolPageStyles(color: string) {
-	let finalColor = isDarkColor(color) ? '#1f67d2' : color
+	let color2 = color.length < 7 ? '#1f67d2' : color
+
+	let finalColor = isDarkColor(color2) ? '#1f67d2' : color2
 
 	return {
 		'--primary-color': finalColor,
