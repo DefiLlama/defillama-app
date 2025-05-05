@@ -388,7 +388,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			align: 'end',
 			headerHelperText:
 				"Price trend shown from 7 days before to 7 days after the most recent major unlock event. Doesn't include Non-Circulating and Farming emissions."
-		}
+		},
+		size: 180
 	},
 	{
 		header: '7d Post Unlock',

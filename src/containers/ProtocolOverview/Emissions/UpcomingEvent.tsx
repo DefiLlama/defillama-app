@@ -21,7 +21,7 @@ const RegularButton = () => {
 		<Ariakit.MenuButton className="flex items-center gap-2">
 			<div className="flex space-x-2">
 				<div className="flex flex-col items-center">
-					<div className="bg-[#2C2C2E] dark:bg-zinc-800 hover:bg-[var(--bg2)] transition-colors rounded-lg w-10 h-10 flex items-center justify-center mb-4">
+					<div className="text-white bg-[#2C2C2E] dark:bg-zinc-800 hover:bg-[var(--bg2)] hover:text-black transition-colors rounded-lg w-10 h-10 flex items-center justify-center mb-4">
 						<Icon name="calendar-plus" width={24} height={24} />
 					</div>
 				</div>
