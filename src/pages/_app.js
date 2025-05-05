@@ -48,8 +48,6 @@ function App({ Component, pageProps }) {
 		}
 	}, [router])
 
-	useDarkModeManager()
-
 	return (
 		<QueryClientProvider client={client}>
 			<WalletProvider>

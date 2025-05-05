@@ -15,7 +15,7 @@ export function SubscribeLayout({ children }) {
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<SEO />
-			<div className="col-span-full w-full flex flex-col min-h-screen bg-[#13141a]">
+			<div className="col-span-full w-full flex flex-col min-h-screen bg-[#13141a] text-white">
 				<header className="sticky top-0 z-50 backdrop-blur-md border-b border-[#39393E]/40 bg-[#13141a]/80">
 					<div className="max-w-6xl xl:max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
 						<Link href="/" passHref>

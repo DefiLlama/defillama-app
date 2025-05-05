@@ -332,7 +332,7 @@ export function useDarkModeManager() {
 	const isDarkMode = store === 'true'
 
 	useEffect(() => {
-		if (!isDarkMode && !window.location.pathname.startsWith('/subscription')) {
+		if (!isDarkMode) {
 			document.documentElement.classList.remove('dark')
 			document.documentElement.classList.add('light')
 		} else {
