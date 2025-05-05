@@ -9,6 +9,55 @@ import type { IYieldFiltersProps } from './types'
 import { InputFilter } from './Amount'
 import { NestedMenu } from '~/components/NestedMenu'
 import { useIsClient } from '~/hooks'
+import { useYieldFilters } from '~/contexts/LocalStorage'
+import { ButtonLight } from '~/components/ButtonStyled'
+
+function SavedFilters({ currentFilters }) {
+	const { savedFilters, saveFilter, deleteFilter } = useYieldFilters()
+	const router = useRouter()
+
+	const handleSave = () => {
+		const name = window.prompt('Enter a name for this filter configuration')
+		if (name) {
+			saveFilter(name, currentFilters)
+		}
+	}
+
+	const handleLoad = (name: string) => {
+		const filters = savedFilters[name]
+		if (filters) {
+			router.push({
+				pathname: router.pathname,
+				query: filters
+			})
+		}
+	}
+
+	const handleDelete = (name: string) => {
+		if (window.confirm(`Delete saved filter "${name}"?`)) {
+			deleteFilter(name)
+		}
+	}
+
+	return (
+		<div className="flex items-center gap-2">
+			<ButtonLight onClick={handleSave}>Save Current Filters</ButtonLight>
+			<NestedMenu label="Saved Filters">
+				{Object.entries(savedFilters).map(([name]) => (
+					<div key={name} className="flex items-center justify-between gap-2 p-2">
+						<button onClick={() => handleLoad(name)} className="hover:text-[var(--text1)]">
+							{name}
+						</button>
+						<button onClick={() => handleDelete(name)} className="text-red-500 hover:text-red-600">
+							×
+						</button>
+					</div>
+				))}
+				{Object.keys(savedFilters).length === 0 && <div className="p-2 text-[var(--text2)]">No saved filters</div>}
+			</NestedMenu>
+		</div>
+	)
+}
 
 export function YieldFiltersV2({
 	header,
@@ -41,9 +90,12 @@ export function YieldFiltersV2({
 
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md">
-			<div className="relative flex items-center gap-2 flex-wrap p-3">
-				<h1 className="font-semibold">{header}</h1>
-				{trackingStats ? <p>{trackingStats}</p> : null}
+			<div className="relative flex items-center justify-between flex-wrap p-3">
+				<div className="flex items-center gap-2">
+					<h1 className="font-semibold">{header}</h1>
+					{trackingStats ? <p>{trackingStats}</p> : null}
+				</div>
+				<SavedFilters currentFilters={query} />
 			</div>
 			<div className="flex flex-col gap-4 p-3 rounded-b-md">
 				{strategyInputsData ? (
