@@ -11,6 +11,7 @@ import { NestedMenu } from '~/components/NestedMenu'
 import { useIsClient } from '~/hooks'
 import { useYieldFilters } from '~/contexts/LocalStorage'
 import { ButtonLight } from '~/components/ButtonStyled'
+import { Icon } from '~/components/Icon'
 
 function SavedFilters({ currentFilters }) {
 	const { savedFilters, saveFilter, deleteFilter } = useYieldFilters()
@@ -49,7 +50,7 @@ function SavedFilters({ currentFilters }) {
 							{name}
 						</button>
 						<button onClick={() => handleDelete(name)} className="text-red-500 hover:text-red-600">
-							×
+							<Icon name="x" height={16} width={16} />
 						</button>
 					</div>
 				))}
