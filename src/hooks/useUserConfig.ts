@@ -31,7 +31,7 @@ export function useUserConfig() {
 	const saveConfig = useCallback(
 		async (config: UserConfig): Promise<UserConfig> => {
 			if (!isAuthenticated || !authorizedFetch) {
-				throw new Error('Not authenticated')
+				return
 			}
 			try {
 				const response = await authorizedFetch(`${AUTH_SERVER}/user/config`, {
@@ -44,7 +44,7 @@ export function useUserConfig() {
 
 				return config
 			} catch (error) {
-				throw error
+				return
 			}
 		},
 		[isAuthenticated, authorizedFetch]
