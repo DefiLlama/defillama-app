@@ -78,6 +78,9 @@ const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 				}
 
 				const data = await response.json()
+				if (type === 'llamafeed' && (data?.subscription?.type === 'api' || data?.subscription?.type === 'legacy')) {
+					return defaultInactiveSubscription
+				}
 
 				return data
 			} catch (error) {
