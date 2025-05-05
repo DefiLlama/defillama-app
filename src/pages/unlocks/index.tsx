@@ -1,14 +1,14 @@
 import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissions } from '~/api/categories/protocols'
 import * as React from 'react'
+import { Suspense } from 'react'
 import Layout from '~/layout'
-import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
-import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { withPerformanceLogging } from '~/utils/perf'
+import { UnlocksTable } from '~/containers/Unlocks/Table'
 import { Announcement } from '~/components/Announcement'
-import { Icon } from '~/components/Icon'
-import { formattedNum, slug } from '~/utils'
+import { TopUnlocks } from '~/components/Unlocks/TopUnlocks'
+import { PastUnlockPriceImpact } from '~/components/Unlocks/PastUnlockPriceImpact'
+import { formattedNum } from '~/utils'
 import { UpcomingUnlockVolumeChart } from '~/components/Charts/UpcomingUnlockVolumeChart'
 import { useWatchlist } from '~/contexts/LocalStorage'
 
@@ -31,60 +31,10 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 })
 
 export default function Protocols({ data }) {
-	const [sorting, setSorting] = React.useState<SortingState>([])
-
 	const [projectName, setProjectName] = React.useState('')
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
 	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
 	const { savedProtocols } = useWatchlist()
-
-	const filteredData = React.useMemo(() => {
-		const searchTerm = projectName.toLowerCase().trim()
-
-		const isAnyFilterActive = searchTerm || showOnlyWatchlist || showOnlyInsider
-
-		if (!isAnyFilterActive) {
-			return data
-		}
-
-		return data.filter((protocol) => {
-			let shouldInclude = true
-
-			if (searchTerm) {
-				const nameMatch = protocol.name.toLowerCase().includes(searchTerm)
-				const symbolMatch = protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm)
-				if (!nameMatch && !symbolMatch) {
-					shouldInclude = false
-				}
-			}
-
-			if (shouldInclude && showOnlyWatchlist) {
-				if (!savedProtocols[slug(protocol.name)]) {
-					shouldInclude = false
-				}
-			}
-
-			if (shouldInclude && showOnlyInsider) {
-				const hasInsiderEvent = protocol.upcomingEvent?.some((event) => event.category === 'insiders')
-				if (!hasInsiderEvent) {
-					shouldInclude = false
-				}
-			}
-
-			return shouldInclude
-		})
-	}, [data, projectName, savedProtocols, showOnlyInsider, showOnlyWatchlist])
-
-	const instance = useReactTable({
-		data: filteredData,
-		columns: emissionsColumns,
-		state: {
-			sorting
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
 
 	const { upcomingUnlocks30dValue } = React.useMemo(() => {
 		let upcomingUnlocks30dValue = 0
@@ -116,6 +66,36 @@ export default function Protocols({ data }) {
 		return { upcomingUnlocks30dValue }
 	}, [data])
 
+	const { upcomingUnlocks7dValue } = React.useMemo(() => {
+		let upcomingUnlocks7dValue = 0
+		const now = Date.now() / 1000
+		const thirtyDaysLater = now + 7 * 24 * 60 * 60
+
+		data?.forEach((protocol) => {
+			if (!protocol.upcomingEvent || protocol.tPrice === null || protocol.tPrice === undefined) {
+				return
+			}
+
+			protocol.upcomingEvent.forEach((event) => {
+				if (event.timestamp === null || !event.noOfTokens || event.noOfTokens.length === 0) {
+					return
+				}
+
+				const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
+				if (totalTokens === 0) {
+					return
+				}
+
+				const valueUSD = totalTokens * protocol.tPrice
+				if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
+					upcomingUnlocks7dValue += valueUSD
+				}
+			})
+		})
+
+		return { upcomingUnlocks7dValue }
+	}, [data])
+
 	return (
 		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>
@@ -133,11 +113,15 @@ export default function Protocols({ data }) {
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="text-xl font-semibold">Unlock Statistics</h1>
-					<p className="hidden md:flex flex-col">
+					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Protocols Tracked</span>
 						<span className="font-semibold text-3xl font-jetbrains">{data?.length || 0}</span>
 					</p>
-					<p className="hidden md:flex flex-col">
+					<p className="flex flex-col">
+						<span className="text-[#545757] dark:text-[#cccccc]">Upcoming Unlocks (7d)</span>
+						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(upcomingUnlocks7dValue, true)}</span>
+					</p>
+					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Upcoming Unlocks (30d)</span>
 						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(upcomingUnlocks30dValue, true)}</span>
 					</p>
@@ -147,50 +131,30 @@ export default function Protocols({ data }) {
 				</div>
 			</div>
 
-			<div className="bg-[var(--cards-bg)] rounded-md">
-				<div className="flex items-center justify-end gap-2 flex-wrap p-3">
-					<h1 className="text-xl font-semibold mr-auto">Token Unlocks</h1>
-
-					<button
-						onClick={() => setShowOnlyWatchlist((prev) => !prev)}
-						className="border border-[var(--form-control-border)] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
-					>
-						<Icon
-							name="bookmark"
-							height={16}
-							width={16}
-							style={{ fill: showOnlyWatchlist ? 'var(--text1)' : 'none' }}
-						/>
-						{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
-					</button>
-
-					<button
-						onClick={() => setShowOnlyInsider((prev) => !prev)}
-						className="border border-[var(--form-control-border)] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
-					>
-						<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text1)' : 'none' }} />
-						{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}
-					</button>
-
-					<div className="relative w-full sm:max-w-[280px]">
-						<Icon
-							name="search"
-							height={16}
-							width={16}
-							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-						/>
-						<input
-							value={projectName}
-							onChange={(e) => {
-								setProjectName(e.target.value)
-							}}
-							placeholder="Search projects..."
-							className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-						/>
+			<Suspense fallback={<div className="min-h-[400px] md:min-h-[200px] xl:min-h-[130px]"></div>}>
+				<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1 isolate">
+					<div className="col-span-1 bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
+						<TopUnlocks data={data} period={1} title="24h Top Unlocks" className="col-span-1 h-[130px]" />
+					</div>
+					<div className="col-span-1 bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
+						<TopUnlocks data={data} period={30} title="30d Top Unlocks" className="col-span-1 h-[130px]" />
+					</div>
+					<div className="col-span-1 bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
+						<PastUnlockPriceImpact data={data} title="Post Unlock Price Impact" className="col-span-1 h-[130px]" />
 					</div>
 				</div>
-				<VirtualTable instance={instance} stripedBg rowSize={80} />
-			</div>
+			</Suspense>
+
+			<UnlocksTable
+				protocols={data}
+				showOnlyWatchlist={showOnlyWatchlist}
+				setShowOnlyWatchlist={setShowOnlyWatchlist}
+				showOnlyInsider={showOnlyInsider}
+				setShowOnlyInsider={setShowOnlyInsider}
+				projectName={projectName}
+				setProjectName={setProjectName}
+				savedProtocols={savedProtocols}
+			/>
 		</Layout>
 	)
 }
