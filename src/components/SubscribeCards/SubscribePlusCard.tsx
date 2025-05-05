@@ -17,10 +17,11 @@ export function SubscribePlusCard({
 }: SubscribePlusCardProps & { onCancelSubscription?: () => void }) {
 	const [isDarkMode] = useDarkModeManager()
 	const isModal = context === 'modal'
+	const shouldShowLightMode = isModal && !isDarkMode
 	return (
 		<div
 			className={`price-card py-8 flex flex-col w-[92vw] px-4 snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink ${
-				isDarkMode ? 'bg-[#22242930] border-[#4a4a50]' : 'bg-[#f8f9fa] border-[#e5e7eb]'
+				shouldShowLightMode ? 'bg-[#f8f9fa] border-[#e5e7eb]' : 'bg-[#22242930] border-[#4a4a50]'
 			} backdrop-blur-md rounded-xl border shadow-md overflow-hidden relative transition-all duration-300${
 				isModal ? '' : ' hover:transform md:hover:scale-[1.02]'
 			}`}

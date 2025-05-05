@@ -2,12 +2,9 @@ import { Icon } from '~/components/Icon'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export function SubscribeEnterpriseCard({ active = false }: { active?: boolean }) {
-	const [isDarkMode] = useDarkModeManager()
 	return (
 		<div
-			className={`price-card py-8 px-5 flex flex-col w-[92vw] snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink relative transition-all duration-300 hover:transform md:hover:scale-[1.02] ${
-				isDarkMode ? 'bg-[#22242930] border-[#4a4a50]' : 'bg-[#f8f9fa] border-[#e5e7eb]'
-			} backdrop-blur-md rounded-xl border shadow-md overflow-hidden`}
+			className={`price-card py-8 px-5 flex flex-col w-[92vw] snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink relative transition-all duration-300 hover:transform md:hover:scale-[1.02] bg-[#22242930] border-[#4a4a50] backdrop-blur-md rounded-xl border shadow-md overflow-hidden`}
 		>
 			<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-500 to-transparent opacity-20"></div>
 			<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-gray-600 opacity-5 blur-2xl"></div>

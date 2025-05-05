@@ -34,20 +34,15 @@ export default function Layout({
 			</Head>
 
 			{defaultSEO ? <SEO /> : null}
-
 			<Nav />
-			<WalletProvider>
-				<AuthProvider>
-					<main
-						{...props}
-						className={`flex flex-col gap-1 text-[var(--text1)] isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen w-[calc(100vw-1rem)]${
-							className ?? ''
-						}`}
-					>
-						{children}
-					</main>
-				</AuthProvider>
-			</WalletProvider>
+			<main
+				{...props}
+				className={`flex flex-col gap-1 text-[var(--text1)] isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen w-[calc(100vw-1rem)]${
+					className ?? ''
+				}`}
+			>
+				{children}
+			</main>
 			{isClient ? (
 				<React.Suspense>
 					<Toaster />
