@@ -160,7 +160,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	const displayData = useMemo(() => {
 		if (allocationMode === 'standard' && data.categoriesBreakdown) {
-			return processGroupedChartData(chartData || [], data.categoriesBreakdown)
+			return processGroupedChartData(chartData || ([] as any), data.categoriesBreakdown)
 		}
 		return chartData
 	}, [allocationMode, chartData, data.categoriesBreakdown])
