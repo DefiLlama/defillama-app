@@ -17,6 +17,7 @@ interface SubscriberContentProps {
 	isPortalSessionLoading: boolean
 	apiSubscription: Subscription
 	llamafeedSubscription: Subscription
+	legacySubscription: Subscription
 }
 
 export const SubscriberContent = ({
@@ -29,10 +30,12 @@ export const SubscriberContent = ({
 	createPortalSession,
 	isPortalSessionLoading,
 	apiSubscription,
-	llamafeedSubscription
+	llamafeedSubscription,
+	legacySubscription
 }: SubscriberContentProps) => {
 	const isLlamaFeed = llamafeedSubscription?.status === 'active'
 	const isPro = apiSubscription?.status === 'active'
+	const isLegacy = legacySubscription?.status === 'active'
 	const creditsLimit = isLlamaFeed ? 0 : 1_000_000
 
 	async function handleManageSubscription(type: 'llamafeed' | 'api') {
@@ -73,7 +76,7 @@ export const SubscriberContent = ({
 				<SubscribeEnterpriseCard active={subscription?.type === 'enterprise'} />
 			</div>
 
-			{isPro && (
+			{(isPro || isLegacy) && (
 				<div className="relative overflow-hidden bg-gradient-to-b from-[#222429] to-[#1d1f24] border border-[#39393E] rounded-xl shadow-xl">
 					<div className="absolute -inset-1 blur-[100px] bg-gradient-to-r from-[#5C5EFC]/20 to-[#462A92]/20 opacity-70 -z-10"></div>
 

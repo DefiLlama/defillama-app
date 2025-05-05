@@ -150,6 +150,7 @@ export const AccountInfo = () => {
 					isPortalSessionLoading={isPortalSessionLoading}
 					apiSubscription={apiSubscription}
 					llamafeedSubscription={llamafeedSubscription}
+					legacySubscription={legacySubscription}
 				/>
 			</div>
 
