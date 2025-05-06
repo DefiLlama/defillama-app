@@ -1,4 +1,4 @@
-import { chunk, groupBy, omit, sum } from 'lodash'
+import { chunk, groupBy, omit, sum, isEqual } from 'lodash'
 import dynamic from 'next/dynamic'
 import { useEffect, useMemo, useState } from 'react'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -13,6 +13,24 @@ import { IEmission } from './types'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+
+const getExtendedCategories = (baseCategories: string[], isPriceEnabled: boolean) => {
+	const extended = [...baseCategories]
+	if (isPriceEnabled) {
+		if (!extended.includes('Market Cap')) extended.push('Market Cap')
+		if (!extended.includes('Price')) extended.push('Price')
+	}
+	return extended
+}
+
+const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
+	const extended = { ...baseColors }
+	if (isPriceEnabled) {
+		extended['Market Cap'] = '#0c5dff'
+		extended['Price'] = '#ff4e21'
+	}
+	return extended
+}
 
 const AreaChart = dynamic(() => import('~/components/ECharts/UnlocksChart'), {
 	ssr: false
@@ -46,8 +64,10 @@ function processGroupedChartData(
 	categoriesBreakdown: Record<string, string[]>
 ) {
 	return chartData.map((entry) => {
-		const groupedEntry: { date: string } & { [key: string]: number } = { date: entry.date } as { date: string } & {
-			[key: string]: number
+		const groupedEntry: { date: string } & Record<string, number | string> = {
+			date: entry.date,
+			...(entry['Price'] && { Price: entry['Price'] }),
+			...(entry['Market Cap'] && { 'Market Cap': entry['Market Cap'] })
 		}
 
 		Object.entries(categoriesBreakdown).forEach(([group, categories]) => {
@@ -69,7 +89,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
-	const categories = useMemo(() => data.categories?.[dataType] || [], [data.categories, dataType])
+	const categoriesFromData = useMemo(() => data.categories?.[dataType] || [], [data.categories, dataType])
 	const stackColors = useMemo(() => data.stackColors?.[dataType] || {}, [data.stackColors, dataType])
 	const tokenAllocation = useMemo(
 		() => data.tokenAllocation?.[dataType] || { current: {}, final: {} },
@@ -80,10 +100,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const hallmarks = useMemo(() => data.hallmarks?.[dataType] || [], [data.hallmarks, dataType])
 
 	useEffect(() => {
-		if (categories.length > 0) {
-			setSelectedCategories(categories.filter((cat) => !['Market Cap', 'Price'].includes(cat)))
+		if (categoriesFromData.length > 0) {
+			setSelectedCategories((current) => {
+				const newCategories = categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+				return isEqual([...current].sort(), [...newCategories].sort()) ? current : newCategories
+			})
 		}
-	}, [categories])
+	}, [categoriesFromData])
 	const { data: geckoId } = useGeckoId(data.token ?? null)
 
 	const priceChart = usePriceChart(data.geckoId ?? geckoId)
@@ -96,18 +119,22 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const tokenVolume = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
 	const ystdPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
 	const percentChange = tokenPrice && ystdPrice ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
-	const normilizePriceChart = Object.fromEntries(
-		Object.entries(priceChart.data?.data || {})
-			.map(([name, chart]: [string, Array<[number, number]>]) =>
-				Array.isArray(chart)
-					? [name, Object.fromEntries(chart.map(([date, price]) => [Math.floor(date / 1e3), price]))]
-					: null
-			)
-			.filter(Boolean)
+	const normilizePriceChart = useMemo(
+		() =>
+			Object.fromEntries(
+				Object.entries(priceChart.data?.data || {})
+					.map(([name, chart]: [string, Array<[number, number]>]) =>
+						Array.isArray(chart)
+							? [name, Object.fromEntries(chart.map(([date, price]) => [Math.floor(date / 1e3), price]))]
+							: null
+					)
+					.filter(Boolean)
+			),
+		[priceChart.data?.data]
 	)
 
-	const groupedEvents = groupBy(data.events, (event) => event.timestamp)
-	const sortedEvents = Object.entries(groupedEvents).sort(([a], [b]) => +a - +b)
+	const groupedEvents = useMemo(() => groupBy(data.events, (event) => event.timestamp), [data.events])
+	const sortedEvents = useMemo(() => Object.entries(groupedEvents).sort(([a], [b]) => +a - +b), [groupedEvents])
 	const upcomingEventIndex = useMemo(() => {
 		const index = sortedEvents.findIndex((events) => {
 			const event = events[1][0]
@@ -117,46 +144,34 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		return index === -1 ? 0 : index
 	}, [sortedEvents])
 
-	const chartData = rawChartData
-		?.map((chartItem) => {
-			const date = chartItem.date
-			const res = Object.entries(chartItem).reduce((acc, [key, value]) => {
-				acc[key] = value
-				return acc
-			}, {})
+	const chartData = useMemo(() => {
+		return rawChartData
+			?.map((chartItem) => {
+				const date = chartItem.date
+				const res = { ...chartItem }
 
-			const mcap = normilizePriceChart?.mcaps?.[date]
-			const price = normilizePriceChart?.prices?.[date]
-			if (mcap && isPriceEnabled) {
-				res['Market Cap'] = mcap
+				const mcap = normilizePriceChart?.mcaps?.[date]
+				const price = normilizePriceChart?.prices?.[date]
 
-				if (!data.categories?.[dataType]?.includes('Market Cap')) {
-					if (!data.categories[dataType]) data.categories[dataType] = []
-					if (!data.stackColors[dataType]) data.stackColors[dataType] = {}
-					data.categories[dataType].push('Market Cap')
-					data.stackColors[dataType]['Market Cap'] = '#0c5dff'
+				if (mcap && isPriceEnabled) {
+					res['Market Cap'] = mcap
 				}
-			}
-			if (price && isPriceEnabled) {
-				res['Price'] = price
-				if (!data.categories?.[dataType]?.includes('Price')) {
-					if (!data.categories[dataType]) data.categories[dataType] = []
-					if (!data.stackColors[dataType]) data.stackColors[dataType] = {}
-					data.categories[dataType].push('Price')
-					data.stackColors[dataType]['Price'] = '#ff4e21'
-				}
-			}
 
-			return res
-		})
-		.filter((chartItem) => sum(Object.values(omit(chartItem, 'date'))) > 0)
+				if (price && isPriceEnabled) {
+					res['Price'] = price
+				}
+
+				return res
+			})
+			?.filter((chartItem) => sum(Object.values(omit(chartItem, 'date'))) > 0)
+	}, [rawChartData, normilizePriceChart, isPriceEnabled])
 
 	const availableCategories = useMemo(() => {
 		if (allocationMode === 'standard') {
 			return Object.keys(data.categoriesBreakdown || {})
 		}
-		return categories.filter((cat) => !['Market Cap', 'Price'].includes(cat))
-	}, [allocationMode, data.categoriesBreakdown, categories])
+		return categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+	}, [allocationMode, data.categoriesBreakdown, categoriesFromData])
 
 	const displayData = useMemo(() => {
 		if (allocationMode === 'standard' && data.categoriesBreakdown) {
@@ -165,20 +180,16 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		return chartData
 	}, [allocationMode, chartData, data.categoriesBreakdown])
 
-	const displayColors = useMemo(() => {
-		if (allocationMode === 'standard') {
-			return standardGroupColors
-		}
-		return stackColors
-	}, [allocationMode, stackColors])
-
 	useEffect(() => {
-		if (allocationMode === 'standard' && data.categoriesBreakdown) {
-			setSelectedCategories(Object.keys(data.categoriesBreakdown))
-		} else if (categories.length > 0) {
-			setSelectedCategories(categories.filter((cat) => !['Market Cap', 'Price'].includes(cat)))
-		}
-	}, [allocationMode, data.categoriesBreakdown, categories])
+		setSelectedCategories(() => {
+			if (allocationMode === 'standard' && data.categoriesBreakdown) {
+				return Object.keys(data.categoriesBreakdown)
+			} else if (categoriesFromData.length > 0) {
+				return categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+			}
+			return []
+		})
+	}, [allocationMode, data.categoriesBreakdown, categoriesFromData])
 
 	const groupAllocation = useMemo(() => {
 		const finalAllocation = tokenAllocation?.final
@@ -193,16 +204,33 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			}))
 	}, [tokenAllocation])
 
-	const pieChartDataAllocation = pieChartData
-		.map((pieChartItem) => {
-			if (!selectedCategories.includes(pieChartItem.name)) {
-				return null
-			}
-			return pieChartItem
-		})
-		.filter(Boolean)
+	const pieChartDataAllocation = useMemo(
+		() =>
+			pieChartData
+				.map((pieChartItem) => {
+					if (!selectedCategories.includes(pieChartItem.name)) {
+						return null
+					}
+					return pieChartItem
+				})
+				.filter(Boolean),
+		[pieChartData, selectedCategories]
+	)
 
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
+
+	const chartConfig = useMemo(() => {
+		const extendedCategories = getExtendedCategories(categoriesFromData, isPriceEnabled)
+		const extendedColors = getExtendedColors(stackColors, isPriceEnabled)
+		return {
+			stacks: [...selectedCategories, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
+			customYAxis: isPriceEnabled ? ['Market Cap', 'Price'] : [],
+			colors:
+				allocationMode === 'standard'
+					? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
+					: extendedColors
+		}
+	}, [categoriesFromData, isPriceEnabled, selectedCategories, stackColors, allocationMode])
 
 	const unlockedPercent = 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
 	if (!data) return null
@@ -315,7 +343,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			)}
 
 			<div className="flex flex-col gap-1">
-				{categories.length > 0 && rawChartData.length > 0 && (
+				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
 					<LazyChart className="bg-[var(--cards-bg)] rounded-md min-h-[384px] p-3 relative">
 						<div className="absolute right-4 z-10">
 							<SelectWithCombobox
@@ -335,7 +363,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									if (allocationMode === 'standard' && data.categoriesBreakdown) {
 										setSelectedCategories(Object.keys(data.categoriesBreakdown))
 									} else {
-										const filteredCategories = categories.filter(
+										const filteredCategories = categoriesFromData.filter(
 											(cat) =>
 												!['Market Cap', 'Price'].includes(cat) &&
 												!data.categoriesBreakdown?.noncirculating?.includes(cat)
@@ -351,12 +379,12 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							/>
 						</div>
 						<AreaChart
-							customYAxis={isPriceEnabled ? ['Market Cap', 'Price'] : []}
+							customYAxis={chartConfig.customYAxis}
 							title="Schedule"
-							stacks={[...selectedCategories, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean)}
+							stacks={chartConfig.stacks}
 							chartData={displayData}
 							hallmarks={hallmarks}
-							stackColors={displayColors}
+							stackColors={chartConfig.colors}
 							isStackedChart
 						/>
 					</LazyChart>
@@ -369,7 +397,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								showLegend
 								title="Allocation"
 								chartData={pieChartDataAllocationMode}
-								stackColors={displayColors}
+								stackColors={chartConfig.colors}
 								usdFormat={false}
 								legendPosition={
 									!width
@@ -456,7 +484,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			{data.events?.length > 0 ? (
 				<div className="flex flex-col items-center justify-start p-3 w-full bg-[var(--cards-bg)] rounded-md h-full">
-					<h1 className="text-center text-xl font-semibold">Upcoming Events</h1>
+					<h1 className="text-center text-xl font-semibold">Unlock Events</h1>
 
 					<Pagination
 						startIndex={upcomingEventIndex}
