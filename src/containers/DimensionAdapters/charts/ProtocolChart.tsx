@@ -226,7 +226,7 @@ export const ProtocolChart = ({
 	)
 }
 
-export const ChartOnly = ({ title, chartData }) => {
+export const ChartOnly = ({ title, chartData, customLegendName = null }) => {
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 
 	const barsData = React.useMemo(() => aggregateDataByInterval(barInterval, chartData)(), [chartData, barInterval])
@@ -263,7 +263,7 @@ export const ChartOnly = ({ title, chartData }) => {
 					stackColors={barChartColors}
 					valueSymbol="$"
 					hideDefaultLegend
-					customLegendName="Chains"
+					customLegendName={customLegendName ?? 'Chains'}
 					customLegendOptions={chartData[1]}
 				/>
 			) : (
@@ -274,7 +274,7 @@ export const ChartOnly = ({ title, chartData }) => {
 					stackColors={barChartColors}
 					groupBy={barInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
 					hideDefaultLegend
-					customLegendName="Chains"
+					customLegendName={customLegendName ?? 'Chains'}
 					customLegendOptions={customLegendOptions}
 				/>
 			)}

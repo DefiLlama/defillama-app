@@ -16,6 +16,7 @@ interface IChartByType {
 	breakdownChart?: boolean
 	protocolSummary?: IProtocolContainerProps['protocolSummary']
 	fullChart?: boolean
+	customLegendName?: string
 }
 
 const chartTitleBy = (chartType: CHART_TYPES, breakdown: boolean) => {
@@ -76,6 +77,7 @@ export const ChartByType2: React.FC<IChartByType> = (props) => {
 			<ChartOnly
 				chartData={chartFormatterBy(props.chartType)(mainChart.dataChart, protocolSummary?.totalDataChartBreakdown)}
 				title={fullChart ? chartTitleBy(props.chartType, enableBreakdownChart)(mainChart.title, typeSimple) : undefined}
+				customLegendName={props.customLegendName ?? null}
 			/>
 		</LazyChart>
 	) : (

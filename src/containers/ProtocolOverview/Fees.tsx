@@ -29,7 +29,13 @@ export function FeesAndRevenueCharts({ data }: { data: IFusedProtocolData }) {
 
 	return (
 		<div className="grid grid-cols-2 rounded-md">
-			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} breakdownChart={false} />
+			<ChartByType2
+				chartType="chain"
+				protocolName={slug(data.name)}
+				type={'fees'}
+				breakdownChart={false}
+				customLegendName="Metrics"
+			/>
 			<ChartByType2 chartType="chain" protocolName={slug(data.name)} type={'fees'} />
 			{hasVersions ? <ChartByType2 chartType="version" protocolName={slug(data.name)} type={'fees'} /> : null}
 		</div>
