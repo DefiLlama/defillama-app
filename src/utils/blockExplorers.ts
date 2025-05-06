@@ -130,7 +130,8 @@ const blockExplorers = {
 	berachain: ['https://beratrail.io/address/', 'Beratrail'],
 	sty: ['https://www.storyscan.xyz/token/', 'Storyscan'],
 	formnetwork: ['https://explorer.form.network/', 'Form Network Explorer'],
-	hemi: ['https://explorer.hemi.xyz/', 'Hemi Block Explorer']
+	hemi: ['https://explorer.hemi.xyz/address/', 'Hemi Block Explorer'],
+	ogpu: ['https://ogpuscan.io/address/', 'Ogpuscan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
