@@ -85,10 +85,10 @@ export const ProtocolChart = ({
 
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 
-	const { simpleStack, customLegendOptions } = React.useMemo(() => {
+	const { simpleStack, legendOptions } = React.useMemo(() => {
 		const simpleStack = chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
-		return { simpleStack, customLegendOptions: Object.keys(simpleStack) }
-	}, [chartData])
+		return { simpleStack, legendOptions: barInterval === 'Cumulative' ? chartData[1] : Object.keys(simpleStack) }
+	}, [chartData, barInterval])
 	// const simpleStack =
 	// 	chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
 	// 		? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
@@ -206,8 +206,8 @@ export const ProtocolChart = ({
 						stackColors={barChartColors}
 						valueSymbol="$"
 						hideDefaultLegend
-						customLegendName="Chains"
-						customLegendOptions={chartData[1]}
+						customLegendName={legendOptions.includes('Fees') ? 'Metrics' : 'Chains'}
+						customLegendOptions={legendOptions}
 					/>
 				) : (
 					<BarChart
@@ -217,8 +217,8 @@ export const ProtocolChart = ({
 						stackColors={barChartColors}
 						groupBy={barInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
 						hideDefaultLegend
-						customLegendName="Chains"
-						customLegendOptions={customLegendOptions}
+						customLegendName={legendOptions.includes('Fees') ? 'Metrics' : 'Chains'}
+						customLegendOptions={legendOptions}
 					/>
 				)}
 			</div>
