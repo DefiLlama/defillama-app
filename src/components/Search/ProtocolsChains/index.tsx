@@ -73,13 +73,15 @@ const Search = ({ hideFilters = false, options, ...props }: IProtocolsChainsSear
 const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) => {
 	const router = useRouter()
 
-	const tvlOptions = options || protocolsAndChainsOptions
+	const tvlOptions = useMemo(() => {
+		return options || protocolsAndChainsOptions
+	}, [options])
 
-	const { selectedValues, setSelectedValues } = useProtocolsFilterState()
+	const { selectedValues, setSelectedValues } = useProtocolsFilterState(tvlOptions)
 
 	if (router.pathname?.includes('/protocol/')) {
-		if (!options || options.length === 0) return null
-		const hasFees = options.find((o) => ['bribes', 'tokentax'].includes(o.key))
+		if (!tvlOptions || tvlOptions.length === 0) return null
+		const hasFees = tvlOptions.find((o) => ['bribes', 'tokentax'].includes(o.key))
 		return (
 			<>
 				<Select

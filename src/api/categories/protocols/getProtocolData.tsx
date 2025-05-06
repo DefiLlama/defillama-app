@@ -126,6 +126,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		users,
 		feesProtocols,
 		revenueProtocols,
+		bribesProtocols,
+		tokenTaxProtocols,
 		volumeProtocols,
 		derivatesProtocols,
 		medianApy,
@@ -140,6 +142,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any,
+		any,
 		any,
 		any,
 		any,
@@ -245,6 +249,26 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		protocolMetadata[protocolData.id]?.revenue && !isCpusHot
 			? fetchWithErrorLogging(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
+			  )
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					})
+			: {},
+		protocolMetadata[protocolData.id]?.bribeRevenue && !isCpusHot
+			? fetchWithErrorLogging(
+					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyBribesRevenue`
+			  )
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch fees and revenue protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					})
+			: {},
+		protocolMetadata[protocolData.id]?.tokenTax && !isCpusHot
+			? fetchWithErrorLogging(
+					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyTokenTaxes`
 			  )
 					.then((res) => res.json())
 					.catch((err) => {
@@ -384,6 +408,14 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
+	const bribesData = bribesProtocols?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
+	)
+
+	const tokenTaxData = tokenTaxProtocols?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
+	)
+
 	const volumeData = volumeProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
@@ -453,13 +485,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 	})
 
 	const dailyRevenue = revenueData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
-	const dailyBribesRevenue = revenueData?.reduce((acc, curr) => (acc += curr.dailyBribesRevenue || 0), 0) ?? null
-	const dailyTokenTaxes = revenueData?.reduce((acc, curr) => (acc += curr.dailyTokenTaxes || 0), 0) ?? null
+	const dailyBribesRevenue = bribesData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
+	const dailyTokenTaxes = tokenTaxData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const dailyFees = feesData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const fees30d = feesData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const revenue30d = revenueData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
-	const bribesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.bribesRevenue30d || 0), 0) ?? null
-	const tokenTaxesRevenue30d = revenueData?.reduce((acc, curr) => (acc += curr.tokenTaxesRevenue30d || 0), 0) ?? null
+	const bribesRevenue30d = bribesData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
+	const tokenTaxesRevenue30d = tokenTaxData?.reduce((acc, curr) => (acc += curr.total30d || 0), 0) ?? null
 	const dailyVolume = volumeData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const dailyPerpsVolume = perpsData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const dailyAggregatorsVolume = aggregatorsData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
@@ -469,6 +501,9 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		perpsAggregatorData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const dailyOptionsVolume = optionsData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const allTimeRevenue = revenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const allTimeBribesRevenue = bribesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
+	const allTimeTokenTaxesRevenue = tokenTaxData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimePerpsVolume = perpsData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const metrics = protocolData.metrics || {}
@@ -591,6 +626,13 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			allTimeFees,
 			fees30d,
 			revenue30d,
+			dailyBribesRevenue,
+			dailyTokenTaxes,
+			bribesRevenue30d,
+			tokenTaxesRevenue30d,
+			allTimeRevenue,
+			allTimeBribesRevenue,
+			allTimeTokenTaxesRevenue,
 			dailyVolume,
 			allTimeVolume,
 			dailyPerpsVolume,
@@ -655,10 +697,6 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 				(protocolData.id
 					? hacks?.filter((hack) => +hack.defillamaId === +protocolData.id)?.sort((a, b) => a.date - b.date)
 					: null) ?? null,
-			dailyBribesRevenue,
-			dailyTokenTaxes,
-			bribesRevenue30d,
-			tokenTaxesRevenue30d,
 			clientSide: isCpusHot,
 			pageStyles: getProtocolPageStyles(backgroundColor)
 		},
@@ -711,7 +749,7 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	// return getProtocolData(protocol, protocolRes, isCpusHot)
+	return getProtocolData(protocol, protocolRes, isCpusHot)
 
 	let protocolConfigData: any, pregenMetrics: any, props: any
 

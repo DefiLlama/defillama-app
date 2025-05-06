@@ -79,6 +79,9 @@ interface IProtocolContainerProps {
 	tokenTaxesRevenue30d: number | null
 	bribesRevenue30d: number | null
 	allTimeFees: number | null
+	allTimeRevenue: number | null
+	allTimeBribesRevenue: number | null
+	allTimeTokenTaxesRevenue: number | null
 	dailyFees: number | null
 	dailyRevenue: number | null
 	dailyBribesRevenue: number | null
@@ -170,6 +173,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 	dailyTokenTaxes,
 	bribesRevenue30d,
 	tokenTaxesRevenue30d,
+	allTimeRevenue,
+	allTimeBribesRevenue,
+	allTimeTokenTaxesRevenue,
 	dailyVolume,
 	allTimeVolume,
 	dailyPerpsVolume,
@@ -326,10 +332,10 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 		const feesToggle = []
 
-		if (dailyBribesRevenue) {
+		if (dailyBribesRevenue != null) {
 			feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.BRIBES))
 		}
-		if (dailyTokenTaxes) {
+		if (dailyTokenTaxes != null) {
 			feesToggle.push(feesOptions.find((f) => f.key === FEES_SETTINGS.TOKENTAX))
 		}
 
@@ -393,14 +399,26 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 	let revenue30dFinal = revenue30d
 	let dailyRevenueFinal = dailyRevenue
+	let dailyFeesFinal = dailyFees
+	let fees30dFinal = fees30d
+	let allTimeFeesFinal = allTimeFees
+	let allTimeRevenueFinal = allTimeRevenue
 
 	if (extraTvlsEnabled[FEES_SETTINGS.BRIBES]) {
 		dailyRevenueFinal = dailyRevenue + (dailyBribesRevenue ?? 0)
 		revenue30dFinal = revenue30d + (bribesRevenue30d ?? 0)
+		dailyFeesFinal = dailyFees + (dailyBribesRevenue ?? 0)
+		fees30dFinal = fees30d + (bribesRevenue30d ?? 0)
+		allTimeFeesFinal = allTimeFees + (allTimeBribesRevenue ?? 0)
+		allTimeRevenueFinal = allTimeRevenue + (allTimeBribesRevenue ?? 0)
 	}
 	if (extraTvlsEnabled[FEES_SETTINGS.TOKENTAX]) {
 		dailyRevenueFinal = dailyRevenue + (dailyTokenTaxes ?? 0)
 		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
+		dailyFeesFinal = dailyFees + (dailyTokenTaxes ?? 0)
+		fees30dFinal = fees30d + (tokenTaxesRevenue30d ?? 0)
+		allTimeFeesFinal = allTimeFees + (allTimeTokenTaxesRevenue ?? 0)
+		allTimeRevenueFinal = allTimeRevenue + (allTimeTokenTaxesRevenue ?? 0)
 	}
 
 	return (
@@ -1093,12 +1111,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 											</tr>
 										) : null}
 
-										{fees30d ? (
+										{fees30dFinal != null ? (
 											<RowWithSubRows
 												protocolName={protocolData.name}
 												dataType="Fees"
 												rowHeader="Fees (annualized)"
-												rowValue={formatPrice(fees30d * 12.2)}
+												rowValue={formatPrice(fees30dFinal * 12.2)}
 												helperText={explainAnnualized(helperTexts?.fees)}
 												subRows={
 													<>
@@ -1111,10 +1129,10 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																	Fees 30d
 																</Tooltip>
 															</th>
-															<td className="text-sm text-right">{formatPrice(fees30d)}</td>
+															<td className="text-sm text-right">{formatPrice(fees30dFinal)}</td>
 														</tr>
 
-														{dailyFees ? (
+														{dailyFeesFinal != null ? (
 															<tr>
 																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<Tooltip
@@ -1124,21 +1142,21 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																		Fees 24h
 																	</Tooltip>
 																</th>
-																<td className="text-sm text-right">{formatPrice(dailyFees)}</td>
+																<td className="text-sm text-right">{formatPrice(dailyFeesFinal)}</td>
 															</tr>
 														) : null}
 
-														{allTimeFees ? (
+														{allTimeFeesFinal != null ? (
 															<tr>
 																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Fees`}</th>
-																<td className="text-sm text-right">{formatPrice(allTimeFees)}</td>
+																<td className="text-sm text-right">{formatPrice(allTimeFeesFinal)}</td>
 															</tr>
 														) : null}
 													</>
 												}
 											/>
 										) : null}
-										{revenue30dFinal ? (
+										{revenue30dFinal != null ? (
 											<RowWithSubRows
 												protocolName={protocolData.name}
 												dataType="Revenue"
@@ -1156,9 +1174,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																	Revenue 30d
 																</Tooltip>
 															</th>
-															<td className="text-sm text-right">{formatPrice(revenue30d)}</td>
+															<td className="text-sm text-right">{formatPrice(revenue30dFinal)}</td>
 														</tr>
-														{dailyRevenueFinal ? (
+														{dailyRevenueFinal != null ? (
 															<tr>
 																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
 																	<Tooltip
@@ -1169,6 +1187,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 																	</Tooltip>
 																</th>
 																<td className="text-sm text-right">{formatPrice(dailyRevenueFinal)}</td>
+															</tr>
+														) : null}
+														{allTimeRevenueFinal != null ? (
+															<tr>
+																<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Revenue`}</th>
+																<td className="text-sm text-right">{formatPrice(allTimeRevenueFinal)}</td>
 															</tr>
 														) : null}
 													</>

@@ -22,7 +22,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 	}, [options, searchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
-	console.log({ options })
+
 	// return <SelectWithCombobox allValues={options} selectedValues={currentChain} setSelectedValues={handleClick} />
 	return (
 		<Ariakit.ComboboxProvider

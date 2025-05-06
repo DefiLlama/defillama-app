@@ -1,12 +1,18 @@
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { feesOptions, protocolsAndChainsOptions } from './options'
+import { feesOptions } from './options'
+import { useMemo } from 'react'
 
-export function useProtocolsFilterState() {
+export function useProtocolsFilterState(options) {
 	const [extraTvlsEnabled, updater] = useLocalStorageSettingsManager('tvl')
+	const [extraFeesEnabled] = useLocalStorageSettingsManager('fees')
 
-	const fitlers = protocolsAndChainsOptions.map((o) => o.key)
+	const { selectedValues } = useMemo(() => {
+		const fitlers = options.map((o) => o.key)
 
-	const selectedValues = fitlers.filter((key) => extraTvlsEnabled[key])
+		const selectedValues = fitlers.filter((key) => extraTvlsEnabled[key] || extraFeesEnabled[key])
+
+		return { selectedValues }
+	}, [extraTvlsEnabled, extraFeesEnabled, options])
 
 	const setSelectedValues = (values) => {
 		if (values.length < selectedValues.length) {
