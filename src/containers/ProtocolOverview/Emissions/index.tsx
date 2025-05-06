@@ -46,8 +46,10 @@ function processGroupedChartData(
 	categoriesBreakdown: Record<string, string[]>
 ) {
 	return chartData.map((entry) => {
-		const groupedEntry: { date: string } & { [key: string]: number } = { date: entry.date } as { date: string } & {
-			[key: string]: number
+		const groupedEntry: { date: string } & Record<string, number | string> = {
+			date: entry.date,
+			...(entry['Price'] && { Price: entry['Price'] }),
+			...(entry['Market Cap'] && { 'Market Cap': entry['Market Cap'] })
 		}
 
 		Object.entries(categoriesBreakdown).forEach(([group, categories]) => {
@@ -167,7 +169,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	const displayColors = useMemo(() => {
 		if (allocationMode === 'standard') {
-			return standardGroupColors
+			return {
+				...standardGroupColors,
+				Price: '#ff4e21',
+				'Market Cap': '#0c5dff'
+			}
 		}
 		return stackColors
 	}, [allocationMode, stackColors])
