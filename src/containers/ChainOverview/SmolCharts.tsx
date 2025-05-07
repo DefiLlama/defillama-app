@@ -349,7 +349,7 @@ export function UpcomingUnlocksChart({
 	className
 }: {
 	data: Array<[number, Record<string, number>]>
-	tokens: Array<string>
+	tokens: Array<[string, string]>
 	name: string
 	className?: string
 }) {
@@ -364,9 +364,9 @@ export function UpcomingUnlocksChart({
 	const series = useMemo(() => {
 		const series = {}
 
-		for (const stack of tokens) {
-			series[stack] = {
-				name: stack,
+		for (const [token, color] of tokens) {
+			series[token] = {
+				name: token,
 				type: 'bar',
 				large: true,
 				largeThreshold: 0,
@@ -375,14 +375,17 @@ export function UpcomingUnlocksChart({
 					shadowBlur: 10
 				},
 				stack: 'upcomingUnlock',
+				itemStyle: {
+					color
+				},
 				symbol: 'none',
 				data: []
 			}
 		}
 
 		for (const [date, tokensInDate] of data) {
-			for (const stack of tokens) {
-				series[stack]?.data?.push([date, tokensInDate[stack] || 0])
+			for (const [token] of tokens) {
+				series[token]?.data?.push([date, tokensInDate[token] || 0])
 			}
 		}
 
