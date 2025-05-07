@@ -18,9 +18,15 @@ export const AuditInfo = ({ audits, auditLinks = [], color, isLoading, ...props 
 				<Icon name="help-circle" height={15} width={15} />
 			</Tooltip>
 			<span>:</span>
-			<span className="flex items-center min-h-8">
+			<span className="flex items-center py-0">
 				{isLoading ? null : +audits > 0 ? (
-					<Menu name="Yes" options={auditLinks} color={color} isExternal />
+					<Menu
+						name="Yes"
+						options={auditLinks}
+						color={color}
+						isExternal
+						className="bg-[var(--btn2-bg)] hover:bg-[var(--btn2-hover-bg)] focus-visible:bg-[var(--btn2-hover-bg)] flex items-center justify-between gap-2 py-1 px-3 rounded-md cursor-pointer text-[var(--text1)] flex-nowrap relative max-w-fit"
+					/>
 				) : (
 					<span>No</span>
 				)}

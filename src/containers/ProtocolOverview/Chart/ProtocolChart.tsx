@@ -387,7 +387,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 
 			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end px-3">
 				{chartDenominations.length > 0 && (
-					<div className="mr-auto text-xs font-medium flex items-center rounded-md h-full overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+					<div className="mr-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
 						{chartDenominations.map((D) => (
 							<Link
 								href={
@@ -414,7 +414,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 
 				{hasAtleasOneBarChart ? (
 					<>
-						<div className="ml-auto text-xs font-medium flex items-center rounded-md h-full overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+						<div className="ml-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
 							<Link
 								href={
 									realPathname +
