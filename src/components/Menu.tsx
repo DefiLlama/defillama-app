@@ -66,7 +66,7 @@ export function Menu({
 						<Ariakit.MenuItem
 							render={<a href={value} target="_blank" rel="noopener noreferrer" />}
 							key={value + i}
-							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)] whitespace-nowrap overflow-hidden text-ellipsis"
+							className="py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)] whitespace-nowrap overflow-hidden text-ellipsis"
 						>
 							{value}
 						</Ariakit.MenuItem>

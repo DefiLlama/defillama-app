@@ -6,7 +6,6 @@ import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '../Tooltip'
-import { useIsClient } from '~/hooks'
 
 interface ITableProps {
 	instance: Table<any>
@@ -35,16 +34,39 @@ export function VirtualTable({
 	...props
 }: ITableProps) {
 	const router = useRouter()
-	const [tableTop, setTableTop] = React.useState(0)
+
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
-	const isClient = useIsClient()
+	// const [, forceUpdate] = React.useReducer((x) => x + 1, 0)
+
 	const { rows } = instance.getRowModel()
 
-	React.useEffect(() => {
-		if (!skipVirtualization && tableContainerRef?.current && isClient) {
-			setTableTop(tableContainerRef.current.offsetTop)
-		}
-	}, [skipVirtualization, isClient])
+	// React.useEffect(() => {
+	// 	if (!tableContainerRef.current) return
+
+	// 	// Handle window resize
+	// 	const handleResize = () => {
+	// 		forceUpdate()
+	// 	}
+	// 	window.addEventListener('resize', handleResize)
+
+	// 	// Handle position changes
+	// 	const resizeObserver = new ResizeObserver(handleResize)
+	// 	const intersectionObserver = new IntersectionObserver(handleResize, { threshold: [0, 1] })
+
+	// 	// Observe the table and its parent elements up to body
+	// 	let element: HTMLElement | null = tableContainerRef.current
+	// 	while (element && element !== document.body) {
+	// 		resizeObserver.observe(element)
+	// 		intersectionObserver.observe(element)
+	// 		element = element.parentElement
+	// 	}
+
+	// 	return () => {
+	// 		window.removeEventListener('resize', handleResize)
+	// 		resizeObserver.disconnect()
+	// 		intersectionObserver.disconnect()
+	// 	}
+	// }, [])
 
 	React.useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
@@ -65,7 +87,7 @@ export function VirtualTable({
 		count: rows.length,
 		estimateSize: () => rowSize || 50,
 		overscan: 5,
-		scrollMargin: tableTop
+		scrollMargin: tableContainerRef.current?.offsetTop ?? 0
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()

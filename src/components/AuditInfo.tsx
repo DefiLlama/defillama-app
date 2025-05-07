@@ -18,7 +18,7 @@ export const AuditInfo = ({ audits, auditLinks = [], color, isLoading, ...props 
 				<Icon name="help-circle" height={15} width={15} />
 			</Tooltip>
 			<span>:</span>
-			<span className="flex items-center py-0">
+			<span className="flex items-center min-h-6">
 				{isLoading ? null : +audits > 0 ? (
 					<Menu
 						name="Yes"
