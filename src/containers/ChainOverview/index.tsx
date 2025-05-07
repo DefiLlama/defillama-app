@@ -74,16 +74,28 @@ const linksToOtherLlamaApps = [
 		description: 'No fees dex aggregator',
 		href: 'https://swap.defillama.com',
 		icon: (
-			<img src="/llama-apps/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="object-contain" />
+			<img
+				src="/llama-apps/llamaswap.png"
+				loading="lazy"
+				alt=""
+				height={44}
+				width={44}
+				className="object-contain z-10"
+			/>
 		),
-		background: <span className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#5C5CF9] overflow-hidden" />
+		background: (
+			<span
+				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
+				className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#5C5CF9] overflow-hidden"
+			/>
+		)
 	},
 	{
 		name: 'LlamaPay',
 		description: 'Seamless crypto payments',
 		href: 'https://llamapay.io',
 		icon: (
-			<span className="mx-[5px] block h-8 w-8 rotate-45 bg-[linear-gradient(183deg,#23BD8F_0.79%,#1BDBAD_99.21%)] rounded-md">
+			<span className="mx-[5px] block h-8 w-8 rotate-45 bg-[linear-gradient(183deg,#23BD8F_0.79%,#1BDBAD_99.21%)] rounded-md z-10">
 				<img
 					src="/llama-apps/llamapay.svg"
 					loading="lazy"
@@ -94,25 +106,54 @@ const linksToOtherLlamaApps = [
 				/>
 			</span>
 		),
-		background: <span className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#37E69A] overflow-hidden" />
+		background: (
+			<span
+				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
+				className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#37E69A] overflow-hidden"
+			/>
+		)
 	},
 	{
 		name: 'LlamaFeed',
 		description: 'The ultimate crypto feed',
 		href: 'https://llamafeed.io/',
 		icon: (
-			<img src="/llama-apps/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="object-contain" />
+			<img
+				src="/llama-apps/llamafeed.svg"
+				loading="lazy"
+				alt=""
+				height={44}
+				width={44}
+				className="object-contain z-10"
+			/>
 		),
-		background: <span className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#5C5CF9] overflow-hidden" />
+		background: (
+			<span
+				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
+				className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#5C5CF9] overflow-hidden"
+			/>
+		)
 	},
 	{
 		name: 'DefiLlama API',
 		description: 'Access to all our data',
 		href: 'https://defillama.com/pro-api/docs',
 		icon: (
-			<img src="/llama-apps/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="object-contain" />
+			<img
+				src="/llama-apps/llamaswap.png"
+				loading="lazy"
+				alt=""
+				height={44}
+				width={44}
+				className="object-contain z-10"
+			/>
 		),
-		background: <span className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#5C5CF9] overflow-hidden" />
+		background: (
+			<span
+				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
+				className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#5C5CF9] overflow-hidden"
+			/>
+		)
 	}
 ]
 
