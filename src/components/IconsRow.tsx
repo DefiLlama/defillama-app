@@ -4,7 +4,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useResize } from '~/hooks/useResize'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
-import Link from 'next/link'
 
 const CHAIN_ICON_WIDTH = 24
 
@@ -36,7 +35,7 @@ export const ChainLogo = ({
 			<Tooltip
 				content={chain}
 				render={
-					<Link
+					<a
 						key={chain}
 						href={
 							url.includes('/yields?chain')
@@ -45,18 +44,15 @@ export const ChainLogo = ({
 								? `${url}=${chain.toLowerCase().split(' ').join('-')}`
 								: `${url}/${chain}`
 						}
-						shallow={shallowRoute}
-						passHref
-						prefetch={false}
+						target="_blank"
+						rel="noopener noreferrer"
 					/>
 				}
 			>
-				<a>
-					<TokenLogo
-						onClick={(e) => e.stopPropagation()}
-						logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)}
-					/>
-				</a>
+				<TokenLogo
+					onClick={(e) => e.stopPropagation()}
+					logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)}
+				/>
 			</Tooltip>
 		)
 	}

@@ -116,7 +116,8 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					color: isThemeDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
 					fontSize: 13,
 					padding: [0, 0, 0, 50]
-				}
+				},
+				offset: 30
 			},
 			series: [
 				{
