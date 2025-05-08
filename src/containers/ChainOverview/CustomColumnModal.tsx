@@ -4,6 +4,10 @@ import { evaluateFormula } from './formula.service'
 import { formatValue } from '../../utils'
 import { AVAILABLE_FIELDS, replaceAliases, AVAILABLE_FUNCTIONS } from './customColumnsUtils'
 import { Icon } from '~/components/Icon'
+import { SubscribeModal } from '~/components/Modal/SubscribeModal'
+import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { useSubscribe } from '~/hooks/useSubscribe'
+import { useIsClient } from '~/hooks'
 
 interface CustomColumnModalProps {
 	open: boolean
@@ -46,6 +50,9 @@ export function CustomColumnModal({
 	const inputRef = useRef(null)
 	const modalRef = useRef<HTMLDivElement>(null)
 	const [isMounted, setIsMounted] = useState(false)
+	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const isClient = useIsClient()
+	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 
 	useEffect(() => {
 		if (open) {
@@ -194,6 +201,10 @@ export function CustomColumnModal({
 			setState((prev) => ({ ...prev, error: 'Invalid formula: ' + result.error }))
 			return
 		}
+		if (!isSubscriptionLoading && subscription?.status !== 'active') {
+			setShowSubscribeModal(true)
+			return
+		}
 		setState((prev) => ({ ...prev, error: null }))
 		onSave({ name: state.name.trim(), formula: state.formula.trim(), formatType: state.formatType })
 	}
@@ -213,132 +224,139 @@ export function CustomColumnModal({
 	}
 
 	return createPortal(
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-			<div
-				ref={modalRef}
-				className="relative bg-[var(--cards-bg)] border border-[var(--divider)] rounded-xl p-6 shadow-xl max-w-md w-full"
-			>
-				<button
-					onClick={onClose}
-					className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-[var(--divider)] text-[var(--text3)] hover:text-[var(--text1)] transition-colors"
-					aria-label="Close modal"
+		<>
+			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+				<div
+					ref={modalRef}
+					className="relative bg-[var(--cards-bg)] border border-[var(--divider)] rounded-xl p-6 shadow-xl max-w-md w-full"
 				>
-					<Icon name="x" height={20} width={20} />
-				</button>
-				<h2 className="text-lg font-bold mb-4 text-[var(--text1)]">Add Custom Column</h2>
-				<div className="mb-4">
-					<label className="block mb-2 font-medium text-[var(--text2)]">Column Name</label>
-					<input
-						className="w-full py-3 px-4 text-sm rounded-lg bg-[var(--bg1)] border border-[var(--form-control-border)] text-[var(--text1)] focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent"
-						value={state.name}
-						onChange={(e) => setState((prev) => ({ ...prev, name: e.target.value }))}
-						placeholder="Custom Column"
-						autoFocus
-					/>
-				</div>
-				<div className="mb-4">
-					<label className="block mb-2 font-medium text-[var(--text2)]">Formula</label>
-					<div className="relative">
-						{state.fieldWarning && !state.error && (
-							<div className="mb-2 flex items-center gap-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded px-3 py-2 text-sm font-semibold">
-								<Icon name="help-circle" height={18} width={18} />
-								<span>{state.fieldWarning}</span>
-							</div>
-						)}
-						{state.error && (
-							<div className="mb-2 flex items-center gap-2 bg-red-100 border border-red-400 text-red-700 rounded px-3 py-2 text-sm font-semibold">
-								<Icon name="alert-triangle" height={18} width={18} />
-								<span>{state.error}</span>
-							</div>
-						)}
-						<input
-							ref={inputRef}
-							className={`w-full py-3 px-4 text-sm rounded-lg bg-[var(--bg1)] border ${
-								state.error ? 'border-red-400' : 'border-[var(--form-control-border)]'
-							} text-[var(--text1)] focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent`}
-							value={state.formula}
-							onChange={handleFormulaChange}
-							onKeyDown={handleKeyDown}
-							placeholder="e.g. revenue_30d / tvl"
-							autoComplete="off"
-						/>
-						{state.showSuggestions && (
-							<ul className="absolute left-0 right-0 bg-[var(--cards-bg)] border border-[var(--divider)] rounded-lg shadow z-10 max-h-40 overflow-y-auto mt-1">
-								{state.suggestions.map((s, i) => (
-									<li
-										key={s.name || s}
-										className={`px-3 py-2 cursor-pointer text-[var(--text1)] flex items-center gap-2 ${
-											i === state.highlighted ? 'bg-[var(--primary1-hover)]' : ''
-										}`}
-										onMouseDown={(e) => {
-											e.stopPropagation()
-											handleSuggestionClick(s)
-										}}
-									>
-										{s.type === 'function' || s.type === 'operator' ? (
-											<span className="text-[var(--primary1)]">ƒ</span>
-										) : (
-											''
-										)}
-										<span>{s.name || s}</span>
-									</li>
-								))}
-							</ul>
-						)}
-					</div>
-				</div>
-				<div className="mb-4">
-					<label className="block mb-2 font-medium text-[var(--text2)]">Format</label>
-					<select
-						className="w-full py-3 px-4 text-sm rounded-lg bg-[var(--bg1)] border border-[var(--form-control-border)] text-[var(--text1)] focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent"
-						value={state.formatType}
-						onChange={(e) => setState((prev) => ({ ...prev, formatType: e.target.value }))}
-					>
-						<option value="auto">Auto</option>
-						<option value="number">Number</option>
-						<option value="usd">USD</option>
-						<option value="percent">Percent</option>
-						<option value="string">String</option>
-						<option value="boolean">Boolean (checkmark)</option>
-					</select>
-				</div>
-				<div className="mb-4 text-xs text-[var(--text2)]">
-					<div className="mb-1 font-semibold">Available fields:</div>
-					<ul className="list-disc ml-5 grid grid-cols-2 gap-x-4 gap-y-1 max-h-32 overflow-y-auto">
-						{AVAILABLE_FIELDS.map((f) => (
-							<li key={f}>
-								<code
-									className="bg-[var(--bg1)] px-1 py-0.5 rounded text-[var(--primary1)] cursor-pointer hover:bg-[var(--divider)]"
-									onClick={() => handleSuggestionClick({ name: f, type: 'field' })}
-								>
-									{f}
-								</code>
-							</li>
-						))}
-					</ul>
-				</div>
-				{state.formula.trim() && !hasFormulaError && (
-					<div className="mb-2 text-sm">
-						<span className="font-semibold text-[var(--text2)]">Preview: </span>
-						<span className="bg-[var(--bg1)] px-2 py-1 rounded text-[var(--text1)]">{preview}</span>
-					</div>
-				)}
-				<div className="flex justify-end gap-2 mt-4">
 					<button
-						className="px-4 py-2 rounded-lg bg-transparent hover:bg-[var(--btn-hover-bg)] text-[var(--text2)] transition-colors"
 						onClick={onClose}
+						className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-[var(--divider)] text-[var(--text3)] hover:text-[var(--text1)] transition-colors"
+						aria-label="Close modal"
 					>
-						Cancel
+						<Icon name="x" height={20} width={20} />
 					</button>
-					<button
-						className="px-4 py-2 rounded-lg bg-[var(--primary1)] hover:bg-[var(--primary1-hover)] text-white shadow-md transition-colors"
-						onClick={handleSave}
-					>
-						Save
-					</button>
+					<h2 className="text-lg font-bold mb-4 text-[var(--text1)]">Add Custom Column</h2>
+					<div className="mb-4">
+						<label className="block mb-2 font-medium text-[var(--text2)]">Column Name</label>
+						<input
+							className="w-full py-3 px-4 text-sm rounded-lg bg-[var(--bg1)] border border-[var(--form-control-border)] text-[var(--text1)] focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent"
+							value={state.name}
+							onChange={(e) => setState((prev) => ({ ...prev, name: e.target.value }))}
+							placeholder="Custom Column"
+							autoFocus
+						/>
+					</div>
+					<div className="mb-4">
+						<label className="block mb-2 font-medium text-[var(--text2)]">Formula</label>
+						<div className="relative">
+							{state.fieldWarning && !state.error && (
+								<div className="mb-2 flex items-center gap-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded px-3 py-2 text-sm font-semibold">
+									<Icon name="help-circle" height={18} width={18} />
+									<span>{state.fieldWarning}</span>
+								</div>
+							)}
+							{state.error && (
+								<div className="mb-2 flex items-center gap-2 bg-red-100 border border-red-400 text-red-700 rounded px-3 py-2 text-sm font-semibold">
+									<Icon name="alert-triangle" height={18} width={18} />
+									<span>{state.error}</span>
+								</div>
+							)}
+							<input
+								ref={inputRef}
+								className={`w-full py-3 px-4 text-sm rounded-lg bg-[var(--bg1)] border ${
+									state.error ? 'border-red-400' : 'border-[var(--form-control-border)]'
+								} text-[var(--text1)] focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent`}
+								value={state.formula}
+								onChange={handleFormulaChange}
+								onKeyDown={handleKeyDown}
+								placeholder="e.g. revenue_30d / tvl"
+								autoComplete="off"
+							/>
+							{state.showSuggestions && (
+								<ul className="absolute left-0 right-0 bg-[var(--cards-bg)] border border-[var(--divider)] rounded-lg shadow z-10 max-h-40 overflow-y-auto mt-1">
+									{state.suggestions.map((s, i) => (
+										<li
+											key={s.name || s}
+											className={`px-3 py-2 cursor-pointer text-[var(--text1)] flex items-center gap-2 ${
+												i === state.highlighted ? 'bg-[var(--primary1-hover)]' : ''
+											}`}
+											onMouseDown={(e) => {
+												e.stopPropagation()
+												handleSuggestionClick(s)
+											}}
+										>
+											{s.type === 'function' || s.type === 'operator' ? (
+												<span className="text-[var(--primary1)]">ƒ</span>
+											) : (
+												''
+											)}
+											<span>{s.name || s}</span>
+										</li>
+									))}
+								</ul>
+							)}
+						</div>
+					</div>
+					<div className="mb-4">
+						<label className="block mb-2 font-medium text-[var(--text2)]">Format</label>
+						<select
+							className="w-full py-3 px-4 text-sm rounded-lg bg-[var(--bg1)] border border-[var(--form-control-border)] text-[var(--text1)] focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent"
+							value={state.formatType}
+							onChange={(e) => setState((prev) => ({ ...prev, formatType: e.target.value }))}
+						>
+							<option value="auto">Auto</option>
+							<option value="number">Number</option>
+							<option value="usd">USD</option>
+							<option value="percent">Percent</option>
+							<option value="string">String</option>
+							<option value="boolean">Boolean (checkmark)</option>
+						</select>
+					</div>
+					<div className="mb-4 text-xs text-[var(--text2)]">
+						<div className="mb-1 font-semibold">Available fields:</div>
+						<ul className="list-disc ml-5 grid grid-cols-2 gap-x-4 gap-y-1 max-h-32 overflow-y-auto">
+							{AVAILABLE_FIELDS.map((f) => (
+								<li key={f}>
+									<code
+										className="bg-[var(--bg1)] px-1 py-0.5 rounded text-[var(--primary1)] cursor-pointer hover:bg-[var(--divider)]"
+										onClick={() => handleSuggestionClick({ name: f, type: 'field' })}
+									>
+										{f}
+									</code>
+								</li>
+							))}
+						</ul>
+					</div>
+					{state.formula.trim() && !hasFormulaError && (
+						<div className="mb-2 text-sm">
+							<span className="font-semibold text-[var(--text2)]">Preview: </span>
+							<span className="bg-[var(--bg1)] px-2 py-1 rounded text-[var(--text1)]">{preview}</span>
+						</div>
+					)}
+					<div className="flex justify-end gap-2 mt-4">
+						<button
+							className="px-4 py-2 rounded-lg bg-transparent hover:bg-[var(--btn-hover-bg)] text-[var(--text2)] transition-colors"
+							onClick={onClose}
+						>
+							Cancel
+						</button>
+						<button
+							className="px-4 py-2 rounded-lg bg-[var(--primary1)] hover:bg-[var(--primary1-hover)] text-white shadow-md transition-colors"
+							onClick={handleSave}
+						>
+							Save
+						</button>
+					</div>
 				</div>
 			</div>
-		</div>,
+			{isClient && (
+				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
+					<SubscribePlusCard context="modal" />
+				</SubscribeModal>
+			)}
+		</>,
 		document.body
 	)
 }
