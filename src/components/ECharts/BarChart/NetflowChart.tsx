@@ -86,10 +86,10 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 				}
 			},
 			grid: {
-				top: 20,
-				bottom: 20,
-				left: 40,
-				right: 40,
+				top: 12,
+				bottom: 12,
+				left: 42,
+				right: 12,
 				containLabel: true
 			},
 			xAxis: {
