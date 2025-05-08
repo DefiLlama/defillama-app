@@ -142,6 +142,7 @@ interface IProtocolContainerProps {
 		'--btn-hover-bg': string
 		'--btn-text': string
 	}
+	tab?: string
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -152,7 +153,7 @@ function explainAnnualized(text: string | undefined) {
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
-const ProtocolContainer = React.memo(function ProtocolContainer({
+const ProtocolContainer = ({
 	articles,
 	devMetrics,
 	title,
@@ -197,8 +198,9 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 	chartDenominations = [],
 	hacksData,
 	nftVolumeData,
-	pageStyles
-}: IProtocolContainerProps) {
+	pageStyles,
+	tab
+}: IProtocolContainerProps) => {
 	const {
 		address = '',
 		name,
@@ -376,15 +378,6 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 			  null
 			: null
 
-	const tab = router.asPath.split('#')?.[1] ?? 'information'
-	const setTab = (newTab, e) => {
-		if (e.ctrlKey || e.metaKey) {
-			window.open(router.asPath.split('#')[0] + '#' + newTab)
-		} else {
-			router.push(router.asPath.split('#')[0] + '#' + newTab, undefined, { shallow: true })
-		}
-	}
-
 	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(chartDenominations?.[1]?.geckoId)
 
 	const formatPrice = (value?: number | string | null): string | number | null => {
@@ -420,6 +413,8 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 		allTimeFeesFinal = allTimeFees + (allTimeTokenTaxesRevenue ?? 0)
 		allTimeRevenueFinal = allTimeRevenue + (allTimeTokenTaxesRevenue ?? 0)
 	}
+
+	console.log({ tab })
 
 	return (
 		<Layout title={title} backgroundColor={pageStyles['--bg-color']} style={pageStyles as any}>
@@ -489,150 +484,182 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 
 			<div className="flex flex-col gap-1">
 				<div className="w-full flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium">
-					<button
-						data-active={tab === 'information'}
-						onClick={(e) => setTab('information', e)}
+					<Link
+						href={`/protocol/${protocol}`}
+						data-active={!tab || tab === 'information'}
+						legacyBehavior={false}
+						prefetch
 						className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 					>
 						Information
-					</button>
+					</Link>
 					{showCharts && (
-						<button
-							data-active={tab === 'tvl-charts'}
-							onClick={(e) => setTab('tvl-charts', e)}
+						<Link
+							href={`/protocol/tvl/${protocol}`}
+							data-active={tab === 'tvl'}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							{isCEX ? 'Assets' : 'TVL'}
-						</button>
+						</Link>
 					)}
 					{stablecoins && stablecoins.length > 0 && (
-						<button
-							data-active={tab === 'stablecoin-info'}
-							onClick={(e) => setTab('stablecoin-info', e)}
+						<Link
+							href={`/protocol/stablecoins/${protocol}`}
+							data-active={tab === 'stablecoins'}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Stablecoin Info
-						</button>
+						</Link>
 					)}
 					{metrics.bridge && (
-						<button
-							data-active={tab === 'bridge'}
-							onClick={(e) => setTab('bridge', e)}
+						<Link
+							href={`/protocol/bridges/${protocol}`}
+							data-active={tab === 'bridges'}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Bridge Info
-						</button>
+						</Link>
 					)}
 					{treasury && (
-						<button
+						<Link
+							href={`/protocol/treasury/${protocol}`}
 							data-active={tab === 'treasury'}
-							onClick={(e) => setTab('treasury', e)}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Treasury
-						</button>
+						</Link>
 					)}
 					{metrics.unlocks && (
-						<button
+						<Link
+							href={`/protocol/unlocks/${protocol}`}
 							data-active={tab === 'unlocks'}
-							onClick={(e) => setTab('unlocks', e)}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Unlocks
-						</button>
+						</Link>
 					)}
 					{metrics.yields && (
-						<button
+						<Link
+							href={`/protocol/yields/${protocol}`}
 							data-active={tab === 'yields'}
-							onClick={(e) => setTab('yields', e)}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Yields
-						</button>
+						</Link>
 					)}
 					{metrics.fees && (
-						<button
-							data-active={tab === 'fees-revenue'}
-							onClick={(e) => setTab('fees-revenue', e)}
+						<Link
+							href={`/protocol/fees/${protocol}`}
+							data-active={tab === 'fees'}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Fees and Revenue
-						</button>
+						</Link>
 					)}
 					{metrics.dexs && (
-						<button
-							data-active={tab === 'volume'}
-							onClick={(e) => setTab('volume', e)}
+						<Link
+							href={`/protocol/dexs/${protocol}`}
+							data-active={tab === 'dexs'}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
-							Volume
-						</button>
+							DEX Volume
+						</Link>
 					)}
 					{metrics.perps && (
-						<button
-							data-active={tab === 'perps-volume'}
-							onClick={(e) => setTab('perps-volume', e)}
+						<Link
+							href={`/protocol/perps/${protocol}`}
+							data-active={tab === 'perps'}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Perps Volume
-						</button>
+						</Link>
 					)}
 					{metrics.aggregators && (
-						<button
-							data-active={tab === 'aggregators-volume'}
-							onClick={(e) => setTab('aggregators-volume', e)}
+						<Link
+							href={`/protocol/dex-aggregators/${protocol}`}
+							data-active={tab === 'dex-aggregators'}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Aggregators Volume
-						</button>
+						</Link>
 					)}
 					{metrics.perpsAggregators && (
-						<button
-							data-active={tab === 'perps-aggregator'}
-							onClick={(e) => setTab('perps-aggregator', e)}
+						<Link
+							href={`/protocol/perps-aggregators/${protocol}`}
+							data-active={tab === 'perps-aggregators'}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Perps Aggregators Volume
-						</button>
+						</Link>
 					)}
 					{metrics.bridgeAggregators && (
-						<button
+						<Link
+							href={`/protocol/bridge-aggregators/${protocol}`}
 							data-active={tab === 'bridge-aggregators'}
-							onClick={(e) => setTab('bridge-aggregators', e)}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Bridge Aggregators Volume
-						</button>
+						</Link>
 					)}
 					{metrics.options && (
-						<button
-							data-active={tab === 'options-volume'}
-							onClick={(e) => setTab('options-volume', e)}
+						<Link
+							href={`/protocol/options/${protocol}`}
+							data-active={tab === 'options'}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Options Volume
-						</button>
+						</Link>
 					)}
 					{governanceApis?.length > 0 && (
-						<button
+						<Link
+							href={`/protocol/governance/${protocol}`}
 							data-active={tab === 'governance'}
-							onClick={(e) => setTab('governance', e)}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Governance
-						</button>
+						</Link>
 					)}
 					{metrics.forks && (
-						<button
+						<Link
+							href={`/protocol/forks/${protocol}`}
 							data-active={tab === 'forks'}
-							onClick={(e) => setTab('forks', e)}
+							legacyBehavior={false}
+							prefetch
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Forks
-						</button>
+						</Link>
 					)}
 				</div>
-				{tab === 'information' ? (
+				{!tab || tab === 'information' ? (
 					<div className="flex flex-col gap-1">
 						<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 							<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
@@ -1781,7 +1808,7 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						</div>
 					</div>
 				) : null}
-				{showCharts && tab === 'tvl-charts' ? (
+				{showCharts && tab === 'tvl' ? (
 					<div className="grid grid-cols-2 bg-[var(--cards-bg)] rounded-md">
 						{isLoading ? (
 							<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
@@ -1848,12 +1875,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						)}
 					</div>
 				) : null}
-				{stablecoins && stablecoins.length > 0 && tab === 'stablecoin-info' ? (
+				{stablecoins && stablecoins.length > 0 && tab === 'stablecoins' ? (
 					<div className="bg-[var(--cards-bg)] rounded-md">
 						<StablecoinInfo assetName={stablecoins[0]} />
 					</div>
 				) : null}
-				{metrics.bridge && tab === 'bridge' ? (
+				{metrics.bridge && tab === 'bridges' ? (
 					<div className="bg-[var(--cards-bg)] rounded-md">
 						<BridgeContainerOnClient protocol={protocol} />
 					</div>
@@ -1873,22 +1900,22 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						<ProtocolPools data={yields} protocol={protocol} protocolData={protocolData} />
 					</div>
 				) : null}
-				{metrics.fees && tab === 'fees-revenue' ? (
+				{metrics.fees && tab === 'fees' ? (
 					<div className="bg-[var(--cards-bg)] rounded-md">
 						<FeesAndRevenueCharts data={protocolData} />
 					</div>
 				) : null}
-				{metrics.dexs && tab === 'volume' ? (
+				{metrics.dexs && tab === 'dexs' ? (
 					<div className="bg-[var(--cards-bg)] rounded-md">
 						<VolumeCharts data={protocolData} />
 					</div>
 				) : null}
-				{metrics.perps && tab === 'perps-volume' ? (
+				{metrics.perps && tab === 'perps' ? (
 					<div className="bg-[var(--cards-bg)] rounded-md">
 						<VolumeCharts data={protocolData} type="derivatives" />
 					</div>
 				) : null}
-				{metrics.perpsAggregators && tab === 'perps-aggregator' ? (
+				{metrics.perpsAggregators && tab === 'perps-aggregators' ? (
 					<div className="bg-[var(--cards-bg)] rounded-md">
 						<VolumeCharts data={protocolData} type="aggregator-derivatives" />
 					</div>
@@ -1898,12 +1925,12 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 						<VolumeCharts data={protocolData} type="bridge-aggregators" />
 					</div>
 				) : null}
-				{metrics.aggregators && tab === 'aggregators-volume' ? (
+				{metrics.aggregators && tab === 'dex-aggregators' ? (
 					<div className="bg-[var(--cards-bg)] rounded-md">
 						<VolumeCharts data={protocolData} type="aggregators" />
 					</div>
 				) : null}
-				{metrics.options && tab === 'options-volume' ? (
+				{metrics.options && tab === 'options' ? (
 					<div className="bg-[var(--cards-bg)] rounded-md">
 						<VolumeCharts data={protocolData} type="options" />
 					</div>
@@ -1921,6 +1948,6 @@ const ProtocolContainer = React.memo(function ProtocolContainer({
 			</div>
 		</Layout>
 	)
-})
+}
 
 export default ProtocolContainer
