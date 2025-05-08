@@ -83,6 +83,9 @@ export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES'
 // DIMENSIONS (DEXS AND FEES)
 const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
 
+//custom columns
+const CUSTOM_COLUMNS = 'customColumnsV1'
+
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS } as const
 
 const BRIBES = 'bribes'
@@ -168,7 +171,7 @@ export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
 export const BRIDGES_SETTINGS_KEYS = Object.values(BRIDGES_SETTINGS)
 
-const UPDATABLE_KEYS = [DEFI_WATCHLIST, YIELDS_WATCHLIST, SELECTED_PORTFOLIO, YIELDS_SAVED_FILTERS]
+const UPDATABLE_KEYS = [DEFI_WATCHLIST, YIELDS_WATCHLIST, SELECTED_PORTFOLIO, YIELDS_SAVED_FILTERS, CUSTOM_COLUMNS]
 
 const UPDATE_KEY = 'UPDATE_KEY'
 const UPDATE_KEY_OPTIONALLY_PERSIST = 'UPDATE_KEY_OPTIONALLY_PERSIST'
@@ -214,7 +217,8 @@ function init() {
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME,
-		[YIELDS_SAVED_FILTERS]: {}
+		[YIELDS_SAVED_FILTERS]: {},
+		[CUSTOM_COLUMNS]: []
 	}
 
 	try {
@@ -554,4 +558,33 @@ export const useDimensionChartInterval = () => {
 	}, [store])
 
 	return [chartInterval, updateChartInterval] as const
+}
+
+export function useCustomColumns() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const customColumns = state?.[CUSTOM_COLUMNS] ?? []
+
+	function setCustomColumns(cols) {
+		updateKey(CUSTOM_COLUMNS, cols)
+	}
+
+	function addCustomColumn(col) {
+		setCustomColumns([...customColumns, col])
+	}
+
+	function editCustomColumn(index, col) {
+		setCustomColumns(customColumns.map((c, i) => (i === index ? col : c)))
+	}
+
+	function deleteCustomColumn(index) {
+		setCustomColumns(customColumns.filter((_, i) => i !== index))
+	}
+
+	return {
+		customColumns,
+		setCustomColumns,
+		addCustomColumn,
+		editCustomColumn,
+		deleteCustomColumn
+	}
 }

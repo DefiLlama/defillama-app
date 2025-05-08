@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { CustomColumnModal } from './CustomColumnModal'
+import { useCustomColumns } from '~/contexts/LocalStorage'
 
 export interface CustomColumnDef {
 	name: string
@@ -7,35 +8,16 @@ export interface CustomColumnDef {
 	formatType: 'auto' | 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 }
 
-const STORAGE_KEY = 'customColumnsV1'
-
-function loadCustomColumns(): CustomColumnDef[] {
-	try {
-		const raw = localStorage.getItem(STORAGE_KEY)
-		if (!raw) return []
-		return JSON.parse(raw)
-	} catch {
-		return []
-	}
-}
-
-function saveCustomColumns(cols: CustomColumnDef[]) {
-	localStorage.setItem(STORAGE_KEY, JSON.stringify(cols))
-}
-
 export function CustomColumnsManager({
 	sampleRow,
-	customColumns,
-	setCustomColumns,
 	onClose,
 	editIndex: editIndexProp
 }: {
 	sampleRow: any
-	customColumns: CustomColumnDef[]
-	setCustomColumns: (cols: CustomColumnDef[]) => void
 	onClose?: () => void
 	editIndex?: number | null
 }) {
+	const { customColumns, setCustomColumns } = useCustomColumns()
 	const [modalOpen, setModalOpen] = useState(false)
 	const [editIndex, setEditIndex] = useState<number | null>(null)
 

@@ -22,7 +22,7 @@ import { CustomLink } from '~/components/Link'
 import { ICONS_CDN, removedCategories } from '~/constants'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
-import { subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { subscribeToLocalStorage, useLocalStorageSettingsManager, useCustomColumns } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useRouter } from 'next/router'
@@ -35,7 +35,6 @@ import { CustomColumnModal } from './CustomColumnModal'
 
 const optionsKey = 'ptc'
 const filterStatekey = 'ptcfs'
-const customColumnsKey = 'customColumnsV1'
 
 export const ChainProtocolsTable = ({
 	protocols,
@@ -46,20 +45,7 @@ export const ChainProtocolsTable = ({
 	showCustomColumnsManager?: boolean
 	sampleRow?: any
 }) => {
-	const customColumnsStore = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(customColumnsKey) ?? null,
-		() => null
-	)
-
-	const customColumns = useMemo(() => {
-		return customColumnsStore ? JSON.parse(customColumnsStore) : []
-	}, [customColumnsStore])
-
-	const setCustomColumns = (cols: CustomColumnDef[]) => {
-		localStorage.setItem(customColumnsKey, JSON.stringify(cols))
-		window.dispatchEvent(new Event('storage'))
-	}
+	const { customColumns, setCustomColumns } = useCustomColumns()
 
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -366,8 +352,6 @@ export const ChainProtocolsTable = ({
 			{showCustomColumnsManager && customColumnsModalOpen && setCustomColumns && (
 				<CustomColumnsManager
 					sampleRow={sampleRow}
-					customColumns={customColumns}
-					setCustomColumns={setCustomColumns}
 					onClose={() => setCustomColumnsModalOpen(false)}
 					editIndex={editCustomColumnIndex}
 				/>
