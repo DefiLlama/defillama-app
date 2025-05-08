@@ -33,6 +33,7 @@
 		"echarts": "5.6.0",
 		"echarts-simple-transform": "1.0.0",
 		"ethers": "5.7.1",
+		"expr-eval": "^2.0.2",
 		"fathom-client": "3.4.1",
 		"ioredis": "5.3.2",
 		"js-cookie": "3.0.5",

@@ -78,8 +78,7 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	noOfTokens.forEach((tokens, i) => {
 		description = description.replace(
 			`{tokens[${i}]}`,
-			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
-				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
+			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
 			}`
 		)
 	})
@@ -580,4 +579,39 @@ export function roundToNearestHalfHour(timestamp) {
 	date.setSeconds(0)
 	date.setMilliseconds(0)
 	return Math.floor(date.getTime() / 1000)
+}
+
+export function formatValue(value, formatType = 'auto') {
+	if (formatType === 'auto') {
+		if (typeof value === 'number') {
+			if (value !== 0 && Math.abs(value) < 1) return formattedPercent(value * 100, true, 400, true)
+			if (Math.abs(value) > 1000) return formattedNum(value, true)
+			return formattedNum(value)
+		}
+		if (typeof value === 'string') {
+			const num = Number(value)
+			if (!isNaN(num)) {
+				if (num !== 0 && Math.abs(num) < 1) return formattedPercent(num * 100, true, 400, true)
+				if (Math.abs(num) > 1000) return formattedNum(num, true)
+				return formattedNum(num)
+			}
+			return value
+		}
+		return String(value)
+	}
+	if (formatType === 'usd') return formattedNum(value, true)
+	if (formatType === 'percent') {
+		if (typeof value === 'number' && value !== 0 && Math.abs(value) < 1) {
+			return formattedPercent(value * 100, true, 400, true)
+		}
+		if (typeof value === 'string') {
+			const num = Number(value)
+			if (!isNaN(num) && num !== 0 && Math.abs(num) < 1) {
+				return formattedPercent(num * 100, true, 400, true)
+			}
+		}
+		return formattedPercent(value, true, 400, true)
+	}
+	if (formatType === 'number') return formattedNum(value)
+	return String(value)
 }
