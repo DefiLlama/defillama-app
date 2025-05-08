@@ -85,11 +85,7 @@ export function ChainOverview(props: IChainOverviewData) {
 					protocols={props.protocols}
 					customColumns={customColumns}
 					setCustomColumns={setCustomColumns}
-					{...(props.metadata.name === 'All'
-						? {
-								showCustomColumnsManager: true
-						  }
-						: {})}
+					showCustomColumnsManager
 				/>
 			</Suspense>
 		</Layout>
