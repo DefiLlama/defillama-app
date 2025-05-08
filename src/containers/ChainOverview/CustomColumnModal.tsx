@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { evaluateFormula } from './formula.service'
 import { formatValue } from '../../utils'
 import { AVAILABLE_FIELDS, replaceAliases, AVAILABLE_FUNCTIONS } from './customColumnsUtils'
@@ -44,6 +45,7 @@ export function CustomColumnModal({
 	})
 	const inputRef = useRef(null)
 	const modalRef = useRef<HTMLDivElement>(null)
+	const [isMounted, setIsMounted] = useState(false)
 
 	useEffect(() => {
 		if (open) {
@@ -86,7 +88,11 @@ export function CustomColumnModal({
 		}
 	}, [open, onClose])
 
-	if (!open) return null
+	useEffect(() => {
+		setIsMounted(true)
+	}, [])
+
+	if (!open || !isMounted) return null
 
 	const handleFormulaChange = (e) => {
 		const value = e.target.value
@@ -206,7 +212,7 @@ export function CustomColumnModal({
 		}
 	}
 
-	return (
+	return createPortal(
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
 			<div
 				ref={modalRef}
@@ -332,6 +338,7 @@ export function CustomColumnModal({
 					</button>
 				</div>
 			</div>
-		</div>
+		</div>,
+		document.body
 	)
 }
