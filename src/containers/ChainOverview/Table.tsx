@@ -35,20 +35,32 @@ import { CustomColumnModal } from './CustomColumnModal'
 
 const optionsKey = 'ptc'
 const filterStatekey = 'ptcfs'
+const customColumnsKey = 'customColumnsV1'
 
 export const ChainProtocolsTable = ({
 	protocols,
-	customColumns = [],
-	setCustomColumns,
 	showCustomColumnsManager,
 	sampleRow = sampleProtocol
 }: {
 	protocols: Array<IProtocol>
-	customColumns?: CustomColumnDef[]
-	setCustomColumns?: (cols: CustomColumnDef[]) => void
 	showCustomColumnsManager?: boolean
 	sampleRow?: any
 }) => {
+	const customColumnsStore = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(customColumnsKey) ?? null,
+		() => null
+	)
+
+	const customColumns = useMemo(() => {
+		return customColumnsStore ? JSON.parse(customColumnsStore) : []
+	}, [customColumnsStore])
+
+	const setCustomColumns = (cols: CustomColumnDef[]) => {
+		localStorage.setItem(customColumnsKey, JSON.stringify(cols))
+		window.dispatchEvent(new Event('storage'))
+	}
+
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const minTvl =
@@ -158,17 +170,19 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
-	const mergedColumnOptions = [
-		...columnOptions,
-		...customColumns.map((col, idx) => ({
-			name: col.name,
-			key: `custom_formula_${idx}`,
-			isCustom: true,
-			customIndex: idx,
-			formula: col.formula,
-			formatType: col.formatType
-		}))
-	]
+	const mergedColumnOptions = useMemo(() => {
+		return [
+			...columnOptions,
+			...customColumns.map((col, idx) => ({
+				name: col.name,
+				key: `custom_formula_${idx}`,
+				isCustom: true,
+				customIndex: idx,
+				formula: col.formula,
+				formatType: col.formatType
+			}))
+		]
+	}, [customColumns])
 
 	const addOption = (newOptions) => {
 		const allKeys = mergedColumnOptions.map((col) => col.key)
@@ -239,7 +253,7 @@ export const ChainProtocolsTable = ({
 				  ]
 				: [])
 		],
-		[columns, customColumnDefs]
+		[customColumnDefs]
 	)
 
 	const instance = useReactTable({

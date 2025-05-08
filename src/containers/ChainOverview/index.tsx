@@ -2,34 +2,15 @@ import Layout from '~/layout'
 import type { IChainOverviewData } from './types'
 import { Stats } from './Stats'
 import { SmolStats } from './SmolStats'
-import { Suspense, lazy, useState, useEffect } from 'react'
+import { Suspense, lazy } from 'react'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Icon } from '~/components/Icon'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Announcement } from '~/components/Announcement'
-import { CustomColumnDef } from './CustomColumnsManager'
 
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
-const CUSTOM_COLUMNS_KEY = 'customColumnsV1'
-
-function loadCustomColumns(): CustomColumnDef[] {
-	try {
-		const raw = localStorage.getItem(CUSTOM_COLUMNS_KEY)
-		if (!raw) return []
-		return JSON.parse(raw)
-	} catch {
-		return []
-	}
-}
-
 export function ChainOverview(props: IChainOverviewData) {
-	const [customColumns, setCustomColumns] = useState<CustomColumnDef[]>(() => loadCustomColumns())
-
-	useEffect(() => {
-		localStorage.setItem(CUSTOM_COLUMNS_KEY, JSON.stringify(customColumns))
-	}, [customColumns])
-
 	return (
 		<Layout
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
@@ -81,12 +62,7 @@ export function ChainOverview(props: IChainOverviewData) {
 					/>
 				}
 			>
-				<Table
-					protocols={props.protocols}
-					customColumns={customColumns}
-					setCustomColumns={setCustomColumns}
-					showCustomColumnsManager
-				/>
+				<Table protocols={props.protocols} showCustomColumnsManager />
 			</Suspense>
 		</Layout>
 	)
