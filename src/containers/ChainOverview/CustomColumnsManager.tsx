@@ -7,22 +7,6 @@ export interface CustomColumnDef {
 	formatType: 'auto' | 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 }
 
-const STORAGE_KEY = 'customColumnsV1'
-
-function loadCustomColumns(): CustomColumnDef[] {
-	try {
-		const raw = localStorage.getItem(STORAGE_KEY)
-		if (!raw) return []
-		return JSON.parse(raw)
-	} catch {
-		return []
-	}
-}
-
-function saveCustomColumns(cols: CustomColumnDef[]) {
-	localStorage.setItem(STORAGE_KEY, JSON.stringify(cols))
-}
-
 export function CustomColumnsManager({
 	sampleRow,
 	customColumns,
@@ -104,7 +88,7 @@ export function CustomColumnsManager({
 									<span className="ml-2 text-xs text-gray-500">{col.formula}</span>
 									<span className="ml-2 text-xs text-gray-400">[{col.formatType}]</span>
 								</div>
-								<div className="flex gap-2">
+								{/* <div className="flex gap-2">
 									<button
 										className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded"
 										onClick={() => handleEdit(idx)}
@@ -114,20 +98,19 @@ export function CustomColumnsManager({
 									<button className="px-2 py-1 text-xs bg-red-500 text-white rounded" onClick={() => handleDelete(idx)}>
 										Delete
 									</button>
-								</div>
+								</div> */}
 							</li>
 						))}
 					</ul>
 				)}
-				{modalOpen && (
+				{/* {modalOpen && (
 					<CustomColumnModal
-						open={modalOpen}
-						onClose={handleClose}
+						dialogStore={dialogStore}
 						onSave={handleSave}
 						sampleRow={sampleRow}
 						{...(editIndex !== null ? customColumns[editIndex] : {})}
 					/>
-				)}
+				)} */}
 			</div>
 		</div>
 	)

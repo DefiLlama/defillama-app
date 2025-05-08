@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import React, { useState, useRef } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { evaluateFormula } from './formula.service'
 import { formatValue } from '../../utils'
 import { AVAILABLE_FIELDS, replaceAliases, AVAILABLE_FUNCTIONS } from './customColumnsUtils'
@@ -10,8 +10,7 @@ import { useSubscribe } from '~/hooks/useSubscribe'
 import { useIsClient } from '~/hooks'
 
 interface CustomColumnModalProps {
-	open: boolean
-	onClose: () => void
+	dialogStore: Ariakit.DialogStore
 	onSave: (def: { name: string; formula: string; formatType: string }) => void
 	sampleRow: any
 	name?: string
@@ -28,8 +27,7 @@ function getFilteredSuggestions(word, beforeCursor) {
 }
 
 export function CustomColumnModal({
-	open,
-	onClose,
+	dialogStore,
 	onSave,
 	sampleRow,
 	name: initialName = '',
@@ -48,58 +46,9 @@ export function CustomColumnModal({
 		fieldWarning: null
 	})
 	const inputRef = useRef(null)
-	const modalRef = useRef<HTMLDivElement>(null)
-	const [isMounted, setIsMounted] = useState(false)
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const isClient = useIsClient()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
-
-	useEffect(() => {
-		if (open) {
-			setState({
-				name: initialName,
-				formula: initialFormula,
-				formatType: initialFormatType,
-				error: null,
-				showSuggestions: false,
-				suggestions: [],
-				highlighted: 0,
-				fieldWarning: null
-			})
-		}
-	}, [open, initialName, initialFormula, initialFormatType, initialDisplayAs])
-
-	useEffect(() => {
-		if (!open) return
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				onClose()
-			}
-		}
-		document.addEventListener('keydown', handleKeyDown)
-		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
-		}
-	}, [open, onClose])
-
-	useEffect(() => {
-		if (!open) return
-		const handleClickOutside = (event: MouseEvent) => {
-			if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-				onClose()
-			}
-		}
-		document.addEventListener('mousedown', handleClickOutside)
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside)
-		}
-	}, [open, onClose])
-
-	useEffect(() => {
-		setIsMounted(true)
-	}, [])
-
-	if (!open || !isMounted) return null
 
 	const handleFormulaChange = (e) => {
 		const value = e.target.value
@@ -223,33 +172,30 @@ export function CustomColumnModal({
 		}
 	}
 
-	return createPortal(
+	return (
 		<>
-			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-				<div
-					ref={modalRef}
-					className="relative bg-[var(--cards-bg)] border border-[var(--divider)] rounded-xl p-6 shadow-xl max-w-md w-full"
-				>
-					<button
-						onClick={onClose}
+			<Ariakit.DialogProvider store={dialogStore}>
+				<Ariakit.Dialog className="dialog gap-3" unmountOnHide>
+					<Ariakit.DialogDismiss
+						onClick={dialogStore.toggle}
 						className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-[var(--divider)] text-[var(--text3)] hover:text-[var(--text1)] transition-colors"
 						aria-label="Close modal"
 					>
 						<Icon name="x" height={20} width={20} />
-					</button>
-					<h2 className="text-lg font-bold mb-4 text-[var(--text1)]">Add Custom Column</h2>
-					<div className="mb-4">
-						<label className="block mb-2 font-medium text-[var(--text2)]">Column Name</label>
+					</Ariakit.DialogDismiss>
+					<Ariakit.DialogHeading className="text-lg font-bold mb-4">Add Custom Column</Ariakit.DialogHeading>
+					<label className="flex flex-col gap-1">
+						<span>Column Name</span>
 						<input
-							className="w-full py-3 px-4 text-sm rounded-lg bg-[var(--bg1)] border border-[var(--form-control-border)] text-[var(--text1)] focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
 							value={state.name}
 							onChange={(e) => setState((prev) => ({ ...prev, name: e.target.value }))}
 							placeholder="Custom Column"
 							autoFocus
 						/>
-					</div>
-					<div className="mb-4">
-						<label className="block mb-2 font-medium text-[var(--text2)]">Formula</label>
+					</label>
+					<label className="flex flex-col gap-1">
+						<span>Formula</span>
 						<div className="relative">
 							{state.fieldWarning && !state.error && (
 								<div className="mb-2 flex items-center gap-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded px-3 py-2 text-sm font-semibold">
@@ -265,7 +211,7 @@ export function CustomColumnModal({
 							)}
 							<input
 								ref={inputRef}
-								className={`w-full py-3 px-4 text-sm rounded-lg bg-[var(--bg1)] border ${
+								className={`w-full p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border ${
 									state.error ? 'border-red-400' : 'border-[var(--form-control-border)]'
 								} text-[var(--text1)] focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent`}
 								value={state.formula}
@@ -298,11 +244,11 @@ export function CustomColumnModal({
 								</ul>
 							)}
 						</div>
-					</div>
-					<div className="mb-4">
-						<label className="block mb-2 font-medium text-[var(--text2)]">Format</label>
+					</label>
+					<label className="flex flex-col gap-1">
+						<span>Format</span>
 						<select
-							className="w-full py-3 px-4 text-sm rounded-lg bg-[var(--bg1)] border border-[var(--form-control-border)] text-[var(--text1)] focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
 							value={state.formatType}
 							onChange={(e) => setState((prev) => ({ ...prev, formatType: e.target.value }))}
 						>
@@ -313,10 +259,10 @@ export function CustomColumnModal({
 							<option value="string">String</option>
 							<option value="boolean">Boolean (checkmark)</option>
 						</select>
-					</div>
-					<div className="mb-4 text-xs text-[var(--text2)]">
-						<div className="mb-1 font-semibold">Available fields:</div>
-						<ul className="list-disc ml-5 grid grid-cols-2 gap-x-4 gap-y-1 max-h-32 overflow-y-auto">
+					</label>
+					<div className="flex flex-col gap-1">
+						<p>Available fields:</p>
+						<ul className="grid grid-cols-2 gap-x-4 gap-y-1 max-h-32 overflow-y-auto bg-white dark:bg-black rounded-md p-2 border border-[var(--form-control-border)]">
 							{AVAILABLE_FIELDS.map((f) => (
 								<li key={f}>
 									<code
@@ -338,7 +284,7 @@ export function CustomColumnModal({
 					<div className="flex justify-end gap-2 mt-4">
 						<button
 							className="px-4 py-2 rounded-lg bg-transparent hover:bg-[var(--btn-hover-bg)] text-[var(--text2)] transition-colors"
-							onClick={onClose}
+							onClick={dialogStore.toggle}
 						>
 							Cancel
 						</button>
@@ -349,14 +295,13 @@ export function CustomColumnModal({
 							Save
 						</button>
 					</div>
-				</div>
-			</div>
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
 			{isClient && (
 				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
 					<SubscribePlusCard context="modal" />
 				</SubscribeModal>
 			)}
-		</>,
-		document.body
+		</>
 	)
 }

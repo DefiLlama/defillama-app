@@ -32,6 +32,7 @@ import { CustomColumnDef } from './CustomColumnsManager'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { CustomColumnsManager } from './CustomColumnsManager'
 import { CustomColumnModal } from './CustomColumnModal'
+import * as Ariakit from '@ariakit/react'
 
 const optionsKey = 'ptc'
 const filterStatekey = 'ptcfs'
@@ -118,20 +119,21 @@ export const ChainProtocolsTable = ({
 		window.dispatchEvent(new Event('storage'))
 	}
 
-	const [customColumnModalOpen, setCustomColumnModalOpen] = useState(false)
 	const [customColumnModalEditIndex, setCustomColumnModalEditIndex] = useState<number | null>(null)
 	const [customColumnModalInitialValues, setCustomColumnModalInitialValues] = useState<
 		Partial<CustomColumnDef> | undefined
 	>(undefined)
+
+	const customColumnDialogStore = Ariakit.useDialogStore()
 	const handleAddCustomColumn = () => {
 		setCustomColumnModalEditIndex(null)
 		setCustomColumnModalInitialValues(undefined)
-		setCustomColumnModalOpen(true)
+		customColumnDialogStore.toggle()
 	}
 	const handleEditCustomColumn = (idx: number) => {
 		setCustomColumnModalEditIndex(idx)
 		setCustomColumnModalInitialValues(customColumns[idx])
-		setCustomColumnModalOpen(true)
+		customColumnDialogStore.toggle()
 	}
 	const handleDeleteCustomColumn = (idx: number) => {
 		const next = customColumns.filter((_, i) => i !== idx)
@@ -147,7 +149,7 @@ export const ChainProtocolsTable = ({
 			next = customColumns.map((col, i) => (i === customColumnModalEditIndex ? def : col))
 		}
 		setCustomColumns(next)
-		setCustomColumnModalOpen(false)
+		customColumnDialogStore.toggle()
 
 		if (newColumnKey) {
 			const allKeys = [...columnOptions.map((c) => c.key), ...next.map((_, idx) => `custom_formula_${idx}`)]
@@ -202,8 +204,6 @@ export const ChainProtocolsTable = ({
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
-	const [customColumnsModalOpen, setCustomColumnsModalOpen] = useState(false)
-	const [editCustomColumnIndex, setEditCustomColumnIndex] = useState<number | null>(null)
 
 	const customColumnDefs = useMemo(
 		() =>
@@ -363,7 +363,7 @@ export const ChainProtocolsTable = ({
 				<TVLRange variant="third" />
 			</div>
 			<VirtualTable instance={instance} />
-			{showCustomColumnsManager && customColumnsModalOpen && setCustomColumns && (
+			{/* {showCustomColumnsManager && customColumnsModalOpen && setCustomColumns && (
 				<CustomColumnsManager
 					sampleRow={sampleRow}
 					customColumns={customColumns}
@@ -371,16 +371,14 @@ export const ChainProtocolsTable = ({
 					onClose={() => setCustomColumnsModalOpen(false)}
 					editIndex={editCustomColumnIndex}
 				/>
-			)}
-			{customColumnModalOpen && (
-				<CustomColumnModal
-					open={customColumnModalOpen}
-					onClose={() => setCustomColumnModalOpen(false)}
-					onSave={handleSaveCustomColumn}
-					sampleRow={sampleRow}
-					{...(customColumnModalInitialValues || {})}
-				/>
-			)}
+			)} */}
+			<CustomColumnModal
+				dialogStore={customColumnDialogStore}
+				onSave={handleSaveCustomColumn}
+				sampleRow={sampleRow}
+				key={`custom-index-${customColumnModalEditIndex}`}
+				{...(customColumnModalInitialValues || {})}
+			/>
 		</div>
 	)
 }
