@@ -173,29 +173,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 						opacity: 0.3
 					},
 					z: -1
-				},
-				...chains.map((chain, index) => ({
-					type: 'image',
-					id: `icon-${chain}`,
-					style: {
-						image: `https://icons.llamao.fi/icons/chains/rsz_${slug(chain)}?w=48&h=48`,
-						width: 20,
-						height: 20
-					},
-					left: 10,
-					top: (chains.length - 1 - index) * ((parseInt(height) - 62) / chains.length) + 48,
-					z: 100,
-					clipPath: {
-						type: 'rect',
-						shape: {
-							x: 0,
-							y: 0,
-							width: 20,
-							height: 20,
-							r: 50
-						}
-					}
-				}))
+				}
 			]
 		}
 
