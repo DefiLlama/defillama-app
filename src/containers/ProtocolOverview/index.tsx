@@ -482,15 +482,27 @@ const ProtocolContainer = ({
 
 			<div className="flex flex-col gap-1">
 				<div className="w-full flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium">
-					<Link
-						href={`/protocol/${protocol}`}
-						data-active={!tab || tab === 'information'}
-						legacyBehavior={false}
-						prefetch
-						className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-					>
-						Information
-					</Link>
+					{isCEX ? (
+						<Link
+							href={`/cex/${protocol}`}
+							data-active={!tab || tab === 'information'}
+							legacyBehavior={false}
+							prefetch
+							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+						>
+							Information
+						</Link>
+					) : (
+						<Link
+							href={`/protocol/${protocol}`}
+							data-active={!tab || tab === 'information'}
+							legacyBehavior={false}
+							prefetch
+							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+						>
+							Information
+						</Link>
+					)}
 					{showCharts ? (
 						isCEX ? (
 							<Link
