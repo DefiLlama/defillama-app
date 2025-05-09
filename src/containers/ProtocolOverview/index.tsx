@@ -470,7 +470,7 @@ const ProtocolContainer = ({
 			{otherProtocols?.length > 1 && (
 				<nav className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md w-full max-w-fit text-xs font-medium">
 					{otherProtocols.map((p) => (
-						<Link href={`/protocol/${slug(p)}` + '#information'} key={'navigate to ' + `/protocol/${slug(p)}`} passHref>
+						<Link href={`/protocol/${slug(p)}`} key={'navigate to ' + `/protocol/${slug(p)}`} passHref>
 							<a
 								data-active={router.asPath.split('#')[0].split('?')[0] === `/protocol/${slug(p)}`}
 								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-md last:rounded-r-md data-[active=true]:bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] border-l border-[var(--form-control-border)] first:border-l-0"

@@ -322,6 +322,7 @@ export default function AreaChart({
 						className:
 							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
 					}}
+					portal
 				/>
 			)}
 			<div id={id} className="min-h-[360px] my-auto" style={height ? { height } : undefined} />

@@ -202,6 +202,7 @@ export default function BarChart({
 						className:
 							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
 					}}
+					portal
 				/>
 			)}
 			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>

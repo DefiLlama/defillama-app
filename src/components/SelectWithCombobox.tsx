@@ -6,7 +6,9 @@ import { Tooltip } from './Tooltip'
 import { Icon } from './Icon'
 
 interface ISelectWithCombobox {
-	allValues: Array<{ key: string; name: string; help?: string; isCustom?: boolean; customIndex?: number }> | Array<string>
+	allValues:
+		| Array<{ key: string; name: string; help?: string; isCustom?: boolean; customIndex?: number }>
+		| Array<string>
 	selectedValues: Array<string>
 	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
 	label: string
@@ -19,6 +21,7 @@ interface ISelectWithCombobox {
 	customFooter?: React.ReactNode
 	onEditCustomColumn?: (idx: number) => void
 	onDeleteCustomColumn?: (idx: number) => void
+	portal?: boolean
 }
 
 export function SelectWithCombobox({
@@ -34,7 +37,8 @@ export function SelectWithCombobox({
 	triggerProps,
 	customFooter,
 	onEditCustomColumn,
-	onDeleteCustomColumn
+	onDeleteCustomColumn,
+	portal
 }: ISelectWithCombobox) {
 	const [searchValue, setSearchValue] = React.useState('')
 
@@ -175,6 +179,7 @@ export function SelectWithCombobox({
 						className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
 					}}
 					className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					portal={portal || false}
 				>
 					<Ariakit.Combobox
 						placeholder="Search..."
@@ -224,7 +229,7 @@ export function SelectWithCombobox({
 														type="button"
 														tabIndex={-1}
 														className="p-1 rounded hover:bg-[var(--btn-hover-bg)]"
-														onClick={e => {
+														onClick={(e) => {
 															e.stopPropagation()
 															onEditCustomColumn && onEditCustomColumn(option.customIndex!)
 														}}
@@ -236,7 +241,7 @@ export function SelectWithCombobox({
 														type="button"
 														tabIndex={-1}
 														className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
-														onClick={e => {
+														onClick={(e) => {
 															e.stopPropagation()
 															onDeleteCustomColumn && onDeleteCustomColumn(option.customIndex!)
 														}}
@@ -270,7 +275,9 @@ export function SelectWithCombobox({
 									See more...
 								</button>
 							) : null}
-							{customFooter ? <div className="mt-2 border-t border-[var(--form-control-border)] pt-2">{customFooter}</div> : null}
+							{customFooter ? (
+								<div className="mt-2 border-t border-[var(--form-control-border)] pt-2">{customFooter}</div>
+							) : null}
 						</>
 					) : (
 						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>

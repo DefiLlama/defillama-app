@@ -11,6 +11,7 @@ interface IMenuProps {
 	onItemClick?: (value: any) => void
 	variant?: 'primary' | 'secondary'
 	className?: string
+	portal?: boolean
 }
 
 export function Menu({
@@ -21,6 +22,7 @@ export function Menu({
 	onItemClick,
 	variant = 'primary',
 	className,
+	portal,
 	...props
 }: IMenuProps) {
 	const { _options, style } = useMemo(() => {
@@ -52,6 +54,7 @@ export function Menu({
 					className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
 				}}
 				className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
+				portal={portal || false}
 			>
 				{_options.map((value, i) => {
 					return onItemClick ? (
