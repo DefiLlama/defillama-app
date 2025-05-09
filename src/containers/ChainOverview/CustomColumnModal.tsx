@@ -50,6 +50,22 @@ export function CustomColumnModal({
 	const isClient = useIsClient()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 
+	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
+	React.useEffect(() => {
+		if (isOpen) {
+			setState({
+				name: initialName,
+				formula: initialFormula,
+				formatType: initialFormatType,
+				error: null,
+				showSuggestions: false,
+				suggestions: [],
+				highlighted: 0,
+				fieldWarning: null
+			})
+		}
+	}, [isOpen, initialName, initialFormula, initialFormatType])
+
 	const handleFormulaChange = (e) => {
 		const value = e.target.value
 		setState((prev) => ({ ...prev, formula: value }))
@@ -116,7 +132,7 @@ export function CustomColumnModal({
 					}
 				}, 0)
 			}
-			return { ...prev, formula: newFormula, showSuggestions: false }
+			return { ...prev, formula: newFormula, showSuggestions: false, fieldWarning: null }
 		})
 		inputRef.current?.focus()
 	}
