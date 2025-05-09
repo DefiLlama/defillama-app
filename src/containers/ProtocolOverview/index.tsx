@@ -493,17 +493,29 @@ const ProtocolContainer = ({
 					>
 						Information
 					</Link>
-					{showCharts && (
-						<Link
-							href={`/protocol/tvl/${protocol}`}
-							data-active={tab === 'tvl'}
-							legacyBehavior={false}
-							prefetch
-							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-						>
-							{isCEX ? 'Assets' : 'TVL'}
-						</Link>
-					)}
+					{showCharts ? (
+						isCEX ? (
+							<Link
+								href={`/cex/assets/${protocol}`}
+								data-active={tab === 'assets'}
+								legacyBehavior={false}
+								prefetch
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+							>
+								Assets
+							</Link>
+						) : (
+							<Link
+								href={`/protocol/tvl/${protocol}`}
+								data-active={tab === 'tvl'}
+								legacyBehavior={false}
+								prefetch
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+							>
+								TVL
+							</Link>
+						)
+					) : null}
 					{stablecoins && stablecoins.length > 0 && (
 						<Link
 							href={`/protocol/stablecoins/${protocol}`}
@@ -1808,7 +1820,7 @@ const ProtocolContainer = ({
 						</div>
 					</div>
 				) : null}
-				{showCharts && tab === 'tvl' ? (
+				{showCharts && ['tvl', 'assets'].includes(tab) ? (
 					<div className="grid grid-cols-2 bg-[var(--cards-bg)] rounded-md">
 						{isLoading ? (
 							<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
