@@ -397,7 +397,7 @@ const ProtocolContainer = ({
 	let allTimeFeesFinal = allTimeFees
 	let allTimeRevenueFinal = allTimeRevenue
 
-	if (extraTvlsEnabled[FEES_SETTINGS.BRIBES]) {
+	if (extraTvlsEnabled[FEES_SETTINGS.BRIBES] && dailyBribesRevenue != null) {
 		dailyRevenueFinal = dailyRevenue + (dailyBribesRevenue ?? 0)
 		revenue30dFinal = revenue30d + (bribesRevenue30d ?? 0)
 		dailyFeesFinal = dailyFees + (dailyBribesRevenue ?? 0)
@@ -405,7 +405,7 @@ const ProtocolContainer = ({
 		allTimeFeesFinal = allTimeFees + (allTimeBribesRevenue ?? 0)
 		allTimeRevenueFinal = allTimeRevenue + (allTimeBribesRevenue ?? 0)
 	}
-	if (extraTvlsEnabled[FEES_SETTINGS.TOKENTAX]) {
+	if (extraTvlsEnabled[FEES_SETTINGS.TOKENTAX] && dailyTokenTaxes != null) {
 		dailyRevenueFinal = dailyRevenue + (dailyTokenTaxes ?? 0)
 		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
 		dailyFeesFinal = dailyFees + (dailyTokenTaxes ?? 0)
