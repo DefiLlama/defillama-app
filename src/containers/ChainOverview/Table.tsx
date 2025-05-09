@@ -28,22 +28,24 @@ import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useRouter } from 'next/router'
 import { evaluateFormula } from './formula.service'
 import { formatValue } from '../../utils'
-import { CustomColumnDef } from './CustomColumnsManager'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
-import { CustomColumnsManager } from './CustomColumnsManager'
 import { CustomColumnModal } from './CustomColumnModal'
 import * as Ariakit from '@ariakit/react'
+
+export interface CustomColumnDef {
+	name: string
+	formula: string
+	formatType: 'auto' | 'number' | 'usd' | 'percent' | 'string' | 'boolean'
+}
 
 const optionsKey = 'ptc'
 const filterStatekey = 'ptcfs'
 
 export const ChainProtocolsTable = ({
 	protocols,
-	showCustomColumnsManager,
 	sampleRow = sampleProtocol
 }: {
 	protocols: Array<IProtocol>
-	showCustomColumnsManager?: boolean
 	sampleRow?: any
 }) => {
 	const { customColumns, setCustomColumns } = useCustomColumns()
@@ -332,16 +334,14 @@ export const ChainProtocolsTable = ({
 							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 					}}
 					customFooter={
-						showCustomColumnsManager ? (
-							<button
-								className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] text-[var(--text1)] text-xs font-medium border border-[var(--form-control-border)]"
-								onClick={handleAddCustomColumn}
-								type="button"
-							>
-								<Icon name="plus" height={16} width={16} />
-								Add Custom Column
-							</button>
-						) : null
+						<button
+							className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] text-[var(--text1)] text-xs font-medium border border-[var(--form-control-border)]"
+							onClick={handleAddCustomColumn}
+							type="button"
+						>
+							<Icon name="plus" height={16} width={16} />
+							Add Custom Column
+						</button>
 					}
 					onEditCustomColumn={handleEditCustomColumn}
 					onDeleteCustomColumn={handleDeleteCustomColumn}
@@ -349,13 +349,6 @@ export const ChainProtocolsTable = ({
 				<TVLRange variant="third" />
 			</div>
 			<VirtualTable instance={instance} />
-			{/* {showCustomColumnsManager && customColumnsModalOpen && setCustomColumns && (
-				<CustomColumnsManager
-					sampleRow={sampleRow}
-					onClose={() => setCustomColumnsModalOpen(false)}
-					editIndex={editCustomColumnIndex}
-				/>
-			)} */}
 			<CustomColumnModal
 				dialogStore={customColumnDialogStore}
 				onSave={handleSaveCustomColumn}

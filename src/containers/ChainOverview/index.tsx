@@ -62,7 +62,7 @@ export function ChainOverview(props: IChainOverviewData) {
 					/>
 				}
 			>
-				<Table protocols={props.protocols} showCustomColumnsManager />
+				<Table protocols={props.protocols} />
 			</Suspense>
 		</Layout>
 	)
