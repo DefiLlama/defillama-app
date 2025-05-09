@@ -71,6 +71,10 @@ export function SubscribePlusCard({
 				</li>
 				<li className="flex flex-nowrap gap-[10px] items-start">
 					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+					<span>Personalized Analysis with Custom Columns</span>
+				</li>
+				<li className="flex flex-nowrap gap-[10px] items-start">
+					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
 					<span>Access to upcoming DefiLlama products</span>
 				</li>
 			</ul>

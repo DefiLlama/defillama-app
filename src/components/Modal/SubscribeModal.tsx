@@ -46,6 +46,7 @@ export function SubscribeModal({ isOpen, onClose, children }: SubscribeModalProp
 		<div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
 			<div
 				ref={modalContentRef}
+				onMouseDown={(e) => e.stopPropagation()}
 				className="relative max-h-[90vh] overflow-y-auto bg-[#131415] rounded-xl shadow-[0_0_150px_75px_rgba(92,92,249,0.15),_0_0_75px_25px_rgba(123,123,255,0.1)] border border-[#5C5CF9]/10"
 			>
 				<button
