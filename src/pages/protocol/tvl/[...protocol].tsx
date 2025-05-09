@@ -5,6 +5,7 @@ import { getProtocolDataV2 } from '~/api/categories/protocols/getProtocolData'
 import { isCpusHot } from '~/utils/cache-client'
 import { useQuery } from '@tanstack/react-query'
 import metadata from '~/utils/metadata'
+import { cexData } from '../../cexs'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
@@ -24,7 +25,21 @@ export const getStaticProps = withPerformanceLogging(
 		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
 
 		if (!metadata) {
-			return { notFound: true, props: null }
+			//check if cex
+			const cex = cexData.find((cex) => cex.slug?.toLowerCase() === protocol.toLowerCase())
+			if (!cex) {
+				return { notFound: true, props: null }
+			}
+			const protocolData = await getProtocol(protocol)
+			const data = await getProtocolDataV2(protocol, protocolData, isHot)
+			return {
+				props: {
+					...data.props,
+					protocolData: data.props?.protocolData || protocolData,
+					isCEX: true,
+					cexMeta: cex
+				}
+			}
 		}
 
 		const protocolData = await getProtocol(protocol)
