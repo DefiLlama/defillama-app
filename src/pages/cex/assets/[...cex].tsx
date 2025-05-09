@@ -11,7 +11,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolPageStyles } from '~/api/categories/protocols/getProtocolData'
 
 export const getStaticProps = withPerformanceLogging(
-	'cex/[...cex]',
+	'cex/assets/[...cex]',
 	async ({
 		params: {
 			cex: [exchangeName]
@@ -92,13 +92,7 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const paths = cexData
-		.filter((cex) => cex.slug)
-		.map(({ slug }) => ({
-			params: { cex: [slug] }
-		}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Protocols({ protocolData, ...props }) {

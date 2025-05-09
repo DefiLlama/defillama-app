@@ -414,8 +414,6 @@ const ProtocolContainer = ({
 		allTimeRevenueFinal = allTimeRevenue + (allTimeTokenTaxesRevenue ?? 0)
 	}
 
-	console.log({ tab })
-
 	return (
 		<Layout title={title} backgroundColor={pageStyles['--bg-color']} style={pageStyles as any}>
 			<SEO
