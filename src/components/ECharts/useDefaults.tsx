@@ -124,7 +124,7 @@ export function useDefaults({
 				let chartdate = formatTooltipChartDate(params[0].value[0], groupBy)
 
 				let vals
-				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
+				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1])
 
 				if (isStackedChart) {
 					filteredParams.reverse()
