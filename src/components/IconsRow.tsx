@@ -130,6 +130,7 @@ export const IconsRow = ({
 					<Ariakit.Hovercard
 						className="max-w-xl z-10 p-1 shadow rounded-md bg-[var(--bg2)] border border-[var(--bg3)] text-[var(--text1)] flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden"
 						unmountOnHide
+						portal
 					>
 						{hoverChains.map((chain, i) => (
 							<ChainLogo

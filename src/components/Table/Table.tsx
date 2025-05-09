@@ -228,12 +228,13 @@ export function VirtualTable({
 						  }
 						: {
 								position: 'absolute',
-								top: `${row.start - rowVirtualizer.options.scrollMargin}px`,
+								top: 0,
 								left: 0,
 								width: '100%',
 								height: `${row.size}px`,
 								opacity: rowTorender.original.disabled ? 0.3 : 1,
-								display: 'flex'
+								display: 'flex',
+								transform: `translateY(${row.start - rowVirtualizer.options.scrollMargin}px)`
 						  }
 
 					return (
