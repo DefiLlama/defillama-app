@@ -3,14 +3,16 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
+import { firstDayOfMonth, formattedNum, getNDistinctColors, lastDayOfWeek } from '~/utils'
 import type { IDexChartsProps } from './types'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { useDimensionChartInterval } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
 import { VOLUME_TYPE_ADAPTORS } from '~/api/categories/adaptors'
+import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+const BarChart2 = dynamic(() => import('~/components/ECharts/BarChart2'), {
 	ssr: false,
 	loading: () => (
 		<div className="flex items-center justify-center m-auto min-h-[360px]">
@@ -100,20 +102,125 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const [chartInterval, changeChartInterval] = useDimensionChartInterval()
 	const dataType = VOLUME_TYPE_ADAPTORS.includes(props.type) ? 'volume' : props.type
 
-	const { barsData, simpleStack } = React.useMemo(() => {
-		const barsData = aggregateDataByInterval(chartInterval, props.chartData)()
-		return {
-			barsData: aggregateDataByInterval(chartInterval, props.chartData)(),
-			simpleStack:
-				barsData.length > 0
-					? Object.fromEntries(
-							Object.keys(barsData[barsData.length - 1])
-								.filter((x) => x !== 'date')
-								.map((x) => [x, `stack-${x}`])
-					  )
-					: null
+	const [selectedChains, setSelectedChains] = React.useState<string[]>(props.chartData?.[1] ?? [])
+
+	const { barsData, stackColors, chartOptions } = React.useMemo(() => {
+		if (chartType === 'Dominance') {
+			return {
+				barsData: aggregateDataByInterval(chartInterval, [...props.chartData])(),
+				stackColors: {},
+				chartOptions: {}
+			}
 		}
-	}, [props.chartData, chartInterval])
+		const topByAllDates = {}
+		const uniqTopChains = new Set<string>()
+		for (const { date, ...items } of props.chartData[0]) {
+			const finalDate =
+				chartInterval === 'Daily'
+					? +date * 1e3
+					: chartInterval === 'Weekly'
+					? lastDayOfWeek(+date * 1e3) * 1e3
+					: firstDayOfMonth(+date * 1e3) * 1e3
+			const topByDate = {}
+			let others = 0
+			Object.entries(items)
+				.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+				.forEach(([chain, value]: [string, number], index: number) => {
+					if (index < 10) {
+						topByDate[chain] = topByDate[chain] || {}
+						topByDate[chain][finalDate] = value ?? 0
+						uniqTopChains.add(chain)
+					} else {
+						topByDate[chain] = topByDate[chain] || {}
+						topByDate[chain][finalDate] = 0
+						others += value ?? 0
+					}
+				})
+
+			for (const chain of selectedChains) {
+				topByAllDates[chain] = topByAllDates[chain] || {}
+				topByAllDates[chain][finalDate] = topByDate[chain]?.[finalDate] ?? 0
+			}
+
+			topByAllDates['Others'] = topByAllDates['Others'] || {}
+			topByAllDates['Others'][finalDate] = others
+		}
+
+		const finalData = {}
+		const zeroesByChain = {}
+		for (const chain of [...uniqTopChains, 'Others']) {
+			finalData[chain] = finalData[chain] || []
+			for (const finalDate in topByAllDates[chain]) {
+				finalData[chain].push([+finalDate, topByAllDates[chain][finalDate]])
+			}
+			zeroesByChain[chain] = Math.max(
+				finalData[chain].findIndex((date) => date[1] !== 0),
+				0
+			)
+		}
+
+		let startingZeroDatesToSlice = Object.values(zeroesByChain).reduce((a, b) => Math.min(a as number, b as number))
+		for (const chain in finalData) {
+			const idx = zeroesByChain[chain]
+			startingZeroDatesToSlice = idx
+			if (!finalData[chain].length) delete finalData[chain]
+		}
+
+		for (const chain in finalData) {
+			finalData[chain] = finalData[chain].slice(startingZeroDatesToSlice)
+		}
+
+		const allColors = getNDistinctColors(selectedChains.length + 1, '#1f67d2')
+		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
+		stackColors[selectedChains[0]] = '#1f67d2'
+		stackColors['Others'] = allColors[allColors.length - 1]
+
+		const chartOptions = {
+			tooltip: {
+				trigger: 'axis',
+				confine: true,
+				formatter: function (params) {
+					let chartdate = formatTooltipChartDate(params[0].value[0], chartInterval.toLowerCase())
+					let others = 0
+					let othersMarker = ''
+					let vals = params
+						.sort((a, b) => b.value[1] - a.value[1])
+						.reduce((prev, curr) => {
+							if (curr.value[1] === 0) return prev
+							if (curr.seriesName === 'Others') {
+								others += curr.value[1]
+								othersMarker = curr.marker
+								return prev
+							}
+							return (prev +=
+								'<li style="list-style:none">' +
+								curr.marker +
+								curr.seriesName +
+								'&nbsp;&nbsp;' +
+								formatTooltipValue(curr.value[1], '$') +
+								'</li>')
+						}, '')
+					if (others) {
+						vals +=
+							'<li style="list-style:none">' +
+							othersMarker +
+							'Others&nbsp;&nbsp;' +
+							formatTooltipValue(others, '$') +
+							'</li>'
+					}
+					return chartdate + vals
+				}
+			}
+		}
+
+		return {
+			barsData: finalData,
+			stackColors,
+			chartOptions
+		}
+	}, [props.chartData, chartInterval, selectedChains, chartType])
+
+	console.log({ barsData, chartInterval, chartType })
 
 	const valuesExist =
 		typeof props.data.total24h === 'number' ||
@@ -188,14 +295,14 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			)}
 			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
 				<>
-					<div className="flex gap-2 flex-row items-center flex-wrap justify-between p-3">
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+					<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] mr-auto">
 							{GROUP_INTERVALS_LIST.map((dataInterval) => (
 								<a
 									key={dataInterval}
 									onClick={() => changeChartInterval(dataInterval as 'Daily' | 'Weekly' | 'Monthly')}
 									data-active={dataInterval === chartInterval}
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+									className="cursor-pointer flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 								>
 									{dataInterval}
 								</a>
@@ -216,40 +323,51 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							</div>
 						)}
 						{props.chartData?.[1]?.length > 1 ? (
-							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
-								{GROUP_CHART_LIST.map((dataType) => (
-									<button
-										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-										data-active={dataType === chartType}
-										key={dataType}
-										onClick={() => setChartType(dataType)}
-									>
-										{dataType}
-									</button>
-								))}
-							</div>
-						) : (
-							<></>
-						)}
+							<>
+								<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+									{GROUP_CHART_LIST.map((dataType) => (
+										<button
+											className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+											data-active={dataType === chartType}
+											key={dataType}
+											onClick={() => setChartType(dataType)}
+										>
+											{dataType}
+										</button>
+									))}
+								</div>
+								<SelectWithCombobox
+									allValues={props.chartData[1]}
+									selectedValues={selectedChains}
+									setSelectedValues={setSelectedChains}
+									label="Chains"
+									clearAll={() => setSelectedChains([])}
+									toggleAll={() => setSelectedChains(props.chartData[1])}
+									labelType="smol"
+									triggerProps={{
+										className:
+											'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
+									}}
+									portal
+								/>
+							</>
+						) : null}
 					</div>
 				</>
-				{barsData && barsData.length > 0 && (
+				{props.chartData ? (
 					<div className="min-h-[360px]">
 						{chartType === 'Dominance' ? (
 							<AreaChart title="" chartData={barsData} stacks={props.chartData[1]} expandTo100Percent valueSymbol="%" />
 						) : (
-							<BarChart
-								title=""
+							<BarChart2
 								chartData={barsData}
-								customLegendOptions={props.chartData[1]}
-								stacks={simpleStack}
-								hideDefaultLegend={props.disableDefaultLeged}
 								groupBy={chartInterval.toLowerCase()}
-								/* stackColors={barChartColors} */
+								stackColors={stackColors}
+								chartOptions={chartOptions}
 							/>
 						)}
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	)

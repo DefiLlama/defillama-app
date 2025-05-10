@@ -574,7 +574,7 @@ export function ChainChart({
 		route.chainFees,
 		route.chainRevenue,
 		route.price,
-		route.users,
+		route.addresses,
 		route.raises,
 		route.stables,
 		route.txs,

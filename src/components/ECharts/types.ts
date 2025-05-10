@@ -40,15 +40,22 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	stacks?: {
 		[stack: string]: string
 	}
-	seriesConfig?: {
-		[stack: string]: {
-			[option: string]: Value | Array<Value>
+}
+
+export interface IBarChart2Props {
+	chartData?: {
+		[stack: string]: Array<[number, number]>
+	}
+	chartOptions?: {
+		[key: string]: {
+			[key: string]: Value | Array<Value> | ((params: any) => string)
 		}
 	}
-	barWidths?: {
-		[stack: string]: number
+	height?: string
+	stackColors?: {
+		[stack: string]: string
 	}
-	gradientBars?: boolean
+	groupBy?: 'daily' | 'weekly' | 'monthly'
 }
 
 export interface IPieChartProps {

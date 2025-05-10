@@ -54,8 +54,8 @@ echarts.use([
 ])
 
 interface IUseDefaultsProps {
-	color: string
-	title: string
+	color?: string
+	title?: string
 	tooltipSort?: boolean
 	tooltipOrderBottomUp?: boolean
 	tooltipValuesRelative?: boolean
@@ -97,15 +97,17 @@ export function useDefaults({
 			top: '130px'
 		}
 
-		const titleDefaults = {
-			text: title,
-			textStyle: {
-				fontFamily: 'sans-serif',
-				fontWeight: 600,
-				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			},
-			left: 15
-		}
+		const titleDefaults = title
+			? {
+					text: title,
+					textStyle: {
+						fontFamily: 'sans-serif',
+						fontWeight: 600,
+						color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					},
+					left: 15
+			  }
+			: {}
 
 		const gridTop = valueSymbol === '%' ? 20 : hideLegend ? 0 : isSmall ? 60 : 10
 
@@ -203,7 +205,7 @@ export function useDefaults({
 					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(2) + '</li>'
 				}
 
-				if (title.toLowerCase() === 'tokens (usd)' || title.toLowerCase() === 'chains') {
+				if (title && (title.toLowerCase() === 'tokens (usd)' || title.toLowerCase() === 'chains')) {
 					const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
 
 					vals += '<li style="list-style:none;font-weight:600">' + 'Total' + '&nbsp;&nbsp;' + '$' + toK(total) + '</li>'
@@ -320,7 +322,8 @@ export function useDefaults({
 			{
 				start: 0,
 				end: 100,
-				right: 20,
+				left: 24,
+				right: 24,
 				textStyle: {
 					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},

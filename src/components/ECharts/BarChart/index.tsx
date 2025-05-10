@@ -9,7 +9,6 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 export default function BarChart({
 	chartData,
 	stacks,
-	seriesConfig,
 	valueSymbol = '',
 	title,
 	color,
@@ -18,7 +17,6 @@ export default function BarChart({
 	customLegendOptions,
 	chartOptions,
 	height,
-	barWidths,
 	stackColors,
 	tooltipOrderBottomUp,
 	groupBy
@@ -93,7 +91,6 @@ export default function BarChart({
 					large: true,
 					largeThreshold: 0,
 					stack: defaultStacks[stack],
-					...(barWidths?.[defaultStacks[stack]] && { barMaxWidth: barWidths[defaultStacks[stack]] }),
 					emphasis: {
 						focus: 'series',
 						shadowBlur: 10
@@ -107,7 +104,6 @@ export default function BarChart({
 								color: chartColor
 						  }
 						: undefined,
-					...(seriesConfig?.[defaultStacks[stack]] && seriesConfig?.[defaultStacks[stack]]),
 					data: []
 				}
 			}
@@ -120,7 +116,7 @@ export default function BarChart({
 
 			return Object.values(series).map((s: any) => (s.data.length === 0 ? { ...s, large: false } : s))
 		}
-	}, [barWidths, chartData, color, defaultStacks, seriesConfig, stackColors, stackKeys, selectedStacks])
+	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
