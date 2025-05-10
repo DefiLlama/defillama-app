@@ -159,19 +159,18 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			for (const finalDate in topByAllDates[chain]) {
 				finalData[chain].push([+finalDate, topByAllDates[chain][finalDate]])
 			}
-			zeroesByChain[chain] = Math.max(
-				finalData[chain].findIndex((date) => date[1] !== 0),
-				0
-			)
+			if (chain !== 'Others') {
+				zeroesByChain[chain] = Math.max(
+					finalData[chain].findIndex((date) => date[1] !== 0),
+					0
+				)
+			}
 		}
 
 		let startingZeroDatesToSlice = Object.values(zeroesByChain).reduce((a, b) => Math.min(a as number, b as number))
 		for (const chain in finalData) {
-			const idx = zeroesByChain[chain]
-			startingZeroDatesToSlice = idx
 			if (!finalData[chain].length) delete finalData[chain]
 		}
-
 		for (const chain in finalData) {
 			finalData[chain] = finalData[chain].slice(startingZeroDatesToSlice)
 		}
@@ -225,8 +224,6 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			chartOptions
 		}
 	}, [props.chartData, chartInterval, selectedChains, chartType])
-
-	console.log({ barsData, chartInterval, chartType })
 
 	const valuesExist =
 		typeof props.data.total24h === 'number' ||
