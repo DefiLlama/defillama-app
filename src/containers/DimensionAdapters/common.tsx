@@ -159,7 +159,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			for (const finalDate in topByAllDates[chain]) {
 				finalData[chain].push([+finalDate, topByAllDates[chain][finalDate]])
 			}
-			if (chain !== 'Others') {
+			if (selectedChains.includes(chain)) {
 				zeroesByChain[chain] = Math.max(
 					finalData[chain].findIndex((date) => date[1] !== 0),
 					0
@@ -167,7 +167,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			}
 		}
 
-		let startingZeroDatesToSlice = Object.values(zeroesByChain).reduce((a, b) => Math.min(a as number, b as number), 0)
+		let startingZeroDatesToSlice = Object.values(zeroesByChain).sort((a, b) => (a as number) - (b as number))[0]
 		for (const chain in finalData) {
 			if (!finalData[chain].length) delete finalData[chain]
 		}
