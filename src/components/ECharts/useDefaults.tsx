@@ -322,8 +322,8 @@ export function useDefaults({
 			{
 				start: 0,
 				end: 100,
-				left: 24,
-				right: 24,
+				left: 12,
+				right: 12,
 				textStyle: {
 					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},

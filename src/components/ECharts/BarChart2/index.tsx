@@ -70,7 +70,7 @@ export default function BarChart2({ chartData, chartOptions, height, stackColors
 			title: titleDefaults,
 			grid: {
 				left: 12,
-				bottom: 72,
+				bottom: 68,
 				top: 12,
 				right: 12
 			},

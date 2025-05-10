@@ -123,7 +123,13 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 					: firstDayOfMonth(+date * 1e3) * 1e3
 			const topByDate = {}
 			let others = 0
-			Object.entries(items)
+			const topItems = []
+			for (const chain in items) {
+				if (selectedChains.includes(chain)) {
+					topItems.push([chain, items[chain]])
+				}
+			}
+			topItems
 				.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
 				.forEach(([chain, value]: [string, number], index: number) => {
 					if (index < 10) {
