@@ -97,14 +97,34 @@ export const ChainProtocolsTable = ({
 	}
 
 	const clearAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
+		const ops = JSON.stringify(
+			Object.fromEntries(
+				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
+					option.key,
+					false
+				])
+			)
+		)
 		window.localStorage.setItem(optionsKey, ops)
 		window.dispatchEvent(new Event('storage'))
+		if (instance && instance.setColumnVisibility) {
+			instance.setColumnVisibility(JSON.parse(ops))
+		}
 	}
 	const toggleAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
+		const ops = JSON.stringify(
+			Object.fromEntries(
+				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
+					option.key,
+					true
+				])
+			)
+		)
 		window.localStorage.setItem(optionsKey, ops)
 		window.dispatchEvent(new Event('storage'))
+		if (instance && instance.setColumnVisibility) {
+			instance.setColumnVisibility(JSON.parse(ops))
+		}
 	}
 
 	const [customColumnModalEditIndex, setCustomColumnModalEditIndex] = useState<number | null>(null)
