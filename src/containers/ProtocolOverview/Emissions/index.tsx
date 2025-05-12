@@ -1,6 +1,6 @@
 import { chunk, groupBy, omit, sum, isEqual } from 'lodash'
 import dynamic from 'next/dynamic'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import useWindowSize from '~/hooks/useWindowSize'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -238,6 +238,36 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	}, [categoriesFromData, isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData])
 
 	const unlockedPercent = 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
+
+	const unlockedPieChartData = useMemo(
+		() => [
+			{ name: 'Unlocked', value: unlockedPercent },
+			{ name: 'Locked', value: 100 - unlockedPercent }
+		],
+		[unlockedPercent]
+	)
+
+	const unlockedPieChartStackColors = useMemo(
+		() => ({
+			Unlocked: '#0c5dff',
+			Locked: '#ff4e21'
+		}),
+		[]
+	)
+
+	const pieChartLegendPosition = useMemo(() => {
+		if (!width) return { left: 'right', orient: 'vertical' as const }
+		if (width < 640) return { left: 'center', top: 'bottom', orient: 'horizontal' as const }
+		return { left: 'right', top: 'center', orient: 'vertical' as const }
+	}, [width])
+
+	const pieChartLegendTextStyle = useMemo(
+		() => ({
+			fontSize: !width ? 20 : width < 640 ? 12 : 20
+		}),
+		[width]
+	)
+
 	const hasGroupAllocationData = useMemo(() => {
 		return (
 			data.categoriesBreakdown &&
@@ -245,6 +275,23 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			Object.keys(data.categoriesBreakdown).length > 0
 		)
 	}, [data.categoriesBreakdown])
+
+	const unlockedPieChartFormatTooltip = useCallback(
+		({ value, data: { name } }: { value: number; data: { name: string } }) => `${name}: ${value?.toFixed(2)}%`,
+		[]
+	)
+
+	const unlockedPieChartRadius = useMemo(() => ['50%', '70%'] as [string, string], [])
+
+	const unlockedPieChartCustomLabel = useMemo(
+		() => ({
+			show: true,
+			position: 'center',
+			fontSize: 16,
+			formatter: ({ percent }: { percent: number }) => `${percent.toFixed(0)}%`
+		}),
+		[]
+	)
 
 	if (!data) return null
 
@@ -414,14 +461,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								chartData={pieChartDataAllocationMode}
 								stackColors={chartConfig.colors}
 								usdFormat={false}
-								legendPosition={
-									!width
-										? { left: 'right', orient: 'vertical' }
-										: width < 640
-										? { left: 'center', top: 'bottom', orient: 'horizontal' }
-										: { left: 'right', top: 'center', orient: 'vertical' }
-								}
-								legendTextStyle={{ fontSize: !width ? 20 : width < 640 ? 12 : 20 }}
+								legendPosition={pieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
 							/>
 						</LazyChart>
 					)}
@@ -429,32 +470,16 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					{unlockedPercent > 0 && (
 						<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-[var(--cards-bg)] rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 							<PieChart
-								formatTooltip={({ value, data: { name } }) => `${name}: ${value?.toFixed(2)}%`}
+								formatTooltip={unlockedPieChartFormatTooltip}
 								showLegend
-								radius={['50%', '70%']}
+								radius={unlockedPieChartRadius}
 								title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
-								legendPosition={
-									!width
-										? { left: 'right', orient: 'vertical' }
-										: width < 640
-										? { left: 'center', top: 'bottom', orient: 'horizontal' }
-										: { left: 'right', top: 'center', orient: 'vertical' }
-								}
-								legendTextStyle={{ fontSize: !width ? 20 : width < 640 ? 12 : 20 }}
-								chartData={[
-									{ name: 'Unlocked', value: unlockedPercent },
-									{ name: 'Locked', value: 100 - unlockedPercent }
-								]}
-								stackColors={{ Unlocked: '#0c5dff', Locked: '#ff4e21' }}
+								legendPosition={pieChartLegendPosition}
+								legendTextStyle={pieChartLegendTextStyle}
+								chartData={unlockedPieChartData}
+								stackColors={unlockedPieChartStackColors}
 								usdFormat={false}
-								customLabel={{
-									show: true,
-									position: 'center',
-									fontSize: 16,
-									formatter: ({ percent }) => {
-										return `${percent.toFixed(0)}%`
-									}
-								}}
+								customLabel={unlockedPieChartCustomLabel}
 							/>
 						</LazyChart>
 					)}
