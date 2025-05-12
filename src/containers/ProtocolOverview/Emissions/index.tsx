@@ -220,19 +220,32 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
 
 	const chartConfig = useMemo(() => {
+		let stacks = selectedCategories
+		if ((!stacks || stacks.length === 0) && displayData && displayData.length > 0) {
+			const first = displayData[0]
+			stacks = Object.keys(first).filter((k) => k !== 'date' && k !== 'Price' && k !== 'Market Cap')
+		}
 		const extendedCategories = getExtendedCategories(categoriesFromData, isPriceEnabled)
 		const extendedColors = getExtendedColors(stackColors, isPriceEnabled)
 		return {
-			stacks: [...selectedCategories, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
+			stacks: [...stacks, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
 			customYAxis: isPriceEnabled ? ['Market Cap', 'Price'] : [],
 			colors:
 				allocationMode === 'standard'
 					? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
 					: extendedColors
 		}
-	}, [categoriesFromData, isPriceEnabled, selectedCategories, stackColors, allocationMode])
+	}, [categoriesFromData, isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData])
 
 	const unlockedPercent = 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
+	const hasGroupAllocationData = useMemo(() => {
+		return (
+			data.categoriesBreakdown &&
+			typeof data.categoriesBreakdown === 'object' &&
+			Object.keys(data.categoriesBreakdown).length > 0
+		)
+	}, [data.categoriesBreakdown])
+
 	if (!data) return null
 
 	return (
@@ -245,13 +258,15 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					</h1>
 				) : null}
 				<div className="flex flex-wrap gap-2 justify-center sm:justify-end w-full sm:w-auto">
-					<Switch
-						label="Group Allocation"
-						value="group-allocation"
-						onChange={() => setAllocationMode((prev) => (prev === 'current' ? 'standard' : 'current'))}
-						help="Group token allocations into standardized categories."
-						checked={allocationMode === 'standard'}
-					/>
+					{hasGroupAllocationData && (
+						<Switch
+							label="Group Allocation"
+							value="group-allocation"
+							onChange={() => setAllocationMode((prev) => (prev === 'current' ? 'standard' : 'current'))}
+							help="Group token allocations into standardized categories."
+							checked={allocationMode === 'standard'}
+						/>
+					)}
 
 					{normilizePriceChart?.prices ? (
 						<Switch

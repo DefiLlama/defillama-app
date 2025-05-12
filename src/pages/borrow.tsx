@@ -210,8 +210,8 @@ const TokensSelect = ({
 							<Ariakit.ComboboxList>
 								{matches.slice(0, viewableMatches + 1).map((option) => (
 									<Ariakit.SelectItem
-										key={`${query}-${option.name}`}
-										value={option.name}
+										key={`${query}-${option.symbol}`}
+										value={option.symbol}
 										className="group flex items-center gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
 										render={<Ariakit.ComboboxItem />}
 									>
