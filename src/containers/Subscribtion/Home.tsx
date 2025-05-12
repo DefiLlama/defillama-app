@@ -10,13 +10,17 @@ import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 
 export function SubscribeHome() {
-	const { isAuthenticated, loaders, user, changeEmail } = useAuthContext()
+	const { isAuthenticated, loaders, user, changeEmail, addEmail } = useAuthContext()
 	const { subscription, isSubscriptionFetching } = useSubscribe()
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [newEmail, setNewEmail] = useState('')
 	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		changeEmail(newEmail)
+		if (user?.address || user?.walletAddress) {
+			await addEmail(newEmail)
+		} else {
+			changeEmail(newEmail)
+		}
 		setNewEmail('')
 		setShowEmailForm(false)
 	}
@@ -121,7 +125,7 @@ export function SubscribeHome() {
 							isVerified={user?.verified}
 							isSubscribed={isSubscribed}
 							subscription={subscription}
-							onEmailChange={() => {}}
+							onEmailChange={() => setShowEmailForm(true)}
 						/>
 					</>
 				)}
@@ -131,7 +135,8 @@ export function SubscribeHome() {
 					onSubmit={handleEmailChange}
 					email={newEmail}
 					onEmailChange={setNewEmail}
-					isLoading={loaders.changeEmail}
+					isLoading={user?.address || user?.walletAddress ? loaders.addEmail : loaders.changeEmail}
+					isWalletUser={!!(user?.address || user?.walletAddress)}
 				/>
 				{isAuthenticated && isSubscribed ? (
 					<div className="mt-6 w-full max-w-[1200px] mx-auto">

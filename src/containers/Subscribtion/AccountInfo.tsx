@@ -13,7 +13,7 @@ export const AccountInfo = () => {
 	const [newEmail, setNewEmail] = useState('')
 	const [showEmailForm, setShowEmailForm] = useState(false)
 
-	const { user, isAuthenticated, logout, changeEmail, resendVerification, loaders } = useAuthContext()
+	const { user, isAuthenticated, logout, changeEmail, resendVerification, loaders, addEmail } = useAuthContext()
 
 	const {
 		subscription,
@@ -34,7 +34,11 @@ export const AccountInfo = () => {
 	const isVerified = user?.verified
 	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		changeEmail(newEmail)
+		if (user?.address || user?.walletAddress) {
+			await addEmail(newEmail)
+		} else {
+			changeEmail(newEmail)
+		}
 		setNewEmail('')
 		setShowEmailForm(false)
 	}
@@ -160,7 +164,8 @@ export const AccountInfo = () => {
 				onSubmit={handleEmailChange}
 				email={newEmail}
 				onEmailChange={setNewEmail}
-				isLoading={loaders.changeEmail}
+				isLoading={user?.address || user?.walletAddress ? loaders.addEmail : loaders.changeEmail}
+				isWalletUser={!!(user?.address || user?.walletAddress)}
 			/>
 		</div>
 	)

@@ -32,6 +32,7 @@ interface AuthContextType {
 	resetPassword: (email: string) => void
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
+	addEmail: (email: string) => void
 	isAuthenticated: boolean
 	user: User
 	loaders: {
@@ -43,6 +44,7 @@ interface AuthContextType {
 		resetPassword: boolean
 		changeEmail: boolean
 		resendVerification: boolean
+		addEmail: boolean
 		userLoading: boolean
 		userFetching: boolean
 	}
@@ -414,6 +416,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
+	const addEmail = useMutation({
+		mutationFn: async (email: string) => {
+			try {
+				const response = await fetch(`${AUTH_SERVER}/add-email`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${pb.authStore.token}`
+					},
+					body: JSON.stringify({ email })
+				})
+				if (!response.ok) {
+					const data = await response.json()
+					throw new Error(data?.message || 'Failed to add email')
+				}
+				toast.success('Email added successfully')
+			} catch (error: any) {
+				toast.error(error.message || 'Failed to add email')
+			}
+		}
+	})
+
 	const contextValue = {
 		user:
 			isAuthenticated && user
@@ -443,6 +467,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		resetPassword: resetPassword.mutate,
 		changeEmail: changeEmail.mutate,
 		resendVerification: resendVerification.mutate,
+		addEmail: addEmail.mutate,
 		isAuthenticated: isAuthenticated,
 		loaders: {
 			login: loginMutation.isPending,
@@ -453,6 +478,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			resetPassword: resetPassword.isPending,
 			changeEmail: changeEmail.isPending,
 			resendVerification: resendVerification.isPending,
+			addEmail: addEmail.isPending,
 			userLoading: isAuthenticated && isUserLoading,
 			userFetching: isAuthenticated && isFetching,
 			subscriptionError: isSubscriptionError
