@@ -4,6 +4,13 @@ import { setObjectCache } from '~/utils/cache-client'
 import { getObjectCache } from '~/utils/cache-client'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+	res.setHeader('Access-Control-Allow-Origin', '*')
+	res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS')
+	res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+	if (req.method === 'OPTIONS') {
+		return res.status(200).end()
+	}
+
 	const { chain } = req.query
 	const cacheKey = `object-chain-${chain}`
 
