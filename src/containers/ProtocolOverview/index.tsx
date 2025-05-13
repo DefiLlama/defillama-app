@@ -436,6 +436,11 @@ const ProtocolContainer = ({
 					01 Exchange was winded down. Please withdraw your remaining assets.
 				</Announcement>
 			)}
+			{name === 'Curve Finance' && (
+				<Announcement warning={true} notCancellable={true}>
+					curve.fi domain has been hijacked
+				</Announcement>
+			)}
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<Announcement>
 					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
