@@ -11,6 +11,7 @@ import { PastUnlockPriceImpact } from '~/components/Unlocks/PastUnlockPriceImpac
 import { formattedNum } from '~/utils'
 import { UpcomingUnlockVolumeChart } from '~/components/Charts/UpcomingUnlockVolumeChart'
 import { useWatchlist } from '~/contexts/LocalStorage'
+import { useRouter } from 'next/router'
 
 import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
@@ -35,6 +36,11 @@ export default function Protocols({ data }) {
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
 	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
 	const { savedProtocols } = useWatchlist()
+	const router = useRouter()
+
+	const { minUnlockValue, maxUnlockValue } = router.query
+	const min = typeof minUnlockValue === 'string' && minUnlockValue !== '' ? Number(minUnlockValue) : null
+	const max = typeof maxUnlockValue === 'string' && maxUnlockValue !== '' ? Number(maxUnlockValue) : null
 
 	const { upcomingUnlocks30dValue } = React.useMemo(() => {
 		let upcomingUnlocks30dValue = 0
@@ -154,6 +160,8 @@ export default function Protocols({ data }) {
 				projectName={projectName}
 				setProjectName={setProjectName}
 				savedProtocols={savedProtocols}
+				minUnlockValue={min}
+				maxUnlockValue={max}
 			/>
 		</Layout>
 	)

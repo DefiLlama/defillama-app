@@ -14,6 +14,8 @@ import { Icon } from '~/components/Icon'
 import { slug } from '~/utils'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
+import { useRouter } from 'next/router'
+import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 const optionsKey = 'unlockTable'
 const filterStatekey = 'unlockTableFilterState'
@@ -27,6 +29,8 @@ interface IUnlocksTableProps {
 	projectName: string
 	setProjectName: (value: string) => void
 	savedProtocols: { [key: string]: boolean }
+	minUnlockValue?: number | null
+	maxUnlockValue?: number | null
 }
 
 export const UnlocksTable = ({
@@ -37,8 +41,35 @@ export const UnlocksTable = ({
 	setShowOnlyInsider,
 	projectName,
 	setProjectName,
-	savedProtocols
+	savedProtocols,
+	minUnlockValue,
+	maxUnlockValue
 }: IUnlocksTableProps) => {
+	const router = useRouter()
+
+	const { minUnlockValue: minUnlockValueQuery, maxUnlockValue: maxUnlockValueQuery } = router.query
+	const min = typeof minUnlockValueQuery === 'string' && minUnlockValueQuery !== '' ? Number(minUnlockValueQuery) : ''
+	const max = typeof maxUnlockValueQuery === 'string' && maxUnlockValueQuery !== '' ? Number(maxUnlockValueQuery) : ''
+
+	const handleUnlockValueSubmit = (e) => {
+		e.preventDefault()
+		const form = e.target
+		const minUnlockValue = form.min?.value
+		const maxUnlockValue = form.max?.value
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...router.query,
+					minUnlockValue,
+					maxUnlockValue
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	const columnsInStorage = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => localStorage.getItem(optionsKey) ?? defaultColumns,
@@ -99,7 +130,8 @@ export const UnlocksTable = ({
 
 	const filteredData = useMemo(() => {
 		const searchTerm = projectName.toLowerCase().trim()
-		const isAnyFilterActive = searchTerm || showOnlyWatchlist || showOnlyInsider
+		const isAnyFilterActive =
+			searchTerm || showOnlyWatchlist || showOnlyInsider || minUnlockValue !== null || maxUnlockValue !== null
 
 		if (!isAnyFilterActive) {
 			return protocols
@@ -129,9 +161,27 @@ export const UnlocksTable = ({
 				}
 			}
 
+			if (shouldInclude && (minUnlockValue !== null || maxUnlockValue !== null)) {
+				const totalUnlockValue =
+					protocol.upcomingEvent?.reduce((sum, event) => {
+						if (
+							!event ||
+							event.timestamp === null ||
+							!event.noOfTokens ||
+							event.noOfTokens.length === 0 ||
+							protocol.tPrice == null
+						)
+							return sum
+						const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
+						return sum + totalTokens * protocol.tPrice
+					}, 0) ?? 0
+				if (minUnlockValue !== null && totalUnlockValue < minUnlockValue) shouldInclude = false
+				if (maxUnlockValue !== null && totalUnlockValue > maxUnlockValue) shouldInclude = false
+			}
+
 			return shouldInclude
 		})
-	}, [protocols, projectName, savedProtocols, showOnlyInsider, showOnlyWatchlist])
+	}, [protocols, projectName, savedProtocols, showOnlyInsider, showOnlyWatchlist, minUnlockValue, maxUnlockValue])
 
 	const instance = useReactTable({
 		data: filteredData,
@@ -201,6 +251,15 @@ export const UnlocksTable = ({
 						className:
 							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 					}}
+				/>
+
+				<FilterBetweenRange
+					name="Unlock Value"
+					trigger={<span>Unlock Value</span>}
+					onSubmit={handleUnlockValueSubmit}
+					min={min ? min.toString() : ''}
+					max={max ? max.toString() : ''}
+					variant="third"
 				/>
 			</div>
 			<VirtualTable instance={instance} stripedBg rowSize={70} />
