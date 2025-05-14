@@ -4,7 +4,6 @@ import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getProtocol, fuseProtocolData } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
-import { DummyProtocol } from '~/containers/ProtocolOverview/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import { cexData } from '../../cexs'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -96,17 +95,6 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ protocolData, ...props }) {
-	if (protocolData.module === 'dummy.js') {
-		return (
-			<DummyProtocol
-				data={protocolData}
-				title={`${protocolData.name} - DefiLlama`}
-				backgroundColor={props.backgroundColor}
-				protocol={props.protocol}
-			/>
-		)
-	}
-
 	return (
 		<ProtocolContainer
 			title={`${protocolData.name} - DefiLlama`}

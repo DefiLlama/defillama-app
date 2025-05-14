@@ -5,7 +5,7 @@ import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { groupProtocolsByParent, IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
-import { MainBarChart } from './common'
+import { ChainByAdapterChart } from './charts/ChainChart'
 import { useRouter } from 'next/router'
 import { slug } from '~/utils'
 import { Announcement } from '~/components/Announcement'
@@ -246,7 +246,7 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 				<></>
 			)}
 
-			{props.type === 'fees' ? null : <MainBarChart {...chartDataProps} />}
+			{props.type === 'fees' ? null : <ChainByAdapterChart {...chartDataProps} />}
 
 			{protocolsList && protocolsList.length > 0 ? (
 				<OverviewTable

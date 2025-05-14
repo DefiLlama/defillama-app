@@ -7,7 +7,14 @@ import {
 	DIMENISIONS_OVERVIEW_API
 } from '~/constants'
 import { getUniqueArray } from '~/containers/DimensionAdapters/utils'
-import { capitalizeFirstLetter, chainIconUrl, getPercentChange, iterateAndRemoveUndefined, slug } from '~/utils'
+import {
+	capitalizeFirstLetter,
+	chainIconUrl,
+	getBlockExplorer,
+	getPercentChange,
+	iterateAndRemoveUndefined,
+	slug
+} from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
@@ -82,6 +89,12 @@ export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummary
 	allAddresses?: Array<string>
 	totalAllTimeTokenTaxes?: number
 	totalAllTimeBribes?: number
+	blockExplorers?: Array<{
+		blockExplorerLink: string
+		blockExplorerName: string
+		chain: string | null
+		address: string
+	}>
 }
 
 export const generateGetOverviewItemPageDate = async (
@@ -128,6 +141,17 @@ export const generateGetOverviewItemPageDate = async (
 		allCharts.push(['TokenTax', fourthType.totalDataChart])
 	}
 
+	const blockExplorers = (item.allAddresses ?? (item.address ? [item.address] : [])).map((address) => {
+		const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
+		const splittedAddress = address.split(':')
+		return {
+			blockExplorerLink,
+			blockExplorerName,
+			chain: splittedAddress.length > 1 ? splittedAddress[0] : null,
+			address: splittedAddress.length > 1 ? splittedAddress[1] : splittedAddress[0]
+		}
+	})
+
 	return {
 		...item,
 		logo: getLlamaoLogo(item.logo),
@@ -135,7 +159,8 @@ export const generateGetOverviewItemPageDate = async (
 		dailyBribesRevenue: thirdType?.total24h ?? null,
 		dailyTokenTaxes: fourthType?.total24h ?? null,
 		type,
-		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
+		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
+		blockExplorers
 	}
 }
 
