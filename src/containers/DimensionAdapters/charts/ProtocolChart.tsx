@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { IBarChart2Props, IChartProps } from '~/components/ECharts/types'
+import { IChart2Props, IChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { DataIntervalType, INTERVALS_LIST } from './utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -10,9 +10,9 @@ import { IDimensionChartTypes } from '../types'
 const BarChart2 = dynamic(() => import('~/components/ECharts/BarChart2'), {
 	ssr: false,
 	loading: () => <div className="flex items-center justify-center m-auto min-h-[406px]" />
-}) as React.FC<IBarChart2Props>
+}) as React.FC<IChart2Props>
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+const AreaChart3 = dynamic(() => import('~/components/ECharts/AreaChart3'), {
 	ssr: false,
 	loading: () => <div className="flex items-center justify-center m-auto min-h-[406px]" />
 }) as React.FC<IChartProps>
@@ -39,16 +39,28 @@ export const DimensionProtocolOverviewChart = ({
 				['Revenue']: {}
 			}
 
+			let cumulativeFees = 0
+			let cumulativeRevenue = 0
+
 			totalDataChart[0].forEach(({ date, ...metrics }) => {
-				chartData['Fees'][formatDate(date)] = metrics['Fees'] ?? 0
-				chartData['Revenue'][formatDate(date)] = metrics['Revenue'] ?? 0
+				let fees = (metrics['Fees'] as number) ?? 0
+				let revenue = (metrics['Revenue'] as number) ?? 0
+
 				if (enabledSettings.bribes) {
-					chartData['Fees'][formatDate(date)] = metrics['Bribes'] ?? 0
-					chartData['Revenue'][formatDate(date)] = metrics['Bribes'] ?? 0
+					fees += (metrics['Bribes'] as number) ?? 0
+					revenue += (metrics['Bribes'] as number) ?? 0
 				}
 				if (enabledSettings.tokentax) {
-					chartData['Fees'][formatDate(date)] = metrics['TokenTax'] ?? 0
-					chartData['Revenue'][formatDate(date)] = metrics['TokenTax'] ?? 0
+					fees += (metrics['TokenTax'] as number) ?? 0
+					revenue += (metrics['TokenTax'] as number) ?? 0
+				}
+
+				chartData['Fees'][formatDate(date)] = fees + cumulativeFees
+				chartData['Revenue'][formatDate(date)] = revenue + cumulativeRevenue
+
+				if (chartInterval === 'Cumulative') {
+					cumulativeFees += fees
+					cumulativeRevenue += revenue
 				}
 			})
 
@@ -71,13 +83,25 @@ export const DimensionProtocolOverviewChart = ({
 			}
 		}
 
+		if (chartInterval !== 'Daily') {
+			const chartData = {}
+			totalDataChart[0].forEach(({ date, ...metrics }) => {
+				chartData[formatDate(date)] = metrics[totalDataChart[1][0]] ?? 0
+			})
+			const finalChartData = []
+			for (const date in chartData) {
+				finalChartData.push([+date, chartData[date]])
+			}
+			return {
+				chartData: { ['Volume']: finalChartData },
+				stackColors: { ['Volume']: '#1f67d2' }
+			}
+		}
+
 		return {
 			chartData: {
-				['Volume']: totalDataChart[0].map(({ date, ...metrics }) => [
-					formatDate(date),
-					metrics[totalDataChart[1][0]] ?? 0
-				])
-			} as IBarChart2Props['chartData'],
+				['Volume']: totalDataChart[0].map(({ date, ...metrics }) => [+date * 1e3, metrics[totalDataChart[1][0]] ?? 0])
+			} as IChart2Props['chartData'],
 			stackColors: { ['Volume']: '#1f67d2' }
 		}
 	}, [totalDataChart, enabledSettings, chartInterval])
@@ -99,7 +123,7 @@ export const DimensionProtocolOverviewChart = ({
 				</div>
 			</div>
 			{chartInterval === 'Cumulative' ? (
-				<></>
+				<AreaChart3 chartData={mainChartData.chartData} stackColors={mainChartData.stackColors} />
 			) : (
 				<BarChart2
 					chartData={mainChartData.chartData}
