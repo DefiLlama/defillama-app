@@ -143,6 +143,7 @@ interface IProtocolContainerProps {
 		'--btn-text': string
 	}
 	tab?: string
+	cached?: boolean
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -199,7 +200,8 @@ const ProtocolContainer = ({
 	hacksData,
 	nftVolumeData,
 	pageStyles,
-	tab
+	tab,
+	cached
 }: IProtocolContainerProps) => {
 	const {
 		address = '',
@@ -228,7 +230,16 @@ const ProtocolContainer = ({
 		stablecoins,
 		deprecated
 	} = protocolData
-
+	console.log(
+		cached,
+		tvlByChain,
+		tvlByChain.reduce((acc, [chain, tvl]) => {
+			if (!chain.includes('-') && !DEFI_SETTINGS_KEYS.includes(chain)) {
+				acc += tvl
+			}
+			return acc
+		}, 0)
+	)
 	const router = useRouter()
 
 	const { usdInflows: usdInflowsParam, denomination } = router.query

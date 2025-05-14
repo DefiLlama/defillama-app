@@ -698,7 +698,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					? hacks?.filter((hack) => +hack.defillamaId === +protocolData.id)?.sort((a, b) => a.date - b.date)
 					: null) ?? null,
 			clientSide: isCpusHot,
-			pageStyles: getProtocolPageStyles(backgroundColor)
+			pageStyles: getProtocolPageStyles(backgroundColor),
+			cached: false
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -815,7 +816,8 @@ export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocol
 			tokenCGData: getTokenCGData(tokenCGData),
 			nextEventDescription: null,
 			clientSide: isCpusHot,
-			pageStyles: getProtocolPageStyles(backgroundColor)
+			pageStyles: getProtocolPageStyles(backgroundColor),
+			cached: true
 		},
 		revalidate: maxAgeForNext([22])
 	}
