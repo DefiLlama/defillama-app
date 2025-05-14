@@ -18,6 +18,7 @@ interface SEOProps {
 	unlockAmount?: string
 	pageType?: string
 	isCEX?: boolean
+	symbol?: string
 }
 
 export const SEO = ({
@@ -33,7 +34,8 @@ export const SEO = ({
 	unlockPage = false,
 	unlockAmount,
 	pageType,
-	isCEX
+	isCEX,
+	symbol
 }: SEOProps) => {
 	const isClient = useIsClient()
 
@@ -129,32 +131,46 @@ export const SEO = ({
 		stablePage
 	])
 
+	let pageTitle = 'DefiLlama'
+	let pageDescription = "DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency.";
+	let pageKeywords = ''
+
+	if (unlockPage && cardName) {
+		pageTitle = `${cardName} ${symbol} Token Unlocks & Vesting Schedules - DefiLlama`
+		pageDescription = `Track upcoming ${cardName} token unlocks, detailed vesting schedules, and key emission data on DefiLlama. Stay informed on ${symbol} release events and supply changes.`
+		pageKeywords = `${cardName} ${symbol} token unlocks, vesting schedules, emission data, DefiLlama, ${symbol}, ${cardName}, ${symbol} Tokenomics, ${symbol} Unlocks, ${symbol} Vesting Schedule, ${cardName} Unlocks, ${cardName} Vesting Schedule, ${cardName} Tokenomics`
+	}
+
 	return (
 		<Head>
 			<meta
 				name="description"
-				content="DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency."
+				content={pageDescription}
 			/>
 
-			<meta property="og:title" content="DefiLlama" />
+			{pageKeywords !== '' && (
+				<meta name="keywords" content={pageKeywords} />
+			)}
+
+			<meta property="og:title" content={pageTitle} />
 			<meta property="og:type" content="website" />
 			<meta property="og:url" content={windowURL} />
 			<meta property="og:site_name" content="DefiLlama" />
 			<meta
 				property="og:description"
-				content="DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency."
+				content={pageDescription}
 			/>
 			<meta property="og:image" content={cardURL} />
 
 			<meta name="twitter:card" content="summary_large_image" />
 			<meta property="twitter:domain" content="defillama.com" />
 			<meta property="twitter:url" content={windowURL} />
-			<meta name="twitter:title" content="DefiLlama" />
+			<meta name="twitter:title" content={pageTitle} />
 			<meta name="twitter:site" content="@DefiLlama" />
 			<meta name="twitter:creator" content="@DefiLlama" />
 			<meta
 				name="twitter:description"
-				content="DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency."
+				content={pageDescription}
 			/>
 			<meta name="twitter:image" content={cardURL} />
 		</Head>
