@@ -132,7 +132,7 @@ export function CustomColumnModal({
 					}
 				}, 0)
 			}
-			return { ...prev, formula: newFormula, showSuggestions: false, fieldWarning: null }
+			return { ...prev, formula: newFormula, showSuggestions: false, fieldWarning: null, error: null }
 		})
 		inputRef.current?.focus()
 	}
@@ -297,6 +297,16 @@ export function CustomColumnModal({
 							<span className="bg-[var(--bg1)] px-2 py-1 rounded text-[var(--text1)]">{preview}</span>
 						</div>
 					)}
+					<div className="text-sm text-[var(--text2)]">
+						<a
+							href="https://docs.llama.fi/analysts/custom-columns"
+							target="_blank"
+							className="text-[var(--primary1)] hover:underline"
+							rel="noreferrer"
+						>
+							Learn more on how to create custom columns
+						</a>
+					</div>
 					<div className="flex justify-end gap-2 mt-4">
 						<button
 							className="px-4 py-2 rounded-lg bg-transparent hover:bg-[var(--btn-hover-bg)] text-[var(--text2)] transition-colors"
