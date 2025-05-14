@@ -132,7 +132,7 @@ export function CustomColumnModal({
 					}
 				}, 0)
 			}
-			return { ...prev, formula: newFormula, showSuggestions: false, fieldWarning: null }
+			return { ...prev, formula: newFormula, showSuggestions: false, fieldWarning: null, error: null }
 		})
 		inputRef.current?.focus()
 	}
