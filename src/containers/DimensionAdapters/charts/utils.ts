@@ -136,11 +136,11 @@ export const getChartDataByChainAndInterval = ({
 
 		for (const chain of selectedChains) {
 			topByAllDates[chain] = topByAllDates[chain] || {}
-			topByAllDates[chain][finalDate] = topByDate[chain]?.[finalDate] ?? 0
+			topByAllDates[chain][finalDate] = (topByAllDates[chain][finalDate] || 0) + (topByDate[chain]?.[finalDate] ?? 0)
 		}
 
 		topByAllDates['Others'] = topByAllDates['Others'] || {}
-		topByAllDates['Others'][finalDate] = others
+		topByAllDates['Others'][finalDate] = (topByAllDates['Others'][finalDate] || 0) + others
 	}
 
 	const finalData = {}
