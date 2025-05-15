@@ -462,7 +462,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 				/>
 			)
 		},
-		size: 180
+		size: 400
 	}
 ]
 

@@ -47,9 +47,16 @@ export const UnlocksTable = ({
 }: IUnlocksTableProps) => {
 	const router = useRouter()
 
-	const { minUnlockValue: minUnlockValueQuery, maxUnlockValue: maxUnlockValueQuery } = router.query
+	const {
+		minUnlockValue: minUnlockValueQuery,
+		maxUnlockValue: maxUnlockValueQuery,
+		minUnlockPerc: minUnlockPercQuery,
+		maxUnlockPerc: maxUnlockPercQuery
+	} = router.query
 	const min = typeof minUnlockValueQuery === 'string' && minUnlockValueQuery !== '' ? Number(minUnlockValueQuery) : ''
 	const max = typeof maxUnlockValueQuery === 'string' && maxUnlockValueQuery !== '' ? Number(maxUnlockValueQuery) : ''
+	const minPerc = typeof minUnlockPercQuery === 'string' && minUnlockPercQuery !== '' ? Number(minUnlockPercQuery) : ''
+	const maxPerc = typeof maxUnlockPercQuery === 'string' && maxUnlockPercQuery !== '' ? Number(maxUnlockPercQuery) : ''
 
 	const handleUnlockValueSubmit = (e) => {
 		e.preventDefault()
@@ -63,6 +70,25 @@ export const UnlocksTable = ({
 					...router.query,
 					minUnlockValue,
 					maxUnlockValue
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const handleUnlockPercSubmit = (e) => {
+		e.preventDefault()
+		const form = e.target
+		const minUnlockPerc = form.min?.value
+		const maxUnlockPerc = form.max?.value
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...router.query,
+					minUnlockPerc,
+					maxUnlockPerc
 				}
 			},
 			undefined,
@@ -131,7 +157,13 @@ export const UnlocksTable = ({
 	const filteredData = useMemo(() => {
 		const searchTerm = projectName.toLowerCase().trim()
 		const isAnyFilterActive =
-			searchTerm || showOnlyWatchlist || showOnlyInsider || minUnlockValue !== null || maxUnlockValue !== null
+			searchTerm ||
+			showOnlyWatchlist ||
+			showOnlyInsider ||
+			minUnlockValue !== null ||
+			maxUnlockValue !== null ||
+			minPerc !== '' ||
+			maxPerc !== ''
 
 		if (!isAnyFilterActive) {
 			return protocols
@@ -179,9 +211,40 @@ export const UnlocksTable = ({
 				if (maxUnlockValue !== null && totalUnlockValue > maxUnlockValue) shouldInclude = false
 			}
 
+			if (shouldInclude && (minPerc !== '' || maxPerc !== '')) {
+				const totalUnlockValue =
+					protocol.upcomingEvent?.reduce((sum, event) => {
+						if (
+							!event ||
+							event.timestamp === null ||
+							!event.noOfTokens ||
+							event.noOfTokens.length === 0 ||
+							protocol.tPrice == null
+						)
+							return sum
+						const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
+						return sum + totalTokens * protocol.tPrice
+					}, 0) ?? 0
+				const mcap = protocol.mcap ?? 0
+				const percToUnlockFloat = mcap > 0 ? (totalUnlockValue / mcap) * 100 : 0
+
+				if (minPerc !== '' && percToUnlockFloat < Number(minPerc)) shouldInclude = false
+				if (maxPerc !== '' && percToUnlockFloat > Number(maxPerc)) shouldInclude = false
+			}
+
 			return shouldInclude
 		})
-	}, [protocols, projectName, savedProtocols, showOnlyInsider, showOnlyWatchlist, minUnlockValue, maxUnlockValue])
+	}, [
+		protocols,
+		projectName,
+		savedProtocols,
+		showOnlyInsider,
+		showOnlyWatchlist,
+		minUnlockValue,
+		maxUnlockValue,
+		minPerc,
+		maxPerc
+	])
 
 	const instance = useReactTable({
 		data: filteredData,
@@ -221,22 +284,23 @@ export const UnlocksTable = ({
 					{showOnlyInsider ? 'Show All' : 'Insiders Only'}
 				</button>
 
-				<div className="relative w-full sm:max-w-[280px]">
-					<Icon
-						name="search"
-						height={16}
-						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
-					/>
-					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
-						placeholder="Search projects..."
-						className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
-					/>
-				</div>
+				<FilterBetweenRange
+					name="Unlock Value"
+					trigger={<span>Unlock Value</span>}
+					onSubmit={handleUnlockValueSubmit}
+					min={min ? min.toString() : ''}
+					max={max ? max.toString() : ''}
+					variant="third"
+				/>
+
+				<FilterBetweenRange
+					name="Unlock % of Market Cap"
+					trigger={<span>Unlock Perc.</span>}
+					onSubmit={handleUnlockPercSubmit}
+					min={minPerc ? minPerc.toString() : ''}
+					max={maxPerc ? maxPerc.toString() : ''}
+					variant="third"
+				/>
 
 				<SelectWithCombobox
 					allValues={columnOptions}
@@ -253,14 +317,22 @@ export const UnlocksTable = ({
 					}}
 				/>
 
-				<FilterBetweenRange
-					name="Unlock Value"
-					trigger={<span>Unlock Value</span>}
-					onSubmit={handleUnlockValueSubmit}
-					min={min ? min.toString() : ''}
-					max={max ? max.toString() : ''}
-					variant="third"
-				/>
+				<div className="relative w-full sm:max-w-[280px]">
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+					/>
+					<input
+						value={projectName}
+						onChange={(e) => {
+							setProjectName(e.target.value)
+						}}
+						placeholder="Search projects..."
+						className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+					/>
+				</div>
 			</div>
 			<VirtualTable instance={instance} stripedBg rowSize={70} />
 		</div>
