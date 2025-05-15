@@ -20,8 +20,6 @@ export default function AreaChart3({ chartData, chartOptions, height, stackColor
 			series.push({
 				name: stack,
 				type: 'line',
-				large: true,
-				largeThreshold: 0,
 				stack,
 				symbol: 'none',
 				emphasis: {
@@ -104,7 +102,8 @@ export default function AreaChart3({ chartData, chartOptions, height, stackColor
 				left: 12,
 				bottom: 68,
 				top: 12,
-				right: 12
+				right: 12,
+				containLabel: true
 			},
 			xAxis,
 			yAxis,

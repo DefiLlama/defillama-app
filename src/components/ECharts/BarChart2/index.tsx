@@ -72,7 +72,8 @@ export default function BarChart2({ chartData, chartOptions, height, stackColors
 				left: 12,
 				bottom: 68,
 				top: 12,
-				right: 12
+				right: 12,
+				containLabel: true
 			},
 			xAxis,
 			yAxis,

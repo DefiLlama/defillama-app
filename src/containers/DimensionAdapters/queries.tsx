@@ -129,19 +129,19 @@ export async function getAdapterChainOverview({
 
 export async function getAdapterProtocolSummary({
 	type,
-	chain,
+	protocol,
 	excludeTotalDataChart,
 	excludeTotalDataChartBreakdown,
 	dataType
 }: {
 	type: `${ADAPTOR_TYPES}`
-	chain: string
+	protocol: string
 	excludeTotalDataChart: boolean
 	excludeTotalDataChartBreakdown: boolean
 	dataType?: string
 }) {
 	let url = `${DIMENISIONS_SUMMARY_BASE_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type}${
-		chain && chain !== 'All' ? `/${slug(chain)}` : ''
+		protocol && protocol !== 'All' ? `/${slug(protocol)}` : ''
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 	if (dataType) {

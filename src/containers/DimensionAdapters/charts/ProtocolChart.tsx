@@ -6,6 +6,9 @@ import { DataIntervalType, INTERVALS_LIST } from './utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek } from '~/utils'
 import { IDimensionChartTypes } from '../types'
+import { useQuery } from '@tanstack/react-query'
+import { getAdapterProtocolSummary } from '../queries'
+import { ADAPTOR_TYPES } from '../constants'
 
 const BarChart2 = dynamic(() => import('~/components/ECharts/BarChart2'), {
 	ssr: false,
@@ -27,11 +30,11 @@ export const DimensionProtocolOverviewChart = ({
 
 	const mainChartData = React.useMemo(() => {
 		const formatDate = (date) =>
-			chartInterval === 'Daily'
-				? +date * 1e3
-				: chartInterval === 'Weekly'
+			chartInterval === 'Weekly'
 				? lastDayOfWeek(+date * 1e3) * 1e3
-				: firstDayOfMonth(+date * 1e3) * 1e3
+				: chartInterval === 'Monthly'
+				? firstDayOfMonth(+date * 1e3) * 1e3
+				: +date * 1e3
 
 		if (totalDataChart[1].includes('Fees')) {
 			const chartData = {
@@ -43,6 +46,7 @@ export const DimensionProtocolOverviewChart = ({
 			let cumulativeRevenue = 0
 
 			totalDataChart[0].forEach(({ date, ...metrics }) => {
+				const finalDate = formatDate(date)
 				let fees = (metrics['Fees'] as number) ?? 0
 				let revenue = (metrics['Revenue'] as number) ?? 0
 
@@ -55,8 +59,8 @@ export const DimensionProtocolOverviewChart = ({
 					revenue += (metrics['TokenTax'] as number) ?? 0
 				}
 
-				chartData['Fees'][formatDate(date)] = fees + cumulativeFees
-				chartData['Revenue'][formatDate(date)] = revenue + cumulativeRevenue
+				chartData['Fees'][finalDate] = (chartData['Fees'][finalDate] || 0) + fees + cumulativeFees
+				chartData['Revenue'][finalDate] = (chartData['Revenue'][finalDate] || 0) + revenue + cumulativeRevenue
 
 				if (chartInterval === 'Cumulative') {
 					cumulativeFees += fees
@@ -86,7 +90,7 @@ export const DimensionProtocolOverviewChart = ({
 		if (chartInterval !== 'Daily') {
 			const chartData = {}
 			totalDataChart[0].forEach(({ date, ...metrics }) => {
-				chartData[formatDate(date)] = metrics[totalDataChart[1][0]] ?? 0
+				chartData[formatDate(date)] = (chartData[formatDate(date)] || 0) + (metrics[totalDataChart[1][0]] ?? 0)
 			})
 			const finalChartData = []
 			for (const date in chartData) {
@@ -107,7 +111,7 @@ export const DimensionProtocolOverviewChart = ({
 	}, [totalDataChart, enabledSettings, chartInterval])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-4 col-span-2 min-h-[434px]">
+		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
 			<div className="flex items-center justify-end p-3">
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 					{INTERVALS_LIST.map((dataInterval) => (
@@ -158,13 +162,42 @@ export const DimensionProtocolChartByType = ({
 	chartType,
 	protocolName,
 	type,
-	breakdownChart = true
+	overviewChart
 }: {
 	chartType: IDimensionChartTypes
 	protocolName: string
-	type: string
-	breakdownChart?: boolean
+	type: `${ADAPTOR_TYPES}`
+	overviewChart?: boolean
 }) => {
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['dimension-protocol', protocolName, type, overviewChart],
+		queryFn: () =>
+			getAdapterProtocolSummary({
+				type,
+				protocol: protocolName,
+				excludeTotalDataChart: !overviewChart,
+				excludeTotalDataChartBreakdown: overviewChart
+			}),
+		retry: 0,
+		staleTime: 60 * 60 * 1000,
+		refetchInterval: 60 * 60 * 1000
+	})
+
+	if (isLoading) {
+		return <div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]" />
+	}
+	if (error) {
+		return (
+			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
+				<p className="text-center text-[var(--pct-red)] p-3">{error.message}</p>
+			</div>
+		)
+	}
+
+	if (overviewChart) {
+		console.log({ data })
+		// return <DimensionProtocolOverviewChart totalDataChart={data.totalDataChart ?? []} />
+	}
 	return null
 	// return !error &&
 	// 	(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
