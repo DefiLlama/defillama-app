@@ -19,7 +19,8 @@ export default function BarChart({
 	height,
 	stackColors,
 	tooltipOrderBottomUp,
-	groupBy
+	groupBy,
+	hideDataZoom = false
 }: IBarChartProps) {
 	const id = useId()
 
@@ -167,7 +168,7 @@ export default function BarChart({
 					data: stackKeys
 				}
 			}),
-			dataZoom: [...dataZoom],
+			dataZoom: hideDataZoom ? [] : [...dataZoom],
 			series
 		})
 
@@ -181,7 +182,7 @@ export default function BarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions])
+	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom])
 
 	return (
 		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-3 [&[role='combobox']]:*:mt-3">

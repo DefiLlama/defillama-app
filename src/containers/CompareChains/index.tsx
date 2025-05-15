@@ -36,8 +36,8 @@ const CustomOption = ({ innerProps, label, data }) => (
 )
 
 export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
-	const data = await fetch(`/api/cache/chain/${chain}`).then((r) => r.json())
-
+	const data = await fetch(`https://defillama.com/api/cache/chain/${chain}`).then((r) => r.json())
+	console.log(data)
 	const {
 		chart,
 		extraTvlCharts,
@@ -100,9 +100,7 @@ export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) =
 	}
 
 	const feesChart = (() =>
-		feesData?.totalDataChart?.[0]?.length
-			? feesData?.totalDataChart?.[0]?.map((val) => [val.date, val.Fees, val.Revenue])
-			: null)()
+		feesData?.totalDataChart?.[0]?.length ? feesData?.totalDataChart?.[0]?.map((val) => [val.date, val.Dexs]) : null)()
 
 	return {
 		feesChart,
@@ -110,7 +108,7 @@ export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) =
 		bridgeChartData,
 		globalChart,
 		chain,
-		txsData,
+		txs: txsData,
 		usersData,
 		chains: chainsSet,
 		chainTreasury,

@@ -132,7 +132,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 
 		return {
 			...toggled,
-			tvl: router.query.tvl === 'false' ? 'false' : 'true',
+			tvl: enabled ? (enabled.tvl ? (router.query.tvl === 'false' ? 'false' : 'true') : 'false') : 'false',
 			events: router.query.events === 'false' ? 'false' : 'true'
 		} as any
 	}, [enabled, router, metrics])

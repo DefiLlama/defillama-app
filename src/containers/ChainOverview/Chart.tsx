@@ -90,6 +90,7 @@ export function ChainChart({
 	showLegend = false,
 	...props
 }) {
+	console.log(chartType)
 	const id = useId()
 	const { query: routerRoute, pathname } = useRouter()
 	const period = Number((routerRoute.period as string)?.replace('d', ''))
@@ -887,6 +888,8 @@ export function ChainChart({
 		isFirstChart,
 		showLegend
 	])
+
+	console.log({ series, datasets })
 
 	return (
 		<div className="relative" {...props}>
