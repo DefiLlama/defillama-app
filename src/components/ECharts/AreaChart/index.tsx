@@ -27,6 +27,7 @@ export default function AreaChart({
 	hideOthersInTooltip,
 	hideLegend = true,
 	hideDefaultLegend,
+	hideDataZoom = false,
 	...props
 }: IChartProps) {
 	const id = useId()
@@ -271,7 +272,7 @@ export default function AreaChart({
 					data: chartsStack
 				}
 			}),
-			dataZoom: [...dataZoom],
+			dataZoom: hideDataZoom ? [] : [...dataZoom],
 			series
 		})
 
