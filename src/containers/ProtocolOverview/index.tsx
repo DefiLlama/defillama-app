@@ -139,7 +139,22 @@ interface IProtocolContainerProps {
 		'--btn-text': string
 	}
 	tab?: string
-	metadata: IProtocolMetadata
+	metrics: {
+		dexs: boolean
+		perps: boolean
+		options: boolean
+		dexAggregators: boolean
+		perpsAggregators: boolean
+		bridgeAggregators: boolean
+		stablecoins: boolean
+		bridge: boolean
+		treasury: boolean
+		unlocks: boolean
+		yields: boolean
+		fees: boolean
+		forks: boolean
+		governance: boolean
+	}
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -197,7 +212,7 @@ const ProtocolContainer = ({
 	nftVolumeData,
 	pageStyles,
 	tab,
-	metadata
+	metrics
 }: IProtocolContainerProps) => {
 	const {
 		address = '',
@@ -221,7 +236,6 @@ const ProtocolContainer = ({
 		gecko_id,
 		isParentProtocol,
 		raises,
-		metrics,
 		isHourlyChart,
 		stablecoins,
 		deprecated
@@ -420,7 +434,7 @@ const ProtocolContainer = ({
 			category={category}
 			otherProtocols={otherProtocols}
 			toggleOptions={toggleOptions}
-			metadata={metadata}
+			metrics={metrics}
 		>
 			<SEO
 				cardName={name}

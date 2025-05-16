@@ -5,7 +5,6 @@ import { scams } from '~/constants'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import Link from 'next/link'
 import { slug } from '~/utils'
-import { IProtocolMetadata } from '../ChainOverview/types'
 
 export function ProtocolOverviewLayout({
 	children,
@@ -15,7 +14,8 @@ export function ProtocolOverviewLayout({
 	category,
 	otherProtocols,
 	toggleOptions,
-	metadata
+	metrics,
+	tab
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -27,7 +27,40 @@ export function ProtocolOverviewLayout({
 		name: string
 		key: string
 	}>
-	metadata: IProtocolMetadata
+	metrics: {
+		dexs: boolean
+		perps: boolean
+		options: boolean
+		dexAggregators: boolean
+		perpsAggregators: boolean
+		bridgeAggregators: boolean
+		stablecoins: boolean
+		bridge: boolean
+		treasury: boolean
+		unlocks: boolean
+		yields: boolean
+		fees: boolean
+		forks: boolean
+		governance: boolean
+	}
+	tab?:
+		| 'information'
+		| 'assets'
+		| 'tvl'
+		| 'stablecoins'
+		| 'bridges'
+		| 'treasury'
+		| 'unlocks'
+		| 'yields'
+		| 'fees'
+		| 'dexs'
+		| 'perps'
+		| 'dex-aggregators'
+		| 'perps-aggregators'
+		| 'bridge-aggregators'
+		| 'options'
+		| 'governance'
+		| 'forks'
 }) {
 	return (
 		<Layout title={name} backgroundColor={pageStyles['--bg-color']} style={pageStyles as any}>
@@ -92,10 +125,10 @@ export function ProtocolOverviewLayout({
 				</nav>
 			)}
 			<div className="flex flex-col gap-1">
-				{/* <div className="w-full flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium">
+				<div className="w-full flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium">
 					{isCEX ? (
 						<Link
-							href={`/cex/${protocol}`}
+							href={`/cex/${slug(name)}`}
 							data-active={!tab || tab === 'information'}
 							legacyBehavior={false}
 							prefetch
@@ -105,7 +138,7 @@ export function ProtocolOverviewLayout({
 						</Link>
 					) : (
 						<Link
-							href={`/protocol/${protocol}`}
+							href={`/protocol/${slug(name)}`}
 							data-active={!tab || tab === 'information'}
 							legacyBehavior={false}
 							prefetch
@@ -114,32 +147,30 @@ export function ProtocolOverviewLayout({
 							Information
 						</Link>
 					)}
-					{showCharts ? (
-						isCEX ? (
-							<Link
-								href={`/cex/assets/${protocol}`}
-								data-active={tab === 'assets'}
-								legacyBehavior={false}
-								prefetch
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-							>
-								Assets
-							</Link>
-						) : (
-							<Link
-								href={`/protocol/tvl/${protocol}`}
-								data-active={tab === 'tvl'}
-								legacyBehavior={false}
-								prefetch
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-							>
-								TVL
-							</Link>
-						)
-					) : null}
-					{stablecoins && stablecoins.length > 0 && (
+					{isCEX ? (
 						<Link
-							href={`/protocol/stablecoins/${protocol}`}
+							href={`/cex/assets/${slug(name)}`}
+							data-active={tab === 'assets'}
+							legacyBehavior={false}
+							prefetch
+							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+						>
+							Assets
+						</Link>
+					) : (
+						<Link
+							href={`/protocol/tvl/${slug(name)}`}
+							data-active={tab === 'tvl'}
+							legacyBehavior={false}
+							prefetch
+							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+						>
+							TVL
+						</Link>
+					)}
+					{metrics.stablecoins && (
+						<Link
+							href={`/protocol/stablecoins/${slug(name)}`}
 							data-active={tab === 'stablecoins'}
 							legacyBehavior={false}
 							prefetch
@@ -150,7 +181,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.bridge && (
 						<Link
-							href={`/protocol/bridges/${protocol}`}
+							href={`/protocol/bridges/${slug(name)}`}
 							data-active={tab === 'bridges'}
 							legacyBehavior={false}
 							prefetch
@@ -159,9 +190,9 @@ export function ProtocolOverviewLayout({
 							Bridge Info
 						</Link>
 					)}
-					{treasury && (
+					{metrics.treasury && (
 						<Link
-							href={`/protocol/treasury/${protocol}`}
+							href={`/protocol/treasury/${slug(name)}`}
 							data-active={tab === 'treasury'}
 							legacyBehavior={false}
 							prefetch
@@ -172,7 +203,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.unlocks && (
 						<Link
-							href={`/protocol/unlocks/${protocol}`}
+							href={`/protocol/unlocks/${slug(name)}`}
 							data-active={tab === 'unlocks'}
 							legacyBehavior={false}
 							prefetch
@@ -183,7 +214,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.yields && (
 						<Link
-							href={`/protocol/yields/${protocol}`}
+							href={`/protocol/yields/${slug(name)}`}
 							data-active={tab === 'yields'}
 							legacyBehavior={false}
 							prefetch
@@ -194,7 +225,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.fees && (
 						<Link
-							href={`/protocol/fees/${protocol}`}
+							href={`/protocol/fees/${slug(name)}`}
 							data-active={tab === 'fees'}
 							legacyBehavior={false}
 							prefetch
@@ -205,7 +236,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.dexs && (
 						<Link
-							href={`/protocol/dexs/${protocol}`}
+							href={`/protocol/dexs/${slug(name)}`}
 							data-active={tab === 'dexs'}
 							legacyBehavior={false}
 							prefetch
@@ -216,7 +247,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.perps && (
 						<Link
-							href={`/protocol/perps/${protocol}`}
+							href={`/protocol/perps/${slug(name)}`}
 							data-active={tab === 'perps'}
 							legacyBehavior={false}
 							prefetch
@@ -225,9 +256,9 @@ export function ProtocolOverviewLayout({
 							Perps Volume
 						</Link>
 					)}
-					{metrics.aggregators && (
+					{metrics.dexAggregators && (
 						<Link
-							href={`/protocol/dex-aggregators/${protocol}`}
+							href={`/protocol/dex-aggregators/${slug(name)}`}
 							data-active={tab === 'dex-aggregators'}
 							legacyBehavior={false}
 							prefetch
@@ -238,7 +269,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.perpsAggregators && (
 						<Link
-							href={`/protocol/perps-aggregators/${protocol}`}
+							href={`/protocol/perps-aggregators/${slug(name)}`}
 							data-active={tab === 'perps-aggregators'}
 							legacyBehavior={false}
 							prefetch
@@ -249,7 +280,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.bridgeAggregators && (
 						<Link
-							href={`/protocol/bridge-aggregators/${protocol}`}
+							href={`/protocol/bridge-aggregators/${slug(name)}`}
 							data-active={tab === 'bridge-aggregators'}
 							legacyBehavior={false}
 							prefetch
@@ -260,7 +291,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.options && (
 						<Link
-							href={`/protocol/options/${protocol}`}
+							href={`/protocol/options/${slug(name)}`}
 							data-active={tab === 'options'}
 							legacyBehavior={false}
 							prefetch
@@ -269,9 +300,9 @@ export function ProtocolOverviewLayout({
 							Options Volume
 						</Link>
 					)}
-					{governanceApis?.length > 0 && (
+					{metrics.governance && (
 						<Link
-							href={`/protocol/governance/${protocol}`}
+							href={`/protocol/governance/${slug(name)}`}
 							data-active={tab === 'governance'}
 							legacyBehavior={false}
 							prefetch
@@ -282,7 +313,7 @@ export function ProtocolOverviewLayout({
 					)}
 					{metrics.forks && (
 						<Link
-							href={`/protocol/forks/${protocol}`}
+							href={`/protocol/forks/${slug(name)}`}
 							data-active={tab === 'forks'}
 							legacyBehavior={false}
 							prefetch
@@ -291,7 +322,7 @@ export function ProtocolOverviewLayout({
 							Forks
 						</Link>
 					)}
-				</div> */}
+				</div>
 				{children}
 			</div>
 		</Layout>

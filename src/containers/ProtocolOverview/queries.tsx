@@ -2,6 +2,87 @@ import { darken, transparentize } from 'polished'
 import { tokenIconPaletteUrl } from '~/utils'
 import { primaryColor } from '~/constants/colors'
 import { fetchWithErrorLogging } from '~/utils/async'
+import { HOURLY_PROTOCOL_API, PROTOCOL_API } from '~/constants'
+import { IRaise } from '~/api/types'
+import { IProtocolMetadata } from '../ChainOverview/types'
+
+interface IUpdatedProtocol {
+	id: string
+	name: string
+	address?: string | null
+	symbol?: string | null
+	url: string
+	description: string
+	chain: string
+	logo: string
+	audits: string | null
+	audit_note: string | null
+	gecko_id: string | null
+	cmcId: string | null
+	category: string
+	chains: Array<string>
+	module: string
+	treasury?: string | null
+	twitter: string
+	audit_links: Array<string>
+	openSource?: boolean
+	forkedFrom: Array<string>
+	oraclesByChain: Record<string, Array<string>>
+	parentProtocol?: string
+	governanceID?: Array<string>
+	github?: Array<string>
+	chainTvls?: Record<
+		string,
+		{
+			tvl: Array<{ date: number; totalLiquidityUSD: number }>
+			tokens: Array<{ date: number; tokens: Record<string, number> }>
+			tokensInUsd: Array<{ date: number; tokens: Record<string, number> }>
+		}
+	>
+	currentChainTvls?: Record<string, number>
+	isParentProtocol?: boolean
+	mcap: number | null
+	methodology?: string
+	raises: Array<IRaise>
+	otherProtocols?: Array<string>
+	hallmarks?: Array<[number, string]>
+	stablecoins?: Array<string>
+}
+
+export const getProtocol = async (protocolName: string) => {
+	const start = Date.now()
+	try {
+		const data: IUpdatedProtocol = await fetchWithErrorLogging(`${PROTOCOL_API}/${protocolName}`).then((res) =>
+			res.json()
+		)
+
+		if (!data || (data as any).statusCode === 400) {
+			throw new Error((data as any).body)
+		}
+
+		let isNewlyListedProtocol = true
+
+		Object.values(data.chainTvls).forEach((chain) => {
+			if (chain.tvl?.length > 7) {
+				isNewlyListedProtocol = false
+			}
+		})
+
+		// if (data?.listedAt && new Date(data.listedAt * 1000).getTime() < Date.now() - 1000 * 60 * 60 * 24 * 7) {
+		// 	isNewlyListedProtocol = false
+		// }
+
+		if (isNewlyListedProtocol && !data.isParentProtocol) {
+			const hourlyData = await fetchWithErrorLogging(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((res) => res.json())
+
+			return { ...hourlyData, isHourlyChart: true }
+		} else return data
+	} catch (e) {
+		console.log(`[ERROR] [${Date.now() - start}ms] <${PROTOCOL_API}/${protocolName}>`, e)
+
+		return null
+	}
+}
 
 export const getProtocolPageStyles = async (protocol: string) => {
 	const bgColor = await getColor(tokenIconPaletteUrl(protocol))
@@ -68,5 +149,31 @@ const getColor = async (path: string) => {
 	} catch (error) {
 		console.log(path, 'rugged, but handled')
 		return primaryColor
+	}
+}
+
+export const getProtocolMetrics = ({
+	protocolData,
+	metadata
+}: {
+	protocolData: IUpdatedProtocol
+	metadata: IProtocolMetadata
+}) => {
+	return {
+		tvl: metadata.tvl ? true : false,
+		dexs: metadata.dexs ? true : false,
+		perps: metadata.perps ? true : false,
+		options: metadata.options ? true : false,
+		dexAggregators: metadata.aggregator ? true : false,
+		perpsAggregators: metadata.perpsAggregators ? true : false,
+		bridgeAggregators: metadata.bridgeAggregators ? true : false,
+		stablecoins: protocolData.stablecoins?.length > 0,
+		bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
+		treasury: metadata.treasury ? true : false,
+		unlocks: metadata.emissions ? true : false,
+		yields: metadata.yields ? true : false,
+		fees: metadata.fees ? true : false,
+		forks: metadata.forks ? true : false,
+		governance: protocolData.governanceID ? true : false
 	}
 }

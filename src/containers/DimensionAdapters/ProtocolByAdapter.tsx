@@ -17,6 +17,7 @@ import { DimensionProtocolChartByType, DimensionProtocolOverviewChart } from './
 import { useRouter } from 'next/router'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
+import { ADAPTOR_TYPES } from './constants'
 
 export function ProtocolByAdapter(props: IProtocolContainerProps) {
 	const {
@@ -262,10 +263,18 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 				<>
 					<div className="grid grid-cols-2 gap-1">
 						{enableVersionsChart && (
-							<DimensionProtocolChartByType type={type} protocolName={pSlug} chartType="version" />
+							<DimensionProtocolChartByType
+								type={type as `${ADAPTOR_TYPES}`}
+								protocolName={pSlug}
+								chartType="version"
+							/>
 						)}
-						{enableTokensChart && <DimensionProtocolChartByType type={type} protocolName={pSlug} chartType="tokens" />}
-						{enableChainsChart && <DimensionProtocolChartByType type={type} protocolName={pSlug} chartType="chain" />}
+						{enableTokensChart && (
+							<DimensionProtocolChartByType type={type as `${ADAPTOR_TYPES}`} protocolName={pSlug} chartType="tokens" />
+						)}
+						{enableChainsChart && (
+							<DimensionProtocolChartByType type={type as `${ADAPTOR_TYPES}`} protocolName={pSlug} chartType="chain" />
+						)}
 					</div>
 				</>
 			)}

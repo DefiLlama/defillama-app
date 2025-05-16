@@ -1,4 +1,3 @@
-import { getProtocol } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -6,7 +5,7 @@ import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/cha
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
-import { getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
@@ -33,13 +32,15 @@ export const getStaticProps = withPerformanceLogging(
 			getProtocolPageStyles(metadata.name)
 		])
 
+		const metrics = getProtocolMetrics({ protocolData, metadata })
+
 		return {
 			props: {
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				pageStyles,
-				metadata,
+				metrics,
 				adaptorChains: adapterData?.chains ?? [],
 				adaptorVersions: adapterData?.linkedProtocols ?? []
 			},
@@ -58,8 +59,9 @@ export default function Protocols(props) {
 			name={props.name}
 			category={props.category}
 			otherProtocols={props.otherProtocols}
-			metadata={props.metadata}
+			metrics={props.metrics}
 			pageStyles={props.pageStyles}
+			tab="bridge-aggregators"
 		>
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
