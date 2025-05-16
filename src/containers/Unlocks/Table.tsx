@@ -24,8 +24,6 @@ interface IUnlocksTableProps {
 	protocols: Array<any>
 	showOnlyWatchlist: boolean
 	setShowOnlyWatchlist: (value: boolean) => void
-	showOnlyInsider: boolean
-	setShowOnlyInsider: (value: boolean) => void
 	projectName: string
 	setProjectName: (value: string) => void
 	savedProtocols: { [key: string]: boolean }
@@ -33,12 +31,21 @@ interface IUnlocksTableProps {
 	maxUnlockValue?: number | null
 }
 
+const UNLOCK_TYPES = [
+	'publicSale',
+	'privateSale',
+	'insiders',
+	'airdrop',
+	'farming',
+	'noncirculating',
+	'liquidity',
+	'uncategorized'
+]
+
 export const UnlocksTable = ({
 	protocols,
 	showOnlyWatchlist,
 	setShowOnlyWatchlist,
-	showOnlyInsider,
-	setShowOnlyInsider,
 	projectName,
 	setProjectName,
 	savedProtocols,
@@ -46,6 +53,8 @@ export const UnlocksTable = ({
 	maxUnlockValue
 }: IUnlocksTableProps) => {
 	const router = useRouter()
+
+	const [selectedUnlockTypes, setSelectedUnlockTypes] = useState<string[]>(UNLOCK_TYPES)
 
 	const {
 		minUnlockValue: minUnlockValueQuery,
@@ -159,7 +168,7 @@ export const UnlocksTable = ({
 		const isAnyFilterActive =
 			searchTerm ||
 			showOnlyWatchlist ||
-			showOnlyInsider ||
+			selectedUnlockTypes.length !== UNLOCK_TYPES.length ||
 			minUnlockValue !== null ||
 			maxUnlockValue !== null ||
 			minPerc !== '' ||
@@ -169,77 +178,88 @@ export const UnlocksTable = ({
 			return protocols
 		}
 
-		return protocols.filter((protocol) => {
-			let shouldInclude = true
+		return protocols
+			.map((protocol) => {
+				const filteredUpcomingEvent =
+					selectedUnlockTypes.length === UNLOCK_TYPES.length
+						? protocol.upcomingEvent
+						: protocol.upcomingEvent?.filter((event) => event?.category && selectedUnlockTypes.includes(event.category))
 
-			if (searchTerm) {
-				const nameMatch = protocol.name.toLowerCase().includes(searchTerm)
-				const symbolMatch = protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm)
-				if (!nameMatch && !symbolMatch) {
-					shouldInclude = false
+				return {
+					...protocol,
+					upcomingEvent: filteredUpcomingEvent
 				}
-			}
+			})
+			.filter((protocol) => {
+				let shouldInclude = true
 
-			if (shouldInclude && showOnlyWatchlist) {
-				if (!savedProtocols[slug(protocol.name)]) {
-					shouldInclude = false
+				if (searchTerm) {
+					const nameMatch = protocol.name.toLowerCase().includes(searchTerm)
+					const symbolMatch = protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm)
+					if (!nameMatch && !symbolMatch) {
+						shouldInclude = false
+					}
 				}
-			}
 
-			if (shouldInclude && showOnlyInsider) {
-				const hasInsiderEvent = protocol.upcomingEvent?.some((event) => event.category === 'insiders')
-				if (!hasInsiderEvent) {
-					shouldInclude = false
+				if (shouldInclude && showOnlyWatchlist) {
+					if (!savedProtocols[slug(protocol.name)]) {
+						shouldInclude = false
+					}
 				}
-			}
 
-			if (shouldInclude && (minUnlockValue !== null || maxUnlockValue !== null)) {
-				const totalUnlockValue =
-					protocol.upcomingEvent?.reduce((sum, event) => {
-						if (
-							!event ||
-							event.timestamp === null ||
-							!event.noOfTokens ||
-							event.noOfTokens.length === 0 ||
-							protocol.tPrice == null
-						)
-							return sum
-						const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
-						return sum + totalTokens * protocol.tPrice
-					}, 0) ?? 0
-				if (minUnlockValue !== null && totalUnlockValue < minUnlockValue) shouldInclude = false
-				if (maxUnlockValue !== null && totalUnlockValue > maxUnlockValue) shouldInclude = false
-			}
+				if (shouldInclude && selectedUnlockTypes.length !== UNLOCK_TYPES.length) {
+					const hasMatchingType = protocol.upcomingEvent?.length > 0
+					if (!hasMatchingType) shouldInclude = false
+				}
 
-			if (shouldInclude && (minPerc !== '' || maxPerc !== '')) {
-				const totalUnlockValue =
-					protocol.upcomingEvent?.reduce((sum, event) => {
-						if (
-							!event ||
-							event.timestamp === null ||
-							!event.noOfTokens ||
-							event.noOfTokens.length === 0 ||
-							protocol.tPrice == null
-						)
-							return sum
-						const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
-						return sum + totalTokens * protocol.tPrice
-					}, 0) ?? 0
-				const mcap = protocol.mcap ?? 0
-				const percToUnlockFloat = mcap > 0 ? (totalUnlockValue / mcap) * 100 : 0
+				if (shouldInclude && (minUnlockValue !== null || maxUnlockValue !== null)) {
+					const totalUnlockValue =
+						protocol.upcomingEvent?.reduce((sum, event) => {
+							if (
+								!event ||
+								event.timestamp === null ||
+								!event.noOfTokens ||
+								event.noOfTokens.length === 0 ||
+								protocol.tPrice == null
+							)
+								return sum
+							const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
+							return sum + totalTokens * protocol.tPrice
+						}, 0) ?? 0
+					if (minUnlockValue !== null && totalUnlockValue < minUnlockValue) shouldInclude = false
+					if (maxUnlockValue !== null && totalUnlockValue > maxUnlockValue) shouldInclude = false
+				}
 
-				if (minPerc !== '' && percToUnlockFloat < Number(minPerc)) shouldInclude = false
-				if (maxPerc !== '' && percToUnlockFloat > Number(maxPerc)) shouldInclude = false
-			}
+				if (shouldInclude && (minPerc !== '' || maxPerc !== '')) {
+					const totalUnlockValue =
+						protocol.upcomingEvent?.reduce((sum, event) => {
+							if (
+								!event ||
+								event.timestamp === null ||
+								!event.noOfTokens ||
+								event.noOfTokens.length === 0 ||
+								protocol.tPrice == null
+							)
+								return sum
+							const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
+							return sum + totalTokens * protocol.tPrice
+						}, 0) ?? 0
+					const mcap = protocol.mcap ?? 0
+					const percToUnlockFloat = mcap > 0 ? (totalUnlockValue / mcap) * 100 : 0
 
-			return shouldInclude
-		})
+					if (minPerc !== '' && percToUnlockFloat < Number(minPerc)) shouldInclude = false
+					if (maxPerc !== '' && percToUnlockFloat > Number(maxPerc)) shouldInclude = false
+				}
+
+				return shouldInclude
+			})
 	}, [
 		protocols,
 		projectName,
 		savedProtocols,
-		showOnlyInsider,
 		showOnlyWatchlist,
+		selectedUnlockTypes,
+		UNLOCK_TYPES.length,
 		minUnlockValue,
 		maxUnlockValue,
 		minPerc,
@@ -276,14 +296,6 @@ export const UnlocksTable = ({
 					{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
 				</button>
 
-				<button
-					onClick={() => setShowOnlyInsider(!showOnlyInsider)}
-					className="border border-[var(--form-control-border)] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
-				>
-					<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text1)' : 'none' }} />
-					{showOnlyInsider ? 'Show All' : 'Insiders Only'}
-				</button>
-
 				<FilterBetweenRange
 					name="Unlock Value"
 					trigger={<span>Unlock Value</span>}
@@ -310,6 +322,21 @@ export const UnlocksTable = ({
 					clearAll={clearAllOptions}
 					nestedMenu={false}
 					label={'Columns'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+					}}
+				/>
+
+				<SelectWithCombobox
+					allValues={UNLOCK_TYPES.map((type) => ({ name: type.charAt(0).toUpperCase() + type.slice(1), key: type }))}
+					selectedValues={selectedUnlockTypes}
+					setSelectedValues={setSelectedUnlockTypes}
+					toggleAll={() => setSelectedUnlockTypes(UNLOCK_TYPES)}
+					clearAll={() => setSelectedUnlockTypes([])}
+					nestedMenu={false}
+					label={'Unlock Types'}
 					labelType="smol"
 					triggerProps={{
 						className:
