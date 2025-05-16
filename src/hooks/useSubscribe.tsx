@@ -354,7 +354,15 @@ export const useSubscribe = () => {
 		subscription: subscriptionData,
 		loading: isStripeLoading ? 'stripe' : isLlamaLoading ? 'llamapay' : null,
 		isSubscriptionLoading:
-			isAuthenticated && (isApiSubscriptionLoading || isLlamafeedSubscriptionLoading || isLegacySubscriptionLoading),
+			isApiSubscriptionLoading ||
+			isLlamafeedSubscriptionLoading ||
+			isLegacySubscriptionLoading ||
+			isApiSubscriptionFetching ||
+			isLlamafeedSubscriptionFetching ||
+			isLegacySubscriptionFetching ||
+			isApiSubscriptionPending ||
+			isLlamafeedSubscriptionPending ||
+			isLegacySubscriptionPending,
 		isSubscriptionFetching:
 			isAuthenticated && (isApiSubscriptionFetching || isLlamafeedSubscriptionFetching || isLegacySubscriptionFetching),
 		isSubscriptionPending:

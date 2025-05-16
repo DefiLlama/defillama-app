@@ -15,8 +15,9 @@ export const DesktopNav = React.memo(function DesktopNav() {
 	const { asPath } = useRouter()
 	const isYieldApp = useYieldApp()
 	const [darkMode] = useDarkModeManager()
-	const { isAuthenticated, user, logout } = useAuthContext()
+	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
 
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
@@ -113,57 +114,66 @@ export const DesktopNav = React.memo(function DesktopNav() {
 				})}
 			</div>
 
-			<div className="absolute bottom-0 left-0 right-0 bg-[var(--app-bg)] p-3 border-t border-black/20 dark:border-white/20 flex flex-col gap-2">
-				{isAuthenticated ? (
-					<div className="flex flex-col gap-1.5">
-						{user && (
-							<Link href="/subscription" passHref>
-								<a className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 px-1 truncate font-medium flex items-center gap-1.5 transition-colors">
-									<Icon name="users" className="w-4 h-4 flex-shrink-0" />
-									{user.email}
-								</a>
-							</Link>
-						)}
-						{isSubscriptionLoading ? (
-							<span className="text-xs px-1 text-gray-400 dark:text-gray-500">Loading status...</span>
-						) : subscription?.status === 'active' ? (
-							<span className="text-xs px-1 font-medium text-green-600 dark:text-green-500 flex items-center gap-1">
-								<Icon name="check-circle" className="w-3.5 h-3.5" />
-								Subscribed
-							</span>
-						) : (
-							user && (
-								<>
-									<span className="text-xs px-1 font-medium text-red-500 dark:text-red-500 flex items-center gap-1">
-										Subscription inactive
-									</span>
-									<Link href="/subscription" passHref>
-										<a className="text-xs px-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 flex items-center gap-1 transition-colors">
-											<Icon name="plus" className="w-3.5 h-3.5" />
-											Upgrade
-										</a>
-									</Link>
-								</>
-							)
-						)}
-						<button
-							onClick={logout}
-							className="rounded-lg flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 p-1 text-sm font-medium transition-colors duration-200"
-						>
-							<Icon name="x" className="w-4 h-4" />
-							Logout
-						</button>
+			{isAccountLoading ? (
+				<div
+					className="absolute bottom-0 left-0 right-0 bg-[var(--app-bg)] p-3 border-t border-black/20 dark:border-white/20 flex flex-col gap-2"
+					style={{ height: 138 }}
+				>
+					<div className="flex items-center justify-center w-full h-full">
+						<div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-gray-400" />
 					</div>
-				) : (
-					<Link href="/subscription" passHref>
-						<a className="-ml-[6px] rounded-lg flex items-center justify-center gap-2 bg-[#5C5CF9]/10 hover:bg-[#5C5CF9]/20 text-[#5C5CF9] p-1 text-sm font-medium transition-colors duration-200">
-							<Icon name="users" className="w-4 h-4" />
-							Sign In / Subscribe
-						</a>
-					</Link>
-				)}
-				<ThemeSwitch />
-			</div>
+				</div>
+			) : (
+				<div className="absolute bottom-0 left-0 right-0 bg-[var(--app-bg)] p-3 border-t border-black/20 dark:border-white/20 flex flex-col gap-2">
+					{isAuthenticated ? (
+						<div className="flex flex-col gap-1.5">
+							{user && (
+								<Link href="/subscription" passHref>
+									<a className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 px-1 truncate font-medium flex items-center gap-1.5 transition-colors">
+										<Icon name="users" className="w-4 h-4 flex-shrink-0" />
+										{user.email}
+									</a>
+								</Link>
+							)}
+							{subscription?.status === 'active' ? (
+								<span className="text-xs px-1 font-medium text-green-600 dark:text-green-500 flex items-center gap-1">
+									<Icon name="check-circle" className="w-3.5 h-3.5" />
+									Subscribed
+								</span>
+							) : (
+								user && (
+									<>
+										<span className="text-xs px-1 font-medium text-red-500 dark:text-red-500 flex items-center gap-1">
+											Subscription inactive
+										</span>
+										<Link href="/subscription" passHref>
+											<a className="text-xs px-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 flex items-center gap-1 transition-colors">
+												<Icon name="plus" className="w-3.5 h-3.5" />
+												Upgrade
+											</a>
+										</Link>
+									</>
+								)
+							)}
+							<button
+								onClick={logout}
+								className="rounded-lg flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 p-1 text-sm font-medium transition-colors duration-200"
+							>
+								<Icon name="x" className="w-4 h-4" />
+								Logout
+							</button>
+						</div>
+					) : (
+						<Link href="/subscription" passHref>
+							<a className="-ml-[6px] rounded-lg flex items-center justify-center gap-2 bg-[#5C5CF9]/10 hover:bg-[#5C5CF9]/20 text-[#5C5CF9] p-1 text-sm font-medium transition-colors duration-200">
+								<Icon name="users" className="w-4 h-4" />
+								Sign In / Subscribe
+							</a>
+						</Link>
+					)}
+					<ThemeSwitch />
+				</div>
+			)}
 		</nav>
 	)
 })

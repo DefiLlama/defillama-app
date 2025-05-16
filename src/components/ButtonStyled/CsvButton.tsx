@@ -2,6 +2,7 @@ import { ReactNode, useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { Icon } from '~/components/Icon'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { useIsClient } from '~/hooks'
@@ -19,6 +20,8 @@ export const CSVDownloadButton = ({
 	smol?: boolean
 }) => {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const { loaders } = useAuthContext()
+	const isLoading = loaders.userLoading || isSubscriptionLoading
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const isClient = useIsClient()
 
@@ -29,15 +32,15 @@ export const CSVDownloadButton = ({
 					className ?? ''
 				}`}
 				onClick={() => {
-					if (isSubscriptionLoading) return
+					if (isLoading) return
 
-					if (subscription?.status === 'active') {
+					if (!loaders.userLoading && subscription?.status === 'active') {
 						onClick()
-					} else {
+					} else if (!isLoading) {
 						setShowSubscribeModal(true)
 					}
 				}}
-				disabled={isSubscriptionLoading}
+				disabled={isLoading}
 			>
 				{customText ? (
 					<span>{customText}</span>
