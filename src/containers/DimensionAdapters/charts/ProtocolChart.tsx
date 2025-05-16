@@ -88,8 +88,13 @@ export const DimensionProtocolOverviewChart = ({
 
 		if (chartInterval !== 'Daily') {
 			const chartData = {}
+			let cumulativeVolume = 0
 			totalDataChart[0].forEach(({ date, ...metrics }) => {
-				chartData[formatDate(date)] = (chartData[formatDate(date)] || 0) + (metrics[totalDataChart[1][0]] ?? 0)
+				const volume = (metrics[totalDataChart[1][0]] ?? 0) as number
+				chartData[formatDate(date)] = (chartData[formatDate(date)] || 0) + volume + cumulativeVolume
+				if (chartInterval === 'Cumulative') {
+					cumulativeVolume += volume
+				}
 			})
 			const finalChartData = []
 			for (const date in chartData) {
