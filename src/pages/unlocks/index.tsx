@@ -34,7 +34,6 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 export default function Protocols({ data }) {
 	const [projectName, setProjectName] = React.useState('')
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
-	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
 	const { savedProtocols } = useWatchlist()
 	const router = useRouter()
 
@@ -155,8 +154,6 @@ export default function Protocols({ data }) {
 				protocols={data}
 				showOnlyWatchlist={showOnlyWatchlist}
 				setShowOnlyWatchlist={setShowOnlyWatchlist}
-				showOnlyInsider={showOnlyInsider}
-				setShowOnlyInsider={setShowOnlyInsider}
 				projectName={projectName}
 				setProjectName={setProjectName}
 				savedProtocols={savedProtocols}
