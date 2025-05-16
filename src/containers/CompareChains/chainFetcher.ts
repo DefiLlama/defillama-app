@@ -2,7 +2,7 @@ import { getChainPageData } from '~/api/categories/chains'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import {
 	getDimensionsAdaptersChainsPageData,
-	getOverviewItemPageData,
+	getDimensionProtocolPageData,
 	getDimensionAdapterChainPageData
 } from '~/api/categories/adaptors'
 
@@ -15,7 +15,7 @@ export const fetchChain = async ({ chain }) => {
 		getChainPageData(chain).catch(() => null),
 		getDimensionsAdaptersChainsPageData('dexs').catch(() => null),
 		getDimensionAdapterChainPageData('dexs', chain).catch(() => null),
-		getOverviewItemPageData('fees', chain).catch(() => null),
+		getDimensionProtocolPageData({ type: 'fees', protocolName: chain }).catch(() => null),
 		fetch(`https://api.llama.fi/userData/users/chain$${chain}`)
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r?.body || null))

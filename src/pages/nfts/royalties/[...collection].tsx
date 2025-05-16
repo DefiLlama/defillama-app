@@ -3,7 +3,6 @@ import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import { formattedNum } from '~/utils'
-import { ProtocolChart } from '~/containers/DimensionAdapters/charts/ProtocolChart'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
@@ -51,14 +50,14 @@ export default function Collection() {
 					</p>
 				</div>
 
-				<ProtocolChart
+				{/* <ProtocolChart
 					logo={props.logo}
 					data={props as any}
 					chartData={[props.totalDataChart.map((t) => ({ date: t[0], royalties: t[1] })), ['royalties']]}
 					name={props.name}
 					type={'Fees'}
 					fullChart={true}
-				/>
+				/> */}
 			</div>
 		</Layout>
 	)

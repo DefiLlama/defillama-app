@@ -21,14 +21,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.json(cachedData)
 	}
 
-	const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
+	const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)?.[1]
 
 	if (!metadata) {
 		return res.status(404).json({ error: 'Protocol not found' })
 	}
 
 	const protocolRes = await getProtocol(protocol as string)
-	const protocolData = await getProtocolData(protocol as string, protocolRes, true)
+	const protocolData = await getProtocolData(protocol as string, protocolRes, true, metadata)
 	const response = { protocol: protocolData }
 
 	await setObjectCache(cacheKey, response)

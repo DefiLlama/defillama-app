@@ -6,9 +6,8 @@ import { DataIntervalType, INTERVALS_LIST } from './utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek } from '~/utils'
 import { IDimensionChartTypes } from '../types'
-import { useQuery } from '@tanstack/react-query'
-import { getAdapterProtocolSummary } from '../queries'
 import { ADAPTOR_TYPES } from '../constants'
+import { useGetOverviewChartData } from './hooks'
 
 const BarChart2 = dynamic(() => import('~/components/ECharts/BarChart2'), {
 	ssr: false,
@@ -169,33 +168,20 @@ export const DimensionProtocolChartByType = ({
 	type: `${ADAPTOR_TYPES}`
 	overviewChart?: boolean
 }) => {
-	const { data, isLoading, error } = useQuery({
-		queryKey: ['dimension-protocol', protocolName, type, overviewChart],
-		queryFn: () =>
-			getAdapterProtocolSummary({
-				type,
-				protocol: protocolName,
-				excludeTotalDataChart: !overviewChart,
-				excludeTotalDataChartBreakdown: overviewChart
-			}),
-		retry: 0,
-		staleTime: 60 * 60 * 1000,
-		refetchInterval: 60 * 60 * 1000
+	const { data, isLoading } = useGetOverviewChartData({
+		name: protocolName,
+		dataToFetch: 'dexs',
+		type: 'chains',
+		enableBreakdownChart: overviewChart ? false : true,
+		disabled: false
 	})
 
 	if (isLoading) {
 		return <div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]" />
 	}
-	if (error) {
-		return (
-			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
-				<p className="text-center text-[var(--pct-red)] p-3">{error.message}</p>
-			</div>
-		)
-	}
 
 	if (overviewChart) {
-		console.log({ data })
+		// console.log({ data })
 		// return <DimensionProtocolOverviewChart totalDataChart={data.totalDataChart ?? []} />
 	}
 	return null

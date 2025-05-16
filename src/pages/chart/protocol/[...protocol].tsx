@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
+		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)?.[1]
 
 		if (!metadata) {
 			return { notFound: true, props: null }
@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocolData = await getProtocol(protocol)
 
-		const data = await getProtocolData(protocol, protocolData, true)
+		const data = await getProtocolData(protocol, protocolData, true, metadata)
 		data.props.noContext = true
 		return data
 	}

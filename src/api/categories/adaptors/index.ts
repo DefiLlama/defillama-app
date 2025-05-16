@@ -97,11 +97,17 @@ export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummary
 	}>
 }
 
-export const generateGetOverviewItemPageDate = async (
-	item: ProtocolAdaptorSummaryResponse,
-	type: string,
+export const getDimensionProtocolPageData = async ({
+	type,
+	protocolName,
+	dataType,
+	metadata
+}: {
+	type: string
 	protocolName: string
-): Promise<ProtocolAdaptorSummaryProps> => {
+	dataType?: string
+	metadata?: any
+}): Promise<ProtocolAdaptorSummaryProps> => {
 	let label: string
 	if (type === 'volumes') {
 		label = 'Volume'
@@ -111,22 +117,22 @@ export const generateGetOverviewItemPageDate = async (
 		label = capitalizeFirstLetter(type)
 	}
 	const allCharts: IChartsList = []
-	if (item.totalDataChart) allCharts.push([label, item.totalDataChart])
-	let secondType: ProtocolAdaptorSummaryResponse
-	let thirdType: ProtocolAdaptorSummaryResponse
-	let fourthType: ProtocolAdaptorSummaryResponse
+
 	let secondLabel: string
+	const promises: Promise<ProtocolAdaptorSummaryResponse | null>[] = [getOverviewItem(type, protocolName, dataType)]
 	if (type === 'fees') {
-		;[secondType, thirdType, fourthType] = await Promise.all([
-			getOverviewItem(type, protocolName, 'dailyRevenue'),
-			getOverviewItem(type, protocolName, 'dailyBribesRevenue'),
-			getOverviewItem(type, protocolName, 'dailyTokenTaxes')
-		])
+		promises.push(getOverviewItem(type, protocolName, 'dailyRevenue'))
+		if (metadata?.bribeRevenue) promises.push(getOverviewItem(type, protocolName, 'dailyBribesRevenue'))
+		if (metadata?.tokenTax) promises.push(getOverviewItem(type, protocolName, 'dailyTokenTaxes'))
 		secondLabel = 'Revenue'
 	} else if (type === 'options') {
-		secondType = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
+		promises.push(getOverviewItem(type, protocolName, 'dailyPremiumVolume'))
 		secondLabel = 'Premium volume'
 	}
+	const [firstType, secondType, thirdType, fourthType] = await Promise.all(promises)
+
+	if (firstType?.totalDataChart) allCharts.push([label, firstType.totalDataChart])
+
 	if (secondLabel && secondType?.totalDataChart) {
 		allCharts.push([secondLabel, secondType.totalDataChart])
 	}
@@ -134,6 +140,7 @@ export const generateGetOverviewItemPageDate = async (
 	if (thirdType?.totalDataChart && !(thirdType.totalDataChart.length === 1 && thirdType.totalDataChart[0][1] === 0)) {
 		allCharts.push(['Bribes', thirdType.totalDataChart])
 	}
+
 	if (
 		fourthType?.totalDataChart &&
 		!(fourthType.totalDataChart.length === 1 && fourthType.totalDataChart[0][1] === 0)
@@ -141,7 +148,7 @@ export const generateGetOverviewItemPageDate = async (
 		allCharts.push(['TokenTax', fourthType.totalDataChart])
 	}
 
-	const blockExplorers = (item.allAddresses ?? (item.address ? [item.address] : [])).map((address) => {
+	const blockExplorers = (firstType.allAddresses ?? (firstType.address ? [firstType.address] : [])).map((address) => {
 		const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 		const splittedAddress = address.split(':')
 		return {
@@ -153,24 +160,17 @@ export const generateGetOverviewItemPageDate = async (
 	})
 
 	return {
-		...item,
-		logo: getLlamaoLogo(item.logo),
+		...firstType,
+		logo: getLlamaoLogo(firstType.logo),
 		dailyRevenue: secondType?.total24h ?? null,
 		dailyBribesRevenue: thirdType?.total24h ?? null,
 		dailyTokenTaxes: fourthType?.total24h ?? null,
+		totalAllTimeTokenTaxes: fourthType?.totalAllTime ?? null,
+		totalAllTimeBribes: thirdType?.totalAllTime ?? null,
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		blockExplorers
 	}
-}
-
-export const getOverviewItemPageData = async (
-	type: string,
-	protocolName: string,
-	dataType?: string
-): Promise<ProtocolAdaptorSummaryProps> => {
-	const item = await getOverviewItem(type, protocolName, dataType)
-	return generateGetOverviewItemPageDate(item, type, protocolName)
 }
 
 function getMCap(protocolsData: {
