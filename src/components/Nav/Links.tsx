@@ -1,5 +1,4 @@
 import { ReactNode } from 'react'
-import { IS_PRO_API_ENABLED } from '~/containers/ProApi/lib/constants'
 import { Icon } from '~/components/Icon'
 
 export interface IMainLink {
@@ -344,15 +343,6 @@ export const navLinks: ILinks = {
 	// 	...defaultToolsAndFooterLinks,
 	// 	icon: <FeatherImage height={16} width={16} />
 	// }
-}
-
-if (IS_PRO_API_ENABLED) {
-	navLinks['Pro API'] = {
-		main: [],
-		...defaultToolsAndFooterLinks,
-		icon: <Icon name="file-plus" height={16} width={16} />,
-		newTag: true
-	}
 }
 
 export const linksWithNoSubMenu = [

@@ -34,6 +34,7 @@ export interface IChartProps {
 	groupBy?: 'daily' | 'weekly' | 'monthly'
 	customYAxis?: Array<string>
 	hideOthersInTooltip?: boolean
+	hideDataZoom?: boolean
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {

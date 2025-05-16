@@ -168,8 +168,8 @@ export const UpcomingEvent = ({
 				<span className="flex flex-col gap-4">
 					{currentUnlockBreakdown.map(({ name, amount, unlockType }) => {
 						const percentage = (amount / maxSupply) * 100
-						const percentageFloat = tokenValue && mcap ? (amount / mcap) * 100 : null
 						const usdValue = price ? amount * price : null
+						const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
 						return (
 							<span className="flex flex-col gap-1" key={name + amount}>
 								<span className="flex items-center justify-between gap-2">
@@ -222,7 +222,18 @@ export const UpcomingEvent = ({
 			<Ariakit.HovercardProvider timeout={0}>
 				<Ariakit.HovercardAnchor>
 					{timeLeft > 0 ? (
-						<div className="flex space-x-2">
+						<div className="flex space-x-2 items-center">
+							<div className="flex justify-between items-end" style={{ width: '150px' }}>
+								<div className="flex flex-col items-start">
+									<span className="text-white text-sm font-semibold">{formattedNum(totalUsdValue, true)}</span>
+									<span className="text-[var(--text3)] text-xs font-medium">Unlock Value</span>
+								</div>
+								<div className="flex flex-col items-end">
+									<span className="text-white text-sm font-semibold">{formattedNum(unlockPercentFloat)}%</span>
+									<span className="text-[var(--text3)] text-xs font-medium">of float</span>
+								</div>
+							</div>
+
 							<div className="flex flex-col items-center">
 								<div className="bg-[#2C2C2E] dark:bg-zinc-800 rounded-lg w-10 h-10 flex items-center justify-center">
 									<span className="text-white text-xl font-medium tracking-tight">{String(days).padStart(2, '0')}</span>
@@ -289,8 +300,8 @@ export const UpcomingEvent = ({
 					<span className="flex flex-col gap-4">
 						{currentUnlockBreakdown.map(({ name, amount, unlockType }) => {
 							const percentage = (amount / maxSupply) * 100
-							const percentageFloat = tokenValue && mcap ? (amount / mcap) * 100 : null
 							const usdValue = price ? amount * price : null
+							const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
 							return (
 								<span className="flex flex-col gap-1" key={name + amount}>
 									<span className="flex items-center justify-between gap-2">

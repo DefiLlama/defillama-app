@@ -22,7 +22,6 @@ import { TABLE_CATEGORIES, TABLE_PERIODS, defaultColumns, protocolsByChainTableC
 export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain })
 	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByChain(chain)
-
 	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByChain(chain)
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -35,17 +34,25 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 					feesData: chainProtocolsFees
 			  })
 			: []
-
 		return list
 	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees])
 	const optionsKey = 'protocolsTableColumns'
-	const valuesInStorage = JSON.parse(
-		typeof document !== 'undefined' ? window.localStorage.getItem(optionsKey) ?? defaultColumns : defaultColumns
-	)
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const [filterState, setFilterState] = React.useState(null)
+	const [filterState, setFilterState] = React.useState(TABLE_CATEGORIES.TVL)
+
+	React.useEffect(() => {
+		if (filterState === TABLE_CATEGORIES.TVL) {
+			const newOptions = protocolsByChainTableColumns
+				.filter(
+					(column) => column.category === TABLE_CATEGORIES.TVL || column.key === 'name' || column.key === 'category'
+				)
+				.map((op) => op.key)
+			addOption(newOptions, false)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	const table = useReactTable({
 		data: finalProtocolsList,
@@ -57,22 +64,17 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 		sortingFns: {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => {
 				const desc = sorting.length ? sorting[0].desc : true
-
 				let a = (rowA.getValue(columnId) ?? null) as any
 				let b = (rowB.getValue(columnId) ?? null) as any
-
 				if (a === null && b !== null) {
 					return desc ? -1 : 1
 				}
-
 				if (a !== null && b === null) {
 					return desc ? 1 : -1
 				}
-
 				if (a === null && b === null) {
 					return 0
 				}
-
 				return a - b
 			}
 		},
@@ -99,15 +101,14 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 		const newOptions = protocolsByChainTableColumns
 			.filter((column) => (column[key] !== undefined && stateToSet !== null ? column[key] === newState : true))
 			.map((op) => op.key)
-
 		addOption(newOptions, false)
 		setFilterState(stateToSet)
 	}
 
 	return (
-		<div className="flex flex-col items-center h-full p-4">
-			<div className="flex items-center justify-between flex-wrap gap-2 -mb-3">
-				<h3 className="text-lg font-medium mr-auto">{chain} Protocols</h3>
+		<div className="w-full bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 p-4 h-full relative bg-clip-padding flex flex-col">
+			<div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+				<h3 className="text-base font-semibold mr-auto">{chain} Protocols</h3>
 				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
@@ -119,14 +120,14 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 					values={Object.values(TABLE_PERIODS) as Array<string>}
 				/>
 			</div>
-			<div className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-248px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--bg8)] border border-[var(--bg3)]">
-				<table>
+			<div className="relative w-full flex-1 min-h-0 overflow-x-auto overflow-y-auto" style={{ height: '100%' }}>
+				<table className="min-w-full text-[var(--text1)] text-sm">
 					<thead>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<tr key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
 									return (
-										<th key={header.id} colSpan={header.colSpan}>
+										<th key={header.id} colSpan={header.colSpan} className="bg-transparent font-medium px-2 py-2">
 											{header.isPlaceholder ? null : (
 												<a
 													style={{ display: 'flex', gap: '4px' }}
@@ -145,26 +146,26 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 						))}
 					</thead>
 					<tbody>
-						{table.getRowModel().rows.map((row) => {
-							return (
-								<tr key={row.id}>
-									{row.getVisibleCells().map((cell) => {
-										return <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-									})}
-								</tr>
-							)
-						})}
+						{table.getRowModel().rows.map((row) => (
+							<tr key={row.id} className="hover:bg-[var(--bg3)]">
+								{row.getVisibleCells().map((cell) => (
+									<td key={cell.id} className="px-2 py-2 whitespace-nowrap">
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</td>
+								))}
+							</tr>
+						))}
 					</tbody>
 				</table>
 			</div>
-			<div className="flex items-center justify-between w-full">
+			<div className="flex items-center justify-between w-full mt-2">
 				<TagGroup
 					selectedValue={null}
 					setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}
 					values={['Previous', 'Next']}
 				/>
-				<div className="flex justify-between">
-					<div className="mr-2 mt-[6px]">Per page</div>
+				<div className="flex items-center">
+					<div className="mr-2 text-xs">Per page</div>
 					<TagGroup
 						selectedValue={String(table.getState().pagination.pageSize)}
 						values={['10', '30', '50']}

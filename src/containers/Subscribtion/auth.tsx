@@ -47,6 +47,7 @@ interface AuthContextType {
 		addEmail: boolean
 		userLoading: boolean
 		userFetching: boolean
+		subscriptionError: boolean
 	}
 }
 
@@ -60,31 +61,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	const [isSubscriptionError, setIsSubscriptionError] = useState(false)
 
 	const {
-		data: user,
-		isPending: isUserLoading,
-		isFetching
+		data: currentUserData,
+		isPending: userQueryIsPending,
+		isFetching: userQueryIsFetching
 	} = useQuery({
-		queryKey: ['user', pb.authStore.record],
+		queryKey: ['currentUserAuthStatus'],
 		queryFn: async () => {
-			if (!pb.authStore.isValid) return null
-
-			try {
-				const res = await pb.collection('users').authRefresh()
-
-				const data = {
-					...pb.authStore.record,
-					...res,
-					subscription_status: subscription?.status || 'inactive',
-					subscription: subscription || { status: 'inactive' }
-				}
-				setIsAuthenticated(true)
-				return data
-			} catch (error) {
-				console.error('Error refreshing auth:', error)
+			if (!pb.authStore.token) {
+				setIsAuthenticated(false)
 				return null
 			}
+			try {
+				const refreshResult = await pb.collection('users').authRefresh()
+				setIsAuthenticated(true)
+				return { ...refreshResult.record }
+			} catch (error) {
+				console.error('Error refreshing auth:', error)
+				pb.authStore.clear()
+				setIsAuthenticated(false)
+				throw error
+			}
 		},
-		enabled: !!pb.authStore.isValid,
+		enabled: true,
 		staleTime: 0,
 		refetchOnMount: true,
 		refetchOnWindowFocus: false,
@@ -438,26 +436,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
-	const contextValue = {
-		user:
-			isAuthenticated && user
-				? {
-						...user,
-						id: user.id || '',
-						email: pb.authStore.record?.email || '',
-						walletAddress: pb.authStore.record?.walletAddress || '',
-						name: pb.authStore.record?.name || '',
-						avatar: pb.authStore.record?.avatar || '',
-						created: pb.authStore.record?.created || '',
-						updated: pb.authStore.record?.updated || '',
-						subscription_status: subscription?.status || '',
-						subscription: {
-							id: subscription?.id || '',
-							expires_at: subscription?.expires_at || '',
-							status: subscription?.status || ''
-						}
-				  }
-				: null,
+	const contextValue: AuthContextType = {
+		user: currentUserData
+			? ({
+					id: currentUserData.id!,
+					collectionId: currentUserData.collectionId!,
+					collectionName: currentUserData.collectionName!,
+					walletAddress: pb.authStore.record?.walletAddress || '',
+					created: currentUserData.created!,
+					updated: currentUserData.updated!,
+					email: (currentUserData as any).email,
+					name: (currentUserData as any).name,
+					avatar: (currentUserData as any).avatar,
+					username: (currentUserData as any).username,
+					verified: (currentUserData as any).verified,
+					emailVisibility: (currentUserData as any).emailVisibility,
+					expand: currentUserData.expand,
+					subscription_status: subscription?.status || 'inactive',
+					subscription: subscription || { id: '', expires_at: '', status: 'inactive' }
+			  } as User)
+			: null,
 		login,
 		signup,
 		logout,
@@ -479,8 +477,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			changeEmail: changeEmail.isPending,
 			resendVerification: resendVerification.isPending,
 			addEmail: addEmail.isPending,
-			userLoading: isAuthenticated && isUserLoading,
-			userFetching: isAuthenticated && isFetching,
+			userLoading: userQueryIsPending,
+			userFetching: userQueryIsFetching,
 			subscriptionError: isSubscriptionError
 		}
 	}

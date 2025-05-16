@@ -24,8 +24,6 @@ interface IUnlocksTableProps {
 	protocols: Array<any>
 	showOnlyWatchlist: boolean
 	setShowOnlyWatchlist: (value: boolean) => void
-	showOnlyInsider: boolean
-	setShowOnlyInsider: (value: boolean) => void
 	projectName: string
 	setProjectName: (value: string) => void
 	savedProtocols: { [key: string]: boolean }
@@ -33,12 +31,21 @@ interface IUnlocksTableProps {
 	maxUnlockValue?: number | null
 }
 
+const UNLOCK_TYPES = [
+	'publicSale',
+	'privateSale',
+	'insiders',
+	'airdrop',
+	'farming',
+	'noncirculating',
+	'liquidity',
+	'uncategorized'
+]
+
 export const UnlocksTable = ({
 	protocols,
 	showOnlyWatchlist,
 	setShowOnlyWatchlist,
-	showOnlyInsider,
-	setShowOnlyInsider,
 	projectName,
 	setProjectName,
 	savedProtocols,
@@ -47,9 +54,18 @@ export const UnlocksTable = ({
 }: IUnlocksTableProps) => {
 	const router = useRouter()
 
-	const { minUnlockValue: minUnlockValueQuery, maxUnlockValue: maxUnlockValueQuery } = router.query
+	const [selectedUnlockTypes, setSelectedUnlockTypes] = useState<string[]>(UNLOCK_TYPES)
+
+	const {
+		minUnlockValue: minUnlockValueQuery,
+		maxUnlockValue: maxUnlockValueQuery,
+		minUnlockPerc: minUnlockPercQuery,
+		maxUnlockPerc: maxUnlockPercQuery
+	} = router.query
 	const min = typeof minUnlockValueQuery === 'string' && minUnlockValueQuery !== '' ? Number(minUnlockValueQuery) : ''
 	const max = typeof maxUnlockValueQuery === 'string' && maxUnlockValueQuery !== '' ? Number(maxUnlockValueQuery) : ''
+	const minPerc = typeof minUnlockPercQuery === 'string' && minUnlockPercQuery !== '' ? Number(minUnlockPercQuery) : ''
+	const maxPerc = typeof maxUnlockPercQuery === 'string' && maxUnlockPercQuery !== '' ? Number(maxUnlockPercQuery) : ''
 
 	const handleUnlockValueSubmit = (e) => {
 		e.preventDefault()
@@ -63,6 +79,25 @@ export const UnlocksTable = ({
 					...router.query,
 					minUnlockValue,
 					maxUnlockValue
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const handleUnlockPercSubmit = (e) => {
+		e.preventDefault()
+		const form = e.target
+		const minUnlockPerc = form.min?.value
+		const maxUnlockPerc = form.max?.value
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...router.query,
+					minUnlockPerc,
+					maxUnlockPerc
 				}
 			},
 			undefined,
@@ -131,57 +166,105 @@ export const UnlocksTable = ({
 	const filteredData = useMemo(() => {
 		const searchTerm = projectName.toLowerCase().trim()
 		const isAnyFilterActive =
-			searchTerm || showOnlyWatchlist || showOnlyInsider || minUnlockValue !== null || maxUnlockValue !== null
+			searchTerm ||
+			showOnlyWatchlist ||
+			selectedUnlockTypes.length !== UNLOCK_TYPES.length ||
+			minUnlockValue !== null ||
+			maxUnlockValue !== null ||
+			minPerc !== '' ||
+			maxPerc !== ''
 
 		if (!isAnyFilterActive) {
 			return protocols
 		}
 
-		return protocols.filter((protocol) => {
-			let shouldInclude = true
+		return protocols
+			.map((protocol) => {
+				const filteredUpcomingEvent =
+					selectedUnlockTypes.length === UNLOCK_TYPES.length
+						? protocol.upcomingEvent
+						: protocol.upcomingEvent?.filter((event) => event?.category && selectedUnlockTypes.includes(event.category))
 
-			if (searchTerm) {
-				const nameMatch = protocol.name.toLowerCase().includes(searchTerm)
-				const symbolMatch = protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm)
-				if (!nameMatch && !symbolMatch) {
-					shouldInclude = false
+				return {
+					...protocol,
+					upcomingEvent: filteredUpcomingEvent
 				}
-			}
+			})
+			.filter((protocol) => {
+				let shouldInclude = true
 
-			if (shouldInclude && showOnlyWatchlist) {
-				if (!savedProtocols[slug(protocol.name)]) {
-					shouldInclude = false
+				if (searchTerm) {
+					const nameMatch = protocol.name.toLowerCase().includes(searchTerm)
+					const symbolMatch = protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm)
+					if (!nameMatch && !symbolMatch) {
+						shouldInclude = false
+					}
 				}
-			}
 
-			if (shouldInclude && showOnlyInsider) {
-				const hasInsiderEvent = protocol.upcomingEvent?.some((event) => event.category === 'insiders')
-				if (!hasInsiderEvent) {
-					shouldInclude = false
+				if (shouldInclude && showOnlyWatchlist) {
+					if (!savedProtocols[slug(protocol.name)]) {
+						shouldInclude = false
+					}
 				}
-			}
 
-			if (shouldInclude && (minUnlockValue !== null || maxUnlockValue !== null)) {
-				const totalUnlockValue =
-					protocol.upcomingEvent?.reduce((sum, event) => {
-						if (
-							!event ||
-							event.timestamp === null ||
-							!event.noOfTokens ||
-							event.noOfTokens.length === 0 ||
-							protocol.tPrice == null
-						)
-							return sum
-						const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
-						return sum + totalTokens * protocol.tPrice
-					}, 0) ?? 0
-				if (minUnlockValue !== null && totalUnlockValue < minUnlockValue) shouldInclude = false
-				if (maxUnlockValue !== null && totalUnlockValue > maxUnlockValue) shouldInclude = false
-			}
+				if (shouldInclude && selectedUnlockTypes.length !== UNLOCK_TYPES.length) {
+					const hasMatchingType = protocol.upcomingEvent?.length > 0
+					if (!hasMatchingType) shouldInclude = false
+				}
 
-			return shouldInclude
-		})
-	}, [protocols, projectName, savedProtocols, showOnlyInsider, showOnlyWatchlist, minUnlockValue, maxUnlockValue])
+				if (shouldInclude && (minUnlockValue !== null || maxUnlockValue !== null)) {
+					const totalUnlockValue =
+						protocol.upcomingEvent?.reduce((sum, event) => {
+							if (
+								!event ||
+								event.timestamp === null ||
+								!event.noOfTokens ||
+								event.noOfTokens.length === 0 ||
+								protocol.tPrice == null
+							)
+								return sum
+							const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
+							return sum + totalTokens * protocol.tPrice
+						}, 0) ?? 0
+					if (minUnlockValue !== null && totalUnlockValue < minUnlockValue) shouldInclude = false
+					if (maxUnlockValue !== null && totalUnlockValue > maxUnlockValue) shouldInclude = false
+				}
+
+				if (shouldInclude && (minPerc !== '' || maxPerc !== '')) {
+					const totalUnlockValue =
+						protocol.upcomingEvent?.reduce((sum, event) => {
+							if (
+								!event ||
+								event.timestamp === null ||
+								!event.noOfTokens ||
+								event.noOfTokens.length === 0 ||
+								protocol.tPrice == null
+							)
+								return sum
+							const totalTokens = event.noOfTokens.reduce((s, amount) => s + amount, 0)
+							return sum + totalTokens * protocol.tPrice
+						}, 0) ?? 0
+					const mcap = protocol.mcap ?? 0
+					const percToUnlockFloat = mcap > 0 ? (totalUnlockValue / mcap) * 100 : 0
+
+					if (minPerc !== '' && percToUnlockFloat < Number(minPerc)) shouldInclude = false
+					if (maxPerc !== '' && percToUnlockFloat > Number(maxPerc)) shouldInclude = false
+				}
+
+				return shouldInclude
+			})
+	}, [
+		protocols,
+		projectName,
+		savedProtocols,
+		showOnlyWatchlist,
+		selectedUnlockTypes,
+		UNLOCK_TYPES.length,
+		minUnlockValue,
+		maxUnlockValue,
+		minPerc,
+		maxPerc
+	])
 
 	const instance = useReactTable({
 		data: filteredData,
@@ -213,13 +296,53 @@ export const UnlocksTable = ({
 					{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
 				</button>
 
-				<button
-					onClick={() => setShowOnlyInsider(!showOnlyInsider)}
-					className="border border-[var(--form-control-border)] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
-				>
-					<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text1)' : 'none' }} />
-					{showOnlyInsider ? 'Show All' : 'Insiders Only'}
-				</button>
+				<FilterBetweenRange
+					name="Unlock Value"
+					trigger={<span>Unlock Value</span>}
+					onSubmit={handleUnlockValueSubmit}
+					min={min ? min.toString() : ''}
+					max={max ? max.toString() : ''}
+					variant="third"
+				/>
+
+				<FilterBetweenRange
+					name="Unlock % of Market Cap"
+					trigger={<span>Unlock Perc.</span>}
+					onSubmit={handleUnlockPercSubmit}
+					min={minPerc ? minPerc.toString() : ''}
+					max={maxPerc ? maxPerc.toString() : ''}
+					variant="third"
+				/>
+
+				<SelectWithCombobox
+					allValues={columnOptions}
+					selectedValues={selectedOptions}
+					setSelectedValues={addOption}
+					toggleAll={toggleAllOptions}
+					clearAll={clearAllOptions}
+					nestedMenu={false}
+					label={'Columns'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+					}}
+				/>
+
+				<SelectWithCombobox
+					allValues={UNLOCK_TYPES.map((type) => ({ name: type.charAt(0).toUpperCase() + type.slice(1), key: type }))}
+					selectedValues={selectedUnlockTypes}
+					setSelectedValues={setSelectedUnlockTypes}
+					toggleAll={() => setSelectedUnlockTypes(UNLOCK_TYPES)}
+					clearAll={() => setSelectedUnlockTypes([])}
+					nestedMenu={false}
+					label={'Unlock Types'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+					}}
+				/>
 
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
@@ -237,30 +360,6 @@ export const UnlocksTable = ({
 						className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
-
-				<SelectWithCombobox
-					allValues={columnOptions}
-					selectedValues={selectedOptions}
-					setSelectedValues={addOption}
-					toggleAll={toggleAllOptions}
-					clearAll={clearAllOptions}
-					nestedMenu={false}
-					label={'Columns'}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
-					}}
-				/>
-
-				<FilterBetweenRange
-					name="Unlock Value"
-					trigger={<span>Unlock Value</span>}
-					onSubmit={handleUnlockValueSubmit}
-					min={min ? min.toString() : ''}
-					max={max ? max.toString() : ''}
-					variant="third"
-				/>
 			</div>
 			<VirtualTable instance={instance} stripedBg rowSize={70} />
 		</div>

@@ -4,6 +4,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import toast from 'react-hot-toast'
 import pb from '~/utils/pocketbase'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 
 export interface SubscriptionRequest {
 	redirectUrl: string
@@ -99,6 +100,7 @@ const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 }
 
 export const useSubscribe = () => {
+	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()!
 	const queryClient = useQueryClient()
 	const [isStripeLoading, setIsStripeLoading] = useState(false)
@@ -198,6 +200,7 @@ export const useSubscribe = () => {
 	} = useSubscription('legacy')
 
 	useEffect(() => {
+		if (router.pathname !== '/subscription') return
 		const fetchApiKey = async () => {
 			if (isAuthenticated && apiSubscription?.subscription?.status === 'active') {
 				setIsApiKeyLoading(true)
@@ -218,7 +221,7 @@ export const useSubscribe = () => {
 		}
 
 		fetchApiKey()
-	}, [isAuthenticated, apiSubscription?.subscription?.status, authorizedFetch])
+	}, [isAuthenticated, apiSubscription?.subscription?.status, authorizedFetch, router.pathname])
 
 	const generateNewKey = async () => {
 		setIsApiKeyLoading(true)
@@ -256,6 +259,10 @@ export const useSubscribe = () => {
 				throw new Error('Not authenticated')
 			}
 
+			if (router.pathname !== '/subscription') {
+				return { credits: 0, maxCredits: 0, monthKey: '' }
+			}
+
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/credits`, {
 				method: 'GET'
 			})
@@ -266,7 +273,7 @@ export const useSubscribe = () => {
 
 			return response.json()
 		},
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && router.pathname === '/subscription',
 		staleTime: 1000 * 60 * 5,
 		retry: false
 	})
@@ -347,7 +354,15 @@ export const useSubscribe = () => {
 		subscription: subscriptionData,
 		loading: isStripeLoading ? 'stripe' : isLlamaLoading ? 'llamapay' : null,
 		isSubscriptionLoading:
-			isAuthenticated && (isApiSubscriptionLoading || isLlamafeedSubscriptionLoading || isLegacySubscriptionLoading),
+			isApiSubscriptionLoading ||
+			isLlamafeedSubscriptionLoading ||
+			isLegacySubscriptionLoading ||
+			isApiSubscriptionFetching ||
+			isLlamafeedSubscriptionFetching ||
+			isLegacySubscriptionFetching ||
+			isApiSubscriptionPending ||
+			isLlamafeedSubscriptionPending ||
+			isLegacySubscriptionPending,
 		isSubscriptionFetching:
 			isAuthenticated && (isApiSubscriptionFetching || isLlamafeedSubscriptionFetching || isLegacySubscriptionFetching),
 		isSubscriptionPending:
