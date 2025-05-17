@@ -3,14 +3,19 @@ import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import { formattedNum } from '~/utils'
-import { ProtocolChart } from '~/containers/DimensionAdapters/charts/ProtocolChart'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { DimensionProtocolOverviewChart } from '~/containers/DimensionAdapters/charts/ProtocolChart'
+import { useMemo } from 'react'
 
 export default function Collection() {
 	const router = useRouter()
-	const { data: collectionData, isLoading: fetchingData } = useQuery({
+	const {
+		data: collectionData,
+		isLoading: fetchingData,
+		error
+	} = useQuery({
 		queryKey: ['collection-data', router.query.collection],
 		queryFn: () =>
 			getNFTRoyaltyHistory(
@@ -19,11 +24,26 @@ export default function Collection() {
 		staleTime: 60 * 60 * 1000
 	})
 
+	const chartData = useMemo(() => {
+		if (!collectionData) return []
+		return [collectionData.royaltyHistory[0].totalDataChart.map((t) => ({ date: t[0], Earnings: t[1] })), ['Earnings']]
+	}, [collectionData])
+
 	if (fetchingData) {
 		return (
 			<Layout title={'NFT Royalties - DefiLlama'}>
 				<div className="flex items-center justify-center m-auto min-h-[360px]">
 					<LocalLoader />
+				</div>
+			</Layout>
+		)
+	}
+
+	if (error || !collectionData) {
+		return (
+			<Layout title={'NFT Royalties - DefiLlama'}>
+				<div className="flex items-center justify-center m-auto min-h-[360px]">
+					<p className="text-center">{error?.message ?? 'Failed to fetch'}</p>
 				</div>
 			</Layout>
 		)
@@ -51,14 +71,7 @@ export default function Collection() {
 					</p>
 				</div>
 
-				<ProtocolChart
-					logo={props.logo}
-					data={props as any}
-					chartData={[props.totalDataChart.map((t) => ({ date: t[0], royalties: t[1] })), ['royalties']]}
-					name={props.name}
-					type={'Fees'}
-					fullChart={true}
-				/>
+				<DimensionProtocolOverviewChart totalDataChart={chartData as any} />
 			</div>
 		</Layout>
 	)

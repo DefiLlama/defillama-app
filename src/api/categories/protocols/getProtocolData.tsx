@@ -1,7 +1,4 @@
-import { last } from 'lodash'
-
-import { formatPercentage, getNDistinctColors, slug, timeFromNow, tokenIconPaletteUrl } from '~/utils'
-import { getColor } from '~/utils/getColor'
+import { formatPercentage, getNDistinctColors, slug, timeFromNow } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
@@ -20,15 +17,14 @@ import {
 	NFT_MARKETPLACES_VOLUME_API,
 	RAISES_API,
 	DIMENISIONS_OVERVIEW_API,
-	LIQUIDITY_API,
-	getProtocolFEConfig
+	LIQUIDITY_API
 } from '~/constants'
 import { cg_volume_cexs } from '../../../pages/cexs'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { sluggify } from '~/utils/cache-client'
-import { fetchWithErrorLogging, fetchWithTimeout, postRuntimeLogs } from '~/utils/async'
+import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import metadata from '~/utils/metadata'
-import { darken, transparentize } from 'polished'
+import { getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
 const { protocolMetadata } = metadata
 
 const chartTypes = [
@@ -89,7 +85,12 @@ const fetchGovernanceData = async (apis: Array<string>) => {
 
 	return governanceData
 }
-export const getProtocolData = async (protocol: string, protocolRes: IProtocolResponse, isCpusHot: boolean) => {
+export const getProtocolData = async (
+	protocol: string,
+	protocolRes: IProtocolResponse,
+	isCpusHot: boolean,
+	metadata: any
+) => {
 	if (!protocolRes) {
 		return { notFound: true, props: null }
 	}
@@ -121,7 +122,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		liquidityInfo,
 		hacks,
 		raises,
-		bgColor,
+		pageStyles,
 		allProtocols,
 		users,
 		feesProtocols,
@@ -130,7 +131,6 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		tokenTaxProtocols,
 		volumeProtocols,
 		derivatesProtocols,
-		medianApy,
 		tokenCGData,
 		emissions,
 		devMetrics,
@@ -228,7 +228,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 						return []
 					})
 			: [],
-		getColor(tokenIconPaletteUrl(protocolData.name)),
+		getProtocolPageStyles(protocolData.name),
 		getProtocolsRaw(),
 		protocolMetadata[protocolData.id]?.activeUsers && !isCpusHot
 			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
@@ -394,11 +394,11 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 
 	let controversialProposals = []
 
-	governanceData.forEach((item) => {
-		if (item && item.length > 0) {
-			controversialProposals = [...controversialProposals, ...item]
-		}
-	})
+	// governanceData.forEach((item) => {
+	// 	if (item && item.length > 0) {
+	// 		controversialProposals = [...controversialProposals, ...item]
+	// 	}
+	// })
 
 	const feesData = feesProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
@@ -436,8 +436,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const bgColor2 = bgColor.length < 7 ? '#1f67d2' : bgColor
-	const backgroundColor = isDarkColor(bgColor2) ? '#1f67d2' : bgColor2
+	const backgroundColor = pageStyles['--primary-color']
 	const colors = getNDistinctColors(chartTypes.length, backgroundColor)
 	const colorTones = {
 		...Object.fromEntries(chartTypes.map((type, index) => [type, colors[index]])),
@@ -547,8 +546,8 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 		.map((x) => x.noOfTokens ?? [])
 		.reduce((acc, curr) => (acc += curr.length === 2 ? curr[1] - curr[0] : curr[0]), 0)
 
-	const tokenMcap = tokenCGData?.mcaps ? last(tokenCGData.mcaps)[1] : null
-	const tokenPrice = tokenCGData?.prices ? last(tokenCGData.prices)[1] : null
+	const tokenMcap = tokenCGData?.mcaps ? tokenCGData.mcaps[tokenCGData.mcaps.length - 1][1] : null
+	const tokenPrice = tokenCGData?.prices ? tokenCGData.prices[tokenCGData.prices.length - 1][1] : null
 	const tokenInfo = tokenCGData?.coinData
 	const tokenValue = tokenPrice ? tokensUnlockedInNextEvent * tokenPrice : null
 	const unlockPercent = tokenValue && tokenMcap ? (tokenValue / tokenMcap) * 100 : null
@@ -581,32 +580,7 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 			nftVolumeData,
 			protocolData: {
 				...protocolData,
-				symbol: protocolData.symbol ?? null,
-				metrics: {
-					...metrics,
-					tvl: protocolMetadata[protocolData.id]?.tvl ? true : false,
-					devMetrics: !!devMetrics,
-					fees: protocolMetadata[protocolData.id]?.fees ? true : false,
-					revenue: protocolMetadata[protocolData.id]?.revenue ? true : false,
-					dexs: protocolMetadata[protocolData.id]?.dexs ? true : false,
-					perps: protocolMetadata[protocolData.id]?.perps ? true : false,
-					aggregators: protocolMetadata[protocolData.id]?.aggregator ? true : false,
-					perpsAggregators: protocolMetadata[protocolData.id]?.perpsAggregators ? true : false,
-					bridgeAggregators: protocolMetadata[protocolData.id]?.bridgeAggregators ? true : false,
-					options: protocolMetadata[protocolData.id]?.options ? true : false,
-					medianApy: medianApy.data.length > 0,
-					inflows: inflowsExist,
-					unlocks: protocolMetadata[protocolData.id]?.emissions ? true : false,
-					bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
-					treasury: protocolMetadata[protocolData.id]?.treasury ? true : false,
-					tokenLiquidity: protocolMetadata[protocolData.id]?.liquidity ? true : false,
-					nftVolume: nftDataExist,
-					yields:
-						protocolMetadata[protocolData.id]?.yields && yields && yields.data && projectYields.length > 0
-							? true
-							: false,
-					forks: protocolMetadata[protocolData.id]?.forks ? true : false
-				}
+				symbol: protocolData.symbol ?? null
 			},
 			backgroundColor,
 			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
@@ -698,14 +672,15 @@ export const getProtocolData = async (protocol: string, protocolRes: IProtocolRe
 					? hacks?.filter((hack) => +hack.defillamaId === +protocolData.id)?.sort((a, b) => a.date - b.date)
 					: null) ?? null,
 			clientSide: isCpusHot,
-			pageStyles: getProtocolPageStyles(backgroundColor)
+			pageStyles,
+			metrics: getProtocolMetrics({ protocolData: protocolRes as any, metadata })
 		},
 		revalidate: maxAgeForNext([22])
 	}
 }
 
 function getTokenCGData(tokenCGData: any) {
-	const tokenPrice = tokenCGData?.prices ? last(tokenCGData.prices)[1] : null
+	const tokenPrice = tokenCGData?.prices ? tokenCGData.prices[tokenCGData.prices.length - 1][1] : null
 	const tokenInfo = tokenCGData?.coinData
 	return {
 		price: {
@@ -740,124 +715,4 @@ function getTokenCGData(tokenCGData: any) {
 				) ?? null
 		}
 	}
-}
-
-export const getProtocolDataV2 = async (protocol: string, protocolRes: IProtocolResponse, isCpusHot: boolean) => {
-	if (!protocolRes) {
-		return { notFound: true, props: null }
-	}
-
-	const protocolData = fuseProtocolData(protocolRes)
-
-	// return getProtocolData(protocol, protocolRes, isCpusHot)
-
-	let protocolConfigData: any, pregenMetrics: any, props: any
-
-	try {
-		protocolConfigData = await fetchWithErrorLogging(
-			getProtocolFEConfig((protocolData.defillamaId ?? protocolData.id) as any),
-			{ timeout: 10_000 }
-		).then((res) => res.json())
-		const {
-			protocolData: { metrics },
-			...rest
-		} = protocolConfigData
-
-		pregenMetrics = { ...(protocolData.metrics || {}), ...metrics }
-		props = rest
-	} catch (e) {
-		postRuntimeLogs(`[HTTP][error] protocol:config:smol ${protocol} ${protocolRes.id} ${(e as Error)?.message}`)
-		return getProtocolData(protocol, protocolRes, isCpusHot)
-	}
-
-	const tokenCGData: any =
-		protocolData.gecko_id && !isCpusHot
-			? await fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
-					.then((res) => res.json())
-					.then(({ data }) => data)
-					.catch(() => null as any)
-			: null
-
-	let inflowsExist = false
-
-	if (protocolRes.chainTvls) {
-		Object.keys(protocolRes.chainTvls).forEach((chain) => {
-			if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
-				inflowsExist = true
-			}
-			delete protocolRes.chainTvls[chain].tokensInUsd
-			delete protocolRes.chainTvls[chain].tokens
-		})
-	}
-
-	pregenMetrics.inflows = inflowsExist
-	if (props.backgroundColor.length < 7) props.backgroundColor = '#1f67d2'
-	const backgroundColor =
-		!props.backgroundColor || isDarkColor(props.backgroundColor) ? '#1f67d2' : props.backgroundColor
-	const colors = getNDistinctColors(chartTypes.length, backgroundColor)
-	const colorTones = {
-		...Object.fromEntries(chartTypes.map((type, index) => [type, colors[index]])),
-		TVL: backgroundColor
-	}
-
-	return {
-		props: {
-			...props,
-			backgroundColor,
-			chartColors: colorTones,
-			protocol,
-			protocolData: {
-				...protocolData,
-				symbol: protocolData.symbol ?? null,
-				metrics: pregenMetrics
-			},
-			governanceApis: [],
-			tokenCGData: getTokenCGData(tokenCGData),
-			nextEventDescription: null,
-			clientSide: isCpusHot,
-			pageStyles: getProtocolPageStyles(backgroundColor)
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
-
-export function getProtocolPageStyles(color: string) {
-	let color2 = color.length < 7 ? '#1f67d2' : color
-
-	let finalColor = isDarkColor(color2) ? '#1f67d2' : color2
-
-	return {
-		'--primary-color': finalColor,
-		'--bg-color': transparentize(0.6, finalColor),
-		'--btn-bg': transparentize(0.9, finalColor),
-		'--btn-hover-bg': transparentize(0.8, finalColor),
-		'--btn-text': darken(0.1, finalColor)
-	}
-}
-
-function isDarkColor(color: string) {
-	// Convert hex to RGB
-	const hex = color.replace('#', '')
-	const r = parseInt(hex.substring(0, 2), 16)
-	const g = parseInt(hex.substring(2, 4), 16)
-	const b = parseInt(hex.substring(4, 6), 16)
-
-	// Calculate relative luminance
-	const max = Math.max(r, g, b)
-	const min = Math.min(r, g, b)
-
-	// Calculate saturation (0-1)
-	const saturation = max === 0 ? 0 : (max - min) / max
-
-	// Check if the color is grayish by comparing RGB components and saturation
-	const tolerance = 15 // RGB difference tolerance
-	const saturationThreshold = 0.15 // Colors with saturation below this are considered grayish
-
-	const isGrayish =
-		Math.abs(r - g) <= tolerance &&
-		Math.abs(g - b) <= tolerance &&
-		Math.abs(r - b) <= tolerance &&
-		saturation <= saturationThreshold
-
-	return isGrayish
 }

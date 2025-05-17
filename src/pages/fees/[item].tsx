@@ -1,4 +1,4 @@
-import { ADAPTOR_TYPES, getOverviewItemPageData } from '~/api/categories/adaptors'
+import { ADAPTOR_TYPES, getDimensionProtocolPageData } from '~/api/categories/adaptors'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolByAdapter } from '~/containers/DimensionAdapters/ProtocolByAdapter'
 import { GetStaticPropsContext } from 'next'
@@ -44,61 +44,26 @@ export const getStaticProps = withPerformanceLogging(
 	async ({ params }: GetStaticPropsContext<{ item: string }>) => {
 		const protocol = slug(params.item)
 
-		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)?.[1]
+		const normalizedName = slug(protocol)
+		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
 
 		if (!metadata?.[ADAPTOR_TYPE] && !chainMetadata[protocol]?.chainFees) {
 			return { notFound: true, props: null }
 		}
 
-		const [feesData, bribesData, tokenTaxData] = await Promise.all([
-			getOverviewItemPageData(ADAPTOR_TYPE, protocol).catch((e) =>
-				console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e)
-			),
-			metadata?.bribeRevenue
-				? getOverviewItemPageData(ADAPTOR_TYPE, protocol, 'dailyBribesRevenue').catch((e) =>
-						console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e)
-				  )
-				: Promise.resolve(null),
-			metadata?.tokenTax
-				? getOverviewItemPageData(ADAPTOR_TYPE, protocol, 'dailyTokenTaxes').catch((e) =>
-						console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e)
-				  )
-				: Promise.resolve(null)
-		])
+		const feesData = await getDimensionProtocolPageData({
+			adapterType: ADAPTOR_TYPE,
+			protocolName: protocol,
+			metadata
+		}).catch((e) => console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e))
 
 		if (!feesData || !feesData.name) return { notFound: true }
-
-		const totalDataChart = {}
-		for (const item of feesData.totalDataChart[0]) {
-			totalDataChart[item.date] = {}
-			for (const key of feesData.totalDataChart[1]) {
-				totalDataChart[item.date][key] = item[key] || 0
-			}
-			if (bribesData) {
-				totalDataChart[item.date].Bribes = bribesData.totalDataChart[0].find((i) => i.date === item.date)?.Bribes ?? 0
-			}
-			if (tokenTaxData) {
-				totalDataChart[item.date].TokenTax =
-					tokenTaxData.totalDataChart[0].find((i) => i.date === item.date)?.TokenTax ?? 0
-			}
-		}
-
-		const finalChartData = []
-		for (const date in totalDataChart) {
-			finalChartData.push({
-				date,
-				...totalDataChart[date]
-			})
-		}
 
 		return {
 			props: {
 				protocolSummary: {
 					...feesData,
-					totalDataChart: [finalChartData, feesData.totalDataChart[1]],
-					type: ADAPTOR_TYPE,
-					...(tokenTaxData ? { totalAllTimeTokenTaxes: tokenTaxData.totalAllTime } : {}),
-					...(bribesData ? { totalAllTimeBribes: bribesData.totalAllTime } : {})
+					type: ADAPTOR_TYPE
 				},
 				title: `${feesData.name} Fees - DefiLlama`
 			},

@@ -25,7 +25,7 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 	}
 
 	if (error) {
-		return <p className="my-[180px] text-center">{JSON.stringify(error)}</p>
+		return <p className="my-[180px] text-center">{error.message}</p>
 	}
 
 	if (!data) {

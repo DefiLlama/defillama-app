@@ -12,9 +12,7 @@ export async function getForkPageData(fork = null) {
 		const forkExists = !fork || forks[fork]
 
 		if (!forkExists) {
-			return {
-				notFound: true
-			}
+			return null
 		}
 
 		let chartData = Object.entries(chart)

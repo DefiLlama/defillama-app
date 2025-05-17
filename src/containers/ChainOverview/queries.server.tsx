@@ -223,7 +223,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			metadata.chainFees
 				? getAdapterProtocolSummary({
 						type: 'fees',
-						chain: metadata.name,
+						protocol: metadata.name,
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true
 				  }).catch((err) => {
@@ -234,7 +234,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			metadata.chainFees
 				? getAdapterProtocolSummary({
 						type: 'fees',
-						chain: metadata.name,
+						protocol: metadata.name,
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyRevenue'

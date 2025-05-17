@@ -2,14 +2,14 @@ import * as React from 'react'
 import { OverviewTable } from '~/containers/DimensionAdapters/Table'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
-import { groupProtocolsByParent, IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
-import { IJSON } from '~/api/categories/adaptors/types'
-import { useFetchCharts } from '~/api/categories/adaptors/client'
-import { MainBarChart } from './common'
+import { groupProtocolsByParent, IOverviewProps } from '~/api/categories/adaptors'
+import { ChainByAdapterChart } from './charts/ChainChart'
 import { useRouter } from 'next/router'
-import { slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { Announcement } from '~/components/Announcement'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { QuestionHelper } from '~/components/QuestionHelper'
+import { VOLUME_TYPE_ADAPTORS } from './constants'
 
 export type IOverviewContainerProps = IOverviewProps
 
@@ -18,8 +18,6 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 	const isSimpleFees = props.isSimpleFees
 	const router = useRouter()
 
-	const { dataType: selectedDataType = 'Premium Volume' } = router.query
-	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
 	const { selectedCategories, protocolsList, rowLinks } = React.useMemo(() => {
@@ -65,152 +63,19 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 		props.total24h
 	])
 
-	const [charts, setCharts] = React.useState<IJSON<IOverviewContainerProps['totalDataChartBreakdown']>>({
-		totalDataChartBreakdown: props.totalDataChartBreakdown,
-		totalDataChartBreakdown2: undefined
-	})
-
-	// Needs to be improved! Too dirty
-	const { data, error, isLoading } = useFetchCharts(
-		props.type,
-		chain === 'all' ? undefined : chain,
-		undefined,
-		props.type === 'options' ? false : props.type === 'fees' || chain === 'all'
-	)
-	const {
-		data: secondTypeData,
-		error: secondTypeError,
-		isLoading: secondTypeLoading
-	} = useFetchCharts(
-		props.type,
-		chain === 'all' ? undefined : chain,
-		'dailyPremiumVolume',
-		props.type !== 'options' || chain === 'all'
-	)
 	const isChainsPage = chain === 'all'
 
-	React.useEffect(() => {
-		if (isLoading) {
-			setEnableBreakdownChart(false)
-			setCharts((val) => ({
-				...val,
-				totalDataChartBreakdown: undefined
-			}))
-		}
-		if (data && !error && !isLoading) {
-			// @ts-ignore
-			setCharts((val) => ({
-				...val,
-				totalDataChartBreakdown: data?.totalDataChartBreakdown ?? ''
-			}))
-		}
-	}, [data, isLoading, error, props.chain])
+	const valuesExist =
+		typeof props.total24h === 'number' ||
+		typeof props.change_1d === 'number' ||
+		typeof props.change_1m === 'number' ||
+		(typeof props.dexsDominance === 'number' && props.type === 'dexs') ||
+		(typeof props.change_7dover7d === 'number' && props.type === 'dexs') ||
+		(typeof props.total7d === 'number' && props.type === 'dexs')
+			? true
+			: false
 
-	// Needs to be improved! Too dirty
-	React.useEffect(() => {
-		if (secondTypeLoading) {
-			setEnableBreakdownChart(false)
-			setCharts((val) => ({
-				...val,
-				['totalDataChartBreakdownPremium Volume']: undefined
-			}))
-		}
-		if (secondTypeData && !secondTypeError && !secondTypeLoading) {
-			// @ts-ignore
-			setCharts((val) => ({
-				...val,
-				['totalDataChartBreakdownPremium Volume']: secondTypeData?.totalDataChartBreakdown
-			}))
-		}
-	}, [secondTypeData, secondTypeLoading, secondTypeError, props.chain])
-
-	const chartData = React.useMemo<[IJoin2ReturnType, string[]]>(() => {
-		// TODO: process this in the backend
-		if (enableBreakdownChart) {
-			const displayNameMap = props.protocols.reduce((acc, curr) => {
-				if (curr.subRows) curr.subRows.forEach((row) => (acc[row.displayName] = row.displayName))
-				else acc[curr.displayName] = curr.displayName
-				return acc
-			}, {} as IJSON<string>)
-			const arr = Object.values(
-				charts[
-					`totalDataChartBreakdown${
-						props.type === 'options' ? (selectedDataType === 'Notional Volume' ? '' : 'Premium Volume') : ''
-					}`
-				]?.map<IJSON<number | string>>((cd) => {
-					return {
-						date: cd[0],
-						...Object.keys(displayNameMap).reduce((acc, key) => {
-							acc[key] = cd[1][key] ?? 0
-							return acc
-						}, {} as IJSON<number>)
-					}
-				})
-			).map<IJoin2ReturnType[number]>((bar) => {
-				const date = bar.date
-				delete bar.date
-				const items = Object.entries(bar as IJSON<number>)
-				return {
-					date,
-					...items.reduce((acc, [key, value]) => {
-						return { ...acc, [key]: value }
-					}, {} as IJoin2ReturnType[number])
-				}
-			})
-			return [arr, Object.values(displayNameMap)]
-		}
-
-		if (props.type === 'options' && chain !== 'all') {
-			const [chart] = props.totalDataChart
-			const arr = chart.map<IJoin2ReturnType[number]>((cd) => {
-				return {
-					date: cd.date,
-					[selectedDataType as string]: cd[selectedDataType as string]
-				}
-			})
-			return [arr, [selectedDataType as string]]
-		}
-
-		if (props.type === 'options' && chain === 'all') {
-			const chart = selectedDataType === 'Notional Volume' ? props.totalDataChart : props.premium.totalDataChart
-
-			return chart
-		}
-
-		return props.totalDataChart
-	}, [
-		enableBreakdownChart,
-		props.type,
-		props.totalDataChart,
-		props.protocols,
-		props?.premium?.totalDataChart,
-		chain,
-		charts,
-		selectedDataType
-	])
-
-	const chartDataProps = React.useMemo(() => {
-		const p = {
-			type: props.type,
-			data: {
-				change_1d: props.change_1d,
-				change_1m: props.change_1m,
-				change_7dover7d: props.change_7dover7d,
-				disabled: false,
-				total24h: props.total24h,
-				total7d: props.total7d,
-				dexsDominance: props.dexsDominance
-			},
-			chartData: chartData,
-			name: props.chain,
-			fullChart: isChainsPage,
-			disableDefaultLeged: isChainsPage ? true : enableBreakdownChart,
-			selectedType: (selectedDataType as string) ?? undefined,
-			chartTypes: props.type === 'options' ? ['Premium Volume', 'Notional Volume'] : undefined
-		}
-
-		return p
-	}, [props, chartData, isChainsPage, enableBreakdownChart, selectedDataType])
+	const dataType = VOLUME_TYPE_ADAPTORS.includes(props.type) ? 'volume' : props.type
 
 	return (
 		<>
@@ -227,18 +92,7 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 					</a>
 				</Announcement>
 			)}
-			<AdaptorsSearch
-				type={props.type}
-				enableToggle={props.type !== 'fees' && props.chain !== 'all'}
-				onToggleClick={
-					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
-						? (enabled) => setEnableBreakdownChart(enabled)
-						: undefined
-				}
-				toggleStatus={
-					enableBreakdownChart && charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
-				}
-			/>
+			<AdaptorsSearch type={props.type} />
 
 			{rowLinks ? (
 				<RowLinksWithDropdown links={rowLinks} activeLink={chain} key={'row links wrapper of ' + props.type} />
@@ -246,7 +100,69 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 				<></>
 			)}
 
-			{props.type === 'fees' ? null : <MainBarChart {...chartDataProps} />}
+			<div className={`grid grid-cols-2 ${valuesExist ? 'xl:grid-cols-3' : ''} relative isolate gap-1`}>
+				{valuesExist ? (
+					<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+						{!Number.isNaN(props.total24h) ? (
+							<p className="flex flex-col">
+								<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (24h)</span>
+								<span className="font-semibold text-2xl font-jetbrains">{formattedNum(props.total24h, true)}</span>
+							</p>
+						) : null}
+						{props.type === 'dexs' && !Number.isNaN(props.total7d) ? (
+							<p className="flex flex-col">
+								<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (7d)</span>
+								<span className="font-semibold text-2xl font-jetbrains">{formattedNum(props.total7d, true)}</span>
+							</p>
+						) : null}
+						{props.type === 'dexs' && !Number.isNaN(props.change_7dover7d) ? (
+							<p className="hidden md:flex flex-col">
+								<span className="flex items-center gap-1 text-[#545757] dark:text-[#cccccc]">
+									<span>Weekly change</span>
+									<QuestionHelper text={`Change of last 7d volume over the previous 7d volume of all dexs`} />
+								</span>
+								{props.change_7dover7d > 0 ? (
+									<span className="font-semibold text-2xl font-jetbrains">{props.change_7dover7d || 0}%</span>
+								) : (
+									<span className="font-semibold text-2xl font-jetbrains">{props.change_7dover7d || 0}%</span>
+								)}
+							</p>
+						) : null}
+						{props.type !== 'dexs' && !Number.isNaN(props.change_1d) ? (
+							<p className="hidden md:flex flex-col">
+								<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
+								{props.change_1d > 0 ? (
+									<span className="font-semibold text-2xl font-jetbrains">{props.change_1d || 0}%</span>
+								) : (
+									<span className="font-semibold text-2xl font-jetbrains">{props.change_1d || 0}%</span>
+								)}
+							</p>
+						) : null}
+						{props.type === 'dexs' && !Number.isNaN(props.dexsDominance) ? (
+							<>
+								{!props.chain && (
+									<p className="hidden md:flex flex-col">
+										<span className="flex items-center gap-1 text-[#545757] dark:text-[#cccccc]">
+											<span>DEX vs CEX dominance</span>
+											<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume (24h)`} />
+										</span>
+										<span className="font-semibold text-2xl font-jetbrains">{props.dexsDominance || 0}%</span>
+									</p>
+								)}
+							</>
+						) : !Number.isNaN(props.change_1m) ? (
+							<p className="hidden md:flex flex-col">
+								<span className="text-[#545757] dark:text-[#cccccc]">Change (30d)</span>
+								<span className="font-semibold text-2xl font-jetbrains">{props.change_1m || 0}%</span>
+							</p>
+						) : null}
+					</div>
+				) : (
+					<></>
+				)}
+
+				<ChainByAdapterChart totalDataChart={props.totalDataChart} />
+			</div>
 
 			{protocolsList && protocolsList.length > 0 ? (
 				<OverviewTable

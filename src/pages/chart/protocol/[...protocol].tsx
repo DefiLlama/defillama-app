@@ -1,13 +1,14 @@
 import { useRouter } from 'next/router'
 import { useEffect, useMemo } from 'react'
-import { getProtocol } from '~/api/categories/protocols'
 import { useFetchProtocolInfows } from '~/api/categories/protocols/client'
-import { getProtocolDataV2 } from '~/api/categories/protocols/getProtocolData'
+import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
 import { ProtocolChartOnly } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
+import { getProtocol } from '~/containers/ProtocolOverview/queries'
+import { slug } from '~/utils'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
@@ -17,7 +18,8 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
+		const normalizedName = slug(protocol)
+		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
 
 		if (!metadata) {
 			return { notFound: true, props: null }
@@ -25,7 +27,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocolData = await getProtocol(protocol)
 
-		const data = await getProtocolDataV2(protocol, protocolData, true)
+		const data = await getProtocolData(protocol, protocolData, true, metadata)
 		data.props.noContext = true
 		return data
 	}

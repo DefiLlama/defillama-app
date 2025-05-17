@@ -4,17 +4,22 @@ import type { IChart2Props } from '../types'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
-export default function BarChart2({ chartData, chartOptions, height, stackColors, groupBy }: IChart2Props) {
+export default function AreaChart3({
+	chartData,
+	chartOptions,
+	height,
+	stackColors,
+	hallmarks,
+	expandTo100Percent,
+	valueSymbol
+}: IChart2Props) {
 	const id = useId()
 
 	const [isThemeDark] = useDarkModeManager()
 
 	const defaultChartSettings = useDefaults({
 		isThemeDark,
-		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly')
-				: 'daily'
+		valueSymbol
 	})
 
 	const series = useMemo(() => {
@@ -23,10 +28,9 @@ export default function BarChart2({ chartData, chartOptions, height, stackColors
 		for (const stack in chartData) {
 			series.push({
 				name: stack,
-				type: 'bar',
-				large: true,
-				largeThreshold: 0,
-				stack,
+				type: 'line',
+				stack: expandTo100Percent ? 'A' : stack,
+				symbol: 'none',
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
@@ -34,11 +38,53 @@ export default function BarChart2({ chartData, chartOptions, height, stackColors
 				itemStyle: {
 					color: stackColors[stack] ?? (isThemeDark ? '#000000' : '#ffffff')
 				},
+				areaStyle: expandTo100Percent
+					? {}
+					: {
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+								{
+									offset: 0,
+									color: stackColors[stack] ?? (isThemeDark ? '#000000' : '#ffffff')
+								},
+								{
+									offset: 1,
+									color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+								}
+							])
+					  },
+				lineStyle: expandTo100Percent
+					? {
+							width: 0
+					  }
+					: {},
 				data: chartData[stack]
 			})
 		}
+		if (hallmarks) {
+			series[0].markLine = {
+				data: hallmarks.map(([date, event], index) => [
+					{
+						name: event,
+						xAxis: +date * 1e3,
+						yAxis: 0,
+						label: {
+							color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+							fontFamily: 'sans-serif',
+							fontSize: 14,
+							fontWeight: 500
+						}
+					},
+					{
+						name: 'end',
+						xAxis: +date * 1e3,
+						yAxis: 'max',
+						y: Math.max(hallmarks.length * 40 - index * 40, 40)
+					}
+				])
+			}
+		}
 		return series
-	}, [chartData, stackColors, isThemeDark])
+	}, [chartData, stackColors, isThemeDark, expandTo100Percent, hallmarks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -76,7 +122,10 @@ export default function BarChart2({ chartData, chartOptions, height, stackColors
 				containLabel: true
 			},
 			xAxis,
-			yAxis,
+			yAxis: {
+				...yAxis,
+				...(expandTo100Percent ? { max: 100, min: 0 } : {})
+			},
 			dataZoom,
 			series
 		})
@@ -91,7 +140,7 @@ export default function BarChart2({ chartData, chartOptions, height, stackColors
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, groupBy])
+	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent])
 
 	return <div id={id} className="min-h-[360px]" style={height ? { height } : undefined}></div>
 }

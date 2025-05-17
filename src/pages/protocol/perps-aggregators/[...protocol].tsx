@@ -1,35 +1,52 @@
-import ProtocolContainer from '~/containers/ProtocolOverview'
-import { getProtocol } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocolDataV2 } from '~/api/categories/protocols/getProtocolData'
-import { isCpusHot } from '~/utils/cache-client'
-import { useQuery } from '@tanstack/react-query'
 import metadata from '~/utils/metadata'
+import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
+import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/charts/ProtocolChart'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/api'
+import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
+import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
-	'protocol/perps-aggregators/[...protocol]',
+	'protocol/derivatives-aggregator/[...protocol]',
 	async ({
 		params: {
 			protocol: [protocol]
 		}
 	}) => {
-		let isHot = false
-		const IS_RUNTIME = !!process.env.IS_RUNTIME
+		const normalizedName = slug(protocol)
+		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
 
-		if (IS_RUNTIME) {
-			isHot = await isCpusHot()
-		}
-
-		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
-
-		if (!metadata) {
+		if (!metadata || !metadata.perpsAggregators) {
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
-		const data = await getProtocolDataV2(protocol, protocolData, isHot)
-		return data
+		const [protocolData, adapterData, pageStyles] = await Promise.all([
+			getProtocol(protocol),
+			getAdapterProtocolSummary({
+				type: 'derivatives-aggregator',
+				protocol: metadata.name,
+				excludeTotalDataChart: true,
+				excludeTotalDataChartBreakdown: true
+			}),
+			getProtocolPageStyles(metadata.name)
+		])
+
+		const metrics = getProtocolMetrics({ protocolData, metadata })
+
+		return {
+			props: {
+				name: protocolData.name,
+				otherProtocols: protocolData?.otherProtocols ?? [],
+				category: protocolData?.category ?? null,
+				pageStyles,
+				metrics,
+				adaptorChains: adapterData?.chains ?? [],
+				adaptorVersions: adapterData?.linkedProtocols?.slice(1) ?? []
+			},
+			revalidate: maxAgeForNext([22])
+		}
 	}
 )
 
@@ -37,57 +54,39 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-const fetchProtocolData = async (protocol: string | null, colors) => {
-	if (!protocol) return null
-	try {
-		const protocolData = await getProtocol(protocol)
-		const finalData = await getProtocolDataV2(protocol, protocolData, false)
-		if (finalData.props) {
-			finalData.props.backgroundColor = colors.backgroundColor
-			finalData.props.chartColors = colors.chartColors
-		}
-		return finalData
-	} catch (error) {
-		console.log(protocol, error)
-		throw new Error(error instanceof Error ? error.message : `Failed to fetch ${protocol}`)
-	}
-}
-
-const useProtocolData = (slug, protocolData) => {
-	return useQuery({
-		queryKey: ['protocol-data', slug],
-		queryFn: () => fetchProtocolData(slug, protocolData),
-		retry: 0,
-		staleTime: 60 * 60 * 1000,
-		refetchInterval: 60 * 60 * 1000
-	})
-}
-
-export default function Protocols({ clientSide, protocolData, ...props }) {
-	const { data, isLoading } = useProtocolData(clientSide === true ? props.protocol : null, {
-		backgroundColor: props.backgroundColor,
-		chartColors: props.chartColors
-	})
-
-	if (clientSide === true) {
-		if (!isLoading && data) {
-			return (
-				<ProtocolContainer
-					title={`${protocolData.name} - DefiLlama`}
-					protocolData={protocolData}
-					{...(data.props as any)}
-					tab="perps-aggregators"
-				/>
-			)
-		}
-	}
-
+export default function Protocols(props) {
 	return (
-		<ProtocolContainer
-			title={`${protocolData.name} - DefiLlama`}
-			protocolData={protocolData}
-			{...(props as any)}
+		<ProtocolOverviewLayout
+			name={props.name}
+			category={props.category}
+			otherProtocols={props.otherProtocols}
+			metrics={props.metrics}
+			pageStyles={props.pageStyles}
 			tab="perps-aggregators"
-		/>
+		>
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="grid grid-cols-2 rounded-md">
+					<DimensionProtocolChartByType
+						chartType="overview"
+						protocolName={slug(props.name)}
+						adapterType="derivatives-aggregator"
+					/>
+					{props.adaptorChains.length > 1 ? (
+						<DimensionProtocolChartByType
+							chartType="chain"
+							protocolName={slug(props.name)}
+							adapterType="derivatives-aggregator"
+						/>
+					) : null}
+					{props.adaptorVersions.length > 1 ? (
+						<DimensionProtocolChartByType
+							chartType="version"
+							protocolName={slug(props.name)}
+							adapterType="derivatives-aggregator"
+						/>
+					) : null}
+				</div>
+			</div>
+		</ProtocolOverviewLayout>
 	)
 }

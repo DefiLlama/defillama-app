@@ -4,7 +4,7 @@ import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { sluggify } from '~/utils/cache-client'
 import { useQuery } from '@tanstack/react-query'
 
-export function ProtocolPools({ protocol, data, protocolData }) {
+export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }) {
 	const { data: poolsList, isLoading } = useQuery({
 		queryKey: ['yields-pools-list', protocol],
 		queryFn: () =>
@@ -14,9 +14,7 @@ export function ProtocolPools({ protocol, data, protocolData }) {
 						?.filter(
 							(p) =>
 								p.project === protocol ||
-								(protocolData?.parentProtocol
-									? false
-									: protocolData?.otherProtocols?.map((p) => sluggify(p)).includes(p.project))
+								(parentProtocol ? false : otherProtocols?.map((p) => sluggify(p)).includes(p.project))
 						)
 						.map((i) => ({
 							...i,

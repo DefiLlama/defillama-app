@@ -8,7 +8,6 @@ import {
 import type { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 import {
 	CATEGORY_API,
-	HOURLY_PROTOCOL_API,
 	PROTOCOLS_API,
 	PROTOCOL_API,
 	PROTOCOL_EMISSIONS_API,
@@ -47,41 +46,6 @@ export const getProtocols = () =>
 			chains,
 			parentProtocols
 		}))
-
-export const getProtocol = async (protocolName: string) => {
-	const start = Date.now()
-	try {
-		const data: IProtocolResponse = await fetchWithErrorLogging(`${PROTOCOL_API}/${protocolName}`).then((res) =>
-			res.json()
-		)
-
-		if (!data || (data as any).statusCode === 400) {
-			throw new Error((data as any).body)
-		}
-
-		let isNewlyListedProtocol = true
-
-		Object.values(data.chainTvls).forEach((chain) => {
-			if (chain.tvl?.length > 7) {
-				isNewlyListedProtocol = false
-			}
-		})
-
-		if (data?.listedAt && new Date(data.listedAt * 1000).getTime() < Date.now() - 1000 * 60 * 60 * 24 * 7) {
-			isNewlyListedProtocol = false
-		}
-
-		if (isNewlyListedProtocol && !data.isParentProtocol) {
-			const hourlyData = await fetchWithErrorLogging(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((res) => res.json())
-
-			return { ...hourlyData, isHourlyChart: true }
-		} else return data
-	} catch (e) {
-		console.log(`[ERROR] [${Date.now() - start}ms] <${PROTOCOL_API}/${protocolName}>`, e)
-
-		return null
-	}
-}
 
 export const getAllProtocolEmissionsWithHistory = async ({
 	startDate,

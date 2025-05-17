@@ -140,7 +140,7 @@ export const fetchAndFormatGovernanceData = async (
 	return data.map((item) => (item.status === 'fulfilled' ? item.value : null)).filter((item) => !!item)
 }
 
-export function GovernanceData({ apis = [], color }: { apis: Array<string>; color: string }) {
+export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 	const [apiCategoryIndex, setApiCategoryIndex] = React.useState<number>(0)
 
 	const { data, isLoading } = useQuery({
@@ -162,22 +162,21 @@ export function GovernanceData({ apis = [], color }: { apis: Array<string>; colo
 	)
 
 	return data && data.length > 0 ? (
-		<div className="flex flex-col gap-7 max-w-[calc(100vw-8px)] lg:!max-w-[calc(100vw-276-32px)] p-4">
+		<div className="flex flex-col">
 			{apisByCategory.length > 1 ? (
-				<div
-					className="flex items-center gap-1 p-1 rounded-md overflow-x-auto w-full max-w-fit ml-auto"
-					style={{ backgroundColor: transparentize(0.8, color) }}
-				>
-					{apisByCategory.map((apiCat, index) => (
-						<button
-							key={apiCat + 'governance-table-filter'}
-							onClick={() => setApiCategoryIndex(index)}
-							data-active={apiCategoryIndex === index}
-							className="rounded-md flex-shrink-0 py-[6px] px-2 data-[active=true]:bg-white/50 dark:data-[active=true]:bg-white/10"
-						>
-							{apiCat}
-						</button>
-					))}
+				<div className="p-4">
+					<div className="ml-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+						{apisByCategory.map((apiCat, index) => (
+							<button
+								key={apiCat + 'governance-table-filter'}
+								onClick={() => setApiCategoryIndex(index)}
+								data-active={apiCategoryIndex === index}
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+							>
+								{apiCat}
+							</button>
+						))}
+					</div>
 				</div>
 			) : null}
 

@@ -1,14 +1,11 @@
 import ProtocolContainer from '~/containers/ProtocolOverview'
-import { tokenIconPaletteUrl } from '~/utils'
-import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
-import { getProtocol, fuseProtocolData } from '~/api/categories/protocols'
+import { fuseProtocolData } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
-import { DummyProtocol } from '~/containers/ProtocolOverview/Dummy'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import { cexData } from '../../cexs'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocolPageStyles } from '~/api/categories/protocols/getProtocolData'
+import { getProtocol, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/assets/[...cex]',
@@ -18,23 +15,22 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		// if cex is not string, return 404
-		if (
-			typeof exchangeName !== 'string' ||
-			!cexData.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())
-		) {
+		const exchangeData = cexData.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())
+		if (typeof exchangeName !== 'string' || !exchangeData) {
 			return {
 				notFound: true
 			}
 		}
 
-		const [protocolRes, articles]: [IProtocolResponse, IArticle[]] = await Promise.all([
+		const [protocolRes, articles, pageStyles]: [IProtocolResponse, IArticle[], any] = await Promise.all([
 			getProtocol(exchangeName),
-			fetchArticles({ tags: exchangeName })
+			fetchArticles({ tags: exchangeName }),
+			getProtocolPageStyles(exchangeData.name)
 		])
 
 		let inflowsExist = false
 
-		let cexCoin = cexData.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())?.coin
+		let cexCoin = exchangeData?.coin
 
 		if (protocolRes?.chainTvls) {
 			if (cexCoin) {
@@ -69,14 +65,13 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const protocolData = fuseProtocolData(protocolRes)
-
-		const backgroundColor = await getColor(tokenIconPaletteUrl(protocolData.name))
+		const backgroundColor = pageStyles['--primary-color']
 
 		return {
 			props: {
 				articles,
 				protocol: exchangeName,
-				protocolData: { ...protocolData, metrics: { ...protocolData.metrics, inflows: inflowsExist } },
+				protocolData: { ...protocolData },
 				backgroundColor,
 				chartColors: { TVL: backgroundColor },
 				methodologyUrls: {
@@ -84,7 +79,8 @@ export const getStaticProps = withPerformanceLogging(
 						? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 						: null
 				},
-				pageStyles: getProtocolPageStyles(backgroundColor)
+				metrics: { tvl: true },
+				pageStyles
 			},
 			revalidate: !protocolRes ? 0 : maxAgeForNext([22])
 		}
@@ -96,17 +92,6 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ protocolData, ...props }) {
-	if (protocolData.module === 'dummy.js') {
-		return (
-			<DummyProtocol
-				data={protocolData}
-				title={`${protocolData.name} - DefiLlama`}
-				backgroundColor={props.backgroundColor}
-				protocol={props.protocol}
-			/>
-		)
-	}
-
 	return (
 		<ProtocolContainer
 			title={`${protocolData.name} - DefiLlama`}
