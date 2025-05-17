@@ -57,25 +57,22 @@ export const getChartDataByChainAndInterval = ({
 		}
 
 		const dataByChain = {}
+
 		for (const { date, ...items } of chartData[0]) {
 			const finalDate = +date * 1e3
 
-			// for (const chain of selectedChains) {
-			// 	dataByChain[chain] = dataByChain[chain] || []
-			// 	dataByChain[chain].push([finalDate, sumByDate ? (Number(items[chain] || 0) / sumByDate[finalDate]) * 100 : 0])
-			// }
-
-			for (const chain in items) {
-				if (selectedChains.includes(chain)) {
-					dataByChain[chain] = dataByChain[chain] || []
-					dataByChain[chain].push([finalDate, sumByDate ? (Number(items[chain] || 0) / sumByDate[finalDate]) * 100 : 0])
-				}
+			for (const chain of selectedChains) {
+				dataByChain[chain] = dataByChain[chain] || []
+				dataByChain[chain].push([
+					finalDate,
+					sumByDate && items[chain] != null ? (Number(items[chain] || 0) / sumByDate[finalDate]) * 100 : null
+				])
 			}
 		}
 
 		const allColors = getNDistinctColors(selectedChains.length + 1, '#1f67d2')
 		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-		stackColors[selectedChains[0]] = '#1f67d2'
+		stackColors['Bitcoin'] = '#1f67d2'
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		return {

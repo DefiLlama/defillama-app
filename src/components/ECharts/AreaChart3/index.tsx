@@ -35,7 +35,6 @@ export default function AreaChart3({
 					focus: 'series',
 					shadowBlur: 10
 				},
-				connectNulls: true,
 				itemStyle: {
 					color: stackColors[stack] ?? (isThemeDark ? '#000000' : '#ffffff')
 				},
@@ -110,7 +109,7 @@ export default function AreaChart3({
 		}
 
 		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
-
+		console.log({ xAxis })
 		chartInstance.setOption({
 			graphic,
 			tooltip,

@@ -254,7 +254,6 @@ export function useDefaults({
 		const xAxis = {
 			type: 'time',
 			boundaryGap: false,
-			scale: true,
 			nameTextStyle: {
 				fontFamily: 'sans-serif',
 				fontSize: 14,

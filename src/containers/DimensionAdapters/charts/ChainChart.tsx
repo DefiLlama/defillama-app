@@ -106,7 +106,13 @@ export const ChainByAdapterChart = ({
 			{totalDataChart ? (
 				<div className="min-h-[360px]">
 					{chartType === 'Dominance' ? (
-						<AreaChart3 chartData={finalChartData} stackColors={stackColors} valueSymbol="%" expandTo100Percent />
+						<AreaChart3
+							chartData={finalChartData}
+							stackColors={stackColors}
+							valueSymbol="%"
+							expandTo100Percent
+							chartOptions={chartOptions}
+						/>
 					) : (
 						<BarChart2
 							chartData={finalChartData}
