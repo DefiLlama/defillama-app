@@ -20,9 +20,8 @@ export const useGetDimensionAdapterChartData = ({
 		queryFn: !disabled
 			? () =>
 					getDimensionProtocolPageData({ protocolName, adapterType }).then((data) => {
-						console.log({ data })
 						if (!data || data.totalDataChart[0].length === 0) return null
-						return [data.totalDataChart[0], data.totalDataChart[1]]
+						return data
 					})
 			: () => null,
 		staleTime: 60 * 60 * 1000,

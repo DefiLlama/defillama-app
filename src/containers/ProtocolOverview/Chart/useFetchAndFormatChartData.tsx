@@ -417,7 +417,7 @@ export function useFetchAndFormatChartData({
 		if (volumeData) {
 			chartsUnique.push('Volume')
 
-			for (const item of volumeData[0]) {
+			for (const item of volumeData.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -432,7 +432,7 @@ export function useFetchAndFormatChartData({
 		if (perpsVolumeData) {
 			chartsUnique.push('Perps Volume')
 
-			for (const item of perpsVolumeData[0]) {
+			for (const item of perpsVolumeData.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -447,7 +447,7 @@ export function useFetchAndFormatChartData({
 		if (optionsVolumeData) {
 			chartsUnique.push('Premium Volume')
 
-			for (const item of optionsVolumeData[0]) {
+			for (const item of optionsVolumeData.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -462,7 +462,7 @@ export function useFetchAndFormatChartData({
 		if (aggregatorsVolumeData) {
 			chartsUnique.push('Aggregators Volume')
 
-			for (const item of aggregatorsVolumeData[0]) {
+			for (const item of aggregatorsVolumeData.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -477,7 +477,7 @@ export function useFetchAndFormatChartData({
 		if (perpsAggregatorsVolumeData) {
 			chartsUnique.push('Perps Aggregators Volume')
 
-			for (const item of perpsAggregatorsVolumeData[0]) {
+			for (const item of perpsAggregatorsVolumeData.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -492,7 +492,7 @@ export function useFetchAndFormatChartData({
 		if (bridgeAggregatorsVolumeData) {
 			chartsUnique.push('Bridge Aggregators Volume')
 
-			for (const item of bridgeAggregatorsVolumeData[0]) {
+			for (const item of bridgeAggregatorsVolumeData.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -513,7 +513,7 @@ export function useFetchAndFormatChartData({
 				chartsUnique.push('Revenue')
 			}
 
-			for (const item of feesAndRevenue[0]) {
+			for (const item of feesAndRevenue.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }

@@ -58,6 +58,8 @@ export interface IChart2Props {
 	}
 	groupBy?: 'daily' | 'weekly' | 'monthly'
 	hallmarks?: [number, string][]
+	expandTo100Percent?: boolean
+	valueSymbol?: string
 }
 
 export interface IPieChartProps {

@@ -4,13 +4,22 @@ import type { IChart2Props } from '../types'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
-export default function AreaChart3({ chartData, chartOptions, height, stackColors, hallmarks }: IChart2Props) {
+export default function AreaChart3({
+	chartData,
+	chartOptions,
+	height,
+	stackColors,
+	hallmarks,
+	expandTo100Percent,
+	valueSymbol
+}: IChart2Props) {
 	const id = useId()
 
 	const [isThemeDark] = useDarkModeManager()
 
 	const defaultChartSettings = useDefaults({
-		isThemeDark
+		isThemeDark,
+		valueSymbol
 	})
 
 	const series = useMemo(() => {
@@ -20,27 +29,35 @@ export default function AreaChart3({ chartData, chartOptions, height, stackColor
 			series.push({
 				name: stack,
 				type: 'line',
-				stack,
+				stack: expandTo100Percent ? 'A' : stack,
 				symbol: 'none',
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
 				},
+				connectNulls: true,
 				itemStyle: {
 					color: stackColors[stack] ?? (isThemeDark ? '#000000' : '#ffffff')
 				},
-				areaStyle: {
-					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-						{
-							offset: 0,
-							color: stackColors[stack] ?? (isThemeDark ? '#000000' : '#ffffff')
-						},
-						{
-							offset: 1,
-							color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-						}
-					])
-				},
+				areaStyle: expandTo100Percent
+					? {}
+					: {
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+								{
+									offset: 0,
+									color: stackColors[stack] ?? (isThemeDark ? '#000000' : '#ffffff')
+								},
+								{
+									offset: 1,
+									color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+								}
+							])
+					  },
+				lineStyle: expandTo100Percent
+					? {
+							width: 0
+					  }
+					: {},
 				data: chartData[stack]
 			})
 		}
@@ -68,7 +85,7 @@ export default function AreaChart3({ chartData, chartOptions, height, stackColor
 			}
 		}
 		return series
-	}, [chartData, stackColors, isThemeDark])
+	}, [chartData, stackColors, isThemeDark, expandTo100Percent, hallmarks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -106,7 +123,10 @@ export default function AreaChart3({ chartData, chartOptions, height, stackColor
 				containLabel: true
 			},
 			xAxis,
-			yAxis,
+			yAxis: {
+				...yAxis,
+				...(expandTo100Percent ? { max: 100, min: 0 } : {})
+			},
 			dataZoom,
 			series
 		})
@@ -121,7 +141,7 @@ export default function AreaChart3({ chartData, chartOptions, height, stackColor
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions])
+	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent])
 
 	return <div id={id} className="min-h-[360px]" style={height ? { height } : undefined}></div>
 }

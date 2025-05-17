@@ -33,58 +33,6 @@ export const INTERVALS_LIST: DataIntervalType[] = [...GROUP_INTERVALS_LIST, 'Cum
 export type ChartType = 'Volume' | 'Dominance'
 export const GROUP_CHART_LIST: ChartType[] = ['Volume', 'Dominance']
 
-export const aggregateDataByInterval =
-	(barInterval: DataIntervalType, chartData: IDimensionChainChartProps['chartData']) => () => {
-		if (barInterval === 'Cumulative') {
-			let cumulativeData = {}
-
-			let currentDate
-
-			const cumulativeStore = {}
-
-			chartData[0].forEach(({ date, ...metricsOnDay }) => {
-				if (!currentDate || currentDate < +date) {
-					currentDate = +date
-				}
-
-				chartData[1].forEach((chartType) => {
-					if (!cumulativeData[date]) {
-						cumulativeData[date] = {}
-					}
-
-					cumulativeStore[chartType] = (cumulativeStore[chartType] || 0) + (+metricsOnDay[chartType] || 0)
-
-					cumulativeData[currentDate][chartType] = cumulativeStore[chartType]
-				})
-			})
-
-			return Object.entries(cumulativeData).map(([date, values]: [string, { [key: string]: number }]) => ({
-				date,
-				...values
-			}))
-		}
-
-		let cleanTimestampFormatter: (timestampInSeconds: number) => number
-		if (barInterval === 'Monthly')
-			cleanTimestampFormatter = (timestampInSeconds) => firstDayOfMonth(timestampInSeconds * 1000)
-		else if (barInterval === 'Weekly')
-			cleanTimestampFormatter = (timestampInSeconds) => lastDayOfWeek(timestampInSeconds * 1000)
-		else cleanTimestampFormatter = (timestampInSeconds: number) => timestampInSeconds
-
-		const monthBarsDataMap = chartData[0].reduce((acc, current) => {
-			const cleanDate = cleanTimestampFormatter(+current.date)
-			acc[cleanDate] = Object.entries(current).reduce((intervalAcc, [label, value]) => {
-				if (typeof value === 'string') return intervalAcc
-				const v = ((intervalAcc[label] as number) ?? 0) + value
-				if (v !== 0) intervalAcc[label] = v
-				return intervalAcc
-			}, acc[cleanDate] ?? ({} as typeof acc[number]))
-			return acc
-		}, {} as typeof chartData[0])
-
-		return Object.entries(monthBarsDataMap).map(([date, bar]) => ({ ...bar, date }))
-	}
-
 export const getChartDataByChainAndInterval = ({
 	chartData,
 	chartInterval,
@@ -93,25 +41,89 @@ export const getChartDataByChainAndInterval = ({
 }: {
 	chartData: IDimensionChainChartProps['chartData']
 	chartInterval: DataIntervalType
-	chartType: ChartType
+	chartType?: ChartType
 	selectedChains: string[]
 }) => {
 	if (chartType === 'Dominance') {
+		const sumByDate = {}
+		for (const { date, ...items } of chartData[0]) {
+			const finalDate = +date * 1e3
+
+			for (const chain in items) {
+				if (selectedChains.includes(chain)) {
+					sumByDate[finalDate] = (sumByDate[finalDate] || 0) + (items[chain] || 0)
+				}
+			}
+		}
+
+		const dataByChain = {}
+		for (const { date, ...items } of chartData[0]) {
+			const finalDate = +date * 1e3
+
+			// for (const chain of selectedChains) {
+			// 	dataByChain[chain] = dataByChain[chain] || []
+			// 	dataByChain[chain].push([finalDate, sumByDate ? (Number(items[chain] || 0) / sumByDate[finalDate]) * 100 : 0])
+			// }
+
+			for (const chain in items) {
+				if (selectedChains.includes(chain)) {
+					dataByChain[chain] = dataByChain[chain] || []
+					dataByChain[chain].push([finalDate, sumByDate ? (Number(items[chain] || 0) / sumByDate[finalDate]) * 100 : 0])
+				}
+			}
+		}
+
+		const allColors = getNDistinctColors(selectedChains.length + 1, '#1f67d2')
+		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
+		stackColors[selectedChains[0]] = '#1f67d2'
+		stackColors['Others'] = allColors[allColors.length - 1]
+
 		return {
-			chartData: aggregateDataByInterval(chartInterval, [...chartData])(),
-			stackColors: {},
+			chartData: dataByChain,
+			stackColors,
 			chartOptions: {}
 		}
 	}
+
+	if (chartInterval === 'Cumulative') {
+		const cumulativeByChain = {}
+		const dataByChain = {}
+
+		for (const { date, ...items } of chartData[0]) {
+			const finalDate = +date * 1e3
+
+			for (const chain in items) {
+				if (selectedChains.includes(chain)) {
+					cumulativeByChain[chain] = (cumulativeByChain[chain] || 0) + (items[chain] || 0)
+					dataByChain[chain] = dataByChain[chain] || []
+					dataByChain[chain].push([finalDate, cumulativeByChain[chain]])
+				}
+			}
+		}
+
+		const allColors = getNDistinctColors(selectedChains.length + 1, '#1f67d2')
+		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
+		stackColors[selectedChains[0]] = '#1f67d2'
+		stackColors['Others'] = allColors[allColors.length - 1]
+
+		return {
+			chartData: dataByChain,
+			stackColors,
+			chartOptions: {}
+		}
+	}
+
 	const topByAllDates = {}
+
 	const uniqTopChains = new Set<string>()
 	for (const { date, ...items } of chartData[0]) {
 		const finalDate =
-			chartInterval === 'Daily'
-				? +date * 1e3
-				: chartInterval === 'Weekly'
+			chartInterval === 'Weekly'
 				? lastDayOfWeek(+date * 1e3) * 1e3
-				: firstDayOfMonth(+date * 1e3) * 1e3
+				: chartInterval === 'Monthly'
+				? firstDayOfMonth(+date * 1e3) * 1e3
+				: +date * 1e3
+
 		const topByDate = {}
 		let others = 0
 		const topItems = []
