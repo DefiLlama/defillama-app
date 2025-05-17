@@ -1,31 +1,6 @@
-import { IJoin2ReturnType } from '~/api/categories/adaptors'
-import { ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
-import { chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
-import { IDimensionChartTypes } from '../types'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek } from '~/utils'
 import { IDimensionChainChartProps } from '../types'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
-
-export const chartFormatterBy = (chartType: IDimensionChartTypes) => {
-	switch (chartType) {
-		case 'version':
-			return (
-				_mainChart: [IJoin2ReturnType, string[]],
-				totalDataChartBreakdown: ProtocolAdaptorSummaryResponse['totalDataChartBreakdown']
-			) => chartBreakdownByVersion(totalDataChartBreakdown ?? [])
-		case 'tokens':
-			return (
-				_mainChart: [IJoin2ReturnType, string[]],
-				totalDataChartBreakdown: ProtocolAdaptorSummaryResponse['totalDataChartBreakdown']
-			) => chartBreakdownByTokens(totalDataChartBreakdown ?? [])
-		case 'chain':
-		default:
-			return (
-				mainChart: [IJoin2ReturnType, string[]],
-				_totalDataChartBreakdown: ProtocolAdaptorSummaryResponse['totalDataChartBreakdown']
-			): [IJoin2ReturnType, string[]] => mainChart
-	}
-}
 
 export type DataIntervalType = 'Daily' | 'Weekly' | 'Monthly' | string
 export const GROUP_INTERVALS_LIST: DataIntervalType[] = ['Daily', 'Weekly', 'Monthly']
