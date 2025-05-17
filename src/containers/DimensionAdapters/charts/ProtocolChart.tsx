@@ -89,6 +89,49 @@ export const DimensionProtocolOverviewChart = ({
 			}
 		}
 
+		if (totalDataChart[1].includes('Notional volume')) {
+			const chartData = {
+				['Notional Volume']: {},
+				['Premium Volume']: {}
+			}
+
+			let cumulativeNotionalVolume = 0
+			let cumulativePremiumVolume = 0
+
+			totalDataChart[0].forEach(({ date, ...metrics }) => {
+				const finalDate = formatDate(date)
+				let notionalVolume = (metrics['Notional volume'] as number) ?? 0
+				let premiumVolume = (metrics['Premium volume'] as number) ?? 0
+
+				chartData['Notional Volume'][finalDate] =
+					(chartData['Notional Volume'][finalDate] || 0) + notionalVolume + cumulativeNotionalVolume
+				chartData['Premium Volume'][finalDate] =
+					(chartData['Premium Volume'][finalDate] || 0) + premiumVolume + cumulativePremiumVolume
+
+				if (chartInterval === 'Cumulative') {
+					cumulativeNotionalVolume += notionalVolume
+					cumulativePremiumVolume += premiumVolume
+				}
+			})
+
+			const finalChartData = {}
+
+			for (const chartType in chartData) {
+				finalChartData[chartType] = []
+				for (const date in chartData[chartType]) {
+					finalChartData[chartType].push([+date, chartData[chartType][date]])
+				}
+			}
+
+			return {
+				chartData: finalChartData,
+				stackColors: {
+					'Notional Volume': '#1f67d2',
+					'Premium Volume': '#E59421'
+				}
+			}
+		}
+
 		if (chartInterval !== 'Daily') {
 			const chartData = {}
 			let cumulativeVolume = 0

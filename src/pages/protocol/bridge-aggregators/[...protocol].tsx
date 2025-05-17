@@ -42,7 +42,7 @@ export const getStaticProps = withPerformanceLogging(
 				pageStyles,
 				metrics,
 				adaptorChains: adapterData?.chains ?? [],
-				adaptorVersions: adapterData?.linkedProtocols ?? []
+				adaptorVersions: adapterData?.linkedProtocols?.slice(1) ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -70,14 +70,14 @@ export default function Protocols(props) {
 						protocolName={slug(props.name)}
 						adapterType="bridge-aggregators"
 					/>
-					{props.adaptorChains.length > 0 ? (
+					{props.adaptorChains.length > 1 ? (
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
 							adapterType="bridge-aggregators"
 						/>
 					) : null}
-					{props.adaptorVersions.length > 0 ? (
+					{props.adaptorVersions.length > 1 ? (
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}

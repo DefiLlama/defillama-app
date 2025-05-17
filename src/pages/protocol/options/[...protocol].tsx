@@ -42,7 +42,7 @@ export const getStaticProps = withPerformanceLogging(
 				pageStyles,
 				metrics,
 				adaptorChains: adapterData?.chains ?? [],
-				adaptorVersions: adapterData?.linkedProtocols ?? []
+				adaptorVersions: adapterData?.linkedProtocols?.slice(1) ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -66,10 +66,10 @@ export default function Protocols(props) {
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
 					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="options" />
-					{props.adaptorChains.length > 0 ? (
+					{props.adaptorChains.length > 1 ? (
 						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} adapterType="options" />
 					) : null}
-					{props.adaptorVersions.length > 0 ? (
+					{props.adaptorVersions.length > 1 ? (
 						<DimensionProtocolChartByType chartType="version" protocolName={slug(props.name)} adapterType="options" />
 					) : null}
 				</div>
