@@ -129,7 +129,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 										? `Last day revenue (${formatTimestampAsDate(
 												+totalDataChart[0][totalDataChart[0].length - 1].date
 										  )})`
-										: `${type === 'options' ? 'Premium Volume' : 'Revenue'} (24h)`}
+										: `${type === 'options' ? 'Notional Volume' : 'Revenue'} (24h)`}
 								</span>
 								<span className="font-jetbrains font-semibold text-2xl">
 									{formattedNum(

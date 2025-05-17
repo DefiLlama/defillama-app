@@ -112,7 +112,7 @@ export const getDimensionProtocolPageData = async ({
 	if (adapterType === 'volumes') {
 		label = 'Volume'
 	} else if (adapterType === 'options') {
-		label = 'Notional volume'
+		label = 'Premium volume'
 	} else {
 		label = capitalizeFirstLetter(adapterType)
 	}
@@ -128,8 +128,8 @@ export const getDimensionProtocolPageData = async ({
 		if (metadata?.tokenTax) promises.push(getOverviewItem(adapterType, protocolName, 'dailyTokenTaxes'))
 		secondLabel = 'Revenue'
 	} else if (adapterType === 'options') {
-		promises.push(getOverviewItem(adapterType, protocolName, 'dailyPremiumVolume'))
-		secondLabel = 'Premium volume'
+		promises.push(getOverviewItem(adapterType, protocolName, 'dailyNotionalVolume'))
+		secondLabel = 'Notional volume'
 	}
 	const [firstType, secondType, thirdType, fourthType] = await Promise.all(promises)
 
