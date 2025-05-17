@@ -44,7 +44,8 @@ export const getStaticProps = withPerformanceLogging(
 	async ({ params }: GetStaticPropsContext<{ item: string }>) => {
 		const protocol = slug(params.item)
 
-		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)?.[1]
+		const normalizedName = slug(protocol)
+		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
 
 		if (!metadata?.[ADAPTOR_TYPE] && !chainMetadata[protocol]?.chainFees) {
 			return { notFound: true, props: null }

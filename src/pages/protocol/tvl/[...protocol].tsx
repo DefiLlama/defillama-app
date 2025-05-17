@@ -20,7 +20,8 @@ export const getStaticProps = withPerformanceLogging(
 			isHot = await isCpusHot()
 		}
 
-		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)?.[1]
+		const normalizedName = slug(protocol)
+		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
 
 		const protocolData = await getProtocol(protocol)
 		const data = await getProtocolData(protocol, protocolData, isHot, metadata)

@@ -21,7 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.json(cachedData)
 	}
 
-	const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)?.[1]
+	const normalizedName = slug(protocol)
+	const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
 
 	if (!metadata) {
 		return res.status(404).json({ error: 'Protocol not found' })
