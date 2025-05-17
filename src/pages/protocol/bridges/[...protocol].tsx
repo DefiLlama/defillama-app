@@ -4,6 +4,7 @@ import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/contai
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { BridgeContainerOnClient } from '~/containers/Bridges/BridgeProtocolOverview'
+import { slug } from '~/utils'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(

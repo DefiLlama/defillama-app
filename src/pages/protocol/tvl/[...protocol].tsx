@@ -4,6 +4,7 @@ import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
 import { isCpusHot } from '~/utils/cache-client'
 import metadata from '~/utils/metadata'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
+import { slug } from '~/utils'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(

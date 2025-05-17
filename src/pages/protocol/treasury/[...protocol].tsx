@@ -4,6 +4,7 @@ import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/contai
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { TreasuryChart } from '~/containers/ProtocolOverview/Treasury'
 import { maxAgeForNext } from '~/api'
+import { slug } from '~/utils'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
