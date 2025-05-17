@@ -1,9 +1,12 @@
-import ProtocolContainer from '~/containers/ProtocolOverview'
 import { withPerformanceLogging } from '~/utils/perf'
-import { isCpusHot } from '~/utils/cache-client'
 import metadata from '~/utils/metadata'
-import { getProtocol } from '~/containers/ProtocolOverview/queries'
-import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
+import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
+import { ProtocolPools } from '~/containers/ProtocolOverview/Yields'
+import { maxAgeForNext } from '~/api'
+import { YIELD_POOLS_API } from '~/constants'
+import { fetchWithErrorLogging } from '~/utils/async'
+import { slug } from '~/utils'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
@@ -13,22 +16,54 @@ export const getStaticProps = withPerformanceLogging(
 			protocol: [protocol]
 		}
 	}) => {
-		let isHot = false
-		const IS_RUNTIME = !!process.env.IS_RUNTIME
-
-		if (IS_RUNTIME) {
-			isHot = await isCpusHot()
-		}
-
 		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)?.[1]
 
-		if (!metadata) {
+		if (!metadata || !metadata.yields) {
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
-		const data = await getProtocolData(protocol, protocolData, isHot, metadata)
-		return data
+		const [protocolData, pageStyles, yields] = await Promise.all([
+			getProtocol(protocol),
+			getProtocolPageStyles(metadata.name),
+			fetchWithErrorLogging(YIELD_POOLS_API)
+				.then((res) => res.json())
+				.catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
+					return {}
+				})
+		])
+
+		if (!protocolData) {
+			return { notFound: true, props: null }
+		}
+
+		const metrics = getProtocolMetrics({ protocolData, metadata })
+
+		const otherProtocols = protocolData?.otherProtocols?.map((p) => slug(p)) ?? []
+
+		const projectYields = yields?.data?.filter(
+			({ project }) =>
+				project === metadata.name || (protocolData.parentProtocol ? false : otherProtocols.includes(project))
+		)
+
+		return {
+			props: {
+				name: protocolData.name,
+				parentProtocol: protocolData.parentProtocol ?? null,
+				otherProtocols: protocolData.otherProtocols ?? [],
+				category: protocolData.category ?? null,
+				pageStyles,
+				metrics,
+				yields:
+					yields && yields.data && projectYields.length > 0
+						? {
+								noOfPoolsTracked: projectYields.length,
+								averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
+						  }
+						: null
+			},
+			revalidate: maxAgeForNext([22])
+		}
 	}
 )
 
@@ -36,13 +71,24 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols({ clientSide, protocolData, ...props }) {
+export default function Protocols(props) {
 	return (
-		<ProtocolContainer
-			title={`${protocolData.name} - DefiLlama`}
-			protocolData={protocolData}
-			{...(props as any)}
+		<ProtocolOverviewLayout
+			name={props.name}
+			category={props.category}
+			otherProtocols={props.otherProtocols}
+			metrics={props.metrics}
+			pageStyles={props.pageStyles}
 			tab="yields"
-		/>
+		>
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<ProtocolPools
+					data={props.yields}
+					protocol={props.name}
+					parentProtocol={props.parentProtocol}
+					otherProtocols={props.otherProtocols}
+				/>
+			</div>
+		</ProtocolOverviewLayout>
 	)
 }

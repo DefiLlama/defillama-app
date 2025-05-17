@@ -27,5 +27,13 @@ export async function getStaticPaths() {
 }
 
 export default function Forks(props) {
-	return <ForksByProtocol {...props} />
+	return (
+		<Layout title={`Forks - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
+			{tokenLinks?.length > 0 && (
+				<RowLinksWithDropdown links={tokenLinks} activeLink={token} alternativeOthersText="Others" />
+			)}
+			<ForksByProtocol {...props} />
+		</Layout>
+	)
 }

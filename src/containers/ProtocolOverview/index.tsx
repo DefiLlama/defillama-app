@@ -22,23 +22,16 @@ import { formatTvlsByChain, formatRaisedAmount, formatRaise, useFetchProtocolAdd
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
 import { DLNewsLogo } from '~/components/News/Logo'
-import { BridgeContainerOnClient } from '~/containers/Bridges/BridgeProtocolOverview'
 import { Flag } from './Flag'
 import { sluggify } from '~/utils/cache-client'
 import dayjs from 'dayjs'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ProtocolPools } from './Yields'
-import { TreasuryChart } from './Treasury'
-import { UnlocksCharts } from './Emissions'
-import { StablecoinInfo } from './Stablecoin'
 import { ForksData } from './Forks'
-import { GovernanceData } from './Governance'
 import { feesOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { RowWithSubRows } from './RowWithSubRows'
 import { Tooltip } from '~/components/Tooltip'
 import { ProtocolOverviewLayout } from './Layout'
-import { IProtocolMetadata } from '../ChainOverview/types'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -168,7 +161,6 @@ const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 const ProtocolContainer = ({
 	articles,
 	devMetrics,
-	title,
 	protocolData,
 	treasury,
 	protocol,
@@ -1650,41 +1642,6 @@ const ProtocolContainer = ({
 							)}
 						</>
 					)}
-				</div>
-			) : null}
-			{stablecoins && stablecoins.length > 0 && tab === 'stablecoins' ? (
-				<div className="bg-[var(--cards-bg)] rounded-md">
-					<StablecoinInfo assetName={stablecoins[0]} />
-				</div>
-			) : null}
-			{metrics.bridge && tab === 'bridges' ? (
-				<div className="bg-[var(--cards-bg)] rounded-md">
-					<BridgeContainerOnClient protocol={protocol} />
-				</div>
-			) : null}
-			{treasury && tab === 'treasury' ? (
-				<div className="bg-[var(--cards-bg)] rounded-md">
-					<TreasuryChart protocolName={protocol} />
-				</div>
-			) : null}
-			{metrics.unlocks && tab === 'unlocks' ? (
-				<div className="bg-[var(--cards-bg)] rounded-md">
-					<UnlocksCharts protocolName={protocol} />
-				</div>
-			) : null}
-			{metrics.yields && tab === 'yields' ? (
-				<div className="bg-[var(--cards-bg)] rounded-md">
-					<ProtocolPools data={yields} protocol={protocol} protocolData={protocolData} />
-				</div>
-			) : null}
-			{governanceApis?.length > 0 && tab === 'governance' ? (
-				<div className="bg-[var(--cards-bg)] rounded-md">
-					<GovernanceData apis={governanceApis} color={backgroundColor} />
-				</div>
-			) : null}
-			{metrics.forks && tab === 'forks' ? (
-				<div className="bg-[var(--cards-bg)] rounded-md">
-					<ForksData protocolName={name} />
 				</div>
 			) : null}
 		</ProtocolOverviewLayout>

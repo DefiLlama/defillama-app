@@ -11,7 +11,7 @@ import { EmbedChart } from '~/components/EmbedChart'
 import { IFusedProtocolData, NftVolumeData } from '~/api/types'
 import { transparentize } from 'polished'
 
-const AreaChart = dynamic(() => import('.'), {
+const AreaChart = dynamic(() => import('./Chart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 

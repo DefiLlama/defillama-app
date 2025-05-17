@@ -42,7 +42,7 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
 	return (
-		<div className="flex flex-col gap-1 col-span-full xl:col-span-1" id="emissions">
+		<div className="flex flex-col gap-1 col-span-full xl:col-span-1">
 			{!isEmissionsPage && <h3>Emissions</h3>}
 			<ChartContainer data={data} isEmissionsPage={isEmissionsPage} />
 		</div>

@@ -18,9 +18,5 @@ export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 		return <p className="my-[180px] text-center">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
 	}
 
-	return (
-		<div className="flex flex-col gap-4 p-4">
-			<PeggedAssetInfo {...data.props} backgroundColor={primaryColor} />
-		</div>
-	)
+	return <PeggedAssetInfo {...data.props} backgroundColor={primaryColor} />
 }
