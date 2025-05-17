@@ -22,7 +22,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	return (
-		<nav className="z-10 fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-[var(--app-bg)] hidden lg:flex flex-col w-[244px] gap-1 p-4 no-scrollbar">
+		<nav className="z-10 fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-[var(--app-bg)] hidden lg:flex flex-col w-[244px] gap-1 p-4 pl-0 *:pl-4 no-scrollbar">
 			<Link href="/" passHref>
 				<a className="flex-shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
