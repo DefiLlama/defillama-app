@@ -4,10 +4,10 @@ import { IChart2Props, IChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { DataIntervalType, INTERVALS_LIST } from './utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek } from '~/utils'
-import { IDimensionChartTypes } from '../types'
+import { firstDayOfMonth, lastDayOfWeek } from '~/utils'
 import { ADAPTOR_TYPES } from '../constants'
-import { useGetOverviewChartData } from './hooks'
+import { useGetDimensionAdapterChartData } from './hooks'
+import { LazyChart } from '~/components/LazyChart'
 
 const BarChart2 = dynamic(() => import('~/components/ECharts/BarChart2'), {
 	ssr: false,
@@ -20,9 +20,11 @@ const AreaChart3 = dynamic(() => import('~/components/ECharts/AreaChart3'), {
 }) as React.FC<IChartProps>
 
 export const DimensionProtocolOverviewChart = ({
-	totalDataChart
+	totalDataChart,
+	title
 }: {
 	totalDataChart: [IJoin2ReturnType, string[]]
+	title?: string
 }) => {
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 	const [chartInterval, changeChartInterval] = React.useState<DataIntervalType>('Daily')
@@ -117,6 +119,7 @@ export const DimensionProtocolOverviewChart = ({
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
 			<div className="flex items-center justify-end p-3">
+				{title && <h2 className="text-base font-semibold mr-auto">{title}</h2>}
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 					{INTERVALS_LIST.map((dataInterval) => (
 						<button
@@ -143,41 +146,35 @@ export const DimensionProtocolOverviewChart = ({
 	)
 }
 
-const chartTitleBy = (chartType: IDimensionChartTypes, breakdown: boolean) => {
+const chartTitleBy = ({
+	adapterType,
+	chartType
+}: {
+	adapterType: `${ADAPTOR_TYPES}`
+	chartType: 'overview' | 'chain' | 'version'
+}) => {
 	switch (chartType) {
-		case 'version':
-			return (_title: string, type: string) => `${capitalizeFirstLetter(type)} by protocol version`
-		case 'tokens':
-			return (_title: string, type: string) => `${capitalizeFirstLetter(type)} by token`
 		case 'chain':
+			return `${adapterType === 'fees' ? 'Fees' : 'Volume'} by chain`
+		case 'version':
+			return `${adapterType === 'fees' ? 'Fees' : 'Volume'} by protocol version`
 		default:
-			return (title: string, type: string) => {
-				if (type === 'fees' && !breakdown) return `${capitalizeFirstLetter(type)} and revenue`
-				if (type === 'derivatives') return 'Perps' + (breakdown ? ' by chain' : '')
-				if (type === 'aggregator-derivatives') return 'Perps Aggregators' + (breakdown ? ' by chain' : '')
-				return title && title !== ''
-					? title
-					: `${capitalizeFirstLetter(type)}${breakdown ? ' by chain' : ' and revenue'}`
-			}
+			return `${adapterType === 'fees' ? 'Fees' : 'Volume'}`
 	}
 }
 
 export const DimensionProtocolChartByType = ({
-	chartType,
 	protocolName,
-	type,
-	overviewChart
+	adapterType,
+	chartType
 }: {
-	chartType: IDimensionChartTypes
 	protocolName: string
-	type: `${ADAPTOR_TYPES}`
-	overviewChart?: boolean
+	adapterType: `${ADAPTOR_TYPES}`
+	chartType: 'overview' | 'chain' | 'version'
 }) => {
-	const { data, isLoading } = useGetOverviewChartData({
-		name: protocolName,
-		dataToFetch: 'dexs',
-		type: 'chains',
-		enableBreakdownChart: overviewChart ? false : true,
+	const { data, isLoading } = useGetDimensionAdapterChartData({
+		protocolName,
+		adapterType,
 		disabled: false
 	})
 
@@ -185,30 +182,23 @@ export const DimensionProtocolChartByType = ({
 		return <div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]" />
 	}
 
-	if (overviewChart) {
-		// console.log({ data })
-		// return <DimensionProtocolOverviewChart totalDataChart={data.totalDataChart ?? []} />
+	if (chartType === 'overview') {
+		return (
+			<LazyChart
+				enable
+				className="relative col-span-full min-h-[418px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full"
+			>
+				<DimensionProtocolOverviewChart totalDataChart={data} title={chartTitleBy({ adapterType, chartType })} />
+			</LazyChart>
+		)
 	}
-	return null
-	// return !error &&
-	// 	(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
-	// 	<LazyChart
-	// 		enable={fullChart}
-	// 		className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full"
-	// 	>
-	// 		{/* <ProtocolChart
-	// 			logo={protocolSummary?.logo}
-	// 			data={protocolSummary}
-	// 			chartData={chartFormatterBy(props.chartType)(mainChart.dataChart, protocolSummary?.totalDataChartBreakdown)}
-	// 			name={protocolSummary?.displayName}
-	// 			type={protocolSummary?.type ?? props.type}
-	// 			title={fullChart ? chartTitleBy(props.chartType, enableBreakdownChart)(mainChart.title, typeSimple) : undefined}
-	// 			totalAllTime={protocolSummary?.totalAllTime}
-	// 			fullChart={fullChart}
-	// 		/> */}
-	// 		<></>
-	// 	</LazyChart>
-	// ) : (
-	// 	<></>
-	// )
+
+	return (
+		<LazyChart
+			enable
+			className="relative col-span-full min-h-[418px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full"
+		>
+			<DimensionProtocolOverviewChart totalDataChart={data} title={chartTitleBy({ adapterType, chartType })} />
+		</LazyChart>
+	)
 }

@@ -15,7 +15,7 @@ export const fetchChain = async ({ chain }) => {
 		getChainPageData(chain).catch(() => null),
 		getDimensionsAdaptersChainsPageData('dexs').catch(() => null),
 		getDimensionAdapterChainPageData('dexs', chain).catch(() => null),
-		getDimensionProtocolPageData({ type: 'fees', protocolName: chain }).catch(() => null),
+		getDimensionProtocolPageData({ adapterType: 'fees', protocolName: chain }).catch(() => null),
 		fetch(`https://api.llama.fi/userData/users/chain$${chain}`)
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r?.body || null))

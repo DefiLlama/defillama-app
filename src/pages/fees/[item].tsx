@@ -51,7 +51,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const feesData = await getDimensionProtocolPageData({
-			type: ADAPTOR_TYPE,
+			adapterType: ADAPTOR_TYPE,
 			protocolName: protocol,
 			metadata
 		}).catch((e) => console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e))

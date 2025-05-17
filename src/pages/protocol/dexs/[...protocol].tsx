@@ -65,12 +65,12 @@ export default function Protocols(props) {
 		>
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
-					<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} type="dexs" overviewChart />
+					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="dexs" />
 					{props.adaptorChains.length > 0 ? (
-						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} type="dexs" />
+						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} adapterType="dexs" />
 					) : null}
 					{props.adaptorVersions.length > 0 ? (
-						<DimensionProtocolChartByType chartType="version" protocolName={slug(props.name)} type="dexs" />
+						<DimensionProtocolChartByType chartType="version" protocolName={slug(props.name)} adapterType="dexs" />
 					) : null}
 				</div>
 			</div>

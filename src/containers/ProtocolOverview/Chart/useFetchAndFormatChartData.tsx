@@ -14,7 +14,7 @@ import {
 	useFetchProtocolDevMetrics
 } from '~/api/categories/protocols/client'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour } from '~/utils'
-import { useGetOverviewChartData } from '~/containers/DimensionAdapters/charts/hooks'
+import { useGetDimensionAdapterChartData } from '~/containers/DimensionAdapters/charts/hooks'
 import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/Bridges/BridgeProtocolOverview'
 import { fetchWithErrorLogging } from '~/utils/async'
@@ -144,11 +144,9 @@ export function useFetchAndFormatChartData({
 		staleTime: 60 * 60 * 1000
 	})
 
-	const { data: feesAndRevenue, isLoading: fetchingFees } = useGetOverviewChartData({
-		name: protocol,
-		dataToFetch: 'fees',
-		type: 'chains',
-		enableBreakdownChart: false,
+	const { data: feesAndRevenue, isLoading: fetchingFees } = useGetDimensionAdapterChartData({
+		protocolName: protocol,
+		adapterType: 'fees',
 		disabled: isRouterReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
 	})
 
@@ -193,53 +191,43 @@ export function useFetchAndFormatChartData({
 			: null
 	)
 
-	const { data: volumeData, isLoading: fetchingVolume } = useGetOverviewChartData({
-		name: protocol,
-		dataToFetch: 'dexs',
-		type: 'chains',
-		enableBreakdownChart: false,
+	const { data: volumeData, isLoading: fetchingVolume } = useGetDimensionAdapterChartData({
+		protocolName: protocol,
+		adapterType: 'dexs',
 		disabled: isRouterReady && volume === 'true' && metrics.dexs ? false : true
 	})
 
-	const { data: perpsVolumeData, isLoading: fetchingPerpsVolume } = useGetOverviewChartData({
-		name: protocol,
-		dataToFetch: 'derivatives',
-		type: 'chains',
-		enableBreakdownChart: false,
+	const { data: perpsVolumeData, isLoading: fetchingPerpsVolume } = useGetDimensionAdapterChartData({
+		protocolName: protocol,
+		adapterType: 'derivatives',
 		disabled: isRouterReady && perpsVolume === 'true' && metrics.perps ? false : true
 	})
 
-	const { data: optionsVolumeData, isLoading: fetchingOptionsVolume } = useGetOverviewChartData({
-		name: protocol,
-		dataToFetch: 'options',
-		type: 'chains',
-		enableBreakdownChart: false,
+	const { data: optionsVolumeData, isLoading: fetchingOptionsVolume } = useGetDimensionAdapterChartData({
+		protocolName: protocol,
+		adapterType: 'options',
 		disabled: isRouterReady && premiumVolume === 'true' && metrics.options ? false : true
 	})
 
-	const { data: aggregatorsVolumeData, isLoading: fetchingAggregatorsVolume } = useGetOverviewChartData({
-		name: protocol,
-		dataToFetch: 'aggregators',
-		type: 'chains',
-		enableBreakdownChart: false,
+	const { data: aggregatorsVolumeData, isLoading: fetchingAggregatorsVolume } = useGetDimensionAdapterChartData({
+		protocolName: protocol,
+		adapterType: 'aggregators',
 		disabled: isRouterReady && metrics.aggregators && aggregators === 'true' ? false : true
 	})
 
-	const { data: perpsAggregatorsVolumeData, isLoading: fetchingPerpsAggregatorsVolume } = useGetOverviewChartData({
-		name: protocol,
-		dataToFetch: 'aggregator-derivatives',
-		type: 'chains',
-		enableBreakdownChart: false,
-		disabled: isRouterReady && metrics.perpsAggregators && perpsAggregators === 'true' ? false : true
-	})
+	const { data: perpsAggregatorsVolumeData, isLoading: fetchingPerpsAggregatorsVolume } =
+		useGetDimensionAdapterChartData({
+			protocolName: protocol,
+			adapterType: 'derivatives-aggregator',
+			disabled: isRouterReady && metrics.perpsAggregators && perpsAggregators === 'true' ? false : true
+		})
 
-	const { data: bridgeAggregatorsVolumeData, isLoading: fetchingBriddgeAggregatorsVolume } = useGetOverviewChartData({
-		name: protocol,
-		dataToFetch: 'bridge-aggregators',
-		type: 'chains',
-		enableBreakdownChart: false,
-		disabled: isRouterReady && metrics.bridgeAggregators && bridgeAggregators === 'true' ? false : true
-	})
+	const { data: bridgeAggregatorsVolumeData, isLoading: fetchingBriddgeAggregatorsVolume } =
+		useGetDimensionAdapterChartData({
+			protocolName: protocol,
+			adapterType: 'bridge-aggregators',
+			disabled: isRouterReady && metrics.bridgeAggregators && bridgeAggregators === 'true' ? false : true
+		})
 
 	const showNonUsdDenomination =
 		denomination &&
@@ -429,7 +417,7 @@ export function useFetchAndFormatChartData({
 		if (volumeData) {
 			chartsUnique.push('Volume')
 
-			for (const item of volumeData) {
+			for (const item of volumeData[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -444,7 +432,7 @@ export function useFetchAndFormatChartData({
 		if (perpsVolumeData) {
 			chartsUnique.push('Perps Volume')
 
-			for (const item of perpsVolumeData) {
+			for (const item of perpsVolumeData[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -459,7 +447,7 @@ export function useFetchAndFormatChartData({
 		if (optionsVolumeData) {
 			chartsUnique.push('Premium Volume')
 
-			for (const item of optionsVolumeData) {
+			for (const item of optionsVolumeData[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -474,7 +462,7 @@ export function useFetchAndFormatChartData({
 		if (aggregatorsVolumeData) {
 			chartsUnique.push('Aggregators Volume')
 
-			for (const item of aggregatorsVolumeData) {
+			for (const item of aggregatorsVolumeData[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -489,7 +477,7 @@ export function useFetchAndFormatChartData({
 		if (perpsAggregatorsVolumeData) {
 			chartsUnique.push('Perps Aggregators Volume')
 
-			for (const item of perpsAggregatorsVolumeData) {
+			for (const item of perpsAggregatorsVolumeData[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -504,7 +492,7 @@ export function useFetchAndFormatChartData({
 		if (bridgeAggregatorsVolumeData) {
 			chartsUnique.push('Bridge Aggregators Volume')
 
-			for (const item of bridgeAggregatorsVolumeData) {
+			for (const item of bridgeAggregatorsVolumeData[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -525,7 +513,7 @@ export function useFetchAndFormatChartData({
 				chartsUnique.push('Revenue')
 			}
 
-			for (const item of feesAndRevenue) {
+			for (const item of feesAndRevenue[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }

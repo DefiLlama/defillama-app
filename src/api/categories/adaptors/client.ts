@@ -48,7 +48,7 @@ export const useFetchChartsSummary = (type: string, protocolName: string, dataTy
 
 	return useQuery<ProtocolAdaptorSummaryProps>({
 		queryKey: ['adaptors-charts-summary', url],
-		queryFn: url ? () => getDimensionProtocolPageData({ type, protocolName, dataType }) : () => null,
+		queryFn: url ? () => getDimensionProtocolPageData({ adapterType: type, protocolName, dataType }) : () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})

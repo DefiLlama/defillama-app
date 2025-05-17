@@ -98,35 +98,37 @@ export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummary
 }
 
 export const getDimensionProtocolPageData = async ({
-	type,
+	adapterType,
 	protocolName,
 	dataType,
 	metadata
 }: {
-	type: string
+	adapterType: string
 	protocolName: string
 	dataType?: string
 	metadata?: any
 }): Promise<ProtocolAdaptorSummaryProps> => {
 	let label: string
-	if (type === 'volumes') {
+	if (adapterType === 'volumes') {
 		label = 'Volume'
-	} else if (type === 'options') {
+	} else if (adapterType === 'options') {
 		label = 'Notional volume'
 	} else {
-		label = capitalizeFirstLetter(type)
+		label = capitalizeFirstLetter(adapterType)
 	}
 	const allCharts: IChartsList = []
 
 	let secondLabel: string
-	const promises: Promise<ProtocolAdaptorSummaryResponse | null>[] = [getOverviewItem(type, protocolName, dataType)]
-	if (type === 'fees') {
-		promises.push(getOverviewItem(type, protocolName, 'dailyRevenue'))
-		if (metadata?.bribeRevenue) promises.push(getOverviewItem(type, protocolName, 'dailyBribesRevenue'))
-		if (metadata?.tokenTax) promises.push(getOverviewItem(type, protocolName, 'dailyTokenTaxes'))
+	const promises: Promise<ProtocolAdaptorSummaryResponse | null>[] = [
+		getOverviewItem(adapterType, protocolName, dataType)
+	]
+	if (adapterType === 'fees') {
+		promises.push(getOverviewItem(adapterType, protocolName, 'dailyRevenue'))
+		if (metadata?.bribeRevenue) promises.push(getOverviewItem(adapterType, protocolName, 'dailyBribesRevenue'))
+		if (metadata?.tokenTax) promises.push(getOverviewItem(adapterType, protocolName, 'dailyTokenTaxes'))
 		secondLabel = 'Revenue'
-	} else if (type === 'options') {
-		promises.push(getOverviewItem(type, protocolName, 'dailyPremiumVolume'))
+	} else if (adapterType === 'options') {
+		promises.push(getOverviewItem(adapterType, protocolName, 'dailyPremiumVolume'))
 		secondLabel = 'Premium volume'
 	}
 	const [firstType, secondType, thirdType, fourthType] = await Promise.all(promises)
@@ -167,7 +169,7 @@ export const getDimensionProtocolPageData = async ({
 		dailyTokenTaxes: fourthType?.total24h ?? null,
 		totalAllTimeTokenTaxes: fourthType?.totalAllTime ?? null,
 		totalAllTimeBribes: thirdType?.totalAllTime ?? null,
-		type,
+		type: adapterType,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		blockExplorers
 	}

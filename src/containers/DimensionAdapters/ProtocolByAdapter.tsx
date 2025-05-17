@@ -264,16 +264,24 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 					<div className="grid grid-cols-2 gap-1">
 						{enableVersionsChart && (
 							<DimensionProtocolChartByType
-								type={type as `${ADAPTOR_TYPES}`}
+								adapterType={type as `${ADAPTOR_TYPES}`}
 								protocolName={pSlug}
 								chartType="version"
 							/>
 						)}
 						{enableTokensChart && (
-							<DimensionProtocolChartByType type={type as `${ADAPTOR_TYPES}`} protocolName={pSlug} chartType="tokens" />
+							<DimensionProtocolChartByType
+								adapterType={type as `${ADAPTOR_TYPES}`}
+								protocolName={pSlug}
+								chartType="tokens"
+							/>
 						)}
 						{enableChainsChart && (
-							<DimensionProtocolChartByType type={type as `${ADAPTOR_TYPES}`} protocolName={pSlug} chartType="chain" />
+							<DimensionProtocolChartByType
+								adapterType={type as `${ADAPTOR_TYPES}`}
+								protocolName={pSlug}
+								chartType="chain"
+							/>
 						)}
 					</div>
 				</>
