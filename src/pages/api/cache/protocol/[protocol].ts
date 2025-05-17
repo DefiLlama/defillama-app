@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
+import { slug } from '~/utils'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
 import metadata from '~/utils/metadata'
 const { protocolMetadata } = metadata
@@ -21,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.json(cachedData)
 	}
 
-	const normalizedName = slug(protocol)
+	const normalizedName = slug(protocol as string)
 	const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
 
 	if (!metadata) {
