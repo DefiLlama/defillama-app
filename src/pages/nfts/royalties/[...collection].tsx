@@ -11,7 +11,11 @@ import { useMemo } from 'react'
 
 export default function Collection() {
 	const router = useRouter()
-	const { data: collectionData, isLoading: fetchingData } = useQuery({
+	const {
+		data: collectionData,
+		isLoading: fetchingData,
+		error
+	} = useQuery({
 		queryKey: ['collection-data', router.query.collection],
 		queryFn: () =>
 			getNFTRoyaltyHistory(
@@ -20,9 +24,8 @@ export default function Collection() {
 		staleTime: 60 * 60 * 1000
 	})
 
-	const props = collectionData.royaltyHistory[0]
-
 	const chartData = useMemo(() => {
+		if (!collectionData) return []
 		return [collectionData.royaltyHistory[0].totalDataChart.map((t) => ({ date: t[0], Earnings: t[1] })), ['Earnings']]
 	}, [collectionData])
 
@@ -35,6 +38,18 @@ export default function Collection() {
 			</Layout>
 		)
 	}
+
+	if (error || !collectionData) {
+		return (
+			<Layout title={'NFT Royalties - DefiLlama'}>
+				<div className="flex items-center justify-center m-auto min-h-[360px]">
+					<p className="text-center">{error?.message ?? 'Failed to fetch'}</p>
+				</div>
+			</Layout>
+		)
+	}
+
+	const props = collectionData.royaltyHistory[0]
 
 	return (
 		<Layout title={props.name + ' Royalties - DefiLlama'}>
