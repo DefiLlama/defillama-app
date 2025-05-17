@@ -132,6 +132,7 @@ export const DimensionProtocolOverviewChart = ({
 			}
 		}
 
+		const stackName = totalDataChart[1].includes('Earnings') ? 'Earnings' : 'Volume'
 		if (chartInterval !== 'Daily') {
 			const chartData = {}
 			let cumulativeVolume = 0
@@ -147,16 +148,16 @@ export const DimensionProtocolOverviewChart = ({
 				finalChartData.push([+date, chartData[date]])
 			}
 			return {
-				chartData: { ['Volume']: finalChartData },
-				stackColors: { ['Volume']: '#1f67d2' }
+				chartData: { [stackName]: finalChartData },
+				stackColors: { [stackName]: '#1f67d2' }
 			}
 		}
 
 		return {
 			chartData: {
-				['Volume']: totalDataChart[0].map(({ date, ...metrics }) => [+date * 1e3, metrics[totalDataChart[1][0]] ?? 0])
+				[stackName]: totalDataChart[0].map(({ date, ...metrics }) => [+date * 1e3, metrics[totalDataChart[1][0]] ?? 0])
 			} as IChart2Props['chartData'],
-			stackColors: { ['Volume']: '#1f67d2' }
+			stackColors: { [stackName]: '#1f67d2' }
 		}
 	}, [totalDataChart, enabledSettings, chartInterval])
 

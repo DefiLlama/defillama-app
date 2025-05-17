@@ -6,6 +6,8 @@ import { formattedNum } from '~/utils'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { DimensionProtocolOverviewChart } from '~/containers/DimensionAdapters/charts/ProtocolChart'
+import { useMemo } from 'react'
 
 export default function Collection() {
 	const router = useRouter()
@@ -18,6 +20,12 @@ export default function Collection() {
 		staleTime: 60 * 60 * 1000
 	})
 
+	const props = collectionData.royaltyHistory[0]
+
+	const chartData = useMemo(() => {
+		return [collectionData.royaltyHistory[0].totalDataChart.map((t) => ({ date: t[0], Earnings: t[1] })), ['Earnings']]
+	}, [collectionData])
+
 	if (fetchingData) {
 		return (
 			<Layout title={'NFT Royalties - DefiLlama'}>
@@ -27,8 +35,6 @@ export default function Collection() {
 			</Layout>
 		)
 	}
-
-	const props = collectionData.royaltyHistory[0]
 
 	return (
 		<Layout title={props.name + ' Royalties - DefiLlama'}>
@@ -50,14 +56,7 @@ export default function Collection() {
 					</p>
 				</div>
 
-				{/* <ProtocolChart
-					logo={props.logo}
-					data={props as any}
-					chartData={[props.totalDataChart.map((t) => ({ date: t[0], royalties: t[1] })), ['royalties']]}
-					name={props.name}
-					type={'Fees'}
-					fullChart={true}
-				/> */}
+				<DimensionProtocolOverviewChart totalDataChart={chartData as any} />
 			</div>
 		</Layout>
 	)
