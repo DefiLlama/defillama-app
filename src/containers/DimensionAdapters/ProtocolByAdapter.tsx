@@ -55,8 +55,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
 	const enableVersionsChart = linkedProtocols?.length > 0 && !parentProtocol ? true : false
-	const enableTokensChart = type === 'incentives'
-	const enableChainsChart = type !== 'dexs' && chains?.length > 1 ? true : false
+	const enableChainsChart = chains?.length > 1 ? true : false
 
 	const typeSimple = VOLUME_TYPE_ADAPTORS.includes(type) ? 'volume' : type
 	const typeString = VOLUME_TYPE_ADAPTORS.includes(type) ? 'Volume' : capitalizeFirstLetter(type)
@@ -259,7 +258,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 					</div>
 				)}
 			</div>
-			{(enableVersionsChart || enableTokensChart || enableChainsChart) && (
+			{(enableVersionsChart || enableChainsChart) && (
 				<>
 					<div className="grid grid-cols-2 gap-1">
 						{enableVersionsChart && (
@@ -267,13 +266,6 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 								adapterType={type as `${ADAPTOR_TYPES}`}
 								protocolName={pSlug}
 								chartType="version"
-							/>
-						)}
-						{enableTokensChart && (
-							<DimensionProtocolChartByType
-								adapterType={type as `${ADAPTOR_TYPES}`}
-								protocolName={pSlug}
-								chartType="tokens"
 							/>
 						)}
 						{enableChainsChart && (

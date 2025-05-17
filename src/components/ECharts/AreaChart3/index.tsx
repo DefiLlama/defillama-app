@@ -109,7 +109,7 @@ export default function AreaChart3({
 		}
 
 		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
-		console.log({ xAxis })
+
 		chartInstance.setOption({
 			graphic,
 			tooltip,
