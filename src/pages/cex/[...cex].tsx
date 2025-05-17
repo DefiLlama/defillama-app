@@ -24,9 +24,10 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const [protocolRes, articles]: [IProtocolResponse, IArticle[]] = await Promise.all([
+		const [protocolRes, articles, pageStyles]: [IProtocolResponse, IArticle[], any] = await Promise.all([
 			getProtocol(exchangeName),
-			fetchArticles({ tags: exchangeName })
+			fetchArticles({ tags: exchangeName }),
+			getProtocolPageStyles(exchangeName)
 		])
 
 		let inflowsExist = false
@@ -67,13 +68,13 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocolData = fuseProtocolData(protocolRes)
 
-		const backgroundColor = await getProtocolPageStyles(protocolData.name)
+		const backgroundColor = pageStyles['--primary-color']
 
 		return {
 			props: {
 				articles,
 				protocol: exchangeName,
-				protocolData: { ...protocolData, metrics: { ...protocolData.metrics, inflows: inflowsExist } },
+				protocolData: { ...protocolData },
 				backgroundColor,
 				chartColors: { TVL: backgroundColor },
 				methodologyUrls: {
@@ -81,7 +82,8 @@ export const getStaticProps = withPerformanceLogging(
 						? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 						: null
 				},
-				pageStyles: backgroundColor
+				metrics: { tvl: true },
+				pageStyles
 			},
 			revalidate: !protocolRes ? 0 : maxAgeForNext([22])
 		}

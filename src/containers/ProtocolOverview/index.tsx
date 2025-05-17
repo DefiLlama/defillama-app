@@ -193,7 +193,6 @@ const ProtocolContainer = ({
 	controversialProposals,
 	governanceApis,
 	expenses,
-	yields,
 	helperTexts,
 	tokenLiquidity,
 	tokenCGData,
@@ -427,6 +426,7 @@ const ProtocolContainer = ({
 			otherProtocols={otherProtocols}
 			toggleOptions={toggleOptions}
 			metrics={metrics}
+			tab={(tab ?? 'information') as any}
 		>
 			<SEO
 				cardName={name}

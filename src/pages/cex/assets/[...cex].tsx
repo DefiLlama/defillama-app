@@ -71,7 +71,7 @@ export const getStaticProps = withPerformanceLogging(
 			props: {
 				articles,
 				protocol: exchangeName,
-				protocolData: { ...protocolData, metrics: { ...protocolData.metrics, inflows: inflowsExist } },
+				protocolData: { ...protocolData },
 				backgroundColor,
 				chartColors: { TVL: backgroundColor },
 				methodologyUrls: {
@@ -79,6 +79,7 @@ export const getStaticProps = withPerformanceLogging(
 						? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 						: null
 				},
+				metrics: { tvl: true },
 				pageStyles
 			},
 			revalidate: !protocolRes ? 0 : maxAgeForNext([22])
