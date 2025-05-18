@@ -1265,7 +1265,12 @@ const ProtocolContainer = ({
 									<>
 										{forkedFrom.map((p, index) => (
 											<React.Fragment key={'forked from' + p}>
-												<a href={`/protocol/${slug(p)}`} target="_blank" className="underline">
+												<a
+													href={`/protocol/${slug(p)}`}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="underline"
+												>
 													{forkedFrom[index + 1] ? p + ', ' : p}
 												</a>
 												<Icon name="arrow-up-right" height={12} width={12} />
