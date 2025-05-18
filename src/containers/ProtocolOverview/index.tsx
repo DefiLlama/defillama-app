@@ -12,7 +12,7 @@ import { AuditInfo } from '~/components/AuditInfo'
 import ProtocolChart from './Chart/ProtocolChart'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { protocolsAndChainsOptions } from '~/components/Filters/options'
+import { extraTvlOptionsHelperTexts, protocolsAndChainsOptions } from '~/components/Filters/options'
 import { DEFI_SETTINGS_KEYS, FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formatPercentage, formattedNum, getBlockExplorer, slug, tokenIconUrl } from '~/utils'
 import { useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/protocols/client'
@@ -541,7 +541,12 @@ const ProtocolContainer = ({
 																						onChange={() => updater(option)}
 																					/>
 																					<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
-																						{capitalizeFirstLetter(option)}
+																						<Tooltip
+																							content={extraTvlOptionsHelperTexts[option]}
+																							className="underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
+																						>
+																							<span>{capitalizeFirstLetter(option)}</span>
+																						</Tooltip>
 																					</span>
 																				</label>
 																			</th>

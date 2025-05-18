@@ -33,7 +33,8 @@ export const protocolsAndChainsOptions = [
 	},
 	{
 		name: 'Vesting',
-		key: DEFI_SETTINGS.VESTING
+		key: DEFI_SETTINGS.VESTING,
+		help: 'Include tokens that are not circulating or not issued yet'
 	}
 ]
 
@@ -41,3 +42,5 @@ export const feesOptions = [
 	{ name: 'Bribes', key: FEES_SETTINGS.BRIBES, help: null },
 	{ name: 'Token Tax', key: FEES_SETTINGS.TOKENTAX, help: null }
 ]
+
+export const extraTvlOptionsHelperTexts = Object.fromEntries(protocolsAndChainsOptions.map((p) => [p.key, p.help]))

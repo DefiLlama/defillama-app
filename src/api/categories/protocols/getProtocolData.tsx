@@ -34,7 +34,7 @@ const chartTypes = [
 	'FDV',
 	'Fees',
 	'Revenue',
-	'Volume',
+	'DEX Volume',
 	'Perps Volume',
 	'Unlocks',
 	'Active Addresses',
@@ -61,7 +61,8 @@ const chartTypes = [
 	'NFT Volume',
 	'Premium Volume',
 	'Perps Aggregators Volume',
-	'Bridge Aggregators Volume'
+	'Bridge Aggregators Volume',
+	'DEX Aggregators Volume'
 ]
 
 const fetchGovernanceData = async (apis: Array<string>) => {

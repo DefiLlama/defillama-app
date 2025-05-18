@@ -212,7 +212,7 @@ export function useFetchAndFormatChartData({
 	const { data: aggregatorsVolumeData, isLoading: fetchingAggregatorsVolume } = useGetDimensionAdapterChartData({
 		protocolName: protocol,
 		adapterType: 'aggregators',
-		disabled: isRouterReady && metrics.aggregators && aggregators === 'true' ? false : true
+		disabled: isRouterReady && metrics.dexAggregators && aggregators === 'true' ? false : true
 	})
 
 	const { data: perpsAggregatorsVolumeData, isLoading: fetchingPerpsAggregatorsVolume } =
@@ -415,7 +415,7 @@ export function useFetchAndFormatChartData({
 		}
 
 		if (volumeData) {
-			chartsUnique.push('Volume')
+			chartsUnique.push('DEX Volume')
 
 			for (const item of volumeData.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
@@ -423,7 +423,7 @@ export function useFetchAndFormatChartData({
 					chartData[date] = { date }
 				}
 
-				chartData[date]['Volume'] = showNonUsdDenomination
+				chartData[date]['DEX Volume'] = showNonUsdDenomination
 					? +item.Dexs / getPriceAtDate(date, denominationHistory.prices)
 					: item.Dexs
 			}
@@ -460,7 +460,7 @@ export function useFetchAndFormatChartData({
 		}
 
 		if (aggregatorsVolumeData) {
-			chartsUnique.push('Aggregators Volume')
+			chartsUnique.push('DEX Aggregators Volume')
 
 			for (const item of aggregatorsVolumeData.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
@@ -468,7 +468,7 @@ export function useFetchAndFormatChartData({
 					chartData[date] = { date }
 				}
 
-				chartData[date]['Aggregators Volume'] = showNonUsdDenomination
+				chartData[date]['DEX Aggregators Volume'] = showNonUsdDenomination
 					? +item.Aggregators / getPriceAtDate(date, denominationHistory.prices)
 					: item.Aggregators
 			}

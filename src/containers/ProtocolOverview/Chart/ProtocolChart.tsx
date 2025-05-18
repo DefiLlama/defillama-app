@@ -45,7 +45,7 @@ const CHART_TYPES = [
 	'tokenVolume',
 	'tokenLiquidity',
 	'fdv',
-	'volume',
+	'dexVolume',
 	'perpsVolume',
 	'premiumVolume',
 	'fees',
@@ -70,7 +70,7 @@ const CHART_TYPES = [
 	'nftVolume',
 	'perpsAggregators',
 	'bridgeAggregators',
-	'aggregators'
+	'dexAggregators'
 ]
 
 const ProtocolChart = React.memo(function ProtocolChart({
@@ -104,13 +104,13 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			...router.query,
 			...((!metrics.tvl
 				? metrics.dexs
-					? { volume: router.query.volume ?? 'true' }
+					? { dexVolume: router.query.dexVolume ?? 'true' }
 					: metrics.perps
 					? { perpsVolume: router.query.perpsVolume ?? 'true' }
 					: metrics.options
 					? { premiumVolume: router.query.premiumVolume ?? 'true' }
-					: metrics.aggregators
-					? { aggregators: router.query.aggregators ?? 'true' }
+					: metrics.dexAggregators
+					? { dexAggregators: router.query.dexAggregators ?? 'true' }
 					: metrics.bridgeAggregators
 					? { bridgeAggregators: router.query.bridgeAggregators ?? 'true' }
 					: metrics.perpsAggregators
@@ -146,7 +146,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			mcap: toggledMetrics.mcap,
 			tokenPrice: toggledMetrics.tokenPrice,
 			fdv: toggledMetrics.fdv,
-			volume: toggledMetrics.volume,
+			volume: toggledMetrics.dexVolume,
 			perpsVolume: toggledMetrics.perpsVolume,
 			premiumVolume: toggledMetrics.premiumVolume,
 			fees: toggledMetrics.fees,
@@ -185,7 +185,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			devCommits: toggledMetrics.devCommits,
 			nftVolume: toggledMetrics.nftVolume,
 			nftVolumeData,
-			aggregators: toggledMetrics.aggregators,
+			aggregators: toggledMetrics.dexAggregators,
 			perpsAggregators: toggledMetrics.perpsAggregators,
 			bridgeAggregators: toggledMetrics.bridgeAggregators
 		})
@@ -223,7 +223,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			options.push({ label: 'Bridge Volume', key: 'bridgeVolume' })
 		}
 		if (metrics?.dexs) {
-			options.push({ label: 'DEX Volume', key: 'volume' })
+			options.push({ label: 'DEX Volume', key: 'dexVolume' })
 		}
 		if (metrics?.perps) {
 			options.push({ label: 'Perps Volume', key: 'perpsVolume' })
@@ -276,8 +276,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		if (metrics?.nftVolume) {
 			options.push({ label: 'NFT Volume', key: 'nftVolume' })
 		}
-		if (metrics?.aggregators) {
-			options.push({ label: 'Aggregators Volume', key: 'aggregators' })
+		if (metrics?.dexAggregators) {
+			options.push({ label: 'DEX Aggregators Volume', key: 'dexAggregators' })
 		}
 		if (metrics?.bridgeAggregators) {
 			options.push({ label: 'Bridge Aggregators Volume', key: 'bridgeAggregators' })
@@ -385,7 +385,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 				</div>
 			) : null}
 
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end px-3">
+			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end mx-3 first:mt-3">
 				{chartDenominations.length > 0 && (
 					<div className="mr-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
 						{chartDenominations.map((D) => (
