@@ -578,12 +578,12 @@ export default function AreaBarChart({
 			tooltip: {
 				...tooltip
 			},
-			title: {
-				...titleDefaults
-			},
 			grid: {
-				...grid,
-				top: 40
+				left: 12,
+				bottom: 68,
+				top: 12,
+				right: 12,
+				containLabel: true
 			},
 			xAxis: {
 				...xAxis

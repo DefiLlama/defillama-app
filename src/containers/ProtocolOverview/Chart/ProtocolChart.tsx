@@ -385,7 +385,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 				</div>
 			) : null}
 
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end mx-3 first:mt-3">
+			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end m-3 mt-0 first:mt-3">
 				{chartDenominations.length > 0 && (
 					<div className="mr-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
 						{chartDenominations.map((D) => (
