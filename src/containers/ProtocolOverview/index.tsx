@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/future/image'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { LazyChart } from '~/components/LazyChart'
 import { Bookmark } from '~/components/Bookmark'
@@ -26,7 +25,6 @@ import { Flag } from './Flag'
 import { sluggify } from '~/utils/cache-client'
 import dayjs from 'dayjs'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ForksData } from './Forks'
 import { feesOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { RowWithSubRows } from './RowWithSubRows'
@@ -1250,15 +1248,14 @@ const ProtocolContainer = ({
 									<span>Category</span>
 									<span>:</span>
 
-									<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category}`} passHref>
-										<a
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											<span>{category}</span> <Icon name="arrow-up-right" height={12} width={12} />
-										</a>
-									</Link>
+									<a
+										href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category}`}
+										className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										<span>{category}</span> <Icon name="arrow-up-right" height={12} width={12} />
+									</a>
 								</p>
 							)}
 
@@ -1268,7 +1265,9 @@ const ProtocolContainer = ({
 									<>
 										{forkedFrom.map((p, index) => (
 											<React.Fragment key={'forked from' + p}>
-												<Link href={`/protocol/${slug(p)}`}>{forkedFrom[index + 1] ? p + ', ' : p}</Link>
+												<a href={`/protocol/${slug(p)}`} target="_blank" className="underline">
+													{forkedFrom[index + 1] ? p + ', ' : p}
+												</a>
 												<Icon name="arrow-up-right" height={12} width={12} />
 											</React.Fragment>
 										))}
@@ -1280,29 +1279,27 @@ const ProtocolContainer = ({
 
 							<div className="flex items-center gap-4 flex-wrap">
 								{referralUrl || url ? (
-									<Link href={referralUrl || url} passHref>
-										<a
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-											target="_blank"
-											rel="noopener noreferrer"
-											color={backgroundColor}
-										>
-											<span>Website</span> <Icon name="arrow-up-right" height={12} width={12} />
-										</a>
-									</Link>
+									<a
+										href={referralUrl || url}
+										className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										target="_blank"
+										rel="noopener noreferrer"
+										color={backgroundColor}
+									>
+										<span>Website</span> <Icon name="arrow-up-right" height={12} width={12} />
+									</a>
 								) : null}
 
 								{twitter && (
-									<Link href={`https://twitter.com/${twitter}`} passHref>
-										<a
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-											target="_blank"
-											rel="noopener noreferrer"
-											color={backgroundColor}
-										>
-											<span>Twitter</span> <Icon name="arrow-up-right" height={12} width={12} />
-										</a>
-									</Link>
+									<a
+										href={`https://twitter.com/${twitter}`}
+										className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										target="_blank"
+										rel="noopener noreferrer"
+										color={backgroundColor}
+									>
+										<span>Twitter</span> <Icon name="arrow-up-right" height={12} width={12} />
+									</a>
 								)}
 							</div>
 							{twitter && twitterData?.lastTweet ? (
@@ -1317,11 +1314,10 @@ const ProtocolContainer = ({
 							<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
 								<div className="flex items-center justify-between">
 									<h3 className="font-semibold text-lg">Latest from DL News</h3>
-									<Link href="https://www.dlnews.com" passHref>
-										<a>
-											<DLNewsLogo width={102} height={22} />
-										</a>
-									</Link>
+
+									<a href="https://www.dlnews.com">
+										<DLNewsLogo width={102} height={22} />
+									</a>
 								</div>
 
 								{articles.map((article, idx) => (
@@ -1365,28 +1361,27 @@ const ProtocolContainer = ({
 
 								<div className="flex items-center gap-4 flex-wrap">
 									{protocolData.gecko_id && (
-										<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
-											<a
-												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-												target="_blank"
-												rel="noopener noreferrer"
-											>
-												<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={12} width={12} />
-											</a>
-										</Link>
+										<a
+											href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={12} width={12} />
+										</a>
 									)}
 
 									{explorers &&
 										explorers.map(({ blockExplorerLink, blockExplorerName }) => (
-											<Link href={blockExplorerLink} passHref key={blockExplorerName}>
-												<a
-													className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-													target="_blank"
-													rel="noopener noreferrer"
-												>
-													<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={12} width={12} />
-												</a>
-											</Link>
+											<a
+												href={blockExplorerLink}
+												key={blockExplorerName}
+												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+												target="_blank"
+												rel="noopener noreferrer"
+											>
+												<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={12} width={12} />
+											</a>
 										))}
 								</div>
 							</div>
@@ -1410,95 +1405,89 @@ const ProtocolContainer = ({
 
 								<div className="flex items-center gap-4 flex-wrap">
 									{methodologyUrls?.tvl && !methodologyUrls.tvl.endsWith('dummy.js') && (
-										<Link href={methodologyUrls.tvl} passHref>
-											<a
-												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-												target="_blank"
-												rel="noopener noreferrer"
-											>
-												<span>{isCEX ? 'Wallet Addresses' : 'TVL'}</span>
-												<Icon name="arrow-up-right" height={12} width={12} />
-											</a>
-										</Link>
+										<a
+											href={methodologyUrls.tvl}
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<span>{isCEX ? 'Wallet Addresses' : 'TVL'}</span>
+											<Icon name="arrow-up-right" height={12} width={12} />
+										</a>
 									)}
 
 									{methodologyUrls?.fees && (
-										<Link href={methodologyUrls.fees} passHref>
-											<a
-												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-												target="_blank"
-												rel="noopener noreferrer"
-											>
-												<span>Fees and Revenue</span>
-												<Icon name="arrow-up-right" height={12} width={12} />
-											</a>
-										</Link>
+										<a
+											href={methodologyUrls.fees}
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<span>Fees and Revenue</span>
+											<Icon name="arrow-up-right" height={12} width={12} />
+										</a>
 									)}
 
 									{methodologyUrls?.dexs && (
-										<Link href={methodologyUrls.dexs} passHref>
-											<a
-												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-												target="_blank"
-												rel="noopener noreferrer"
-											>
-												<span>Volume</span>
-												<Icon name="arrow-up-right" height={12} width={12} />
-											</a>
-										</Link>
+										<a
+											href={methodologyUrls.dexs}
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<span>Volume</span>
+											<Icon name="arrow-up-right" height={12} width={12} />
+										</a>
 									)}
 
 									{methodologyUrls?.perps && (
-										<Link href={methodologyUrls.perps} passHref>
-											<a
-												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-												target="_blank"
-												rel="noopener noreferrer"
-											>
-												<span>Perps Volume</span>
-												<Icon name="arrow-up-right" height={12} width={12} />
-											</a>
-										</Link>
+										<a
+											href={methodologyUrls.perps}
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<span>Perps Volume</span>
+											<Icon name="arrow-up-right" height={12} width={12} />
+										</a>
 									)}
 
 									{methodologyUrls?.bridgeAggregators && (
-										<Link href={methodologyUrls.bridgeAggregators} passHref>
-											<a
-												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-												target="_blank"
-												rel="noopener noreferrer"
-											>
-												<span>Bridge Aggregators Volume</span>
-												<Icon name="arrow-up-right" height={12} width={12} />
-											</a>
-										</Link>
+										<a
+											href={methodologyUrls.bridgeAggregators}
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<span>Bridge Aggregators Volume</span>
+											<Icon name="arrow-up-right" height={12} width={12} />
+										</a>
 									)}
 
 									{methodologyUrls?.treasury && (
-										<Link href={methodologyUrls.treasury} passHref>
-											<a
-												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-												target="_blank"
-												rel="noopener noreferrer"
-											>
-												<span>Treasury</span>
-												<Icon name="arrow-up-right" height={12} width={12} />
-											</a>
-										</Link>
+										<a
+											href={methodologyUrls.treasury}
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<span>Treasury</span>
+											<Icon name="arrow-up-right" height={12} width={12} />
+										</a>
 									)}
 
 									{methodologyUrls?.stablecoins
 										? methodologyUrls.stablecoins.split(',').map((stablecoin) => (
-												<Link href={stablecoin.split('$')[1]} passHref key={`code-${stablecoin}`}>
-													<a
-														className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-														target="_blank"
-														rel="noopener noreferrer"
-													>
-														<span>{stablecoin.split('$')[0]}</span>
-														<Icon name="arrow-up-right" height={12} width={12} />
-													</a>
-												</Link>
+												<a
+													href={stablecoin.split('$')[1]}
+													key={`code-${stablecoin}`}
+													className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+													target="_blank"
+													rel="noopener noreferrer"
+												>
+													<span>{stablecoin.split('$')[0]}</span>
+													<Icon name="arrow-up-right" height={12} width={12} />
+												</a>
 										  ))
 										: null}
 								</div>
@@ -1545,16 +1534,15 @@ const ProtocolContainer = ({
 											<span>{formattedNum(hack.returnedFunds, true)}</span>
 										</p>
 
-										<Link href={hack.source} passHref>
-											<a
-												className="flex items-center gap-1 mt-1 max-w-fit"
-												target="_blank"
-												rel="noopener noreferrer"
-												color={backgroundColor}
-											>
-												<span>Source</span> <Icon name="arrow-up-right" height={12} width={12} />
-											</a>
-										</Link>
+										<a
+											href={hack.source}
+											className="flex items-center gap-1 mt-1 max-w-fit"
+											target="_blank"
+											rel="noopener noreferrer"
+											color={backgroundColor}
+										>
+											<span>Source</span> <Icon name="arrow-up-right" height={12} width={12} />
+										</a>
 									</div>
 								))}
 							</div>
@@ -1566,15 +1554,14 @@ const ProtocolContainer = ({
 
 								<div className="flex items-center gap-4 flex-wrap">
 									{similarProtocols.map((similarProtocol) => (
-										<Link
+										<a
 											href={`/protocol/${slug(similarProtocol.name)}`}
-											passHref
 											key={'Competitors ' + JSON.stringify(similarProtocol)}
-										>
-											<a target="_blank" className="underline">{`${similarProtocol.name}${
-												similarProtocol.tvl ? `(${formatPrice(similarProtocol.tvl)})` : ''
-											}`}</a>
-										</Link>
+											target="_blank"
+											className="underline"
+										>{`${similarProtocol.name}${
+											similarProtocol.tvl ? `(${formatPrice(similarProtocol.tvl)})` : ''
+										}`}</a>
 									))}
 								</div>
 							</div>
