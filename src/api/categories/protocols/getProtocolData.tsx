@@ -162,7 +162,6 @@ export const getProtocolData = async (
 		any,
 		any,
 		any,
-		any,
 		any
 	] = await Promise.all([
 		!isCpusHot
@@ -303,7 +302,6 @@ export const getProtocolData = async (
 							return { data: [] }
 						})
 				: { data: [] }, */
-		{ data: [] },
 		protocolData.gecko_id && !isCpusHot
 			? fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
 					.then((res) => res.json())
