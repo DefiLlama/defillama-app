@@ -27,14 +27,17 @@ export const DesktopNav = React.memo(function DesktopNav() {
 				<a className="flex-shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
 					<img
-						src={
-							darkMode
-								? '/defillama-press-kit/defi/PNG/defillama.png'
-								: '/defillama-press-kit/defi/PNG/defillama-dark.png'
-						}
+						src="/defillama-press-kit/defi/PNG/defillama.png"
 						height={53}
 						width={155}
-						className="object-contain object-left mr-auto mb-4"
+						className="object-contain object-left mr-auto mb-4 hidden dark:block"
+						alt=""
+					/>
+					<img
+						src="/defillama-press-kit/defi/PNG/defillama-dark.png"
+						height={53}
+						width={155}
+						className="object-contain object-left mr-auto mb-4 dark:hidden"
 						alt=""
 					/>
 				</a>

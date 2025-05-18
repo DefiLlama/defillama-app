@@ -113,7 +113,7 @@ export function ProtocolOverviewLayout({
 			{otherProtocols?.length > 1 && (
 				<nav className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md w-full max-w-fit text-xs font-medium">
 					{otherProtocols.map((p) => (
-						<Link href={`/protocol/${slug(p)}`} key={'navigate to ' + `/protocol/${slug(p)}`} passHref>
+						<Link href={`/protocol/${slug(p)}`} key={'navigate to ' + `/protocol/${slug(p)}`} prefetch={false} passHref>
 							<a
 								data-active={p === name}
 								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-md last:rounded-r-md data-[active=true]:bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] border-l border-[var(--form-control-border)] first:border-l-0"
@@ -131,7 +131,7 @@ export function ProtocolOverviewLayout({
 							href={`/cex/${slug(name)}`}
 							data-active={!tab || tab === 'information'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Information
@@ -141,7 +141,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/${slug(name)}`}
 							data-active={!tab || tab === 'information'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Information
@@ -152,7 +152,7 @@ export function ProtocolOverviewLayout({
 							href={`/cex/assets/${slug(name)}`}
 							data-active={tab === 'assets'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Assets
@@ -162,7 +162,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/tvl/${slug(name)}`}
 							data-active={tab === 'tvl'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							TVL
@@ -173,7 +173,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/stablecoins/${slug(name)}`}
 							data-active={tab === 'stablecoins'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Stablecoin Info
@@ -184,7 +184,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/bridges/${slug(name)}`}
 							data-active={tab === 'bridges'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Bridge Info
@@ -195,7 +195,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/treasury/${slug(name)}`}
 							data-active={tab === 'treasury'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Treasury
@@ -206,7 +206,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/unlocks/${slug(name)}`}
 							data-active={tab === 'unlocks'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Unlocks
@@ -217,7 +217,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/yields/${slug(name)}`}
 							data-active={tab === 'yields'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Yields
@@ -228,7 +228,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/fees/${slug(name)}`}
 							data-active={tab === 'fees'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Fees and Revenue
@@ -239,7 +239,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/dexs/${slug(name)}`}
 							data-active={tab === 'dexs'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							DEX Volume
@@ -250,7 +250,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/perps/${slug(name)}`}
 							data-active={tab === 'perps'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Perps Volume
@@ -261,7 +261,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/dex-aggregators/${slug(name)}`}
 							data-active={tab === 'dex-aggregators'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Aggregators Volume
@@ -272,7 +272,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/perps-aggregators/${slug(name)}`}
 							data-active={tab === 'perps-aggregators'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Perps Aggregators Volume
@@ -283,7 +283,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/bridge-aggregators/${slug(name)}`}
 							data-active={tab === 'bridge-aggregators'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Bridge Aggregators Volume
@@ -294,7 +294,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/options/${slug(name)}`}
 							data-active={tab === 'options'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Options Volume
@@ -305,7 +305,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/governance/${slug(name)}`}
 							data-active={tab === 'governance'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Governance
@@ -316,7 +316,7 @@ export function ProtocolOverviewLayout({
 							href={`/protocol/forks/${slug(name)}`}
 							data-active={tab === 'forks'}
 							legacyBehavior={false}
-							prefetch
+							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Forks

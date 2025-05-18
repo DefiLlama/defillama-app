@@ -1563,6 +1563,7 @@ const ProtocolContainer = ({
 											href={`/protocol/${slug(similarProtocol.name)}`}
 											key={'Competitors ' + JSON.stringify(similarProtocol)}
 											target="_blank"
+											rel="noopener noreferrer"
 											className="underline"
 										>{`${similarProtocol.name}${
 											similarProtocol.tvl ? `(${formatPrice(similarProtocol.tvl)})` : ''
