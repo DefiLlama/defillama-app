@@ -1457,10 +1457,10 @@ export const chainCoingeckoIds = {
 		symbol: 'VRSC',
 		cmcId: '5049'
 	},
-	Plume: {
+	'Plume Mainnet': {
 		geckoId: 'plume',
 		symbol: 'PLUME',
-		cmcId: null
+		cmcId: '35364'
 	},
 	'EDU Chain': {
 		geckoId: 'edu-coin',
