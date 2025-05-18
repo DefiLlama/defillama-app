@@ -9,7 +9,7 @@ const Fallback = () => {
 
 	return (
 		<nav className="flex items-center z-10 gap-2 py-3 px-4 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] lg:fixed lg:top-0 lg:bottom-0 lg:left-0 lg:h-screen lg:overflow-y-auto lg:bg-[var(--bg8)] lg:flex-col lg:gap-5 lg:p-6 lg:no-scrollbar lg:bg-none">
-			<Link href="/" passHref>
+			<Link href="/" prefetch={false} passHref>
 				<a className="flex-shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
 					<img

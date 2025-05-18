@@ -66,7 +66,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList>
 							{matches.map((match, i) => (
-								<Link key={`liq-asset-${match.name}`} href={match.route} passHref>
+								<Link key={`liq-asset-${match.name}`} href={match.route} prefetch={false} passHref>
 									<Ariakit.ComboboxItem
 										value={match.symbol}
 										focusOnHover

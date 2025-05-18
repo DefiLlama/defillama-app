@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import { useYieldApp } from '~/hooks'
 import { navLinks } from '../Links'
 import { ThemeSwitch } from '../ThemeSwitch'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SubMenu } from './SubMenu'
 import { NewTag } from '../NewTag'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -14,7 +13,6 @@ import { Icon } from '~/components/Icon'
 export const DesktopNav = React.memo(function DesktopNav() {
 	const { asPath } = useRouter()
 	const isYieldApp = useYieldApp()
-	const [darkMode] = useDarkModeManager()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
@@ -23,7 +21,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 
 	return (
 		<nav className="z-10 fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-[var(--app-bg)] hidden lg:flex flex-col w-[244px] gap-1 p-4 pl-0 *:pl-4 no-scrollbar">
-			<Link href="/" passHref>
+			<Link href="/" prefetch={false} passHref>
 				<a className="flex-shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
 					<img

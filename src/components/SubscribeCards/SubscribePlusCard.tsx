@@ -2,7 +2,6 @@ import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
 import Link from 'next/link'
-import { StyledButton } from '~/components/ButtonStyled/StyledButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 interface SubscribePlusCardProps {

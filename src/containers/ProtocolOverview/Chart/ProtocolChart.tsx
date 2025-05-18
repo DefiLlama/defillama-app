@@ -396,6 +396,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 									(toggledMetrics.groupBy ? `&groupBy=${toggledMetrics.groupBy}` : '')
 								}
 								key={D.symbol}
+								prefetch={false}
 								shallow
 								passHref
 							>
@@ -421,6 +422,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
 									'groupBy=daily'
 								}
+								prefetch={false}
 								shallow
 								passHref
 							>
@@ -437,6 +439,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
 									'groupBy=weekly'
 								}
+								prefetch={false}
 								shallow
 								passHref
 							>
@@ -454,6 +457,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 									'groupBy=monthly'
 								}
 								shallow
+								prefetch={false}
 								passHref
 							>
 								<a
@@ -470,6 +474,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 									'groupBy=cumulative'
 								}
 								shallow
+								prefetch={false}
 								passHref
 							>
 								<a

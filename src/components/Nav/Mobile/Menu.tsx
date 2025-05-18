@@ -143,7 +143,7 @@ export function Menu() {
 							</button>
 						</div>
 					) : (
-						<Link href="/subscription" passHref>
+						<Link href="/subscription" prefetch={false} passHref>
 							<a className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 p-3">
 								Sign In / Subscribe
 							</a>

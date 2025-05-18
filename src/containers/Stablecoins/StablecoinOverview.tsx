@@ -295,7 +295,7 @@ export const PeggedAssetInfo = ({
 							<div className="flex items-center gap-6 p-5 overflow-auto flex-wrap">
 								{blockExplorerLink !== undefined && (
 									<span>
-										<Link href={blockExplorerLink} passHref>
+										<Link href={blockExplorerLink} prefetch={false} passHref>
 											<ButtonLight
 												as="a"
 												target="_blank"
@@ -311,7 +311,7 @@ export const PeggedAssetInfo = ({
 
 								{url && (
 									<span>
-										<Link href={url} passHref>
+										<Link href={url} prefetch={false} passHref>
 											<ButtonLight
 												as="a"
 												target="_blank"
@@ -328,7 +328,7 @@ export const PeggedAssetInfo = ({
 
 								{twitter && (
 									<span>
-										<Link href={twitter} passHref>
+										<Link href={twitter} prefetch={false} passHref>
 											<ButtonLight
 												as="a"
 												target="_blank"
@@ -345,7 +345,7 @@ export const PeggedAssetInfo = ({
 
 								{wiki && (
 									<span>
-										<Link href={wiki} passHref>
+										<Link href={wiki} prefetch={false} passHref>
 											<ButtonLight
 												as="a"
 												target="_blank"
@@ -362,7 +362,7 @@ export const PeggedAssetInfo = ({
 
 								{onCoinGecko === 'true' && (
 									<span>
-										<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
+										<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} prefetch={false} passHref>
 											<ButtonLight
 												as="a"
 												target="_blank"

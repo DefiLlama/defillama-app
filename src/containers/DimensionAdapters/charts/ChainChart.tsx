@@ -60,7 +60,13 @@ export const ChainByAdapterChart = ({
 					{chartTypes && (
 						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 							{chartTypes.map((dataType) => (
-								<Link href={`${router.asPath.split('?')[0]}?dataType=${dataType}`} key={dataType} shallow passHref>
+								<Link
+									href={`${router.asPath.split('?')[0]}?dataType=${dataType}`}
+									key={dataType}
+									prefetch={false}
+									shallow
+									passHref
+								>
 									<a
 										data-active={dataType === selectedChartType}
 										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"

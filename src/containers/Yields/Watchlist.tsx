@@ -235,7 +235,7 @@ export const WatchListTabs = () => {
 	const router = useRouter()
 	return (
 		<nav className="text-xs font-semibold flex items-center gap-2 border-b-2 border-[var(--form-control-border)] w-full max-w-fit relative">
-			<Link href={'/watchlist'} passHref>
+			<Link href={'/watchlist'} prefetch={false} passHref>
 				<a
 					data-active={router.pathname === '/watchlist'}
 					className="flex-shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-transparent data-[active=true]:border-[var(--old-blue)] relative bottom-[-2px] z-10"
@@ -243,7 +243,7 @@ export const WatchListTabs = () => {
 					DeFi
 				</a>
 			</Link>
-			<Link href={'/yields/watchlist'} passHref>
+			<Link href={'/yields/watchlist'} prefetch={false} passHref>
 				<a
 					data-active={router.pathname === '/yields/watchlist'}
 					className="flex-shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-transparent data-[active=true]:border-[var(--old-blue)] relative bottom-[-2px] z-10"

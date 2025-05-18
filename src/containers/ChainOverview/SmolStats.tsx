@@ -80,7 +80,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
-									render={<Link href="/unlocks" passHref legacyBehavior={false} />}
+									render={<Link href="/unlocks" prefetch={false} passHref legacyBehavior={false} />}
 									className="text-sm font-semibold"
 									content="Value of tokens unlocking over the next 14 days"
 								>
@@ -110,6 +110,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 									render={
 										<Link
 											href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chains/${slug(props.metadata.name)}`}
+											prefetch={false}
 											passHref
 											legacyBehavior={false}
 										/>
@@ -139,7 +140,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 last:*:xl:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
-									render={<Link href="/etfs" passHref legacyBehavior={false} />}
+									render={<Link href="/etfs" prefetch={false} passHref legacyBehavior={false} />}
 									className="text-sm font-semibold"
 									content="Daily net inflows/outflows into Bitcoin, Ethereum ETFs, showing institutional investment trends"
 								>
@@ -163,6 +164,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 								render={
 									<Link
 										href={props.metadata.name === 'All' ? '/protocols/rwa' : `/protocols/RWA/${props.metadata.name}`}
+										prefetch={false}
 										passHref
 										legacyBehavior={false}
 									/>
@@ -206,6 +208,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						render={
 							<Link
 								href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chains/${slug(props.metadata.name)}`}
+								prefetch={false}
 								passHref
 								legacyBehavior={false}
 							/>
@@ -235,6 +238,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 							render={
 								<Link
 									href={props.metadata.name === 'All' ? '/fees' : `/fees/chains/${slug(props.metadata.name)}`}
+									prefetch={false}
 									passHref
 									legacyBehavior={false}
 								/>
@@ -264,6 +268,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						render={
 							<Link
 								href={props.metadata.name === 'All' ? '/stablecoins' : `/stablecoins/${props.metadata.name}`}
+								prefetch={false}
 								passHref
 								legacyBehavior={false}
 							/>

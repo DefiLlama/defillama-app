@@ -83,7 +83,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 				{linkedProtocols && linkedProtocols.length > 0 && (
 					<nav className="col-span-2 text-xs font-medium xl:col-span-3 flex overflow-x-auto rounded-md bg-[var(--cards-bg)] border-b border-[var(--form-control-border)]">
 						{linkedProtocols.map((p) => (
-							<Link href={`/${type}/${slug(p)}`} key={p} passHref>
+							<Link href={`/${type}/${slug(p)}`} key={p} prefetch={false} passHref>
 								<a
 									data-active={router.asPath.split('#')[0].split('?')[0] === `/${type}/${slug(p)}`}
 									className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-tl-md data-[active=true]:bg-[var(--link-hover-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-l border-[var(--form-control-border)] first:border-l-0"
@@ -167,7 +167,9 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 					{category && (
 						<p className="flex items-center gap-2">
 							<span>Category:</span>
-							<Link href={`/${type}?category=${category}`}>{category}</Link>
+							<Link href={`/${type}?category=${category}`} prefetch={false}>
+								{category}
+							</Link>
 						</p>
 					)}
 
@@ -176,7 +178,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 							<span>Forked from:</span>
 							<>
 								{forkedFrom.map((p, index) => (
-									<Link href={`/protocol/${p}`} key={p}>
+									<Link href={`/protocol/${p}`} prefetch={false} key={p}>
 										{forkedFrom[index + 1] ? p + ', ' : p}
 									</Link>
 								))}
@@ -188,7 +190,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 
 					<div className="flex items-center gap-4 flex-wrap">
 						{url && (
-							<Link href={url} passHref>
+							<Link href={url} prefetch={false} passHref>
 								<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 								</ButtonLight>
@@ -196,7 +198,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 						)}
 
 						{twitter && (
-							<Link href={`https://twitter.com/${twitter}`} passHref>
+							<Link href={`https://twitter.com/${twitter}`} prefetch={false} passHref>
 								<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
 								</ButtonLight>
@@ -218,7 +220,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 										)}`}</span>
 										<span>{blockExplorer.address.slice(0, 8) + '...' + blockExplorer.address?.slice(36, 42)}</span>
 										<CopyHelper toCopy={blockExplorer.address} disabled={!blockExplorer.address} />
-										<Link href={blockExplorer.blockExplorerLink} passHref>
+										<Link href={blockExplorer.blockExplorerLink} prefetch={false} passHref>
 											<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 												<span>View on {blockExplorer.blockExplorerName}</span>{' '}
 												<Icon name="arrow-up-right" height={14} width={14} />
@@ -231,7 +233,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 
 						{gecko_id && (
 							<div className="flex items-center gap-4 flex-wrap">
-								<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
+								<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} prefetch={false} passHref>
 									<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 										<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
 									</ButtonLight>
@@ -248,7 +250,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 						{methodology?.['Revenue'] ? <p>{`Revenue: ${methodology['Revenue']}`}</p> : null}
 
 						<div className="flex items-center gap-4 flex-wrap">
-							<Link href={methodologyURL} passHref>
+							<Link href={methodologyURL} prefetch={false} passHref>
 								<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Check the code</span>
 									<Icon name="arrow-up-right" height={14} width={14} />
