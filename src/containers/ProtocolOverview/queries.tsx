@@ -181,6 +181,7 @@ export const getProtocolMetrics = ({
 		unlocks: metadata.emissions ? true : false,
 		yields: metadata.yields ? true : false,
 		fees: metadata.fees ? true : false,
+		revenue: metadata.revenue ? true : false,
 		forks: metadata.forks ? true : false,
 		governance: protocolData.governanceID ? true : false
 	}
