@@ -3,8 +3,8 @@ import Layout from '~/layout'
 import { Announcement } from '~/components/Announcement'
 import { scams } from '~/constants'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import Link from 'next/link'
 import { slug } from '~/utils'
+import { BasicLink } from '~/components/Link'
 
 export function ProtocolOverviewLayout({
 	children,
@@ -113,214 +113,178 @@ export function ProtocolOverviewLayout({
 			{otherProtocols?.length > 1 && (
 				<nav className="flex overflow-x-auto bg-[var(--cards-bg)] rounded-md w-full max-w-fit text-xs font-medium">
 					{otherProtocols.map((p) => (
-						<Link href={`/protocol/${slug(p)}`} key={'navigate to ' + `/protocol/${slug(p)}`} prefetch={false} passHref>
-							<a
-								data-active={p === name}
-								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-md last:rounded-r-md data-[active=true]:bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] border-l border-[var(--form-control-border)] first:border-l-0"
-							>
-								{p}
-							</a>
-						</Link>
+						<BasicLink
+							href={`/protocol/${slug(p)}`}
+							key={'navigate to ' + `/protocol/${slug(p)}`}
+							data-active={p === name}
+							className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-l-md last:rounded-r-md data-[active=true]:bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] border-l border-[var(--form-control-border)] first:border-l-0"
+						>
+							{p}
+						</BasicLink>
 					))}
 				</nav>
 			)}
 			<div className="flex flex-col gap-1">
 				<div className="w-full flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium">
 					{isCEX ? (
-						<Link
+						<BasicLink
 							href={`/cex/${slug(name)}`}
 							data-active={!tab || tab === 'information'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Information
-						</Link>
+						</BasicLink>
 					) : (
-						<Link
+						<BasicLink
 							href={`/protocol/${slug(name)}`}
 							data-active={!tab || tab === 'information'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Information
-						</Link>
+						</BasicLink>
 					)}
 					{isCEX ? (
-						<Link
+						<BasicLink
 							href={`/cex/assets/${slug(name)}`}
 							data-active={tab === 'assets'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Assets
-						</Link>
+						</BasicLink>
 					) : (
-						<Link
+						<BasicLink
 							href={`/protocol/tvl/${slug(name)}`}
 							data-active={tab === 'tvl'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							TVL
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.stablecoins && (
-						<Link
+						<BasicLink
 							href={`/protocol/stablecoins/${slug(name)}`}
 							data-active={tab === 'stablecoins'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Stablecoin Info
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.bridge && (
-						<Link
+						<BasicLink
 							href={`/protocol/bridges/${slug(name)}`}
 							data-active={tab === 'bridges'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Bridge Info
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.treasury && (
-						<Link
+						<BasicLink
 							href={`/protocol/treasury/${slug(name)}`}
 							data-active={tab === 'treasury'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Treasury
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.unlocks && (
-						<Link
+						<BasicLink
 							href={`/protocol/unlocks/${slug(name)}`}
 							data-active={tab === 'unlocks'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Unlocks
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.yields && (
-						<Link
+						<BasicLink
 							href={`/protocol/yields/${slug(name)}`}
 							data-active={tab === 'yields'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Yields
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.fees && (
-						<Link
+						<BasicLink
 							href={`/protocol/fees/${slug(name)}`}
 							data-active={tab === 'fees'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Fees and Revenue
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.dexs && (
-						<Link
+						<BasicLink
 							href={`/protocol/dexs/${slug(name)}`}
 							data-active={tab === 'dexs'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							DEX Volume
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.perps && (
-						<Link
+						<BasicLink
 							href={`/protocol/perps/${slug(name)}`}
 							data-active={tab === 'perps'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Perps Volume
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.dexAggregators && (
-						<Link
+						<BasicLink
 							href={`/protocol/dex-aggregators/${slug(name)}`}
 							data-active={tab === 'dex-aggregators'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Aggregators Volume
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.perpsAggregators && (
-						<Link
+						<BasicLink
 							href={`/protocol/perps-aggregators/${slug(name)}`}
 							data-active={tab === 'perps-aggregators'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Perps Aggregators Volume
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.bridgeAggregators && (
-						<Link
+						<BasicLink
 							href={`/protocol/bridge-aggregators/${slug(name)}`}
 							data-active={tab === 'bridge-aggregators'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Bridge Aggregators Volume
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.options && (
-						<Link
+						<BasicLink
 							href={`/protocol/options/${slug(name)}`}
 							data-active={tab === 'options'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Options Volume
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.governance && (
-						<Link
+						<BasicLink
 							href={`/protocol/governance/${slug(name)}`}
 							data-active={tab === 'governance'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Governance
-						</Link>
+						</BasicLink>
 					)}
 					{metrics.forks && (
-						<Link
+						<BasicLink
 							href={`/protocol/forks/${slug(name)}`}
 							data-active={tab === 'forks'}
-							legacyBehavior={false}
-							prefetch={false}
 							className="flex-shrink-0 py-2 px-6 whitespace-nowrap border-b border-r border-[var(--form-control-border)] data-[active=true]:border-b-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
 						>
 							Forks
-						</Link>
+						</BasicLink>
 					)}
 				</div>
 				{children}
