@@ -9,7 +9,6 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
 import { WalletProvider } from '~/layout/WalletProvider'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 NProgress.configure({ showSpinner: false })
 

@@ -175,7 +175,6 @@ const Row = ({ data, onItemClick }) => {
 					setLoading(true)
 					// router.push(data.route).then(() => {
 					// 	setLoading(false)
-					// 	state.hide()
 					// })
 					window.open(data.route, '_self')
 				}
