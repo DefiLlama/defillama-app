@@ -85,7 +85,7 @@ export default function Protocols(props) {
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				<ProtocolPools
 					data={props.yields}
-					protocol={props.name}
+					protocol={slug(props.name)}
 					parentProtocol={props.parentProtocol}
 					otherProtocols={props.otherProtocols}
 				/>
