@@ -36,6 +36,7 @@ export interface CustomColumnDef {
 	name: string
 	formula: string
 	formatType: 'auto' | 'number' | 'usd' | 'percent' | 'string' | 'boolean'
+	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 }
 
 const optionsKey = 'ptc'
@@ -232,14 +233,15 @@ export const ChainProtocolsTable = ({
 								</span>
 							)
 						}
-						if (col.formatType === 'boolean' && typeof value === 'boolean') {
+						const usedFormat = col.determinedFormat || col.formatType
+						if (usedFormat === 'boolean' && typeof value === 'boolean') {
 							return (
 								<span title={value ? 'True' : 'False'} className="flex items-center">
 									{value ? '✅' : '❌'}
 								</span>
 							)
 						}
-						return <span className="flex items-center">{formatValue(value, col.formatType)}</span>
+						return <span className="flex items-center">{formatValue(value, usedFormat)}</span>
 					},
 					size: 140,
 					meta: { align: 'end', headerHelperText: col.formula }
