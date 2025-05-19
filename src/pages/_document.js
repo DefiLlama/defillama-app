@@ -6,7 +6,6 @@ export default function Document() {
 			<Head>
 				<link href="/fonts/inter.woff2" rel="preload" as="font" crossOrigin="anonymous" />
 				<link href="/fonts/jetbrains.ttf" rel="preload" as="font" crossOrigin="anonymous" />
-				<link href="/icons/v1.svg" rel="preload" as="image" type="image/svg+xml" crossOrigin="anonymous" />
 			</Head>
 			<body>
 				<Main />

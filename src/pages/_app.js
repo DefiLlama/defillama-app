@@ -2,21 +2,20 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import NProgress from 'nprogress'
 import { AppContext } from '~/contexts'
-import { useAnalytics } from '~/hooks/useAnalytics'
+// import { useAnalytics } from '~/hooks/useAnalytics'
 import '../tailwind.css'
 import '../nprogress.css'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
 import { WalletProvider } from '~/layout/WalletProvider'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 NProgress.configure({ showSpinner: false })
 
 const client = new QueryClient()
 
 function App({ Component, pageProps }) {
-	useAnalytics()
+	// useAnalytics()
 
 	const router = useRouter()
 

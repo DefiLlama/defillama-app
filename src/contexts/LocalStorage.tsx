@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useSyncExternalStore } from 'react'
-import { trackGoal } from 'fathom-client'
+// import { trackGoal } from 'fathom-client'
 import { slug } from '~/utils'
 import { useIsClient } from '~/hooks'
 import { useRouter } from 'next/router'
@@ -520,7 +520,7 @@ export function useWatchlist() {
 			...(newList[selectedPortfolio] || {}),
 			[standardProtocol]: readableProtocolName
 		}
-		trackGoal('VQ0TO7CU', standardProtocol)
+		// trackGoal('VQ0TO7CU', standardProtocol)
 		updateKey(WATCHLIST, newList)
 	}
 
@@ -528,7 +528,7 @@ export function useWatchlist() {
 		let newList = state?.[WATCHLIST]
 		const standardProtocol: any = slug(protocol)
 		delete newList?.[selectedPortfolio]?.[standardProtocol]
-		trackGoal('6SL0NZYJ', standardProtocol)
+		// trackGoal('6SL0NZYJ', standardProtocol)
 		updateKey(WATCHLIST, newList)
 	}
 
