@@ -15,6 +15,20 @@ export function evaluateFormula(formula: string, row: IProtocol): { value: numbe
   }
 }
 
+export function getSortableValue(value: any, formatType: string): number | string | boolean | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  
+  if (formatType === 'usd' || formatType === 'number' || formatType === 'percent') {
+    return typeof value === 'number' ? value : 0;
+  } else if (formatType === 'boolean') {
+    return typeof value === 'boolean' ? value : false;
+  } else {
+    return value;
+  }
+}
+
 function flattenObject(obj: any, prefix = '', res: any = {}) {
   for (const key in obj) {
     if (!Object.prototype.hasOwnProperty.call(obj, key)) continue
