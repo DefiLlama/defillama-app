@@ -78,7 +78,7 @@ export function ProtocolOverviewLayout({
 			)}
 			{name === 'Curve Finance' && (
 				<Announcement warning={true} notCancellable={true}>
-					curve.fi domain has been hijacked
+					Curve Finance updated their address to curve.finance. Update all your bookmarks.
 				</Announcement>
 			)}
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
