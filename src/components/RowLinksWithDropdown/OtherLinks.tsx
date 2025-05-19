@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { startTransition, useMemo, useState } from 'react'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
 
 interface IProps {
 	options: { label: string; to: string }[]
@@ -81,6 +82,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 
 const Item = ({ label, to }: { label: string; to: string }) => {
 	const [loading, setLoading] = useState(false)
+	const router = useRouter()
 	return (
 		<Ariakit.MenuItem
 			onClick={(e) => {
@@ -88,11 +90,10 @@ const Item = ({ label, to }: { label: string; to: string }) => {
 					window.open(to)
 				} else {
 					setLoading(true)
-					// router.push(to).then(() => {
-					// 	setLoading(false)
-					// 	state.hide()
-					// })
-					window.open(to, '_self')
+					router.push(to).then(() => {
+						setLoading(false)
+					})
+					// window.open(to, '_self')
 				}
 			}}
 			render={<Ariakit.ComboboxItem value={label} />}
