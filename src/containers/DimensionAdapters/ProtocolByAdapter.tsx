@@ -282,6 +282,10 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 								adapterType={type as `${ADAPTOR_TYPES}`}
 								protocolName={pSlug}
 								chartType="version"
+								metadata={{
+									bribeRevenue: totalAllTimeBribes ? true : false,
+									tokenTax: totalAllTimeTokenTaxes ? true : false
+								}}
 							/>
 						)}
 						{enableChainsChart && (
@@ -289,6 +293,10 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 								adapterType={type as `${ADAPTOR_TYPES}`}
 								protocolName={pSlug}
 								chartType="chain"
+								metadata={{
+									bribeRevenue: totalAllTimeBribes ? true : false,
+									tokenTax: totalAllTimeTokenTaxes ? true : false
+								}}
 							/>
 						)}
 					</div>

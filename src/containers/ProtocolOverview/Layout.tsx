@@ -124,7 +124,7 @@ export function ProtocolOverviewLayout({
 					))}
 				</nav>
 			)}
-			<div className="flex flex-col gap-1">
+			<div className="flex flex-col gap-1 isolate">
 				<div className="w-full flex overflow-x-auto bg-[var(--cards-bg)] rounded-md text-xs font-medium">
 					{isCEX ? (
 						<BasicLink

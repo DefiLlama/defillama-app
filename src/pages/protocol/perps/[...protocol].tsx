@@ -42,8 +42,8 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				pageStyles,
 				metrics,
-				adaptorChains: adapterData?.chains ?? [],
-				adaptorVersions: adapterData?.linkedProtocols?.slice(1) ?? []
+				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
+				hasMultipleVersions: adapterData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -71,10 +71,10 @@ export default function Protocols(props) {
 						protocolName={slug(props.name)}
 						adapterType="derivatives"
 					/>
-					{props.adaptorChains.length > 1 ? (
+					{props.hasMultipleChain ? (
 						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} adapterType="derivatives" />
 					) : null}
-					{props.adaptorVersions.length > 1 ? (
+					{props.hasMultipleVersions ? (
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}

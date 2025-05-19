@@ -6,6 +6,7 @@ import { slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { feesOptions } from '~/components/Filters/options'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
@@ -42,8 +43,8 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				pageStyles,
 				metrics,
-				adaptorChains: adapterData?.chains ?? [],
-				adaptorVersions: adapterData?.linkedProtocols?.slice(1) ?? []
+				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
+				hasMultipleVersions: adapterData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -63,15 +64,31 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			pageStyles={props.pageStyles}
 			tab="fees"
+			toggleOptions={feesOptions}
 		>
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
-					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="fees" />
-					{props.adaptorChains.length > 1 ? (
-						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} adapterType="fees" />
+					<DimensionProtocolChartByType
+						chartType="overview"
+						protocolName={slug(props.name)}
+						adapterType="fees"
+						metadata={{ bribeRevenue: props.metrics.bribes, tokenTax: props.metrics.tokenTax }}
+					/>
+					{props.hasMultipleChain ? (
+						<DimensionProtocolChartByType
+							chartType="chain"
+							protocolName={slug(props.name)}
+							adapterType="fees"
+							metadata={{ bribeRevenue: props.metrics.bribes, tokenTax: props.metrics.tokenTax }}
+						/>
 					) : null}
-					{props.adaptorVersions.length > 1 ? (
-						<DimensionProtocolChartByType chartType="version" protocolName={slug(props.name)} adapterType="fees" />
+					{props.hasMultipleVersions ? (
+						<DimensionProtocolChartByType
+							chartType="version"
+							protocolName={slug(props.name)}
+							adapterType="fees"
+							metadata={{ bribeRevenue: props.metrics.bribes, tokenTax: props.metrics.tokenTax }}
+						/>
 					) : null}
 				</div>
 			</div>

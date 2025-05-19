@@ -182,6 +182,8 @@ export const getProtocolMetrics = ({
 		yields: metadata.yields ? true : false,
 		fees: metadata.fees ? true : false,
 		revenue: metadata.revenue ? true : false,
+		bribes: metadata.bribeRevenue ? true : false,
+		tokenTax: metadata.tokenTax ? true : false,
 		forks: metadata.forks ? true : false,
 		governance: protocolData.governanceID ? true : false
 	}

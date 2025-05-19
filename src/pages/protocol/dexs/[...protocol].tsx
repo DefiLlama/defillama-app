@@ -41,8 +41,8 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				pageStyles,
-				adaptorChains: adapterData?.chains ?? [],
-				adaptorVersions: adapterData?.linkedProtocols?.slice(1) ?? [],
+				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
+				hasMultipleVersions: adapterData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false,
 				metrics
 			},
 			revalidate: maxAgeForNext([22])
@@ -67,10 +67,10 @@ export default function Protocols(props) {
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
 					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="dexs" />
-					{props.adaptorChains.length > 1 ? (
+					{props.hasMultipleChain ? (
 						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} adapterType="dexs" />
 					) : null}
-					{props.adaptorVersions.length > 1 ? (
+					{props.hasMultipleVersions ? (
 						<DimensionProtocolChartByType chartType="version" protocolName={slug(props.name)} adapterType="dexs" />
 					) : null}
 				</div>

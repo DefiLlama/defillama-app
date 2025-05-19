@@ -211,16 +211,19 @@ const chartTitleBy = ({
 export const DimensionProtocolChartByType = ({
 	protocolName,
 	adapterType,
-	chartType
+	chartType,
+	metadata
 }: {
 	protocolName: string
 	adapterType: `${ADAPTOR_TYPES}`
 	chartType: 'overview' | 'chain' | 'version'
+	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
 }) => {
 	const { data, isLoading } = useGetDimensionAdapterChartData({
 		protocolName,
 		adapterType,
-		disabled: false
+		disabled: false,
+		metadata
 	})
 
 	if (isLoading) {
