@@ -4,7 +4,6 @@ import pb, { AuthModel } from '~/utils/pocketbase'
 import { SiweMessage } from 'siwe'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AUTH_SERVER } from '~/constants'
-import { useSignMessage } from 'wagmi'
 
 interface User extends AuthModel {
 	subscription_status: string
@@ -27,7 +26,7 @@ interface AuthContextType {
 	signup: (email: string, password: string, passwordConfirm: string, onSuccess?: () => void) => Promise<void>
 	logout: () => void
 	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response>
-	signInWithEthereum: (address: string, onSuccess?: () => void) => Promise<void>
+	signInWithEthereum: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
 	signInWithGithub: (onSuccess?: () => void) => Promise<void>
 	resetPassword: (email: string) => void
 	changeEmail: (email: string) => void
@@ -55,11 +54,9 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const queryClient = useQueryClient()
-	const { signMessageAsync } = useSignMessage()
 	const [isAuthenticated, setIsAuthenticated] = useState(false)
 	const [subscription, setSubscription] = useState<any>(null)
 	const [isSubscriptionError, setIsSubscriptionError] = useState(false)
-
 	const {
 		data: currentUserData,
 		isPending: userQueryIsPending,
@@ -248,7 +245,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	)
 
 	const signInWithEthereumMutation = useMutation({
-		mutationFn: async (address: string) => {
+		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
 			const getNonce = async (address: string) => {
 				const response = await fetch(`${AUTH_SERVER}/nonce?address=${address}`)
 				if (!response.ok) {
@@ -268,7 +265,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				nonce: nonce
 			})
 
-			const signature = await signMessageAsync({
+			const signature = await signMessageFunction({
 				message: message.prepareMessage(),
 				account: address as `0x${string}`
 			})
@@ -310,9 +307,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	})
 
 	const signInWithEthereum = useCallback(
-		async (address: string, onSuccess?: () => void) => {
+		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
 			try {
-				await signInWithEthereumMutation.mutateAsync(address)
+				await signInWithEthereumMutation.mutateAsync({ address, signMessageFunction })
 				queryClient.invalidateQueries({
 					queryKey: ['subscription', pb.authStore.record?.id]
 				})

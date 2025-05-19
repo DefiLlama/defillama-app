@@ -49,13 +49,11 @@ function App({ Component, pageProps }) {
 
 	return (
 		<QueryClientProvider client={client}>
-			<WalletProvider>
-				<AuthProvider>
-					<AppContext noContext={pageProps.noContext ?? false}>
-						<Component {...pageProps} />
-					</AppContext>
-				</AuthProvider>
-			</WalletProvider>
+			<AuthProvider>
+				<AppContext noContext={pageProps.noContext ?? false}>
+					<Component {...pageProps} />
+				</AppContext>
+			</AuthProvider>
 			<ReactQueryDevtools initialIsOpen={false} />
 		</QueryClientProvider>
 	)

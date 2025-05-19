@@ -1,7 +1,7 @@
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import * as Ariakit from '@ariakit/react'
 import { FormEvent, useState } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useSignMessage } from 'wagmi'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/LocalLoader'
@@ -20,6 +20,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 
 	const { login, signup, signInWithEthereum, signInWithGithub, resetPassword, isAuthenticated, loaders } =
 		useAuthContext()
+	const { signMessageAsync } = useSignMessage()
 
 	const handleEmailSignIn = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -80,7 +81,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 	const handleWalletSignIn = async () => {
 		if (address) {
 			try {
-				await signInWithEthereum(address)
+				await signInWithEthereum(address, signMessageAsync)
 			} catch (error) {
 				console.error('Error signing in with wallet:', error)
 			}
