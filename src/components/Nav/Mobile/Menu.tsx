@@ -53,7 +53,7 @@ export function Menu() {
 			>
 				<nav
 					ref={navEl}
-					className="fixed top-0 right-0 bottom-0 overflow-auto flex flex-col w-full max-w-[300px] bg-[var(--bg1)] p-4 pl-5 animate-slidein"
+					className="fixed top-0 right-0 bottom-0 overflow-auto flex flex-col w-full max-w-[300px] bg-[var(--bg1)] text-black dark:text-white p-4 pl-5 animate-slidein"
 				>
 					<button onClick={(prev) => setShow(!prev)} className="ml-auto">
 						<span className="sr-only">Close Navigation Menu</span>
@@ -76,7 +76,7 @@ export function Menu() {
 								<button
 									key={link.name}
 									onClick={link.onClick}
-									className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
+									className="rounded-md data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
 								>
 									{link.name}
 								</button>
@@ -90,7 +90,7 @@ export function Menu() {
 										target="_blank"
 										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 										data-linkactive={link.path === router.asPath.split('/?')[0].split('?')[0]}
-										className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
+										className="rounded-md data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
 									>
 										{link.name}
 									</BasicLink>
@@ -107,7 +107,7 @@ export function Menu() {
 								<button
 									key={link.name}
 									onClick={link.onClick}
-									className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
+									className="rounded-md data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
 								>
 									{link.name}
 								</button>
@@ -121,7 +121,7 @@ export function Menu() {
 										target="_blank"
 										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 										data-linkactive={link.path === router.asPath.split('/?')[0].split('?')[0]}
-										className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
+										className="rounded-md data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
 									>
 										{link.name}
 									</BasicLink>
@@ -135,18 +135,12 @@ export function Menu() {
 					{isAuthenticated ? (
 						<div className="flex flex-col gap-2">
 							{user && <span className="text-sm text-[#8a8c90] p-3">{user.email}</span>}
-							<button
-								onClick={logout}
-								className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 p-3 text-left"
-							>
+							<button onClick={logout} className="rounded-md p-3 text-left">
 								Logout
 							</button>
 						</div>
 					) : (
-						<BasicLink
-							href="/subscription"
-							className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 p-3"
-						>
+						<BasicLink href="/subscription" className="rounded-md p-3">
 							Sign In / Subscribe
 						</BasicLink>
 					)}
@@ -182,7 +176,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 				href={noSubMenu?.url ?? '/yields'}
 				target={noSubMenu?.external && '_blank'}
 				data-linkactive={(noSubMenu?.url ?? '/yields') === router.pathname}
-				className="rounded-md hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
+				className="rounded-md data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-3"
 			>
 				{name}
 			</BasicLink>
@@ -190,10 +184,9 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	}
 
 	return (
-		<details ref={ref} className={`group select-none ${active ? 'text-white' : ''}`}>
+		<details ref={ref} className={`group select-none ${active ? 'text-black dark:text-white' : ''}`}>
 			<summary
 				data-togglemenuoff={false}
-				data-linkactive={active}
 				className="group/summary rounded-md flex items-center gap-1 list-none p-3 relative left-[-22px] data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white"
 			>
 				<Icon
@@ -211,7 +204,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 						href={subLink.path}
 						key={subLink.path}
 						data-linkactive={subLink.path === router.asPath.split('/?')[0].split('?')[0]}
-						className="py-3 pl-7 rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white"
+						className="py-3 pl-7 rounded-md flex items-center gap-3 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white"
 					>
 						<span>{subLink.name}</span>
 					</BasicLink>
