@@ -11,7 +11,12 @@ import { useIsClient } from '~/hooks'
 
 interface CustomColumnModalProps {
 	dialogStore: Ariakit.DialogStore
-	onSave: (def: { name: string; formula: string; formatType: string }) => void
+	onSave: (def: {
+		name: string
+		formula: string
+		formatType: string
+		determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
+	}) => void
 	sampleRow: any
 	name?: string
 	formula?: string
@@ -171,7 +176,26 @@ export function CustomColumnModal({
 			return
 		}
 		setState((prev) => ({ ...prev, error: null }))
-		onSave({ name: state.name.trim(), formula: state.formula.trim(), formatType: state.formatType })
+
+		const determinedFormat =
+			state.formatType === 'auto' && !result.error
+				? (() => {
+						if (typeof result.value === 'boolean') return 'boolean'
+						if (typeof result.value === 'number') {
+							if (result.value >= 0 && result.value <= 1) return 'percent'
+							if (Math.abs(result.value) > 1000) return 'usd'
+							return 'number'
+						}
+						return 'string'
+				  })()
+				: undefined
+
+		onSave({
+			name: state.name.trim(),
+			formula: state.formula.trim(),
+			formatType: state.formatType,
+			determinedFormat
+		})
 	}
 
 	let preview = null
@@ -181,10 +205,25 @@ export function CustomColumnModal({
 		const result = evaluateFormula(formulaWithPaths, sampleRow)
 		if (result.error) {
 			hasFormulaError = true
-		} else if (state.formatType === 'boolean' && typeof result.value === 'boolean') {
-			preview = result.value ? '✅ True' : '❌ False'
 		} else {
-			preview = formatValue(result.value, state.formatType)
+			const determinedFormat =
+				state.formatType === 'auto'
+					? (() => {
+							if (typeof result.value === 'boolean') return 'boolean'
+							if (typeof result.value === 'number') {
+								if (result.value >= 0 && result.value <= 1) return 'percent'
+								if (Math.abs(result.value) > 1000) return 'usd'
+								return 'number'
+							}
+							return 'string'
+					  })()
+					: state.formatType
+
+			if (determinedFormat === 'boolean' && typeof result.value === 'boolean') {
+				preview = result.value ? '✅ True' : '❌ False'
+			} else {
+				preview = formatValue(result.value, determinedFormat)
+			}
 		}
 	}
 
@@ -263,18 +302,39 @@ export function CustomColumnModal({
 					</label>
 					<label className="flex flex-col gap-1">
 						<span>Format</span>
-						<select
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
-							value={state.formatType}
-							onChange={(e) => setState((prev) => ({ ...prev, formatType: e.target.value }))}
-						>
-							<option value="auto">Auto</option>
-							<option value="number">Number</option>
-							<option value="usd">USD</option>
-							<option value="percent">Percent</option>
-							<option value="string">String</option>
-							<option value="boolean">Boolean (checkmark)</option>
-						</select>
+						<div>
+							<select
+								className="w-full p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+								value={state.formatType}
+								onChange={(e) => setState((prev) => ({ ...prev, formatType: e.target.value }))}
+							>
+								<option value="auto">Auto</option>
+								<option value="number">Number</option>
+								<option value="usd">USD</option>
+								<option value="percent">Percent</option>
+								<option value="string">String</option>
+								<option value="boolean">Boolean (checkmark)</option>
+							</select>
+							{state.formatType === 'auto' && state.formula.trim() && !hasFormulaError && (
+								<div className="mt-1 text-sm text-[var(--text2)]">
+									Auto will format as:{' '}
+									{(() => {
+										const formulaWithPaths = replaceAliases(state.formula)
+										const result = evaluateFormula(formulaWithPaths, sampleRow)
+										if (!result.error) {
+											if (typeof result.value === 'boolean') return 'Boolean'
+											if (typeof result.value === 'number') {
+												if (result.value >= 0 && result.value <= 1) return 'Percent'
+												if (Math.abs(result.value) > 1000) return 'USD'
+												return 'Number'
+											}
+											return 'String'
+										}
+										return 'Unknown'
+									})()}
+								</div>
+							)}
+						</div>
 					</label>
 					<div className="flex flex-col gap-1">
 						<p>Available fields:</p>

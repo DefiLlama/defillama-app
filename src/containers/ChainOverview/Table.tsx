@@ -26,7 +26,7 @@ import { subscribeToLocalStorage, useLocalStorageSettingsManager, useCustomColum
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useRouter } from 'next/router'
-import { evaluateFormula } from './formula.service'
+import { evaluateFormula, getSortableValue } from './formula.service'
 import { formatValue } from '../../utils'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { CustomColumnModal } from './CustomColumnModal'
@@ -36,6 +36,7 @@ export interface CustomColumnDef {
 	name: string
 	formula: string
 	formatType: 'auto' | 'number' | 'usd' | 'percent' | 'string' | 'boolean'
+	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 }
 
 const optionsKey = 'ptc'
@@ -213,18 +214,33 @@ export const ChainProtocolsTable = ({
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
-	const customColumnDefs = useMemo(
-		() =>
-			customColumns.map((col, idx) =>
-				columnHelper.display({
-					id: `custom_formula_${idx}`,
+	const customColumnDefs = useMemo(() => {
+		return customColumns.map((col, idx) => {
+			const columnId = `custom_formula_${idx}`
+
+			return columnHelper.accessor(
+				(row) => {
+					const formulaWithPaths = replaceAliases(col.formula)
+					const { value, error } = evaluateFormula(formulaWithPaths, row)
+
+					if (error) {
+						return null
+					}
+
+					const usedFormat = col.determinedFormat || col.formatType
+					return getSortableValue(value, usedFormat)
+				},
+				{
+					id: columnId,
 					header: col.name,
 					cell: ({ row }) => {
 						const formulaWithPaths = replaceAliases(col.formula)
 						const { value, error } = evaluateFormula(formulaWithPaths, row.original)
+
 						if (error || value === '' || value === null || (typeof value === 'boolean' && value === false && error)) {
 							return null
 						}
+
 						if (error) {
 							return (
 								<span title={error} className="text-red-600 cursor-help">
@@ -232,21 +248,54 @@ export const ChainProtocolsTable = ({
 								</span>
 							)
 						}
-						if (col.formatType === 'boolean' && typeof value === 'boolean') {
+
+						const usedFormat = col.determinedFormat || col.formatType
+						if (usedFormat === 'boolean' && typeof value === 'boolean') {
 							return (
 								<span title={value ? 'True' : 'False'} className="flex items-center">
 									{value ? '✅' : '❌'}
 								</span>
 							)
 						}
-						return <span className="flex items-center">{formatValue(value, col.formatType)}</span>
+
+						return <span className="flex items-center">{formatValue(value, usedFormat)}</span>
 					},
+					sortingFn: (rowA, rowB, columnId) => {
+						const usedFormat = col.determinedFormat || col.formatType
+						const desc = sorting.length ? sorting[0].desc : true
+
+						let a = rowA.getValue(columnId)
+						let b = rowB.getValue(columnId)
+
+						if (a === null && b !== null) {
+							return desc ? -1 : 1
+						}
+
+						if (a !== null && b === null) {
+							return desc ? 1 : -1
+						}
+
+						if (a === null && b === null) {
+							return 0
+						}
+
+						if (usedFormat === 'string') {
+							return String(a).localeCompare(String(b))
+						} else if (usedFormat === 'boolean') {
+							if (a === true && b === false) return 1
+							if (a === false && b === true) return -1
+							return 0
+						} else {
+							return Number(a) - Number(b)
+						}
+					},
+					sortUndefined: 'last',
 					size: 140,
 					meta: { align: 'end', headerHelperText: col.formula }
-				})
-			),
-		[customColumns]
-	)
+				}
+			)
+		})
+	}, [customColumns, sorting])
 
 	const allColumns = useMemo(
 		() => [
