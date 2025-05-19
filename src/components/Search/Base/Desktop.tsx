@@ -173,10 +173,10 @@ const Row = ({ data, onItemClick }) => {
 					window.open(data.route)
 				} else {
 					setLoading(true)
-					router.push(data.route).then(() => {
-						setLoading(false)
-					})
-					// window.open(data.route, '_self')
+					// router.push(data.route).then(() => {
+					// 	setLoading(false)
+					// })
+					window.open(data.route, '_self')
 				}
 			}}
 			focusOnHover
