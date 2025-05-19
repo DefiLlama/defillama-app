@@ -1,5 +1,4 @@
 import * as React from 'react'
-import Link from 'next/link'
 import Layout from '~/layout'
 import { CopyHelper } from '~/components/Copy'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
@@ -12,12 +11,13 @@ import { SEO } from '~/components/SEO'
 import type { IProtocolContainerProps } from './types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { DimensionProtocolChartByType, DimensionProtocolOverviewChart } from './charts/ProtocolChart'
 import { useRouter } from 'next/router'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import { ADAPTOR_TYPES } from './constants'
+import { BasicLink } from '~/components/Link'
+import { defaultPageStyles } from '../ProtocolOverview/queries'
 
 export function ProtocolByAdapter(props: IProtocolContainerProps) {
 	const {
@@ -63,7 +63,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 	const router = useRouter()
 
 	return (
-		<Layout title={props.title}>
+		<Layout title={props.title} style={defaultPageStyles}>
 			<SEO
 				cardName={displayName}
 				tvl={formattedNum(total24h)?.toString()}
@@ -83,14 +83,14 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 				{linkedProtocols && linkedProtocols.length > 0 && (
 					<nav className="col-span-2 text-xs font-medium xl:col-span-3 flex overflow-x-auto rounded-md bg-[var(--cards-bg)] border-b border-[var(--form-control-border)]">
 						{linkedProtocols.map((p) => (
-							<Link href={`/${type}/${slug(p)}`} key={p} prefetch={false} passHref>
-								<a
-									data-active={router.asPath.split('#')[0].split('?')[0] === `/${type}/${slug(p)}`}
-									className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-tl-md data-[active=true]:bg-[var(--link-hover-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-l border-[var(--form-control-border)] first:border-l-0"
-								>
-									{p}
-								</a>
-							</Link>
+							<BasicLink
+								href={`/${type}/${slug(p)}`}
+								key={p}
+								data-active={router.asPath.split('#')[0].split('?')[0] === `/${type}/${slug(p)}`}
+								className="flex-shrink-0 py-2 px-6 whitespace-nowrap first:rounded-tl-md data-[active=true]:bg-[var(--link-hover-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-l border-[var(--form-control-border)] first:border-l-0"
+							>
+								{p}
+							</BasicLink>
 						))}
 					</nav>
 				)}
@@ -167,9 +167,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 					{category && (
 						<p className="flex items-center gap-2">
 							<span>Category:</span>
-							<Link href={`/${type}?category=${category}`} prefetch={false}>
-								{category}
-							</Link>
+							<BasicLink href={`/${type}?category=${category}`}>{category}</BasicLink>
 						</p>
 					)}
 
@@ -178,9 +176,9 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 							<span>Forked from:</span>
 							<>
 								{forkedFrom.map((p, index) => (
-									<Link href={`/protocol/${p}`} prefetch={false} key={p}>
+									<BasicLink href={`/protocol/${p}`} key={p}>
 										{forkedFrom[index + 1] ? p + ', ' : p}
-									</Link>
+									</BasicLink>
 								))}
 							</>
 						</p>
@@ -190,19 +188,25 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 
 					<div className="flex items-center gap-4 flex-wrap">
 						{url && (
-							<Link href={url} prefetch={false} passHref>
-								<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-									<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-								</ButtonLight>
-							</Link>
+							<a
+								href={url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+							>
+								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
+							</a>
 						)}
 
 						{twitter && (
-							<Link href={`https://twitter.com/${twitter}`} prefetch={false} passHref>
-								<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-									<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-								</ButtonLight>
-							</Link>
+							<a
+								href={`https://twitter.com/${twitter}`}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+							>
+								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
+							</a>
 						)}
 					</div>
 				</div>
@@ -220,12 +224,16 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 										)}`}</span>
 										<span>{blockExplorer.address.slice(0, 8) + '...' + blockExplorer.address?.slice(36, 42)}</span>
 										<CopyHelper toCopy={blockExplorer.address} disabled={!blockExplorer.address} />
-										<Link href={blockExplorer.blockExplorerLink} prefetch={false} passHref>
-											<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-												<span>View on {blockExplorer.blockExplorerName}</span>{' '}
-												<Icon name="arrow-up-right" height={14} width={14} />
-											</ButtonLight>
-										</Link>
+
+										<a
+											href={blockExplorer.blockExplorerLink}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										>
+											<span>View on {blockExplorer.blockExplorerName}</span>{' '}
+											<Icon name="arrow-up-right" height={14} width={14} />
+										</a>
 									</p>
 								))}
 							</>
@@ -233,11 +241,14 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 
 						{gecko_id && (
 							<div className="flex items-center gap-4 flex-wrap">
-								<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} prefetch={false} passHref>
-									<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-										<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
-									</ButtonLight>
-								</Link>
+								<a
+									href={`https://www.coingecko.com/en/coins/${gecko_id}`}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+								>
+									<span>View on CoinGecko</span> <Icon name="arrow-up-right" height={14} width={14} />
+								</a>
 							</div>
 						)}
 					</div>
@@ -250,12 +261,15 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 						{methodology?.['Revenue'] ? <p>{`Revenue: ${methodology['Revenue']}`}</p> : null}
 
 						<div className="flex items-center gap-4 flex-wrap">
-							<Link href={methodologyURL} prefetch={false} passHref>
-								<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-									<span>Check the code</span>
-									<Icon name="arrow-up-right" height={14} width={14} />
-								</ButtonLight>
-							</Link>
+							<a
+								href={methodologyURL}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+							>
+								<span>Check the code</span>
+								<Icon name="arrow-up-right" height={14} width={14} />
+							</a>
 						</div>
 					</div>
 				)}

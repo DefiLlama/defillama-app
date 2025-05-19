@@ -2,7 +2,7 @@ import * as React from 'react'
 import dayjs from 'dayjs'
 import { formattedNum, tokenIconUrl, slug } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import type { DailyUnlocks } from '../types'
 import type { Dayjs } from 'dayjs'
 
@@ -44,7 +44,12 @@ export const UnlocksListView: React.FC<UnlocksListViewProps> = ({ events }) => {
 					</h3>
 					<div className="flex flex-col gap-2 px-3">
 						{dailyEvents.map((event, i) => (
-							<CustomLink key={i} href={`/unlocks/${slug(event.protocol)}`} target="_blank">
+							<BasicLink
+								key={i}
+								href={`/unlocks/${slug(event.protocol)}`}
+								target="_blank"
+								className="text-sm font-medium text-[var(--link-text)]"
+							>
 								<div className="flex justify-between items-center p-3 rounded bg-[var(--bg6)] hover:bg-[var(--bg5)] transition-colors duration-150 ease-in-out shadow-sm cursor-pointer">
 									<span className="flex items-center gap-3 text-sm font-medium text-[var(--text1)]">
 										<TokenLogo logo={tokenIconUrl(event.protocol)} size={20} />
@@ -52,7 +57,7 @@ export const UnlocksListView: React.FC<UnlocksListViewProps> = ({ events }) => {
 									</span>
 									<span className="text-sm font-medium text-[var(--text2)]">{formattedNum(event.value, true)}</span>
 								</div>
-							</CustomLink>
+							</BasicLink>
 						))}
 					</div>
 				</div>

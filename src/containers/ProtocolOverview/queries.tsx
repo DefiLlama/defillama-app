@@ -107,6 +107,14 @@ function getStyles(color: string) {
 	}
 }
 
+export const defaultPageStyles = {
+	'--primary-color': '#1f67d2',
+	'--bg-color': 'rgba(31,103,210,0.4)',
+	'--btn-bg': 'rgba(31,103,210,0.1)',
+	'--btn-hover-bg': 'rgba(31,103,210,0.2)',
+	'--btn-text': '#1851a6'
+} as React.CSSProperties
+
 function isDarkColor(color: string) {
 	// Convert hex to RGB
 	const hex = color.replace('#', '')

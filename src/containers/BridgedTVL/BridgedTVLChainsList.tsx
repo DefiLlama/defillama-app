@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ColumnDef } from '@tanstack/react-table'
@@ -86,12 +86,12 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink
+					<BasicLink
 						href={`/bridged/${slug(getValue() as string)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as any}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},

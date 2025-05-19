@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug } from '~/utils'
@@ -21,17 +21,17 @@ export const NameColumn = (type: string, allChains?: boolean, size = 240): Colum
 				isParent ? (
 					value
 				) : (
-					<CustomLink
+					<BasicLink
 						href={`/nfts/royalties/${row.original.defillamaId}`}
 						target="_blank"
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>{`${value}`}</CustomLink>
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${value}`}</BasicLink>
 				)
 			) : (
-				<CustomLink
+				<BasicLink
 					href={`/${type}/${allChains ? 'chains/' : ''}${slug(row.original.name)}`}
-					className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-				>{`${value}`}</CustomLink>
+					className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+				>{`${value}`}</BasicLink>
 			)
 
 		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index

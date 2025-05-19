@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
 import type { IPeggedAssetByChainRow, IPeggedAssetsRow, IPeggedChain } from './types'
@@ -55,12 +55,12 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 						<>
 							<span className="flex-shrink-0">{index + 1}</span>
 							<TokenLogo logo={chainIconUrl(row.original.name)} data-lgonly />
-							<CustomLink
+							<BasicLink
 								href={`/stablecoins/${row.original.name}`}
-								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
 							>
 								{getValue() as string}
-							</CustomLink>
+							</BasicLink>
 						</>
 					)}
 				</span>
@@ -74,7 +74,17 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			const value = getValue() as IPeggedAssetByChainRow['bridgeInfo']
-			return <>{value.link ? <CustomLink href={value.link}>{value.name}</CustomLink> : <span>{value.name}</span>}</>
+			return (
+				<>
+					{value.link ? (
+						<BasicLink href={value.link} className="text-sm font-medium text-[var(--link-text)]">
+							{value.name}
+						</BasicLink>
+					) : (
+						<span>{value.name}</span>
+					)}
+				</>
+			)
 		},
 		size: 240,
 		meta: {
@@ -169,12 +179,12 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				<span className="flex items-center gap-2">
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={peggedAssetIconUrl(row.original.name)} data-lgonly />
-					<CustomLink
+					<BasicLink
 						href={`/stablecoin/${slug(row.original.name)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
@@ -502,12 +512,12 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 						<>
 							<span className="flex-shrink-0">{index + 1}</span>
 							<TokenLogo logo={chainIconUrl(value)} data-lgonly />
-							<CustomLink
+							<BasicLink
 								href={`/stablecoins/${value}`}
-								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							>
 								{value}
-							</CustomLink>
+							</BasicLink>
 						</>
 					)}
 				</span>

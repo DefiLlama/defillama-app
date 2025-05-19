@@ -1,8 +1,8 @@
 import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
-import Link from 'next/link'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { BasicLink } from '../Link'
 
 interface SubscribePlusCardProps {
 	context?: 'modal' | 'page' | 'account'
@@ -111,11 +111,12 @@ export function SubscribePlusCard({
 							</>
 						)}
 						{isModal && (
-							<Link href="/subscription" legacyBehavior>
-								<a className="w-full mt-3 px-4 py-2 bg-[#5C5CF9] hover:bg-[#4A4AF0] text-white rounded-lg transition-colors text-center font-medium block">
-									Go to Subscription Page
-								</a>
-							</Link>
+							<BasicLink
+								href="/subscription"
+								className="w-full mt-3 px-4 py-2 bg-[#5C5CF9] hover:bg-[#4A4AF0] text-white rounded-lg transition-colors text-center font-medium block"
+							>
+								Go to Subscription Page
+							</BasicLink>
 						)}
 					</>
 				)}

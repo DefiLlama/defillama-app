@@ -8,7 +8,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
@@ -71,12 +71,12 @@ const columns: ColumnDef<any>[] = [
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink
+					<BasicLink
 						href={`/protocol/${slug(getValue() as string)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},

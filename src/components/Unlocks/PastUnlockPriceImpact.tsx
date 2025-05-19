@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 import { TokenLogo } from '../TokenLogo'
-import { CustomLink } from '../Link'
+import { BasicLink } from '../Link'
 import { Tooltip } from '../Tooltip'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '../Icon'
@@ -124,12 +124,12 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 						<div className="flex items-center space-x-2">
 							<TokenLogo logo={tokenIconUrl(`${impact.name}`)} />
 							<div className="flex flex-col">
-								<CustomLink
+								<BasicLink
 									href={`/unlocks/${slug(impact.name)}`}
 									className="overflow-hidden text-[var(--bg-2)] whitespace-nowrap font-medium text-lg text-ellipsis hover:underline"
 								>
 									{impact.name} ({impact.symbol})
-								</CustomLink>
+								</BasicLink>
 							</div>
 						</div>
 						<div className="flex items-center gap-1">

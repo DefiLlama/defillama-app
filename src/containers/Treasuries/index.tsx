@@ -11,7 +11,7 @@ import {
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download, formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
 import Layout from '~/layout'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -119,12 +119,12 @@ export const columns: ColumnDef<any>[] = [
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
-					<CustomLink
+					<BasicLink
 						href={`/protocol/${slug}#treasury`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{name}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},

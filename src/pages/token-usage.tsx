@@ -13,7 +13,7 @@ import { useQuery } from '@tanstack/react-query'
 import { VirtualTable } from '~/components/Table/Table'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 
 export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	const searchData = await getAllCGTokensList()
@@ -171,10 +171,10 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 				<span className="flex items-center gap-2">
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-					<CustomLink
+					<BasicLink
 						href={`/protocol/${slug(value)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>{`${value}`}</CustomLink>
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${value}`}</BasicLink>
 				</span>
 			)
 		}

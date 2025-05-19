@@ -1,12 +1,12 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { useDimensionChartInterval } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { ChartType, getChartDataByChainAndInterval, GROUP_CHART_LIST, GROUP_INTERVALS_LIST } from './utils'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
+import { BasicLink } from '~/components/Link'
 
 const BarChart2 = dynamic(() => import('~/components/ECharts/BarChart2'), {
 	ssr: false,
@@ -60,20 +60,15 @@ export const ChainByAdapterChart = ({
 					{chartTypes && (
 						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 							{chartTypes.map((dataType) => (
-								<Link
+								<BasicLink
 									href={`${router.asPath.split('?')[0]}?dataType=${dataType}`}
 									key={dataType}
-									prefetch={false}
 									shallow
-									passHref
+									data-active={dataType === selectedChartType}
+									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 								>
-									<a
-										data-active={dataType === selectedChartType}
-										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-									>
-										{dataType}
-									</a>
-								</Link>
+									{dataType}
+								</BasicLink>
 							))}
 						</div>
 					)}

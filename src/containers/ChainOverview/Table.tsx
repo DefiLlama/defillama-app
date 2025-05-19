@@ -18,7 +18,7 @@ import {
 import { TokenLogo } from '~/components/TokenLogo'
 import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { ICONS_CDN, removedCategories } from '~/constants'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
@@ -514,12 +514,12 @@ const columns: ColumnDef<IProtocol>[] = [
 					<TokenLogo logo={`${ICONS_CDN}/protocols/${row.original.slug}?w=48&h=48`} data-lgonly />
 
 					<span className="flex flex-col -my-2">
-						<CustomLink
+						<BasicLink
 							href={`/protocol/${row.original.slug}`}
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
-						</CustomLink>
+						</BasicLink>
 
 						<Tooltip content={<Chains />} className="text-[0.7rem] text-[var(--text-disabled)]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
@@ -542,7 +542,12 @@ const columns: ColumnDef<IProtocol>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<CustomLink href={`/protocols/${slug(getValue() as string)}`}>{getValue() as string}</CustomLink>
+				<BasicLink
+					href={`/protocols/${slug(getValue() as string)}`}
+					className="text-sm font-medium text-[var(--link-text)]"
+				>
+					{getValue() as string}
+				</BasicLink>
 			) : (
 				''
 			),

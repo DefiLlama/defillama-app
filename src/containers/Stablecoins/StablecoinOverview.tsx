@@ -1,17 +1,13 @@
 import * as React from 'react'
-import Link from 'next/link'
-
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
 import { AuditInfo } from '~/components/AuditInfo'
 import { SEO } from '~/components/SEO'
 import { QuestionHelper } from '~/components/QuestionHelper'
-
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import {
@@ -29,6 +25,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
+import { defaultPageStyles } from '../ProtocolOverview/queries'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -170,7 +167,8 @@ export const PeggedAssetInfo = ({
 		return {
 			'--tag-border-color': transparentize(0.9, backgroundColor),
 			'--tag-bg': backgroundColor,
-			'--tag-hover-bg': transparentize(0.8, backgroundColor)
+			'--tag-hover-bg': transparentize(0.8, backgroundColor),
+			...defaultPageStyles
 		}
 	}, [backgroundColor])
 
@@ -295,100 +293,82 @@ export const PeggedAssetInfo = ({
 							<div className="flex items-center gap-6 p-5 overflow-auto flex-wrap">
 								{blockExplorerLink !== undefined && (
 									<span>
-										<Link href={blockExplorerLink} prefetch={false} passHref>
-											<ButtonLight
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={14} width={14} />
-											</ButtonLight>
-										</Link>
+										<a
+											href={blockExplorerLink}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										>
+											<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={14} width={14} />
+										</a>
 									</span>
 								)}
 
 								{url && (
 									<span>
-										<Link href={url} prefetch={false} passHref>
-											<ButtonLight
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>Website</span>
-												<Icon name="arrow-up-right" height={14} width={14} />
-											</ButtonLight>
-										</Link>
+										<a
+											href={url}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										>
+											<span>Website</span>
+											<Icon name="arrow-up-right" height={14} width={14} />
+										</a>
 									</span>
 								)}
 
 								{twitter && (
 									<span>
-										<Link href={twitter} prefetch={false} passHref>
-											<ButtonLight
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>Twitter</span>
-												<Icon name="arrow-up-right" height={14} width={14} />
-											</ButtonLight>
-										</Link>
+										<a
+											href={twitter}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										>
+											<span>Twitter</span>
+											<Icon name="arrow-up-right" height={14} width={14} />
+										</a>
 									</span>
 								)}
 
 								{wiki && (
 									<span>
-										<Link href={wiki} prefetch={false} passHref>
-											<ButtonLight
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>DeFiLlama Wiki</span>
-												<Icon name="arrow-up-right" height={14} width={14} />
-											</ButtonLight>
-										</Link>
+										<a
+											href={wiki}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										>
+											<span>DeFiLlama Wiki</span>
+											<Icon name="arrow-up-right" height={14} width={14} />
+										</a>
 									</span>
 								)}
 
 								{onCoinGecko === 'true' && (
 									<span>
-										<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} prefetch={false} passHref>
-											<ButtonLight
-												as="a"
-												target="_blank"
-												rel="noopener noreferrer"
-												useTextColor={true}
-												color={backgroundColor}
-											>
-												<span>CoinGecko</span>
-												<Icon name="arrow-up-right" height={14} width={14} />
-											</ButtonLight>
-										</Link>
+										<a
+											href={`https://www.coingecko.com/en/coins/${gecko_id}`}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										>
+											<span>CoinGecko</span>
+											<Icon name="arrow-up-right" height={14} width={14} />
+										</a>
 									</span>
 								)}
 
-								<ButtonLight
-									as="a"
+								<a
 									href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
 									target="_blank"
 									rel="noopener noreferrer"
-									useTextColor={true}
-									color={backgroundColor}
-									className="flex items-center gap-4 self-start font-normal whitespace-nowrap"
+									className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
 								>
 									<span>Check the code</span>
 									<Icon name="arrow-up-right" height={14} width={14} />
-								</ButtonLight>
+								</a>
 							</div>
 						</Ariakit.TabPanel>
 					</Ariakit.TabProvider>

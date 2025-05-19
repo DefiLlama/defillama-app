@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import { OtherLinks } from './OtherLinks'
+import { BasicLink } from '../Link'
 
 interface ILink {
 	label: string
@@ -114,14 +114,13 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 
 export const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
-		<Link href={option.to} prefetch={false} passHref>
-			<a
-				className="rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white"
-				data-active={option.label === activeLink}
-				{...props}
-			>
-				{option.label}
-			</a>
-		</Link>
+		<BasicLink
+			href={option.to}
+			className="rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-active-bg)] data-[active=true]:text-white"
+			data-active={option.label === activeLink}
+			{...props}
+		>
+			{option.label}
+		</BasicLink>
 	)
 }

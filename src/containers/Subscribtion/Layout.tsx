@@ -1,9 +1,9 @@
-import Link from 'next/link'
 import { SEO } from '~/components/SEO'
 import { SignIn } from './SignIn'
 import Head from 'next/head'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Toast } from '~/components/Toast'
+import { BasicLink } from '~/components/Link'
 
 export function SubscribeLayout({ children }) {
 	const { isAuthenticated, logout } = useAuthContext()
@@ -18,22 +18,18 @@ export function SubscribeLayout({ children }) {
 			<div className="col-span-full w-full flex flex-col min-h-screen bg-[#13141a] text-white">
 				<header className="sticky top-0 z-50 backdrop-blur-md border-b border-[#39393E]/40 bg-[#13141a]/80">
 					<div className="max-w-6xl xl:max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
-						<Link href="/" passHref>
-							<a className="flex items-center gap-3">
-								<img src="/llama.png" alt="DefiLlama" width={32} height={32} className="rounded-full" />
-								<span className="font-bold text-lg hidden sm:inline-block">DefiLlama</span>
-							</a>
-						</Link>
+						<BasicLink href="/" className="flex items-center gap-3">
+							<img src="/llama.png" alt="DefiLlama" width={32} height={32} className="rounded-full" />
+							<span className="font-bold text-lg hidden sm:inline-block">DefiLlama</span>
+						</BasicLink>
 
 						<div className="flex items-center gap-4">
 							{!isAuthenticated ? (
 								<SignIn className="font-medium rounded-lg bg-[#5C5CF9] hover:bg-[#4A4AF0] text-white py-2 px-4 shadow-md transition-all duration-200 flex items-center gap-2" />
 							) : (
-								<Link href="/" passHref>
-									<a className="font-medium text-sm text-[#b4b7bc] hover:text-white transition-colors">
-										Return to Main Page
-									</a>
-								</Link>
+								<BasicLink href="/" className="font-medium text-sm text-[#b4b7bc] hover:text-white transition-colors">
+									Return to Main Page
+								</BasicLink>
 							)}
 							{isAuthenticated && (
 								<button
@@ -76,12 +72,13 @@ export function SubscribeLayout({ children }) {
 						<div className="mt-6 pt-6 border-t border-[#39393E]/40 flex flex-wrap items-center justify-center md:justify-between gap-4 text-xs text-[#8a8c90]">
 							<div>© {new Date().getFullYear()} DefiLlama. All rights reserved.</div>
 							<div className="flex flex-wrap items-center gap-4">
-								<Link href="/subscription/privacy-policy" passHref>
-									<a className="hover:text-white transition-colors">Privacy Policy</a>
-								</Link>
-								<Link href="/subscription/fulfillment-policies" passHref>
-									<a className="hover:text-white transition-colors">Fulfillment Policies</a>
-								</Link>
+								<BasicLink href="/subscription/privacy-policy" className="hover:text-white transition-colors">
+									Privacy Policy
+								</BasicLink>
+
+								<BasicLink href="/subscription/fulfillment-policies" className="hover:text-white transition-colors">
+									Fulfillment Policies
+								</BasicLink>
 							</div>
 						</div>
 					</div>

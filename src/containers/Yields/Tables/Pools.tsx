@@ -9,7 +9,7 @@ import { formattedNum, formattedPercent } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
 import type { IYieldTableRow } from './types'
 import { lockupsRewards, earlyExit } from '~/containers/Yields/utils'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { formatColumnOrder } from '~/components/Table/utils'
 
@@ -207,7 +207,11 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			const configID = row.original.configID
 			if (!configID) return null
 			return (
-				<CustomLink href={`/yields/pool/${configID}`} target="_blank">
+				<BasicLink
+					href={`/yields/pool/${configID}`}
+					target="_blank"
+					className="text-sm font-medium text-[var(--link-text)]"
+				>
 					<ImageWithFallback
 						src={`https://yield-charts.llama.fi/yield-chart/${configID}`}
 						alt=""
@@ -216,7 +220,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						className="ml-auto"
 						unoptimized
 					/>
-				</CustomLink>
+				</BasicLink>
 			)
 		},
 		size: 125,

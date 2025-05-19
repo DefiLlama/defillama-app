@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { TokenLogo } from '../TokenLogo'
-import { CustomLink } from '../Link'
+import { BasicLink } from '../Link'
 import { Tooltip } from '../Tooltip'
 
 interface TopUnlocksProps {
@@ -70,12 +70,12 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 					<div key={unlock.name} className="flex items-center justify-between">
 						<div className="flex items-center space-x-2">
 							<TokenLogo logo={tokenIconUrl(`${unlock.name}`)} />
-							<CustomLink
+							<BasicLink
 								href={`/unlocks/${slug(unlock.name)}`}
 								className="overflow-hidden text-[var(--bg-2)] whitespace-nowrap font-medium text-lg text-ellipsis hover:underline"
 							>
 								{unlock.name} ({unlock.symbol})
-							</CustomLink>
+							</BasicLink>
 						</div>
 						<span className="text-blue-400 font-medium text-sm">{formattedNum(unlock.value, true)}</span>
 					</div>

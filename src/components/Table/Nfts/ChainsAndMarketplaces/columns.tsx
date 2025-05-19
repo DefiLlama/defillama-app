@@ -1,9 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
-import { CustomLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { capitalizeFirstLetter, chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
 import type { INftsCollectionRow } from '../types'
+import { BasicLink } from '~/components/Link'
 
 export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 	{
@@ -16,12 +16,12 @@ export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<TokenLogo logo={chainIconUrl(item.chain)} />
-					<CustomLink
+					<BasicLink
 						href={'/nfts/chain/' + item.chain}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
 					>
 						{capitalizeFirstLetter(item.chain)}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
@@ -84,12 +84,12 @@ export const marketplacesColumns: ColumnDef<INftsCollectionRow>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<TokenLogo logo={tokenIconUrl(item.marketplace)} />
-					<CustomLink
+					<BasicLink
 						href={'/nfts/marketplace/' + item.slug}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
 					>
 						{capitalizeFirstLetter(item.marketplace)}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},

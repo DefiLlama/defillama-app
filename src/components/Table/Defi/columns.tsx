@@ -4,7 +4,7 @@ import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -54,12 +54,12 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 
-					<CustomLink
+					<BasicLink
 						href={`/forks/${getValue()}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		}
@@ -103,12 +103,12 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 			return (
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>{' '}
-					<CustomLink
+					<BasicLink
 						href={`/protocols/${slug(getValue() as string)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
@@ -289,12 +289,12 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 				<span className="flex items-center gap-2 relative pl-6">
 					<Bookmark readableProtocolName={getValue() as string} data-bookmark className="absolute -left-[2px]" />
 					<TokenLogo logo={tokenIconUrl(getValue())} />
-					<CustomLink
+					<BasicLink
 						href={`/unlocks/${slug(getValue() as string)}`}
-						className="overflow-hidden whitespace-nowrap font-bold text-ellipsis hover:underline"
+						className="text-sm text-[var(--link-text)] overflow-hidden whitespace-nowrap font-bold text-ellipsis hover:underline"
 					>
 						{getValue() as string}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
@@ -478,12 +478,12 @@ export const calendarColumns: ColumnDef<any>[] = [
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>
 					{row.original.type === 'Unlock' ? (
-						<CustomLink
+						<BasicLink
 							href={`/unlocks/${slug(row.original.link)}`}
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string}
-						</CustomLink>
+						</BasicLink>
 					) : (
 						(getValue() as string)
 					)}
@@ -541,12 +541,12 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 					</button>
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink
+					<BasicLink
 						href={`/governance/${slug(getValue() as string)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
@@ -591,12 +591,12 @@ export const activeInvestorsColumns: ColumnDef<{
 			return (
 				<Tooltip content={'Looking for investors? Send your pitch to selected ones through us'}>
 					<div className="flex gap-2" onClick={() => window.open('/pitch', '_blank')}>
-						<CustomLink
+						<BasicLink
 							href={`/raises/${slug(getValue() as string)}`}
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string}
-						</CustomLink>
+						</BasicLink>
 						<Icon
 							name="mail"
 							style={{ minHeight: '16px', minWidth: '16px', width: '16px', height: '16px' }}
@@ -772,12 +772,12 @@ export const cexColumn: ColumnDef<any>[] = [
 					{row.original.slug === undefined ? (
 						(getValue() as string | null)
 					) : (
-						<CustomLink
+						<BasicLink
 							href={`/cex/${slug(row.original.slug)}`}
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string | null}
-						</CustomLink>
+						</BasicLink>
 					)}
 				</span>
 			)
@@ -1051,12 +1051,12 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			return (
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
-					<CustomLink
+					<BasicLink
 						href={`/protocol/${nameSlug}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string | null}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
@@ -1210,12 +1210,12 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 			return (
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>
-					<CustomLink
+					<BasicLink
 						href={row.original.url}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string | null}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
@@ -1373,20 +1373,20 @@ export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>
 					{['bitcoin', 'ethereum', 'solana'].includes(row.original.id) ? (
-						<CustomLink
+						<BasicLink
 							href={`https://www.coingecko.com/en/coins/${row.original.id}`}
 							target="_blank"
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string | null}
-						</CustomLink>
+						</BasicLink>
 					) : (
-						<CustomLink
+						<BasicLink
 							href={`/narrative-tracker/${row.original.id}`}
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string | null}
-						</CustomLink>
+						</BasicLink>
 					)}
 				</span>
 			)
@@ -1441,13 +1441,13 @@ export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 			return (
 				<span className="flex items-center gap-2 relative">
 					<span>{index + 1}.</span>
-					<CustomLink
+					<BasicLink
 						href={`https://www.coingecko.com/en/coins/${row.original.id}`}
 						target="_blank"
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string | null}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
