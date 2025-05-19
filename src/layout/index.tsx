@@ -3,8 +3,6 @@ import Head from 'next/head'
 import { SEO } from '~/components/SEO'
 import Nav from '~/components/Nav'
 import { useIsClient } from '~/hooks'
-import { AuthProvider } from '~/containers/Subscribtion/auth'
-import { WalletProvider } from './WalletProvider'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
 

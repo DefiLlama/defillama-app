@@ -100,69 +100,71 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 				<></>
 			)}
 
-			<div className={`grid grid-cols-2 ${valuesExist ? 'xl:grid-cols-3' : ''} relative isolate gap-1`}>
-				{valuesExist ? (
-					<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
-						{!Number.isNaN(props.total24h) ? (
-							<p className="flex flex-col">
-								<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (24h)</span>
-								<span className="font-semibold text-2xl font-jetbrains">{formattedNum(props.total24h, true)}</span>
-							</p>
-						) : null}
-						{props.type === 'dexs' && !Number.isNaN(props.total7d) ? (
-							<p className="flex flex-col">
-								<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (7d)</span>
-								<span className="font-semibold text-2xl font-jetbrains">{formattedNum(props.total7d, true)}</span>
-							</p>
-						) : null}
-						{props.type === 'dexs' && !Number.isNaN(props.change_7dover7d) ? (
-							<p className="hidden md:flex flex-col">
-								<span className="flex items-center gap-1 text-[#545757] dark:text-[#cccccc]">
-									<span>Weekly change</span>
-									<QuestionHelper text={`Change of last 7d volume over the previous 7d volume of all dexs`} />
-								</span>
-								{props.change_7dover7d > 0 ? (
-									<span className="font-semibold text-2xl font-jetbrains">{props.change_7dover7d || 0}%</span>
-								) : (
-									<span className="font-semibold text-2xl font-jetbrains">{props.change_7dover7d || 0}%</span>
-								)}
-							</p>
-						) : null}
-						{props.type !== 'dexs' && !Number.isNaN(props.change_1d) ? (
-							<p className="hidden md:flex flex-col">
-								<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
-								{props.change_1d > 0 ? (
-									<span className="font-semibold text-2xl font-jetbrains">{props.change_1d || 0}%</span>
-								) : (
-									<span className="font-semibold text-2xl font-jetbrains">{props.change_1d || 0}%</span>
-								)}
-							</p>
-						) : null}
-						{props.type === 'dexs' && !Number.isNaN(props.dexsDominance) ? (
-							<>
-								{!props.chain && (
-									<p className="hidden md:flex flex-col">
-										<span className="flex items-center gap-1 text-[#545757] dark:text-[#cccccc]">
-											<span>DEX vs CEX dominance</span>
-											<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume (24h)`} />
-										</span>
-										<span className="font-semibold text-2xl font-jetbrains">{props.dexsDominance || 0}%</span>
-									</p>
-								)}
-							</>
-						) : !Number.isNaN(props.change_1m) ? (
-							<p className="hidden md:flex flex-col">
-								<span className="text-[#545757] dark:text-[#cccccc]">Change (30d)</span>
-								<span className="font-semibold text-2xl font-jetbrains">{props.change_1m || 0}%</span>
-							</p>
-						) : null}
-					</div>
-				) : (
-					<></>
-				)}
+			{props.type != 'fees' ? (
+				<div className={`grid grid-cols-2 ${valuesExist ? 'xl:grid-cols-3' : ''} relative isolate gap-1`}>
+					{valuesExist ? (
+						<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+							{!Number.isNaN(props.total24h) ? (
+								<p className="flex flex-col">
+									<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (24h)</span>
+									<span className="font-semibold text-2xl font-jetbrains">{formattedNum(props.total24h, true)}</span>
+								</p>
+							) : null}
+							{props.type === 'dexs' && !Number.isNaN(props.total7d) ? (
+								<p className="flex flex-col">
+									<span className="text-[#545757] dark:text-[#cccccc]">Total {dataType} (7d)</span>
+									<span className="font-semibold text-2xl font-jetbrains">{formattedNum(props.total7d, true)}</span>
+								</p>
+							) : null}
+							{props.type === 'dexs' && !Number.isNaN(props.change_7dover7d) ? (
+								<p className="hidden md:flex flex-col">
+									<span className="flex items-center gap-1 text-[#545757] dark:text-[#cccccc]">
+										<span>Weekly change</span>
+										<QuestionHelper text={`Change of last 7d volume over the previous 7d volume of all dexs`} />
+									</span>
+									{props.change_7dover7d > 0 ? (
+										<span className="font-semibold text-2xl font-jetbrains">{props.change_7dover7d || 0}%</span>
+									) : (
+										<span className="font-semibold text-2xl font-jetbrains">{props.change_7dover7d || 0}%</span>
+									)}
+								</p>
+							) : null}
+							{props.type !== 'dexs' && !Number.isNaN(props.change_1d) ? (
+								<p className="hidden md:flex flex-col">
+									<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
+									{props.change_1d > 0 ? (
+										<span className="font-semibold text-2xl font-jetbrains">{props.change_1d || 0}%</span>
+									) : (
+										<span className="font-semibold text-2xl font-jetbrains">{props.change_1d || 0}%</span>
+									)}
+								</p>
+							) : null}
+							{props.type === 'dexs' && !Number.isNaN(props.dexsDominance) ? (
+								<>
+									{!props.chain && (
+										<p className="hidden md:flex flex-col">
+											<span className="flex items-center gap-1 text-[#545757] dark:text-[#cccccc]">
+												<span>DEX vs CEX dominance</span>
+												<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume (24h)`} />
+											</span>
+											<span className="font-semibold text-2xl font-jetbrains">{props.dexsDominance || 0}%</span>
+										</p>
+									)}
+								</>
+							) : !Number.isNaN(props.change_1m) ? (
+								<p className="hidden md:flex flex-col">
+									<span className="text-[#545757] dark:text-[#cccccc]">Change (30d)</span>
+									<span className="font-semibold text-2xl font-jetbrains">{props.change_1m || 0}%</span>
+								</p>
+							) : null}
+						</div>
+					) : (
+						<></>
+					)}
 
-				<ChainByAdapterChart totalDataChart={props.totalDataChart} />
-			</div>
+					<ChainByAdapterChart totalDataChart={props.totalDataChart} />
+				</div>
+			) : null}
 
 			{protocolsList && protocolsList.length > 0 ? (
 				<OverviewTable
