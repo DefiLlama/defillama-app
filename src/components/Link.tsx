@@ -2,13 +2,14 @@ import * as React from 'react'
 import RouterLink from 'next/link'
 
 interface BasicLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+	href: string
 	prefetch?: boolean
 	shallow?: boolean
 	onClick?: React.MouseEventHandler<HTMLAnchorElement>
 }
 
-export const BasicLink = ({ href, children, prefetch, shallow, ...props }: BasicLinkProps) => (
-	<RouterLink href={href} passHref prefetch={prefetch ?? false} shallow={shallow ?? false}>
-		<a {...props}>{children}</a>
+export const BasicLink = (props: BasicLinkProps) => (
+	<RouterLink {...props} prefetch={props.prefetch ?? false} legacyBehavior={false}>
+		{props.children}
 	</RouterLink>
 )
