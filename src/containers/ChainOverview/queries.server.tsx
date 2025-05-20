@@ -7,7 +7,8 @@ import {
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
-	RAISES_API
+	RAISES_API,
+	REV_PROTOCOLS
 } from '~/constants'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import {
@@ -394,7 +395,19 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? ['Others', others] : []))
 			return [+date, finalTokens]
 		}) as Array<[number, Record<string, number>]>
+
+		const chainREV =
+			chainFees && fees
+				? (fees?.protocols?.reduce((acc, curr) => {
+						if (REV_PROTOCOLS[slug(metadata.name)]?.includes(curr.slug)) {
+							acc += curr.total24h || 0
+						}
+						return acc
+				  }, 0) ?? 0) + (chainFees?.total24h ?? 0)
+				: null
+
 		const uniqUnlockTokenColors = getNDistinctColors(uniqueUnlockTokens.size)
+
 		return {
 			chain,
 			metadata,
@@ -415,7 +428,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chainFees: {
 				total24h: chainFees?.total24h ?? null,
 				feesGenerated24h: feesGenerated24h,
-				topProtocolsChart: topProtocolsByFeesChart
+				topProtocolsChart: topProtocolsByFeesChart,
+				totalREV24h: chainREV
 			},
 			chainRevenue: { total24h: chainRevenue?.total24h ?? null },
 			appRevenue: { total24h: appRevenue?.total24h ?? null },

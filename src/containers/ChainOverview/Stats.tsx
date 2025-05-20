@@ -291,6 +291,19 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<td className="font-jetbrains text-right">{formattedNum(props.chainRevenue?.total24h, true)}</td>
 							</tr>
 						) : null}
+						{props.chainFees?.totalREV24h ? (
+							<tr>
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+									<Tooltip
+										content="REV (Real Economic Value) is the sum of chain fees and MEV tips"
+										className="underline decoration-dotted"
+									>
+										Chain REV (24h)
+									</Tooltip>
+								</th>
+								<td className="font-jetbrains text-right">{formattedNum(props.chainFees?.totalREV24h, true)}</td>
+							</tr>
+						) : null}
 						{props.appRevenue?.total24h != null && props.appRevenue?.total24h > 1e3 ? (
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">

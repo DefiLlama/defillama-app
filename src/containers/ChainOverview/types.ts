@@ -54,6 +54,7 @@ export interface IChainOverviewData {
 		total24h: number | null
 		feesGenerated24h: number | null
 		topProtocolsChart: Array<[string, number, string]> | null
+		totalREV24h: number | null
 	}
 	chainRevenue: { total24h: number | null }
 	appRevenue: { total24h: number | null }
