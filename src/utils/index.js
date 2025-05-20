@@ -78,7 +78,8 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	noOfTokens.forEach((tokens, i) => {
 		description = description.replace(
 			`{tokens[${i}]}`,
-			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
+			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
+				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
 			}`
 		)
 	})
@@ -405,10 +406,6 @@ export const getTokenDominance = (topToken, totalVolume) => {
  */
 export const getPrevTvlFromChart = (chart, daysBefore) => {
 	return chart[chart.length - 1 - daysBefore]?.[1] ?? null
-}
-
-export const getPrevTvlFromChart2 = (chart, daysBefore, key) => {
-	return chart[chart.length - 1 - daysBefore]?.[key] ?? null
 }
 
 export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows = false) => {

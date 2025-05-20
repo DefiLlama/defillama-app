@@ -66,6 +66,7 @@ interface IUseDefaultsProps {
 	isThemeDark: boolean
 	hideOthersInTooltip?: boolean
 	groupBy?: 'daily' | 'weekly' | 'monthly'
+	alwaysShowTooltip?: boolean
 }
 
 export function useDefaults({
@@ -80,7 +81,8 @@ export function useDefaults({
 	unlockTokenSymbol = '',
 	isThemeDark,
 	hideOthersInTooltip,
-	groupBy
+	groupBy,
+	alwaysShowTooltip
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -212,7 +214,19 @@ export function useDefaults({
 				}
 
 				return chartdate + vals
-			}
+			},
+			...(alwaysShowTooltip
+				? {
+						position: [60, 0],
+						backgroundColor: 'none',
+						borderWidth: '0',
+						padding: 0,
+						boxShadow: 'none',
+						textStyle: {
+							color: isThemeDark ? 'white' : 'black'
+						}
+				  }
+				: {})
 		}
 
 		const inflowsTooltip = {

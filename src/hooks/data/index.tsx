@@ -212,6 +212,6 @@ export function formatChartTvlsByDay({ data, extraTvlsEnabled, key }) {
 			}
 		}
 
-		return { date, [key]: sum }
+		return [Number(date) * 1e3, sum]
 	})
 }

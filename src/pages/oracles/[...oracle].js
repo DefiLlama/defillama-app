@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { formatChartTvlsByDay } from '~/hooks/data'
-import { formattedNum, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
+import { formattedNum, getTokenDominance } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -13,15 +13,10 @@ import { getOraclePageData } from '~/containers/Oracles/queries'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { oldBlue } from '~/constants/colors'
 
-const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
+const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
 	loading: () => <></>
 })
-const charts = ['TVS']
-
-const chartColors = {
-	TVS: oldBlue
-}
 
 export const getStaticProps = withPerformanceLogging(
 	'oracles/[...oracle]',
@@ -59,7 +54,7 @@ export async function getStaticPaths() {
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData, oracleMonthlyVolumes }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const { protocolsData, finalChartData, totalValue } = useMemo(() => {
+	const { protocolsData, charts, totalValue } = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({
 			data: filteredProtocols,
 			extraTvlsEnabled
@@ -67,9 +62,21 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 		const finalChartData = formatChartTvlsByDay({ data: chainChartData || chartData, extraTvlsEnabled, key: 'TVS' })
 
-		const totalValue = getPrevTvlFromChart2(finalChartData, 0, 'TVS')
+		const totalValue = finalChartData[finalChartData.length - 1][1]
 
-		return { protocolsData, finalChartData, totalValue }
+		return {
+			protocolsData,
+			charts: {
+				TVS: {
+					name: 'TVS',
+					type: 'line',
+					stack: 'TVS',
+					data: finalChartData,
+					color: oldBlue
+				}
+			},
+			totalValue
+		}
 	}, [chainChartData, chartData, extraTvlsEnabled, filteredProtocols])
 
 	const topToken = {}
@@ -106,8 +113,8 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 					</p>
 				</div>
 
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col pt-3 col-span-2 min-h-[372px]">
-					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[360px]">
+					<LineAndBarChart charts={charts} alwaysShowTooltip />
 				</div>
 			</div>
 

@@ -63,6 +63,7 @@ export interface ILineAndBarChartProps {
 	hallmarks?: [number, string][]
 	expandTo100Percent?: boolean
 	valueSymbol?: string
+	alwaysShowTooltip?: boolean
 }
 
 export interface IPieChartProps {

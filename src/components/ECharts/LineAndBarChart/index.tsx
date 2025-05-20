@@ -11,7 +11,8 @@ export default function LineAndBarChart({
 	hallmarks,
 	expandTo100Percent,
 	valueSymbol,
-	groupBy
+	groupBy,
+	alwaysShowTooltip
 }: ILineAndBarChartProps) {
 	const id = useId()
 
@@ -23,7 +24,8 @@ export default function LineAndBarChart({
 		groupBy:
 			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
 				? (groupBy as 'daily' | 'weekly' | 'monthly')
-				: 'daily'
+				: 'daily',
+		alwaysShowTooltip
 	})
 
 	const series = useMemo(() => {
@@ -133,6 +135,32 @@ export default function LineAndBarChart({
 			dataZoom,
 			series
 		})
+
+		if (alwaysShowTooltip) {
+			chartInstance.dispatchAction({
+				type: 'showTip',
+				// index of series, which is optional when trigger of tooltip is axis
+				seriesIndex: 0,
+				// data index; could assign by name attribute when not defined
+				dataIndex: series[0].data.length - 1,
+				// Position of tooltip. Only works in this action.
+				// Use tooltip.position in option by default.
+				position: [60, 0]
+			})
+
+			chartInstance.on('globalout', () => {
+				chartInstance.dispatchAction({
+					type: 'showTip',
+					// index of series, which is optional when trigger of tooltip is axis
+					seriesIndex: 0,
+					// data index; could assign by name attribute when not defined
+					dataIndex: series[0].data.length - 1,
+					// Position of tooltip. Only works in this action.
+					// Use tooltip.position in option by default.
+					position: [60, 0]
+				})
+			})
+		}
 
 		function resize() {
 			chartInstance.resize()
