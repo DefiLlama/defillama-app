@@ -51,9 +51,20 @@ export const getChartDataByChainAndInterval = ({
 		stackColors['Bitcoin'] = oldBlue
 		stackColors['Others'] = allColors[allColors.length - 1]
 
+		const charts = {}
+
+		for (const chain in dataByChain) {
+			charts[chain] = {
+				data: dataByChain[chain],
+				type: 'line',
+				name: chain,
+				stack: chain,
+				color: stackColors[chain]
+			}
+		}
+
 		return {
-			chartData: dataByChain,
-			stackColors,
+			charts,
 			chartOptions: {}
 		}
 	}
@@ -156,6 +167,18 @@ export const getChartDataByChainAndInterval = ({
 	stackColors[selectedChains[0]] = oldBlue
 	stackColors['Others'] = allColors[allColors.length - 1]
 
+	const charts = {}
+
+	for (const chain in finalData) {
+		charts[chain] = {
+			data: finalData[chain],
+			type: 'bar',
+			name: chain,
+			stack: chain,
+			color: stackColors[chain]
+		}
+	}
+
 	const chartOptions = {
 		tooltip: {
 			trigger: 'axis',
@@ -195,8 +218,7 @@ export const getChartDataByChainAndInterval = ({
 	}
 
 	return {
-		chartData: finalData,
-		stackColors,
+		charts,
 		chartOptions
 	}
 }

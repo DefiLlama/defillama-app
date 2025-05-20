@@ -1,22 +1,17 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { useDimensionChartInterval } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { ChartType, getChartDataByChainAndInterval, GROUP_CHART_LIST, GROUP_INTERVALS_LIST } from './utils'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { BasicLink } from '~/components/Link'
 
-const BarChart2 = dynamic(() => import('~/components/ECharts/BarChart2'), {
+const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
 	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<IBarChartProps>
-
-const AreaChart3 = dynamic(() => import('~/components/ECharts/AreaChart3'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<IChartProps>
+}) as React.FC<ILineAndBarChartProps>
 
 export const ChainByAdapterChart = ({
 	totalDataChart,
@@ -33,11 +28,7 @@ export const ChainByAdapterChart = ({
 
 	const [selectedChains, setSelectedChains] = React.useState<string[]>(totalDataChart?.[1] ?? [])
 
-	const {
-		chartData: finalChartData,
-		stackColors,
-		chartOptions
-	} = React.useMemo(() => {
+	const { charts, chartOptions } = React.useMemo(() => {
 		return getChartDataByChainAndInterval({ chartData: totalDataChart, chartInterval, chartType, selectedChains })
 	}, [totalDataChart, chartInterval, selectedChains, chartType])
 
@@ -107,20 +98,9 @@ export const ChainByAdapterChart = ({
 			{totalDataChart ? (
 				<div className="min-h-[360px]">
 					{chartType === 'Dominance' ? (
-						<AreaChart3
-							chartData={finalChartData}
-							stackColors={stackColors}
-							valueSymbol="%"
-							expandTo100Percent
-							chartOptions={chartOptions}
-						/>
+						<LineAndBarChart charts={charts} valueSymbol="%" expandTo100Percent chartOptions={chartOptions} />
 					) : (
-						<BarChart2
-							chartData={finalChartData}
-							groupBy={chartInterval.toLowerCase()}
-							stackColors={stackColors}
-							chartOptions={chartOptions}
-						/>
+						<LineAndBarChart charts={charts} chartOptions={chartOptions} groupBy={chartInterval.toLowerCase()} />
 					)}
 				</div>
 			) : null}
