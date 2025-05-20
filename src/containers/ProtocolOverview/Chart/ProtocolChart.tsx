@@ -10,6 +10,7 @@ import { EmbedChart } from '~/components/EmbedChart'
 import { IFusedProtocolData, NftVolumeData } from '~/api/types'
 import { transparentize } from 'polished'
 import { BasicLink } from '~/components/Link'
+import { IProtocolPageMetrics } from '../types'
 
 const AreaChart = dynamic(() => import('./Chart'), {
 	ssr: false
@@ -24,7 +25,7 @@ interface IProps {
 	hallmarks?: Array<[number, string]> | null
 	geckoId?: string | null
 	chartColors: { [type: string]: string }
-	metrics: { [metric: string]: boolean }
+	metrics: IProtocolPageMetrics
 	activeUsersId: number | string | null
 	usdInflowsData: Array<[string, number]> | null
 	governanceApis: Array<string> | null
@@ -254,13 +255,13 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		if (historicalChainTvls['borrowed']?.tvl?.length > 0) {
 			options.push({ label: 'Borrowed', key: 'borrowed' })
 		}
-		if (metrics?.medianApy) {
+		if (metrics?.yields) {
 			options.push({ label: 'Median APY', key: 'medianApy' })
 		}
-		if (!isHourlyChart && metrics.inflows) {
+		if (!isHourlyChart && metrics?.inflows) {
 			options.push({ label: 'USD Inflows', key: 'usdInflows' })
 		}
-		if (governanceApis?.length > 0) {
+		if (metrics?.governance) {
 			options.push({ label: 'Governance', key: 'Governance' })
 		}
 		if (metrics?.treasury) {
@@ -269,11 +270,11 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		if (hallmarks?.length > 0) {
 			options.push({ label: 'Events', key: 'events' })
 		}
-		if (metrics?.devMetrics) {
+		if (metrics?.dev) {
 			options.push({ label: 'Developers', key: 'devMetrics' })
 			options.push({ label: 'Developer Commits', key: 'devCommits' })
 		}
-		if (metrics?.nftVolume) {
+		if (metrics?.nfts) {
 			options.push({ label: 'NFT Volume', key: 'nftVolume' })
 		}
 		if (metrics?.dexAggregators) {

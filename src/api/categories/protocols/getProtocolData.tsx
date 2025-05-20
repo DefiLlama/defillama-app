@@ -376,9 +376,6 @@ export const getProtocolData = async (
 
 	if (protocolRes.chainTvls) {
 		Object.keys(protocolRes.chainTvls).forEach((chain) => {
-			if (protocolRes.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
-				inflowsExist = true
-			}
 			delete protocolRes.chainTvls[chain].tokensInUsd
 			delete protocolRes.chainTvls[chain].tokens
 		})

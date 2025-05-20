@@ -4,7 +4,7 @@ import { oldBlue, primaryColor } from '~/constants/colors'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { HOURLY_PROTOCOL_API, PROTOCOL_API } from '~/constants'
 import { IRaise } from '~/api/types'
-import { IProtocolMetadata } from '../ChainOverview/types'
+import { IProtocolMetadata, IProtocolPageMetrics } from './types'
 
 interface IUpdatedProtocol {
 	id: string
@@ -166,7 +166,15 @@ export const getProtocolMetrics = ({
 }: {
 	protocolData: IUpdatedProtocol
 	metadata: IProtocolMetadata
-}) => {
+}): IProtocolPageMetrics => {
+	let inflowsExist = false
+
+	for (const chain in protocolData.chainTvls ?? {}) {
+		if (protocolData.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
+			inflowsExist = true
+		}
+	}
+
 	return {
 		tvl: metadata.tvl ? true : false,
 		dexs: metadata.dexs ? true : false,
@@ -185,6 +193,9 @@ export const getProtocolMetrics = ({
 		bribes: metadata.bribeRevenue ? true : false,
 		tokenTax: metadata.tokenTax ? true : false,
 		forks: metadata.forks ? true : false,
-		governance: protocolData.governanceID ? true : false
+		governance: protocolData.governanceID ? true : false,
+		nfts: metadata.nfts ? true : false,
+		dev: protocolData.github ? true : false,
+		inflows: inflowsExist
 	}
 }

@@ -20,34 +20,6 @@ export interface IChainMetadata {
 	github?: boolean
 }
 
-export interface IProtocolMetadata {
-	name?: string
-	tvl?: boolean
-	yields?: boolean
-	forks?: boolean
-	liquidity?: boolean
-	raises?: boolean
-	fees?: boolean
-	revenue?: boolean
-	dexs?: boolean
-	perps?: boolean
-	aggregator?: boolean
-	options?: boolean
-	perpsAggregators?: boolean
-	bridgeAggregators?: boolean
-	displayName?: string
-	chains?: Array<string>
-	hacks?: boolean
-	activeUsers?: boolean
-	governance?: boolean
-	expenses?: boolean
-	treasury?: boolean
-	nfts?: boolean
-	emissions?: boolean
-	bribeRevenue?: boolean
-	tokenTax?: boolean
-}
-
 export interface IChainOverviewData {
 	chain: string
 	metadata: IChainMetadata
