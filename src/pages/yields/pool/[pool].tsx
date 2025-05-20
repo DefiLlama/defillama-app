@@ -245,6 +245,14 @@ const PageView = (props) => {
 			riskData?.protocols?.underlying?.some((p) => p?.rating) ||
 			riskData?.chain?.underlying?.some((c) => c?.rating))
 
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center h-full rounded-md bg-[var(--cards-bg)]">
+				<p className="text-center">Loading...</p>
+			</div>
+		)
+	}
+
 	return (
 		<>
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">

@@ -5,6 +5,7 @@ import { scams } from '~/constants'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { slug } from '~/utils'
 import { BasicLink } from '~/components/Link'
+import { IProtocolPageMetrics } from './types'
 
 export function ProtocolOverviewLayout({
 	children,
@@ -27,22 +28,7 @@ export function ProtocolOverviewLayout({
 		name: string
 		key: string
 	}>
-	metrics: {
-		dexs: boolean
-		perps: boolean
-		options: boolean
-		dexAggregators: boolean
-		perpsAggregators: boolean
-		bridgeAggregators: boolean
-		stablecoins: boolean
-		bridge: boolean
-		treasury: boolean
-		unlocks: boolean
-		yields: boolean
-		fees: boolean
-		forks: boolean
-		governance: boolean
-	}
+	metrics: IProtocolPageMetrics
 	tab?:
 		| 'information'
 		| 'assets'

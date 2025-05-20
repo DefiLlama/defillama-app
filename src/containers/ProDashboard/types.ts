@@ -1,3 +1,5 @@
+import { primaryColor } from '~/constants/colors'
+
 export interface Chain {
 	gecko_id: string
 	tvl: number
@@ -36,7 +38,7 @@ export interface Protocol {
 }
 
 export const CHART_TYPES = {
-	tvl: { id: 'tvl', title: 'TVL', chartType: 'area', color: '#2172E5' },
+	tvl: { id: 'tvl', title: 'TVL', chartType: 'area', color: primaryColor },
 	volume: { id: 'volume', title: 'Volume', chartType: 'bar', color: '#5CCA93', groupable: true },
 	fees: { id: 'fees', title: 'Fees', chartType: 'bar', color: '#F2994A', groupable: true },
 	users: { id: 'users', title: 'Users', chartType: 'bar', color: '#8A2BE2', groupable: true },

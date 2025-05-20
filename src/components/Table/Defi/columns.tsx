@@ -34,6 +34,7 @@ import type {
 } from './types'
 import * as Ariakit from '@ariakit/react'
 import dynamic from 'next/dynamic'
+import { primaryColor } from '~/constants/colors'
 const UnconstrainedSmolLineChart = dynamic(
 	() => import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => m.UnconstrainedSmolLineChart),
 	{
@@ -600,7 +601,7 @@ export const activeInvestorsColumns: ColumnDef<{
 						<Icon
 							name="mail"
 							style={{ minHeight: '16px', minWidth: '16px', width: '16px', height: '16px' }}
-							color="#2172E5"
+							color={primaryColor}
 							cursor={'pointer'}
 						/>
 					</div>

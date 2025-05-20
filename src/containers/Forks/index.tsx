@@ -1,30 +1,22 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { formatChartTvlsByDay } from '~/hooks/data'
-import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
+import { formattedNum, getPercentChange, getTokenDominance } from '~/utils'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
-import type { IChartProps } from '~/components/ECharts/types'
-import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import type { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { oldBlue } from '~/constants/colors'
 
-const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
+const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
 	loading: () => <></>
-}) as React.FC<IChartProps>
-
-const charts = ['TVL']
-
-const chartColors = {
-	TVL: '#1f67d2'
-}
+}) as React.FC<ILineAndBarChartProps>
 
 export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	const { protocolsData, parentForks, finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
+	const { protocolsData, parentForks, charts, totalValueUSD, volumeChangeUSD } = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({
 			data: filteredProtocols,
 			extraTvlsEnabled
@@ -37,10 +29,25 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 
 		const finalChartData = formatChartTvlsByDay({ data: chartData, extraTvlsEnabled, key: 'TVL' })
 
-		const totalVolume = getPrevTvlFromChart2(finalChartData, 0, 'TVL')
-		const tvlPrevDay = getPrevTvlFromChart2(finalChartData, 1, 'TVL')
-		const volumeChangeUSD = getPercentChange(totalVolume, tvlPrevDay)
-		return { protocolsData, parentForks, finalChartData, totalVolume, volumeChangeUSD }
+		const totalValueUSD = finalChartData[finalChartData.length - 1][1]
+		const tvlPrevDay = finalChartData[finalChartData.length - 2][1]
+		const volumeChangeUSD = getPercentChange(totalValueUSD, tvlPrevDay)
+
+		return {
+			protocolsData,
+			parentForks,
+			charts: {
+				TVL: {
+					name: 'TVL',
+					type: 'line',
+					stack: 'TVL',
+					data: finalChartData,
+					color: oldBlue
+				}
+			} as const,
+			totalValueUSD,
+			volumeChangeUSD
+		}
 	}, [chartData, filteredProtocols, parentTokens, extraTvlsEnabled])
 
 	const topToken: { name?: string; tvl?: number } = {}
@@ -50,9 +57,9 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 		topToken.tvl = protocolsData[0]?.tvl
 	}
 
-	const tvl = formattedNum(totalVolume, true)
+	const tvl = formattedNum(totalValueUSD, true)
 
-	const dominance = getTokenDominance(topToken, totalVolume)
+	const dominance = getTokenDominance(topToken, totalValueUSD)
 
 	const percentChange = volumeChangeUSD?.toFixed(2)
 
@@ -75,8 +82,8 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 						<span className="font-jetbrains font-semibold text-2xl">{dominance}%</span>
 					</p>
 				</div>
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 pt-3 min-h-[372px]">
-					<Chart chartData={finalChartData} stackColors={chartColors} stacks={charts} title="" valueSymbol="$" />
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[360px]">
+					<LineAndBarChart charts={charts} alwaysShowTooltip />
 				</div>
 			</div>
 

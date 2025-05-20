@@ -43,9 +43,15 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	}
 }
 
-export interface IChart2Props {
-	chartData?: {
-		[stack: string]: Array<[number, number]>
+export interface ILineAndBarChartProps {
+	charts?: {
+		[stack: string]: {
+			data: Array<[number, number]>
+			type: 'line' | 'bar'
+			name: string
+			stack: string
+			color?: string
+		}
 	}
 	chartOptions?: {
 		[key: string]: {
@@ -53,13 +59,11 @@ export interface IChart2Props {
 		}
 	}
 	height?: string
-	stackColors?: {
-		[stack: string]: string
-	}
 	groupBy?: 'daily' | 'weekly' | 'monthly'
 	hallmarks?: [number, string][]
 	expandTo100Percent?: boolean
 	valueSymbol?: string
+	alwaysShowTooltip?: boolean
 }
 
 export interface IPieChartProps {

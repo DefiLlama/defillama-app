@@ -574,10 +574,8 @@ export default function AreaBarChart({
 		}
 
 		chartInstance.setOption({
-			graphic: { ...graphic },
-			tooltip: {
-				...tooltip
-			},
+			graphic,
+			tooltip,
 			grid: {
 				left: 12,
 				bottom: 68,
@@ -585,11 +583,9 @@ export default function AreaBarChart({
 				right: 12,
 				containLabel: true
 			},
-			xAxis: {
-				...xAxis
-			},
+			xAxis,
 			yAxis: yAxiss,
-			dataZoom: [...dataZoom],
+			dataZoom,
 			series
 		})
 

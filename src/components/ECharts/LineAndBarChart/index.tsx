@@ -1,34 +1,40 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
-import type { IChart2Props } from '../types'
+import type { ILineAndBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
-export default function AreaChart3({
-	chartData,
+export default function LineAndBarChart({
+	charts,
 	chartOptions,
 	height,
-	stackColors,
 	hallmarks,
 	expandTo100Percent,
-	valueSymbol
-}: IChart2Props) {
+	valueSymbol,
+	groupBy,
+	alwaysShowTooltip
+}: ILineAndBarChartProps) {
 	const id = useId()
 
 	const [isThemeDark] = useDarkModeManager()
 
 	const defaultChartSettings = useDefaults({
 		isThemeDark,
-		valueSymbol
+		valueSymbol,
+		groupBy:
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
+				? (groupBy as 'daily' | 'weekly' | 'monthly')
+				: 'daily',
+		alwaysShowTooltip
 	})
 
 	const series = useMemo(() => {
 		const series = []
 
-		for (const stack in chartData) {
+		for (const stack in charts) {
 			series.push({
-				name: stack,
-				type: 'line',
+				name: charts[stack].name,
+				type: charts[stack].type,
 				stack: expandTo100Percent ? 'A' : stack,
 				symbol: 'none',
 				emphasis: {
@@ -36,7 +42,7 @@ export default function AreaChart3({
 					shadowBlur: 10
 				},
 				itemStyle: {
-					color: stackColors[stack] ?? (isThemeDark ? '#000000' : '#ffffff')
+					color: charts[stack].color ?? (isThemeDark ? '#000000' : '#ffffff')
 				},
 				areaStyle: expandTo100Percent
 					? {}
@@ -44,7 +50,7 @@ export default function AreaChart3({
 							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 								{
 									offset: 0,
-									color: stackColors[stack] ?? (isThemeDark ? '#000000' : '#ffffff')
+									color: charts[stack].color ?? (isThemeDark ? '#000000' : '#ffffff')
 								},
 								{
 									offset: 1,
@@ -57,7 +63,7 @@ export default function AreaChart3({
 							width: 0
 					  }
 					: {},
-				data: chartData[stack]
+				data: charts[stack].data
 			})
 		}
 		if (hallmarks) {
@@ -84,7 +90,7 @@ export default function AreaChart3({
 			}
 		}
 		return series
-	}, [chartData, stackColors, isThemeDark, expandTo100Percent, hallmarks])
+	}, [charts, isThemeDark, expandTo100Percent, hallmarks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -129,6 +135,32 @@ export default function AreaChart3({
 			dataZoom,
 			series
 		})
+
+		if (alwaysShowTooltip) {
+			chartInstance.dispatchAction({
+				type: 'showTip',
+				// index of series, which is optional when trigger of tooltip is axis
+				seriesIndex: 0,
+				// data index; could assign by name attribute when not defined
+				dataIndex: series[0].data.length - 1,
+				// Position of tooltip. Only works in this action.
+				// Use tooltip.position in option by default.
+				position: [60, 0]
+			})
+
+			chartInstance.on('globalout', () => {
+				chartInstance.dispatchAction({
+					type: 'showTip',
+					// index of series, which is optional when trigger of tooltip is axis
+					seriesIndex: 0,
+					// data index; could assign by name attribute when not defined
+					dataIndex: series[0].data.length - 1,
+					// Position of tooltip. Only works in this action.
+					// Use tooltip.position in option by default.
+					position: [60, 0]
+				})
+			})
+		}
 
 		function resize() {
 			chartInstance.resize()

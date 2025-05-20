@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { IChart2Props, IChartProps } from '~/components/ECharts/types'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { DataIntervalType, INTERVALS_LIST } from './utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -9,16 +9,12 @@ import { ADAPTOR_TYPES } from '../constants'
 import { useGetDimensionAdapterChartData } from './hooks'
 import { LazyChart } from '~/components/LazyChart'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { oldBlue } from '~/constants/colors'
 
-const BarChart2 = dynamic(() => import('~/components/ECharts/BarChart2'), {
+const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
 	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<IChart2Props>
-
-const AreaChart3 = dynamic(() => import('~/components/ECharts/AreaChart3'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<IChartProps>
+}) as React.FC<ILineAndBarChartProps>
 
 export const DimensionProtocolOverviewChart = ({
 	totalDataChart,
@@ -79,14 +75,18 @@ export const DimensionProtocolOverviewChart = ({
 				}
 			}
 
-			return {
-				chartData: finalChartData,
-				stackColors: {
-					Fees: '#1f67d2',
-					Revenue: '#E59421',
-					Incentives: '#1cd8a6'
+			const charts = {}
+			for (const chartType in finalChartData) {
+				charts[chartType] = {
+					data: finalChartData[chartType],
+					type: chartInterval === 'Cumulative' ? 'line' : 'bar',
+					name: chartType,
+					stack: chartType,
+					color: chartType === 'Fees' ? oldBlue : '#E59421'
 				}
 			}
+
+			return { charts }
 		}
 
 		if (totalDataChart[1].includes('Notional volume')) {
@@ -123,16 +123,24 @@ export const DimensionProtocolOverviewChart = ({
 				}
 			}
 
-			return {
-				chartData: finalChartData,
-				stackColors: {
-					'Notional Volume': '#1f67d2',
-					'Premium Volume': '#E59421'
+			const charts = {}
+			for (const chartType in finalChartData) {
+				charts[chartType] = {
+					data: finalChartData[chartType],
+					type: chartInterval === 'Cumulative' ? 'line' : 'bar',
+					name: chartType,
+					stack: chartType,
+					color: chartType === 'Notional Volume' ? oldBlue : '#E59421'
 				}
+			}
+
+			return {
+				charts
 			}
 		}
 
 		const stackName = totalDataChart[1].includes('Earnings') ? 'Earnings' : 'Volume'
+
 		if (chartInterval !== 'Daily') {
 			const chartData = {}
 			let cumulativeVolume = 0
@@ -147,17 +155,30 @@ export const DimensionProtocolOverviewChart = ({
 			for (const date in chartData) {
 				finalChartData.push([+date, chartData[date]])
 			}
+
 			return {
-				chartData: { [stackName]: finalChartData },
-				stackColors: { [stackName]: '#1f67d2' }
+				charts: {
+					[stackName]: {
+						data: finalChartData,
+						type: chartInterval === 'Cumulative' ? 'line' : 'bar',
+						name: stackName,
+						stack: stackName,
+						color: oldBlue
+					}
+				}
 			}
 		}
 
 		return {
-			chartData: {
-				[stackName]: totalDataChart[0].map(({ date, ...metrics }) => [+date * 1e3, metrics[totalDataChart[1][0]] ?? 0])
-			} as IChart2Props['chartData'],
-			stackColors: { [stackName]: '#1f67d2' }
+			charts: {
+				[stackName]: {
+					data: totalDataChart[0].map(({ date, ...metrics }) => [+date * 1e3, metrics[totalDataChart[1][0]] ?? 0]),
+					type: 'bar',
+					name: stackName,
+					stack: stackName,
+					color: oldBlue
+				}
+			}
 		}
 	}, [totalDataChart, enabledSettings, chartInterval])
 
@@ -178,15 +199,12 @@ export const DimensionProtocolOverviewChart = ({
 					))}
 				</div>
 			</div>
-			{chartInterval === 'Cumulative' ? (
-				<AreaChart3 chartData={mainChartData.chartData} stackColors={mainChartData.stackColors} />
-			) : (
-				<BarChart2
-					chartData={mainChartData.chartData}
-					groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
-					stackColors={mainChartData.stackColors}
-				/>
-			)}
+			<LineAndBarChart
+				charts={mainChartData.charts}
+				groupBy={
+					chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
+				}
+			/>
 		</div>
 	)
 }
@@ -359,10 +377,21 @@ const ChartByType = ({
 				.concat(finalChartData[chartType].slice(zeroIndex))
 		}
 
-		const allColors = getNDistinctColors(allTypes.length + 1, '#1f67d2')
+		const allColors = getNDistinctColors(allTypes.length + 1, oldBlue)
 		const stackColors = Object.fromEntries(allTypes.map((_, i) => [_, allColors[i]]))
 		stackColors['Others'] = allColors[allColors.length - 1]
-		return { chartData: finalChartData, stackColors }
+
+		const charts = {}
+		for (const chartType in finalChartData) {
+			charts[chartType] = {
+				data: finalChartData[chartType],
+				type: chartInterval === 'Cumulative' ? 'line' : 'bar',
+				name: chartType,
+				stack: chartType,
+				color: stackColors[chartType]
+			}
+		}
+		return { charts }
 	}, [allTypes, chartInterval, chartType, selectedTypes, totalDataChartBreakdown])
 
 	return (
@@ -396,15 +425,12 @@ const ChartByType = ({
 					portal
 				/>
 			</div>
-			{chartInterval === 'Cumulative' ? (
-				<AreaChart3 chartData={mainChartData.chartData} stackColors={mainChartData.stackColors} />
-			) : (
-				<BarChart2
-					chartData={mainChartData.chartData}
-					groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
-					stackColors={mainChartData.stackColors}
-				/>
-			)}
+			<LineAndBarChart
+				charts={mainChartData.charts}
+				groupBy={
+					chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
+				}
+			/>
 		</div>
 	)
 }

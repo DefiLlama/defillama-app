@@ -30,6 +30,7 @@ import { Icon } from '~/components/Icon'
 import { RowWithSubRows } from './RowWithSubRows'
 import { Tooltip } from '~/components/Tooltip'
 import { ProtocolOverviewLayout } from './Layout'
+import { IProtocolPageMetrics } from './types'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -130,22 +131,7 @@ interface IProtocolContainerProps {
 		'--btn-text': string
 	}
 	tab?: string
-	metrics: {
-		dexs: boolean
-		perps: boolean
-		options: boolean
-		dexAggregators: boolean
-		perpsAggregators: boolean
-		bridgeAggregators: boolean
-		stablecoins: boolean
-		bridge: boolean
-		treasury: boolean
-		unlocks: boolean
-		yields: boolean
-		fees: boolean
-		forks: boolean
-		governance: boolean
-	}
+	metrics: IProtocolPageMetrics
 }
 
 function explainAnnualized(text: string | undefined) {

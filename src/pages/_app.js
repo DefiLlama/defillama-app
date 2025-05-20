@@ -8,7 +8,6 @@ import '../nprogress.css'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
-import { WalletProvider } from '~/layout/WalletProvider'
 
 NProgress.configure({ showSpinner: false })
 

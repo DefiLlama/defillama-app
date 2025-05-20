@@ -3,11 +3,14 @@ import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { getChainPageData } from '~/api/categories/chains'
 import { LocalLoader } from '~/components/LocalLoader'
-import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { withPerformanceLogging } from '~/utils/perf'
+import metadata from '~/utils/metadata'
+import { slug } from '~/utils'
+const { chainMetadata } = metadata
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false
@@ -58,9 +61,10 @@ export default function ChainChartPage({
 	let chainGeckoId = null
 
 	if (selectedChain !== 'All') {
-		let chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIdsForGasNotMcap[selectedChain] ?? null
+		const cmetadata = chainMetadata[slug(selectedChain)]
+		let chainDenomination = cmetadata?.gecko_id ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.geckoId ?? null
 
-		chainGeckoId = chainDenomination?.geckoId ?? null
+		chainGeckoId = chainDenomination ?? null
 	}
 
 	const { chartDatasets, isFetchingChartData } = useFetchChainChartData({

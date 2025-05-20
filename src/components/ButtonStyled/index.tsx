@@ -1,5 +1,6 @@
 import { darken, transparentize } from 'polished'
 import { ComponentProps, ElementType, forwardRef, ReactNode } from 'react'
+import { primaryColor } from '~/constants/colors'
 
 const defaultButtonType = 'button' as const
 type ButtonDefaultAsType = typeof defaultButtonType
@@ -25,9 +26,9 @@ export const ButtonDark = <E extends ElementType = ButtonDefaultAsType>({
 			style={
 				{
 					'--bg-light': '#445ed0',
-					'--bg-dark': '#2172E5',
+					'--bg-dark': primaryColor,
 					'--bg-active-light': darken(0.1, '#445ed0'),
-					'--bg-active-dark': darken(0.1, '#2172E5'),
+					'--bg-active-dark': darken(0.1, primaryColor),
 					...(style ?? {})
 				} as any
 			}
