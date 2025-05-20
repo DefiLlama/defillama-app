@@ -90,10 +90,10 @@ const Item = ({ label, to }: { label: string; to: string }) => {
 					window.open(to)
 				} else {
 					setLoading(true)
-					// router.push(to).then(() => {
-					// 	setLoading(false)
-					// })
-					window.open(to, '_self')
+					router.push(to).then(() => {
+						setLoading(false)
+					})
+					// window.open(to, '_self')
 				}
 			}}
 			render={<Ariakit.ComboboxItem value={label} />}
