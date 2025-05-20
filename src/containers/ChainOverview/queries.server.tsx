@@ -395,7 +395,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			return [+date, finalTokens]
 		}) as Array<[number, Record<string, number>]>
 
-		const chainRev =
+		const chainREV =
 			chainFees && fees
 				? (fees?.protocols?.reduce((acc, curr) => {
 						if (REV_PROTOCOLS[slug(metadata.name)]?.includes(curr.slug)) {
@@ -406,6 +406,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				: null
 
 		const uniqUnlockTokenColors = getNDistinctColors(uniqueUnlockTokens.size)
+
 		return {
 			chain,
 			metadata,
@@ -427,7 +428,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				total24h: chainFees?.total24h ?? null,
 				feesGenerated24h: feesGenerated24h,
 				topProtocolsChart: topProtocolsByFeesChart,
-				totalRev24h: chainRev
+				totalREV24h: chainREV
 			},
 			chainRevenue: { total24h: chainRevenue?.total24h ?? null },
 			appRevenue: { total24h: appRevenue?.total24h ?? null },

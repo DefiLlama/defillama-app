@@ -206,8 +206,8 @@ export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Sta
 
 export const REV_PROTOCOLS = {
 	ethereum: ['flashbots'],
-	solana: ['jito'],
+	solana: ['jito-mev-tips'],
 	arbitrum: ['arbitrum-timeboost'],
 	polygon: ['fastlane'],
-	bsc: ['blocxroute']
+	bsc: ['bloxroute']
 }

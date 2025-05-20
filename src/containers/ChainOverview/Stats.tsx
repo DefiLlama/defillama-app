@@ -296,7 +296,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<td className="font-jetbrains text-right">{formattedNum(props.chainRevenue?.total24h, true)}</td>
 							</tr>
 						) : null}
-						{props.chainFees?.totalRev24h ? (
+						{props.chainFees?.totalREV24h ? (
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 									<Tooltip
@@ -306,7 +306,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										Chain REV (24h)
 									</Tooltip>
 								</th>
-								<td className="font-jetbrains text-right">{formattedNum(props.chainFees?.totalRev24h, true)}</td>
+								<td className="font-jetbrains text-right">{formattedNum(props.chainFees?.totalREV24h, true)}</td>
 							</tr>
 						) : null}
 						{props.appRevenue?.total24h && props.appRevenue?.total24h > 1e3 ? (
