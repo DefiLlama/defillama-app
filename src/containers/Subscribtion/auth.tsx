@@ -4,7 +4,6 @@ import pb, { AuthModel } from '~/utils/pocketbase'
 import { SiweMessage } from 'siwe'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AUTH_SERVER } from '~/constants'
-import { useSignMessage } from 'wagmi'
 
 interface User extends AuthModel {
 	subscription_status: string
@@ -27,11 +26,12 @@ interface AuthContextType {
 	signup: (email: string, password: string, passwordConfirm: string, onSuccess?: () => void) => Promise<void>
 	logout: () => void
 	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response>
-	signInWithEthereum: (address: string, onSuccess?: () => void) => Promise<void>
+	signInWithEthereum: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
 	signInWithGithub: (onSuccess?: () => void) => Promise<void>
 	resetPassword: (email: string) => void
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
+	addEmail: (email: string) => void
 	isAuthenticated: boolean
 	user: User
 	loaders: {
@@ -43,8 +43,10 @@ interface AuthContextType {
 		resetPassword: boolean
 		changeEmail: boolean
 		resendVerification: boolean
+		addEmail: boolean
 		userLoading: boolean
 		userFetching: boolean
+		subscriptionError: boolean
 	}
 }
 
@@ -52,37 +54,32 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const queryClient = useQueryClient()
-	const { signMessageAsync } = useSignMessage()
 	const [isAuthenticated, setIsAuthenticated] = useState(false)
 	const [subscription, setSubscription] = useState<any>(null)
 	const [isSubscriptionError, setIsSubscriptionError] = useState(false)
-
 	const {
-		data: user,
-		isPending: isUserLoading,
-		isFetching
+		data: currentUserData,
+		isPending: userQueryIsPending,
+		isFetching: userQueryIsFetching
 	} = useQuery({
-		queryKey: ['user', pb.authStore.record],
+		queryKey: ['currentUserAuthStatus'],
 		queryFn: async () => {
-			if (!pb.authStore.isValid) return null
-
-			try {
-				const res = await pb.collection('users').authRefresh()
-
-				const data = {
-					...pb.authStore.record,
-					...res,
-					subscription_status: subscription?.status || 'inactive',
-					subscription: subscription || { status: 'inactive' }
-				}
-				setIsAuthenticated(true)
-				return data
-			} catch (error) {
-				console.error('Error refreshing auth:', error)
+			if (!pb.authStore.token) {
+				setIsAuthenticated(false)
 				return null
 			}
+			try {
+				const refreshResult = await pb.collection('users').authRefresh()
+				setIsAuthenticated(true)
+				return { ...refreshResult.record }
+			} catch (error) {
+				console.error('Error refreshing auth:', error)
+				pb.authStore.clear()
+				setIsAuthenticated(false)
+				throw error
+			}
 		},
-		enabled: !!pb.authStore.isValid,
+		enabled: true,
 		staleTime: 0,
 		refetchOnMount: true,
 		refetchOnWindowFocus: false,
@@ -248,7 +245,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	)
 
 	const signInWithEthereumMutation = useMutation({
-		mutationFn: async (address: string) => {
+		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
 			const getNonce = async (address: string) => {
 				const response = await fetch(`${AUTH_SERVER}/nonce?address=${address}`)
 				if (!response.ok) {
@@ -268,7 +265,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				nonce: nonce
 			})
 
-			const signature = await signMessageAsync({
+			const signature = await signMessageFunction({
 				message: message.prepareMessage(),
 				account: address as `0x${string}`
 			})
@@ -310,9 +307,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	})
 
 	const signInWithEthereum = useCallback(
-		async (address: string, onSuccess?: () => void) => {
+		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
 			try {
-				await signInWithEthereumMutation.mutateAsync(address)
+				await signInWithEthereumMutation.mutateAsync({ address, signMessageFunction })
 				queryClient.invalidateQueries({
 					queryKey: ['subscription', pb.authStore.record?.id]
 				})
@@ -414,26 +411,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
-	const contextValue = {
-		user:
-			isAuthenticated && user
-				? {
-						...user,
-						id: user.id || '',
-						email: pb.authStore.record?.email || '',
-						walletAddress: pb.authStore.record?.walletAddress || '',
-						name: pb.authStore.record?.name || '',
-						avatar: pb.authStore.record?.avatar || '',
-						created: pb.authStore.record?.created || '',
-						updated: pb.authStore.record?.updated || '',
-						subscription_status: subscription?.status || '',
-						subscription: {
-							id: subscription?.id || '',
-							expires_at: subscription?.expires_at || '',
-							status: subscription?.status || ''
-						}
-				  }
-				: null,
+	const addEmail = useMutation({
+		mutationFn: async (email: string) => {
+			try {
+				const response = await fetch(`${AUTH_SERVER}/add-email`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${pb.authStore.token}`
+					},
+					body: JSON.stringify({ email })
+				})
+				if (!response.ok) {
+					const data = await response.json()
+					throw new Error(data?.message || 'Failed to add email')
+				}
+				toast.success('Email added successfully')
+			} catch (error: any) {
+				toast.error(error.message || 'Failed to add email')
+			}
+		}
+	})
+
+	const contextValue: AuthContextType = {
+		user: currentUserData
+			? ({
+					id: currentUserData.id!,
+					collectionId: currentUserData.collectionId!,
+					collectionName: currentUserData.collectionName!,
+					walletAddress: pb.authStore.record?.walletAddress || '',
+					created: currentUserData.created!,
+					updated: currentUserData.updated!,
+					email: (currentUserData as any).email,
+					name: (currentUserData as any).name,
+					avatar: (currentUserData as any).avatar,
+					username: (currentUserData as any).username,
+					verified: (currentUserData as any).verified,
+					emailVisibility: (currentUserData as any).emailVisibility,
+					expand: currentUserData.expand,
+					subscription_status: subscription?.status || 'inactive',
+					subscription: subscription || { id: '', expires_at: '', status: 'inactive' }
+			  } as User)
+			: null,
 		login,
 		signup,
 		logout,
@@ -443,6 +462,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		resetPassword: resetPassword.mutate,
 		changeEmail: changeEmail.mutate,
 		resendVerification: resendVerification.mutate,
+		addEmail: addEmail.mutate,
 		isAuthenticated: isAuthenticated,
 		loaders: {
 			login: loginMutation.isPending,
@@ -453,8 +473,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			resetPassword: resetPassword.isPending,
 			changeEmail: changeEmail.isPending,
 			resendVerification: resendVerification.isPending,
-			userLoading: isAuthenticated && isUserLoading,
-			userFetching: isAuthenticated && isFetching,
+			addEmail: addEmail.isPending,
+			userLoading: userQueryIsPending,
+			userFetching: userQueryIsFetching,
 			subscriptionError: isSubscriptionError
 		}
 	}

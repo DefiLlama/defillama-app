@@ -340,20 +340,32 @@ export function getRandomColor() {
 	return color
 }
 
-export function getNDistinctColors(n, startColor) {
+export function getNDistinctColors(n, colorToAvoid) {
 	const colors = []
-	const startHsl = hexToHSL(startColor || '#2172E5')
-	
-	// Use golden ratio for better hue distribution
-	const goldenRatio = 0.618033988749895
-	let hue = startHsl.h / 360 // Normalize to [0,1]
+	const colorToAvoidHsl = colorToAvoid ? hexToHSL(colorToAvoid) : null
+
+	// Start from red (0) for maximum distinction
+	let hue = colorToAvoidHsl ? (colorToAvoidHsl.h / 360 + 0.5) % 1 : 0 // Start from opposite hue if colorToAvoid exists
+	// Use prime number for better distribution
+	const step = 0.618033988749895 // golden ratio
 
 	for (let i = 0; i < n; i++) {
-		hue += goldenRatio
+		// Vary saturation slightly for better distinction while keeping colors rich
+		const saturation = 85 + (i % 3) * 5
+		// Vary lightness slightly for better distinction while keeping colors dark
+		const lightness = 35 + (i % 2) * 10
+
+		let color = hslToHex(hue * 360, saturation, lightness)
+
+		// If the generated color is too close to colorToAvoid, adjust the hue further
+		if (colorToAvoid === color) {
+			hue = (hue + 0.3) % 1 // Add 108 degrees to hue
+			color = hslToHex(hue * 360, saturation, lightness)
+		}
+
+		colors.push(color)
+		hue += step
 		hue %= 1 // Keep in [0,1] range
-		
-		// Use fixed saturation and lightness for better distinction
-		colors.push(hslToHex(hue * 360, 85, 60))
 	}
 
 	return colors
@@ -525,8 +537,6 @@ function hslToHex(h, s, l) {
 	return `#${f(0)}${f(8)}${f(4)}`
 }
 
-
-
 export const chunks = (array, size) => {
 	const result = []
 	for (let i = 0; i < array.length; i += size) {
@@ -545,12 +555,12 @@ export async function batchFetchHistoricalPrices(priceReqs, batchSize = 15) {
 		const batchReqs = Object.fromEntries(batch)
 		const response = await fetchWithErrorLogging(
 			`https://coins.llama.fi/batchHistorical?coins=${JSON.stringify(batchReqs)}&searchWidth=6h`
-		).then(res => res.json())
+		).then((res) => res.json())
 
 		for (const coinId of batch) {
 			if (response.coins[coinId]?.prices) {
-				response.coins[coinId].prices = response.coins[coinId].prices.map(price => ({
-					...price,
+				response.coins[coinId].prices = response.coins[coinId].prices.map((price) => ({
+					...price
 				}))
 			}
 		}
@@ -569,4 +579,39 @@ export function roundToNearestHalfHour(timestamp) {
 	date.setSeconds(0)
 	date.setMilliseconds(0)
 	return Math.floor(date.getTime() / 1000)
+}
+
+export function formatValue(value, formatType = 'auto') {
+	if (formatType === 'auto') {
+		if (typeof value === 'number') {
+			if (value !== 0 && Math.abs(value) < 1) return formattedPercent(value * 100, true, 400, true)
+			if (Math.abs(value) > 1000) return formattedNum(value, true)
+			return formattedNum(value)
+		}
+		if (typeof value === 'string') {
+			const num = Number(value)
+			if (!isNaN(num)) {
+				if (num !== 0 && Math.abs(num) < 1) return formattedPercent(num * 100, true, 400, true)
+				if (Math.abs(num) > 1000) return formattedNum(num, true)
+				return formattedNum(num)
+			}
+			return value
+		}
+		return String(value)
+	}
+	if (formatType === 'usd') return formattedNum(value, true)
+	if (formatType === 'percent') {
+		if (typeof value === 'number' && value !== 0 && Math.abs(value) < 1) {
+			return formattedPercent(value * 100, true, 400, true)
+		}
+		if (typeof value === 'string') {
+			const num = Number(value)
+			if (!isNaN(num) && num !== 0 && Math.abs(num) < 1) {
+				return formattedPercent(num * 100, true, 400, true)
+			}
+		}
+		return formattedPercent(value, true, 400, true)
+	}
+	if (formatType === 'number') return formattedNum(value)
+	return String(value)
 }

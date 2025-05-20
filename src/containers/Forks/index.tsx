@@ -21,7 +21,7 @@ const chartColors = {
 	TVL: '#1f67d2'
 }
 
-export const ForksByProtocol = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
+export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { protocolsData, parentForks, finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
@@ -57,13 +57,7 @@ export const ForksByProtocol = ({ chartData, tokenLinks, token, filteredProtocol
 	const percentChange = volumeChangeUSD?.toFixed(2)
 
 	return (
-		<Layout title={`Forks - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
-
-			{tokenLinks?.length > 0 && (
-				<RowLinksWithDropdown links={tokenLinks} activeLink={token} alternativeOthersText="Others" />
-			)}
-
+		<>
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col gap-1 text-base">
@@ -87,6 +81,6 @@ export const ForksByProtocol = ({ chartData, tokenLinks, token, filteredProtocol
 			</div>
 
 			<ProtocolsTableWithSearch data={protocolsData as any} />
-		</Layout>
+		</>
 	)
 }

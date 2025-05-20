@@ -2,7 +2,7 @@ import * as React from 'react'
 import dayjs from 'dayjs'
 import { formattedNum, tokenIconUrl, slug } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import type { DailyUnlocks, DayInfo } from '../types'
 
 interface WeekDayColumnProps {
@@ -44,7 +44,12 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 			>
 				{hasUnlocks && dayData ? (
 					dayData.events.map((event, i) => (
-						<CustomLink key={i} href={`/unlocks/${slug(event.protocol)}`} target="_blank">
+						<BasicLink
+							key={i}
+							href={`/unlocks/${slug(event.protocol)}`}
+							target="_blank"
+							className="text-sm font-medium text-[var(--link-text)]"
+						>
 							<div className="text-xs p-2 rounded-md bg-[var(--bg6)] hover:bg-[var(--bg5)] cursor-pointer transition-colors duration-150 ease-in-out shadow-sm">
 								<div className="flex justify-between items-start gap-1 mb-0.5">
 									<div className="font-medium text-[var(--text1)] flex items-center gap-1.5 min-w-0 flex-shrink">
@@ -59,7 +64,7 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 								</div>
 								<div className="text-[var(--text2)] pl-[calc(16px+0.375rem)]">{formattedNum(event.value, true)}</div>
 							</div>
-						</CustomLink>
+						</BasicLink>
 					))
 				) : (
 					<div className="flex-grow flex items-center justify-center text-center text-xs text-[var(--text2)] opacity-75">

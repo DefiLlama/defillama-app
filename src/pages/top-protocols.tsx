@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, download, slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
@@ -110,12 +110,12 @@ export default function Chains({ data, columns, uniqueCategories }) {
 								<span className="flex items-center gap-2">
 									<span className="flex-shrink-0">{index + 1}</span>
 									<TokenLogo logo={chainIconUrl(item.chain)} />
-									<CustomLink
+									<BasicLink
 										href={`/chain/${slug(item.chain)}`}
-										className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+										className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 									>
 										{item.chain}
-									</CustomLink>
+									</BasicLink>
 								</span>
 							</div>
 							{uniqueCategories.map((cat) => (
@@ -123,7 +123,14 @@ export default function Chains({ data, columns, uniqueCategories }) {
 									className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-b border-r border-[var(--divider)]"
 									key={`uniq-cat-${cat}-${item.chain}`}
 								>
-									{item[cat] ? <CustomLink href={`/protocol/${slug(item[cat])}`}>{item[cat]}</CustomLink> : null}
+									{item[cat] ? (
+										<BasicLink
+											href={`/protocol/${slug(item[cat])}`}
+											className="text-sm font-medium text-[var(--link-text)]"
+										>
+											{item[cat]}
+										</BasicLink>
+									) : null}
 								</div>
 							))}
 						</div>

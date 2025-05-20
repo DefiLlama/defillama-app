@@ -13,12 +13,13 @@ import {
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetchApi } from '~/utils/async'
-import { getProtocol, getProtocolEmissons } from '.'
+import { getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
 import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Governance'
 import { buildProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useQuery } from '@tanstack/react-query'
+import { getProtocol } from '~/containers/ProtocolOverview/queries'
 
 export const useFetchProtocolsList = () => {
 	return useQuery({

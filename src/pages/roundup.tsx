@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -13,11 +12,14 @@ export default function Roundup({ messages }: { messages: Array<string | Array<s
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>
 				Get the roundup delivered every day for free by subscribing on{' '}
-				<Link href="https://t.me/defillama_tg" passHref>
-					<a target="_blank" rel="noopener noreferrer" className="underline text-[var(--blue)]">
-						Telegram
-					</a>
-				</Link>
+				<a
+					href="https://t.me/defillama_tg"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="underline text-[var(--blue)]"
+				>
+					Telegram
+				</a>
 			</Announcement>
 
 			<div className="flex flex-col gap-3 bg-[var(--cards-bg)] rounded-md p-3">

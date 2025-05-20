@@ -4,7 +4,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, tokenIconUrl, slug } from '~/utils'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { interpolateColor } from '../utils/colorUtils'
 import type { DailyUnlocks, DayInfo } from '../types'
 
@@ -90,14 +90,14 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 							<div className="flex flex-col gap-2">
 								{dayData.events.map((event, i) => (
 									<div key={i} className="flex justify-between items-center gap-4 text-xs">
-										<CustomLink
+										<BasicLink
 											href={`/unlocks/${slug(event.protocol)}`}
 											target="_blank"
-											className="flex items-center gap-1.5 text-[var(--text1)] hover:text-[var(--blue)] flex-shrink min-w-0 group"
+											className="text-sm font-medium text-[var(--link-text)] flex items-center gap-1.5 hover:text-[var(--blue)] flex-shrink min-w-0 group"
 										>
 											<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
 											<span className="truncate group-hover:underline">{event.protocol}</span>
-										</CustomLink>
+										</BasicLink>
 										<span className="text-[var(--text2)] font-medium whitespace-nowrap">
 											{formattedNum(event.value, true)}
 										</span>

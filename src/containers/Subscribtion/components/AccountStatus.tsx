@@ -20,7 +20,6 @@ interface AccountStatusProps {
 }
 
 export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, subscription }: AccountStatusProps) => {
-	console.log(user)
 	return (
 		<div className="backdrop-filter backdrop-blur-md bg-gradient-to-r from-[#1a1b1f]/90 to-[#1a1b1f]/70 border border-[#39393E]/30 rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(92,92,249,0.1)] transition-shadow duration-300">
 			<div className="p-4 border-b border-[#39393E]/20">
@@ -43,10 +42,15 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 							<p className="text-sm text-[#8a8c90] truncate max-w-[200px] sm:max-w-[300px]">
 								{user.address ? user.address : user.email}
 							</p>
+							{user.ethereum_email && (
+								<div className="mt-2">
+									<p className="font-mono text-sm text-[#b4b7bc] truncate">{user.ethereum_email}</p>
+								</div>
+							)}
 						</div>
 					</div>
 
-					{user.address ? null : (
+					{
 						<button
 							onClick={onEmailChange}
 							className="py-2 px-4 rounded-lg bg-[#222429]/70 hover:bg-[#222429] border border-[#39393E]/50 hover:border-[#5C5CF9]/50 transition-all duration-200 text-sm shadow-md flex items-center gap-2 group hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)]"
@@ -61,7 +65,7 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 								Change Email
 							</span>
 						</button>
-					)}
+					}
 				</div>
 			</div>
 

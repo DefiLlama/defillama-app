@@ -69,6 +69,7 @@ export default function Protocol({ emissions, totalUnlockValue, eventCountdown, 
 			<SEO
 				unlockPage={true}
 				cardName={emissions.name}
+				symbol={emissions.tokenPrice.symbol}
 				logo={tokenIconUrl(emissions.name)}
 				unlockAmount={`$${formattedNum(totalUnlockValue)}`}
 				tvl={noUpcomingEvent ? 'No Events' : eventCountdown}

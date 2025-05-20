@@ -113,7 +113,7 @@ export interface IChainOverviewData {
 	unlocks: {
 		chart: Array<[number, Record<string, number>]>
 		total14d: number
-		tokens: Array<string>
+		tokens: Array<[string, string]>
 	} | null
 }
 

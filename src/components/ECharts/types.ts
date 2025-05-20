@@ -34,21 +34,32 @@ export interface IChartProps {
 	groupBy?: 'daily' | 'weekly' | 'monthly'
 	customYAxis?: Array<string>
 	hideOthersInTooltip?: boolean
+	hideDataZoom?: boolean
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
 	stacks?: {
 		[stack: string]: string
 	}
-	seriesConfig?: {
-		[stack: string]: {
-			[option: string]: Value | Array<Value>
+}
+
+export interface IChart2Props {
+	chartData?: {
+		[stack: string]: Array<[number, number]>
+	}
+	chartOptions?: {
+		[key: string]: {
+			[key: string]: Value | Array<Value> | ((params: any) => string)
 		}
 	}
-	barWidths?: {
-		[stack: string]: number
+	height?: string
+	stackColors?: {
+		[stack: string]: string
 	}
-	gradientBars?: boolean
+	groupBy?: 'daily' | 'weekly' | 'monthly'
+	hallmarks?: [number, string][]
+	expandTo100Percent?: boolean
+	valueSymbol?: string
 }
 
 export interface IPieChartProps {

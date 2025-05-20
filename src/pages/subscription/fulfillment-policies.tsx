@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import Link from 'next/link'
+import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
 
 export default function FulfillmentPolicies() {
@@ -47,12 +47,14 @@ export function SubscribeLayout2({ children }) {
 					<a href="mailto:support@llama.fi" className="underline">
 						Contact Us
 					</a>
-					<Link href="/subscription/privacy-policy" passHref>
-						<a className="underline">Privacy Policy</a>
-					</Link>
-					<Link href="/subscription/fulfillment-policies" passHref>
-						<a className="underline">Fulfillment policies</a>
-					</Link>
+
+					<BasicLink href="/subscription/privacy-policy" className="underline">
+						Privacy Policy
+					</BasicLink>
+
+					<BasicLink href="/subscription/fulfillment-policies" className="underline">
+						Fulfillment policies
+					</BasicLink>
 				</footer>
 			</div>
 		</>

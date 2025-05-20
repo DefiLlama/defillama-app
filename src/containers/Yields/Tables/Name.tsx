@@ -1,5 +1,5 @@
 import { Bookmark } from '~/components/Bookmark'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
@@ -87,7 +87,7 @@ export function NameYieldPool({
 						<span className="flex-shrink-0 overflow-hidden whitespace-nowrap text-ellipsis text-[var(--link-text)] font-medium">
 							{value}
 						</span>
-						<span className="flex-shrink-1 bg-[var(--bg3)] text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
+						<span className="ml-1 flex-shrink-1 bg-[var(--bg3)] text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
 							{poolMeta}
 						</span>
 					</>
@@ -106,14 +106,14 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 				{url ? (
 					<Tooltip
 						render={<a href={url} target="_blank" rel="noopener noreferrer" />}
-						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center gap-1 text-[var(--link-text)] font-medium !flex-shrink"
+						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center text-[var(--link-text)] font-medium !flex-shrink"
 						content={children}
 					>
 						{children}
 					</Tooltip>
 				) : (
 					<Tooltip
-						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center gap-1 text-[var(--link-text)] font-medium !flex-shrink"
+						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center text-[var(--link-text)] font-medium !flex-shrink"
 						content={children}
 					>
 						{children}
@@ -126,11 +126,15 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 	return (
 		<>
 			{url ? (
-				<CustomLink href={url} target="_blank" className="overflow-hidden whitespace-nowrap text-ellipsis">
+				<BasicLink
+					href={url}
+					target="_blank"
+					className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis flex items-center"
+				>
 					{children}
-				</CustomLink>
+				</BasicLink>
 			) : (
-				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{children}</span>
+				<span className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center">{children}</span>
 			)}
 		</>
 	)
@@ -154,9 +158,12 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 			{withoutLink ? (
 				<FormattedName text={project} maxCharacters={20} link fontWeight={500} />
 			) : (
-				<CustomLink href={tokenUrl} className="overflow-hidden whitespace-nowrap text-ellipsis ml-2">
+				<BasicLink
+					href={tokenUrl}
+					className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis ml-2"
+				>
 					{project}
-				</CustomLink>
+				</BasicLink>
 			)}
 		</span>
 	)
@@ -170,9 +177,12 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 	return (
 		<span className="flex items-center gap-2">
 			<TokenLogo logo={iconUrl} />
-			<CustomLink href={tokenUrl} className="overflow-hidden whitespace-nowrap text-ellipsis">
+			<BasicLink
+				href={tokenUrl}
+				className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
+			>
 				{project}
-			</CustomLink>
+			</BasicLink>
 		</span>
 	)
 }

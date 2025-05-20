@@ -18,19 +18,39 @@ import {
 import { TokenLogo } from '~/components/TokenLogo'
 import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { ICONS_CDN, removedCategories } from '~/constants'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
-import { subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { subscribeToLocalStorage, useLocalStorageSettingsManager, useCustomColumns } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useRouter } from 'next/router'
+import { evaluateFormula, getSortableValue } from './formula.service'
+import { formatValue } from '../../utils'
+import { replaceAliases, sampleProtocol } from './customColumnsUtils'
+import { CustomColumnModal } from './CustomColumnModal'
+import * as Ariakit from '@ariakit/react'
+
+export interface CustomColumnDef {
+	name: string
+	formula: string
+	formatType: 'auto' | 'number' | 'usd' | 'percent' | 'string' | 'boolean'
+	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
+}
 
 const optionsKey = 'ptc'
 const filterStatekey = 'ptcfs'
 
-export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol> }) => {
+export const ChainProtocolsTable = ({
+	protocols,
+	sampleRow = sampleProtocol
+}: {
+	protocols: Array<IProtocol>
+	sampleRow?: any
+}) => {
+	const { customColumns, setCustomColumns } = useCustomColumns()
+
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const minTvl =
@@ -58,27 +78,10 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 		() => null
 	)
 
-	const clearAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-	}
-	const toggleAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-	}
-
-	const addOption = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key) ? true : false]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
-	}
-
 	const setFilter = (key) => (newState) => {
 		const newOptions = Object.fromEntries(
 			columnOptions.map((column) => [
-				[column.key],
+				column.key,
 				['name', 'category'].includes(column.key) ? true : column[key] === newState
 			])
 		)
@@ -94,18 +97,225 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 		}
 	}
 
+	const clearAllOptions = () => {
+		const ops = JSON.stringify(
+			Object.fromEntries(
+				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
+					option.key,
+					false
+				])
+			)
+		)
+		window.localStorage.setItem(optionsKey, ops)
+		window.dispatchEvent(new Event('storage'))
+		if (instance && instance.setColumnVisibility) {
+			instance.setColumnVisibility(JSON.parse(ops))
+		}
+	}
+	const toggleAllOptions = () => {
+		const ops = JSON.stringify(
+			Object.fromEntries(
+				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
+					option.key,
+					true
+				])
+			)
+		)
+		window.localStorage.setItem(optionsKey, ops)
+		window.dispatchEvent(new Event('storage'))
+		if (instance && instance.setColumnVisibility) {
+			instance.setColumnVisibility(JSON.parse(ops))
+		}
+	}
+
+	const [customColumnModalEditIndex, setCustomColumnModalEditIndex] = useState<number | null>(null)
+	const [customColumnModalInitialValues, setCustomColumnModalInitialValues] = useState<
+		Partial<CustomColumnDef> | undefined
+	>(undefined)
+
+	const customColumnDialogStore = Ariakit.useDialogStore()
+	const handleAddCustomColumn = () => {
+		setCustomColumnModalEditIndex(null)
+		setCustomColumnModalInitialValues(undefined)
+		customColumnDialogStore.toggle()
+	}
+	const handleEditCustomColumn = (idx: number) => {
+		setCustomColumnModalEditIndex(idx)
+		setCustomColumnModalInitialValues(customColumns[idx])
+		customColumnDialogStore.toggle()
+	}
+	const handleDeleteCustomColumn = (idx: number) => {
+		const next = customColumns.filter((_, i) => i !== idx)
+		setCustomColumns(next)
+	}
+	const handleSaveCustomColumn = (def: CustomColumnDef) => {
+		let next: CustomColumnDef[]
+		let newColumnKey: string | undefined
+		if (customColumnModalEditIndex === null) {
+			next = [...customColumns, def]
+			newColumnKey = `custom_formula_${customColumns.length}`
+		} else {
+			next = customColumns.map((col, i) => (i === customColumnModalEditIndex ? def : col))
+		}
+		setCustomColumns(next)
+		customColumnDialogStore.toggle()
+
+		if (newColumnKey) {
+			const allKeys = [...columnOptions.map((c) => c.key), ...next.map((_, idx) => `custom_formula_${idx}`)]
+			let ops: Record<string, boolean> = {}
+			try {
+				ops = JSON.parse(localStorage.getItem(optionsKey) ?? '{}')
+			} catch {}
+			allKeys.forEach((key) => {
+				if (key === newColumnKey) {
+					ops[key] = true
+				} else if (!(key in ops)) {
+					ops[key] = false
+				}
+			})
+			localStorage.setItem(optionsKey, JSON.stringify(ops))
+			window.dispatchEvent(new Event('storage'))
+			if (instance && instance.setColumnVisibility) {
+				instance.setColumnVisibility(ops)
+			}
+		}
+	}
+
+	const mergedColumnOptions = useMemo(() => {
+		return [
+			...columnOptions,
+			...customColumns.map((col, idx) => ({
+				name: col.name,
+				key: `custom_formula_${idx}`,
+				isCustom: true,
+				customIndex: idx,
+				formula: col.formula,
+				formatType: col.formatType
+			}))
+		]
+	}, [customColumns])
+
+	const addOption = (newOptions) => {
+		const allKeys = mergedColumnOptions.map((col) => col.key)
+		const ops = Object.fromEntries(allKeys.map((key) => [key, newOptions.includes(key) ? true : false]))
+		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		window.dispatchEvent(new Event('storage'))
+		if (instance && instance.setColumnVisibility) {
+			instance.setColumnVisibility(ops)
+		}
+	}
+
 	const selectedOptions = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return columnOptions.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
-	}, [columnsInStorage])
+		return mergedColumnOptions.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+	}, [columnsInStorage, mergedColumnOptions])
 
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
+	const customColumnDefs = useMemo(() => {
+		return customColumns.map((col, idx) => {
+			const columnId = `custom_formula_${idx}`
+
+			return columnHelper.accessor(
+				(row) => {
+					const formulaWithPaths = replaceAliases(col.formula)
+					const { value, error } = evaluateFormula(formulaWithPaths, row)
+
+					if (error) {
+						return null
+					}
+
+					const usedFormat = col.determinedFormat || col.formatType
+					return getSortableValue(value, usedFormat)
+				},
+				{
+					id: columnId,
+					header: col.name,
+					cell: ({ row }) => {
+						const formulaWithPaths = replaceAliases(col.formula)
+						const { value, error } = evaluateFormula(formulaWithPaths, row.original)
+
+						if (error || value === '' || value === null || (typeof value === 'boolean' && value === false && error)) {
+							return null
+						}
+
+						if (error) {
+							return (
+								<span title={error} className="text-red-600 cursor-help">
+									Err
+								</span>
+							)
+						}
+
+						const usedFormat = col.determinedFormat || col.formatType
+						if (usedFormat === 'boolean' && typeof value === 'boolean') {
+							return (
+								<span title={value ? 'True' : 'False'} className="flex items-center">
+									{value ? '✅' : '❌'}
+								</span>
+							)
+						}
+
+						return <span className="flex items-center">{formatValue(value, usedFormat)}</span>
+					},
+					sortingFn: (rowA, rowB, columnId) => {
+						const usedFormat = col.determinedFormat || col.formatType
+						const desc = sorting.length ? sorting[0].desc : true
+
+						let a = rowA.getValue(columnId)
+						let b = rowB.getValue(columnId)
+
+						if (a === null && b !== null) {
+							return desc ? -1 : 1
+						}
+
+						if (a !== null && b === null) {
+							return desc ? 1 : -1
+						}
+
+						if (a === null && b === null) {
+							return 0
+						}
+
+						if (usedFormat === 'string') {
+							return String(a).localeCompare(String(b))
+						} else if (usedFormat === 'boolean') {
+							if (a === true && b === false) return 1
+							if (a === false && b === true) return -1
+							return 0
+						} else {
+							return Number(a) - Number(b)
+						}
+					},
+					sortUndefined: 'last',
+					size: 140,
+					meta: { align: 'end', headerHelperText: col.formula }
+				}
+			)
+		})
+	}, [customColumns, sorting])
+
+	const allColumns = useMemo(
+		() => [
+			...columns,
+			...(customColumnDefs.length > 0
+				? [
+						{
+							id: 'custom_columns',
+							header: 'Custom Columns',
+							columns: customColumnDefs
+						}
+				  ]
+				: [])
+		],
+		[customColumnDefs]
+	)
+
 	const instance = useReactTable({
 		data: finalProtocols,
-		columns: columns,
+		columns: allColumns,
 		state: {
 			sorting,
 			expanded,
@@ -180,7 +390,7 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 					values={Object.values(TABLE_PERIODS) as Array<string>}
 				/>
 				<SelectWithCombobox
-					allValues={columnOptions}
+					allValues={mergedColumnOptions}
 					selectedValues={selectedOptions}
 					setSelectedValues={addOption}
 					toggleAll={toggleAllOptions}
@@ -192,10 +402,29 @@ export const ChainProtocolsTable = ({ protocols }: { protocols: Array<IProtocol>
 						className:
 							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
 					}}
+					customFooter={
+						<button
+							className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] text-[var(--text1)] text-xs font-medium border border-[var(--form-control-border)]"
+							onClick={handleAddCustomColumn}
+							type="button"
+						>
+							<Icon name="plus" height={16} width={16} />
+							Add Custom Column
+						</button>
+					}
+					onEditCustomColumn={handleEditCustomColumn}
+					onDeleteCustomColumn={handleDeleteCustomColumn}
 				/>
 				<TVLRange variant="third" />
 			</div>
 			<VirtualTable instance={instance} />
+			<CustomColumnModal
+				dialogStore={customColumnDialogStore}
+				onSave={handleSaveCustomColumn}
+				sampleRow={sampleRow}
+				key={`custom-index-${customColumnModalEditIndex}`}
+				{...(customColumnModalInitialValues || {})}
+			/>
 		</div>
 	)
 }
@@ -334,12 +563,12 @@ const columns: ColumnDef<IProtocol>[] = [
 					<TokenLogo logo={`${ICONS_CDN}/protocols/${row.original.slug}?w=48&h=48`} data-lgonly />
 
 					<span className="flex flex-col -my-2">
-						<CustomLink
+						<BasicLink
 							href={`/protocol/${row.original.slug}`}
-							className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
-						</CustomLink>
+						</BasicLink>
 
 						<Tooltip content={<Chains />} className="text-[0.7rem] text-[var(--text-disabled)]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
@@ -362,7 +591,12 @@ const columns: ColumnDef<IProtocol>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<CustomLink href={`/protocols/${slug(getValue() as string)}`}>{getValue() as string}</CustomLink>
+				<BasicLink
+					href={`/protocols/${slug(getValue() as string)}`}
+					className="text-sm font-medium text-[var(--link-text)]"
+				>
+					{getValue() as string}
+				</BasicLink>
 			) : (
 				''
 			),

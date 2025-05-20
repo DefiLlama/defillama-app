@@ -7,7 +7,7 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import Layout from '~/layout'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { IconsRow } from '~/components/IconsRow'
 import type { ColumnDef } from '@tanstack/react-table'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
@@ -133,12 +133,12 @@ const columns: ColumnDef<IOraclesRow>[] = [
 			return (
 				<span className="flex items-center gap-2 relative">
 					<span className="flex-shrink-0">{index + 1}</span>
-					<CustomLink
+					<BasicLink
 						href={`/oracles/${getValue()}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{getValue() as string}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		}

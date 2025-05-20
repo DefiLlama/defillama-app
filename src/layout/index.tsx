@@ -3,9 +3,6 @@ import Head from 'next/head'
 import { SEO } from '~/components/SEO'
 import Nav from '~/components/Nav'
 import { useIsClient } from '~/hooks'
-import { AuthProvider } from '~/containers/Subscribtion/auth'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { WalletProvider } from './WalletProvider'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
 
@@ -17,8 +14,6 @@ interface ILayoutProps {
 	className?: string
 	style?: React.CSSProperties
 }
-
-const queryClient = new QueryClient()
 
 export default function Layout({
 	title,
@@ -37,22 +32,15 @@ export default function Layout({
 			</Head>
 
 			{defaultSEO ? <SEO /> : null}
-
 			<Nav />
-			<WalletProvider>
-				<QueryClientProvider client={queryClient}>
-					<AuthProvider>
-						<main
-							{...props}
-							className={`flex flex-col gap-1 w-full text-[var(--text1)] isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen ${
-								className ?? ''
-							}`}
-						>
-							{children}
-						</main>
-					</AuthProvider>
-				</QueryClientProvider>
-			</WalletProvider>
+			<main
+				{...props}
+				className={`flex flex-col gap-1 text-[var(--text1)] isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen lg:w-[calc(100vw-1rem)]${
+					className ?? ''
+				}`}
+			>
+				{children}
+			</main>
 			{isClient ? (
 				<React.Suspense>
 					<Toaster />

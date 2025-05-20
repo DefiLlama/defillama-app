@@ -188,11 +188,15 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	})
 
 	if (isLoading) {
-		return <p style={{ margin: '100px 0', textAlign: 'center' }}></p>
+		return <p className="my-[180px] text-center">Loading...</p>
 	}
 
 	if (error) {
-		return <p style={{ margin: '100px 0', textAlign: 'center' }}>Something went wrong, couldn't fetch data</p>
+		return <p className="my-[180px] text-center">{error.message}</p>
+	}
+
+	if (!data) {
+		return <p className="my-[180px] text-center">Something went wrong, couldn't fetch data</p>
 	}
 
 	return (

@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { useStackBy } from '~/containers/Liquidations/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHAINS_API, CONFIG_API } from '~/constants'
@@ -203,12 +203,12 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 		<span className="flex items-center gap-2">
 			<span className="flex-shrink-0">{index + 1}</span>
 			<TokenLogo logo={data.logo} data-lgonly />
-			<CustomLink
+			<BasicLink
 				href={`/protocol/${_value}`}
-				className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
+				className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
 			>
 				{data.name}
-			</CustomLink>
+			</BasicLink>
 		</span>
 	)
 }
@@ -238,12 +238,12 @@ const ChainName = ({ value, index }: { value: string; index?: number }) => {
 		<span className="flex items-center gap-2">
 			{(index || index === 0) && <span className="flex-shrink-0">{index + 1}</span>}
 			<TokenLogo logo={chainIconUrl(name)} data-lgonly />
-			<CustomLink
+			<BasicLink
 				href={`/chain/${_name}`}
-				className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
+				className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
 			>
 				{_name}
-			</CustomLink>
+			</BasicLink>
 		</span>
 	)
 }

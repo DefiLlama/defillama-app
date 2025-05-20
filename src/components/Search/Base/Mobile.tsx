@@ -250,10 +250,10 @@ const Row = ({ data, onItemClick }: { data: any; onItemClick?: (data: any) => vo
 					window.open(data.route)
 				} else {
 					setLoading(true)
-					// router.push(data.route).then(() => {
-					// 	setLoading(false)
-					// })
-					window.open(data.route, '_self')
+					router.push(data.route).then(() => {
+						setLoading(false)
+					})
+					// window.open(data.route, '_self')
 				}
 			}}
 			disabled={loading}

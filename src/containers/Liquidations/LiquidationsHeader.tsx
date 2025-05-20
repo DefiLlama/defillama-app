@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
-import Link from 'next/link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import type { ISearchItem } from '~/components/Search/types'
 import { ChartData } from '~/containers/Liquidations/utils'
 import { matchSorter } from 'match-sorter'
+import { BasicLink } from '~/components/Link'
 
 export const LiquidationsHeader = (props: { data: ChartData; options: ISearchItem[] }) => {
 	const { data, options } = props
@@ -56,7 +56,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 					wrapperProps={{
 						className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
 					}}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 				>
 					<Ariakit.Combobox
 						placeholder="Search..."
@@ -66,18 +66,18 @@ export function AssetSelector({ options, symbol }: IProps) {
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList>
 							{matches.map((match, i) => (
-								<Link key={`liq-asset-${match.name}`} href={match.route} passHref>
-									<Ariakit.ComboboxItem
-										value={match.symbol}
-										focusOnHover
-										hideOnClick
-										role="link"
-										className="flex items-center gap-1 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
-									>
-										<TokenLogo logo={match.logo} size={20} />
-										{match.name} ({match.symbol})
-									</Ariakit.ComboboxItem>
-								</Link>
+								<Ariakit.ComboboxItem
+									key={`liq-asset-${match.name}`}
+									value={match.symbol}
+									focusOnHover
+									hideOnClick
+									role="link"
+									render={<BasicLink href={match.route as string} />}
+									className="flex items-center gap-1 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
+								>
+									<TokenLogo logo={match.logo} size={20} />
+									{match.name} ({match.symbol})
+								</Ariakit.ComboboxItem>
 							))}
 						</Ariakit.ComboboxList>
 					) : (

@@ -1,12 +1,12 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDaysAgo } from '~/utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDaysAgo } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
 import { removedCategories } from '~/constants'
@@ -68,9 +68,9 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 					<span className="flex flex-col -my-2">
 						{row.original?.deprecated ? (
-							<CustomLink
+							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
 							>
 								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
 								<Tooltip
@@ -79,12 +79,12 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 								>
 									!
 								</Tooltip>
-							</CustomLink>
+							</BasicLink>
 						) : (
-							<CustomLink
+							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-							>{`${value}`}</CustomLink>
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>{`${value}`}</BasicLink>
 						)}
 
 						<Tooltip content={<Chains />} className="text-[0.7rem]">
@@ -107,7 +107,13 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		accessorKey: 'category',
 		enableSorting: false,
 		cell: ({ getValue }) =>
-			getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue() as string | null}</CustomLink> : '',
+			getValue() ? (
+				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-[var(--link-text)]">
+					{getValue() as string | null}
+				</BasicLink>
+			) : (
+				''
+			),
 		size: 140,
 		meta: {
 			align: 'end'
@@ -456,20 +462,20 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 
 					<span className="flex flex-col -my-2">
 						{row.original?.deprecated ? (
-							<CustomLink
+							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
 							>
 								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
 								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
 									Deprecated
 								</span>
-							</CustomLink>
+							</BasicLink>
 						) : (
-							<CustomLink
+							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-							>{`${value}`}</CustomLink>
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>{`${value}`}</BasicLink>
 						)}
 
 						<Tooltip content={<Chains />} className="text-[0.7rem]">
@@ -490,7 +496,13 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'Category',
 		accessorKey: 'category',
 		cell: ({ getValue }) =>
-			getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue() as string | null}</CustomLink> : '',
+			getValue() ? (
+				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-[var(--link-text)]">
+					{getValue() as string | null}
+				</BasicLink>
+			) : (
+				''
+			),
 		size: 140
 	},
 	{
@@ -639,20 +651,20 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 
 					<span className="flex flex-col -my-2">
 						{row.original?.deprecated ? (
-							<CustomLink
+							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
 							>
 								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
 								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
 									Deprecated
 								</span>
-							</CustomLink>
+							</BasicLink>
 						) : (
-							<CustomLink
+							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-							>{`${value}`}</CustomLink>
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>{`${value}`}</BasicLink>
 						)}
 
 						<Tooltip content={<Chains />} className="text-[0.7rem]">
@@ -759,10 +771,10 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 					<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-					<CustomLink
+					<BasicLink
 						href={`/protocol/${slug(value)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>{`${value}`}</CustomLink>
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>{`${value}`}</BasicLink>
 				</span>
 			)
 		},

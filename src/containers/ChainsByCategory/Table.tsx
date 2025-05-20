@@ -20,7 +20,7 @@ import { formatColumnOrder } from '~/components/Table/utils'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 
 const optionsKey = 'chains-overview-table-columns'
@@ -291,12 +291,12 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 					)}
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
-					<CustomLink
+					<BasicLink
 						href={`/chain/${slug(getValue() as string)}`}
-						className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string | null}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},

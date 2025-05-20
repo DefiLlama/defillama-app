@@ -235,8 +235,8 @@ export const cexData: Array<ICex> = [
 		cgId: 'bitkub'
 	},
 	{
-		name: 'Gate.io',
-		slug: 'Gate-io',
+		name: 'Gate', // change to name: 'Gate'
+		slug: 'Gate-io', // first name was gate.io , so thats the slug
 		coin: 'GT',
 		coinSymbol: 'GT',
 		walletsLink: 'https://github.com/gateio/proof-of-reserves',
@@ -779,4 +779,4 @@ export default function Protocols({ cexs }) {
 	return <Cexs cexs={cexs} />
 }
 
-//trigger server gogogogogoogo
+//trigger server

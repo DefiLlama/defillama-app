@@ -6,7 +6,7 @@ export function ThemeSwitch() {
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
 
 	return (
-		<button onClick={toggleDarkMode} className="hidden lg:flex items-center gap-2 mt-4">
+		<button onClick={toggleDarkMode} className="hidden lg:flex items-center gap-2 mt-2">
 			<Icon
 				name="sun"
 				height={20}

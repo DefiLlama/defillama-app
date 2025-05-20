@@ -1506,6 +1506,11 @@ export const chainCoingeckoIds = {
 		geckoId: 'story-2',
 		symbol: 'IP',
 		cmcId: '35626'
+	},
+	'Hyperliquid L1': {
+		geckoId: 'hyperliquid',
+		symbol: 'HYPE',
+		cmcId: '32196'
 	}
 }
 

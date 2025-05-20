@@ -61,7 +61,7 @@ const getLargeTransactionsData = async (chain: string, startTimestamp: number, e
 			}
 		} catch (e) {}
 	}
-	throw new Error(`${BRIDGELARGETX_API}/${chain} is broken`)
+	return []
 }
 
 export async function getBridgeOverviewPageData(chain) {
@@ -184,7 +184,7 @@ export async function getBridgeChainsPageData() {
 					return charts
 				} catch (e) {}
 			}
-			throw new Error(`${BRIDGEVOLUME_API}/${chain.name} is broken`)
+			return []
 		})
 	)
 
@@ -265,7 +265,7 @@ export async function getBridgePageData(bridge: string) {
 					return charts
 				} catch (e) {}
 			}
-			throw new Error(`${BRIDGEVOLUME_API}/${chain} is broken`)
+			return []
 		})
 	)
 
@@ -284,7 +284,7 @@ export async function getBridgePageData(bridge: string) {
 					return charts
 				} catch (e) {}
 			}
-			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain} is broken`)
+			return []
 		})
 	)
 

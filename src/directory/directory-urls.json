@@ -298,5 +298,10 @@
 		"name": "Jumper Exchange",
 		"url": "https://jumper.exchange/",
 		"logo": "jumper-exchange.jpg"
+	},
+	{
+		"name": "Syrup.fi",
+		"url": "https://syrup.fi/lend",
+		"logo": "syrup.fi.jpg"
 	}
 ]

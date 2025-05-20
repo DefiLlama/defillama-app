@@ -20,7 +20,7 @@ import {
 } from '~/containers/DimensionAdapters/queries'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import metadataCache from '~/utils/metadata'
 import type {
@@ -224,7 +224,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			metadata.chainFees
 				? getAdapterProtocolSummary({
 						type: 'fees',
-						chain: metadata.name,
+						protocol: metadata.name,
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true
 				  }).catch((err) => {
@@ -235,7 +235,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			metadata.chainFees
 				? getAdapterProtocolSummary({
 						type: 'fees',
-						chain: metadata.name,
+						protocol: metadata.name,
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyRevenue'
@@ -405,6 +405,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				  }, 0) ?? 0) + (chainFees?.total24h ?? 0)
 				: null
 
+		const uniqUnlockTokenColors = getNDistinctColors(uniqueUnlockTokens.size)
 		return {
 			chain,
 			metadata,
@@ -475,7 +476,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				? {
 						chart: finalUnlocksChart,
 						total14d: total14dUnlocks,
-						tokens: Array.from(uniqueUnlockTokens)
+						tokens: Array.from(uniqueUnlockTokens).map(
+							(x, index) => [x, uniqUnlockTokenColors[index]] as [string, string]
+						)
 				  }
 				: null
 		}

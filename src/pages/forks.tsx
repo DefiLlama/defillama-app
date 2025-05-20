@@ -25,6 +25,8 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 export const getStaticProps = withPerformanceLogging('forks', async () => {
 	const data = await getForkPageData()
 
+	if (!data) return { notFound: true, props: null }
+
 	return {
 		props: { ...data },
 		revalidate: maxAgeForNext([22])

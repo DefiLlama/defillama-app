@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useLocalStorageSettingsManager, useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IChartProps } from '~/components/ECharts/types'
@@ -10,8 +9,9 @@ import { useFetchAndFormatChartData } from './useFetchAndFormatChartData'
 import { EmbedChart } from '~/components/EmbedChart'
 import { IFusedProtocolData, NftVolumeData } from '~/api/types'
 import { transparentize } from 'polished'
+import { BasicLink } from '~/components/Link'
 
-const AreaChart = dynamic(() => import('.'), {
+const AreaChart = dynamic(() => import('./Chart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
@@ -45,7 +45,7 @@ const CHART_TYPES = [
 	'tokenVolume',
 	'tokenLiquidity',
 	'fdv',
-	'volume',
+	'dexVolume',
 	'perpsVolume',
 	'premiumVolume',
 	'fees',
@@ -70,7 +70,7 @@ const CHART_TYPES = [
 	'nftVolume',
 	'perpsAggregators',
 	'bridgeAggregators',
-	'aggregators'
+	'dexAggregators'
 ]
 
 const ProtocolChart = React.memo(function ProtocolChart({
@@ -104,13 +104,13 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			...router.query,
 			...((!metrics.tvl
 				? metrics.dexs
-					? { volume: router.query.volume ?? 'true' }
+					? { dexVolume: router.query.dexVolume ?? 'true' }
 					: metrics.perps
 					? { perpsVolume: router.query.perpsVolume ?? 'true' }
 					: metrics.options
 					? { premiumVolume: router.query.premiumVolume ?? 'true' }
-					: metrics.aggregators
-					? { aggregators: router.query.aggregators ?? 'true' }
+					: metrics.dexAggregators
+					? { dexAggregators: router.query.dexAggregators ?? 'true' }
 					: metrics.bridgeAggregators
 					? { bridgeAggregators: router.query.bridgeAggregators ?? 'true' }
 					: metrics.perpsAggregators
@@ -146,7 +146,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			mcap: toggledMetrics.mcap,
 			tokenPrice: toggledMetrics.tokenPrice,
 			fdv: toggledMetrics.fdv,
-			volume: toggledMetrics.volume,
+			volume: toggledMetrics.dexVolume,
 			perpsVolume: toggledMetrics.perpsVolume,
 			premiumVolume: toggledMetrics.premiumVolume,
 			fees: toggledMetrics.fees,
@@ -185,7 +185,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			devCommits: toggledMetrics.devCommits,
 			nftVolume: toggledMetrics.nftVolume,
 			nftVolumeData,
-			aggregators: toggledMetrics.aggregators,
+			aggregators: toggledMetrics.dexAggregators,
 			perpsAggregators: toggledMetrics.perpsAggregators,
 			bridgeAggregators: toggledMetrics.bridgeAggregators
 		})
@@ -223,7 +223,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			options.push({ label: 'Bridge Volume', key: 'bridgeVolume' })
 		}
 		if (metrics?.dexs) {
-			options.push({ label: 'DEX Volume', key: 'volume' })
+			options.push({ label: 'DEX Volume', key: 'dexVolume' })
 		}
 		if (metrics?.perps) {
 			options.push({ label: 'Perps Volume', key: 'perpsVolume' })
@@ -276,8 +276,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		if (metrics?.nftVolume) {
 			options.push({ label: 'NFT Volume', key: 'nftVolume' })
 		}
-		if (metrics?.aggregators) {
-			options.push({ label: 'Aggregators Volume', key: 'aggregators' })
+		if (metrics?.dexAggregators) {
+			options.push({ label: 'DEX Aggregators Volume', key: 'dexAggregators' })
 		}
 		if (metrics?.bridgeAggregators) {
 			options.push({ label: 'Bridge Aggregators Volume', key: 'bridgeAggregators' })
@@ -385,11 +385,11 @@ const ProtocolChart = React.memo(function ProtocolChart({
 				</div>
 			) : null}
 
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end px-3">
+			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end m-3 mt-0 first:mt-3">
 				{chartDenominations.length > 0 && (
-					<div className="mr-auto text-xs font-medium flex items-center rounded-md h-full overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+					<div className="mr-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
 						{chartDenominations.map((D) => (
-							<Link
+							<BasicLink
 								href={
 									realPathname +
 									`denomination=${D.symbol}` +
@@ -397,88 +397,71 @@ const ProtocolChart = React.memo(function ProtocolChart({
 								}
 								key={D.symbol}
 								shallow
-								passHref
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--btn-bg)] focus-visible:bg-[var(--btn-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								data-active={
+									toggledMetrics.denomination === D.symbol || (D.symbol === 'USD' && !toggledMetrics.denomination)
+								}
 							>
-								<a
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--btn-bg)] focus-visible:bg-[var(--btn-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
-									data-active={
-										toggledMetrics.denomination === D.symbol || (D.symbol === 'USD' && !toggledMetrics.denomination)
-									}
-								>
-									{D.symbol}
-								</a>
-							</Link>
+								{D.symbol}
+							</BasicLink>
 						))}
 					</div>
 				)}
 
 				{hasAtleasOneBarChart ? (
 					<>
-						<div className="ml-auto text-xs font-medium flex items-center rounded-md h-full overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
-							<Link
+						<div className="ml-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+							<BasicLink
 								href={
 									realPathname +
 									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
 									'groupBy=daily'
 								}
 								shallow
-								passHref
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								data-active={toggledMetrics.groupBy === 'daily' || !toggledMetrics.groupBy}
 							>
-								<a
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
-									data-active={toggledMetrics.groupBy === 'daily' || !toggledMetrics.groupBy}
-								>
-									Daily
-								</a>
-							</Link>
-							<Link
+								Daily
+							</BasicLink>
+
+							<BasicLink
 								href={
 									realPathname +
 									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
 									'groupBy=weekly'
 								}
 								shallow
-								passHref
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								data-active={toggledMetrics.groupBy === 'weekly'}
 							>
-								<a
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
-									data-active={toggledMetrics.groupBy === 'weekly'}
-								>
-									Weekly
-								</a>
-							</Link>
-							<Link
+								Weekly
+							</BasicLink>
+
+							<BasicLink
 								href={
 									realPathname +
 									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
 									'groupBy=monthly'
 								}
 								shallow
-								passHref
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								data-active={toggledMetrics.groupBy === 'monthly'}
 							>
-								<a
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
-									data-active={toggledMetrics.groupBy === 'monthly'}
-								>
-									Monthly
-								</a>
-							</Link>
-							<Link
+								Monthly
+							</BasicLink>
+
+							<BasicLink
 								href={
 									realPathname +
 									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
 									'groupBy=cumulative'
 								}
 								shallow
-								passHref
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								data-active={toggledMetrics.groupBy === 'cumulative'}
 							>
-								<a
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
-									data-active={toggledMetrics.groupBy === 'cumulative'}
-								>
-									Cumulative
-								</a>
-							</Link>
+								Cumulative
+							</BasicLink>
 						</div>
 					</>
 				) : null}

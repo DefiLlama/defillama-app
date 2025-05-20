@@ -8,6 +8,7 @@ interface EmailChangeModalProps {
 	email: string
 	onEmailChange: (value: string) => void
 	isLoading: boolean
+	isWalletUser?: boolean
 }
 
 export const EmailChangeModal = ({
@@ -16,7 +17,8 @@ export const EmailChangeModal = ({
 	onSubmit,
 	email,
 	onEmailChange,
-	isLoading
+	isLoading,
+	isWalletUser
 }: EmailChangeModalProps) => {
 	if (!isOpen) return null
 
@@ -30,7 +32,7 @@ export const EmailChangeModal = ({
 		<div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={handleOutsideClick}>
 			<div className="bg-[#1a1b1f] border border-[#39393E] rounded-xl p-6 shadow-xl max-w-md w-full">
 				<div className="flex items-center justify-between mb-4">
-					<h3 className="text-lg font-bold">Change Email Address</h3>
+					<h3 className="text-lg font-bold">{isWalletUser ? 'Add Email Address' : 'Change Email Address'}</h3>
 					<button
 						onClick={onClose}
 						className="p-1.5 rounded-lg hover:bg-[#39393E]/30 text-[#8a8c90] hover:text-white transition-colors"
@@ -77,7 +79,7 @@ export const EmailChangeModal = ({
 							) : (
 								<>
 									<Icon name="check" height={14} width={14} />
-									Save Changes
+									{isWalletUser ? 'Add Email' : 'Save Changes'}
 								</>
 							)}
 						</button>

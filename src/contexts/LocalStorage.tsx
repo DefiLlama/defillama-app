@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars*/
 import { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useSyncExternalStore } from 'react'
-import { trackGoal } from 'fathom-client'
+// import { trackGoal } from 'fathom-client'
 import { slug } from '~/utils'
 import { useIsClient } from '~/hooks'
 import { useRouter } from 'next/router'
 import { IWatchlist } from './types'
+import { useUserConfig } from '~/hooks/useUserConfig'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
@@ -67,6 +68,9 @@ const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
 const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
 export const DEFAULT_PORTFOLIO_NAME = 'main'
 
+// YIELDS SAVED FILTERS
+const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS'
+
 // LIQUIDATIONS
 const LIQS_USING_USD = 'LIQS_USING_USD'
 const LIQS_SHOWING_INSPECTOR = 'LIQS_SHOWING_INSPECTOR'
@@ -78,6 +82,12 @@ export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES'
 
 // DIMENSIONS (DEXS AND FEES)
 const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
+
+//custom columns
+const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS'
+
+// Pro Dashboard
+export const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS'
 
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS } as const
 
@@ -164,14 +174,21 @@ export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
 export const BRIDGES_SETTINGS_KEYS = Object.values(BRIDGES_SETTINGS)
 
-const UPDATABLE_KEYS = [DEFI_WATCHLIST, YIELDS_WATCHLIST, SELECTED_PORTFOLIO]
+const UPDATABLE_KEYS = [
+	DEFI_WATCHLIST,
+	YIELDS_WATCHLIST,
+	SELECTED_PORTFOLIO,
+	YIELDS_SAVED_FILTERS,
+	CUSTOM_COLUMNS,
+	PRO_DASHBOARD_ITEMS
+]
 
 const UPDATE_KEY = 'UPDATE_KEY'
 const UPDATE_KEY_OPTIONALLY_PERSIST = 'UPDATE_KEY_OPTIONALLY_PERSIST'
 
 const LocalStorageContext = createContext(null)
 
-function useLocalStorageContext() {
+export function useLocalStorageContext() {
 	return useContext(LocalStorageContext)
 }
 
@@ -209,7 +226,10 @@ function init() {
 	const defaultLocalStorage = {
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
-		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME
+		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME,
+		[YIELDS_SAVED_FILTERS]: {},
+		[CUSTOM_COLUMNS]: [],
+		[PRO_DASHBOARD_ITEMS]: []
 	}
 
 	try {
@@ -226,13 +246,26 @@ function init() {
 
 export default function Provider({ children }) {
 	const [state, dispatch] = useReducer(reducer, undefined, init)
+	const { userConfig, saveUserConfig, isLoadingConfig } = useUserConfig()
+
+	useEffect(() => {
+		if (userConfig && Object.keys(userConfig).length > 0 && !isLoadingConfig) {
+			const currentLocalStorage = init()
+			const mergedConfig = { ...currentLocalStorage, ...userConfig }
+			window.localStorage.setItem(DEFILLAMA, JSON.stringify(mergedConfig))
+		}
+	}, [userConfig])
 
 	const updateKey = useCallback((key, value) => {
 		dispatch({ type: UPDATE_KEY, payload: { key, value } })
+		const newState = reducer(state, { type: UPDATE_KEY, payload: { key, value } })
+		saveUserConfig(newState)
 	}, [])
 
 	const updateKeyOptionallyPersist = useCallback((key, value, persist: boolean = false) => {
 		dispatch({ type: UPDATE_KEY_OPTIONALLY_PERSIST, payload: { key, value, persist } })
+		const newState = reducer(state, { type: UPDATE_KEY_OPTIONALLY_PERSIST, payload: { key, value, persist } })
+		saveUserConfig(newState)
 	}, [])
 
 	// Change format from save addresses to save protocol names, so backwards compatible
@@ -303,7 +336,8 @@ export function subscribeToLocalStorage(callback: () => void) {
 }
 
 const toggleDarkMode = () => {
-	localStorage.setItem(DARK_MODE, localStorage.getItem(DARK_MODE) === 'true' ? 'false' : 'true')
+	const isDarkMode = localStorage.getItem(DARK_MODE) === 'true'
+	localStorage.setItem(DARK_MODE, isDarkMode ? 'false' : 'true')
 	window.dispatchEvent(new Event('storage'))
 }
 
@@ -420,6 +454,32 @@ export function useManageAppSettings(): [Record<string, boolean>, (keys: Record<
 	return [toggledSettings, updateAllSettings]
 }
 
+// YIELDS SAVED FILTERS HOOK
+export function useYieldFilters() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const savedFilters = state?.[YIELDS_SAVED_FILTERS] ?? {}
+
+	function saveFilter(name: string, filters: any) {
+		const newFilters = {
+			...savedFilters,
+			[name]: filters
+		}
+		updateKey(YIELDS_SAVED_FILTERS, newFilters)
+	}
+
+	function deleteFilter(name: string) {
+		const newFilters = { ...savedFilters }
+		delete newFilters[name]
+		updateKey(YIELDS_SAVED_FILTERS, newFilters)
+	}
+
+	return {
+		savedFilters,
+		saveFilter,
+		deleteFilter
+	}
+}
+
 // DEFI AND YIELDS WATCHLIST
 export function useWatchlist() {
 	const router = useRouter()
@@ -460,7 +520,7 @@ export function useWatchlist() {
 			...(newList[selectedPortfolio] || {}),
 			[standardProtocol]: readableProtocolName
 		}
-		trackGoal('VQ0TO7CU', standardProtocol)
+		// trackGoal('VQ0TO7CU', standardProtocol)
 		updateKey(WATCHLIST, newList)
 	}
 
@@ -468,7 +528,7 @@ export function useWatchlist() {
 		let newList = state?.[WATCHLIST]
 		const standardProtocol: any = slug(protocol)
 		delete newList?.[selectedPortfolio]?.[standardProtocol]
-		trackGoal('6SL0NZYJ', standardProtocol)
+		// trackGoal('6SL0NZYJ', standardProtocol)
 		updateKey(WATCHLIST, newList)
 	}
 
@@ -509,4 +569,33 @@ export const useDimensionChartInterval = () => {
 	}, [store])
 
 	return [chartInterval, updateChartInterval] as const
+}
+
+export function useCustomColumns() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const customColumns = state?.[CUSTOM_COLUMNS] ?? []
+
+	function setCustomColumns(cols) {
+		updateKey(CUSTOM_COLUMNS, cols)
+	}
+
+	function addCustomColumn(col) {
+		setCustomColumns([...customColumns, col])
+	}
+
+	function editCustomColumn(index, col) {
+		setCustomColumns(customColumns.map((c, i) => (i === index ? col : c)))
+	}
+
+	function deleteCustomColumn(index) {
+		setCustomColumns(customColumns.filter((_, i) => i !== index))
+	}
+
+	return {
+		customColumns,
+		setCustomColumns,
+		addCustomColumn,
+		editCustomColumn,
+		deleteCustomColumn
+	}
 }

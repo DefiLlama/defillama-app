@@ -39,7 +39,7 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 				wrapperProps={{
 					className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
 				}}
-				className={`flex flex-col gap-2 rounded-md bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 p-2 overflow-x-auto h-[70vh] sm:max-h-[60vh] ${
+				className={`flex flex-col gap-2 rounded-md max-sm:rounded-b-none bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 p-2 overflow-x-auto h-[70vh] sm:max-h-[60vh] ${
 					menu.parent ? 'max-sm:drawer-to-left' : 'max-sm:drawer'
 				}`}
 			>

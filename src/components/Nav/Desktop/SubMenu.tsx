@@ -1,10 +1,10 @@
 import { forwardRef } from 'react'
-import Link from 'next/link'
 import { defaultToolsAndFooterLinks, linksWithNoSubMenu, navLinks } from '../Links'
 import { isActiveCategory } from '../utils'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { NewTag } from '../NewTag'
+import { BasicLink } from '~/components/Link'
 
 export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
 	const { pathname } = useRouter()
@@ -15,17 +15,16 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 
 	if (noSubMenu || (name === 'Yields' && !active)) {
 		return (
-			<Link href={noSubMenu?.url ?? '/yields'} prefetch={false} passHref>
-				<a
-					data-linkactive={(noSubMenu?.url ?? '/yields') === pathname}
-					target={noSubMenu?.external && '_blank'}
-					className="group -ml-[6px] font-semibold rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
-				>
-					<span className="group-hover:animate-wiggle">{navLinks[name].icon}</span>
-					<span>{name}</span>
-					{navLinks[name].newTag === true ? <NewTag /> : null}
-				</a>
-			</Link>
+			<BasicLink
+				href={noSubMenu?.url ?? '/yields'}
+				data-linkactive={(noSubMenu?.url ?? '/yields') === pathname}
+				target={noSubMenu?.external && '_blank'}
+				className="group -ml-[6px] font-semibold rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+			>
+				<span className="group-hover:animate-wiggle">{navLinks[name].icon}</span>
+				<span>{name}</span>
+				{navLinks[name].newTag === true ? <NewTag /> : null}
+			</BasicLink>
 		)
 	}
 
@@ -47,15 +46,15 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 
 			<span className="my-4 flex flex-col gap-4">
 				{navLinks[name].main.map((subLink) => (
-					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
-						<a
-							data-linkactive={subLink.path === pathname}
-							className="-my-[6px] pl-7 rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
-						>
-							<span>{subLink.name}</span>
-							{subLink.newTag === true ? <NewTag /> : null}
-						</a>
-					</Link>
+					<BasicLink
+						href={subLink.path}
+						key={subLink.path}
+						data-linkactive={subLink.path === pathname}
+						className="-my-[6px] pl-7 rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+					>
+						<span>{subLink.name}</span>
+						{subLink.newTag === true ? <NewTag /> : null}
+					</BasicLink>
 				))}
 			</span>
 		</details>

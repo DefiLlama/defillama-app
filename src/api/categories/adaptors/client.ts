@@ -1,6 +1,6 @@
 import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
-import { generateGetOverviewItemPageDate, ProtocolAdaptorSummaryProps } from '.'
+import { getDimensionProtocolPageData, ProtocolAdaptorSummaryProps } from '.'
 import type { IGetOverviewResponseBody } from './types'
 import { useQuery } from '@tanstack/react-query'
 
@@ -48,15 +48,9 @@ export const useFetchChartsSummary = (type: string, protocolName: string, dataTy
 
 	return useQuery<ProtocolAdaptorSummaryProps>({
 		queryKey: ['adaptors-charts-summary', url],
-		queryFn: url
-			? () => fetchApi(url).then((res) => generateGetOverviewItemPageDate(res, type, protocolName))
-			: () => null,
+		queryFn: url ? () => getDimensionProtocolPageData({ adapterType: type, protocolName, dataType }) : () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0
-		// retry: (error, _key, _config, revalidate, { retryCount }) => {
-		// 	if ([502, 404].includes(error.status)) return
-		// 	setTimeout(() => revalidate({ retryCount }), retryCount * 5000)
-		// }
 	})
 }
 
@@ -68,9 +62,3 @@ export const getAPIUrlSummary = (type: string, protocolName: string, dataType?: 
 	if (fullChart) API = `${API}fullChart=${true}`
 	return API
 }
-
-/* export const useFetchProtocolDex = (protocolName) => {
-	const { data, error } = useSWR<IDexResponse>(protocolName ? `${DEX_BASE_API}/${protocolName}` : null, fetcher)
-	const loading = !data?.volumeHistory?.length
-	return { data, error, loading }
-} */

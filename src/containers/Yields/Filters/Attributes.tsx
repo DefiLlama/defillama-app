@@ -188,7 +188,7 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			.concat(values)
 
 		return { attributeOptionsFiltered, values, selectedAttributes }
-	}, [router.query])
+	}, [attribute, pathname, router.pathname])
 
 	const setSelectedValues = (newFilters) => {
 		router.push(

@@ -144,7 +144,6 @@ function Container({
 			title = `${category} TVL Rankings`
 		}
 	}
-
 	const columnsToRemove = React.useMemo(
 		() =>
 			(category ? ['category'] : []).concat(
@@ -291,7 +290,9 @@ function Container({
 								className="mt-auto mr-auto"
 								onClick={() => {
 									window.open(
-										`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
+										`https://api.llama.fi/simpleChainDataset/${chain}?category=${category}&${Object.entries(
+											extraTvlsEnabled
+										)
 											.filter((t) => t[1] === true)
 											.map((t) => `${t[0]}=true`)
 											.join('&')}${category === 'Liquid Staking' ? 'liquidstaking=true' : ''}`.replaceAll(' ', '_')

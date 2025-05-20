@@ -203,11 +203,7 @@ const nextConfig = {
 				destination: '/chain/OP%20Mainnet',
 				permanent: true
 			},
-			{
-				source: '/pro',
-				destination: '/subscription',
-				permanent: true
-			},
+
 			{
 				source: '/chain/hyperliquid',
 				destination: '/chain/hyperliquid-l1',

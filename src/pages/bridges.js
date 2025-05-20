@@ -37,20 +37,18 @@ export default function Bridges({
 	//backgroundColor
 }) {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<Layout title={`Bridge Volume - DefiLlama`} defaultSEO>
-				<BridgesOverviewByChain
-					chains={chains}
-					selectedChain={chain}
-					filteredBridges={filteredBridges}
-					bridgeNames={bridgeNames}
-					bridgeNameToChartDataIndex={bridgeNameToChartDataIndex}
-					chartDataByBridge={chartDataByBridge}
-					chainVolumeData={chainVolumeData}
-					bridgeStatsCurrentDay={bridgeStatsCurrentDay}
-					largeTxsData={largeTxsData}
-				/>
-			</Layout>
-		</QueryClientProvider>
+		<Layout title={`Bridge Volume - DefiLlama`} defaultSEO>
+			<BridgesOverviewByChain
+				chains={chains}
+				selectedChain={chain}
+				filteredBridges={filteredBridges}
+				bridgeNames={bridgeNames}
+				bridgeNameToChartDataIndex={bridgeNameToChartDataIndex}
+				chartDataByBridge={chartDataByBridge}
+				chainVolumeData={chainVolumeData}
+				bridgeStatsCurrentDay={bridgeStatsCurrentDay}
+				largeTxsData={largeTxsData}
+			/>
+		</Layout>
 	)
 }

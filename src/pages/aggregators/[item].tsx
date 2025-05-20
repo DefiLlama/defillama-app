@@ -1,4 +1,4 @@
-import { ADAPTOR_TYPES, getOverviewItemPageData } from '~/api/categories/adaptors'
+import { ADAPTOR_TYPES, getDimensionProtocolPageData } from '~/api/categories/adaptors'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolByAdapter } from '~/containers/DimensionAdapters/ProtocolByAdapter'
 import { GetStaticPropsContext } from 'next'
@@ -50,7 +50,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const data = await getOverviewItemPageData(ADAPTOR_TYPE, protocol).catch((e) =>
+		const data = await getDimensionProtocolPageData({ adapterType: ADAPTOR_TYPE, protocolName: protocol }).catch((e) =>
 			console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e)
 		)
 

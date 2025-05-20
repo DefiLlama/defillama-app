@@ -6,7 +6,7 @@ import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
 import { Switch } from '~/components/Switch'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-import Link from 'next/link'
+import { BasicLink } from '~/components/Link'
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
@@ -235,22 +235,21 @@ export const WatchListTabs = () => {
 	const router = useRouter()
 	return (
 		<nav className="text-xs font-semibold flex items-center gap-2 border-b-2 border-[var(--form-control-border)] w-full max-w-fit relative">
-			<Link href={'/watchlist'} passHref>
-				<a
-					data-active={router.pathname === '/watchlist'}
-					className="flex-shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-transparent data-[active=true]:border-[var(--old-blue)] relative bottom-[-2px] z-10"
-				>
-					DeFi
-				</a>
-			</Link>
-			<Link href={'/yields/watchlist'} passHref>
-				<a
-					data-active={router.pathname === '/yields/watchlist'}
-					className="flex-shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-transparent data-[active=true]:border-[var(--old-blue)] relative bottom-[-2px] z-10"
-				>
-					Yields
-				</a>
-			</Link>
+			<BasicLink
+				href={'/watchlist'}
+				data-active={router.pathname === '/watchlist'}
+				className="flex-shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-transparent data-[active=true]:border-[var(--old-blue)] relative bottom-[-2px] z-10"
+			>
+				DeFi
+			</BasicLink>
+
+			<BasicLink
+				href={'/yields/watchlist'}
+				data-active={router.pathname === '/yields/watchlist'}
+				className="flex-shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border-b-2 border-transparent data-[active=true]:border-[var(--old-blue)] relative bottom-[-2px] z-10"
+			>
+				Yields
+			</BasicLink>
 		</nav>
 	)
 }

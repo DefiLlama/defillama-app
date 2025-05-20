@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
@@ -19,8 +18,9 @@ import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '~/utils/async'
 import { Icon } from '~/components/Icon'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { BasicLink } from '~/components/Link'
+import { defaultPageStyles } from '~/containers/ProtocolOverview/queries'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -517,33 +517,32 @@ const PageView = (props) => {
 				<p className="flex items-center gap-2">
 					<span>Category</span>
 					<span>:</span>
-					<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+					<BasicLink href={`/protocols/${category.toLowerCase()}`}>{category}</BasicLink>
 				</p>
 
 				<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
 
 				<div className="flex items-center gap-4 flex-wrap">
 					{(url || isLoading) && (
-						<Link href={url} passHref>
-							<ButtonLight
-								as="a"
-								target="_blank"
-								rel="noopener noreferrer"
-								useTextColor={true}
-								color={backgroundColor}
-								disabled={isLoading}
-							>
-								<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							href={url}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+						>
+							<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 
 					{twitter && (
-						<Link href={`https://twitter.com/${twitter}`} passHref>
-							<ButtonLight as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-								<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</ButtonLight>
-						</Link>
+						<a
+							href={`https://twitter.com/${twitter}`}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+						>
+							<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
+						</a>
 					)}
 				</div>
 			</div>
@@ -592,7 +591,7 @@ function cleanPool(pool) {
 
 export default function YieldPoolPage(props) {
 	return (
-		<Layout title={`Yield Chart - DefiLlama`} defaultSEO>
+		<Layout title={`Yield Chart - DefiLlama`} style={defaultPageStyles} defaultSEO>
 			<PageView {...props} />
 		</Layout>
 	)

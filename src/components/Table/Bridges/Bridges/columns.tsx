@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
-import { CustomLink } from '~/components/Link'
+import { BasicLink } from '~/components/Link'
 import {
 	formattedNum,
 	formattedPercent,
@@ -37,9 +37,12 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 				<span className="flex items-center gap-2">
 					<span className="flex-shrink-0">{index + 1}</span>
 					{icon && <TokenLogo logo={iconLink} data-lgonly />}
-					<CustomLink href={`/bridge/${linkValue}`} className="overflow-hidden text-ellipsis whitespace-nowrap">
+					<BasicLink
+						href={`/bridge/${linkValue}`}
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden text-ellipsis whitespace-nowrap"
+					>
 						{value}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
@@ -114,9 +117,12 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 				<span className="flex items-center gap-2">
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
-					<CustomLink href={`/bridges/${value}`} className="overflow-hidden text-ellipsis whitespace-nowrap">
+					<BasicLink
+						href={`/bridges/${value}`}
+						className="text-sm font-medium text-[var(--link-text)] overflow-hidden text-ellipsis whitespace-nowrap"
+					>
 						{value}
-					</CustomLink>
+					</BasicLink>
 				</span>
 			)
 		},
@@ -232,9 +238,12 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 			const value = getValue() as string
 			const linkValue = slug(value)
 			return (
-				<CustomLink href={`/bridge/${linkValue}`} className="overflow-hidden text-ellipsis whitespace-nowrap">
+				<BasicLink
+					href={`/bridge/${linkValue}`}
+					className="text-sm font-medium text-[var(--link-text)] overflow-hidden text-ellipsis whitespace-nowrap"
+				>
 					{value}
-				</CustomLink>
+				</BasicLink>
 			)
 		},
 		size: 180

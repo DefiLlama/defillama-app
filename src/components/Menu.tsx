@@ -1,7 +1,7 @@
-import Link from 'next/link'
 import * as Ariakit from '@ariakit/react'
 import { transparentize } from 'polished'
 import { useMemo } from 'react'
+import { BasicLink } from './Link'
 
 interface IMenuProps {
 	options: string[] | string
@@ -11,6 +11,7 @@ interface IMenuProps {
 	onItemClick?: (value: any) => void
 	variant?: 'primary' | 'secondary'
 	className?: string
+	portal?: boolean
 }
 
 export function Menu({
@@ -21,6 +22,7 @@ export function Menu({
 	onItemClick,
 	variant = 'primary',
 	className,
+	portal,
 	...props
 }: IMenuProps) {
 	const { _options, style } = useMemo(() => {
@@ -48,14 +50,18 @@ export function Menu({
 			<Ariakit.Menu
 				unmountOnHide
 				gutter={8}
-				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				wrapperProps={{
+					className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+				}}
+				className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
+				portal={portal || false}
 			>
 				{_options.map((value, i) => {
 					return onItemClick ? (
 						<Ariakit.MenuItem
 							key={value + i}
 							onClick={() => onItemClick(value)}
-							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
+							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)] whitespace-nowrap overflow-hidden text-ellipsis"
 						>
 							{value}
 						</Ariakit.MenuItem>
@@ -63,19 +69,18 @@ export function Menu({
 						<Ariakit.MenuItem
 							render={<a href={value} target="_blank" rel="noopener noreferrer" />}
 							key={value + i}
-							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
+							className="py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)] whitespace-nowrap overflow-hidden text-ellipsis"
 						>
 							{value}
 						</Ariakit.MenuItem>
 					) : (
-						<Link href={value} key={value + i} passHref>
-							<Ariakit.MenuItem
-								render={<a />}
-								className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
-							>
-								{value}
-							</Ariakit.MenuItem>
-						</Link>
+						<Ariakit.MenuItem
+							key={value + i}
+							render={<BasicLink href={value} />}
+							className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)] whitespace-nowrap overflow-hidden text-ellipsis"
+						>
+							{value}
+						</Ariakit.MenuItem>
 					)
 				})}
 			</Ariakit.Menu>

@@ -9,7 +9,7 @@ import { useFetchChainChartData } from './useFetchChainChartData'
 import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { RowWithSubRows } from '~/containers/ProtocolOverview/RowWithSubRows'
 import { formatRaise, formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
-import { Fragment, useMemo } from 'react'
+import { Fragment, memo, useMemo } from 'react'
 import { Switch } from '~/components/Switch'
 import { BAR_CHARTS } from '~/containers/ProtocolOverview/Chart/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -20,7 +20,7 @@ const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart')
 	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]"></div>
 })
 
-export const Stats = (props: IChainOverviewData) => {
+export const Stats = memo(function Stats(props: IChainOverviewData) {
 	const router = useRouter()
 
 	const denomination = router.query?.currency ?? 'USD'
@@ -823,7 +823,7 @@ export const Stats = (props: IChainOverviewData) => {
 			</div>
 		</div>
 	)
-}
+})
 
 const updateRoute = (key, val, router) => {
 	router.push(

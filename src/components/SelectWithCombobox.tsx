@@ -6,7 +6,9 @@ import { Tooltip } from './Tooltip'
 import { Icon } from './Icon'
 
 interface ISelectWithCombobox {
-	allValues: Array<{ key: string; name: string; help?: string }> | Array<string>
+	allValues:
+		| Array<{ key: string; name: string; help?: string; isCustom?: boolean; customIndex?: number }>
+		| Array<string>
 	selectedValues: Array<string>
 	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
 	label: string
@@ -16,6 +18,10 @@ interface ISelectWithCombobox {
 	nestedMenu?: boolean
 	labelType?: 'regular' | 'smol' | 'none'
 	triggerProps?: Ariakit.SelectProps
+	customFooter?: React.ReactNode
+	onEditCustomColumn?: (idx: number) => void
+	onDeleteCustomColumn?: (idx: number) => void
+	portal?: boolean
 }
 
 export function SelectWithCombobox({
@@ -28,7 +34,11 @@ export function SelectWithCombobox({
 	selectOnlyOne,
 	nestedMenu,
 	labelType,
-	triggerProps
+	triggerProps,
+	customFooter,
+	onEditCustomColumn,
+	onDeleteCustomColumn,
+	portal
 }: ISelectWithCombobox) {
 	const [searchValue, setSearchValue] = React.useState('')
 
@@ -98,7 +108,7 @@ export function SelectWithCombobox({
 									<span>{option}</span>
 								) : option.help ? (
 									<Tooltip content={option.help}>
-										<span>{option.name}</span>
+										<span className="mr-1">{option.name}</span>
 										<Icon name="help-circle" height={15} width={15} />
 									</Tooltip>
 								) : (
@@ -168,7 +178,8 @@ export function SelectWithCombobox({
 					wrapperProps={{
 						className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
 					}}
-					className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					portal={portal || false}
 				>
 					<Ariakit.Combobox
 						placeholder="Search..."
@@ -193,37 +204,68 @@ export function SelectWithCombobox({
 								</span>
 							) : null}
 							<Ariakit.ComboboxList>
-								{matches.slice(0, viewableMatches + 1).map((option) => (
-									<Ariakit.SelectItem
-										key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
-										value={valuesAreAnArrayOfStrings ? option : option.key}
-										className="group flex items-center gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
-										render={<Ariakit.ComboboxItem />}
-									>
-										{valuesAreAnArrayOfStrings ? (
-											<span>{option}</span>
-										) : option.help ? (
-											<Tooltip content={option.help}>
+								{matches.slice(0, viewableMatches + 1).map((option) => {
+									const isCustom = typeof option === 'object' && option.isCustom
+									return (
+										<Ariakit.SelectItem
+											key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
+											value={valuesAreAnArrayOfStrings ? option : option.key}
+											className="group flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
+											render={<Ariakit.ComboboxItem />}
+										>
+											{valuesAreAnArrayOfStrings ? (
+												<span>{option}</span>
+											) : option.help ? (
+												<Tooltip content={option.help}>
+													<span className="mr-1">{option.name}</span>
+													<Icon name="help-circle" height={15} width={15} />
+												</Tooltip>
+											) : (
 												<span>{option.name}</span>
-												<Icon name="help-circle" height={15} width={15} />
-											</Tooltip>
-										) : (
-											<span>{option.name}</span>
-										)}
-										{selectOnlyOne ? (
-											<button
-												onClick={(e) => {
-													e.stopPropagation()
-													selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
-												}}
-												className="font-medium text-xs text-[var(--link)] underline hidden group-hover:inline-block group-focus-visible:inline-block"
-											>
-												Only
-											</button>
-										) : null}
-										<Ariakit.SelectItemCheck className="ml-auto h-3 w-3 flex items-center justify-center rounded-sm flex-shrink-0 border border-[#28a2b5]" />
-									</Ariakit.SelectItem>
-								))}
+											)}
+											{isCustom && typeof option.customIndex === 'number' && (
+												<span className="flex gap-1 ml-2">
+													<button
+														type="button"
+														tabIndex={-1}
+														className="p-1 rounded hover:bg-[var(--btn-hover-bg)]"
+														onClick={(e) => {
+															e.stopPropagation()
+															onEditCustomColumn && onEditCustomColumn(option.customIndex!)
+														}}
+														title="Edit custom column"
+													>
+														<Icon name="settings" height={14} width={14} />
+													</button>
+													<button
+														type="button"
+														tabIndex={-1}
+														className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
+														onClick={(e) => {
+															e.stopPropagation()
+															onDeleteCustomColumn && onDeleteCustomColumn(option.customIndex!)
+														}}
+														title="Delete custom column"
+													>
+														<Icon name="trash-2" height={14} width={14} />
+													</button>
+												</span>
+											)}
+											{selectOnlyOne ? (
+												<button
+													onClick={(e) => {
+														e.stopPropagation()
+														selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
+													}}
+													className="font-medium text-xs text-[var(--link)] underline hidden group-hover:inline-block group-focus-visible:inline-block"
+												>
+													Only
+												</button>
+											) : null}
+											<Ariakit.SelectItemCheck className="ml-auto h-3 w-3 flex items-center justify-center rounded-sm flex-shrink-0 border border-[#28a2b5]" />
+										</Ariakit.SelectItem>
+									)
+								})}
 							</Ariakit.ComboboxList>
 							{matches.length > viewableMatches ? (
 								<button
@@ -232,6 +274,9 @@ export function SelectWithCombobox({
 								>
 									See more...
 								</button>
+							) : null}
+							{customFooter ? (
+								<div className="mt-2 border-t border-[var(--form-control-border)] pt-2">{customFooter}</div>
 							) : null}
 						</>
 					) : (

@@ -7,18 +7,38 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { generateGoogleCalendarUrl } from '~/utils/calendar'
 
-export const CalendarButton = ({ event, tokenName, tokenValue }) => {
+const ProtocolPageButton = () => {
+	return (
+		<Ariakit.MenuButton className="flex items-center gap-2 hover:bg-[var(--bg2)] p-2 rounded">
+			<Icon name="calendar-plus" width={16} height={16} />
+			Add to Calendar
+		</Ariakit.MenuButton>
+	)
+}
+
+const RegularButton = () => {
+	return (
+		<Ariakit.MenuButton className="flex items-center gap-2">
+			<div className="flex space-x-2">
+				<div className="flex flex-col items-center">
+					<div className="text-white bg-[#2C2C2E] dark:bg-zinc-800 hover:bg-[var(--bg2)] hover:text-black transition-colors rounded-lg w-10 h-10 flex items-center justify-center mb-4">
+						<Icon name="calendar-plus" width={24} height={24} />
+					</div>
+				</div>
+			</div>
+		</Ariakit.MenuButton>
+	)
+}
+
+export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }) => {
 	return (
 		<Ariakit.MenuProvider>
-			<Ariakit.MenuButton className="flex items-center gap-2 hover:bg-[var(--bg2)] p-2 rounded">
-				<Icon name="calendar-plus" width={16} height={16} />
-				Add to Calendar
-			</Ariakit.MenuButton>
+			{isProtocolPage ? <ProtocolPageButton /> : <RegularButton />}
 
 			<Ariakit.Menu
 				unmountOnHide
 				gutter={8}
-				className="flex flex-col bg-[var(--bg1)] rounded-md z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 			>
 				<Ariakit.MenuItem
 					render={
@@ -148,8 +168,8 @@ export const UpcomingEvent = ({
 				<span className="flex flex-col gap-4">
 					{currentUnlockBreakdown.map(({ name, amount, unlockType }) => {
 						const percentage = (amount / maxSupply) * 100
-						const percentageFloat = tokenValue && mcap ? (amount / mcap) * 100 : null
 						const usdValue = price ? amount * price : null
+						const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
 						return (
 							<span className="flex flex-col gap-1" key={name + amount}>
 								<span className="flex items-center justify-between gap-2">
@@ -190,6 +210,7 @@ export const UpcomingEvent = ({
 						event={{ timestamp, noOfTokens, symbol, description: '' }}
 						tokenName={name}
 						tokenValue={totalUsdValue ? formattedNum(totalUsdValue, true) : '-'}
+						isProtocolPage={isProtocolPage}
 					/>
 				)}
 			</span>
@@ -197,118 +218,151 @@ export const UpcomingEvent = ({
 	}
 
 	return (
-		<Ariakit.HovercardProvider timeout={0}>
-			<Ariakit.HovercardAnchor
-				className={'bg-[var(--bg1)] dark:bg-[#121316] p-2 rounded-md flex items-center justify-between'}
-			>
-				<span className="flex flex-col px-2">
-					{tokenValue ? formattedNum(tokenValue, true) : <span>{formattedNum(unlockPercent)}%</span>}
-					{unlockPercent ? (
-						<span className="text-[var(--text3)]">
-							{tokenValue ? formattedNum(unlockPercent) + '%' : null}
-							{unlockPercentFloat ? <>({formattedNum(unlockPercentFloat)}% of float)</> : null}
-						</span>
-					) : null}
-				</span>
-				<span className="flex flex-col px-2">
+		<div className="flex items-center gap-2">
+			<Ariakit.HovercardProvider timeout={0}>
+				<Ariakit.HovercardAnchor>
 					{timeLeft > 0 ? (
-						<span className="flex items-center gap-1">
-							<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
-								{days}D
-							</span>
-							<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
-								{hours}H
-							</span>
-							<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
-								{minutes}M
-							</span>
-							<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">
-								{seconds}S
-							</span>
-						</span>
+						<div className="flex space-x-2 items-center">
+							<div className="flex justify-between items-end" style={{ width: '150px' }}>
+								<div className="flex flex-col items-start">
+									<span className="text-white text-sm font-semibold">{formattedNum(totalUsdValue, true)}</span>
+									<span className="text-[var(--text3)] text-xs font-medium">Unlock Value</span>
+								</div>
+								<div className="flex flex-col items-end">
+									<span className="text-white text-sm font-semibold">{formattedNum(unlockPercentFloat)}%</span>
+									<span className="text-[var(--text3)] text-xs font-medium">of float</span>
+								</div>
+							</div>
+
+							<div className="flex flex-col items-center">
+								<div className="bg-[#2C2C2E] dark:bg-zinc-800 rounded-lg w-10 h-10 flex items-center justify-center">
+									<span className="text-white text-xl font-medium tracking-tight">{String(days).padStart(2, '0')}</span>
+								</div>
+								<span className="text-neutral-500 dark:text-neutral-400 text-xs font-medium">Days</span>
+							</div>
+
+							<div className="flex flex-col items-center">
+								<div className="bg-[#2C2C2E] dark:bg-zinc-800 rounded-lg w-10 h-10 flex items-center justify-center">
+									<span className="text-white text-xl font-medium tracking-tight">
+										{String(hours).padStart(2, '0')}
+									</span>
+								</div>
+								<span className="text-neutral-500 dark:text-neutral-400 text-xs font-medium">Hrs</span>
+							</div>
+
+							<div className="flex flex-col items-center">
+								<div className="bg-[#2C2C2E] dark:bg-zinc-800 rounded-lg w-10 h-10 flex items-center justify-center">
+									<span className="text-white text-xl font-medium tracking-tight">
+										{String(minutes).padStart(2, '0')}
+									</span>
+								</div>
+								<span className="text-neutral-500 dark:text-neutral-400 text-xs font-medium">Min</span>
+							</div>
+
+							<div className="flex flex-col items-center">
+								<div className="bg-[#2C2C2E] dark:bg-zinc-800 rounded-lg w-10 h-10 flex items-center justify-center">
+									<span className="text-white text-xl font-medium tracking-tight">
+										{String(seconds).padStart(2, '0')}
+									</span>
+								</div>
+								<span className="text-neutral-500 dark:text-neutral-400 text-xs font-medium">Sec</span>
+							</div>
+						</div>
 					) : (
-						<span className="flex items-center justify-end gap-1">
-							<span
-								className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center"
-								style={{ width: 'fit-content', padding: '0px 8px' }}
-							>
-								{Math.abs(days)} days ago
-							</span>
+						<span className="text-sm text-neutral-500 dark:text-neutral-400">
+							{Math.abs(days)} {Math.abs(days) === 1 ? 'day' : 'days'} ago
 						</span>
 					)}
-				</span>
-			</Ariakit.HovercardAnchor>
-			<Ariakit.HovercardDisclosure />
-			<Ariakit.Hovercard
-				className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
-				unmountOnHide
-				portal={true}
-			>
-				<span className="flex items-center justify-between">
-					<span className="flex items-center gap-2">
-						<TokenLogo logo={tokenIconUrl(name)} size={30} />
-						{tokenSymbol}
-					</span>
-					<span className="flex flex-col">
-						<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
-						<span className="text-sm text-[var(--text3)]">
-							{timestamp
-								? `${dayjs(timestamp * 1e3).format('HH:mm')} GMT${dayjs(timestamp * 1e3)
-										.format('Z')
-										.slice(0, 3)}`
-								: null}
+				</Ariakit.HovercardAnchor>
+				<Ariakit.HovercardDisclosure />
+				<Ariakit.Hovercard
+					className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
+					unmountOnHide
+					portal={true}
+				>
+					<span className="flex items-center justify-between">
+						<span className="flex items-center gap-2">
+							<TokenLogo logo={tokenIconUrl(name)} size={30} />
+							{tokenSymbol}
+						</span>
+						<span className="flex flex-col">
+							<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
+							<span className="text-sm text-[var(--text3)]">
+								{timestamp
+									? `${dayjs(timestamp * 1e3).format('HH:mm')} GMT${dayjs(timestamp * 1e3)
+											.format('Z')
+											.slice(0, 3)}`
+									: null}
+							</span>
 						</span>
 					</span>
-				</span>
-				<hr className="border-[var(--bg4)]" />
-				<span className="flex flex-col gap-4">
-					{currentUnlockBreakdown.map(({ name, amount, unlockType }) => {
-						const percentage = (amount / maxSupply) * 100
-						const percentageFloat = tokenValue && mcap ? (amount / mcap) * 100 : null
-						const usdValue = price ? amount * price : null
-						return (
-							<span className="flex flex-col gap-1" key={name + amount}>
-								<span className="flex items-center justify-between gap-2">
-									<span className="flex items-center gap-2">
-										{name}
-										<Ariakit.TooltipProvider>
-											<Ariakit.TooltipAnchor>
-												<Icon
-													name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
-													height={16}
-													width={16}
-													className="text-[var(--text3)]"
-												/>
-											</Ariakit.TooltipAnchor>
-											<Ariakit.Tooltip className="rounded-md bg-[var(--bg2)] px-2 py-1 text-sm z-50">
-												{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
-											</Ariakit.Tooltip>
-										</Ariakit.TooltipProvider>
+					<hr className="border-[var(--bg4)]" />
+					<span className="flex flex-col gap-4">
+						{currentUnlockBreakdown.map(({ name, amount, unlockType }) => {
+							const percentage = (amount / maxSupply) * 100
+							const usdValue = price ? amount * price : null
+							const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
+							return (
+								<span className="flex flex-col gap-1" key={name + amount}>
+									<span className="flex items-center justify-between gap-2">
+										<span className="flex items-center gap-2">
+											{name}
+											<Ariakit.TooltipProvider>
+												<Ariakit.TooltipAnchor>
+													<Icon
+														name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
+														height={16}
+														width={16}
+														className="text-[var(--text3)]"
+													/>
+												</Ariakit.TooltipAnchor>
+												<Ariakit.Tooltip className="rounded-md bg-[var(--bg2)] px-2 py-1 text-sm z-50">
+													{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
+												</Ariakit.Tooltip>
+											</Ariakit.TooltipProvider>
+										</span>
+										<span>{usdValue ? formattedNum(usdValue, true) : '-'}</span>
 									</span>
-									<span>{usdValue ? formattedNum(usdValue, true) : '-'}</span>
+									<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
+										<span>
+											{formattedNum(percentage)}%{' '}
+											{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
+										</span>
+										<span>
+											{formattedNum(amount)} {tokenSymbol}
+										</span>
+									</span>
 								</span>
-								<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
-									<span>
-										{formattedNum(percentage)}%{' '}
-										{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
-									</span>
-									<span>
-										{formattedNum(amount)} {tokenSymbol}
-									</span>
-								</span>
-							</span>
-						)
-					})}
-				</span>
+							)
+						})}
+					</span>
+					<hr className="border-[var(--bg4)]" />
 
-				{timeLeft > 0 && (
-					<CalendarButton
-						event={{ timestamp, noOfTokens, symbol, description: '' }}
-						tokenName={name}
-						tokenValue={totalUsdValue ? formattedNum(totalUsdValue, true) : '-'}
-					/>
-				)}
-			</Ariakit.Hovercard>
-		</Ariakit.HovercardProvider>
+					<span className="flex flex-col gap-1">
+						<span className="flex items-center justify-between gap-2 font-semibold">
+							<span>Total</span>
+							<span>{totalUsdValue ? formattedNum(totalUsdValue, true) : '-'}</span>
+						</span>
+						<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
+							<span>
+								{unlockPercent && `${formattedNum(unlockPercent)}%`}
+								{unlockPercentFloat && ` (${formattedNum(unlockPercentFloat)}% of float)`}
+							</span>
+							<span>
+								{formattedNum(totalAmount)} {tokenSymbol}
+							</span>
+						</span>
+					</span>
+				</Ariakit.Hovercard>
+			</Ariakit.HovercardProvider>
+			{timeLeft > 0 && (
+				<CalendarButton
+					event={{ timestamp, noOfTokens, symbol, description: '' }}
+					tokenName={name}
+					tokenValue={totalUsdValue ? formattedNum(totalUsdValue, true) : '-'}
+					isProtocolPage={isProtocolPage}
+				/>
+			)}
+		</div>
 	)
 }

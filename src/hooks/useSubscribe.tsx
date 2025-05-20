@@ -4,6 +4,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import toast from 'react-hot-toast'
 import pb from '~/utils/pocketbase'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 
 export interface SubscriptionRequest {
 	redirectUrl: string
@@ -51,7 +52,7 @@ const defaultInactiveSubscription = {
 	}
 }
 
-const useSubscription = (type: 'api' | 'llamafeed') => {
+const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 	const { isAuthenticated } = useAuthContext()!
 
 	const data = useQuery<SubscriptionResponse>({
@@ -78,6 +79,9 @@ const useSubscription = (type: 'api' | 'llamafeed') => {
 				}
 
 				const data = await response.json()
+				if (type === 'llamafeed' && (data?.subscription?.type === 'api' || data?.subscription?.type === 'legacy')) {
+					return defaultInactiveSubscription
+				}
 
 				return data
 			} catch (error) {
@@ -96,6 +100,7 @@ const useSubscription = (type: 'api' | 'llamafeed') => {
 }
 
 export const useSubscribe = () => {
+	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()!
 	const queryClient = useQueryClient()
 	const [isStripeLoading, setIsStripeLoading] = useState(false)
@@ -186,8 +191,16 @@ export const useSubscribe = () => {
 		isPending: isLlamafeedSubscriptionPending,
 		isError: isLlamafeedSubscriptionError
 	} = useSubscription('llamafeed')
+	const {
+		data: legacySubscription,
+		isLoading: isLegacySubscriptionLoading,
+		isFetching: isLegacySubscriptionFetching,
+		isPending: isLegacySubscriptionPending,
+		isError: isLegacySubscriptionError
+	} = useSubscription('legacy')
 
 	useEffect(() => {
+		if (router.pathname !== '/subscription') return
 		const fetchApiKey = async () => {
 			if (isAuthenticated && apiSubscription?.subscription?.status === 'active') {
 				setIsApiKeyLoading(true)
@@ -208,7 +221,7 @@ export const useSubscribe = () => {
 		}
 
 		fetchApiKey()
-	}, [isAuthenticated, apiSubscription?.subscription?.status, authorizedFetch])
+	}, [isAuthenticated, apiSubscription?.subscription?.status, authorizedFetch, router.pathname])
 
 	const generateNewKey = async () => {
 		setIsApiKeyLoading(true)
@@ -231,7 +244,7 @@ export const useSubscribe = () => {
 	}
 
 	const subscriptionData =
-		[apiSubscription?.subscription, llamafeedSubscription?.subscription].find(
+		[apiSubscription?.subscription, llamafeedSubscription?.subscription, legacySubscription?.subscription].find(
 			(subscription) => subscription?.status === 'active'
 		) || defaultInactiveSubscription.subscription
 
@@ -246,6 +259,10 @@ export const useSubscribe = () => {
 				throw new Error('Not authenticated')
 			}
 
+			if (router.pathname !== '/subscription') {
+				return { credits: 0, maxCredits: 0, monthKey: '' }
+			}
+
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/credits`, {
 				method: 'GET'
 			})
@@ -256,7 +273,7 @@ export const useSubscribe = () => {
 
 			return response.json()
 		},
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && router.pathname === '/subscription',
 		staleTime: 1000 * 60 * 5,
 		retry: false
 	})
@@ -268,7 +285,7 @@ export const useSubscribe = () => {
 	}, [apiKey])
 
 	const createPortalSessionMutation = useMutation({
-		mutationFn: async () => {
+		mutationFn: async (subscriptionType?: string) => {
 			if (!isAuthenticated) {
 				throw new Error('Not authenticated')
 			}
@@ -281,7 +298,8 @@ export const useSubscribe = () => {
 						'Content-Type': 'application/json'
 					},
 					body: JSON.stringify({
-						returnUrl: window.location.href
+						returnUrl: window.location.href,
+						type: subscriptionType
 					})
 				},
 				true
@@ -301,7 +319,7 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const createPortalSession = async () => {
+	const createPortalSession = async (subscriptionType?: string) => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to manage your subscription')
 			return null
@@ -309,14 +327,16 @@ export const useSubscribe = () => {
 
 		if (
 			apiSubscription?.subscription?.status !== 'active' &&
-			llamafeedSubscription?.subscription?.status !== 'active'
+			llamafeedSubscription?.subscription?.status !== 'active' &&
+			legacySubscription?.subscription?.status !== 'active'
 		) {
 			toast.error('No active subscription found')
 			return null
 		}
 
 		try {
-			const url = await createPortalSessionMutation.mutateAsync()
+			const typeToSend = subscriptionType || subscriptionData.type
+			const url = await createPortalSessionMutation.mutateAsync(typeToSend)
 			if (url) {
 				window.open(url, '_blank')
 			}
@@ -333,10 +353,22 @@ export const useSubscribe = () => {
 		error: createSubscription.error,
 		subscription: subscriptionData,
 		loading: isStripeLoading ? 'stripe' : isLlamaLoading ? 'llamapay' : null,
-		isSubscriptionLoading: isAuthenticated && (isApiSubscriptionLoading || isLlamafeedSubscriptionLoading),
-		isSubscriptionFetching: isAuthenticated && (isApiSubscriptionFetching || isLlamafeedSubscriptionFetching),
-		isSubscriptionPending: isAuthenticated && (isApiSubscriptionPending || isLlamafeedSubscriptionPending),
-		isSubscriptionError: isAuthenticated && (isApiSubscriptionError || isLlamafeedSubscriptionError),
+		isSubscriptionLoading:
+			isApiSubscriptionLoading ||
+			isLlamafeedSubscriptionLoading ||
+			isLegacySubscriptionLoading ||
+			isApiSubscriptionFetching ||
+			isLlamafeedSubscriptionFetching ||
+			isLegacySubscriptionFetching ||
+			isApiSubscriptionPending ||
+			isLlamafeedSubscriptionPending ||
+			isLegacySubscriptionPending,
+		isSubscriptionFetching:
+			isAuthenticated && (isApiSubscriptionFetching || isLlamafeedSubscriptionFetching || isLegacySubscriptionFetching),
+		isSubscriptionPending:
+			isAuthenticated && (isApiSubscriptionPending || isLlamafeedSubscriptionPending || isLegacySubscriptionPending),
+		isSubscriptionError:
+			isAuthenticated && (isApiSubscriptionError || isLlamafeedSubscriptionError || isLegacySubscriptionError),
 		apiKey,
 		isApiKeyLoading,
 		generateNewKey,
@@ -347,6 +379,7 @@ export const useSubscribe = () => {
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
 		isContributor: false,
 		apiSubscription: apiSubscription?.subscription,
-		llamafeedSubscription: llamafeedSubscription?.subscription
+		llamafeedSubscription: llamafeedSubscription?.subscription,
+		legacySubscription: legacySubscription?.subscription
 	}
 }

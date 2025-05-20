@@ -9,7 +9,6 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 export default function BarChart({
 	chartData,
 	stacks,
-	seriesConfig,
 	valueSymbol = '',
 	title,
 	color,
@@ -18,10 +17,10 @@ export default function BarChart({
 	customLegendOptions,
 	chartOptions,
 	height,
-	barWidths,
 	stackColors,
 	tooltipOrderBottomUp,
-	groupBy
+	groupBy,
+	hideDataZoom = false
 }: IBarChartProps) {
 	const id = useId()
 
@@ -93,7 +92,6 @@ export default function BarChart({
 					large: true,
 					largeThreshold: 0,
 					stack: defaultStacks[stack],
-					...(barWidths?.[defaultStacks[stack]] && { barMaxWidth: barWidths[defaultStacks[stack]] }),
 					emphasis: {
 						focus: 'series',
 						shadowBlur: 10
@@ -107,7 +105,6 @@ export default function BarChart({
 								color: chartColor
 						  }
 						: undefined,
-					...(seriesConfig?.[defaultStacks[stack]] && seriesConfig?.[defaultStacks[stack]]),
 					data: []
 				}
 			}
@@ -120,7 +117,7 @@ export default function BarChart({
 
 			return Object.values(series).map((s: any) => (s.data.length === 0 ? { ...s, large: false } : s))
 		}
-	}, [barWidths, chartData, color, defaultStacks, seriesConfig, stackColors, stackKeys, selectedStacks])
+	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -171,7 +168,7 @@ export default function BarChart({
 					data: stackKeys
 				}
 			}),
-			dataZoom: [...dataZoom],
+			dataZoom: hideDataZoom ? [] : [...dataZoom],
 			series
 		})
 
@@ -185,7 +182,7 @@ export default function BarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions])
+	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom])
 
 	return (
 		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-3 [&[role='combobox']]:*:mt-3">
@@ -202,6 +199,7 @@ export default function BarChart({
 						className:
 							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
 					}}
+					portal
 				/>
 			)}
 			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>

@@ -1,49 +1,28 @@
-import * as React from 'react'
-import { IJoin2ReturnType } from '~/api/categories/adaptors'
-import { useFetchChartsSummary } from '~/api/categories/adaptors/client'
-import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
-import { capitalizeFirstLetter, slug } from '~/utils'
-import { chartFormatterBy } from './utils'
+import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
+import { useQuery } from '@tanstack/react-query'
+import { ADAPTOR_TYPES } from '../constants'
 
-export const useGetOverviewChartData = ({
-	name,
-	dataToFetch,
-	type,
-	enableBreakdownChart,
+export const useGetDimensionAdapterChartData = ({
+	protocolName,
+	adapterType,
+	metadata,
 	disabled
 }: {
-	name: string
-	dataToFetch: string
-	type: string
-	enableBreakdownChart: boolean
-	disabled: boolean
+	protocolName: string
+	adapterType: `${ADAPTOR_TYPES}`
+	disabled?: boolean
+	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
 }) => {
-	const { data, isLoading, error } = useFetchChartsSummary(dataToFetch, slug(name), undefined, disabled)
-
-	const mainChart = React.useMemo(() => {
-		if (isLoading || error || !data) return null
-
-		let chartData: IJoin2ReturnType
-		let title: string
-		let legend: string[]
-		if (!enableBreakdownChart) {
-			chartData = data?.totalDataChart[0]
-			legend = data?.totalDataChart[1]
-		} else {
-			const [cd, lgnd] = chartBreakdownByChain(data?.totalDataChartBreakdown)
-			chartData = cd
-			legend = lgnd
-		}
-
-		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(type)} by chain` : ''
-
-		const [finalData] = chartFormatterBy('chain')(
-			[chartData, legend] as [IJoin2ReturnType, string[]],
-			data?.totalDataChartBreakdown
-		)
-
-		return finalData && finalData.length > 0 ? finalData : null
-	}, [data, error, isLoading, enableBreakdownChart, type])
-
-	return { data: mainChart, isLoading }
+	return useQuery({
+		queryKey: ['adaptor-chart-data', protocolName, adapterType, disabled, metadata],
+		queryFn: !disabled
+			? () =>
+					getDimensionProtocolPageData({ protocolName, adapterType, metadata }).then((data) => {
+						if (!data || data.totalDataChart[0].length === 0) return null
+						return data
+					})
+			: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
 }
