@@ -14,6 +14,7 @@ import { BAR_CHARTS } from '~/containers/ProtocolOverview/Chart/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { EmbedChart } from '~/components/EmbedChart'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { chainOverviewChartSwitchColors } from './colors'
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false,
@@ -734,6 +735,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										)
 									}}
 									checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
+									switchColors={chainOverviewChartSwitchColors[id]}
 								/>
 							))}
 					</div>
