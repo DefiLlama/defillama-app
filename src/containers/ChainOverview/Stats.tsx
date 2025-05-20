@@ -295,7 +295,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 									<Tooltip
-										content="REV (Real Economic Value) is the sum of chain fees and MEV tips"
+										content="REV is the sum of chain fees and MEV tips"
 										className="underline decoration-dotted"
 									>
 										Chain REV (24h)
