@@ -11,6 +11,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { getOraclePageData } from '~/containers/Oracles/queries'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { oldBlue } from '~/constants/colors'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -19,7 +20,7 @@ const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 const charts = ['TVS']
 
 const chartColors = {
-	TVS: '#1f67d2'
+	TVS: oldBlue
 }
 
 export const getStaticProps = withPerformanceLogging(

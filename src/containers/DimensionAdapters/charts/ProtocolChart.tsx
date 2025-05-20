@@ -9,6 +9,7 @@ import { ADAPTOR_TYPES } from '../constants'
 import { useGetDimensionAdapterChartData } from './hooks'
 import { LazyChart } from '~/components/LazyChart'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { oldBlue } from '~/constants/colors'
 
 const BarChart2 = dynamic(() => import('~/components/ECharts/BarChart2'), {
 	ssr: false,
@@ -82,7 +83,7 @@ export const DimensionProtocolOverviewChart = ({
 			return {
 				chartData: finalChartData,
 				stackColors: {
-					Fees: '#1f67d2',
+					Fees: oldBlue,
 					Revenue: '#E59421',
 					Incentives: '#1cd8a6'
 				}
@@ -126,7 +127,7 @@ export const DimensionProtocolOverviewChart = ({
 			return {
 				chartData: finalChartData,
 				stackColors: {
-					'Notional Volume': '#1f67d2',
+					'Notional Volume': oldBlue,
 					'Premium Volume': '#E59421'
 				}
 			}
@@ -149,7 +150,7 @@ export const DimensionProtocolOverviewChart = ({
 			}
 			return {
 				chartData: { [stackName]: finalChartData },
-				stackColors: { [stackName]: '#1f67d2' }
+				stackColors: { [stackName]: oldBlue }
 			}
 		}
 
@@ -157,7 +158,7 @@ export const DimensionProtocolOverviewChart = ({
 			chartData: {
 				[stackName]: totalDataChart[0].map(({ date, ...metrics }) => [+date * 1e3, metrics[totalDataChart[1][0]] ?? 0])
 			} as IChart2Props['chartData'],
-			stackColors: { [stackName]: '#1f67d2' }
+			stackColors: { [stackName]: oldBlue }
 		}
 	}, [totalDataChart, enabledSettings, chartInterval])
 
@@ -359,7 +360,7 @@ const ChartByType = ({
 				.concat(finalChartData[chartType].slice(zeroIndex))
 		}
 
-		const allColors = getNDistinctColors(allTypes.length + 1, '#1f67d2')
+		const allColors = getNDistinctColors(allTypes.length + 1, oldBlue)
 		const stackColors = Object.fromEntries(allTypes.map((_, i) => [_, allColors[i]]))
 		stackColors['Others'] = allColors[allColors.length - 1]
 		return { chartData: finalChartData, stackColors }

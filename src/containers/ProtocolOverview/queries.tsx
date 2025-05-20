@@ -1,6 +1,6 @@
 import { darken, transparentize } from 'polished'
 import { tokenIconPaletteUrl } from '~/utils'
-import { primaryColor } from '~/constants/colors'
+import { oldBlue, primaryColor } from '~/constants/colors'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { HOURLY_PROTOCOL_API, PROTOCOL_API } from '~/constants'
 import { IRaise } from '~/api/types'
@@ -87,16 +87,16 @@ export const getProtocol = async (protocolName: string) => {
 export const getProtocolPageStyles = async (protocol: string) => {
 	const bgColor = await getColor(tokenIconPaletteUrl(protocol))
 
-	const bgColor2 = bgColor.length < 7 ? '#1f67d2' : bgColor
-	const backgroundColor = isDarkColor(bgColor2) ? '#1f67d2' : bgColor2
+	const bgColor2 = bgColor.length < 7 ? oldBlue : bgColor
+	const backgroundColor = isDarkColor(bgColor2) ? oldBlue : bgColor2
 
 	return getStyles(backgroundColor)
 }
 
 function getStyles(color: string) {
-	let color2 = color.length < 7 ? '#1f67d2' : color
+	let color2 = color.length < 7 ? oldBlue : color
 
-	let finalColor = isDarkColor(color2) ? '#1f67d2' : color2
+	let finalColor = isDarkColor(color2) ? oldBlue : color2
 
 	return {
 		'--primary-color': finalColor,
@@ -108,7 +108,7 @@ function getStyles(color: string) {
 }
 
 export const defaultPageStyles = {
-	'--primary-color': '#1f67d2',
+	'--primary-color': oldBlue,
 	'--bg-color': 'rgba(31,103,210,0.4)',
 	'--btn-bg': 'rgba(31,103,210,0.1)',
 	'--btn-hover-bg': 'rgba(31,103,210,0.2)',

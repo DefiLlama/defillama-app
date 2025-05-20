@@ -20,12 +20,11 @@ import {
 	LIQUIDITY_API
 } from '~/constants'
 import { cg_volume_cexs } from '../../../pages/cexs'
-import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { sluggify } from '~/utils/cache-client'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import metadata from '~/utils/metadata'
 import { getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
-const { protocolMetadata } = metadata
+const { chainMetadata, protocolMetadata } = metadata
 
 const chartTypes = [
 	'TVL',
@@ -564,10 +563,11 @@ export const getProtocolData = async (
 	if (protocolData.chains && protocolData.chains.length > 0) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
 
-		if (chainCoingeckoIds[protocolData.chains[0]]?.geckoId) {
-			chartDenominations.push(chainCoingeckoIds[protocolData.chains[0]])
+		const cmetadata = chainMetadata[slug(protocolData.chains[0])]
+		if (cmetadata?.gecko_id) {
+			chartDenominations.push({ symbol: cmetadata.tokenSymbol, geckoId: cmetadata.gecko_id })
 		} else {
-			chartDenominations.push(chainCoingeckoIds['Ethereum'])
+			chartDenominations.push({ symbol: 'ETH', geckoId: chainMetadata['ethereum']?.gecko_id })
 		}
 	}
 

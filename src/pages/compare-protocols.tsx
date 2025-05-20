@@ -14,6 +14,7 @@ import { fuseProtocolData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { useQueries } from '@tanstack/react-query'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { primaryColor } from '~/constants/colors'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -120,7 +121,7 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 
 		return {
 			chartData: Object.keys(chartData).map((date) => ({ date, ...chartData[date] })),
-			stackColors: Object.values(stackColors).filter((c) => c === '#2172E5').length <= 1 ? stackColors : null
+			stackColors: Object.values(stackColors).filter((c) => c === primaryColor).length <= 1 ? stackColors : null
 		}
 	}, [results, extraTvlEnabled])
 

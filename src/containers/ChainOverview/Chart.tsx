@@ -3,7 +3,7 @@ import uniq from 'lodash/uniq'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { useRouter } from 'next/router'
-import { primaryColor } from '~/constants/colors'
+import { oldBlue, primaryColor } from '~/constants/colors'
 import { toK } from '~/utils'
 import { cumulativeSum, groupByTimeFrame } from './utils'
 
@@ -17,7 +17,7 @@ const groupableCharts = [
 ]
 
 const colors = {
-	tvl: '#1F67D2',
+	tvl: oldBlue,
 	volume: '#19ab17',
 	chainFees: '#f150f4',
 	chainRevenue: '#b4b625',

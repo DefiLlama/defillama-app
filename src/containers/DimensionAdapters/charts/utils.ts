@@ -1,6 +1,7 @@
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek } from '~/utils'
 import { IDimensionChainChartProps } from '../types'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { oldBlue } from '~/constants/colors'
 
 export type DataIntervalType = 'Daily' | 'Weekly' | 'Monthly' | string
 export const GROUP_INTERVALS_LIST: DataIntervalType[] = ['Daily', 'Weekly', 'Monthly']
@@ -45,9 +46,9 @@ export const getChartDataByChainAndInterval = ({
 			}
 		}
 
-		const allColors = getNDistinctColors(selectedChains.length + 1, '#1f67d2')
+		const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
 		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-		stackColors['Bitcoin'] = '#1f67d2'
+		stackColors['Bitcoin'] = oldBlue
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		return {
@@ -73,9 +74,9 @@ export const getChartDataByChainAndInterval = ({
 			}
 		}
 
-		const allColors = getNDistinctColors(selectedChains.length + 1, '#1f67d2')
+		const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
 		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-		stackColors[selectedChains[0]] = '#1f67d2'
+		stackColors[selectedChains[0]] = oldBlue
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		return {
@@ -150,9 +151,9 @@ export const getChartDataByChainAndInterval = ({
 		finalData[chain] = finalData[chain].slice(startingZeroDatesToSlice)
 	}
 
-	const allColors = getNDistinctColors(selectedChains.length + 1, '#1f67d2')
+	const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
 	const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-	stackColors[selectedChains[0]] = '#1f67d2'
+	stackColors[selectedChains[0]] = oldBlue
 	stackColors['Others'] = allColors[allColors.length - 1]
 
 	const chartOptions = {

@@ -17,7 +17,6 @@ import {
 } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
-import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
@@ -267,14 +266,15 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 		allChains
 	} = type === 'options' ? feesOrRevenue : request
 
-	const chains = protocols.filter((e) => e.protocolType === 'chain').map((e) => e.name)
+	const chains = protocols
+		.filter((e) => e.protocolType === 'chain')
+		.map((e) => [e.name, chainMetadata[slug(e.name)]?.gecko_id ?? null])
+		.filter((e) => (e[1] ? true : false))
 
 	const chainMcaps = await fetch(MCAPS_API, {
 		method: 'POST',
 		body: JSON.stringify({
-			coins: Object.values(chains)
-				.filter((c) => chainCoingeckoIds[c]?.geckoId)
-				.map((c: string) => `coingecko:${chainCoingeckoIds[c].geckoId}`)
+			coins: chains.map(([_, geckoId]) => `coingecko:${geckoId}`)
 		})
 	})
 		.then((r) => r.json())
@@ -285,11 +285,9 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 		})
 
 	const chainMcap =
-		chains?.reduce((acc, curr) => {
-			const geckoId = chainCoingeckoIds[curr]?.geckoId
-
+		chains?.reduce((acc, [chain, geckoId]) => {
 			if (geckoId) {
-				acc[curr] = chainMcaps[`coingecko:${geckoId}`]?.mcap ?? null
+				acc[chain] = chainMcaps[`coingecko:${geckoId}`]?.mcap ?? null
 			}
 			return acc
 		}, {}) ?? {}

@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useFetchChainChartData } from './useFetchChainChartData'
-import { chainCoingeckoIds, chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { RowWithSubRows } from '~/containers/ProtocolOverview/RowWithSubRows'
 import { formatRaise, formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { Fragment, memo, useMemo } from 'react'
@@ -14,6 +13,7 @@ import { Switch } from '~/components/Switch'
 import { BAR_CHARTS } from '~/containers/ProtocolOverview/Chart/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { EmbedChart } from '~/components/EmbedChart'
+import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 
 const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
 	ssr: false,
@@ -36,17 +36,11 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 		if (props.metadata.name !== 'All') {
 			if (!chainGeckoId) {
-				chainGeckoId =
-					chainCoingeckoIds[props.metadata.name]?.geckoId ??
-					chainCoingeckoIdsForGasNotMcap[props.metadata.name]?.geckoId ??
-					null
+				chainGeckoId = chainCoingeckoIdsForGasNotMcap[props.metadata.name]?.geckoId ?? null
 			}
 
 			if (!CHAIN_SYMBOL) {
-				CHAIN_SYMBOL =
-					chainCoingeckoIds[props.metadata.name]?.symbol ??
-					chainCoingeckoIdsForGasNotMcap[props.metadata.name]?.symbol ??
-					null
+				CHAIN_SYMBOL = chainCoingeckoIdsForGasNotMcap[props.metadata.name]?.symbol ?? null
 			}
 		}
 

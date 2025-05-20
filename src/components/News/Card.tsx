@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import { transparentize } from 'polished'
 import { IArticle } from '~/api/categories/news'
 import { Icon } from '~/components/Icon'
+import { primaryColor } from '~/constants/colors'
 
 interface INewsCardProps extends IArticle {
 	color: string
@@ -13,9 +14,9 @@ export const NewsCard = ({ imgSrc, href, headline, date, color }: INewsCardProps
 			style={
 				{
 					'--bg-light': transparentize(0.9, color ?? '#445ed0'),
-					'--bg-dark': transparentize(0.9, color ?? '#2172E5'),
+					'--bg-dark': transparentize(0.9, color ?? primaryColor),
 					'--bg-active-light': transparentize(0.8, color ?? '#445ed0'),
-					'--bg-active-dark': transparentize(0.8, color ?? '#2172E5')
+					'--bg-active-dark': transparentize(0.8, color ?? primaryColor)
 				} as any
 			}
 			href={href}

@@ -19,6 +19,7 @@ import { formattedNum, getPercentChange, toNiceCsvDate, download } from '~/utils
 import { PeggedFilters } from '~/components/Filters/stablecoins'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { oldBlue } from '~/constants/colors'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -313,7 +314,7 @@ function PeggedAssetsOverview({
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hallmarks={[]}
-							color="#1F67D2"
+							color={oldBlue}
 						/>
 					)}
 					{chartType === 'Token Market Caps' && (

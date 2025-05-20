@@ -22,6 +22,7 @@ import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import { oldBlue } from '~/constants/colors'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -184,7 +185,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 					</details>
 				</div>
 				<div className="bg-[var(--cards-bg)] rounded-md col-span-2 min-h-[360px]">
-					<BarChart chartData={fundingRoundsByMonth} title="" groupBy="monthly" color="#1F67D2" valueSymbol="" />
+					<BarChart chartData={fundingRoundsByMonth} title="" groupBy="monthly" color={oldBlue} valueSymbol="" />
 				</div>
 			</div>
 

@@ -6,6 +6,7 @@ import { SVGRenderer } from 'echarts/renderers'
 import { LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
+import { oldBlue } from '~/constants/colors'
 
 echarts.use([SVGRenderer, LineChart, BarChart, TooltipComponent, GridComponent])
 
@@ -100,7 +101,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 					shadowBlur: 10
 				},
 				data: series,
-				color: '#1F67D2'
+				color: oldBlue
 			}
 		})
 
@@ -319,7 +320,7 @@ export function SmolBarChart({
 				},
 				data: series,
 				symbol: 'none',
-				color: '#1F67D2'
+				color: oldBlue
 			}
 		})
 

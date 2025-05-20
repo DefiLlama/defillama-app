@@ -1,14 +1,12 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart2, getTokenDominance } from '~/utils'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import type { IChartProps } from '~/components/ECharts/types'
-import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { oldBlue } from '~/constants/colors'
 
 const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 	ssr: false,
@@ -18,7 +16,7 @@ const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
 const charts = ['TVL']
 
 const chartColors = {
-	TVL: '#1f67d2'
+	TVL: oldBlue
 }
 
 export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) => {
