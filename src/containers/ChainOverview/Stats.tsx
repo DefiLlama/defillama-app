@@ -55,34 +55,34 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 			{
 				id: 'volume',
 				name: 'DEXs Volume',
-				isVisible: props.dexs?.total24h ? true : false
+				isVisible: props.dexs?.total24h != null ? true : false
 			},
 			{
 				id: 'chainFees',
 				name: 'Chain Fees',
-				isVisible: props.chainFees?.total24h ? true : false
+				isVisible: props.chainFees?.total24h != null ? true : false
 			},
 			{
 				id: 'chainRevenue',
 				name: 'Chain Revenue',
-				isVisible: props.chainRevenue?.total24h ? true : false
+				isVisible: props.chainRevenue?.total24h != null ? true : false
 			},
 			{
 				id: 'appRevenue',
 				name: 'App Revenue',
-				isVisible: props.appRevenue?.total24h ? true : false
+				isVisible: props.appRevenue?.total24h != null ? true : false
 			},
-			{ id: 'perps', name: 'Perps Volume', isVisible: props.perps?.total24h ? true : false },
-			{ id: 'chainAssets', name: 'Bridged TVL', isVisible: props.chainAssets ? true : false },
+			{ id: 'perps', name: 'Perps Volume', isVisible: props.perps?.total24h != null ? true : false },
+			{ id: 'chainAssets', name: 'Bridged TVL', isVisible: props.chainAssets != null ? true : false },
 			{
 				id: 'addresses',
 				name: 'Addresses',
-				isVisible: props.users.activeUsers ? true : false
+				isVisible: props.users.activeUsers != null ? true : false
 			},
 			{
 				id: 'txs',
 				name: 'Transactions',
-				isVisible: props.users.transactions ? true : false
+				isVisible: props.users.transactions != null ? true : false
 			},
 			{
 				id: 'raises',
@@ -92,12 +92,12 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 			{
 				id: 'stables',
 				name: 'Stablecoins',
-				isVisible: props.stablecoins?.mcap ? true : false
+				isVisible: props.stablecoins?.mcap != null ? true : false
 			},
 			{
 				id: 'inflows',
 				name: 'Inflows',
-				isVisible: props.inflows?.netInflows ? true : false
+				isVisible: props.inflows?.netInflows != null ? true : false
 			},
 			{
 				id: 'developers',
@@ -264,7 +264,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								}
 							/>
 						) : null}
-						{props.chainFees?.total24h ? (
+						{props.chainFees?.total24h != null ? (
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 									<Tooltip
@@ -277,7 +277,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<td className="font-jetbrains text-right">{formattedNum(props.chainFees?.total24h, true)}</td>
 							</tr>
 						) : null}
-						{props.chainRevenue?.total24h ? (
+						{props.chainRevenue?.total24h != null ? (
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 									<Tooltip
@@ -290,7 +290,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<td className="font-jetbrains text-right">{formattedNum(props.chainRevenue?.total24h, true)}</td>
 							</tr>
 						) : null}
-						{props.appRevenue?.total24h && props.appRevenue?.total24h > 1e3 ? (
+						{props.appRevenue?.total24h != null && props.appRevenue?.total24h > 1e3 ? (
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 									<Tooltip
@@ -305,7 +305,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<td className="font-jetbrains text-right">{formattedNum(props.appRevenue?.total24h, true)}</td>
 							</tr>
 						) : null}
-						{props.dexs?.total24h ? (
+						{props.dexs?.total24h != null ? (
 							<RowWithSubRows
 								rowHeader={
 									<Tooltip
@@ -355,7 +355,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								}
 							/>
 						) : null}
-						{props.perps?.total24h ? (
+						{props.perps?.total24h != null ? (
 							<RowWithSubRows
 								rowHeader={
 									<Tooltip
@@ -401,7 +401,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<td className="font-jetbrains text-right">{formattedNum(props.totalFundingAmount, true)}</td>
 							</tr>
 						) : null}
-						{props.inflows?.netInflows ? (
+						{props.inflows?.netInflows != null ? (
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 									<Tooltip
@@ -414,7 +414,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<td className="font-jetbrains text-right">{formattedNum(props.inflows.netInflows, true)}</td>
 							</tr>
 						) : null}
-						{props.users.activeUsers ? (
+						{props.users.activeUsers != null ? (
 							<RowWithSubRows
 								rowHeader={
 									<Tooltip
