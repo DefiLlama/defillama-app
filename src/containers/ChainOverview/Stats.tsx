@@ -294,10 +294,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						{props.chainFees?.totalREV24h ? (
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
-									<Tooltip
-										content="REV is the sum of chain fees and MEV tips"
-										className="underline decoration-dotted"
-									>
+									<Tooltip content="REV is the sum of chain fees and MEV tips" className="underline decoration-dotted">
 										Chain REV (24h)
 									</Tooltip>
 								</th>
@@ -408,12 +405,6 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									</>
 								}
 							/>
-						) : null}
-						{props.totalFundingAmount ? (
-							<tr>
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Total Funding Amount</th>
-								<td className="font-jetbrains text-right">{formattedNum(props.totalFundingAmount, true)}</td>
-							</tr>
 						) : null}
 						{props.inflows?.netInflows != null ? (
 							<tr>

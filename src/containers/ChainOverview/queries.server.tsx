@@ -448,10 +448,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			},
 			users: { activeUsers, newUsers, transactions: transactions ? +transactions : null },
 			raises: raisesChart ? Object.entries(raisesChart).map(([date, amount]) => [+date, amount]) : null,
-			totalFundingAmount: raisesChart
-				? (Object.values(raisesChart).reduce((acc, curr) => ((acc as number) += (curr ?? 0) as number), 0) as number) *
-				  1e6
-				: null,
 			inflows: inflowsData,
 			treasury: treasury ? { tvl: treasury.tvl ?? null, tokenBreakdowns: treasury.tokenBreakdowns ?? null } : null,
 			chainRaises: chainRaises ?? null,
