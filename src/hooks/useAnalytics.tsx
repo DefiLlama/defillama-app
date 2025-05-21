@@ -12,7 +12,9 @@ export const useAnalytics = () => {
 				url: '/script.js'
 			})
 		}
+	}, [])
 
+	useEffect(() => {
 		const onRouteChangeComplete = (url: string, options: { shallow: boolean }) => {
 			if (!options.shallow) {
 				Fathom.trackPageview()
