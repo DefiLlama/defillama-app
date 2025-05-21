@@ -120,7 +120,7 @@ export const getChainsByCategory = async ({
 			const totalRevenue24h = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
 			const totalAppRevenue24h = appRevenue?.find((x) => x.chain === chain.name)?.total24h ?? null
 			const totalVolume24h = dexs?.find((x) => x.chain === chain.name)?.total24h ?? null
-			const stablesMcap = stablesChainMcaps.find((x) => x.name.toLowerCase() === name)?.mcap ?? null
+			const stablesMcap = stablesChainMcaps.find((x) => slug(x.name) === name)?.mcap ?? null
 			const users = activeUsers['chain#' + name]?.users?.value
 
 			return {
