@@ -87,7 +87,7 @@ export default function Tokens({ searchData }) {
 			<DesktopSearch data={searchData} placeholder="Search tokens..." data-alwaysdisplay onItemClick={onItemClick} />
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				{isLoading ? (
-					<div className="flex items-center justify-center mx-auto my-32">
+					<div className="flex items-center justify-center mx-auto w-full my-32">
 						<LocalLoader />
 					</div>
 				) : !tokenSymbol || !protocols || protocols.length === 0 ? (

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, ReactNode, useState, useEffect } from 'react'
+import React, { createContext, useContext, useCallback, ReactNode, useState } from 'react'
 import toast from 'react-hot-toast'
 import pb, { AuthModel } from '~/utils/pocketbase'
 import { SiweMessage } from 'siwe'
