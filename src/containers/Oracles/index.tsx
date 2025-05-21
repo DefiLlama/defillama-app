@@ -27,8 +27,7 @@ export const OraclesByChain = ({
 	tokenLinks,
 	oraclesColors,
 	chainsByOracle,
-	chain,
-	oracleMonthlyVolumes = {}
+	chain
 }) => {
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
 	const { tokenTvls, tokensList } = React.useMemo(() => {
@@ -48,13 +47,12 @@ export const OraclesByChain = ({
 				name,
 				protocolsSecured: tokensProtocols[name],
 				tvs: value,
-				chains: chainsByOracle[name],
-				monthlyVolume: oracleMonthlyVolumes[name]
+				chains: chainsByOracle[name]
 			}
 		})
 
 		return { tokenTvls, tokensList }
-	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle, oracleMonthlyVolumes])
+	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
 
 	const downloadCsv = () => {
 		const header = Object.keys(tokensList[0]).join(',')
@@ -171,15 +169,5 @@ const columns: ColumnDef<IOraclesRow>[] = [
 			align: 'end',
 			headerHelperText: 'Excludes CeFi'
 		}
-	},
-	{
-		header: 'Perp DEXs Volume (30d)',
-		accessorKey: 'monthlyVolume',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Cumulative last 30d volume secured'
-		},
-		sortUndefined: 'last'
 	}
 ]

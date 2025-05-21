@@ -52,7 +52,7 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData, oracleMonthlyVolumes }) => {
+const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const { protocolsData, charts, totalValue } = useMemo(() => {
 		const protocolsData = formatDataWithExtraTvls({
@@ -100,12 +100,6 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Secured (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(totalValue, true)}</span>
-					</p>
-					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Perp DEX Volume Secured (30d)</span>
-						<span className="font-semibold text-2xl font-jetbrains">
-							{formattedNum(oracleMonthlyVolumes[token] ?? 0, true)}
-						</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">{topToken.name} Dominance</span>

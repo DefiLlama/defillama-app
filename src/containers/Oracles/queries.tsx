@@ -67,29 +67,6 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			.sort((a, b) => b[1].tvl - a[1].tvl)
 			.map((orc) => orc[0])
 
-		const oracleMonthlyVolumes =
-			perps?.protocols?.reduce((acc, protocol) => {
-				const p = protocols.find((p) => p.name === protocol.name)
-
-				if (!p) return acc
-
-				if (p.oraclesByChain) {
-					for (const ch in p.oraclesByChain) {
-						if (chain ? chain === ch : true) {
-							for (const oracle of p.oraclesByChain[ch]) {
-								acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(ch)]?.[protocol.name] ?? 0)
-							}
-						}
-					}
-				} else {
-					for (const oracle of p.oracles ?? []) {
-						acc[oracle] = (acc[oracle] ?? 0) + (protocol.total30d ?? 0)
-					}
-				}
-
-				return acc
-			}, {}) ?? {}
-
 		if (oracle) {
 			let data = []
 			chartData.forEach(([date, tokens]) => {
@@ -150,7 +127,6 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			filteredProtocols,
 			chartData,
 			oraclesColors: colors,
-			oracleMonthlyVolumes,
 			derivativeProtocols: perps?.protocols ?? []
 		}
 	} catch (e) {
@@ -210,28 +186,6 @@ export async function getOraclePageDataByChain(chain: string) {
 			.map((orc) => orc[0])
 			.filter((orc) => chainsByOracle[orc]?.includes(chain))
 
-		const oracleMonthlyVolumes = derivativeProtocols.reduce((acc, protocol) => {
-			const p = protocols.find((p) => p.name === protocol.name)
-
-			if (!p) return acc
-
-			if (p.oraclesByChain) {
-				for (const ch in p.oraclesByChain) {
-					if (chain ? chain === ch : true) {
-						for (const oracle of p.oraclesByChain[ch]) {
-							acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(chain)]?.[protocol.name] ?? 0)
-						}
-					}
-				}
-			} else {
-				for (const oracle of p.oracles ?? []) {
-					acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(chain)]?.[protocol.name] ?? 0)
-				}
-			}
-
-			return acc
-		}, {})
-
 		const oraclesProtocols: IOracleProtocols = {}
 
 		for (const orc in oracles) {
@@ -276,8 +230,7 @@ export async function getOraclePageDataByChain(chain: string) {
 			tokensProtocols: oraclesProtocols,
 			filteredProtocols,
 			chartData: chainChartData,
-			oraclesColors: colors,
-			oracleMonthlyVolumes
+			oraclesColors: colors
 		}
 	} catch (e) {
 		console.log(e)
