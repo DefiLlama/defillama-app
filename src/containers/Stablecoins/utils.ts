@@ -75,7 +75,7 @@ export const buildStablecoinChartData = ({
 			const prevDayMcap = getPrevStablecoinTotalFromChart([charts[j - 1]], 0, issuanceType)
 			const assetOrChain = assetsOrChainsList[i]
 			const date = chart.date
-			if (date > 1596248105 && mcap) {
+			if (mcap) {
 				if (backfilledChains.includes(selectedChain) || date > 1652241600) {
 					// for individual chains data is currently only backfilled to May 11, 2022
 					unformattedAreaData[date] = unformattedAreaData[date] || {}
