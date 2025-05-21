@@ -446,7 +446,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					name: (currentUserData as any).name,
 					avatar: (currentUserData as any).avatar,
 					username: (currentUserData as any).username,
-					verified: (currentUserData as any).verified,
+					verified: (currentUserData as any).email?.includes('@defillama.com')
+						? true
+						: (currentUserData as any).verified,
 					emailVisibility: (currentUserData as any).emailVisibility,
 					expand: currentUserData.expand,
 					subscription_status: subscription?.status || 'inactive',

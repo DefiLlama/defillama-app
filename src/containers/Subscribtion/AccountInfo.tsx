@@ -136,7 +136,7 @@ export const AccountInfo = () => {
 					subscription={subscription}
 				/>
 
-				{!isVerified && !user.address && (
+				{!isVerified && !isWalletUser && (
 					<EmailVerificationWarning
 						email={user.email}
 						onResendVerification={handleResendVerification}
