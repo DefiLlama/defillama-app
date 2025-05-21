@@ -30,11 +30,12 @@ export const AccountInfo = () => {
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 	const isLegacyActive = legacySubscription?.status === 'active'
+	const isWalletUser = user?.email?.includes('@defillama.com')
 
 	const isVerified = user?.verified
 	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		if (user?.address || user?.walletAddress) {
+		if (isWalletUser) {
 			await addEmail(newEmail)
 		} else {
 			changeEmail(newEmail)
@@ -164,8 +165,8 @@ export const AccountInfo = () => {
 				onSubmit={handleEmailChange}
 				email={newEmail}
 				onEmailChange={setNewEmail}
-				isLoading={user?.address || user?.walletAddress ? loaders.addEmail : loaders.changeEmail}
-				isWalletUser={!!(user?.address || user?.walletAddress)}
+				isLoading={isWalletUser ? loaders.addEmail : loaders.changeEmail}
+				isWalletUser={isWalletUser}
 			/>
 		</div>
 	)

@@ -450,7 +450,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					emailVisibility: (currentUserData as any).emailVisibility,
 					expand: currentUserData.expand,
 					subscription_status: subscription?.status || 'inactive',
-					subscription: subscription || { id: '', expires_at: '', status: 'inactive' }
+					subscription: subscription || { id: '', expires_at: '', status: 'inactive' },
+					ethereum_email: (currentUserData as any).ethereum_email
 			  } as User)
 			: null,
 		login,

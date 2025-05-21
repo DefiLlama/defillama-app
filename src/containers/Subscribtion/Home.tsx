@@ -14,9 +14,10 @@ export function SubscribeHome() {
 	const { subscription, isSubscriptionFetching } = useSubscribe()
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [newEmail, setNewEmail] = useState('')
+	const isWalletUser = user?.email?.includes('@defillama.com')
 	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		if (user?.address || user?.walletAddress) {
+		if (isWalletUser) {
 			await addEmail(newEmail)
 		} else {
 			changeEmail(newEmail)
@@ -29,7 +30,7 @@ export function SubscribeHome() {
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
 	const [activePriceCard, setActivePriceCard] = useState(0)
-
+	console.log(user)
 	useEffect(() => {
 		const ref = pricingContainer.current
 		if (!ref) return
@@ -135,8 +136,8 @@ export function SubscribeHome() {
 					onSubmit={handleEmailChange}
 					email={newEmail}
 					onEmailChange={setNewEmail}
-					isLoading={user?.address || user?.walletAddress ? loaders.addEmail : loaders.changeEmail}
-					isWalletUser={!!(user?.address || user?.walletAddress)}
+					isLoading={isWalletUser ? loaders.addEmail : loaders.changeEmail}
+					isWalletUser={isWalletUser}
 				/>
 				{isAuthenticated && isSubscribed ? (
 					<div className="mt-6 w-full max-w-[1200px] mx-auto">
