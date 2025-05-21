@@ -37,6 +37,15 @@ export const SmolStats = (props: IChainOverviewData) => {
 		}
 	}, [props.rwaTvlChartData])
 
+	if (
+		props.chain !== 'All' &&
+		!props.dexs?.chart?.length &&
+		!props.chainFees?.topProtocolsChart?.length &&
+		!props.stablecoins?.mcapChartData?.length
+	) {
+		return null
+	}
+
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1 isolate">
 			{props.chain === 'All' ? (
