@@ -82,10 +82,10 @@ export default function Tokens({ searchData }) {
 	}
 
 	return (
-		<Layout title="Token Usage - DefiLlama" defaultSEO className={isLoading ? 'overflow-hidden' : ''}>
+		<Layout title="Token Usage - DefiLlama" defaultSEO>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 			<DesktopSearch data={searchData} placeholder="Search tokens..." data-alwaysdisplay onItemClick={onItemClick} />
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-[var(--cards-bg)] rounded-md w-full">
 				{isLoading ? (
 					<div className="flex items-center justify-center mx-auto w-full my-32">
 						<LocalLoader />
