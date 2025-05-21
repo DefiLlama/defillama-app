@@ -7,7 +7,7 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { TokenLogo } from '~/components/TokenLogo'
 import { LazyChart } from '~/components/LazyChart'
-import { capitalizeFirstLetter, formattedNum, tokenIconUrl } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
 import { IEmission } from './types'
 import { Icon } from '~/components/Icon'
@@ -237,7 +237,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		}
 	}, [categoriesFromData, isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData])
 
-	const unlockedPercent = 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
+	const unlockedPercent =
+		data.meta?.totalLocked != null && data.meta?.maxSupply != null
+			? 100 - (data.meta.totalLocked / data.meta.maxSupply) * 100
+			: 0
 
 	const unlockedPieChartData = useMemo(
 		() => [
@@ -597,7 +600,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 }
 
 export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
-	const { data, isLoading } = useGetProtocolEmissions(protocolName)
+	const { data, isLoading } = useGetProtocolEmissions(slug(protocolName))
 
 	if (isLoading) {
 		return <p className="my-[180px] text-center">Loading...</p>
