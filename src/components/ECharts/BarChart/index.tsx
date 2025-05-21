@@ -5,6 +5,8 @@ import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { download, toNiceCsvDate, slug } from '~/utils'
 
 export default function BarChart({
 	chartData,
@@ -185,23 +187,51 @@ export default function BarChart({
 	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom])
 
 	return (
-		<div className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-3 [&[role='combobox']]:*:mt-3">
-			{customLegendName && customLegendOptions?.length > 1 && (
-				<SelectWithCombobox
-					allValues={customLegendOptions}
-					selectedValues={legendOptions}
-					setSelectedValues={setLegendOptions}
-					label={customLegendName}
-					clearAll={() => setLegendOptions([])}
-					toggleAll={() => setLegendOptions(customLegendOptions)}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
+		<div className="relative">
+			<div className="flex justify-end items-center gap-2 mb-2 px-2 mt-2">
+				{customLegendName && customLegendOptions?.length > 1 && (
+					<SelectWithCombobox
+						allValues={customLegendOptions}
+						selectedValues={legendOptions}
+						setSelectedValues={setLegendOptions}
+						label={customLegendName}
+						clearAll={() => setLegendOptions([])}
+						toggleAll={() => setLegendOptions(customLegendOptions)}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+						}}
+						portal
+					/>
+				)}
+				<CSVDownloadButton
+					onClick={() => {
+						try {
+							let rows = []
+							if (!stackKeys || stackKeys.length === 0) {
+								rows = [['Timestamp', 'Date', 'Value']]
+								for (const [date, value] of chartData ?? []) {
+									rows.push([date, toNiceCsvDate(date), value])
+								}
+							} else {
+								rows = [['Timestamp', 'Date', ...selectedStacks]]
+								for (const item of chartData ?? []) {
+									const { date, ...rest } = item
+									rows.push([date, toNiceCsvDate(date), ...selectedStacks.map((stack) => rest[stack] ?? '')])
+								}
+							}
+							const Mytitle = title ? slug(title) : 'data'
+							const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+							download(filename, rows.map((r) => r.join(',')).join('\n'))
+						} catch (error) {
+							console.error('Error generating CSV:', error)
+						}
 					}}
-					portal
+					smol
+					className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
 				/>
-			)}
+			</div>
 			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)

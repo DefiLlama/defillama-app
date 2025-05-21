@@ -1562,7 +1562,7 @@ const ProtocolContainer = ({
 				</div>
 			) : null}
 			{showCharts && ['tvl', 'assets'].includes(tab) ? (
-				<div className="grid grid-cols-2 bg-[var(--cards-bg)] rounded-md">
+				<div className="grid grid-cols-2 bg-[var(--cards-bg)] rounded-md pt-2">
 					{isLoading ? (
 						<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 					) : (

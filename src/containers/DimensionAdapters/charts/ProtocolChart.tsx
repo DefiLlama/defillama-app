@@ -4,12 +4,13 @@ import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { DataIntervalType, INTERVALS_LIST } from './utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
+import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, download, toNiceCsvDate } from '~/utils'
 import { ADAPTOR_TYPES } from '../constants'
 import { useGetDimensionAdapterChartData } from './hooks'
 import { LazyChart } from '~/components/LazyChart'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { oldBlue } from '~/constants/colors'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
@@ -184,7 +185,7 @@ export const DimensionProtocolOverviewChart = ({
 
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
-			<div className="flex items-center justify-end p-3">
+			<div className="flex items-center justify-end p-3 gap-2">
 				{title && <h2 className="text-base font-semibold mr-auto">{title}</h2>}
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 					{INTERVALS_LIST.map((dataInterval) => (
@@ -198,6 +199,45 @@ export const DimensionProtocolOverviewChart = ({
 						</button>
 					))}
 				</div>
+				<CSVDownloadButton
+					onClick={() => {
+						try {
+							let rows = []
+							const dataToExport = mainChartData.charts
+							const chartKeys = Object.keys(dataToExport)
+							if (chartKeys.length > 0) {
+								rows = [['Timestamp', 'Date', ...chartKeys]]
+								const dateMap = new Map()
+								chartKeys.forEach((key) => {
+									dataToExport[key].data.forEach(([timestamp, value]) => {
+										if (!dateMap.has(timestamp)) {
+											dateMap.set(timestamp, {})
+										}
+										dateMap.get(timestamp)[key] = value
+									})
+								})
+								const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a - b)
+								sortedDates.forEach((timestamp) => {
+									const row = [timestamp, toNiceCsvDate(timestamp / 1000)]
+									chartKeys.forEach((key) => {
+										row.push(dateMap.get(timestamp)[key] ?? '')
+									})
+									rows.push(row)
+								})
+							}
+
+							const csvTitle = title ? slug(title) : 'protocol-overview'
+							const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${
+								new Date().toISOString().split('T')[0]
+							}.csv`
+							download(filename, rows.map((r) => r.join(',')).join('\n'))
+						} catch (error) {
+							console.error('Error generating CSV:', error)
+						}
+					}}
+					smol
+					className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+				/>
 			</div>
 			<LineAndBarChart
 				charts={mainChartData.charts}
@@ -423,6 +463,51 @@ const ChartByType = ({
 							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
 					}}
 					portal
+				/>
+				<CSVDownloadButton
+					onClick={() => {
+						try {
+							let rows = []
+							const dataToExport = mainChartData.charts
+							const chartKeys = Object.keys(dataToExport)
+
+							if (chartKeys.length > 0) {
+								rows = [['Timestamp', 'Date', ...selectedTypes]]
+								const dateMap = new Map()
+
+								selectedTypes.forEach((type) => {
+									if (dataToExport[type]) {
+										dataToExport[type].data.forEach(([timestamp, value]) => {
+											if (!dateMap.has(timestamp)) {
+												dateMap.set(timestamp, {})
+											}
+											dateMap.get(timestamp)[type] = value
+										})
+									}
+								})
+
+								const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a - b)
+
+								sortedDates.forEach((timestamp) => {
+									const row = [timestamp, toNiceCsvDate(timestamp / 1000)]
+									selectedTypes.forEach((type) => {
+										row.push(dateMap.get(timestamp)?.[type] ?? '')
+									})
+									rows.push(row)
+								})
+							}
+
+							const csvTitle = title ? slug(title) : chartType
+							const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${
+								new Date().toISOString().split('T')[0]
+							}.csv`
+							download(filename, rows.map((r) => r.join(',')).join('\n'))
+						} catch (error) {
+							console.error('Error generating CSV:', error)
+						}
+					}}
+					smol
+					className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
 				/>
 			</div>
 			<LineAndBarChart

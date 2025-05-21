@@ -7,6 +7,8 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { ChartType, getChartDataByChainAndInterval, GROUP_CHART_LIST, GROUP_INTERVALS_LIST } from './utils'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { BasicLink } from '~/components/Link'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { download, toNiceCsvDate, slug } from '~/utils'
 
 const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
@@ -93,6 +95,43 @@ export const ChainByAdapterChart = ({
 							/>
 						</>
 					) : null}
+					<CSVDownloadButton
+						onClick={() => {
+							try {
+								let rows = []
+								const dataToExport = charts
+								const chartKeys = Object.keys(dataToExport)
+								if (chartKeys.length > 0) {
+									rows = [['Timestamp', 'Date', ...chartKeys]]
+									const dateMap = new Map()
+									chartKeys.forEach((key) => {
+										dataToExport[key].data.forEach(([timestamp, value]) => {
+											if (!dateMap.has(timestamp)) {
+												dateMap.set(timestamp, {})
+											}
+											dateMap.get(timestamp)[key] = value
+										})
+									})
+									const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a - b)
+									sortedDates.forEach((timestamp) => {
+										const row = [timestamp, toNiceCsvDate(timestamp / 1000)]
+										chartKeys.forEach((key) => {
+											row.push(dateMap.get(timestamp)[key] ?? '')
+										})
+										rows.push(row)
+									})
+								}
+
+								const title = chartType ? slug(chartType) : 'chain-chart'
+								const filename = `${title}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
+								download(filename, rows.map((r) => r.join(',')).join('\n'))
+							} catch (error) {
+								console.error('Error generating CSV:', error)
+							}
+						}}
+						smol
+						className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+					/>
 				</div>
 			</>
 			{totalDataChart ? (
