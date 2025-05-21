@@ -24,7 +24,6 @@ export const Switch = ({
 		'--btn-hover-bg': string
 	}
 }) => {
-	console.log({ switchColors })
 	return (
 		<label
 			className={`relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap ${className ?? ''}`}
