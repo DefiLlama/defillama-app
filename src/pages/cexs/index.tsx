@@ -235,8 +235,8 @@ export const cexData: Array<ICex> = [
 		cgId: 'bitkub'
 	},
 	{
-		name: 'Gate', // change to name: 'Gate'
-		slug: 'Gate-io', // first name was gate.io , so thats the slug
+		name: 'Gate', // Used to be 'Gate.io'
+		slug: 'Gate',
 		coin: 'GT',
 		coinSymbol: 'GT',
 		walletsLink: 'https://github.com/gateio/proof-of-reserves',
