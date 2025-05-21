@@ -184,7 +184,9 @@ export const descriptions = {
 	'Collateral Management': 'Protocols that manage or leverage onchain collateral for financial applications',
 	Meme: 'Tokens inspired by internet culture, trends, or public figures. Typically community-driven and speculative in nature.',
 	'Private Investment Platform':
-		'Protocols that coordinate private, gated investment opportunities onchain, typically for startups or early-stage projects, often led by curated investor groups'
+		'Protocols that coordinate private, gated investment opportunities onchain, typically for startups or early-stage projects, often led by curated investor groups',
+	'Risk Curators':
+		'Projects that analyze DeFi risks and help users choose strategies across lending, trading, or staking systems to improve safety and returns.'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
