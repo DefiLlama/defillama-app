@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import NProgress from 'nprogress'
 import { AppContext } from '~/contexts'
-import { useAnalytics } from '~/hooks/useAnalytics'
+// import { useAnalytics } from '~/hooks/useAnalytics'
 import '../tailwind.css'
 import '../nprogress.css'
 import { useEffect } from 'react'
@@ -14,7 +14,7 @@ NProgress.configure({ showSpinner: false })
 const client = new QueryClient()
 
 function App({ Component, pageProps }) {
-	useAnalytics()
+	// useAnalytics()
 
 	const router = useRouter()
 
