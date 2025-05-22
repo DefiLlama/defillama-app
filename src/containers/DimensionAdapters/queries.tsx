@@ -332,7 +332,7 @@ export const getAdapterChainPageData = async ({
 		chain,
 		chains: [
 			{ label: 'All', to: `/${route}` },
-			...data.allChains.map((chain) => ({ label: chain, to: `/${route}/${slug(chain)}` }))
+			...data.allChains.map((chain) => ({ label: chain, to: `/${route}/chains/${slug(chain)}` }))
 		],
 		protocols: Object.values(protocols).sort(
 			(a: IAdapterChainPageData['protocols'][0], b: IAdapterChainPageData['protocols'][0]) =>
