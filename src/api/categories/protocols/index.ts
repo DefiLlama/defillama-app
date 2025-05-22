@@ -414,7 +414,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 				realtime: realTimeData.data?.length > 0 ? [[Date.now() / 1000, 'Today']] : []
 			},
 			name: name || null,
-			tokenPrice
+			tokenPrice,
+			unlockUsdChart: res.unlockUsdChart ?? null
 		}
 	} catch (e) {
 		console.log(e)

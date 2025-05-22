@@ -69,6 +69,11 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 				isVisible: props.chainRevenue?.total24h != null ? true : false
 			},
 			{
+				id: 'chainIncentives',
+				name: 'Token Incentives',
+				isVisible: props.chainIncentives?.emissions24h != null ? true : false
+			},
+			{
 				id: 'appRevenue',
 				name: 'App Revenue',
 				isVisible: props.appRevenue?.total24h != null ? true : false
@@ -160,7 +165,8 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 		devMetricsData: props.devMetrics,
 		chainGeckoId,
 		perpsData: props.perps,
-		chainAssets: props.chainAssets
+		chainAssets: props.chainAssets,
+		chainIncentives: props.chainIncentives
 	})
 
 	const updateGroupBy = (newGroupBy) => {
@@ -209,7 +215,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								change24h >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
 							}`}
 						>
-							{`${change24h > 0 ? '+' : ''}${(change24h ?? 0).toFixed(2)}%`}
+							{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
 						</span>
 						<span className="text-[#545757] dark:text-[#cccccc]">24h</span>
 					</Tooltip>
@@ -289,6 +295,19 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									</Tooltip>
 								</th>
 								<td className="font-jetbrains text-right">{formattedNum(props.chainRevenue?.total24h, true)}</td>
+							</tr>
+						) : null}
+						{props.chainIncentives?.emissions24h != null ? (
+							<tr>
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+									<Tooltip
+										content="Subset of fees that the chain collects for itself"
+										className="underline decoration-dotted"
+									>
+										Token Incentives (24h)
+									</Tooltip>
+								</th>
+								<td className="font-jetbrains text-right">{formattedNum(props.chainIncentives?.emissions24h, true)}</td>
 							</tr>
 						) : null}
 						{props.chainFees?.totalREV24h ? (

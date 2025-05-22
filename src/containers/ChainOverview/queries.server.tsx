@@ -38,7 +38,7 @@ import type {
 } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { getAllProtocolEmissions, getETFData } from '~/api/categories/protocols'
+import { getAllProtocolEmissions, getETFData, getProtocolEmissons } from '~/api/categories/protocols'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
 	const metadata =
@@ -70,7 +70,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			etfData,
 			globalMcapChartData,
 			rwaTvlChartData,
-			upcomingUnlocks
+			upcomingUnlocks,
+			chainIncentives
 		]: [
 			ILiteChart,
 			{
@@ -110,6 +111,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			Array<[number, number]> | null,
 			Array<[number, number]> | null,
 			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null,
+			any,
 			any
 		] = await Promise.all([
 			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((r) => r.json()),
@@ -297,7 +299,22 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						})
 						.catch(() => null)
 				: Promise.resolve(null),
-			chain === 'All' ? getAllProtocolEmissions() : Promise.resolve(null)
+			chain === 'All' ? getAllProtocolEmissions() : Promise.resolve(null),
+			chain !== 'All'
+				? fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
+						.then((res) => res.json())
+						.then(async (data) => {
+							const protocolData = data.protocols.find((item) => item.chain === metadata.name)
+							const protocolEmissions = await getProtocolEmissons(slug(protocolData.name))
+							return {
+								incentivesChart: protocolEmissions.unlockUsdChart,
+								emissions24h: protocolData.emission24h,
+								emissions7d: protocolData.emission7d,
+								emissions30d: protocolData.emission30d
+							}
+						})
+						.catch(() => null)
+				: Promise.resolve(null)
 		])
 
 		const {
@@ -478,7 +495,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							(x, index) => [x, uniqUnlockTokenColors[index]] as [string, string]
 						)
 				  }
-				: null
+				: null,
+			chainIncentives: chainIncentives
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
