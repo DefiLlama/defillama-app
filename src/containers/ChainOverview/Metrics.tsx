@@ -92,7 +92,7 @@ const allMetrics = [
 	{ name: 'TVL', mainRoute: '/', chainRoute: `/{chain}` },
 	{ name: 'Fees', mainRoute: '/fees', chainRoute: `/fees/chains/{chain}` },
 	{ name: 'DEXs', mainRoute: '/dexs', chainRoute: `/dexs/chains/{chain}` },
-	{ name: 'Stablecoins', mainRoute: '/stablecoins', chainRoute: `/stablecoins/chains/{chain}` }
+	{ name: 'Stablecoins', mainRoute: '/stablecoins', chainRoute: `/stablecoins/{chain}` }
 ]
 
 // const allMetrics = [
