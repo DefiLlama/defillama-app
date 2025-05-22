@@ -8,6 +8,7 @@ import { peggedAssetIconPalleteUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadataCache from '~/utils/metadata'
 import { slug } from '~/utils'
+
 export const getStaticProps = withPerformanceLogging(
 	'stablecoins/[...chain]',
 	async ({

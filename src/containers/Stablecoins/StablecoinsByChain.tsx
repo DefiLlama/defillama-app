@@ -242,9 +242,9 @@ function PeggedAssetsOverview({
 		<>
 			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
 
-			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
-
 			<ChainOverviewMetrics currentMetric="Stablecoins" />
+
+			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
