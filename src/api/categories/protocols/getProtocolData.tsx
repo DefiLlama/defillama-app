@@ -24,6 +24,7 @@ import { sluggify } from '~/utils/cache-client'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import metadata from '~/utils/metadata'
 import { getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 const { chainMetadata, protocolMetadata } = metadata
 
 const chartTypes = [
@@ -561,7 +562,13 @@ export const getProtocolData = async (
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
 
 		const cmetadata = chainMetadata[slug(protocolData.chains[0])]
-		if (cmetadata?.gecko_id) {
+
+		if (cmetadata && chainCoingeckoIdsForGasNotMcap[cmetadata.name]) {
+			chartDenominations.push({
+				symbol: chainCoingeckoIdsForGasNotMcap[cmetadata.name].symbol,
+				geckoId: chainCoingeckoIdsForGasNotMcap[cmetadata.name].geckoId
+			})
+		} else if (cmetadata?.gecko_id) {
 			chartDenominations.push({ symbol: cmetadata.tokenSymbol, geckoId: cmetadata.gecko_id })
 		} else {
 			chartDenominations.push({ symbol: 'ETH', geckoId: chainMetadata['ethereum']?.gecko_id })
