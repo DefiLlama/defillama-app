@@ -85,5 +85,16 @@
 <symbol id="calendar-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 <path d="M16 19h6"></path><path d="M16 2v4"></path><path d="M19 16v6"></path><path d="M21 12.598V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8.5"></path><path d="M3 10h18"></path><path d="M8 2v4"></path>
 </symbol>
+<symbol id="pencil" viewBox="0 0 12 12" fill="none">
+  <g clip-path="url(#clip0_67_12257)">
+    <path d="M10.587 3.40595C10.8514 3.14166 10.9999 2.78318 10.9999 2.40937C11 2.03557 10.8515 1.67705 10.5872 1.4127C10.323 1.14834 9.96448 0.999803 9.59067 0.999756C9.21687 0.999709 8.85835 1.14816 8.594 1.41245L1.921 8.08695C1.80491 8.2027 1.71905 8.34521 1.671 8.50195L1.0105 10.6779C0.997575 10.7212 0.996599 10.7671 1.00767 10.8109C1.01875 10.8546 1.04146 10.8946 1.0734 10.9264C1.10533 10.9583 1.14531 10.981 1.18908 10.992C1.23285 11.003 1.27878 11.0019 1.322 10.9889L3.4985 10.3289C3.65508 10.2813 3.79758 10.196 3.9135 10.0804L10.587 3.40595Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M7.5 2.5L9.5 4.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <defs>
+    <clipPath id="clip0_67_12257">
+      <rect width="12" height="12" fill="white"/>
+    </clipPath>
+  </defs>
+</symbol>
 </defs>
 </svg>

@@ -31,6 +31,14 @@ import { formatValue } from '../../utils'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { CustomColumnModal } from './CustomColumnModal'
 import * as Ariakit from '@ariakit/react'
+import {
+	columnOptions,
+	MAIN_COLUMN_BY_CATEGORY,
+	TABLE_CATEGORIES,
+	TABLE_PERIODS,
+	tableColumnOptionsKey,
+	tableFilterStateKey
+} from './constants'
 
 export interface CustomColumnDef {
 	name: string
@@ -38,9 +46,6 @@ export interface CustomColumnDef {
 	formatType: 'auto' | 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 }
-
-const optionsKey = 'ptc'
-const filterStatekey = 'ptcfs'
 
 export const ChainProtocolsTable = ({
 	protocols,
@@ -68,13 +73,13 @@ export const ChainProtocolsTable = ({
 
 	const columnsInStorage = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		() => localStorage.getItem(tableColumnOptionsKey) ?? defaultColumns,
 		() => defaultColumns
 	)
 
 	const filterState = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(filterStatekey) ?? null,
+		() => localStorage.getItem(tableFilterStateKey) ?? null,
 		() => null
 	)
 
@@ -87,7 +92,7 @@ export const ChainProtocolsTable = ({
 				])
 			)
 		)
-		window.localStorage.setItem(optionsKey, ops)
+		window.localStorage.setItem(tableColumnOptionsKey, ops)
 		window.dispatchEvent(new Event('storage'))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(JSON.parse(ops))
@@ -102,7 +107,7 @@ export const ChainProtocolsTable = ({
 				])
 			)
 		)
-		window.localStorage.setItem(optionsKey, ops)
+		window.localStorage.setItem(tableColumnOptionsKey, ops)
 		window.dispatchEvent(new Event('storage'))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(JSON.parse(ops))
@@ -145,7 +150,7 @@ export const ChainProtocolsTable = ({
 			const allKeys = [...columnOptions.map((c) => c.key), ...next.map((_, idx) => `custom_formula_${idx}`)]
 			let ops: Record<string, boolean> = {}
 			try {
-				ops = JSON.parse(localStorage.getItem(optionsKey) ?? '{}')
+				ops = JSON.parse(localStorage.getItem(tableColumnOptionsKey) ?? '{}')
 			} catch {}
 			allKeys.forEach((key) => {
 				if (key === newColumnKey) {
@@ -154,7 +159,7 @@ export const ChainProtocolsTable = ({
 					ops[key] = false
 				}
 			})
-			localStorage.setItem(optionsKey, JSON.stringify(ops))
+			localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
 			window.dispatchEvent(new Event('storage'))
 			if (instance && instance.setColumnVisibility) {
 				instance.setColumnVisibility(ops)
@@ -179,7 +184,7 @@ export const ChainProtocolsTable = ({
 	const addColumn = (newColumns) => {
 		const allKeys = mergedColumns.map((col) => col.key)
 		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key) ? true : false]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(ops)
@@ -296,6 +301,8 @@ export const ChainProtocolsTable = ({
 		[customColumnDefs]
 	)
 
+	console.log(JSON.parse(columnsInStorage))
+
 	const instance = useReactTable({
 		data: finalProtocols,
 		columns: allColumns,
@@ -368,12 +375,12 @@ export const ChainProtocolsTable = ({
 
 		if (columnsInStorage === JSON.stringify(newColumns)) {
 			toggleAllColumns()
-			window.localStorage.setItem(filterStatekey, null)
+			window.localStorage.setItem(tableFilterStateKey, null)
 			instance.setSorting([{ id: 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		} else {
-			window.localStorage.setItem(optionsKey, JSON.stringify(newColumns))
-			window.localStorage.setItem(filterStatekey, newState)
+			window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(newColumns))
+			window.localStorage.setItem(tableFilterStateKey, newState)
 			instance.setSorting([{ id: MAIN_COLUMN_BY_CATEGORY[newState] ?? 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		}
@@ -432,95 +439,6 @@ export const ChainProtocolsTable = ({
 		</div>
 	)
 }
-
-enum TABLE_CATEGORIES {
-	FEES = 'Fees',
-	REVENUE = 'Revenue',
-	VOLUME = 'Volume',
-	TVL = 'TVL'
-}
-
-const MAIN_COLUMN_BY_CATEGORY = {
-	[TABLE_CATEGORIES.TVL]: 'tvl',
-	[TABLE_CATEGORIES.FEES]: 'fees_24h',
-	[TABLE_CATEGORIES.REVENUE]: 'revenue_24h',
-	[TABLE_CATEGORIES.VOLUME]: 'volume_24h'
-}
-
-enum TABLE_PERIODS {
-	ONE_DAY = '1d',
-	SEVEN_DAYS = '7d',
-	ONE_MONTH = '1m'
-}
-
-const columnOptions = [
-	{ name: 'Name', key: 'name' },
-	{ name: 'Category', key: 'category' },
-	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
-	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'TVL 7d change', key: 'change_7d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.SEVEN_DAYS },
-	{ name: 'TVL 1m change', key: 'change_1m', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_MONTH },
-	{ name: 'Mcap/TVL', key: 'mcaptvl', category: TABLE_CATEGORIES.TVL },
-	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
-	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
-	{
-		name: 'Fees 1Y',
-		key: 'fees_1y',
-		category: TABLE_CATEGORIES.FEES
-	},
-	{
-		name: 'Monthly Avg 1Y Fees',
-		key: 'average_fees_1y',
-		category: TABLE_CATEGORIES.FEES
-	},
-	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
-	{ name: 'Revenue 30d', key: 'revenue_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
-	{ name: 'Revenue 1y', key: 'revenue_1y', category: TABLE_CATEGORIES.REVENUE },
-	{
-		name: 'Monthly Avg 1Y Rev',
-		key: 'average_revenue_1y',
-		category: TABLE_CATEGORIES.REVENUE
-	},
-	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Cumulative Fees', key: 'cumulativeFees', category: TABLE_CATEGORIES.FEES },
-	{
-		name: 'Holders Revenue 24h',
-		key: 'holderRevenue_24h',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_DAY
-	},
-	{
-		name: 'Holders Revenue 30d',
-		key: 'holdersRevenue30d',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_MONTH
-	},
-	{
-		name: 'Treasury Revenue 24h',
-		key: 'treasuryRevenue_24h',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_DAY
-	},
-	{
-		name: 'Supply Side Revenue 24h',
-		key: 'supplySideRevenue_24h',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_DAY
-	},
-	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
-	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Spot Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Spot Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
-	{
-		name: 'Spot Volume Change 7d',
-		key: 'volumeChange_7d',
-		category: TABLE_CATEGORIES.VOLUME,
-		period: TABLE_PERIODS.SEVEN_DAYS
-	},
-	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
-]
 
 const columnHelper = createColumnHelper<IProtocol>()
 
@@ -802,7 +720,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 180
 			}),
 			columnHelper.accessor((row) => row.fees?.totalAllTime, {
-				id: 'cumulativeFees',
+				id: 'fees_cumulative',
 				header: 'Cumulative Fees',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
@@ -845,7 +763,7 @@ const columns: ColumnDef<IProtocol>[] = [
 		header: 'Volume',
 		columns: [
 			columnHelper.accessor((row) => row.dexs?.total24h, {
-				id: 'volume_24h',
+				id: 'dex_volume_24h',
 				header: 'Spot Volume 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
@@ -856,7 +774,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 150
 			}),
 			columnHelper.accessor((row) => row.dexs?.total7d, {
-				id: 'volume_7d',
+				id: 'dex_volume_7d',
 				header: 'Spot Volume 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
@@ -867,7 +785,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 150
 			}),
 			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
-				id: 'volumeChange_7d',
+				id: 'dex_volume_change_7d',
 				header: 'Spot Change 7d',
 				cell: ({ getValue }) => <>{getValue() != 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
@@ -878,7 +796,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 140
 			}),
 			columnHelper.accessor((row) => row.dexs?.totalAllTime, {
-				id: 'cumulativeVolume',
+				id: 'dex_cumulative_volume',
 				header: 'Spot Cumulative Volume',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
@@ -914,16 +832,16 @@ const defaultColumns = JSON.stringify({
 	revenue_1y: false,
 	average_revenue_1y: false,
 	userFees_24h: false,
-	cumulativeFees: false,
+	fees_cumulative: false,
 	holderRevenue_24h: false,
 	treasuryRevenue_24h: false,
 	supplySideRevenue_24h: false,
 	pf: false,
 	ps: false,
-	volume_24h: true,
-	volume_7d: false,
-	volumeChange_7d: false,
-	cumulativeVolume: false
+	dex_volume_24h: true,
+	dex_volume_7d: false,
+	dex_volume_change_7d: false,
+	dex_cumulative_volume: false
 })
 
 const Tvl = ({ rowValues }) => {
