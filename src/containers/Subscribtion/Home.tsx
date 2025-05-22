@@ -179,7 +179,7 @@ export function SubscribeHome() {
 			<div className="flex flex-col items-center justify-center gap-[64px] mb-[64px] w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] mx-auto px-5">
 				<h2 className="text-[32px] font-extrabold">They trust us</h2>
 
-				<div className="flex items-center justify-between flex-wrap gap-20">
+				<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 place-items-center gap-20">
 					<img
 						src="/icons/federal-bank-ny.svg"
 						alt="Federal Reserve Bank of New York"
