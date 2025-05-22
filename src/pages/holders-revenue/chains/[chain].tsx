@@ -11,8 +11,8 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 
 const ADAPTOR_TYPE = ADAPTOR_TYPES.FEES
-const dataType = 'dailyRevenue'
-const type = 'Revenue'
+const dataType = 'dailyHoldersRevenue'
+const type = 'Holders Revenue'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't

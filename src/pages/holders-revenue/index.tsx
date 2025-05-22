@@ -7,8 +7,8 @@ import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ADAPTOR_TYPE = ADAPTOR_TYPES.FEES
-const dataType = 'dailyRevenue'
-const type = 'Revenue'
+const dataType = 'dailyHoldersRevenue'
+const type = 'Holders Revenue'
 
 export const getStaticProps = withPerformanceLogging(`${slug(type)}/index`, async () => {
 	const data = await getAdapterChainPageData({
