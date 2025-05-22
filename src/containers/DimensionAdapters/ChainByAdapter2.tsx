@@ -6,9 +6,6 @@ import { Icon } from '~/components/Icon'
 import {
 	type ColumnDef,
 	ColumnFiltersState,
-	ColumnOrderState,
-	type ColumnSizingState,
-	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -33,37 +30,32 @@ interface IProps extends IAdapterChainPageData {
 export function ChainByAdapter2(props: IProps) {
 	const router = useRouter()
 
-	const selectedCategories = useMemo(() => {
-		return router.query.category
+	const { selectedCategories, protocols } = useMemo(() => {
+		const selectedCategories = router.query.category
 			? typeof router.query.category === 'string'
 				? [router.query.category]
 				: router.query.category
 			: props.categories
-	}, [router.query.category, props.categories])
 
-	const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+
+		return {
+			selectedCategories,
+			protocols:
+				categoriesToFilter.length > 0
+					? props.protocols.filter((protocol) => categoriesToFilter.includes(protocol.category))
+					: props.protocols
+		}
+	}, [router.query.category, props])
 
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
-	const [expanded, setExpanded] = useState<ExpandedState>({})
-
-	const protocols = useMemo(() => {
-		if (categoriesToFilter.length > 0) {
-			return props.protocols.filter((protocol) => categoriesToFilter.includes(protocol.category))
-		}
-		return props.protocols
-	}, [props.protocols, categoriesToFilter])
 
 	const instance = useReactTable({
 		data: protocols,
 		columns: columnsByType[props.type] as any,
 		state: {
 			sorting,
-			expanded,
-			columnOrder,
-			columnSizing,
 			columnFilters
 		},
 		sortingFns: {
@@ -91,17 +83,13 @@ export function ChainByAdapter2(props: IProps) {
 				return a - b
 			}
 		},
-		onExpandedChange: setExpanded,
 		getSubRows: (row: IAdapterChainPageData['protocols'][0]) => row.childProtocols,
 		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		enableSortingRemoval: false
+		getFilteredRowModel: getFilteredRowModel()
 	})
 
 	const [projectName, setProjectName] = useState('')
@@ -244,8 +232,9 @@ export function ChainByAdapter2(props: IProps) {
 
 const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 	{
+		id: 'name',
 		header: 'Name',
-		accessorKey: 'name',
+		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
@@ -306,8 +295,9 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 		size: 240
 	},
 	{
+		id: 'category',
 		header: 'Category',
-		accessorKey: 'category',
+		accessorFn: (protocol) => protocol.category,
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
@@ -325,47 +315,15 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 			align: 'end'
 		}
 	}
-	// {
-	// 	header: '1d Change',
-	// 	id: 'change_1d',
-	// 	accessorFn: (protocol) => getPercentChange(protocol.total24h, protocol.total48hto24h),
-	// 	enableSorting: true,
-	// 	cell: (info) => <>{info.getValue() != null ? formattedPercent(info.getValue()) : null}</>,
-	// 	size: 140,
-	// 	meta: {
-	// 		align: 'end'
-	// 	}
-	// },
-	// {
-	// 	header: '7d Change',
-	// 	id: 'change_7d',
-	// 	accessorFn: (protocol) => getPercentChange(protocol.total7d, protocol.total7DaysAgo),
-	// 	enableSorting: true,
-	// 	cell: (info) => <>{info.getValue() != null ? formattedPercent(info.getValue()) : null}</>,
-	// 	size: 140,
-	// 	meta: {
-	// 		align: 'end'
-	// 	}
-	// },
-	// {
-	// 	header: '1m Change',
-	// 	id: 'change_1m',
-	// 	accessorFn: (protocol) => getPercentChange(protocol.total30d, protocol.total30DaysAgo),
-	// 	enableSorting: true,
-	// 	cell: (info) => <>{info.getValue() != null ? formattedPercent(info.getValue()) : null}</>,
-	// 	size: 140,
-	// 	meta: {
-	// 		align: 'end'
-	// 	}
-	// }
 ]
 
 const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['protocols'][0]>[]> = {
 	Fees: [
 		...defaultColumns,
 		{
+			id: 'total24h',
 			header: 'Fees 24h',
-			accessorKey: 'total24h',
+			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
 			meta: {
@@ -375,8 +333,9 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			size: 128
 		},
 		{
+			id: 'total30d',
 			header: 'Fees 30d',
-			accessorKey: 'total30d',
+			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
 			meta: {
@@ -389,8 +348,9 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 	Revenue: [
 		...defaultColumns,
 		{
+			id: 'total24h',
 			header: 'Revenue 24h',
-			accessorKey: 'total24h',
+			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
 			meta: {
@@ -400,8 +360,9 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			size: 128
 		},
 		{
+			id: 'total30d',
 			header: 'Revenue 30d',
-			accessorKey: 'total30d',
+			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
 			meta: {
@@ -414,8 +375,9 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 	'Holders Revenue': [
 		...defaultColumns,
 		{
+			id: 'total24h',
 			header: 'Holders Revenue 24h',
-			accessorKey: 'total24h',
+			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
 			meta: {
@@ -425,8 +387,9 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			size: 180
 		},
 		{
+			id: 'total30d',
 			header: 'Holders Revenue 30d',
-			accessorKey: 'total30d',
+			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
 			meta: {
