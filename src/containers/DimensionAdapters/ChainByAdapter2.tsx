@@ -21,7 +21,6 @@ import { BasicLink } from '~/components/Link'
 import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { TokenLogo } from '~/components/TokenLogo'
-import { ICONS_CDN } from '~/constants'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { Metrics } from '~/components/Metrics'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -57,7 +56,7 @@ export function ChainByAdapter2(props: IProps) {
 
 	const instance = useReactTable({
 		data: protocols,
-		columns: columnsByType[props.type],
+		columns: columnsByType[props.type] as any,
 		state: {
 			sorting,
 			expanded,
@@ -243,7 +242,6 @@ export function ChainByAdapter2(props: IProps) {
 
 const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 	{
-		id: 'name',
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
@@ -306,7 +304,6 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 		size: 240
 	},
 	{
-		id: 'category',
 		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
@@ -365,7 +362,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 	Fees: [
 		...defaultColumns,
 		{
-			id: 'total24h',
 			header: 'Fees 24h',
 			accessorKey: 'total24h',
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -377,7 +373,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			size: 128
 		},
 		{
-			id: 'total30d',
 			header: 'Fees 30d',
 			accessorKey: 'total30d',
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -392,7 +387,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 	Revenue: [
 		...defaultColumns,
 		{
-			id: 'total24h',
 			header: 'Revenue 24h',
 			accessorKey: 'total24h',
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -404,7 +398,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			size: 128
 		},
 		{
-			id: 'total30d',
 			header: 'Revenue 30d',
 			accessorKey: 'total30d',
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -419,7 +412,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 	'Holders Revenue': [
 		...defaultColumns,
 		{
-			id: 'total24h',
 			header: 'Holders Revenue 24h',
 			accessorKey: 'total24h',
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -428,10 +420,9 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 				align: 'end',
 				headerHelperText: 'Revenue earned by token holders in the last 24 hours'
 			},
-			size: 128
+			size: 180
 		},
 		{
-			id: 'total30d',
 			header: 'Holders Revenue 30d',
 			accessorKey: 'total30d',
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -440,7 +431,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 				align: 'end',
 				headerHelperText: 'Revenue earned by token holders in the last 30 days'
 			},
-			size: 128
+			size: 180
 		}
 	]
 }
