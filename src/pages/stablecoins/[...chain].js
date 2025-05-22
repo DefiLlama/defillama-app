@@ -6,7 +6,8 @@ import { getPeggedAssets, getPeggedOverviewPageData } from '~/containers/Stablec
 import { primaryColor } from '~/constants/colors'
 import { peggedAssetIconPalleteUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-
+import metadataCache from '~/utils/metadata'
+import { slug } from '~/utils'
 export const getStaticProps = withPerformanceLogging(
 	'stablecoins/[...chain]',
 	async ({
@@ -14,7 +15,14 @@ export const getStaticProps = withPerformanceLogging(
 			chain: [chain]
 		}
 	}) => {
-		const props = await getPeggedOverviewPageData(chain)
+		const metadata = metadataCache.chainMetadata[slug(chain)]
+
+		if (!metadata)
+			return {
+				notFound: true
+			}
+
+		const props = await getPeggedOverviewPageData(metadata.name)
 
 		if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
 			return {
@@ -40,7 +48,7 @@ export async function getStaticPaths() {
 	const { chains } = await getPeggedAssets()
 
 	const paths = chains.slice(0, 20).map((chain) => ({
-		params: { chain: [chain.name] }
+		params: { chain: [slug(chain.name)] }
 	}))
 
 	return { paths: paths.slice(0, 11), fallback: 'blocking' }

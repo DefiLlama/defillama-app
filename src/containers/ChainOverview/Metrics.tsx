@@ -11,7 +11,7 @@ export const ChainOverviewMetrics = ({ currentMetric }: { currentMetric: string 
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
-			<p className="text-center -mt-2 mb-1 flex items-center gap-1 justify-center">
+			<p className="text-center my-1 flex items-center gap-1 justify-center">
 				<span>Metrics by </span>
 				<Ariakit.DialogDisclosure className="flex items-center">
 					<span className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
@@ -89,7 +89,7 @@ export const ChainOverviewMetrics = ({ currentMetric }: { currentMetric: string 
 }
 
 const allMetrics = [
-	{ name: 'TVL', mainRoute: '/', chainRoute: `/{chain}` },
+	{ name: 'TVL', mainRoute: '/', chainRoute: `/chain/{chain}` },
 	{ name: 'Fees', mainRoute: '/fees', chainRoute: `/fees/chains/{chain}` },
 	{ name: 'DEXs', mainRoute: '/dexs', chainRoute: `/dexs/chains/{chain}` },
 	{ name: 'Stablecoins', mainRoute: '/stablecoins', chainRoute: `/stablecoins/{chain}` }

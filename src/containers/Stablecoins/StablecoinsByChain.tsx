@@ -15,7 +15,7 @@ import {
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { formattedNum, getPercentChange, toNiceCsvDate, download } from '~/utils'
+import { formattedNum, getPercentChange, toNiceCsvDate, download, slug } from '~/utils'
 import { PeggedFilters } from '~/components/Filters/stablecoins'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
@@ -390,7 +390,7 @@ function handleRouting(selectedChain, queryParams) {
 	})
 
 	if (selectedChain === 'All') return `/stablecoins${params}`
-	return `/stablecoins/${selectedChain}${params}`
+	return `/stablecoins/${slug(selectedChain)}${params}`
 }
 
 const inflowsChartOptions = {
