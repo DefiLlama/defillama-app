@@ -544,7 +544,6 @@ export const getProtocolData = async (
 
 	const tokenMcap = tokenCGData?.mcaps ? tokenCGData.mcaps[tokenCGData.mcaps.length - 1][1] : null
 	const tokenPrice = tokenCGData?.prices ? tokenCGData.prices[tokenCGData.prices.length - 1][1] : null
-	const tokenInfo = tokenCGData?.coinData
 	const tokenValue = tokenPrice ? tokensUnlockedInNextEvent * tokenPrice : null
 	const unlockPercent = tokenValue && tokenMcap ? (tokenValue / tokenMcap) * 100 : null
 

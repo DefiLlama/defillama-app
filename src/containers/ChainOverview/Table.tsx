@@ -78,26 +78,7 @@ export const ChainProtocolsTable = ({
 		() => null
 	)
 
-	const setFilter = (key) => (newState) => {
-		const newOptions = Object.fromEntries(
-			columnOptions.map((column) => [
-				column.key,
-				['name', 'category'].includes(column.key) ? true : column[key] === newState
-			])
-		)
-
-		if (columnsInStorage === JSON.stringify(newOptions)) {
-			toggleAllOptions()
-			window.localStorage.setItem(filterStatekey, null)
-			window.dispatchEvent(new Event('storage'))
-		} else {
-			window.localStorage.setItem(optionsKey, JSON.stringify(newOptions))
-			window.localStorage.setItem(filterStatekey, newState)
-			window.dispatchEvent(new Event('storage'))
-		}
-	}
-
-	const clearAllOptions = () => {
+	const clearAllColumns = () => {
 		const ops = JSON.stringify(
 			Object.fromEntries(
 				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
@@ -112,7 +93,7 @@ export const ChainProtocolsTable = ({
 			instance.setColumnVisibility(JSON.parse(ops))
 		}
 	}
-	const toggleAllOptions = () => {
+	const toggleAllColumns = () => {
 		const ops = JSON.stringify(
 			Object.fromEntries(
 				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
@@ -181,7 +162,7 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
-	const mergedColumnOptions = useMemo(() => {
+	const mergedColumns = useMemo(() => {
 		return [
 			...columnOptions,
 			...customColumns.map((col, idx) => ({
@@ -195,9 +176,9 @@ export const ChainProtocolsTable = ({
 		]
 	}, [customColumns])
 
-	const addOption = (newOptions) => {
-		const allKeys = mergedColumnOptions.map((col) => col.key)
-		const ops = Object.fromEntries(allKeys.map((key) => [key, newOptions.includes(key) ? true : false]))
+	const addColumn = (newColumns) => {
+		const allKeys = mergedColumns.map((col) => col.key)
+		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key) ? true : false]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 		if (instance && instance.setColumnVisibility) {
@@ -205,12 +186,14 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
-	const selectedOptions = useMemo(() => {
+	const selectedColumns = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return mergedColumnOptions.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
-	}, [columnsInStorage, mergedColumnOptions])
+		return mergedColumns.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+	}, [columnsInStorage, mergedColumns])
 
-	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'tvl' }])
+	const [sorting, setSorting] = useState<SortingState>([
+		{ desc: true, id: MAIN_COLUMN_BY_CATEGORY[filterState] ?? 'tvl' }
+	])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -375,6 +358,27 @@ export const ChainProtocolsTable = ({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
+	const setFilter = (key) => (newState) => {
+		const newColumns = Object.fromEntries(
+			columnOptions.map((column) => [
+				column.key,
+				['name', 'category'].includes(column.key) ? true : column[key] === newState
+			])
+		)
+
+		if (columnsInStorage === JSON.stringify(newColumns)) {
+			toggleAllColumns()
+			window.localStorage.setItem(filterStatekey, null)
+			instance.setSorting([{ id: 'tvl', desc: true }])
+			// window.dispatchEvent(new Event('storage'))
+		} else {
+			window.localStorage.setItem(optionsKey, JSON.stringify(newColumns))
+			window.localStorage.setItem(filterStatekey, newState)
+			instance.setSorting([{ id: MAIN_COLUMN_BY_CATEGORY[newState] ?? 'tvl', desc: true }])
+			// window.dispatchEvent(new Event('storage'))
+		}
+	}
+
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md isolate">
 			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
@@ -390,11 +394,11 @@ export const ChainProtocolsTable = ({
 					values={Object.values(TABLE_PERIODS) as Array<string>}
 				/>
 				<SelectWithCombobox
-					allValues={mergedColumnOptions}
-					selectedValues={selectedOptions}
-					setSelectedValues={addOption}
-					toggleAll={toggleAllOptions}
-					clearAll={clearAllOptions}
+					allValues={mergedColumns}
+					selectedValues={selectedColumns}
+					setSelectedValues={addColumn}
+					toggleAll={toggleAllColumns}
+					clearAll={clearAllColumns}
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"
@@ -434,6 +438,13 @@ enum TABLE_CATEGORIES {
 	REVENUE = 'Revenue',
 	VOLUME = 'Volume',
 	TVL = 'TVL'
+}
+
+const MAIN_COLUMN_BY_CATEGORY = {
+	[TABLE_CATEGORIES.TVL]: 'tvl',
+	[TABLE_CATEGORIES.FEES]: 'fees_24h',
+	[TABLE_CATEGORIES.REVENUE]: 'revenue_24h',
+	[TABLE_CATEGORIES.VOLUME]: 'volume_24h'
 }
 
 enum TABLE_PERIODS {
