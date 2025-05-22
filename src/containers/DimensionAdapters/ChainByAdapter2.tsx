@@ -33,11 +33,13 @@ interface IProps extends IAdapterChainPageData {
 export function ChainByAdapter2(props: IProps) {
 	const router = useRouter()
 
-	const selectedCategories = router.query.category
-		? typeof router.query.category === 'string'
-			? [router.query.category]
-			: router.query.category
-		: []
+	const selectedCategories = useMemo(() => {
+		return router.query.category
+			? typeof router.query.category === 'string'
+				? [router.query.category]
+				: router.query.category
+			: props.categories
+	}, [router.query.category, props.categories])
 
 	const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
