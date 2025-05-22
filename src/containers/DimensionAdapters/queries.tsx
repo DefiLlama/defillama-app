@@ -242,6 +242,8 @@ export const getAdapterChainPageData = async ({
 	const parentProtocols = {}
 	const categories = new Set()
 	for (const protocol of data.protocols) {
+		if (protocol.total24h == null) continue
+
 		if (protocol.linkedProtocols?.length > 1) {
 			parentProtocols[protocol.linkedProtocols[0]] = parentProtocols[protocol.linkedProtocols[0]] || []
 			parentProtocols[protocol.linkedProtocols[0]].push({
@@ -314,7 +316,7 @@ export const getAdapterChainPageData = async ({
 			name: protocol,
 			slug: slug(protocol),
 			category: null,
-			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains).flat())),
+			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
 			total24h,
 			total7d,
 			total30d,
@@ -340,7 +342,7 @@ export const getAdapterChainPageData = async ({
 		),
 		categories: Array.from(categories).sort(),
 		adaptorType,
-		dataType
+		dataType: dataType ?? null
 	}
 }
 

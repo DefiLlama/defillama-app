@@ -16,29 +16,47 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BasicLink } from '~/components/Link'
-import { chainIconUrl, download, formattedNum } from '~/utils'
+import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ICONS_CDN } from '~/constants'
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { Metrics } from '~/components/Metrics'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { useRouter } from 'next/router'
 
 interface IProps extends IAdapterChainPageData {
-	type: 'Revenue' | 'Holders Revenue'
+	type: 'Fees' | 'Revenue' | 'Holders Revenue'
 }
 
 export function ChainByAdapter2(props: IProps) {
+	const router = useRouter()
+
+	const selectedCategories = router.query.category
+		? typeof router.query.category === 'string'
+			? [router.query.category]
+			: router.query.category
+		: []
+
+	const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
+	const protocols = useMemo(() => {
+		if (categoriesToFilter.length > 0) {
+			return props.protocols.filter((protocol) => categoriesToFilter.includes(protocol.category))
+		}
+		return props.protocols
+	}, [props.protocols, categoriesToFilter])
+
 	const instance = useReactTable({
-		data: props.protocols,
+		data: protocols,
 		columns: columnsByType[props.type],
 		state: {
 			sorting,
@@ -129,6 +147,52 @@ export function ChainByAdapter2(props: IProps) {
 		download(`${props.type}-${props.chain}-protocols.csv`, csv)
 	}, [props])
 
+	const { category, chain, ...queries } = router.query
+
+	const addCategory = (newCategory) => {
+		router.push(
+			{
+				pathname: router.basePath,
+				query: {
+					...queries,
+					...(!router.basePath.includes('/chains/') && chain ? { chain } : {}),
+					category: newCategory
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const toggleAllCategories = () => {
+		router.push(
+			{
+				pathname: router.basePath,
+				query: {
+					...queries,
+					...(!router.basePath.includes('/chains/') && chain ? { chain } : {}),
+					category: props.categories
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const clearAllCategories = () => {
+		router.push(
+			{
+				pathname: router.basePath,
+				query: {
+					...queries,
+					...(!router.basePath.includes('/chains/') && chain ? { chain } : {})
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	return (
 		<>
 			<AdaptorsSearch type={props.adaptorType} />
@@ -152,7 +216,22 @@ export function ChainByAdapter2(props: IProps) {
 							className="border border-[var(--form-control-border)] w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
-
+					{props.categories.length > 0 && (
+						<SelectWithCombobox
+							allValues={props.categories}
+							selectedValues={selectedCategories}
+							setSelectedValues={addCategory}
+							toggleAll={toggleAllCategories}
+							clearAll={clearAllCategories}
+							nestedMenu={false}
+							label={'Category'}
+							labelType="smol"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+							}}
+						/>
+					)}
 					<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
 				</div>
 
@@ -225,28 +304,28 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 			)
 		},
 		size: 240
+	},
+	{
+		id: 'category',
+		header: 'Category',
+		accessorKey: 'category',
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<BasicLink
+					href={`/protocols/${slug(getValue() as string)}`}
+					className="text-sm font-medium text-[var(--link-text)]"
+				>
+					{getValue() as string}
+				</BasicLink>
+			) : (
+				''
+			),
+		size: 140,
+		meta: {
+			align: 'end'
+		}
 	}
-	// {
-	// 	id: 'category',
-	// 	header: 'Category',
-	// 	accessorKey: 'category',
-	// 	enableSorting: false,
-	// 	cell: ({ getValue }) =>
-	// 		getValue() ? (
-	// 			<BasicLink
-	// 				href={`/protocols/${slug(getValue() as string)}`}
-	// 				className="text-sm font-medium text-[var(--link-text)]"
-	// 			>
-	// 				{getValue() as string}
-	// 			</BasicLink>
-	// 		) : (
-	// 			''
-	// 		),
-	// 	size: 140,
-	// 	meta: {
-	// 		align: 'end'
-	// 	}
-	// }
 	// {
 	// 	header: '1d Change',
 	// 	id: 'change_1d',
@@ -283,6 +362,33 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 ]
 
 const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['protocols'][0]>[]> = {
+	Fees: [
+		...defaultColumns,
+		{
+			id: 'total24h',
+			header: 'Fees 24h',
+			accessorKey: 'total24h',
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Fees paid by users in the last 24 hours'
+			},
+			size: 128
+		},
+		{
+			id: 'total30d',
+			header: 'Fees 30d',
+			accessorKey: 'total30d',
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Fees paid by users in the last 30 days'
+			},
+			size: 128
+		}
+	],
 	Revenue: [
 		...defaultColumns,
 		{
@@ -298,18 +404,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			size: 128
 		},
 		{
-			id: 'total7d',
-			header: 'Revenue 7d',
-			accessorKey: 'total7d',
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Revenue earned by the protocol in the last 7 days'
-			},
-			size: 128
-		},
-		{
 			id: 'total30d',
 			header: 'Revenue 30d',
 			accessorKey: 'total30d',
@@ -320,37 +414,13 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 				headerHelperText: 'Revenue earned by the protocol in the last 30 days'
 			},
 			size: 128
-		},
-		{
-			id: 'totalAllTime',
-			header: 'Cumulative Revenue',
-			accessorKey: 'totalAllTime',
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'All time revenue earned by the protocol'
-			},
-			size: 148
-		},
-		{
-			id: 'ps',
-			header: 'P/S',
-			accessorFn: (protocol) => getAnnualizedRatio(protocol.mcap, protocol.total30d),
-			cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Market cap / annualized revenue'
-			},
-			size: 80
 		}
 	],
 	'Holders Revenue': [
 		...defaultColumns,
 		{
 			id: 'total24h',
-			header: 'Revenue 24h',
+			header: 'Holders Revenue 24h',
 			accessorKey: 'total24h',
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
@@ -361,20 +431,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			size: 128
 		},
 		{
-			id: 'total7d',
-			header: 'Revenue 7d',
-			accessorKey: 'total7d',
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Revenue earned by token holders in the last 7 days'
-			},
-			size: 128
-		},
-		{
 			id: 'total30d',
-			header: 'Revenue 30d',
+			header: 'Holders Revenue 30d',
 			accessorKey: 'total30d',
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
@@ -383,18 +441,6 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 				headerHelperText: 'Revenue earned by token holders in the last 30 days'
 			},
 			size: 128
-		},
-		{
-			id: 'totalAllTime',
-			header: 'Cumulative Revenue',
-			accessorKey: 'totalAllTime',
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'All time revenue earned by token holders'
-			},
-			size: 148
 		}
 	]
 }

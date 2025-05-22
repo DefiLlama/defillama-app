@@ -101,5 +101,5 @@ export interface IAdapterChainPageData {
 	protocols: Array<IAdapterChainPageProtocol>
 	categories: Array<string>
 	adaptorType: string
-	dataType: string
+	dataType: string | null
 }
