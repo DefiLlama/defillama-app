@@ -183,29 +183,25 @@ export function SubscribeHome() {
 					<img
 						src="/icons/federal-bank-ny.svg"
 						alt="Federal Reserve Bank of New York"
-						className="h-[40px] object-contain"
+						className="h-[28px] object-contain"
 					/>
-					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-[80px] object-contain" />
-					<img src="/icons/cftc.svg" alt="CFTC" className="h-[60px] object-contain" />
-					<img src="/icons/jpmorgan.svg" alt="JPMorgan" className="h-[40px] object-contain" />
+					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-[60px] object-contain" />
+					<img src="/icons/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
+					<img src="/icons/jpmorgan.svg" alt="JPMorgan" className="h-[28px] object-contain" />
 					<span className="flex flex-col gap-2">
-						<img src="/icons/ecb-1.svg" alt="" className="h-9 object-contain" />
+						<img src="/icons/ecb-1.svg" alt="" className="h-[28px] object-contain" />
 						<img src="/icons/ecb-2.svg" alt="European Central Bank" className="h-[10px] object-contain" />
 					</span>
-					<img
-						src="/icons/mas.svg"
-						alt="Monetary Authority of Singapore"
-						className="h-[84px] w-[256px] object-contain"
-					/>
-					<img src="/icons/bis.svg" alt="Bank of International Settlements" className="h-[60px] object-contain" />
-					<img src="/icons/nber.svg" alt="National Bureau of Economic Research" className="h-[80px] object-contain" />
-					<img src="/icons/imf.svg" alt="International Monetary Fund" className="h-[40px] object-contain" />
-					<img src="/icons/boc.svg" alt="Bank of Canada" className="h-[80px] w-[268px] object-contain" />
-					<img src="/icons/boe.svg" alt="Bank of England" className="h-[40px] object-contain" />
-					<img src="/icons/binance.svg" alt="Binance" className="h-[40px] object-contain" />
-					<img src="/icons/okx.svg" alt="OKX" className="h-[40px] object-contain" />
-					<img src="/icons/chainlink.svg" alt="Chainlink" className="h-[40px] object-contain" />
-					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-[40px] object-contain" />
+					<img src="/icons/mas.svg" alt="Monetary Authority of Singapore" className="h-[60px] object-contain" />
+					<img src="/icons/bis.svg" alt="Bank of International Settlements" className="h-[48px] object-contain" />
+					<img src="/icons/nber.svg" alt="National Bureau of Economic Research" className="h-[60px] object-contain" />
+					<img src="/icons/imf.svg" alt="International Monetary Fund" className="h-[28px] object-contain" />
+					<img src="/icons/boc.svg" alt="Bank of Canada" className="h-[60px] object-contain" />
+					<img src="/icons/boe.svg" alt="Bank of England" className="h-[28px] object-contain" />
+					<img src="/icons/binance.svg" alt="Binance" className="h-[28px] object-contain" />
+					<img src="/icons/okx.svg" alt="OKX" className="h-[28px] object-contain" />
+					<img src="/icons/chainlink.svg" alt="Chainlink" className="h-[28px] object-contain" />
+					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-[28px] object-contain" />
 				</div>
 			</div>
 		</>
