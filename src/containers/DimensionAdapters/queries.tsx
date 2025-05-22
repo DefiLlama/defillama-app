@@ -1,6 +1,13 @@
-import { BASE_API, DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API, MCAPS_API, PROTOCOLS_API } from '~/constants'
+import {
+	BASE_API,
+	DIMENISIONS_OVERVIEW_API,
+	DIMENISIONS_SUMMARY_BASE_API,
+	ICONS_CDN,
+	MCAPS_API,
+	PROTOCOLS_API
+} from '~/constants'
 import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
-import { getPercentChange, slug } from '~/utils'
+import { chainIconUrl, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { ADAPTOR_TYPES } from './constants'
 import metadataCache from '~/utils/metadata'
 import { IAdapterChainPageData } from './types'
@@ -249,6 +256,7 @@ export const getAdapterChainPageData = async ({
 			parentProtocols[protocol.linkedProtocols[0]].push({
 				name: protocol.name,
 				slug: protocol.slug,
+				logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
 				chains: protocol.chains,
 				category: protocol.category ?? null,
 				total24h: protocol.total24h ?? null,
@@ -265,6 +273,7 @@ export const getAdapterChainPageData = async ({
 			protocols[protocol.name] = {
 				name: protocol.name,
 				slug: protocol.slug,
+				logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
 				chains: protocol.chains,
 				category: protocol.category ?? null,
 				total24h: protocol.total24h ?? null,
@@ -312,10 +321,13 @@ export const getAdapterChainPageData = async ({
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total30DaysAgo ?? 0), 0)
 			: null
 
+		const categories = Array.from(new Set(parentProtocols[protocol].filter((p) => p.category).map((p) => p.category)))
+
 		protocols[protocol] = {
 			name: protocol,
 			slug: slug(protocol),
-			category: null,
+			logo: tokenIconUrl(protocol),
+			category: categories.length > 1 ? null : categories[0] ?? null,
 			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
 			total24h,
 			total7d,

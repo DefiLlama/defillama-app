@@ -286,7 +286,7 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 
 					<span className="flex-shrink-0">{index + 1}</span>
 
-					<TokenLogo logo={`${ICONS_CDN}/protocols/${row.original.slug}?w=48&h=48`} data-lgonly />
+					<TokenLogo logo={row.original.logo} data-lgonly />
 
 					<span className="flex flex-col -my-2">
 						<BasicLink

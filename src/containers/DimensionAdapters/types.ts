@@ -67,6 +67,7 @@ export type IDimensionChartTypes = 'chain' | 'version' | 'tokens'
 interface IAdapterChainPageProtocol {
 	name: string
 	slug: string
+	logo: string
 	chains: Array<string>
 	category: string | null
 	total24h: number | null
