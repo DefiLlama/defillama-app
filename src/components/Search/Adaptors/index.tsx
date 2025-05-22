@@ -75,7 +75,7 @@ const FeesToggles = () => {
 				allValues={feesOptions}
 				selectedValues={selectedValues}
 				setSelectedValues={setSelectedValues}
-				label="Include in Fees"
+				label="Include in Metrics"
 				triggerProps={{
 					className:
 						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C]'
