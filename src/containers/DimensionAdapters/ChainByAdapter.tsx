@@ -10,6 +10,7 @@ import { Announcement } from '~/components/Announcement'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { VOLUME_TYPE_ADAPTORS } from './constants'
+import { ChainOverviewMetrics } from '../ChainOverview/Metrics'
 
 export type IOverviewContainerProps = IOverviewProps
 
@@ -93,6 +94,8 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 				</Announcement>
 			)}
 			<AdaptorsSearch type={props.type} />
+
+			<ChainOverviewMetrics currentMetric={props.type} />
 
 			{rowLinks ? (
 				<RowLinksWithDropdown links={rowLinks} activeLink={chain} key={'row links wrapper of ' + props.type} />

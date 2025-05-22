@@ -25,7 +25,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				, stay updated without having to doomscroll twitter
 			</Announcement>
 			<ProtocolsChainsSearch />
-			<ChainOverviewMetrics />
+			<ChainOverviewMetrics currentMetric="TVL" />
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
 			<Stats {...props} />
 			<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>

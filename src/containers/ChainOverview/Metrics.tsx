@@ -1,20 +1,13 @@
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
-import { getColumnsToShowByCategory, TABLE_CATEGORIES, tableColumnOptionsKey } from './constants'
+// import { getColumnsToShowByCategory, TABLE_CATEGORIES, tableColumnOptionsKey } from './constants'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 
-export const ChainOverviewMetrics = () => {
+export const ChainOverviewMetrics = ({ currentMetric }: { currentMetric: string }) => {
 	const router = useRouter()
 	const dialogStore = Ariakit.useDialogStore()
-
-	const activeMetric =
-		router.query.tvl === 'true'
-			? 'TVL'
-			: router.query.chainFees === 'true'
-			? 'Fees'
-			: router.query.chainRevenue === 'true'
-			? 'Revenue'
-			: 'DEXs'
+	const chain = router.query.chain as string
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
@@ -22,7 +15,7 @@ export const ChainOverviewMetrics = () => {
 				<span>Metrics by </span>
 				<Ariakit.DialogDisclosure className="flex items-center">
 					<span className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
-						{activeMetric}
+						{currentMetric}
 					</span>
 					<span className="py-1 px-[10px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs">
 						<Icon name="pencil" height={12} width={12} />
@@ -39,6 +32,19 @@ export const ChainOverviewMetrics = () => {
 					<Ariakit.DialogHeading className="text-lg font-bold mb-4">Metrics</Ariakit.DialogHeading>
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
 						{allMetrics.map((metric) => (
+							<BasicLink
+								key={`chain-metric-${metric.name}`}
+								className="p-[10px] rounded-md bg-[var(--cards-bg)] col-span-1 flex flex-col items-start gap-[2px]"
+								href={chain ? `${metric.chainRoute.replace('{chain}', chain)}` : metric.mainRoute}
+							>
+								<span className="font-medium">{metric.name}</span>
+								<span className="text-[var(--link)]">Protocols:</span>
+								<span className="text-[#666] dark:text-[#919296] text-start">
+									Comparison of DeFi activity and metrics across different blockchain networks
+								</span>
+							</BasicLink>
+						))}
+						{/* {allMetrics.map((metric) => (
 							<button
 								key={`chain-metric-${metric.name}`}
 								onClick={() => {
@@ -74,7 +80,7 @@ export const ChainOverviewMetrics = () => {
 									Comparison of DeFi activity and metrics across different blockchain networks
 								</span>
 							</button>
-						))}
+						))} */}
 					</div>
 				</Ariakit.Dialog>
 			</p>
@@ -83,20 +89,28 @@ export const ChainOverviewMetrics = () => {
 }
 
 const allMetrics = [
-	{ name: 'Total Value Locked', charts: ['tvl'], columnsCategory: TABLE_CATEGORIES.TVL },
-	{
-		name: 'Fees',
-		charts: ['chainFees'],
-		columnsCategory: TABLE_CATEGORIES.FEES
-	},
-	{
-		name: 'Revenue',
-		charts: ['chainRevenue'],
-		columnsCategory: TABLE_CATEGORIES.REVENUE
-	},
-	{
-		name: 'DEXs',
-		charts: ['dexs'],
-		columnsCategory: TABLE_CATEGORIES.VOLUME
-	}
+	{ name: 'TVL', mainRoute: '/', chainRoute: `/{chain}` },
+	{ name: 'Fees', mainRoute: '/fees', chainRoute: `/fees/chains/{chain}` },
+	{ name: 'DEXs', mainRoute: '/dexs', chainRoute: `/dexs/chains/{chain}` },
+	{ name: 'Stablecoins', mainRoute: '/stablecoins', chainRoute: `/stablecoins/chains/{chain}` }
 ]
+
+// const allMetrics = [
+// 	{ name: 'Total Value Locked', charts: ['tvl'], columnsCategory: TABLE_CATEGORIES.TVL },
+// 	{
+// 		name: 'Fees',
+// 		charts: ['chainFees'],
+// 		columnsCategory: TABLE_CATEGORIES.FEES
+// 	},
+// 	{
+// 		name: 'Revenue',
+// 		charts: ['chainRevenue'],
+// 		columnsCategory: TABLE_CATEGORIES.REVENUE
+// 	},
+// 	{
+// 		name: 'DEXs',
+// 		charts: ['dexs'],
+// 		columnsCategory: TABLE_CATEGORIES.VOLUME
+// 	},
+// 	{ name: 'Stablecoins', charts: ['stables'], columnsCategory: TABLE_CATEGORIES.TVL }
+// ]

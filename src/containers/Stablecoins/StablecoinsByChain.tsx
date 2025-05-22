@@ -20,6 +20,7 @@ import { PeggedFilters } from '~/components/Filters/stablecoins'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
+import { ChainOverviewMetrics } from '../ChainOverview/Metrics'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -242,6 +243,8 @@ function PeggedAssetsOverview({
 			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
 
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
+
+			<ChainOverviewMetrics currentMetric="Stablecoins" />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
