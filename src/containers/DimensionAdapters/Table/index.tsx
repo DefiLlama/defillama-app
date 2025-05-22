@@ -226,29 +226,31 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 		const header = [
 			'Protocol',
 			'Category',
+			'Chains',
 			'Change 1d',
 			'Change 7d',
 			'Change 1m',
 			'Total 1d',
 			'Total 7d',
 			'Total 1m',
-			'Revenue 24h',
-			'Revenue 7d',
-			'Revenue 30d'
+			'Total 1y',
+			'Total All Time',
+			'Market Cap'
 		]
 		const csvdata = data.map((protocol) => {
 			return [
 				protocol.displayName,
 				protocol.category,
+				protocol.chains.map((c) => c.label).join(', '),
 				protocol.change_1d,
 				protocol.change_7d,
 				protocol.change_1m,
 				protocol.total24h,
 				protocol.total7d,
 				protocol.total30d,
-				protocol.revenue24h,
-				protocol.revenue7d,
-				protocol.revenue30d
+				protocol.total1y,
+				protocol.totalAllTime,
+				protocol.mcap
 			]
 		})
 		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')

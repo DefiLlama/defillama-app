@@ -293,8 +293,6 @@ export const ChainProtocolsTable = ({
 		[customColumnDefs]
 	)
 
-	console.log(JSON.parse(columnsInStorage))
-
 	const instance = useReactTable({
 		data: finalProtocols,
 		columns: allColumns,

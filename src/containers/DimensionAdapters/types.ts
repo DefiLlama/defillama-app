@@ -63,3 +63,43 @@ export interface IDimenisionProtocolChartProps {
 }
 
 export type IDimensionChartTypes = 'chain' | 'version' | 'tokens'
+
+interface IAdapterChainPageProtocol {
+	name: string
+	slug: string
+	chains: Array<string>
+	category: string | null
+	total24h: number | null
+	total7d: number | null
+	total30d: number | null
+	total1y: number | null
+	totalAllTime: number | null
+	total48hto24h: number | null
+	total7DaysAgo: number | null
+	total30DaysAgo: number | null
+	mcap: number | null
+	childProtocols?: Array<{
+		name: string
+		slug: string
+		chains: Array<string>
+		category: string | null
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		totalAllTime: number | null
+		total48hto24h: number | null
+		total7DaysAgo: number | null
+		total30DaysAgo: number | null
+		mcap: number | null
+	}>
+}
+
+export interface IAdapterChainPageData {
+	chain: string
+	chains: Array<{ label: string; to: string }>
+	protocols: Array<IAdapterChainPageProtocol>
+	categories: Array<string>
+	adaptorType: string
+	dataType: string
+}
