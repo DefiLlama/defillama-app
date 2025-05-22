@@ -1,10 +1,9 @@
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
-// import { getColumnsToShowByCategory, TABLE_CATEGORIES, tableColumnOptionsKey } from './constants'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 
-export const ChainOverviewMetrics = ({ currentMetric }: { currentMetric: string }) => {
+export const Metrics = ({ currentMetric }: { currentMetric: string }) => {
 	const router = useRouter()
 	const dialogStore = Ariakit.useDialogStore()
 	const chain = router.query.chain as string
@@ -44,43 +43,6 @@ export const ChainOverviewMetrics = ({ currentMetric }: { currentMetric: string 
 								</span>
 							</BasicLink>
 						))}
-						{/* {allMetrics.map((metric) => (
-							<button
-								key={`chain-metric-${metric.name}`}
-								onClick={() => {
-									localStorage.setItem(
-										tableColumnOptionsKey,
-										JSON.stringify(getColumnsToShowByCategory(metric.columnsCategory))
-									)
-
-									router
-										.push(
-											{
-												query: {
-													...(router.query.chain ? { chain: router.query.chain } : {}),
-													tvl: false,
-													...metric.charts.reduce((acc, chart) => {
-														acc[chart] = true
-														return acc
-													}, {})
-												}
-											},
-											undefined,
-											{ shallow: true }
-										)
-										.then(() => {
-											dialogStore.hide()
-										})
-								}}
-								className="p-[10px] rounded-md bg-[var(--cards-bg)] col-span-1 flex flex-col items-start gap-[2px]"
-							>
-								<span className="font-medium">{metric.name}</span>
-								<span className="text-[var(--link)]">Protocols:</span>
-								<span className="text-[#666] dark:text-[#919296] text-start">
-									Comparison of DeFi activity and metrics across different blockchain networks
-								</span>
-							</button>
-						))} */}
 					</div>
 				</Ariakit.Dialog>
 			</p>
@@ -94,23 +56,3 @@ const allMetrics = [
 	{ name: 'DEXs', mainRoute: '/dexs', chainRoute: `/dexs/chains/{chain}` },
 	{ name: 'Stablecoins', mainRoute: '/stablecoins', chainRoute: `/stablecoins/{chain}` }
 ]
-
-// const allMetrics = [
-// 	{ name: 'Total Value Locked', charts: ['tvl'], columnsCategory: TABLE_CATEGORIES.TVL },
-// 	{
-// 		name: 'Fees',
-// 		charts: ['chainFees'],
-// 		columnsCategory: TABLE_CATEGORIES.FEES
-// 	},
-// 	{
-// 		name: 'Revenue',
-// 		charts: ['chainRevenue'],
-// 		columnsCategory: TABLE_CATEGORIES.REVENUE
-// 	},
-// 	{
-// 		name: 'DEXs',
-// 		charts: ['dexs'],
-// 		columnsCategory: TABLE_CATEGORIES.VOLUME
-// 	},
-// 	{ name: 'Stablecoins', charts: ['stables'], columnsCategory: TABLE_CATEGORIES.TVL }
-// ]
