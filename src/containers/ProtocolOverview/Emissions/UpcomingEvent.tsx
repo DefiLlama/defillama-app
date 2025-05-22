@@ -81,22 +81,33 @@ export const UpcomingEvent = ({
 }) => {
 	const tokenPrice = price
 	const tokenSymbol = tokenPrice?.symbol?.toUpperCase() || symbol?.toUpperCase()
-	const currentUnlockBreakdown = event.map(({ description, noOfTokens, timestamp, unlockType }) => {
+	const currentUnlockBreakdown = event.map(({ description, noOfTokens, timestamp, unlockType, rateDurationDays }) => {
 		const regex =
 			/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
 		const matches = description.match(regex)
 		const name = matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
-		const amount = sum(noOfTokens)
+
+		let perDayAmount, totalAmount, displayUnit
+		if (unlockType === 'linear') {
+			const isIncrease = description.toLowerCase().includes('increase')
+			perDayAmount = (isIncrease ? noOfTokens[1] : noOfTokens[0]) / 7
+			totalAmount = perDayAmount * (rateDurationDays || 1)
+			displayUnit = 'per day'
+		} else {
+			perDayAmount = totalAmount = sum(noOfTokens)
+			displayUnit = ''
+		}
 		return {
 			name,
-			amount,
+			perDayAmount,
+			totalAmount,
+			displayUnit,
 			timestamp,
 			unlockType
 		}
 	})
 
-	const totalAmount = sum(currentUnlockBreakdown.map((item) => item.amount))
-	const totalUsdValue = price ? totalAmount * price : null
+	const totalAmount = sum(currentUnlockBreakdown.map((item) => item.totalAmount))
 	const tokenValue = price ? totalAmount * price : null
 	const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
 	const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
@@ -166,12 +177,17 @@ export const UpcomingEvent = ({
 
 				<hr className="border-[var(--bg4)]" />
 				<span className="flex flex-col gap-4">
-					{currentUnlockBreakdown.map(({ name, amount, unlockType }) => {
-						const percentage = (amount / maxSupply) * 100
-						const usdValue = price ? amount * price : null
+					{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp }) => {
+						const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
+						const usdValue = price
+							? isLinearPerDay
+								? perDayAmount * price // per day value for linear
+								: totalAmount * price // total for cliff
+							: null
+						const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
 						const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
 						return (
-							<span className="flex flex-col gap-1" key={name + amount}>
+							<span className="flex flex-col gap-1" key={name + totalAmount}>
 								<span className="flex items-center justify-between gap-2">
 									<span className="flex items-center gap-2">
 										{name}
@@ -189,15 +205,19 @@ export const UpcomingEvent = ({
 											</Ariakit.Tooltip>
 										</Ariakit.TooltipProvider>
 									</span>
-									<span>{usdValue ? formattedNum(usdValue, true) : '-'}</span>
+									<span className="inline-flex items-baseline gap-1">
+										{usdValue ? formattedNum(usdValue, true) : '-'}
+										{isLinearPerDay && <span className="text-xs text-[var(--text3)]">/ day</span>}
+									</span>
 								</span>
 								<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
 									<span>
 										{formattedNum(percentage)}%{' '}
-										{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
+										{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
 									</span>
-									<span>
-										{formattedNum(amount)} {tokenSymbol}
+									<span className="inline-flex items-baseline gap-1">
+										{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
+										{isLinearPerDay && <span className="text-xs text-[var(--text3)]">/ day</span>}
 									</span>
 								</span>
 							</span>
@@ -209,7 +229,7 @@ export const UpcomingEvent = ({
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol, description: '' }}
 						tokenName={name}
-						tokenValue={totalUsdValue ? formattedNum(totalUsdValue, true) : '-'}
+						tokenValue={tokenValue ? formattedNum(tokenValue, true) : '-'}
 						isProtocolPage={isProtocolPage}
 					/>
 				)}
@@ -225,7 +245,7 @@ export const UpcomingEvent = ({
 						<div className="flex space-x-2 items-center">
 							<div className="flex justify-between items-end" style={{ width: '150px' }}>
 								<div className="flex flex-col items-start">
-									<span className="text-white text-sm font-semibold">{formattedNum(totalUsdValue, true)}</span>
+									<span className="text-white text-sm font-semibold">{formattedNum(tokenValue, true)}</span>
 									<span className="text-[var(--text3)] text-xs font-medium">Unlock Value</span>
 								</div>
 								<div className="flex flex-col items-end">
@@ -298,12 +318,17 @@ export const UpcomingEvent = ({
 					</span>
 					<hr className="border-[var(--bg4)]" />
 					<span className="flex flex-col gap-4">
-						{currentUnlockBreakdown.map(({ name, amount, unlockType }) => {
-							const percentage = (amount / maxSupply) * 100
-							const usdValue = price ? amount * price : null
+						{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp }) => {
+							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
+							const usdValue = price
+								? isLinearPerDay
+									? perDayAmount * price // per day value for linear
+									: totalAmount * price // total for cliff
+								: null
+							const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
 							const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
 							return (
-								<span className="flex flex-col gap-1" key={name + amount}>
+								<span className="flex flex-col gap-1" key={name + totalAmount}>
 									<span className="flex items-center justify-between gap-2">
 										<span className="flex items-center gap-2">
 											{name}
@@ -321,15 +346,19 @@ export const UpcomingEvent = ({
 												</Ariakit.Tooltip>
 											</Ariakit.TooltipProvider>
 										</span>
-										<span>{usdValue ? formattedNum(usdValue, true) : '-'}</span>
+										<span className="inline-flex items-baseline gap-1">
+											{usdValue ? formattedNum(usdValue, true) : '-'}
+											{isLinearPerDay && <span className="text-xs text-[var(--text3)]">/ day</span>}
+										</span>
 									</span>
 									<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
 										<span>
 											{formattedNum(percentage)}%{' '}
-											{percentageFloat ? <>({formattedNum(percentageFloat)}% of float)</> : null}
+											{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
 										</span>
-										<span>
-											{formattedNum(amount)} {tokenSymbol}
+										<span className="inline-flex items-baseline gap-1">
+											{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
+											{isLinearPerDay && <span className="text-xs text-[var(--text3)]">/ day</span>}
 										</span>
 									</span>
 								</span>
@@ -341,7 +370,7 @@ export const UpcomingEvent = ({
 					<span className="flex flex-col gap-1">
 						<span className="flex items-center justify-between gap-2 font-semibold">
 							<span>Total</span>
-							<span>{totalUsdValue ? formattedNum(totalUsdValue, true) : '-'}</span>
+							<span>{tokenValue ? formattedNum(tokenValue, true) : '-'}</span>
 						</span>
 						<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
 							<span>
@@ -359,7 +388,7 @@ export const UpcomingEvent = ({
 				<CalendarButton
 					event={{ timestamp, noOfTokens, symbol, description: '' }}
 					tokenName={name}
-					tokenValue={totalUsdValue ? formattedNum(totalUsdValue, true) : '-'}
+					tokenValue={tokenValue ? formattedNum(tokenValue, true) : '-'}
 					isProtocolPage={isProtocolPage}
 				/>
 			)}
