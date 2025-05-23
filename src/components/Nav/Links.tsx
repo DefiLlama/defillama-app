@@ -229,7 +229,7 @@ export const navLinks: ILinks = {
 		],
 		icon: <Icon name="percent" height={16} width={16} />
 	},
-	Stables: {
+	Stablecoins: {
 		main: [
 			{ name: 'Overview', path: '/stablecoins' },
 			{ name: 'Chains', path: '/stablecoins/chains' }

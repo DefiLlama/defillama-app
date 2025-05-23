@@ -331,12 +331,22 @@ const nextConfig = {
 			},
 			{
 				source: '/option',
-				destination: '/options',
+				destination: '/options/premium-volume',
+				permanent: true
+			},
+			{
+				source: '/options',
+				destination: '/options/premium-volume',
 				permanent: true
 			},
 			{
 				source: '/options/chain',
-				destination: '/options/chains',
+				destination: '/options/premium-volume/chains',
+				permanent: true
+			},
+			{
+				source: '/options/chains',
+				destination: '/options/premium-volume/chains',
 				permanent: true
 			},
 			{
@@ -365,11 +375,6 @@ const nextConfig = {
 				permanent: true
 			},
 			{
-				source: '/perps-aggregators/chain',
-				destination: '/perps-aggregators/chains',
-				permanent: true
-			},
-			{
 				source: '/perps-aggregators/chain/:slug',
 				destination: '/perps-aggregators/chains/:slug',
 				permanent: true
@@ -380,8 +385,8 @@ const nextConfig = {
 				permanent: true
 			},
 			{
-				source: '/bridge-aggregators/chain',
-				destination: '/bridge-aggregators/chains',
+				source: '/bridge-aggregators/chains',
+				destination: '/bridge-aggregators',
 				permanent: true
 			},
 			{

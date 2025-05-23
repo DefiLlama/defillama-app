@@ -24,7 +24,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useRouter } from 'next/router'
 
 interface IProps extends IAdapterChainPageData {
-	type: 'Fees' | 'Revenue' | 'Holders Revenue'
+	type: 'Fees' | 'Revenue' | 'Holders Revenue' | 'Options Premium Volume' | 'Options Notional Volume'
 }
 
 export function ChainByAdapter2(props: IProps) {
@@ -395,6 +395,60 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			meta: {
 				align: 'end',
 				headerHelperText: 'Revenue earned by token holders in the last 30 days'
+			},
+			size: 180
+		}
+	],
+	'Options Premium Volume': [
+		...defaultColumns,
+		{
+			id: 'total24h',
+			header: 'Premium Volume 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Options Premium volume in the last 24 hours'
+			},
+			size: 180
+		},
+		{
+			id: 'total30d',
+			header: 'Premium Volume 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Options Premium volume in the last 30 days'
+			},
+			size: 180
+		}
+	],
+	'Options Notional Volume': [
+		...defaultColumns,
+		{
+			id: 'total24h',
+			header: 'Notional Volume 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Options Notional volume in the last 24 hours'
+			},
+			size: 180
+		},
+		{
+			id: 'total30d',
+			header: 'Notional Volume 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Options Notional volume in the last 30 days'
 			},
 			size: 180
 		}
