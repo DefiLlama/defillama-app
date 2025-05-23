@@ -64,7 +64,7 @@ export interface IDimenisionProtocolChartProps {
 
 export type IDimensionChartTypes = 'chain' | 'version' | 'tokens'
 
-interface IAdapterChainPageProtocol {
+interface IProtocol {
 	name: string
 	slug: string
 	logo: string
@@ -75,25 +75,24 @@ interface IAdapterChainPageProtocol {
 	total30d: number | null
 	total1y: number | null
 	totalAllTime: number | null
-	total48hto24h: number | null
-	total7DaysAgo: number | null
-	total30DaysAgo: number | null
 	mcap: number | null
-	childProtocols?: Array<{
-		name: string
-		slug: string
-		chains: Array<string>
-		category: string | null
+	bribes?: {
 		total24h: number | null
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
 		totalAllTime: number | null
-		total48hto24h: number | null
-		total7DaysAgo: number | null
-		total30DaysAgo: number | null
-		mcap: number | null
-	}>
+	}
+	tokenTax?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		totalAllTime: number | null
+	}
+}
+interface IAdapterChainPageProtocol extends IProtocol {
+	childProtocols?: Array<IProtocol>
 }
 
 export interface IAdapterChainPageData {

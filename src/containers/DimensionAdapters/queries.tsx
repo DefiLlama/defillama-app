@@ -1,11 +1,4 @@
-import {
-	BASE_API,
-	DIMENISIONS_OVERVIEW_API,
-	DIMENISIONS_SUMMARY_BASE_API,
-	ICONS_CDN,
-	MCAPS_API,
-	PROTOCOLS_API
-} from '~/constants'
+import { BASE_API, DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API, MCAPS_API, PROTOCOLS_API } from '~/constants'
 import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTOR_TYPES } from './constants'
@@ -193,12 +186,14 @@ export const getAdapterChainPageData = async ({
 	dataType?: string
 	route: string
 }) => {
-	const [data, protocolsData]: [
+	const [data, protocolsData, bribesData, tokenTaxesData]: [
 		IAdapterOverview,
 		{
 			protocols: Array<{ name: string; mcap: number | null }>
 			parentProtocols: Array<{ name: string; mcap: number | null }>
-		}
+		},
+		IAdapterOverview | null,
+		IAdapterOverview | null
 	] = await Promise.all([
 		getAdapterChainOverview({
 			type: adaptorType,
@@ -207,7 +202,25 @@ export const getAdapterChainPageData = async ({
 			excludeTotalDataChart: false,
 			excludeTotalDataChartBreakdown: true
 		}),
-		fetch(PROTOCOLS_API).then(handleFetchResponse)
+		fetch(PROTOCOLS_API).then(handleFetchResponse),
+		adaptorType === 'fees'
+			? getAdapterChainOverview({
+					type: adaptorType,
+					chain,
+					dataType: 'dailyBribesRevenue',
+					excludeTotalDataChart: false,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		adaptorType === 'fees'
+			? getAdapterChainOverview({
+					type: adaptorType,
+					chain,
+					dataType: 'dailyTokenTaxes',
+					excludeTotalDataChart: false,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null)
 	])
 
 	const chains = data.protocols
@@ -243,8 +256,36 @@ export const getAdapterChainPageData = async ({
 	for (const protocol of protocolsData.parentProtocols) {
 		protocolsMcap[protocol.name] = protocol.mcap ?? null
 	}
-
 	const mcapData = { ...protocolsMcap, chainsMcap }
+
+	const bribesProtocols =
+		bribesData?.protocols.reduce((acc, p) => {
+			if (p.total24h != null) {
+				acc[p.name] = {
+					total24h: p.total24h ?? null,
+					total7d: p.total7d ?? null,
+					total30d: p.total30d ?? null,
+					total1y: p.total1y ?? null,
+					totalAllTime: p.totalAllTime ?? null
+				}
+			}
+			return acc
+		}, {}) ?? {}
+
+	const tokenTaxesProtocols =
+		tokenTaxesData?.protocols.reduce((acc, p) => {
+			if (p.total24h != null) {
+				acc[p.name] = {
+					total24h: p.total24h ?? null,
+					total7d: p.total7d ?? null,
+					total30d: p.total30d ?? null,
+					total1y: p.total1y ?? null,
+					totalAllTime: p.totalAllTime ?? null
+				}
+			}
+			return acc
+		}, {}) ?? {}
+
 	const protocols = {}
 	const parentProtocols = {}
 	const categories = new Set()
@@ -264,10 +305,9 @@ export const getAdapterChainPageData = async ({
 				total30d: protocol.total30d ?? null,
 				total1y: protocol.total1y ?? null,
 				totalAllTime: protocol.totalAllTime ?? null,
-				total48hto24h: protocol.total48hto24h ?? null,
-				total7DaysAgo: protocol.total7DaysAgo ?? null,
-				total30DaysAgo: protocol.total30DaysAgo ?? null,
-				mcap: mcapData[protocol.name] ?? null
+				mcap: mcapData[protocol.name] ?? null,
+				...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
+				...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {})
 			})
 		} else {
 			protocols[protocol.name] = {
@@ -281,10 +321,9 @@ export const getAdapterChainPageData = async ({
 				total30d: protocol.total30d ?? null,
 				total1y: protocol.total1y ?? null,
 				totalAllTime: protocol.totalAllTime ?? null,
-				total48hto24h: protocol.total48hto24h ?? null,
-				total7DaysAgo: protocol.total7DaysAgo ?? null,
-				total30DaysAgo: protocol.total30DaysAgo ?? null,
-				mcap: mcapData[protocol.name] ?? null
+				mcap: mcapData[protocol.name] ?? null,
+				...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
+				...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {})
 			}
 		}
 		if (protocol.category) {
@@ -309,16 +348,43 @@ export const getAdapterChainPageData = async ({
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.totalAllTime ?? 0), 0)
 			: null
 
-		const total48hto24h = parentProtocols[protocol].some((p) => p.total48hto24h != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total48hto24h ?? 0), 0)
+		const bribes = parentProtocols[protocol].some((p) => p.bribes != null)
+			? parentProtocols[protocol].reduce(
+					(acc, p) => {
+						acc.total24h += p.bribes?.total24h ?? 0
+						acc.total7d += p.bribes?.total7d ?? 0
+						acc.total30d += p.bribes?.total30d ?? 0
+						acc.total1y += p.bribes?.total1y ?? 0
+						acc.totalAllTime += p.bribes?.totalAllTime ?? 0
+						return acc
+					},
+					{
+						total24h: 0,
+						total7d: 0,
+						total30d: 0,
+						total1y: 0,
+						totalAllTime: 0
+					}
+			  )
 			: null
-
-		const total7DaysAgo = parentProtocols[protocol].some((p) => p.total7DaysAgo != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total7DaysAgo ?? 0), 0)
-			: null
-
-		const total30DaysAgo = parentProtocols[protocol].some((p) => p.total30DaysAgo != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total30DaysAgo ?? 0), 0)
+		const tokenTax = parentProtocols[protocol].some((p) => p.tokenTax != null)
+			? parentProtocols[protocol].reduce(
+					(acc, p) => {
+						acc.total24h += p.tokenTax?.total24h ?? 0
+						acc.total7d += p.tokenTax?.total7d ?? 0
+						acc.total30d += p.tokenTax?.total30d ?? 0
+						acc.total1y += p.tokenTax?.total1y ?? 0
+						acc.totalAllTime += p.tokenTax?.totalAllTime ?? 0
+						return acc
+					},
+					{
+						total24h: 0,
+						total7d: 0,
+						total30d: 0,
+						total1y: 0,
+						totalAllTime: 0
+					}
+			  )
 			: null
 
 		const categories = Array.from(new Set(parentProtocols[protocol].filter((p) => p.category).map((p) => p.category)))
@@ -334,11 +400,10 @@ export const getAdapterChainPageData = async ({
 			total30d,
 			total1y,
 			totalAllTime,
-			total48hto24h,
-			total7DaysAgo,
-			total30DaysAgo,
 			mcap: mcapData[protocol] ?? null,
-			childProtocols: parentProtocols[protocol]
+			childProtocols: parentProtocols[protocol],
+			...(bribes ? { bribes } : {}),
+			...(tokenTax ? { tokenTax } : {})
 		}
 	}
 

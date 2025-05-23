@@ -6,6 +6,8 @@ import { Icon } from '~/components/Icon'
 import {
 	type ColumnDef,
 	ColumnFiltersState,
+	ColumnOrderState,
+	ColumnSizingState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -22,6 +24,8 @@ import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { Metrics } from '~/components/Metrics'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useRouter } from 'next/router'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import useWindowSize from '~/hooks/useWindowSize'
 
 interface IProps extends IAdapterChainPageData {
 	type:
@@ -39,6 +43,7 @@ interface IProps extends IAdapterChainPageData {
 
 export function ChainByAdapter2(props: IProps) {
 	const router = useRouter()
+	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
 	const { selectedCategories, protocols } = useMemo(() => {
 		const selectedCategories = router.query.category
@@ -49,24 +54,88 @@ export function ChainByAdapter2(props: IProps) {
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
+		const protocols =
+			categoriesToFilter.length > 0
+				? props.protocols.filter((protocol) => categoriesToFilter.includes(protocol.category))
+				: props.protocols
+
+		const finalProtocols =
+			props.adaptorType === 'fees' && (enabledSettings.bribes || enabledSettings.tokentax)
+				? protocols.map((p) => {
+						const childProtocols = p.childProtocols
+							? p.childProtocols.map((cp) => {
+									return {
+										...cp,
+										total24h:
+											cp.total24h +
+											(enabledSettings.bribes ? cp.bribes?.total24h ?? 0 : 0) +
+											(enabledSettings.tokentax ? cp.tokenTax?.total24h ?? 0 : 0),
+										total7d:
+											cp.total7d +
+											(enabledSettings.bribes ? cp.bribes?.total7d ?? 0 : 0) +
+											(enabledSettings.tokentax ? cp.tokenTax?.total7d ?? 0 : 0),
+										total30d:
+											cp.total30d +
+											(enabledSettings.bribes ? cp.bribes?.total30d ?? 0 : 0) +
+											(enabledSettings.tokentax ? cp.tokenTax?.total30d ?? 0 : 0),
+										total1y:
+											cp.total1y +
+											(enabledSettings.bribes ? cp.bribes?.total1y ?? 0 : 0) +
+											(enabledSettings.tokentax ? cp.tokenTax?.total1y ?? 0 : 0),
+										totalAllTime:
+											cp.totalAllTime +
+											(enabledSettings.bribes ? cp.bribes?.totalAllTime ?? 0 : 0) +
+											(enabledSettings.tokentax ? cp.tokenTax?.totalAllTime ?? 0 : 0)
+									}
+							  })
+							: null
+
+						return {
+							...p,
+							total24h:
+								p.total24h +
+								(enabledSettings.bribes ? p.bribes?.total24h ?? 0 : 0) +
+								(enabledSettings.tokentax ? p.tokenTax?.total24h ?? 0 : 0),
+							total7d:
+								p.total7d +
+								(enabledSettings.bribes ? p.bribes?.total7d ?? 0 : 0) +
+								(enabledSettings.tokentax ? p.tokenTax?.total7d ?? 0 : 0),
+							total30d:
+								p.total30d +
+								(enabledSettings.bribes ? p.bribes?.total30d ?? 0 : 0) +
+								(enabledSettings.tokentax ? p.tokenTax?.total30d ?? 0 : 0),
+							total1y:
+								p.total1y +
+								(enabledSettings.bribes ? p.bribes?.total1y ?? 0 : 0) +
+								(enabledSettings.tokentax ? p.tokenTax?.total1y ?? 0 : 0),
+							totalAllTime:
+								p.totalAllTime +
+								(enabledSettings.bribes ? p.bribes?.totalAllTime ?? 0 : 0) +
+								(enabledSettings.tokentax ? p.tokenTax?.totalAllTime ?? 0 : 0),
+							...(childProtocols ? { childProtocols } : {})
+						}
+				  })
+				: protocols
+
 		return {
 			selectedCategories,
-			protocols:
-				categoriesToFilter.length > 0
-					? props.protocols.filter((protocol) => categoriesToFilter.includes(protocol.category))
-					: props.protocols
+			protocols: finalProtocols
 		}
-	}, [router.query.category, props])
+	}, [router.query.category, props, enabledSettings])
 
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
+	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
 
 	const instance = useReactTable({
 		data: protocols,
 		columns: columnsByType[props.type] as any,
 		state: {
 			sorting,
-			columnFilters
+			columnFilters,
+			columnSizing,
+			columnOrder
 		},
 		sortingFns: {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => {
@@ -93,9 +162,12 @@ export function ChainByAdapter2(props: IProps) {
 				return a - b
 			}
 		},
+		filterFromLeafRows: true,
 		getSubRows: (row: IAdapterChainPageData['protocols'][0]) => row.childProtocols,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
+		onColumnSizingChange: setColumnSizing,
+		onColumnOrderChange: setColumnOrder,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
@@ -115,6 +187,14 @@ export function ChainByAdapter2(props: IProps) {
 
 		return () => clearTimeout(id)
 	}, [projectName, instance])
+
+	const windowSize = useWindowSize()
+	useEffect(() => {
+		const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
+		const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
+		instance.setColumnOrder(colOrder[1])
+		instance.setColumnSizing(colSize[1])
+	}, [instance, windowSize])
 
 	const downloadCsv = useCallback(() => {
 		const header = [
@@ -240,6 +320,15 @@ export function ChainByAdapter2(props: IProps) {
 	)
 }
 
+const columnSizes = Object.entries({ 0: { name: 180 }, 640: { name: 240 }, 768: { name: 280 } }).sort(
+	(a, b) => Number(b[0]) - Number(a[0])
+)
+
+const columnOrders = Object.entries({
+	0: ['name', 'total24h', 'total30d', 'caegory'],
+	640: ['name', 'category', 'total24h', 'total30d']
+}).sort((a, b) => Number(b[0]) - Number(a[0]))
+
 const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 	{
 		id: 'name',
@@ -285,7 +374,7 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 
 					<span className="flex-shrink-0">{index + 1}</span>
 
-					<TokenLogo logo={row.original.logo} />
+					<TokenLogo logo={row.original.logo} data-lgonly />
 
 					<span className="flex flex-col -my-2">
 						<BasicLink
@@ -302,7 +391,7 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 				</span>
 			)
 		},
-		size: 200
+		size: 280
 	}
 ]
 
@@ -325,7 +414,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 				) : (
 					''
 				),
-			size: 140,
+			size: 128,
 			meta: {
 				align: 'end'
 			}
@@ -373,7 +462,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 				) : (
 					''
 				),
-			size: 140,
+			size: 128,
 			meta: {
 				align: 'end'
 			}
@@ -421,7 +510,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 				) : (
 					''
 				),
-			size: 140,
+			size: 128,
 			meta: {
 				align: 'end'
 			}

@@ -292,25 +292,6 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Icon name="book" height={16} width={16} />
 	},
-	Bridges: {
-		main: [
-			{ name: 'Overview', path: '/bridges' },
-			{ name: 'Chains', path: '/bridges/chains' },
-			{ name: 'Transactions', path: '/bridge-transactions', newTag: true }
-		],
-		...defaultToolsAndFooterLinks,
-		icon: <Icon name="shuffle" height={16} width={16} />
-	},
-	Governance: {
-		main: [],
-		...defaultToolsAndFooterLinks,
-		icon: <Icon name="file-text" height={16} width={16} />
-	},
-	Liquidations: {
-		main: [],
-		...defaultToolsAndFooterLinks,
-		icon: <Icon name="droplet" height={16} width={16} />
-	},
 	NFT: {
 		main: [
 			{ name: 'Collections', path: '/nfts' },
@@ -339,12 +320,26 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Icon name="eye" height={16} width={16} />
+	},
+	Bridges: {
+		main: [
+			{ name: 'Overview', path: '/bridges' },
+			{ name: 'Chains', path: '/bridges/chains' },
+			{ name: 'Transactions', path: '/bridge-transactions', newTag: true }
+		],
+		...defaultToolsAndFooterLinks,
+		icon: <Icon name="shuffle" height={16} width={16} />
+	},
+	Governance: {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Icon name="file-text" height={16} width={16} />
+	},
+	Liquidations: {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Icon name="droplet" height={16} width={16} />
 	}
-	// NFTs: {
-	// 	main: [],
-	// 	...defaultToolsAndFooterLinks,
-	// 	icon: <FeatherImage height={16} width={16} />
-	// }
 }
 
 export const linksWithNoSubMenu = [
