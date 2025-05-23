@@ -64,7 +64,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const RevenueOnChain = (props) => {
+const PremiumVolumeOnChain = (props) => {
 	return (
 		<Layout title={`${props.chain} ${type} - DefiLlama`} defaultSEO>
 			<ChainByAdapter2 {...props} type={type} />
@@ -72,4 +72,4 @@ const RevenueOnChain = (props) => {
 	)
 }
 
-export default RevenueOnChain
+export default PremiumVolumeOnChain

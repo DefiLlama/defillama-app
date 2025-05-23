@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging(`${slug(type)}/index`, asyn
 	}
 })
 
-const FeesOnAllChains = (props) => {
+const PremiumVolumeOnAllChains = (props) => {
 	return (
 		<Layout title={`${type} - DefiLlama`} defaultSEO>
 			<ChainByAdapter2 {...props} type={type} />
@@ -34,4 +34,4 @@ const FeesOnAllChains = (props) => {
 	)
 }
 
-export default FeesOnAllChains
+export default PremiumVolumeOnAllChains
