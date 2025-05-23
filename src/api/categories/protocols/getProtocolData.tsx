@@ -61,7 +61,8 @@ const chartTypes = [
 	'Premium Volume',
 	'Perps Aggregators Volume',
 	'Bridge Aggregators Volume',
-	'DEX Aggregators Volume'
+	'DEX Aggregators Volume',
+	'Incentives'
 ]
 
 const fetchGovernanceData = async (apis: Array<string>) => {

@@ -305,8 +305,6 @@ const ProtocolChart = React.memo(function ProtocolChart({
 						? chartColors['TVL']
 						: option.label === 'Developer Commits'
 						? chartColors['Devs Commits']
-						: option.label === 'Incentives'
-						? '#FF9800'
 						: chartColors[option.label.startsWith('$') ? `Token ${option.label.split(' ')[1]}` : option.label]
 				return {
 					...option,
