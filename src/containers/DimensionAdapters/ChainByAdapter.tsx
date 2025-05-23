@@ -162,7 +162,7 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 						<></>
 					)}
 
-					<ChainByAdapterChart totalDataChart={props.totalDataChart} />
+					<ChainByAdapterChart totalDataChart={props.totalDataChart} adapterType={props.type} chain={chain} />
 				</div>
 			) : null}
 
