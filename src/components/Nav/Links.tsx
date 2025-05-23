@@ -245,7 +245,8 @@ export const navLinks: ILinks = {
 			{ name: 'Perps', path: '/perps' },
 			{ name: 'Perps (Chains)', path: '/perps/chains' },
 			{ name: 'Perp Aggregators', path: '/perps-aggregators', newTag: true },
-			{ name: 'Options', path: '/options' },
+			{ name: 'Options Premium Volume', path: '/options/premium-volume' },
+			{ name: 'Options Notional Volume', path: '/options/notional-volume' },
 			{ name: 'Options (Chains)', path: '/options/chains' },
 			{ name: 'Bridge Aggregators', path: '/bridge-aggregators', newTag: true }
 		],
