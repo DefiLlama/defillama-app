@@ -38,7 +38,8 @@ interface ChartData {
 	'Bridge Withdrawals'?: number
 	Volume?: number
 	'Perps Volume'?: number
-	'Premium Volume'?: number
+	'Options Premium Volume'?: number
+	'Options Notional Volume'?: number
 	'Aggregators Volume'?: number
 	'Perps Aggregators Volume'?: number
 	'Bridge Aggregators Volume'?: number
@@ -119,7 +120,8 @@ export function useFetchAndFormatChartData({
 	nftVolume,
 	nftVolumeData,
 	aggregators,
-	premiumVolume,
+	optionsPremiumVolume,
+	optionsNotionalVolume,
 	perpsAggregators,
 	bridgeAggregators
 }): ReturnType {
@@ -203,10 +205,13 @@ export function useFetchAndFormatChartData({
 		disabled: isRouterReady && perpsVolume === 'true' && metrics.perps ? false : true
 	})
 
-	const { data: optionsVolumeData, isLoading: fetchingOptionsVolume } = useGetDimensionAdapterChartData({
+	const { data: optionsData, isLoading: fetchingOptionsVolume } = useGetDimensionAdapterChartData({
 		protocolName: protocol,
 		adapterType: 'options',
-		disabled: isRouterReady && premiumVolume === 'true' && metrics.options ? false : true
+		disabled:
+			isRouterReady && (optionsPremiumVolume === 'true' || optionsNotionalVolume === 'true') && metrics.options
+				? false
+				: true
 	})
 
 	const { data: aggregatorsVolumeData, isLoading: fetchingAggregatorsVolume } = useGetDimensionAdapterChartData({
@@ -444,18 +449,31 @@ export function useFetchAndFormatChartData({
 			}
 		}
 
-		if (optionsVolumeData) {
-			chartsUnique.push('Premium Volume')
+		if (optionsData) {
+			if (optionsPremiumVolume === 'true') {
+				chartsUnique.push('Options Premium Volume')
+			}
+			if (optionsNotionalVolume === 'true') {
+				chartsUnique.push('Options Notional Volume')
+			}
 
-			for (const item of optionsVolumeData.totalDataChart[0]) {
+			for (const item of optionsData.totalDataChart[0]) {
 				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
 
-				chartData[date]['Premium Volume'] = showNonUsdDenomination
-					? +item['Premium volume'] / getPriceAtDate(date, denominationHistory.prices)
-					: item['Premium volume']
+				if (optionsPremiumVolume === 'true') {
+					chartData[date]['Options Premium Volume'] = showNonUsdDenomination
+						? +item['Premium volume'] / getPriceAtDate(date, denominationHistory.prices)
+						: item['Premium volume']
+				}
+
+				if (optionsNotionalVolume === 'true') {
+					chartData[date]['Options Notional Volume'] = showNonUsdDenomination
+						? +item['Notional volume'] / getPriceAtDate(date, denominationHistory.prices)
+						: item['Notional volume']
+				}
 			}
 		}
 
@@ -969,7 +987,7 @@ export function useFetchAndFormatChartData({
 		bridgeVolumeData,
 		volumeData,
 		perpsVolumeData,
-		optionsVolumeData,
+		optionsData,
 		aggregatorsVolumeData,
 		perpsAggregatorsVolumeData,
 		bridgeAggregatorsVolumeData,
@@ -1001,6 +1019,8 @@ export function useFetchAndFormatChartData({
 		tokenVolume,
 		fees,
 		revenue,
+		optionsPremiumVolume,
+		optionsNotionalVolume,
 		groupBy
 	])
 

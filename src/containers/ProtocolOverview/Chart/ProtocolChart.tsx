@@ -49,6 +49,7 @@ const CHART_TYPES = [
 	'dexVolume',
 	'perpsVolume',
 	'premiumVolume',
+	'notionalVolume',
 	'fees',
 	'revenue',
 	'unlocks',
@@ -109,7 +110,10 @@ const ProtocolChart = React.memo(function ProtocolChart({
 					: metrics.perps
 					? { perpsVolume: router.query.perpsVolume ?? 'true' }
 					: metrics.options
-					? { premiumVolume: router.query.premiumVolume ?? 'true' }
+					? {
+							optionsPremiumVolume: router.query.optionsPremiumVolume ?? 'true',
+							optionsNotionalVolume: router.query.optionsNotionalVolume ?? 'true'
+					  }
 					: metrics.dexAggregators
 					? { dexAggregators: router.query.dexAggregators ?? 'true' }
 					: metrics.bridgeAggregators
@@ -149,7 +153,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			fdv: toggledMetrics.fdv,
 			volume: toggledMetrics.dexVolume,
 			perpsVolume: toggledMetrics.perpsVolume,
-			premiumVolume: toggledMetrics.premiumVolume,
+			optionsPremiumVolume: toggledMetrics.optionsPremiumVolume,
+			optionsNotionalVolume: toggledMetrics.optionsNotionalVolume,
 			fees: toggledMetrics.fees,
 			revenue: toggledMetrics.revenue,
 			unlocks: toggledMetrics.unlocks,
@@ -233,7 +238,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			options.push({ label: 'Perps Aggregators Volume', key: 'perpsAggregators' })
 		}
 		if (metrics?.options) {
-			options.push({ label: 'Options Volume', key: 'premiumVolume' })
+			options.push({ label: 'Options Premium Volume', key: 'optionsPremiumVolume' })
+			options.push({ label: 'Options Notional Volume', key: 'optionsNotionalVolume' })
 		}
 		if (metrics?.fees) {
 			options.push({ label: 'Fees', key: 'fees' })

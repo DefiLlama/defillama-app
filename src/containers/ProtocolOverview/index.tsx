@@ -82,7 +82,8 @@ interface IProtocolContainerProps {
 	allTimeAggregatorsVolume: number | null
 	dailyPerpsAggregatorVolume: number | null
 	allTimePerpsAggregatorVolume: number | null
-	dailyOptionsVolume: number | null
+	dailyOptionsPremiumVolume: number | null
+	dailyOptionsNotionalVolume: number | null
 	controversialProposals: Array<{ title: string; link?: string }> | null
 	governanceApis: Array<string> | null
 	expenses: any
@@ -173,7 +174,8 @@ const ProtocolContainer = ({
 	allTimeAggregatorsVolume,
 	dailyPerpsAggregatorVolume,
 	allTimePerpsAggregatorVolume,
-	dailyOptionsVolume,
+	dailyOptionsPremiumVolume,
+	dailyOptionsNotionalVolume,
 	controversialProposals,
 	governanceApis,
 	expenses,
@@ -882,7 +884,7 @@ const ProtocolContainer = ({
 										</tr>
 									) : null}
 
-									{dailyOptionsVolume ? (
+									{dailyOptionsPremiumVolume ? (
 										<tr className="group">
 											<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 												<Tooltip
@@ -897,7 +899,30 @@ const ProtocolContainer = ({
 													className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 												/>
 											</th>
-											<td className="font-jetbrains text-right whitespace-nowrap">{formatPrice(dailyOptionsVolume)}</td>
+											<td className="font-jetbrains text-right whitespace-nowrap">
+												{formatPrice(dailyOptionsPremiumVolume)}
+											</td>
+										</tr>
+									) : null}
+
+									{dailyOptionsNotionalVolume ? (
+										<tr className="group">
+											<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
+												<Tooltip
+													content="Sum of value of all options trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
+													className="underline decoration-dotted"
+												>
+													Options Notional Volume 24h
+												</Tooltip>
+												<Flag
+													protocol={protocolData.name}
+													dataType={'Options Notional Volume 24h'}
+													className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+												/>
+											</th>
+											<td className="font-jetbrains text-right whitespace-nowrap">
+												{formatPrice(dailyOptionsNotionalVolume)}
+											</td>
 										</tr>
 									) : null}
 

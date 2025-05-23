@@ -82,7 +82,8 @@ export default function ProtocolChart({
 		devCommits,
 		nftVolume,
 		aggregators,
-		premiumVolume,
+		optionsPremiumVolume,
+		optionsNotionalVolume,
 		perpsAggregators,
 		bridgeAggregators
 	} = router.query
@@ -147,7 +148,8 @@ export default function ProtocolChart({
 			nftVolume,
 			nftVolumeData,
 			aggregators,
-			premiumVolume,
+			optionsPremiumVolume,
+			optionsNotionalVolume,
 			perpsAggregators,
 			bridgeAggregators
 		})

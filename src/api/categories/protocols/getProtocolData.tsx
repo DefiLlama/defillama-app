@@ -59,7 +59,8 @@ const chartTypes = [
 	'Devs Commits',
 	'Contributers Commits',
 	'NFT Volume',
-	'Premium Volume',
+	'Options Premium Volume',
+	'Options Notional Volume',
 	'Perps Aggregators Volume',
 	'Bridge Aggregators Volume',
 	'DEX Aggregators Volume'
@@ -136,13 +137,15 @@ export const getProtocolData = async (
 		emissions,
 		devMetrics,
 		aggregatorProtocols,
-		optionsProtocols,
+		optionsPremiumVolumeProtocols,
+		optionsNotionalVolumeProtocols,
 		derivatesAggregatorProtocols,
 		governanceData
 	]: [
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any,
 		any,
 		any,
 		any,
@@ -336,7 +339,17 @@ export const getProtocolData = async (
 			  )
 					.then((res) => res.json())
 					.catch((err) => {
-						console.log(`Couldn't fetch options protocols list at path: ${protocol}`, 'Error:', err)
+						console.log(`Couldn't fetch options premium volume protocols list at path: ${protocol}`, 'Error:', err)
+						return {}
+					})
+			: {},
+		protocolMetadata[protocolData.id]?.options && !isCpusHot
+			? fetchWithErrorLogging(
+					`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyNotionalVolume`
+			  )
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log(`Couldn't fetch options notional volume protocols list at path: ${protocol}`, 'Error:', err)
 						return {}
 					})
 			: {},
@@ -424,7 +437,10 @@ export const getProtocolData = async (
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const optionsData = optionsProtocols?.protocols?.filter(
+	const optionsPremiumVolumeData = optionsPremiumVolumeProtocols?.protocols?.filter(
+		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
+	)
+	const optionsNotionalVolumeData = optionsNotionalVolumeProtocols?.protocols?.filter(
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
@@ -494,7 +510,10 @@ export const getProtocolData = async (
 	const dailyPerpsAggregatorVolume = perpsAggregatorData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const allTimePerpsAggregatorVolume =
 		perpsAggregatorData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const dailyOptionsVolume = optionsData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
+	const dailyOptionsPremiumVolume =
+		optionsPremiumVolumeData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
+	const dailyOptionsNotionalVolume =
+		optionsNotionalVolumeData?.reduce((acc, curr) => (acc += curr.total24h || 0), 0) ?? null
 	const allTimeFees = feesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeRevenue = revenueData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeBribesRevenue = bribesData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
@@ -617,7 +636,8 @@ export const getProtocolData = async (
 			allTimeAggregatorsVolume,
 			dailyPerpsAggregatorVolume,
 			allTimePerpsAggregatorVolume,
-			dailyOptionsVolume,
+			dailyOptionsPremiumVolume,
+			dailyOptionsNotionalVolume,
 			controversialProposals,
 			governanceApis: governanceApis.filter((x) => !!x),
 			treasury: treasury?.tokenBreakdowns ?? null,

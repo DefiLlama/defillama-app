@@ -22,7 +22,8 @@ export const BAR_CHARTS = [
 	'Contributers Commits',
 	'NFT Volume',
 	'Aggregators Volume',
-	'Premium Volume',
+	'Options Premium Volume',
+	'Options Notional Volume',
 	'Perps Aggregators Volume',
 	'Bridge Aggregators Volume'
 ]

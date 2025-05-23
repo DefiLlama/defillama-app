@@ -44,7 +44,7 @@ export const CSVDownloadButton = ({
 				}}
 				disabled={isLoading}
 			>
-				{isLoading ? (
+				{isClient && isLoading ? (
 					<svg
 						className="animate-spin mx-auto h-[14px] w-[14px"
 						xmlns="http://www.w3.org/2000/svg"
