@@ -57,6 +57,12 @@ export interface IChainOverviewData {
 		totalREV24h: number | null
 	}
 	chainRevenue: { total24h: number | null }
+	chainIncentives: {
+		emissions24h: number | null
+		emissions7d: number | null
+		emissions30d: number | null
+		incentivesChart: Array<[number, number]> | null
+	}
 	appRevenue: { total24h: number | null }
 	dexs: {
 		total24h: number | null

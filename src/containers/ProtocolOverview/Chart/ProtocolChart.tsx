@@ -37,6 +37,13 @@ interface IProps {
 	nftVolumeData: NftVolumeData
 	protocolData?: IFusedProtocolData
 	enabled?: Record<string, boolean>
+	incentivesData?: {
+		emissions24h: number
+		emissions7d: number
+		emissions30d: number
+		emissionsAllTime: number
+		incentivesChart: Array<[number, number]>
+	}
 }
 
 const CHART_TYPES = [
@@ -51,6 +58,7 @@ const CHART_TYPES = [
 	'premiumVolume',
 	'fees',
 	'revenue',
+	'incentives',
 	'unlocks',
 	'activeAddresses',
 	'newAddresses',
@@ -94,7 +102,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 	twitterHandle,
 	nftVolumeData,
 	protocolData,
-	enabled = null
+	enabled = null,
+	incentivesData
 }: IProps) {
 	const router = useRouter()
 	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
@@ -152,6 +161,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			premiumVolume: toggledMetrics.premiumVolume,
 			fees: toggledMetrics.fees,
 			revenue: toggledMetrics.revenue,
+			incentives: toggledMetrics.incentives,
 			unlocks: toggledMetrics.unlocks,
 			activeAddresses: toggledMetrics.activeAddresses,
 			newAddresses: toggledMetrics.newAddresses,
@@ -188,7 +198,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			nftVolumeData,
 			aggregators: toggledMetrics.dexAggregators,
 			perpsAggregators: toggledMetrics.perpsAggregators,
-			bridgeAggregators: toggledMetrics.bridgeAggregators
+			bridgeAggregators: toggledMetrics.bridgeAggregators,
+			incentivesData
 		})
 
 	const realPathname =
@@ -240,6 +251,9 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		}
 		if (metrics?.revenue) {
 			options.push({ label: 'Revenue', key: 'revenue' })
+		}
+		if (incentivesData?.incentivesChart?.length > 0) {
+			options.push({ label: 'Incentives', key: 'incentives' })
 		}
 		if (metrics?.unlocks) {
 			options.push({ label: 'Unlocks', key: 'unlocks' })
@@ -315,7 +329,8 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		tokenSymbol,
 		isCEX,
 		protocolData,
-		chartColors
+		chartColors,
+		incentivesData
 	])
 
 	if (enabled)

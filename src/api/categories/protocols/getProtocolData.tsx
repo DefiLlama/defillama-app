@@ -1,6 +1,6 @@
 import { formatPercentage, getNDistinctColors, slug, timeFromNow } from '~/utils'
 import { maxAgeForNext } from '~/api'
-import { fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
+import { fuseProtocolData, getProtocolEmissons, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
@@ -62,7 +62,8 @@ const chartTypes = [
 	'Premium Volume',
 	'Perps Aggregators Volume',
 	'Bridge Aggregators Volume',
-	'DEX Aggregators Volume'
+	'DEX Aggregators Volume',
+	'Incentives'
 ]
 
 const fetchGovernanceData = async (apis: Array<string>) => {
@@ -105,12 +106,12 @@ export const getProtocolData = async (
 	const governanceApis = (
 		protocolData.governanceID?.map((gid) =>
 			gid.startsWith('snapshot:')
-				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|’|')/g, '/')}.json`
+				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|' |')/g, '/')}.json`
 				: gid.startsWith('compound:')
-				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|’|')/g, '/')}.json`
+				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|' |')/g, '/')}.json`
 				: gid.startsWith('tally:')
-				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|’|')/g, '/')}.json`
-				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
+				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|' |')/g, '/')}.json`
+				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|' |')/g, '/')}.json`
 		) ?? []
 	).map((g) => g.toLowerCase())
 
@@ -138,11 +139,13 @@ export const getProtocolData = async (
 		aggregatorProtocols,
 		optionsProtocols,
 		derivatesAggregatorProtocols,
-		governanceData
+		governanceData,
+		incentivesData
 	]: [
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
+		any,
 		any,
 		any,
 		any,
@@ -351,7 +354,28 @@ export const getProtocolData = async (
 					})
 			: {},
 		// fetchGovernanceData(!isCpusHot ? governanceApis : [])
-		fetchGovernanceData([])
+		fetchGovernanceData([]),
+		protocolMetadata[protocolData.id]?.emissions && !isCpusHot
+			? fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
+					.then((res) => res.json())
+					.then(async (data) => {
+						const protocolEmissionsData = data.protocols.find((item) =>
+							protocolData.id.startsWith('parent#')
+								? item.name === protocolData.name
+								: item.defillamaId === protocolData.id
+						)
+						if (!protocolEmissionsData) return null
+						const protocolEmissions = await getProtocolEmissons(slug(protocolEmissionsData.name))
+						return {
+							incentivesChart: protocolEmissions.unlockUsdChart,
+							emissions24h: protocolEmissionsData.emission24h,
+							emissions7d: protocolEmissionsData.emission7d,
+							emissions30d: protocolEmissionsData.emission30d,
+							emissionsAllTime: protocolEmissions.unlockUsdChart.reduce((acc, curr) => acc + curr[1], 0)
+						}
+					})
+					.catch(() => null)
+			: {}
 	])
 
 	let inflowsExist = false
@@ -640,7 +664,9 @@ export const getProtocolData = async (
 						  (revenueData.reduce((acc, curr) => (acc = [...acc, curr.name]), []) ?? []).join(',')
 						: revenueData?.[0]?.methodology?.['Revenue'] ?? null,
 				users:
-					'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.'
+					'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.',
+				incentives:
+					'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms.'
 			},
 			expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null,
 			tokenLiquidity,
@@ -675,7 +701,8 @@ export const getProtocolData = async (
 					: null) ?? null,
 			clientSide: isCpusHot,
 			pageStyles,
-			metrics: getProtocolMetrics({ protocolData: protocolRes as any, metadata })
+			metrics: getProtocolMetrics({ protocolData: protocolRes as any, metadata }),
+			incentivesData: incentivesData
 		},
 		revalidate: maxAgeForNext([22])
 	}
