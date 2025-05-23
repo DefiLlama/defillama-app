@@ -64,14 +64,17 @@ interface IProtocolContainerProps {
 	} | null
 	fees30d: number | null
 	revenue30d: number | null
+	holdersRevenue30d: number | null
 	tokenTaxesRevenue30d: number | null
 	bribesRevenue30d: number | null
 	allTimeFees: number | null
 	allTimeRevenue: number | null
+	allTimeHoldersRevenue: number | null
 	allTimeBribesRevenue: number | null
 	allTimeTokenTaxesRevenue: number | null
 	dailyFees: number | null
 	dailyRevenue: number | null
+	dailyHoldersRevenue: number | null
 	dailyBribesRevenue: number | null
 	dailyTokenTaxes: number | null
 	dailyVolume: number | null
@@ -156,14 +159,17 @@ const ProtocolContainer = ({
 	users,
 	fees30d,
 	revenue30d,
+	holdersRevenue30d,
 	allTimeFees,
 	dailyFees,
 	dailyRevenue,
+	dailyHoldersRevenue,
 	dailyBribesRevenue,
 	dailyTokenTaxes,
 	bribesRevenue30d,
 	tokenTaxesRevenue30d,
 	allTimeRevenue,
+	allTimeHoldersRevenue,
 	allTimeBribesRevenue,
 	allTimeTokenTaxesRevenue,
 	dailyVolume,
@@ -379,28 +385,43 @@ const ProtocolContainer = ({
 		return formattedNum(value, true)
 	}
 
-	let revenue30dFinal = revenue30d
-	let dailyRevenueFinal = dailyRevenue
 	let dailyFeesFinal = dailyFees
 	let fees30dFinal = fees30d
 	let allTimeFeesFinal = allTimeFees
+
+	let dailyRevenueFinal = dailyRevenue
+	let revenue30dFinal = revenue30d
 	let allTimeRevenueFinal = allTimeRevenue
 
+	let dailyHoldersRevenueFinal = dailyHoldersRevenue
+	let holdersRevenue30dFinal = holdersRevenue30d
+	let allTimeHoldersRevenueFinal = allTimeHoldersRevenue
+
 	if (extraTvlsEnabled[FEES_SETTINGS.BRIBES] && dailyBribesRevenue != null) {
-		dailyRevenueFinal = dailyRevenue + (dailyBribesRevenue ?? 0)
-		revenue30dFinal = revenue30d + (bribesRevenue30d ?? 0)
 		dailyFeesFinal = dailyFees + (dailyBribesRevenue ?? 0)
 		fees30dFinal = fees30d + (bribesRevenue30d ?? 0)
 		allTimeFeesFinal = allTimeFees + (allTimeBribesRevenue ?? 0)
+
+		dailyRevenueFinal = dailyRevenue + (dailyBribesRevenue ?? 0)
+		revenue30dFinal = revenue30d + (bribesRevenue30d ?? 0)
 		allTimeRevenueFinal = allTimeRevenue + (allTimeBribesRevenue ?? 0)
+
+		dailyHoldersRevenueFinal = dailyHoldersRevenue + (dailyBribesRevenue ?? 0)
+		holdersRevenue30dFinal = holdersRevenue30d + (bribesRevenue30d ?? 0)
+		allTimeHoldersRevenueFinal = allTimeHoldersRevenue + (allTimeBribesRevenue ?? 0)
 	}
 	if (extraTvlsEnabled[FEES_SETTINGS.TOKENTAX] && dailyTokenTaxes != null) {
-		dailyRevenueFinal = dailyRevenue + (dailyTokenTaxes ?? 0)
-		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
 		dailyFeesFinal = dailyFees + (dailyTokenTaxes ?? 0)
 		fees30dFinal = fees30d + (tokenTaxesRevenue30d ?? 0)
 		allTimeFeesFinal = allTimeFees + (allTimeTokenTaxesRevenue ?? 0)
+
+		dailyRevenueFinal = dailyRevenue + (dailyTokenTaxes ?? 0)
+		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
 		allTimeRevenueFinal = allTimeRevenue + (allTimeTokenTaxesRevenue ?? 0)
+
+		dailyHoldersRevenueFinal = dailyHoldersRevenue + (dailyTokenTaxes ?? 0)
+		holdersRevenue30dFinal = holdersRevenue30d + (tokenTaxesRevenue30d ?? 0)
+		allTimeHoldersRevenueFinal = allTimeHoldersRevenue + (allTimeTokenTaxesRevenue ?? 0)
 	}
 
 	return (
@@ -1008,6 +1029,49 @@ const ProtocolContainer = ({
 														<tr>
 															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Revenue`}</th>
 															<td className="text-sm text-right">{formatPrice(allTimeRevenueFinal)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : null}
+									{holdersRevenue30dFinal != null ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Revenue"
+											rowHeader="Holders Revenue (annualized)"
+											rowValue={formatPrice(holdersRevenue30dFinal * 12.2)}
+											helperText={explainAnnualized(helperTexts?.revenue)}
+											subRows={
+												<>
+													<tr>
+														<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															<Tooltip
+																content="Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC"
+																className="underline decoration-dotted"
+															>
+																Holders Revenue 30d
+															</Tooltip>
+														</th>
+														<td className="text-sm text-right">{formatPrice(holdersRevenue30dFinal)}</td>
+													</tr>
+													{dailyHoldersRevenueFinal != null ? (
+														<tr>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<Tooltip
+																	content="Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC"
+																	className="underline decoration-dotted"
+																>
+																	Holders Revenue 24h
+																</Tooltip>
+															</th>
+															<td className="text-sm text-right">{formatPrice(dailyRevenueFinal)}</td>
+														</tr>
+													) : null}
+													{allTimeHoldersRevenueFinal != null ? (
+														<tr>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Holders Revenue`}</th>
+															<td className="text-sm text-right">{formatPrice(allTimeHoldersRevenueFinal)}</td>
 														</tr>
 													) : null}
 												</>

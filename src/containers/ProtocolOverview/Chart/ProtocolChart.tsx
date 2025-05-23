@@ -125,7 +125,9 @@ const ProtocolChart = React.memo(function ProtocolChart({
 					: metrics.fees
 					? {
 							fees: router.query.fees ?? 'true',
-							...(metrics.revenue ? { revenue: router.query.revenue ?? 'true' } : {})
+							...(metrics.revenue
+								? { revenue: router.query.revenue ?? 'true', holdersRevenue: router.query.holdersRevenue ?? 'true' }
+								: {})
 					  }
 					: metrics.unlocks
 					? { unlocks: router.query.unlocks ?? 'true' }
@@ -157,6 +159,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			optionsNotionalVolume: toggledMetrics.optionsNotionalVolume,
 			fees: toggledMetrics.fees,
 			revenue: toggledMetrics.revenue,
+			holdersRevenue: toggledMetrics.holdersRevenue,
 			unlocks: toggledMetrics.unlocks,
 			activeAddresses: toggledMetrics.activeAddresses,
 			newAddresses: toggledMetrics.newAddresses,
@@ -246,6 +249,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		}
 		if (metrics?.revenue) {
 			options.push({ label: 'Revenue', key: 'revenue' })
+			options.push({ label: 'Holders Revenue', key: 'holdersRevenue' })
 		}
 		if (metrics?.unlocks) {
 			options.push({ label: 'Unlocks', key: 'unlocks' })

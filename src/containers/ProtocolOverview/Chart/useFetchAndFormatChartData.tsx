@@ -85,6 +85,7 @@ export function useFetchAndFormatChartData({
 	perpsVolume,
 	fees,
 	revenue,
+	holdersRevenue,
 	unlocks,
 	activeAddresses,
 	newAddresses,
