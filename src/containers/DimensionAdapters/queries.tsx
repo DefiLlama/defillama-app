@@ -419,7 +419,15 @@ export const getAdapterChainPageData = async ({
 		),
 		categories: adaptorType === 'fees' ? Array.from(categories).sort() : [],
 		adaptorType,
-		dataType: dataType ?? null
+		chartData: data.totalDataChart.map(([date, value]) => [date * 1e3, value]),
+		dataType: dataType ?? null,
+		total24h: data.total24h ?? null,
+		total7d: data.total7d ?? null,
+		total30d: data.total30d ?? null,
+		change_1d: data.change_1d ?? null,
+		change_7d: data.change_7d ?? null,
+		change_1m: data.change_1m ?? null,
+		change_7dover7d: data.change_7dover7d ?? null
 	}
 }
 

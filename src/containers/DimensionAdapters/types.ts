@@ -102,4 +102,12 @@ export interface IAdapterChainPageData {
 	categories: Array<string>
 	adaptorType: string
 	dataType: string | null
+	chartData: Array<[number, number]>
+	total24h: number | null
+	total7d: number | null
+	total30d: number | null
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	change_7dover7d: number | null
 }

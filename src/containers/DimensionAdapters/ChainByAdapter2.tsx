@@ -26,6 +26,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useRouter } from 'next/router'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
+import { ChainByAdapterChart2 } from './charts/ChainChart'
 
 interface IProps extends IAdapterChainPageData {
 	type:
@@ -272,11 +273,76 @@ export function ChainByAdapter2(props: IProps) {
 		)
 	}
 
+	const metricName = ['Fees', 'Revenue', 'Holders Revenue'].includes(props.type) ? props.type : `${props.type} Volume`
+
 	return (
 		<>
 			<AdaptorsSearch type={props.adaptorType} dataType={props.dataType} />
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
+			{props.adaptorType !== 'fees' ? (
+				<div className="grid grid-cols-3 relative isolate gap-1">
+					<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+						{props.chain !== 'All' && (
+							<h1 className="flex items-center flex-nowrap gap-2">
+								<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
+								<span className="text-xl font-semibold">{props.chain}</span>
+							</h1>
+						)}
+
+						{props.total24h != null ? (
+							<p className="flex flex-col">
+								<span className="flex flex-col">
+									<span>{metricName} (24h)</span>
+									<span className="font-semibold text-2xl font-jetbrains min-h-8 overflow-hidden whitespace-nowrap text-ellipsis">
+										{formattedNum(props.total24h, true)}
+									</span>
+								</span>
+							</p>
+						) : null}
+
+						<div className="flex flex-col gap-1 text-base">
+							{/* {props.total7d != null ? (
+								<p className="flex items-center gap-4 justify-between flex-wrap">
+									<span className="font-normal text-[#545757] dark:text-[#cccccc]">Volume (7d)</span>
+									<span className="text-right font-jetbrains">{formattedNum(props.total7d, true)}</span>
+								</p>
+							) : null} */}
+							{props.total30d != null ? (
+								<p className="flex items-center gap-4 justify-between flex-wrap">
+									<span className="font-normal text-[#545757] dark:text-[#cccccc]">{metricName} (30d)</span>
+									<span className="text-right font-jetbrains">{formattedNum(props.total30d, true)}</span>
+								</p>
+							) : null}
+							{props.change_7dover7d != null ? (
+								<p className="flex items-center gap-4 justify-between flex-wrap">
+									<Tooltip
+										content="Change of last 7d volume over the previous 7d volume"
+										className="underline decoration-dotted font-normal text-[#545757] dark:text-[#cccccc]"
+										render={<span />}
+									>
+										Weekly Change
+									</Tooltip>
+									<span
+										className={`text-right font-jetbrains pl-2 pb-1 text-ellipsis" ${
+											props.change_7dover7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+										}`}
+									>
+										{`${props.change_7dover7d >= 0 ? '+' : ''}${props.change_7dover7d}%`}
+									</span>
+								</p>
+							) : null}
+						</div>
+					</div>
+					<ChainByAdapterChart2
+						chartData={props.chartData}
+						adapterType={props.type}
+						dataType={props.dataType}
+						chain={props.chain}
+						chartName={metricName}
+					/>
+				</div>
+			) : null}
 			<div className="bg-[var(--cards-bg)] rounded-md">
 				<div className="flex items-center justify-end flex-wrap gap-4 p-3">
 					<div className="relative w-full sm:max-w-[280px] mr-auto">
