@@ -84,8 +84,10 @@ export default function ChainChartPage({
 		extraTvlsEnabled,
 		devMetricsData,
 		perpsData: { total24h: perpsData.totalVolume24h },
-		chainAssets
+		chainAssets,
+		chainIncentives: null // TODO: update getStaticProps to include chainIncentives
 	})
+
 	const isClient = useIsClient()
 
 	const isThemeDark = theme === 'dark' ? true : false
