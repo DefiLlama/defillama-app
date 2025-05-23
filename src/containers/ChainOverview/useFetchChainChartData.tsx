@@ -35,7 +35,8 @@ export const useFetchChainChartData = ({
 	devMetricsData,
 	chainGeckoId,
 	perpsData,
-	chainAssets
+	chainAssets,
+	chainIncentives
 }) => {
 	const router = useRouter()
 
@@ -209,6 +210,11 @@ export const useFetchChainChartData = ({
 			return [ts, data.total + data.ownTokens]
 		})
 
+		const finalChainIncentivesChart =
+			isNonUSDDenomination && chainIncentives?.incentivesChart
+				? chainIncentives.incentivesChart.map(([date, value]) => [date, value / normalizedDenomination[date]])
+				: chainIncentives?.incentivesChart ?? null
+
 		const chartDatasets = [
 			{
 				feesChart: finalFeesAndRevenueChart,
@@ -226,7 +232,8 @@ export const useFetchChainChartData = ({
 				chainTokenMcapData: finalMcapChart?.length ? finalMcapChart : null,
 				chainTokenVolumeData: finalTokenVolumeChart?.length ? finalTokenVolumeChart : null,
 				perpsChart: finalPerpsChart,
-				chainAssetsData: finalChainAssetsChart
+				chainAssetsData: finalChainAssetsChart,
+				chainIncentivesChart: finalChainIncentivesChart
 			}
 		]
 
@@ -247,7 +254,8 @@ export const useFetchChainChartData = ({
 		usersData,
 		txsData,
 		extraTvlsEnabled?.govtokens,
-		chainGeckoId
+		chainGeckoId,
+		chainIncentives
 	])
 
 	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)

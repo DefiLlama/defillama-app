@@ -108,6 +108,13 @@ export interface IProtocolResponse extends Protocol {
 	tokenSupply?: number | null
 	tokenMcap?: number | null
 	isHourlyChart?: boolean
+	incentivesData?: {
+		emissions24h: number
+		emissions7d: number
+		emissions30d: number
+		emissionsAllTime: number
+		incentivesChart: Array<[number, number]>
+	}
 }
 
 export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChainTvls' | 'chainTvls'> {

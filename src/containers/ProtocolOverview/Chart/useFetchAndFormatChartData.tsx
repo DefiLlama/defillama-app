@@ -45,6 +45,7 @@ interface ChartData {
 	'Bridge Aggregators Volume'?: number
 	Fees?: number
 	Revenue?: number
+	Incentives?: number
 	Tweets?: number
 	Unlocks?: number
 	'Active Addresses'?: number
@@ -86,6 +87,7 @@ export function useFetchAndFormatChartData({
 	fees,
 	revenue,
 	holdersRevenue,
+	incentives,
 	unlocks,
 	activeAddresses,
 	newAddresses,
@@ -124,7 +126,8 @@ export function useFetchAndFormatChartData({
 	optionsPremiumVolume,
 	optionsNotionalVolume,
 	perpsAggregators,
-	bridgeAggregators
+	bridgeAggregators,
+	incentivesData
 }): ReturnType {
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, isLoading: denominationLoading } = useDenominationPriceHistory(
@@ -549,6 +552,21 @@ export function useFetchAndFormatChartData({
 						? +item.Revenue / getPriceAtDate(date, denominationHistory.prices)
 						: item.Revenue
 				}
+			}
+		}
+
+		if (incentivesData && incentives === 'true' && incentivesData.incentivesChart) {
+			chartsUnique.push('Incentives')
+
+			for (const [timestamp, incentiveAmount] of incentivesData.incentivesChart) {
+				const date = Math.floor(nearestUtcZeroHour(+timestamp * 1000) / 1000)
+				if (!chartData[date]) {
+					chartData[date] = { date }
+				}
+
+				chartData[date]['Incentives'] = showNonUsdDenomination
+					? incentiveAmount / getPriceAtDate(date, denominationHistory.prices)
+					: incentiveAmount
 			}
 		}
 
@@ -1022,6 +1040,8 @@ export function useFetchAndFormatChartData({
 		revenue,
 		optionsPremiumVolume,
 		optionsNotionalVolume,
+		incentives,
+		incentivesData,
 		groupBy
 	])
 

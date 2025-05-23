@@ -95,6 +95,7 @@ interface IProtocolContainerProps {
 		fees?: string | null
 		revenue?: string | null
 		users?: string | null
+		incentives?: string | null
 	}
 	tokenLiquidity: Array<[string, string, number]>
 	tokenCGData: {
@@ -136,6 +137,13 @@ interface IProtocolContainerProps {
 	}
 	tab?: string
 	metrics: IProtocolPageMetrics
+	incentivesData: {
+		emissions24h: number
+		emissions7d: number
+		emissions30d: number
+		emissionsAllTime: number
+		incentivesChart: Array<[number, number]>
+	}
 }
 
 function explainAnnualized(text: string | undefined) {
@@ -195,7 +203,8 @@ const ProtocolContainer = ({
 	nftVolumeData,
 	pageStyles,
 	tab,
-	metrics
+	metrics,
+	incentivesData
 }: IProtocolContainerProps) => {
 	const {
 		address = '',
@@ -1078,6 +1087,49 @@ const ProtocolContainer = ({
 											}
 										/>
 									) : null}
+									{incentivesData != null ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Incentives"
+											rowHeader="Incentives (annualized)"
+											rowValue={formatPrice(incentivesData.emissions30d * 12.2)}
+											helperText={explainAnnualized(helperTexts?.incentives)}
+											subRows={
+												<>
+													<tr>
+														<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															<Tooltip
+																content="Total incentives distributed by the protocol in the last 30 days, updated daily at 00:00UTC"
+																className="underline decoration-dotted"
+															>
+																Incentives 30d
+															</Tooltip>
+														</th>
+														<td className="text-sm text-right">{formatPrice(incentivesData.emissions30d)}</td>
+													</tr>
+													{dailyRevenueFinal != null ? (
+														<tr>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<Tooltip
+																	content="Total incentives distributed by the protocol in the last 24 hours, updated daily at 00:00UTC"
+																	className="underline decoration-dotted"
+																>
+																	Incentives 24h
+																</Tooltip>
+															</th>
+															<td className="text-sm text-right">{formatPrice(incentivesData.emissions24h)}</td>
+														</tr>
+													) : null}
+													{incentivesData.emissionsAllTime != null ? (
+														<tr>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Incentives`}</th>
+															<td className="text-sm text-right">{formatPrice(incentivesData.emissionsAllTime)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : null}
 									{users?.activeUsers ? (
 										<RowWithSubRows
 											helperText={helperTexts?.users}
@@ -1303,6 +1355,7 @@ const ProtocolContainer = ({
 							protocolId={protocolData.id}
 							chartDenominations={chartDenominations}
 							nftVolumeData={nftVolumeData}
+							incentivesData={incentivesData}
 						/>
 
 						<button

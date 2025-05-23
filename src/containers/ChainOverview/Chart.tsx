@@ -413,6 +413,7 @@ export function ChainChart({
 					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
+
 			if (route.chainTokenPrice === 'true' && data?.chainTokenPriceData && denomination === 'USD') {
 				const color = getColor(isCompare) || chainOverviewChartColors.tokenPrice
 				const areaColor = getAreaColor(color, isThemeDark)
@@ -533,6 +534,26 @@ export function ChainChart({
 				data?.chainTokenVolumeData.forEach(([date, value]) => {
 					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
 						series[series.length - 1].data.push([+date * 1e3, value])
+				})
+			}
+
+			if (route.chainIncentives === 'true' && data?.chainIncentivesChart) {
+				const color = getColor(isCompare) || chainOverviewChartColors.chainIncentives
+				const areaColor = getAreaColor(color, isThemeDark)
+				series.push({
+					name: namePrefix + 'Token Incentives',
+					chartId: 'Chain Incentives',
+					symbol: 'none',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
+					data: [],
+					yAxisIndex: 19,
+					itemStyle: {
+						color
+					},
+					areaStyle: areaColor
+				})
+				data?.chainIncentivesChart.forEach(([date, value]) => {
+					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
 		})
@@ -796,6 +817,14 @@ export function ChainChart({
 					axisLabel: {
 						...yAxis.axisLabel,
 						color: () => (isCompare ? '#fff' : chainOverviewChartColors.tokenVolume)
+					}
+				},
+				{
+					...yAxis,
+					id: 'Chain Incentives',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : chainOverviewChartColors.chainIncentives)
 					}
 				}
 			].map((yAxis: any, i) => {

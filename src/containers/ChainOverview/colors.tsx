@@ -21,7 +21,8 @@ export const chainOverviewChartColors = {
 	aggregators: '#ff7b00',
 	chainAssets: '#fa7b00',
 	tokenVolume: '#ff008c',
-	appRevenue: '#A020F0'
+	appRevenue: '#A020F0',
+	chainIncentives: '#FF9800'
 } as const
 
 export const chainOverviewChartSwitchColors = Object.fromEntries(

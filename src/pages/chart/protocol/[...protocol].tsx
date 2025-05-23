@@ -61,6 +61,7 @@ export default function ProtocolChart({
 		fees,
 		revenue,
 		holdersRevenue,
+		incentives,
 		unlocks,
 		activeAddresses,
 		newAddresses,
@@ -115,6 +116,7 @@ export default function ProtocolChart({
 			fees,
 			revenue,
 			holdersRevenue,
+			incentives,
 			unlocks,
 			activeAddresses,
 			newAddresses,
@@ -153,7 +155,8 @@ export default function ProtocolChart({
 			optionsPremiumVolume,
 			optionsNotionalVolume,
 			perpsAggregators,
-			bridgeAggregators
+			bridgeAggregators,
+			incentivesData: null
 		})
 	const isThemeDark = router.query.theme === 'dark' ? true : false
 
