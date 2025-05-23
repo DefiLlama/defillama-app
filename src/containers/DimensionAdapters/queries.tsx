@@ -7,7 +7,7 @@ import {
 	PROTOCOLS_API
 } from '~/constants'
 import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
-import { chainIconUrl, getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTOR_TYPES } from './constants'
 import metadataCache from '~/utils/metadata'
 import { IAdapterChainPageData } from './types'
@@ -346,7 +346,7 @@ export const getAdapterChainPageData = async ({
 		chain,
 		chains: [
 			{ label: 'All', to: `/${route}` },
-			...data.allChains.map((chain) => ({ label: chain, to: `/${route}/chains/${slug(chain)}` }))
+			...data.allChains.map((chain) => ({ label: chain, to: `/${route}/chain/${slug(chain)}` }))
 		],
 		protocols: Object.values(protocols).sort(
 			(a: IAdapterChainPageData['protocols'][0], b: IAdapterChainPageData['protocols'][0]) =>
