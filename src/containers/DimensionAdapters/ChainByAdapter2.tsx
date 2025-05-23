@@ -24,7 +24,17 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useRouter } from 'next/router'
 
 interface IProps extends IAdapterChainPageData {
-	type: 'Fees' | 'Revenue' | 'Holders Revenue' | 'Options Premium Volume' | 'Options Notional Volume'
+	type:
+		| 'Fees'
+		| 'Revenue'
+		| 'Holders Revenue'
+		| 'Options Premium Volume'
+		| 'Options Notional Volume'
+		| 'DEXs'
+		| 'Perps'
+		| 'Bridge Aggregators'
+		| 'Perps Aggregators'
+		| 'DEX Aggregators'
 }
 
 export function ChainByAdapter2(props: IProps) {
@@ -275,7 +285,7 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 
 					<span className="flex-shrink-0">{index + 1}</span>
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo logo={row.original.logo} />
 
 					<span className="flex flex-col -my-2">
 						<BasicLink
@@ -292,34 +302,34 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 				</span>
 			)
 		},
-		size: 240
-	},
-	{
-		id: 'category',
-		header: 'Category',
-		accessorFn: (protocol) => protocol.category,
-		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<BasicLink
-					href={`/protocols/${slug(getValue() as string)}`}
-					className="text-sm font-medium text-[var(--link-text)]"
-				>
-					{getValue() as string}
-				</BasicLink>
-			) : (
-				''
-			),
-		size: 140,
-		meta: {
-			align: 'end'
-		}
+		size: 200
 	}
 ]
 
 const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['protocols'][0]>[]> = {
 	Fees: [
 		...defaultColumns,
+		{
+			id: 'category',
+			header: 'Category',
+			accessorFn: (protocol) => protocol.category,
+			enableSorting: false,
+			cell: ({ getValue }) =>
+				getValue() ? (
+					<BasicLink
+						href={`/protocols/${slug(getValue() as string)}`}
+						className="text-sm font-medium text-[var(--link-text)]"
+					>
+						{getValue() as string}
+					</BasicLink>
+				) : (
+					''
+				),
+			size: 140,
+			meta: {
+				align: 'end'
+			}
+		},
 		{
 			id: 'total24h',
 			header: 'Fees 24h',
@@ -328,7 +338,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Fees paid by users in the last 24 hours'
+				headerHelperText: 'Fees paid by users in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 128
 		},
@@ -348,6 +358,27 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 	Revenue: [
 		...defaultColumns,
 		{
+			id: 'category',
+			header: 'Category',
+			accessorFn: (protocol) => protocol.category,
+			enableSorting: false,
+			cell: ({ getValue }) =>
+				getValue() ? (
+					<BasicLink
+						href={`/protocols/${slug(getValue() as string)}`}
+						className="text-sm font-medium text-[var(--link-text)]"
+					>
+						{getValue() as string}
+					</BasicLink>
+				) : (
+					''
+				),
+			size: 140,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
 			id: 'total24h',
 			header: 'Revenue 24h',
 			accessorFn: (protocol) => protocol.total24h,
@@ -355,7 +386,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
+				headerHelperText: 'Revenue earned by the protocol in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 128
 		},
@@ -375,6 +406,27 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 	'Holders Revenue': [
 		...defaultColumns,
 		{
+			id: 'category',
+			header: 'Category',
+			accessorFn: (protocol) => protocol.category,
+			enableSorting: false,
+			cell: ({ getValue }) =>
+				getValue() ? (
+					<BasicLink
+						href={`/protocols/${slug(getValue() as string)}`}
+						className="text-sm font-medium text-[var(--link-text)]"
+					>
+						{getValue() as string}
+					</BasicLink>
+				) : (
+					''
+				),
+			size: 140,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
 			id: 'total24h',
 			header: 'Holders Revenue 24h',
 			accessorFn: (protocol) => protocol.total24h,
@@ -382,7 +434,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Revenue earned by token holders in the last 24 hours'
+				headerHelperText: 'Revenue earned by token holders in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 180
 		},
@@ -409,7 +461,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Options Premium volume in the last 24 hours'
+				headerHelperText: 'Options Premium volume in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 180
 		},
@@ -436,7 +488,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Options Notional volume in the last 24 hours'
+				headerHelperText: 'Options Notional volume in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 180
 		},
@@ -451,6 +503,171 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 				headerHelperText: 'Options Notional volume in the last 30 days'
 			},
 			size: 180
+		}
+	],
+	DEXs: [
+		...defaultColumns,
+		{
+			id: 'total24h',
+			header: 'DEX Volume 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume of spot trades in the last 24 hours, updated daily at 00:00 UTC'
+			},
+			size: 152
+		},
+		{
+			id: 'total30d',
+			header: 'DEX Volume 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume of spot trades in the last 30 days'
+			},
+			size: 152
+		}
+	],
+	Perps: [
+		...defaultColumns,
+		{
+			id: 'total24h',
+			header: 'Perps Volume 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume of perpetual futures trades in the last 24 hours, updated daily at 00:00 UTC'
+			},
+			size: 160
+		},
+		{
+			id: 'total30d',
+			header: 'Perps Volume 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume of perpetual futures trades in the last 30 days'
+			},
+			size: 160
+		}
+	],
+	'Perps Aggregators': [
+		...defaultColumns,
+		{
+			id: 'total24h',
+			header: () => (
+				<>
+					<span className="md:hidden">Perps Agg Vol 24h</span>
+					<span className="hidden md:block">Perps Aggregator Volume 24h</span>
+				</>
+			),
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume of perpetual futures trades in the last 24 hours, updated daily at 00:00 UTC'
+			},
+			size: 160
+		},
+		{
+			id: 'total30d',
+			header: () => (
+				<>
+					<span className="md:hidden">Perps Agg Vol 30d</span>
+					<span className="hidden md:block">Perps Aggregator Volume 30d</span>
+				</>
+			),
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume of perpetual futures trades in the last 30 days'
+			},
+			size: 160
+		}
+	],
+	'Bridge Aggregators': [
+		...defaultColumns,
+		{
+			id: 'total24h',
+			header: () => (
+				<>
+					<span className="md:hidden">Bridge Agg Vol 24h</span>
+					<span className="hidden md:block">Bridge Aggregator Volume 24h</span>
+				</>
+			),
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume on aggregator in the last 24 hours, updated daily at 00:00 UTC'
+			},
+			size: 160
+		},
+		{
+			id: 'total30d',
+			header: () => (
+				<>
+					<span className="md:hidden">Bridge Agg Vol 30d</span>
+					<span className="hidden md:block">Bridge Aggregator Volume 30d</span>
+				</>
+			),
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume on aggregator in the last 30 days'
+			},
+			size: 160
+		}
+	],
+	'DEX Aggregators': [
+		...defaultColumns,
+		{
+			id: 'total24h',
+			header: () => (
+				<>
+					<span className="md:hidden">DEX Agg Vol 24h</span>
+					<span className="hidden md:block">DEX Aggregator Volume 24h</span>
+				</>
+			),
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume of spot trades in the last 24 hours, updated daily at 00:00 UTC'
+			},
+			size: 160
+		},
+		{
+			id: 'total30d',
+			header: () => (
+				<>
+					<span className="md:hidden">DEX Agg Vol 30d</span>
+					<span className="hidden md:block">DEX Aggregator Volume 30d</span>
+				</>
+			),
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Volume of spot trades in the last 30 days'
+			},
+			size: 160
 		}
 	]
 }

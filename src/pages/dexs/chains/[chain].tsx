@@ -1,17 +1,17 @@
+import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { ADAPTOR_TYPES, getDimensionAdapterChainPageData } from '~/api/categories/adaptors'
-import { SEO } from '~/components/SEO'
-import { ChainByAdapter, type IOverviewContainerProps } from '~/containers/DimensionAdapters/ChainByAdapter'
+import { ChainByAdapter2 } from '~/containers/DimensionAdapters/ChainByAdapter2'
+import { ADAPTOR_TYPES } from '~/containers/DimensionAdapters/constants'
+import { getAdapterChainPageData } from '~/containers/DimensionAdapters/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-import { GetStaticPropsContext } from 'next'
 import metadataCache from '~/utils/metadata'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
-const chainMetadata = metadataCache.chainMetadata
 
 const ADAPTOR_TYPE = ADAPTOR_TYPES.DEXS
+const type = 'DEXs'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
@@ -40,49 +40,34 @@ export const getStaticPaths = async () => {
 }
 
 export const getStaticProps = withPerformanceLogging(
-	`${ADAPTOR_TYPE}/chains/[chain]`,
+	`${slug(type)}/chains/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
-		if (!chainMetadata[chain][ADAPTOR_TYPE]) {
+		if (!metadataCache.chainMetadata[chain].dexs) {
 			return { notFound: true }
 		}
-		const data = await getDimensionAdapterChainPageData(ADAPTOR_TYPE, chain).catch((e) =>
-			console.info(`Chain page data not found ${ADAPTOR_TYPE} : ${chain}`, e)
-		)
 
-		if (!data || !data.protocols || data.protocols.length <= 0) return { notFound: true }
+		const data = await getAdapterChainPageData({
+			adaptorType: ADAPTOR_TYPE,
+			chain: metadataCache.chainMetadata[chain].name,
+			route: slug(type)
+		}).catch((e) => console.info(`Chain page data not found ${ADAPTOR_TYPE} : ALL_CHAINS`, e))
 
-		const categories = new Set<string>()
-
-		data.protocols.forEach((p) => {
-			if (p.category) {
-				categories.add(p.category)
-			}
-		})
+		if (!data) return { notFound: true }
 
 		return {
-			props: {
-				...data,
-				type: ADAPTOR_TYPE,
-				categories: Array.from(categories),
-				title: `${chainMetadata[chain].name} DEXs Volume - DefiLlama`
-			},
+			props: data,
 			revalidate: maxAgeForNext([22])
 		}
 	}
 )
 
-interface IPageProps extends IOverviewContainerProps {
-	title: string
-}
-
-const VolumeByChain = ({ title, ...props }: IPageProps) => {
+const DexsVolumeOnChain = (props) => {
 	return (
-		<Layout title={title}>
-			<SEO pageType={props.type} />
-			<ChainByAdapter {...props} />
+		<Layout title={`${props.chain} ${type} - DefiLlama`} defaultSEO>
+			<ChainByAdapter2 {...props} type={type} />
 		</Layout>
 	)
 }
 
-export default VolumeByChain
+export default DexsVolumeOnChain

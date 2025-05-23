@@ -6,8 +6,8 @@ import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ADAPTOR_TYPE = ADAPTOR_TYPES.BRIDGE_AGGREGATORS
-const type = 'Bridge Aggregators'
+const ADAPTOR_TYPE = ADAPTOR_TYPES.AGGREGATORS
+const type = 'DEX Aggregators'
 
 export const getStaticProps = withPerformanceLogging(`${slug(type)}/index`, async () => {
 	const data = await getAdapterChainPageData({
@@ -24,7 +24,7 @@ export const getStaticProps = withPerformanceLogging(`${slug(type)}/index`, asyn
 	}
 })
 
-const BridgeAggregatorsVolumeOnAllChains = (props) => {
+const DexAggregatorsVolumeOnAllChains = (props) => {
 	return (
 		<Layout title={`${type} - DefiLlama`} defaultSEO>
 			<ChainByAdapter2 {...props} type={type} />
@@ -32,4 +32,4 @@ const BridgeAggregatorsVolumeOnAllChains = (props) => {
 	)
 }
 
-export default BridgeAggregatorsVolumeOnAllChains
+export default DexAggregatorsVolumeOnAllChains

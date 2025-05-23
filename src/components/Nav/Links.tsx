@@ -241,7 +241,7 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'DEXs', path: '/dexs' },
 			{ name: 'DEXs (chains)', path: '/dexs/chains' },
-			{ name: 'DEX Aggregators', path: '/aggregators', newTag: true },
+			{ name: 'DEX Aggregators', path: '/dex-aggregators', newTag: true },
 			{ name: 'Perps', path: '/perps' },
 			{ name: 'Perps (Chains)', path: '/perps/chains' },
 			{ name: 'Perp Aggregators', path: '/perps-aggregators', newTag: true },

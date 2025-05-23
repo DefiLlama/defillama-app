@@ -356,17 +356,32 @@ const nextConfig = {
 			},
 			{
 				source: '/aggregator',
-				destination: '/aggregators',
+				destination: '/dex-aggregators',
+				permanent: true
+			},
+			{
+				source: '/aggregators',
+				destination: '/dex-aggregators',
 				permanent: true
 			},
 			{
 				source: '/aggregators/chain',
-				destination: '/aggregators/chains',
+				destination: '/dex-aggregators/chains',
+				permanent: true
+			},
+			{
+				source: '/aggregators/chains',
+				destination: '/dex-aggregators/chains',
 				permanent: true
 			},
 			{
 				source: '/aggregators/chain/:slug',
-				destination: '/aggregators/chains/:slug',
+				destination: '/dex-aggregators/chains/:slug',
+				permanent: true
+			},
+			{
+				source: '/aggregators/chains/:slug',
+				destination: '/dex-aggregators/chains/:slug',
 				permanent: true
 			},
 			{

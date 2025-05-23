@@ -56,9 +56,23 @@ export const Metrics = ({ currentMetric }: { currentMetric: string }) => {
 
 const allMetrics = [
 	{ name: 'TVL', mainRoute: '/', chainRoute: `/chain/{chain}` },
+	{ name: 'Stablecoins', mainRoute: '/stablecoins', chainRoute: `/stablecoins/{chain}` },
 	{ name: 'Fees', mainRoute: '/fees', chainRoute: `/fees/chains/{chain}` },
 	{ name: 'Revenue', mainRoute: '/revenue', chainRoute: `/revenue/chains/{chain}` },
 	{ name: 'Holders Revenue', mainRoute: '/holders-revenue', chainRoute: `/holders-revenue/chains/{chain}` },
 	{ name: 'DEXs', mainRoute: '/dexs', chainRoute: `/dexs/chains/{chain}` },
-	{ name: 'Stablecoins', mainRoute: '/stablecoins', chainRoute: `/stablecoins/{chain}` }
+	{ name: 'DEX Aggregators', mainRoute: '/dex-aggregators', chainRoute: `/dex-aggregators/chains/{chain}` },
+	{ name: 'Perps', mainRoute: '/perps', chainRoute: `/perps/chains/{chain}` },
+	{ name: 'Perp Aggregators', mainRoute: '/perps-aggregators', chainRoute: `/perps-aggregators/chains/{chain}` },
+	{
+		name: 'Options Premium Volume',
+		mainRoute: '/options/premium-volume',
+		chainRoute: `/options/premium-volume/chains/{chain}`
+	},
+	{
+		name: 'Options Notional Volume',
+		mainRoute: '/options/notional-volume',
+		chainRoute: `/options/notional-volume/chains/{chain}`
+	},
+	{ name: 'Bridge Aggregators', mainRoute: '/bridge-aggregators', chainRoute: `/bridge-aggregators/chains/{chain}` }
 ]
