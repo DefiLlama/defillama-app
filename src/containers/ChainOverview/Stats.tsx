@@ -205,20 +205,22 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							{formattedNum(totalValueUSD, true)}
 						</span>
 					</h2>
-					<Tooltip
-						content={`${formattedNum(valueChange24hUSD, true)}`}
-						render={<p />}
-						className="flex items-center flex-nowrap gap-2 relative bottom-[2px]"
-					>
-						<span
-							className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-								change24h >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
-							}`}
+					{change24h != null ? (
+						<Tooltip
+							content={`${formattedNum(valueChange24hUSD, true)}`}
+							render={<p />}
+							className="flex items-center flex-nowrap gap-2 relative bottom-[2px]"
 						>
-							{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
-						</span>
-						<span className="text-[#545757] dark:text-[#cccccc]">24h</span>
-					</Tooltip>
+							<span
+								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
+									change24h >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+								}`}
+							>
+								{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
+							</span>
+							<span className="text-[#545757] dark:text-[#cccccc]">24h</span>
+						</Tooltip>
+					) : null}
 				</div>
 				<table className="text-base w-full border-collapse mt-4">
 					<tbody>
