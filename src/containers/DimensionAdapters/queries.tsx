@@ -352,7 +352,7 @@ export const getAdapterChainPageData = async ({
 			(a: IAdapterChainPageData['protocols'][0], b: IAdapterChainPageData['protocols'][0]) =>
 				(b.total24h ?? 0) - (a.total24h ?? 0)
 		),
-		categories: Array.from(categories).sort(),
+		categories: adaptorType === 'fees' ? Array.from(categories).sort() : [],
 		adaptorType,
 		dataType: dataType ?? null
 	}

@@ -114,7 +114,7 @@ const nextConfig = {
 				permanent: true
 			},
 			{
-				source: '/aggregator',
+				source: '/swap',
 				destination: 'https://swap.defillama.com/',
 				permanent: true
 			},
@@ -305,8 +305,43 @@ const nextConfig = {
 				permanent: true
 			},
 			{
+				source: '/dexs/chain',
+				destination: '/dexs/chains',
+				permanent: true
+			},
+			{
+				source: '/dexs/chain/:slug',
+				destination: '/dexs/chains/:slug',
+				permanent: true
+			},
+			{
+				source: '/perp',
+				destination: '/perps',
+				permanent: true
+			},
+			{
+				source: '/perps/chain',
+				destination: '/perps/chains',
+				permanent: true
+			},
+			{
+				source: '/perps/chain/:slug',
+				destination: '/perps/chains/:slug',
+				permanent: true
+			},
+			{
 				source: '/option',
 				destination: '/options',
+				permanent: true
+			},
+			{
+				source: '/options/chain',
+				destination: '/options/chains',
+				permanent: true
+			},
+			{
+				source: '/options/chain/:slug',
+				destination: '/options/chains/:slug',
 				permanent: true
 			},
 			{
@@ -315,8 +350,68 @@ const nextConfig = {
 				permanent: true
 			},
 			{
+				source: '/aggregators/chain',
+				destination: '/aggregators/chains',
+				permanent: true
+			},
+			{
+				source: '/aggregators/chain/:slug',
+				destination: '/aggregators/chains/:slug',
+				permanent: true
+			},
+			{
+				source: '/perps-aggregator',
+				destination: '/perps-aggregators',
+				permanent: true
+			},
+			{
+				source: '/perps-aggregators/chain',
+				destination: '/perps-aggregators/chains',
+				permanent: true
+			},
+			{
+				source: '/perps-aggregators/chain/:slug',
+				destination: '/perps-aggregators/chains/:slug',
+				permanent: true
+			},
+			{
 				source: '/bridge-aggregator',
 				destination: '/bridge-aggregators',
+				permanent: true
+			},
+			{
+				source: '/bridge-aggregators/chain',
+				destination: '/bridge-aggregators/chains',
+				permanent: true
+			},
+			{
+				source: '/bridge-aggregators/chain/:slug',
+				destination: '/bridge-aggregators/chains/:slug',
+				permanent: true
+			},
+			{
+				source: '/fees/simple',
+				destination: '/fees',
+				permanent: true
+			},
+			{
+				source: '/fees/simple/chains',
+				destination: '/fees',
+				permanent: true
+			},
+			{
+				source: '/fees/simple/chains/:slug',
+				destination: '/fees/chains/:slug',
+				permanent: true
+			},
+			{
+				source: '/fees/chains',
+				destination: '/fees',
+				permanent: true
+			},
+			{
+				source: '/fees/chain/:slug',
+				destination: '/fees/chains/:slug',
 				permanent: true
 			},
 			{
@@ -332,11 +427,6 @@ const nextConfig = {
 			{
 				source: '/dex/chain',
 				destination: '/dex/chains',
-				permanent: true
-			},
-			{
-				source: '/perps/chain',
-				destination: '/perps/chains',
 				permanent: true
 			},
 			{
