@@ -9,20 +9,61 @@ import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { BasicLink } from '~/components/Link'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download, toNiceCsvDate, slug } from '~/utils'
+import { getAdapterChainOverview } from '../queries'
+import { ADAPTOR_TYPES } from '../constants'
+import { useMutation } from '@tanstack/react-query'
 
 const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
 	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
 }) as React.FC<ILineAndBarChartProps>
 
+const downloadBreakdownChart = async ({
+	type,
+	dataType,
+	chain
+}: {
+	type: string
+	dataType?: string
+	chain: string
+}) => {
+	const data = await getAdapterChainOverview({
+		type: type as `${ADAPTOR_TYPES}`,
+		chain,
+		excludeTotalDataChart: true,
+		excludeTotalDataChartBreakdown: false,
+		dataType
+	})
+	const rows: any = [['Timestamp', 'Date', ...data.protocols.map((protocol) => protocol.name)]]
+
+	for (const item of data.totalDataChartBreakdown) {
+		const row = [item[0], toNiceCsvDate(item[0])]
+		for (const protocol of data.protocols) {
+			row.push(item[1][protocol.name] ?? '')
+		}
+		rows.push(row)
+	}
+
+	download(
+		`${slug(chain)}-${type}-${new Date().toISOString().split('T')[0]}.csv`,
+		rows.map((r) => r.join(',')).join('\n')
+	)
+
+	return null
+}
+
 export const ChainByAdapterChart = ({
 	totalDataChart,
 	chartTypes,
-	selectedChartType
+	selectedChartType,
+	adapterType,
+	chain
 }: {
 	totalDataChart: [IJoin2ReturnType, string[]]
 	chartTypes?: Array<string>
 	selectedChartType?: string
+	adapterType: string
+	chain: string
 }) => {
 	const router = useRouter()
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
@@ -33,6 +74,10 @@ export const ChainByAdapterChart = ({
 	const { charts, chartOptions } = React.useMemo(() => {
 		return getChartDataByChainAndInterval({ chartData: totalDataChart, chartInterval, chartType, selectedChains })
 	}, [totalDataChart, chartInterval, selectedChains, chartType])
+
+	const { mutate: downloadBreakdownChartMutation, isPending: isDownloadingBreakdownChart } = useMutation({
+		mutationFn: downloadBreakdownChart
+	})
 
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
@@ -97,38 +142,12 @@ export const ChainByAdapterChart = ({
 					) : null}
 					<CSVDownloadButton
 						onClick={() => {
-							try {
-								let rows = []
-								const dataToExport = charts
-								const chartKeys = Object.keys(dataToExport)
-								if (chartKeys.length > 0) {
-									rows = [['Timestamp', 'Date', ...chartKeys]]
-									const dateMap = new Map()
-									chartKeys.forEach((key) => {
-										dataToExport[key].data.forEach(([timestamp, value]) => {
-											if (!dateMap.has(timestamp)) {
-												dateMap.set(timestamp, {})
-											}
-											dateMap.get(timestamp)[key] = value
-										})
-									})
-									const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a - b)
-									sortedDates.forEach((timestamp) => {
-										const row = [timestamp, toNiceCsvDate(timestamp / 1000)]
-										chartKeys.forEach((key) => {
-											row.push(dateMap.get(timestamp)[key] ?? '')
-										})
-										rows.push(row)
-									})
-								}
-
-								const title = chartType ? slug(chartType) : 'chain-chart'
-								const filename = `${title}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
-								download(filename, rows.map((r) => r.join(',')).join('\n'))
-							} catch (error) {
-								console.error('Error generating CSV:', error)
-							}
+							downloadBreakdownChartMutation({
+								type: adapterType,
+								chain
+							})
 						}}
+						isLoading={isDownloadingBreakdownChart}
 						smol
 						className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
 					/>
