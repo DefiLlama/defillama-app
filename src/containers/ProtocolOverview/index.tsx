@@ -431,7 +431,7 @@ const ProtocolContainer = ({
 							</h1>
 
 							{totalValue || hasTvl ? (
-								<details className="group mt-6 mb-4">
+								<details className="group mt-6">
 									<summary className="flex items-center">
 										<Icon
 											name="chevron-right"
@@ -736,7 +736,7 @@ const ProtocolContainer = ({
 										<RowWithSubRows
 											protocolName={protocolData.name}
 											dataType="Volume"
-											rowHeader="Volume 24h"
+											rowHeader="DEX Volume 24h"
 											rowValue={formatPrice(dailyVolume)}
 											helperText="Sum of value of all spot trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
 											subRows={

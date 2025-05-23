@@ -302,12 +302,6 @@ export function ChainByAdapter2(props: IProps) {
 						) : null}
 
 						<div className="flex flex-col gap-1 text-base">
-							{/* {props.total7d != null ? (
-								<p className="flex items-center gap-4 justify-between flex-wrap">
-									<span className="font-normal text-[#545757] dark:text-[#cccccc]">Volume (7d)</span>
-									<span className="text-right font-jetbrains">{formattedNum(props.total7d, true)}</span>
-								</p>
-							) : null} */}
 							{props.total30d != null ? (
 								<p className="flex items-center gap-4 justify-between flex-wrap">
 									<span className="font-normal text-[#545757] dark:text-[#cccccc]">{metricName} (30d)</span>
@@ -395,8 +389,21 @@ const columnOrders = Object.entries({
 	640: ['name', 'category', 'total24h', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
-	{
+const chartKeys: Record<IProps['type'], string> = {
+	Fees: 'fees',
+	Revenue: 'revenue',
+	'Holders Revenue': 'holdersRevenue',
+	'Options Premium Volume': 'premiumVolume',
+	'Options Notional Volume': 'notionalVolume',
+	DEXs: 'dexVolume',
+	Perps: 'perpsVolume',
+	'Bridge Aggregators': 'bridgeAggregators',
+	'Perps Aggregators': 'perpsAggregators',
+	'DEX Aggregators': 'dexAggregators'
+}
+
+const NameColumn = (type: IProps['type']): ColumnDef<IAdapterChainPageData['protocols'][0]> => {
+	return {
 		id: 'name',
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
@@ -407,7 +414,7 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
-						<span key={`/protocol/${row.original.slug}` + chain} className="flex items-center gap-1">
+						<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
 							<TokenLogo logo={chainIconUrl(chain)} size={14} />
 							<span>{chain}</span>
 						</span>
@@ -444,7 +451,7 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 
 					<span className="flex flex-col -my-2">
 						<BasicLink
-							href={`/protocol/${row.original.slug}`}
+							href={`/protocol/${row.original.slug}?tvl=false&events=false&${chartKeys[type]}=true`}
 							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
@@ -459,11 +466,11 @@ const defaultColumns: ColumnDef<IAdapterChainPageData['protocols'][0]>[] = [
 		},
 		size: 280
 	}
-]
+}
 
 const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['protocols'][0]>[]> = {
 	Fees: [
-		...defaultColumns,
+		NameColumn('Fees'),
 		{
 			id: 'category',
 			header: 'Category',
@@ -511,7 +518,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 		}
 	],
 	Revenue: [
-		...defaultColumns,
+		NameColumn('Revenue'),
 		{
 			id: 'category',
 			header: 'Category',
@@ -559,7 +566,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 		}
 	],
 	'Holders Revenue': [
-		...defaultColumns,
+		NameColumn('Holders Revenue'),
 		{
 			id: 'category',
 			header: 'Category',
@@ -607,7 +614,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 		}
 	],
 	'Options Premium Volume': [
-		...defaultColumns,
+		NameColumn('Options Premium Volume'),
 		{
 			id: 'total24h',
 			header: 'Premium Volume 24h',
@@ -634,7 +641,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 		}
 	],
 	'Options Notional Volume': [
-		...defaultColumns,
+		NameColumn('Options Notional Volume'),
 		{
 			id: 'total24h',
 			header: 'Notional Volume 24h',
@@ -661,7 +668,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 		}
 	],
 	DEXs: [
-		...defaultColumns,
+		NameColumn('DEXs'),
 		{
 			id: 'total24h',
 			header: 'DEX Volume 24h',
@@ -688,7 +695,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 		}
 	],
 	Perps: [
-		...defaultColumns,
+		NameColumn('Perps'),
 		{
 			id: 'total24h',
 			header: 'Perps Volume 24h',
@@ -715,7 +722,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 		}
 	],
 	'Perps Aggregators': [
-		...defaultColumns,
+		NameColumn('Perps Aggregators'),
 		{
 			id: 'total24h',
 			header: () => (
@@ -752,7 +759,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 		}
 	],
 	'Bridge Aggregators': [
-		...defaultColumns,
+		NameColumn('Bridge Aggregators'),
 		{
 			id: 'total24h',
 			header: () => (
@@ -789,7 +796,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['pro
 		}
 	],
 	'DEX Aggregators': [
-		...defaultColumns,
+		NameColumn('DEX Aggregators'),
 		{
 			id: 'total24h',
 			header: () => (
