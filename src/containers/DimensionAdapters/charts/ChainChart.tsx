@@ -220,7 +220,7 @@ export const ChainByAdapterChart2 = ({
 				charts: {
 					[chartName]: {
 						data: finalData,
-						type: 'bar' as 'bar',
+						type: chartInterval === 'Cumulative' ? 'line' : 'bar',
 						name: chartName,
 						stack: chartName,
 						color: oldBlue
