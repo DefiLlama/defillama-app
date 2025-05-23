@@ -301,7 +301,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
 									<Tooltip
-										content="Subset of fees that the chain collects for itself"
+										content="Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms."
 										className="underline decoration-dotted"
 									>
 										Token Incentives (24h)
