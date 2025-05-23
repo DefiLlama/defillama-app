@@ -40,7 +40,7 @@ export const getStaticPaths = async () => {
 }
 
 export const getStaticProps = withPerformanceLogging(
-	`${slug(type)}/chains/[chain]`,
+	`${slug(type)}/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		if (!metadataCache.chainMetadata[chain].derivatives) {
@@ -51,7 +51,7 @@ export const getStaticProps = withPerformanceLogging(
 			adaptorType: ADAPTOR_TYPE,
 			chain: metadataCache.chainMetadata[chain].name,
 			route: slug(type)
-		}).catch((e) => console.info(`Chain page data not found ${ADAPTOR_TYPE} : ALL_CHAINS`, e))
+		}).catch((e) => console.info(`Chain page data not found ${ADAPTOR_TYPE} : chain:${chain}`, e))
 
 		if (!data) return { notFound: true }
 

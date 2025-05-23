@@ -48,7 +48,7 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 						to:
 							chain === 'All'
 								? `/${props.type}/${isSimpleFees ? 'simple' : ''}`
-								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chains/${slug(chain)}`
+								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chain/${slug(chain)}`
 				  }))
 				: null
 

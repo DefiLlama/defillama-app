@@ -184,7 +184,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 				pathname: router.basePath,
 				query: {
 					...queries,
-					...(!router.basePath.includes('/chains/') && chain ? { chain } : {}),
+					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
 					category: newCategory
 				}
 			},
@@ -199,7 +199,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 				pathname: router.basePath,
 				query: {
 					...queries,
-					...(!router.basePath.includes('/chains/') && chain ? { chain } : {}),
+					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
 					category: categories
 				}
 			},
@@ -214,7 +214,7 @@ export function OverviewTable({ data, type, allChains, categories, selectedCateg
 				pathname: router.basePath,
 				query: {
 					...queries,
-					...(!router.basePath.includes('/chains/') && chain ? { chain } : {})
+					...(!router.basePath.includes('/chain/') && chain ? { chain } : {})
 				}
 			},
 			undefined,

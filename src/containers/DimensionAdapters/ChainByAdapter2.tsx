@@ -154,7 +154,7 @@ export function ChainByAdapter2(props: IProps) {
 				pathname: router.basePath,
 				query: {
 					...queries,
-					...(!router.basePath.includes('/chains/') && chain ? { chain } : {}),
+					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
 					category: newCategory
 				}
 			},
@@ -169,7 +169,7 @@ export function ChainByAdapter2(props: IProps) {
 				pathname: router.basePath,
 				query: {
 					...queries,
-					...(!router.basePath.includes('/chains/') && chain ? { chain } : {}),
+					...(!router.basePath.includes('/chain/') && chain ? { chain } : {}),
 					category: props.categories
 				}
 			},
@@ -184,7 +184,7 @@ export function ChainByAdapter2(props: IProps) {
 				pathname: router.basePath,
 				query: {
 					...queries,
-					...(!router.basePath.includes('/chains/') && chain ? { chain } : {})
+					...(!router.basePath.includes('/chain/') && chain ? { chain } : {})
 				}
 			},
 			undefined,
@@ -194,7 +194,7 @@ export function ChainByAdapter2(props: IProps) {
 
 	return (
 		<>
-			<AdaptorsSearch type={props.adaptorType} />
+			<AdaptorsSearch type={props.adaptorType} dataType={props.dataType} />
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="bg-[var(--cards-bg)] rounded-md">
