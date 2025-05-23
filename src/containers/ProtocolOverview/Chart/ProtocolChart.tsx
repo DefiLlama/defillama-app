@@ -59,6 +59,7 @@ const CHART_TYPES = [
 	'notionalVolume',
 	'fees',
 	'revenue',
+	'holdersRevenue',
 	'incentives',
 	'unlocks',
 	'activeAddresses',
@@ -133,11 +134,10 @@ const ProtocolChart = React.memo(function ProtocolChart({
 					? { bridgeVolume: router.query.bridgeVolume ?? 'true' }
 					: metrics.fees
 					? {
-							fees: router.query.fees ?? 'true',
-							...(metrics.revenue
-								? { revenue: router.query.revenue ?? 'true', holdersRevenue: router.query.holdersRevenue ?? 'true' }
-								: {})
+							fees: router.query.fees ?? 'true'
 					  }
+					: metrics.revenue
+					? { revenue: router.query.revenue ?? 'true', holdersRevenue: router.query.holdersRevenue ?? 'true' }
 					: metrics.unlocks
 					? { unlocks: router.query.unlocks ?? 'true' }
 					: metrics.treasury

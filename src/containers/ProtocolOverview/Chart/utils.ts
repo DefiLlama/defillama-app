@@ -4,6 +4,7 @@ export const BAR_CHARTS = [
 	'Perps Volume',
 	'Fees',
 	'Revenue',
+	'Holders Revenue',
 	'Incentives',
 	'Active Addresses',
 	'New Addresses',

@@ -21,6 +21,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import dayjs from 'dayjs'
 import { CACHE_SERVER } from '~/constants'
 import { useQuery } from '@tanstack/react-query'
+import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 
 const fetch = fetchWithErrorLogging
 
@@ -154,6 +155,23 @@ export function useFetchAndFormatChartData({
 		protocolName: protocol,
 		adapterType: 'fees',
 		disabled: isRouterReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
+	})
+
+	const { data: holdersRevenueData, isLoading: fetchingHoldersRevenue } = useQuery({
+		queryKey: ['holders-revenue', protocol, holdersRevenue, metrics.fees, isRouterReady],
+		queryFn:
+			isRouterReady && holdersRevenue === 'true' && metrics.fees
+				? () =>
+						getAdapterProtocolSummary({
+							type: 'fees',
+							dataType: 'dailyHoldersRevenue',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
 	})
 
 	const { data: activeAddressesData, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
@@ -552,6 +570,22 @@ export function useFetchAndFormatChartData({
 						? +item.Revenue / getPriceAtDate(date, denominationHistory.prices)
 						: item.Revenue
 				}
+			}
+		}
+
+		if (holdersRevenueData) {
+			chartsUnique.push('Holders Revenue')
+
+			for (const [dateS, value] of holdersRevenueData.totalDataChart) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = { date }
+				}
+
+				chartData[date]['Holders Revenue'] = showNonUsdDenomination
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
 			}
 		}
 
@@ -1091,6 +1125,10 @@ export function useFetchAndFormatChartData({
 		}
 	}
 
+	if (fetchingHoldersRevenue) {
+		fetchingTypes.push('holders revenue')
+	}
+
 	if (fetchingVolume) {
 		fetchingTypes.push('volume')
 	}
@@ -1162,6 +1200,7 @@ export function useFetchAndFormatChartData({
 		fetchingFdv ||
 		denominationLoading ||
 		fetchingFees ||
+		fetchingHoldersRevenue ||
 		fetchingVolume ||
 		fetchingPerpsVolume ||
 		fetchingActiveAddresses ||
