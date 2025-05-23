@@ -52,12 +52,14 @@ export const Metrics = ({ currentMetric }: { currentMetric: string }) => {
 						{allMetrics.map((metric) => (
 							<BasicLink
 								key={`chain-metric-${metric.name}`}
-								className="p-[10px] rounded-md bg-[var(--cards-bg)] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+								className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
 								href={chain ? `${metric.chainRoute.replace('{chain}', chain)}` : metric.mainRoute}
 							>
 								<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 									<span className="font-medium">{metric.name}</span>
-									<span className="text-[var(--link)]">{metric.totalTracked}</span>
+									{metric.totalTracked ? (
+										<span className="text-xs text-[var(--link)]">{metric.totalTracked} tracked</span>
+									) : null}
 								</span>
 								<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
 							</BasicLink>
