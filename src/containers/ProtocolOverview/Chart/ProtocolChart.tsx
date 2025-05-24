@@ -56,8 +56,10 @@ const CHART_TYPES = [
 	'dexVolume',
 	'perpsVolume',
 	'premiumVolume',
+	'notionalVolume',
 	'fees',
 	'revenue',
+	'holdersRevenue',
 	'incentives',
 	'unlocks',
 	'activeAddresses',
@@ -118,7 +120,10 @@ const ProtocolChart = React.memo(function ProtocolChart({
 					: metrics.perps
 					? { perpsVolume: router.query.perpsVolume ?? 'true' }
 					: metrics.options
-					? { premiumVolume: router.query.premiumVolume ?? 'true' }
+					? {
+							optionsPremiumVolume: router.query.optionsPremiumVolume ?? 'true',
+							optionsNotionalVolume: router.query.optionsNotionalVolume ?? 'true'
+					  }
 					: metrics.dexAggregators
 					? { dexAggregators: router.query.dexAggregators ?? 'true' }
 					: metrics.bridgeAggregators
@@ -129,9 +134,10 @@ const ProtocolChart = React.memo(function ProtocolChart({
 					? { bridgeVolume: router.query.bridgeVolume ?? 'true' }
 					: metrics.fees
 					? {
-							fees: router.query.fees ?? 'true',
-							...(metrics.revenue ? { revenue: router.query.revenue ?? 'true' } : {})
+							fees: router.query.fees ?? 'true'
 					  }
+					: metrics.revenue
+					? { revenue: router.query.revenue ?? 'true', holdersRevenue: router.query.holdersRevenue ?? 'true' }
 					: metrics.unlocks
 					? { unlocks: router.query.unlocks ?? 'true' }
 					: metrics.treasury
@@ -158,9 +164,11 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			fdv: toggledMetrics.fdv,
 			volume: toggledMetrics.dexVolume,
 			perpsVolume: toggledMetrics.perpsVolume,
-			premiumVolume: toggledMetrics.premiumVolume,
+			optionsPremiumVolume: toggledMetrics.optionsPremiumVolume,
+			optionsNotionalVolume: toggledMetrics.optionsNotionalVolume,
 			fees: toggledMetrics.fees,
 			revenue: toggledMetrics.revenue,
+			holdersRevenue: toggledMetrics.holdersRevenue,
 			incentives: toggledMetrics.incentives,
 			unlocks: toggledMetrics.unlocks,
 			activeAddresses: toggledMetrics.activeAddresses,
@@ -244,13 +252,15 @@ const ProtocolChart = React.memo(function ProtocolChart({
 			options.push({ label: 'Perps Aggregators Volume', key: 'perpsAggregators' })
 		}
 		if (metrics?.options) {
-			options.push({ label: 'Options Volume', key: 'premiumVolume' })
+			options.push({ label: 'Options Premium Volume', key: 'optionsPremiumVolume' })
+			options.push({ label: 'Options Notional Volume', key: 'optionsNotionalVolume' })
 		}
 		if (metrics?.fees) {
 			options.push({ label: 'Fees', key: 'fees' })
 		}
 		if (metrics?.revenue) {
 			options.push({ label: 'Revenue', key: 'revenue' })
+			options.push({ label: 'Holders Revenue', key: 'holdersRevenue' })
 		}
 		if (incentivesData?.incentivesChart?.length > 0) {
 			options.push({ label: 'Incentives', key: 'incentives' })

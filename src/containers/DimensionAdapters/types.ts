@@ -63,3 +63,51 @@ export interface IDimenisionProtocolChartProps {
 }
 
 export type IDimensionChartTypes = 'chain' | 'version' | 'tokens'
+
+interface IProtocol {
+	name: string
+	slug: string
+	logo: string
+	chains: Array<string>
+	category: string | null
+	total24h: number | null
+	total7d: number | null
+	total30d: number | null
+	total1y: number | null
+	totalAllTime: number | null
+	mcap: number | null
+	bribes?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		totalAllTime: number | null
+	}
+	tokenTax?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		totalAllTime: number | null
+	}
+}
+interface IAdapterChainPageProtocol extends IProtocol {
+	childProtocols?: Array<IProtocol>
+}
+
+export interface IAdapterChainPageData {
+	chain: string
+	chains: Array<{ label: string; to: string }>
+	protocols: Array<IAdapterChainPageProtocol>
+	categories: Array<string>
+	adaptorType: string
+	dataType: string | null
+	chartData: Array<[number, number]>
+	total24h: number | null
+	total7d: number | null
+	total30d: number | null
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	change_7dover7d: number | null
+}

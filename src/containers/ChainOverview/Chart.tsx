@@ -10,7 +10,7 @@ import { chainOverviewChartColors } from './colors'
 
 const groupableCharts = [
 	'feesChart',
-	'volumeChart',
+	'dexsChart',
 	'aggregatorsData',
 	'perpsChart',
 	'chainTokenVolumeData',
@@ -149,8 +149,8 @@ export function ChainChart({
 					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
-			if (route.volume === 'true' && data?.volumeChart) {
-				const color = getColor(isCompare) || chainOverviewChartColors.volume
+			if (route.dexs === 'true' && data?.dexsChart) {
+				const color = getColor(isCompare) || chainOverviewChartColors.dexs
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'DEXs Volume',
@@ -159,13 +159,13 @@ export function ChainChart({
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
 					yAxisIndex: 1,
-					show: route.volume === 'true',
+					show: route.dexs === 'true',
 					itemStyle: {
 						color
 					},
 					areaStyle: areaColor
 				})
-				data?.volumeChart.forEach(([date, value]) => {
+				data?.dexsChart.forEach(([date, value]) => {
 					series[series.length - 1].data.push([+date * 1e3, value])
 				})
 			}
@@ -569,7 +569,7 @@ export function ChainChart({
 		groupBy,
 		isCompare,
 		route.tvl,
-		route.volume,
+		route.dexs,
 		route.chainFees,
 		route.chainRevenue,
 		route.price,
@@ -677,7 +677,7 @@ export function ChainChart({
 					id: 'DEXs Volume',
 					axisLabel: {
 						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.volume)
+						color: () => (isCompare ? '#fff' : chainOverviewChartColors.dexs)
 					}
 				},
 				{

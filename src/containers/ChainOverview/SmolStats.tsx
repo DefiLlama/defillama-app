@@ -118,7 +118,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 								<Tooltip
 									render={
 										<BasicLink
-											href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chains/${slug(props.metadata.name)}`}
+											href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chain/${slug(props.metadata.name)}`}
 										/>
 									}
 									className="text-sm font-semibold"
@@ -209,7 +209,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 				<div className="col-span-1 h-[196px] bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
 					<Tooltip
 						render={
-							<BasicLink href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chains/${slug(props.metadata.name)}`} />
+							<BasicLink href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chain/${slug(props.metadata.name)}`} />
 						}
 						className="text-sm font-semibold"
 						content={`Total value of all spot trades executed on decentralized exchanges${
@@ -235,7 +235,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						<Tooltip
 							render={
 								<BasicLink
-									href={props.metadata.name === 'All' ? '/fees' : `/fees/chains/${slug(props.metadata.name)}`}
+									href={props.metadata.name === 'All' ? '/fees' : `/fees/chain/${slug(props.metadata.name)}`}
 								/>
 							}
 							className="text-sm font-semibold"

@@ -3,7 +3,7 @@ import { oldBlue } from '~/constants/colors'
 
 export const chainOverviewChartColors = {
 	tvl: oldBlue,
-	volume: '#19ab17',
+	dexs: '#19ab17',
 	chainFees: '#f150f4',
 	chainRevenue: '#b4b625',
 	price: '#da1f73',

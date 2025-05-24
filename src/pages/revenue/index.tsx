@@ -7,14 +7,16 @@ import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ADAPTOR_TYPE = ADAPTOR_TYPES.FEES
-const type = 'Fees'
+const dataType = 'dailyRevenue'
+const type = 'Revenue'
 
 export const getStaticProps = withPerformanceLogging(`${slug(type)}/index`, async () => {
 	const data = await getAdapterChainPageData({
 		adaptorType: ADAPTOR_TYPE,
+		dataType,
 		chain: 'All',
 		route: slug(type)
-	}).catch((e) => console.info(`Chain page data not found ${ADAPTOR_TYPE} : ALL_CHAINS`, e))
+	}).catch((e) => console.info(`Chain page data not found ${ADAPTOR_TYPE}:${dataType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }
 
@@ -24,7 +26,7 @@ export const getStaticProps = withPerformanceLogging(`${slug(type)}/index`, asyn
 	}
 })
 
-const FeesOnAllChains = (props) => {
+const RevenueOnAllChains = (props) => {
 	return (
 		<Layout title={`${type} - DefiLlama`} defaultSEO>
 			<ChainByAdapter2 {...props} type={type} />
@@ -32,4 +34,4 @@ const FeesOnAllChains = (props) => {
 	)
 }
 
-export default FeesOnAllChains
+export default RevenueOnAllChains

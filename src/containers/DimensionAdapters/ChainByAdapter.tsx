@@ -10,6 +10,7 @@ import { Announcement } from '~/components/Announcement'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { VOLUME_TYPE_ADAPTORS } from './constants'
+import { Metrics } from '~/components/Metrics'
 
 export type IOverviewContainerProps = IOverviewProps
 
@@ -47,7 +48,7 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 						to:
 							chain === 'All'
 								? `/${props.type}/${isSimpleFees ? 'simple' : ''}`
-								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chains/${slug(chain)}`
+								: `/${props.type}${isSimpleFees ? '/simple' : ''}/chain/${slug(chain)}`
 				  }))
 				: null
 
@@ -93,6 +94,8 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 				</Announcement>
 			)}
 			<AdaptorsSearch type={props.type} />
+
+			<Metrics currentMetric={props.type} isChains={true} />
 
 			{rowLinks ? (
 				<RowLinksWithDropdown links={rowLinks} activeLink={chain} key={'row links wrapper of ' + props.type} />

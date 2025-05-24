@@ -21,7 +21,7 @@ import { getPercentChange, getPrevTvlFromChart, nearestUtcZeroHour } from '~/uti
 export const useFetchChainChartData = ({
 	denomination,
 	selectedChain,
-	volumeData,
+	dexsData,
 	feesData,
 	revenueData,
 	appRevenueData,
@@ -50,8 +50,8 @@ export const useFetchChainChartData = ({
 			: null
 	)
 
-	const { data: volumeChart, isLoading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
-		volumeData?.total24h && router.query.volume === 'true' ? selectedChain : null
+	const { data: dexsChart, isLoading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
+		dexsData?.total24h && router.query.dexs === 'true' ? selectedChain : null
 	)
 
 	const { data: feesAndRevenueChart, isLoading: fetchingFeesAndRevenueChartDataByChain } =
@@ -161,9 +161,9 @@ export const useFetchChainChartData = ({
 			? globalChart.map(([date, tvl]) => [date, tvl / normalizedDenomination[date]])
 			: globalChart
 
-		const finalVolumeChart = isNonUSDDenomination
-			? volumeChart?.map(([date, volume]) => [date, volume / normalizedDenomination[date]])
-			: volumeChart
+		const finalDexsChart = isNonUSDDenomination
+			? dexsChart?.map(([date, volume]) => [date, volume / normalizedDenomination[date]])
+			: dexsChart
 
 		const finalPriceChart = isNonUSDDenomination ? null : deduplicateTimestamps(denominationPriceHistory?.prices)
 
@@ -219,7 +219,7 @@ export const useFetchChainChartData = ({
 			{
 				feesChart: finalFeesAndRevenueChart,
 				appRevenueChart: finalAppRevenueChart,
-				volumeChart: finalVolumeChart,
+				dexsChart: finalDexsChart,
 				globalChart: finalTvlChart,
 				raisesData: raisesChart,
 				totalStablesData: stablecoinsChartData,
@@ -242,7 +242,7 @@ export const useFetchChainChartData = ({
 		denomination,
 		denominationPriceHistory,
 		globalChart,
-		volumeChart,
+		dexsChart,
 		perpsChart?.totalDataChart,
 		feesAndRevenueChart,
 		appRevenueChart,

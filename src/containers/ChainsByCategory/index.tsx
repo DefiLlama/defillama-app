@@ -13,6 +13,7 @@ import { getChainsByCategory } from './queries'
 import { IChainsByCategoryData } from './types'
 import { ChainsByCategoryTable } from './Table'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { Metrics } from '~/components/Metrics'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -106,6 +107,8 @@ export function ChainsByCategory({
 	return (
 		<Layout title={`${category} Chains DeFi TVL - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
+
+			<Metrics currentMetric="TVL" isChains={true} />
 
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
 
