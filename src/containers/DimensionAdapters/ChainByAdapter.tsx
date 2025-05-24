@@ -95,7 +95,7 @@ export function ChainByAdapter(props: IOverviewContainerProps) {
 			)}
 			<AdaptorsSearch type={props.type} />
 
-			<Metrics currentMetric={props.type} />
+			<Metrics currentMetric={props.type} isChains={true} />
 
 			{rowLinks ? (
 				<RowLinksWithDropdown links={rowLinks} activeLink={chain} key={'row links wrapper of ' + props.type} />

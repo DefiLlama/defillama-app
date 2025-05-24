@@ -19,8 +19,8 @@ async function pullData() {
 		const protocols = await fetchJson(PROTOCOLS_DATA_URL)
 		const chains = await fetchJson(CHAINS_DATA_URL)
 		const stablecoins = await fetchJson(STABLECOINS_DATA_URL)
-			.then((res) => res.peggedAssets.length)
-			.catch(() => 0)
+			.then((res) => ({ protocols: res.peggedAssets.length, chains: res.chains.length }))
+			.catch(() => ({ protocols: 0, chains: 0 }))
 
 		if (!fs.existsSync(CACHE_DIR)) {
 			fs.mkdirSync(CACHE_DIR)
@@ -31,50 +31,83 @@ async function pullData() {
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
 		const totalTrackedByMetric = {
-			tvl: 0,
+			tvl: { protocols: 0, chains: 0 },
 			stablecoins,
-			fees: 0,
-			revenue: 0,
-			holdersRevenue: 0,
-			dexs: 0,
-			dexAggregators: 0,
-			perps: 0,
-			perpAggregators: 0,
-			options: 0,
-			bridgeAggregators: 0
+			fees: { protocols: 0, chains: 0 },
+			revenue: { protocols: 0, chains: 0 },
+			holdersRevenue: { protocols: 0, chains: 0 },
+			dexs: { protocols: 0, chains: 0 },
+			dexAggregators: { protocols: 0, chains: 0 },
+			perps: { protocols: 0, chains: 0 },
+			perpAggregators: { protocols: 0, chains: 0 },
+			options: { protocols: 0, chains: 0 },
+			bridgeAggregators: { protocols: 0, chains: 0 }
 		}
 
 		for (const p in protocols) {
 			const protocol = protocols[p]
 			if (protocol.tvl) {
-				totalTrackedByMetric.tvl += 1
+				totalTrackedByMetric.tvl.protocols += 1
 			}
 			if (protocol.fees) {
-				totalTrackedByMetric.fees += 1
+				totalTrackedByMetric.fees.protocols += 1
 			}
 			if (protocol.revenue) {
-				totalTrackedByMetric.revenue += 1
+				totalTrackedByMetric.revenue.protocols += 1
 			}
 			if (protocol.holdersRevenue) {
-				totalTrackedByMetric.holdersRevenue += 1
+				totalTrackedByMetric.holdersRevenue.protocols += 1
 			}
 			if (protocol.dexs) {
-				totalTrackedByMetric.dexs += 1
+				totalTrackedByMetric.dexs.protocols += 1
 			}
 			if (protocol.aggregator) {
-				totalTrackedByMetric.dexAggregators += 1
+				totalTrackedByMetric.dexAggregators.protocols += 1
 			}
 			if (protocol.perps) {
-				totalTrackedByMetric.perps += 1
+				totalTrackedByMetric.perps.protocols += 1
 			}
 			if (protocol.perpsAggregators) {
-				totalTrackedByMetric.perpAggregators += 1
+				totalTrackedByMetric.perpAggregators.protocols += 1
 			}
 			if (protocol.options) {
-				totalTrackedByMetric.options += 1
+				totalTrackedByMetric.options.protocols += 1
 			}
 			if (protocol.bridgeAggregators) {
-				totalTrackedByMetric.bridgeAggregators += 1
+				totalTrackedByMetric.bridgeAggregators.protocols += 1
+			}
+		}
+
+		for (const pc in chains) {
+			const chain = chains[pc]
+
+			totalTrackedByMetric.tvl.chains += 1
+
+			if (chain.stablecoins) {
+				totalTrackedByMetric.stablecoins.chains += 1
+			}
+			if (chain.fees) {
+				totalTrackedByMetric.fees.chains += 1
+				totalTrackedByMetric.revenue.chains += 1
+				totalTrackedByMetric.holdersRevenue.chains += 1
+			}
+			if (chain.dexs) {
+				totalTrackedByMetric.dexs.chains += 1
+			}
+			if (chain.aggregators) {
+				totalTrackedByMetric.dexAggregators.chains += 1
+			}
+			if (chain.derivatives) {
+				totalTrackedByMetric.perps.chains += 1
+			}
+			if (chain['aggregator-derivatives']) {
+				totalTrackedByMetric.perpAggregators.chains += 1
+			}
+			if (chain.options) {
+				totalTrackedByMetric.options.chains += 1
+			}
+			if (chain['bridge-aggregators']) {
+				totalTrackedByMetric.bridgeAggregators.chains += 1
 			}
 		}
 
