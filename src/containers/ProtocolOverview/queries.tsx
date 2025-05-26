@@ -47,6 +47,7 @@ interface IUpdatedProtocol {
 	otherProtocols?: Array<string>
 	hallmarks?: Array<[number, string]>
 	stablecoins?: Array<string>
+	misrepresentedTokens?: boolean
 }
 
 export const getProtocol = async (protocolName: string) => {
@@ -168,10 +169,11 @@ export const getProtocolMetrics = ({
 	metadata: IProtocolMetadata
 }): IProtocolPageMetrics => {
 	let inflowsExist = false
-
-	for (const chain in protocolData.chainTvls ?? {}) {
-		if (protocolData.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
-			inflowsExist = true
+	if (!protocolData.misrepresentedTokens) {
+		for (const chain in protocolData.chainTvls ?? {}) {
+			if (protocolData.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
+				inflowsExist = true
+			}
 		}
 	}
 
@@ -185,7 +187,7 @@ export const getProtocolMetrics = ({
 		bridgeAggregators: metadata.bridgeAggregators ? true : false,
 		stablecoins: protocolData.stablecoins?.length > 0,
 		bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
-		treasury: metadata.treasury ? true : false,
+		treasury: metadata.treasury && !protocolData.misrepresentedTokens ? true : false,
 		unlocks: metadata.emissions ? true : false,
 		yields: metadata.yields ? true : false,
 		fees: metadata.fees ? true : false,
