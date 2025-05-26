@@ -44,86 +44,84 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 			<p
 				className={`text-center ${
 					currentMetric === 'Stablecoins' && !isChains ? 'my-1' : '-mt-2 mb-1'
-				} flex items-center gap-1 justify-center`}
+				} flex items-center gap-1 justify-center flex-wrap`}
 			>
 				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
 					{isChains ? 'Chains' : 'Protocols'}
 				</Ariakit.DialogDisclosure>
 				<span>ranked by </span>
-				<Ariakit.DialogDisclosure className="flex items-center">
-					<span className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
-						{currentMetric}
-					</span>
-					<span className="py-1 px-[10px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs">
-						<Icon name="pencil" height={12} width={12} />
-						<span>Click to change</span>
-					</span>
+				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
+					{currentMetric}
 				</Ariakit.DialogDisclosure>
-				<Ariakit.Dialog className="dialog gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] max-sm:drawer" unmountOnHide>
-					<Ariakit.DialogDismiss
-						className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-[var(--divider)] text-[var(--text3)] hover:text-[var(--text1)]"
-						aria-label="Close modal"
-					>
-						<Icon name="x" height={20} width={20} />
-					</Ariakit.DialogDismiss>
-					<div className="flex items-center gap-2">
-						<Ariakit.DialogHeading className="text-2xl font-bold">Metrics for</Ariakit.DialogHeading>
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
-							{['Protocols', 'Chains'].map((dataType) => (
-								<button
-									onClick={() => setTab(dataType as 'Protocols' | 'Chains')}
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-									data-active={tab === dataType}
-									key={dataType}
-								>
-									{dataType}
-								</button>
-							))}
-						</div>
+				<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs">
+					<Icon name="pencil" height={12} width={12} />
+					<span>Click to change</span>
+				</Ariakit.DialogDisclosure>
+			</p>
+			<Ariakit.Dialog className="dialog gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] max-sm:drawer" unmountOnHide>
+				<Ariakit.DialogDismiss
+					className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-[var(--divider)] text-[var(--text3)] hover:text-[var(--text1)]"
+					aria-label="Close modal"
+				>
+					<Icon name="x" height={20} width={20} />
+				</Ariakit.DialogDismiss>
+				<div className="flex items-center gap-2">
+					<Ariakit.DialogHeading className="text-2xl font-bold">Metrics for</Ariakit.DialogHeading>
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+						{['Protocols', 'Chains'].map((dataType) => (
+							<button
+								onClick={() => setTab(dataType as 'Protocols' | 'Chains')}
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								data-active={tab === dataType}
+								key={dataType}
+							>
+								{dataType}
+							</button>
+						))}
 					</div>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
-						{tab === 'Chains' ? (
-							<>
-								{allMetrics
-									.filter((c) => c.chainsRoute)
-									.map((metric) => (
-										<BasicLink
-											key={`chain-metric-${metric.name}`}
-											className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
-											href={metric.chainsRoute}
-										>
-											<span className="flex items-center gap-2 flex-wrap justify-between w-full">
-												<span className="font-medium">{metric.name}</span>
-												{metric.chainsTracked ? (
-													<span className="text-xs text-[var(--link)]">{metric.chainsTracked} tracked</span>
-												) : null}
-											</span>
-											<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
-										</BasicLink>
-									))}
-							</>
-						) : (
-							<>
-								{allMetrics.map((metric) => (
+				</div>
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
+					{tab === 'Chains' ? (
+						<>
+							{allMetrics
+								.filter((c) => c.chainsRoute)
+								.map((metric) => (
 									<BasicLink
 										key={`chain-metric-${metric.name}`}
 										className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
-										href={chain ? `${metric.protocolsRoute.replace('{chain}', chain)}` : metric.mainRoute}
+										href={metric.chainsRoute}
 									>
 										<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 											<span className="font-medium">{metric.name}</span>
-											{metric.protocolsTracked ? (
-												<span className="text-xs text-[var(--link)]">{metric.protocolsTracked} tracked</span>
+											{metric.chainsTracked ? (
+												<span className="text-xs text-[var(--link)]">{metric.chainsTracked} tracked</span>
 											) : null}
 										</span>
 										<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
 									</BasicLink>
 								))}
-							</>
-						)}
-					</div>
-				</Ariakit.Dialog>
-			</p>
+						</>
+					) : (
+						<>
+							{allMetrics.map((metric) => (
+								<BasicLink
+									key={`chain-metric-${metric.name}`}
+									className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									href={chain ? `${metric.protocolsRoute.replace('{chain}', chain)}` : metric.mainRoute}
+								>
+									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
+										<span className="font-medium">{metric.name}</span>
+										{metric.protocolsTracked ? (
+											<span className="text-xs text-[var(--link)]">{metric.protocolsTracked} tracked</span>
+										) : null}
+									</span>
+									<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
+								</BasicLink>
+							))}
+						</>
+					)}
+				</div>
+			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)
 }
