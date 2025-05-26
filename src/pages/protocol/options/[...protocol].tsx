@@ -1,7 +1,7 @@
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/charts/ProtocolChart'
+import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'

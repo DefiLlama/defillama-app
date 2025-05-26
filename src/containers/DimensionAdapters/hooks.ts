@@ -1,6 +1,6 @@
 import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
 import { useQuery } from '@tanstack/react-query'
-import { ADAPTER_TYPES } from '../constants'
+import { ADAPTER_TYPES } from './constants'
 
 export const useGetDimensionAdapterChartData = ({
 	protocolName,

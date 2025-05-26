@@ -26,7 +26,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useRouter } from 'next/router'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { AdapterByChainChart } from './charts/ChainChart'
+import { AdapterByChainChart } from './ChainChart'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Exclude<TMetric, 'Stablecoins' | 'TVL'>

@@ -23,7 +23,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { VirtualTable } from '~/components/Table/Table'
 import { Icon } from '~/components/Icon'
-import { ChainsByAdapterChart } from './charts/ChainChart'
+import { ChainsByAdapterChart } from './ChainChart'
 
 interface IProps extends IChainsByAdapterPageData {
 	type: Exclude<TMetric, 'Stablecoins' | 'TVL'>

@@ -14,7 +14,7 @@ import {
 	useFetchProtocolDevMetrics
 } from '~/api/categories/protocols/client'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour } from '~/utils'
-import { useGetDimensionAdapterChartData } from '~/containers/DimensionAdapters/charts/hooks'
+import { useGetDimensionAdapterChartData } from '~/containers/DimensionAdapters/hooks'
 import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/Bridges/BridgeProtocolOverview'
 import { fetchWithErrorLogging } from '~/utils/async'
