@@ -1,6 +1,6 @@
 import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
 import { useQuery } from '@tanstack/react-query'
-import { ADAPTOR_TYPES } from '../constants'
+import { ADAPTER_TYPES } from '../constants'
 
 export const useGetDimensionAdapterChartData = ({
 	protocolName,
@@ -9,7 +9,7 @@ export const useGetDimensionAdapterChartData = ({
 	disabled
 }: {
 	protocolName: string
-	adapterType: `${ADAPTOR_TYPES}`
+	adapterType: `${ADAPTER_TYPES}`
 	disabled?: boolean
 	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
 }) => {

@@ -1,14 +1,15 @@
 import { maxAgeForNext } from '~/api'
-import { ADAPTOR_TYPES, getDimensionsAdaptersChainsPageData } from '~/api/categories/adaptors'
-import { SEO } from '~/components/SEO'
-import { ChainByAdapter, type IOverviewContainerProps } from '~/containers/DimensionAdapters/ChainByAdapter'
+import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
+import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { getChainsByAdapterPageData } from '~/containers/DimensionAdapters/queries'
+import { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ADAPTOR_TYPE = ADAPTOR_TYPES.BRIDGE_AGGREGATORS
+const adapterType = ADAPTER_TYPES.BRIDGE_AGGREGATORS
 
-export const getStaticProps = withPerformanceLogging(`${ADAPTOR_TYPE}/chains`, async () => {
-	const data = await getDimensionsAdaptersChainsPageData(ADAPTOR_TYPE)
+export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
+	const data = await getChainsByAdapterPageData({ adapterType, route: 'bridge-aggregators' })
 
 	return {
 		props: data,
@@ -16,13 +17,12 @@ export const getStaticProps = withPerformanceLogging(`${ADAPTOR_TYPE}/chains`, a
 	}
 })
 
-const VolumeOnAllChains = (props: IOverviewContainerProps) => {
+const BridgeAggregatorsByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title="Bridge Aggregators volume by chain - DefiLlama">
-			<SEO pageType={props.type} />
-			<ChainByAdapter {...props} />
+		<Layout title="Bridge Aggregators by chain - DefiLlama">
+			<ChainsByAdapter {...props} type="Bridge Aggregators" />
 		</Layout>
 	)
 }
 
-export default VolumeOnAllChains
+export default BridgeAggregatorsByChain

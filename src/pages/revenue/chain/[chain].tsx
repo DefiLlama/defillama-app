@@ -1,16 +1,16 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { ChainByAdapter2 } from '~/containers/DimensionAdapters/ChainByAdapter2'
-import { ADAPTOR_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getAdapterChainPageData } from '~/containers/DimensionAdapters/queries'
+import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadataCache from '~/utils/metadata'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
+import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 
-const ADAPTOR_TYPE = ADAPTOR_TYPES.FEES
+const adapterType = ADAPTER_TYPES.FEES
 const dataType = 'dailyRevenue'
 const type = 'Revenue'
 
@@ -26,7 +26,7 @@ export const getStaticPaths = async () => {
 	}
 
 	const chains = await fetchWithErrorLogging(
-		`${DIMENISIONS_OVERVIEW_API}/${ADAPTOR_TYPE}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=${dataType}`
+		`${DIMENISIONS_OVERVIEW_API}/${adapterType}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=${dataType}`
 	)
 		.then((res) => res.json())
 		.then((res) => (res.allChains ?? []).slice(0, 10))
@@ -48,12 +48,12 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getAdapterChainPageData({
-			adaptorType: ADAPTOR_TYPE,
+		const data = await getAdapterByChainPageData({
+			adapterType,
 			dataType,
 			chain: metadataCache.chainMetadata[chain].name,
 			route: slug(type)
-		}).catch((e) => console.info(`Chain page data not found ${ADAPTOR_TYPE}:${dataType} : chain:${chain}`, e))
+		}).catch((e) => console.info(`Chain page data not found ${adapterType}:${dataType} : chain:${chain}`, e))
 
 		if (!data) return { notFound: true }
 
@@ -67,7 +67,7 @@ export const getStaticProps = withPerformanceLogging(
 const RevenueOnChain = (props) => {
 	return (
 		<Layout title={`${props.chain} ${type} - DefiLlama`} defaultSEO>
-			<ChainByAdapter2 {...props} type={type} />
+			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)
 }

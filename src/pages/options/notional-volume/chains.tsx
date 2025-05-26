@@ -6,10 +6,11 @@ import { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const adapterType = ADAPTER_TYPES.PERPS_AGGREGATOR
+const adapterType = ADAPTER_TYPES.OPTIONS
+const dataType = 'dailyNotionalVolume'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByAdapterPageData({ adapterType, route: 'perps-aggregators' })
+	const data = await getChainsByAdapterPageData({ adapterType, dataType, route: 'options/notional-volume' })
 
 	return {
 		props: data,
@@ -17,12 +18,12 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 	}
 })
 
-const PerpsAggregatorsByChain = (props: IChainsByAdapterPageData) => {
+const OptionsNotionalVolumeByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title="Perps Aggregators by chain - DefiLlama">
-			<ChainsByAdapter {...props} type="Perps Aggregators" />
+		<Layout title="Options Notional Volume by chain - DefiLlama">
+			<ChainsByAdapter {...props} type="Options Notional Volume" />
 		</Layout>
 	)
 }
 
-export default PerpsAggregatorsByChain
+export default OptionsNotionalVolumeByChain

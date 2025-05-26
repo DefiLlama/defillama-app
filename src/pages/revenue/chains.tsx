@@ -6,10 +6,11 @@ import { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const adapterType = ADAPTER_TYPES.PERPS_AGGREGATOR
+const adapterType = ADAPTER_TYPES.FEES
+const dataType = 'dailyRevenue'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByAdapterPageData({ adapterType, route: 'perps-aggregators' })
+	const data = await getChainsByAdapterPageData({ adapterType, dataType, route: 'revenue' })
 
 	return {
 		props: data,
@@ -17,12 +18,12 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 	}
 })
 
-const PerpsAggregatorsByChain = (props: IChainsByAdapterPageData) => {
+const RevenueByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title="Perps Aggregators by chain - DefiLlama">
-			<ChainsByAdapter {...props} type="Perps Aggregators" />
+		<Layout title="Revenue by chain - DefiLlama">
+			<ChainsByAdapter {...props} type="Revenue" />
 		</Layout>
 	)
 }
 
-export default PerpsAggregatorsByChain
+export default RevenueByChain

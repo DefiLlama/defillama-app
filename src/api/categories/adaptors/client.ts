@@ -1,6 +1,5 @@
 import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
-import { getDimensionProtocolPageData, ProtocolAdaptorSummaryProps } from '.'
 import type { IGetOverviewResponseBody } from './types'
 import { useQuery } from '@tanstack/react-query'
 
@@ -14,15 +13,6 @@ export const useFetchAdaptorsList = (type: string, disabled?: boolean) => {
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: !disabled
-	})
-}
-
-export const useFetchCharts = (type: string, chain?: string, dataType?: string, disable?: boolean) => {
-	const url = !disable ? getAPIUrl(type, chain, true, false, dataType) : null
-	return useQuery<ProtocolAdaptorSummaryProps>({
-		queryKey: ['adaptors-charts', url],
-		queryFn: url ? () => fetchApi(url) : () => null,
-		staleTime: 60 * 60 * 1000
 	})
 }
 
@@ -41,17 +31,6 @@ export const getAPIUrl = (
 	if (dataType) API = `${API}&dataType=${dataType}`
 	if (fullChart) API = `${API}&fullChart=${true}`
 	return API
-}
-
-export const useFetchChartsSummary = (type: string, protocolName: string, dataType?: string, disable?: boolean) => {
-	const url = !disable ? getAPIUrlSummary(type, protocolName, dataType) : null
-
-	return useQuery<ProtocolAdaptorSummaryProps>({
-		queryKey: ['adaptors-charts-summary', url],
-		queryFn: url ? () => getDimensionProtocolPageData({ adapterType: type, protocolName, dataType }) : () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0
-	})
 }
 
 export const getAPIUrlSummary = (type: string, protocolName: string, dataType?: string, fullChart?: boolean) => {

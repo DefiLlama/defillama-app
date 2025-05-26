@@ -172,7 +172,7 @@ export default function LineAndBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent])
+	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, alwaysShowTooltip])
 
 	return <div id={id} className="min-h-[360px]" style={height ? { height } : undefined}></div>
 }

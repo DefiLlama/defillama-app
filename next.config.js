@@ -290,11 +290,6 @@ const nextConfig = {
 				permanent: true
 			},
 			{
-				source: '/fees/chains',
-				destination: '/fees',
-				permanent: true
-			},
-			{
 				source: '/fees/chains/:slug',
 				destination: '/fees/chain/:slug',
 				permanent: true
@@ -302,6 +297,11 @@ const nextConfig = {
 			{
 				source: '/dex',
 				destination: '/dexs',
+				permanent: true
+			},
+			{
+				source: '/dex/chain',
+				destination: '/dexs/chains',
 				permanent: true
 			},
 			{
@@ -482,16 +482,6 @@ const nextConfig = {
 			{
 				source: '/raise',
 				destination: '/raises',
-				permanent: true
-			},
-			{
-				source: '/dex/chain',
-				destination: '/dex/chains',
-				permanent: true
-			},
-			{
-				source: '/options/chain',
-				destination: '/options/chains',
 				permanent: true
 			},
 			{

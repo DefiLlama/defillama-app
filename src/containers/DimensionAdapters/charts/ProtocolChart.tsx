@@ -2,15 +2,16 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
-import { DataIntervalType, INTERVALS_LIST } from './utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, download, toNiceCsvDate } from '~/utils'
-import { ADAPTOR_TYPES } from '../constants'
+import { ADAPTER_TYPES } from '../constants'
 import { useGetDimensionAdapterChartData } from './hooks'
 import { LazyChart } from '~/components/LazyChart'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { oldBlue } from '~/constants/colors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+
+const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
 const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
@@ -25,7 +26,7 @@ export const DimensionProtocolOverviewChart = ({
 	title?: string
 }) => {
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
-	const [chartInterval, changeChartInterval] = React.useState<DataIntervalType>('Daily')
+	const [chartInterval, changeChartInterval] = React.useState<typeof INTERVALS_LIST[number]>('Daily')
 
 	const mainChartData = React.useMemo(() => {
 		const formatDate = (date) =>
@@ -253,7 +254,7 @@ const chartTitleBy = ({
 	adapterType,
 	chartType
 }: {
-	adapterType: `${ADAPTOR_TYPES}`
+	adapterType: `${ADAPTER_TYPES}`
 	chartType: 'overview' | 'chain' | 'version'
 }) => {
 	switch (chartType) {
@@ -273,7 +274,7 @@ export const DimensionProtocolChartByType = ({
 	metadata
 }: {
 	protocolName: string
-	adapterType: `${ADAPTOR_TYPES}`
+	adapterType: `${ADAPTER_TYPES}`
 	chartType: 'overview' | 'chain' | 'version'
 	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
 }) => {
@@ -328,7 +329,7 @@ const ChartByType = ({
 	allTypes: string[]
 	chartType: 'chain' | 'version'
 }) => {
-	const [chartInterval, changeChartInterval] = React.useState<DataIntervalType>('Daily')
+	const [chartInterval, changeChartInterval] = React.useState<typeof INTERVALS_LIST[number]>('Daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(allTypes)
 
 	const mainChartData = React.useMemo(() => {

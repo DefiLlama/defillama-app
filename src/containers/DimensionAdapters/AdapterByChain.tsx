@@ -1,5 +1,5 @@
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { IAdapterChainPageData } from './types'
+import { IAdapterByChainPageData } from './types'
 import { VirtualTable } from '~/components/Table/Table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -21,28 +21,18 @@ import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { TokenLogo } from '~/components/TokenLogo'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
-import { Metrics } from '~/components/Metrics'
+import { Metrics, TMetric } from '~/components/Metrics'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useRouter } from 'next/router'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { ChainByAdapterChart2 } from './charts/ChainChart'
+import { AdapterByChainChart } from './charts/ChainChart'
 
-interface IProps extends IAdapterChainPageData {
-	type:
-		| 'Fees'
-		| 'Revenue'
-		| 'Holders Revenue'
-		| 'Options Premium Volume'
-		| 'Options Notional Volume'
-		| 'DEXs'
-		| 'Perps'
-		| 'Bridge Aggregators'
-		| 'Perps Aggregators'
-		| 'DEX Aggregators'
+interface IProps extends IAdapterByChainPageData {
+	type: Exclude<TMetric, 'Stablecoins' | 'TVL'>
 }
 
-export function ChainByAdapter2(props: IProps) {
+export function AdapterByChain(props: IProps) {
 	const router = useRouter()
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
@@ -61,7 +51,7 @@ export function ChainByAdapter2(props: IProps) {
 				: props.protocols
 
 		const finalProtocols =
-			props.adaptorType === 'fees' && (enabledSettings.bribes || enabledSettings.tokentax)
+			props.adapterType === 'fees' && (enabledSettings.bribes || enabledSettings.tokentax)
 				? protocols.map((p) => {
 						const childProtocols = p.childProtocols
 							? p.childProtocols.map((cp) => {
@@ -164,7 +154,7 @@ export function ChainByAdapter2(props: IProps) {
 			}
 		},
 		filterFromLeafRows: true,
-		getSubRows: (row: IAdapterChainPageData['protocols'][0]) => row.childProtocols,
+		getSubRows: (row: IAdapterByChainPageData['protocols'][0]) => row.childProtocols,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		onColumnSizingChange: setColumnSizing,
@@ -209,13 +199,12 @@ export function ChainByAdapter2(props: IProps) {
 			'Total All Time',
 			'Market Cap'
 		]
-		const csvdata = props.protocols.map((protocol) => {
+		const csvdata = protocols.map((protocol) => {
 			return [
 				protocol.name,
 				protocol.category,
 				protocol.chains.join(', '),
 				protocol.total24h,
-				protocol.total7d,
 				protocol.total30d,
 				protocol.total1y,
 				protocol.totalAllTime,
@@ -225,7 +214,7 @@ export function ChainByAdapter2(props: IProps) {
 		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
 
 		download(`${props.type}-${props.chain}-protocols.csv`, csv)
-	}, [props])
+	}, [props, protocols])
 
 	const { category, chain, ...queries } = router.query
 
@@ -277,10 +266,10 @@ export function ChainByAdapter2(props: IProps) {
 
 	return (
 		<>
-			<AdaptorsSearch type={props.adaptorType} dataType={props.dataType} />
+			<AdaptorsSearch type={props.adapterType} dataType={props.dataType} />
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.adaptorType !== 'fees' ? (
+			{props.adapterType !== 'fees' ? (
 				<div className="grid grid-cols-3 relative isolate gap-1">
 					<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{props.chain !== 'All' && (
@@ -328,9 +317,9 @@ export function ChainByAdapter2(props: IProps) {
 							) : null}
 						</div>
 					</div>
-					<ChainByAdapterChart2
+					<AdapterByChainChart
 						chartData={props.chartData}
-						adapterType={props.type}
+						adapterType={props.adapterType}
 						dataType={props.dataType}
 						chain={props.chain}
 						chartName={metricName}
@@ -385,7 +374,7 @@ const columnSizes = Object.entries({ 0: { name: 180 }, 640: { name: 240 }, 768: 
 )
 
 const columnOrders = Object.entries({
-	0: ['name', 'total24h', 'total30d', 'caegory'],
+	0: ['name', 'total24h', 'total30d', 'category'],
 	640: ['name', 'category', 'total24h', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
@@ -402,7 +391,7 @@ const chartKeys: Record<IProps['type'], string> = {
 	'DEX Aggregators': 'dexAggregators'
 }
 
-const NameColumn = (type: IProps['type']): ColumnDef<IAdapterChainPageData['protocols'][0]> => {
+const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['protocols'][0]> => {
 	return {
 		id: 'name',
 		header: 'Name',
@@ -468,7 +457,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterChainPageData['prot
 	}
 }
 
-const columnsByType: Record<IProps['type'], ColumnDef<IAdapterChainPageData['protocols'][0]>[]> = {
+const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> = {
 	Fees: [
 		NameColumn('Fees'),
 		{

@@ -1,20 +1,20 @@
 import { maxAgeForNext } from '~/api'
-import { ChainByAdapter2 } from '~/containers/DimensionAdapters/ChainByAdapter2'
-import { ADAPTOR_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getAdapterChainPageData } from '~/containers/DimensionAdapters/queries'
+import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
+import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ADAPTOR_TYPE = ADAPTOR_TYPES.PERPS
+const adapterType = ADAPTER_TYPES.PERPS
 const type = 'Perps'
 
 export const getStaticProps = withPerformanceLogging(`${slug(type)}/index`, async () => {
-	const data = await getAdapterChainPageData({
-		adaptorType: ADAPTOR_TYPE,
+	const data = await getAdapterByChainPageData({
+		adapterType,
 		chain: 'All',
 		route: slug(type)
-	}).catch((e) => console.info(`Chain page data not found ${ADAPTOR_TYPE} : ALL_CHAINS`, e))
+	}).catch((e) => console.info(`Chain page data not found ${adapterType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }
 
@@ -27,7 +27,7 @@ export const getStaticProps = withPerformanceLogging(`${slug(type)}/index`, asyn
 const PerpsVolumeOnAllChains = (props) => {
 	return (
 		<Layout title={`${type} - DefiLlama`} defaultSEO>
-			<ChainByAdapter2 {...props} type={type} />
+			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)
 }

@@ -1,25 +1,18 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/router'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { useDimensionChartInterval } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import {
-	ChartType,
-	DataIntervalType,
-	getChartDataByChainAndInterval,
-	GROUP_CHART_LIST,
-	GROUP_INTERVALS_LIST,
-	INTERVALS_LIST
-} from './utils'
-import { IJoin2ReturnType } from '~/api/categories/adaptors'
-import { BasicLink } from '~/components/Link'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download, toNiceCsvDate, slug, lastDayOfWeek, firstDayOfMonth } from '~/utils'
+import { download, toNiceCsvDate, slug, lastDayOfWeek, firstDayOfMonth, getNDistinctColors } from '~/utils'
 import { getAdapterChainOverview } from '../queries'
-import { ADAPTOR_TYPES } from '../constants'
+import { ADAPTER_TYPES } from '../constants'
 import { useMutation } from '@tanstack/react-query'
 import { oldBlue } from '~/constants/colors'
+import { IAdapterByChainPageData, IChainsByAdapterPageData } from '../types'
+import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
+
+const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly'] as const
+const CHART_TYPES = ['Volume', 'Dominance'] as const
 
 const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
@@ -36,7 +29,7 @@ const downloadBreakdownChart = async ({
 	chain: string
 }) => {
 	const data = await getAdapterChainOverview({
-		type: adapterType as `${ADAPTOR_TYPES}`,
+		adapterType: adapterType as `${ADAPTER_TYPES}`,
 		chain,
 		excludeTotalDataChart: true,
 		excludeTotalDataChartBreakdown: false,
@@ -60,134 +53,16 @@ const downloadBreakdownChart = async ({
 	return null
 }
 
-export const ChainByAdapterChart = ({
-	totalDataChart,
-	chartTypes,
-	selectedChartType,
-	adapterType,
-	chain
-}: {
-	totalDataChart: [IJoin2ReturnType, string[]]
-	chartTypes?: Array<string>
-	selectedChartType?: string
-	adapterType: string
-	chain: string
-}) => {
-	const router = useRouter()
-	const [chartType, setChartType] = React.useState<ChartType>('Volume')
-	const [chartInterval, changeChartInterval] = useDimensionChartInterval()
+const INTERVALS_LIST_ADAPTER_BY_CHAIN = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
-	const [selectedChains, setSelectedChains] = React.useState<string[]>(totalDataChart?.[1] ?? [])
-
-	const { charts, chartOptions } = React.useMemo(() => {
-		return getChartDataByChainAndInterval({ chartData: totalDataChart, chartInterval, chartType, selectedChains })
-	}, [totalDataChart, chartInterval, selectedChains, chartType])
-
-	const { mutate: downloadBreakdownChartMutation, isPending: isDownloadingBreakdownChart } = useMutation({
-		mutationFn: downloadBreakdownChart
-	})
-
-	return (
-		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
-			<>
-				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] mr-auto">
-						{GROUP_INTERVALS_LIST.map((dataInterval) => (
-							<a
-								key={dataInterval}
-								onClick={() => changeChartInterval(dataInterval as 'Daily' | 'Weekly' | 'Monthly')}
-								data-active={dataInterval === chartInterval}
-								className="cursor-pointer flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							>
-								{dataInterval}
-							</a>
-						))}
-					</div>
-					{chartTypes && (
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
-							{chartTypes.map((dataType) => (
-								<BasicLink
-									href={`${router.asPath.split('?')[0]}?dataType=${dataType}`}
-									key={dataType}
-									shallow
-									data-active={dataType === selectedChartType}
-									className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-								>
-									{dataType}
-								</BasicLink>
-							))}
-						</div>
-					)}
-					{totalDataChart?.[1]?.length > 1 ? (
-						<>
-							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
-								{GROUP_CHART_LIST.map((dataType) => (
-									<button
-										className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-										data-active={dataType === chartType}
-										key={dataType}
-										onClick={() => setChartType(dataType)}
-									>
-										{dataType}
-									</button>
-								))}
-							</div>
-							<SelectWithCombobox
-								allValues={totalDataChart[1]}
-								selectedValues={selectedChains}
-								setSelectedValues={setSelectedChains}
-								label="Chains"
-								clearAll={() => setSelectedChains([])}
-								toggleAll={() => setSelectedChains(totalDataChart[1])}
-								labelType="smol"
-								triggerProps={{
-									className:
-										'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
-								}}
-								portal
-							/>
-						</>
-					) : null}
-					<CSVDownloadButton
-						onClick={() => {
-							downloadBreakdownChartMutation({
-								adapterType,
-								chain
-							})
-						}}
-						isLoading={isDownloadingBreakdownChart}
-						smol
-						className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
-					/>
-				</div>
-			</>
-			{totalDataChart ? (
-				<div className="min-h-[360px]">
-					{chartType === 'Dominance' ? (
-						<LineAndBarChart charts={charts} valueSymbol="%" expandTo100Percent chartOptions={chartOptions} />
-					) : (
-						<LineAndBarChart charts={charts} chartOptions={chartOptions} groupBy={chartInterval.toLowerCase()} />
-					)}
-				</div>
-			) : null}
-		</div>
-	)
-}
-
-export const ChainByAdapterChart2 = ({
+export const AdapterByChainChart = ({
 	chartData,
 	adapterType,
 	dataType,
 	chain,
 	chartName
-}: {
-	chartData: Array<[number, number]>
-	adapterType: string
-	dataType: string
-	chain: string
-	chartName: string
-}) => {
-	const [chartInterval, setChartInterval] = React.useState<DataIntervalType>('Daily')
+}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'dataType' | 'chain'> & { chartName: string }) => {
+	const [chartInterval, setChartInterval] = React.useState<typeof INTERVALS_LIST_ADAPTER_BY_CHAIN[number]>('Daily')
 
 	const { charts } = React.useMemo(() => {
 		if (chartInterval !== 'Daily') {
@@ -250,7 +125,7 @@ export const ChainByAdapterChart2 = ({
 		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
 			<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
 				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] mr-auto">
-					{INTERVALS_LIST.map((dataInterval) => (
+					{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
 						<a
 							key={dataInterval}
 							onClick={() => setChartInterval(dataInterval)}
@@ -274,9 +149,317 @@ export const ChainByAdapterChart2 = ({
 					className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
 				/>
 			</div>
-			<div className="min-h-[360px]">
-				<LineAndBarChart charts={charts} groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'} />
-			</div>
+
+			<LineAndBarChart charts={charts} groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'} />
 		</div>
 	)
+}
+
+export const ChainsByAdapterChart = ({
+	chartData,
+	allChains,
+	type
+}: Pick<IChainsByAdapterPageData, 'chartData' | 'allChains'> & { type: string }) => {
+	const [chartType, setChartType] = React.useState<typeof CHART_TYPES[number]>('Volume')
+	const [chartInterval, setChartInterval] = React.useState<typeof INTERVALS_LIST[number]>('Daily')
+
+	const [selectedChains, setSelectedChains] = React.useState<string[]>(allChains)
+
+	const { charts, chartOptions } = React.useMemo(() => {
+		return getChartDataByChainAndInterval({ chartData, chartInterval, chartType, selectedChains })
+	}, [chartData, chartInterval, selectedChains, chartType])
+
+	return (
+		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
+			<>
+				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] mr-auto">
+						{INTERVALS_LIST.map((dataInterval) => (
+							<a
+								key={dataInterval}
+								onClick={() => setChartInterval(dataInterval)}
+								data-active={dataInterval === chartInterval}
+								className="cursor-pointer flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							>
+								{dataInterval}
+							</a>
+						))}
+					</div>
+
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+						{CHART_TYPES.map((dataType) => (
+							<button
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								data-active={dataType === chartType}
+								key={dataType}
+								onClick={() => setChartType(dataType)}
+							>
+								{dataType}
+							</button>
+						))}
+					</div>
+					<SelectWithCombobox
+						allValues={allChains}
+						selectedValues={selectedChains}
+						setSelectedValues={setSelectedChains}
+						label="Chains"
+						clearAll={() => setSelectedChains([])}
+						toggleAll={() => setSelectedChains(allChains)}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
+						}}
+						portal
+					/>
+					<CSVDownloadButton
+						onClick={() => {
+							const rows: any = [['Timestamp', 'Date', ...allChains]]
+
+							for (const date in chartData) {
+								const row: any = [date, toNiceCsvDate(date)]
+								for (const chain of allChains) {
+									row.push(chartData[date][chain] ?? '')
+								}
+								rows.push(row)
+							}
+
+							download(
+								`${type}-chains-${new Date().toISOString().split('T')[0]}.csv`,
+								rows.map((r) => r.join(',')).join('\n')
+							)
+						}}
+						smol
+						className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+					/>
+				</div>
+			</>
+
+			{chartType === 'Dominance' ? (
+				<LineAndBarChart charts={charts} valueSymbol="%" expandTo100Percent chartOptions={chartOptions} />
+			) : (
+				<LineAndBarChart
+					charts={charts}
+					chartOptions={chartOptions}
+					groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
+				/>
+			)}
+		</div>
+	)
+}
+
+const getChartDataByChainAndInterval = ({
+	chartData,
+	chartInterval,
+	chartType,
+	selectedChains
+}: {
+	chartData: Record<string, Record<string, number>>
+	chartInterval: 'Daily' | 'Weekly' | 'Monthly'
+	chartType?: 'Volume' | 'Dominance'
+	selectedChains: string[]
+}) => {
+	if (chartType === 'Dominance') {
+		const sumByDate = {}
+		for (const date in chartData) {
+			const finalDate = +date * 1e3
+
+			for (const chain in chartData[date]) {
+				if (selectedChains.includes(chain)) {
+					sumByDate[finalDate] = (sumByDate[finalDate] || 0) + (chartData[date][chain] || 0)
+				}
+			}
+		}
+
+		const dataByChain = {}
+
+		for (const date in chartData) {
+			const finalDate = +date * 1e3
+
+			for (const chain of selectedChains) {
+				dataByChain[chain] = dataByChain[chain] || []
+				dataByChain[chain].push([
+					finalDate,
+					sumByDate && chartData[date][chain] != null
+						? (Number(chartData[date][chain] || 0) / sumByDate[finalDate]) * 100
+						: null
+				])
+			}
+		}
+
+		const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
+		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
+		stackColors['Bitcoin'] = oldBlue
+		stackColors['Others'] = allColors[allColors.length - 1]
+
+		const charts = {}
+
+		for (const chain in dataByChain) {
+			charts[chain] = {
+				data: dataByChain[chain],
+				type: 'line',
+				name: chain,
+				stack: chain,
+				color: stackColors[chain]
+			}
+		}
+
+		return {
+			charts,
+			chartOptions: {}
+		}
+	}
+
+	// if (chartInterval === 'Cumulative') {
+	// 	const cumulativeByChain = {}
+	// 	const dataByChain = {}
+
+	// 	for (const date in chartData) {
+	// 		const finalDate = +date * 1e3
+
+	// 		for (const chain in chartData[date]) {
+	// 			if (selectedChains.includes(chain)) {
+	// 				cumulativeByChain[chain] = (cumulativeByChain[chain] || 0) + (chartData[date][chain] || 0)
+	// 				dataByChain[chain] = dataByChain[chain] || []
+	// 				dataByChain[chain].push([finalDate, cumulativeByChain[chain]])
+	// 			}
+	// 		}
+	// 	}
+
+	// 	const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
+	// 	const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
+	// 	stackColors[selectedChains[0]] = oldBlue
+	// 	stackColors['Others'] = allColors[allColors.length - 1]
+
+	// 	return {
+	// 		chartData: dataByChain,
+	// 		stackColors,
+	// 		chartOptions: {}
+	// 	}
+	// }
+
+	const topByAllDates = {}
+
+	const uniqTopChains = new Set<string>()
+	for (const date in chartData) {
+		const finalDate =
+			chartInterval === 'Weekly'
+				? lastDayOfWeek(+date * 1e3) * 1e3
+				: chartInterval === 'Monthly'
+				? firstDayOfMonth(+date * 1e3) * 1e3
+				: +date * 1e3
+
+		const topByDate = {}
+		let others = 0
+		const topItems = []
+		for (const chain in chartData[date]) {
+			if (selectedChains.includes(chain)) {
+				topItems.push([chain, chartData[date][chain]])
+			}
+		}
+		topItems
+			.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+			.forEach(([chain, value]: [string, number], index: number) => {
+				if (index < 10) {
+					topByDate[chain] = topByDate[chain] || {}
+					topByDate[chain][finalDate] = value ?? 0
+					uniqTopChains.add(chain)
+				} else {
+					topByDate[chain] = topByDate[chain] || {}
+					topByDate[chain][finalDate] = 0
+					others += value ?? 0
+				}
+			})
+
+		for (const chain of selectedChains) {
+			topByAllDates[chain] = topByAllDates[chain] || {}
+			topByAllDates[chain][finalDate] = (topByAllDates[chain][finalDate] || 0) + (topByDate[chain]?.[finalDate] ?? 0)
+		}
+
+		topByAllDates['Others'] = topByAllDates['Others'] || {}
+		topByAllDates['Others'][finalDate] = (topByAllDates['Others'][finalDate] || 0) + others
+	}
+
+	const finalData = {}
+	const zeroesByChain = {}
+	for (const chain of [...uniqTopChains, 'Others']) {
+		finalData[chain] = finalData[chain] || []
+		for (const finalDate in topByAllDates[chain]) {
+			finalData[chain].push([+finalDate, topByAllDates[chain][finalDate]])
+		}
+		if (selectedChains.includes(chain)) {
+			zeroesByChain[chain] = Math.max(
+				finalData[chain].findIndex((date) => date[1] !== 0),
+				0
+			)
+		}
+	}
+
+	let startingZeroDatesToSlice = Object.values(zeroesByChain).sort((a, b) => (a as number) - (b as number))[0]
+	for (const chain in finalData) {
+		if (!finalData[chain].length) delete finalData[chain]
+	}
+	for (const chain in finalData) {
+		finalData[chain] = finalData[chain].slice(startingZeroDatesToSlice)
+	}
+
+	const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
+	const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
+	stackColors[selectedChains[0]] = oldBlue
+	stackColors['Others'] = allColors[allColors.length - 1]
+
+	const charts = {}
+
+	for (const chain in finalData) {
+		charts[chain] = {
+			data: finalData[chain],
+			type: 'bar',
+			name: chain,
+			stack: chain,
+			color: stackColors[chain]
+		}
+	}
+
+	const chartOptions = {
+		tooltip: {
+			trigger: 'axis',
+			confine: true,
+			formatter: function (params) {
+				let chartdate = formatTooltipChartDate(params[0].value[0], chartInterval.toLowerCase() as any)
+				let others = 0
+				let othersMarker = ''
+				let vals = params
+					.sort((a, b) => b.value[1] - a.value[1])
+					.reduce((prev, curr) => {
+						if (curr.value[1] === 0) return prev
+						if (curr.seriesName === 'Others') {
+							others += curr.value[1]
+							othersMarker = curr.marker
+							return prev
+						}
+						return (prev +=
+							'<li style="list-style:none">' +
+							curr.marker +
+							curr.seriesName +
+							'&nbsp;&nbsp;' +
+							formatTooltipValue(curr.value[1], '$') +
+							'</li>')
+					}, '')
+				if (others) {
+					vals +=
+						'<li style="list-style:none">' +
+						othersMarker +
+						'Others&nbsp;&nbsp;' +
+						formatTooltipValue(others, '$') +
+						'</li>'
+				}
+				return chartdate + vals
+			}
+		}
+	}
+
+	return {
+		charts,
+		chartOptions
+	}
 }

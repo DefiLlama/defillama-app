@@ -19,7 +19,21 @@ export interface ITotalTrackedByMetric {
 	bridgeAggregators: { protocols: number; chains: number }
 }
 
-export const Metrics = ({ currentMetric, isChains }: { currentMetric: string; isChains?: boolean }) => {
+export type TMetric =
+	| 'TVL'
+	| 'Stablecoins'
+	| 'Fees'
+	| 'Revenue'
+	| 'Holders Revenue'
+	| 'DEXs'
+	| 'DEX Aggregators'
+	| 'Perps'
+	| 'Perps Aggregators'
+	| 'Options Premium Volume'
+	| 'Options Notional Volume'
+	| 'Bridge Aggregators'
+
+export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
 	const dialogStore = Ariakit.useDialogStore()
 	const chain = router.query.chain as string
@@ -114,7 +128,15 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: string; is
 	)
 }
 
-const allMetrics = [
+const allMetrics: Array<{
+	name: TMetric
+	mainRoute: string
+	protocolsRoute: string
+	chainsRoute: string | null
+	protocolsTracked: number
+	chainsTracked: number
+	description: string
+}> = [
 	{
 		name: 'TVL',
 		mainRoute: '/',
@@ -137,7 +159,7 @@ const allMetrics = [
 		name: 'Fees',
 		mainRoute: '/fees',
 		protocolsRoute: `/fees/chain/{chain}`,
-		chainsRoute: null,
+		chainsRoute: '/fees/chains',
 		protocolsTracked: metadataCache.totalTrackedByMetric.fees.protocols,
 		chainsTracked: metadataCache.totalTrackedByMetric.fees.chains,
 		description: 'Total fees paid by users when using the protocol'
@@ -146,7 +168,7 @@ const allMetrics = [
 		name: 'Revenue',
 		mainRoute: '/revenue',
 		protocolsRoute: `/revenue/chain/{chain}`,
-		chainsRoute: null,
+		chainsRoute: '/revenue/chains',
 		protocolsTracked: metadataCache.totalTrackedByMetric.revenue.protocols,
 		chainsTracked: metadataCache.totalTrackedByMetric.revenue.chains,
 		description:
@@ -156,7 +178,7 @@ const allMetrics = [
 		name: 'Holders Revenue',
 		mainRoute: '/holders-revenue',
 		protocolsRoute: `/holders-revenue/chain/{chain}`,
-		chainsRoute: null,
+		chainsRoute: '/holders-revenue/chains',
 		protocolsTracked: metadataCache.totalTrackedByMetric.holdersRevenue.protocols,
 		chainsTracked: metadataCache.totalTrackedByMetric.holdersRevenue.chains,
 		description:
@@ -190,19 +212,19 @@ const allMetrics = [
 		description: 'Sum of value of all futures trades that went through the Perps protocols'
 	},
 	{
-		name: 'Perp Aggregators',
+		name: 'Perps Aggregators',
 		mainRoute: '/perps-aggregators',
 		protocolsRoute: `/perps-aggregators/chain/{chain}`,
 		chainsRoute: '/perps-aggregators/chains',
 		protocolsTracked: metadataCache.totalTrackedByMetric.perpAggregators.protocols,
 		chainsTracked: metadataCache.totalTrackedByMetric.perpAggregators.chains,
-		description: 'Sum of value of all futures trades that went through the Perp Aggregators'
+		description: 'Sum of value of all futures trades that went through the Perps Aggregators'
 	},
 	{
 		name: 'Options Premium Volume',
 		mainRoute: '/options/premium-volume',
 		protocolsRoute: `/options/premium-volume/chain/{chain}`,
-		chainsRoute: '/options/chains',
+		chainsRoute: '/options/premium-volume/chains',
 		protocolsTracked: metadataCache.totalTrackedByMetric.options.protocols,
 		chainsTracked: metadataCache.totalTrackedByMetric.options.chains,
 		description: 'Premium value of all options trades that went through the Options protocols'
@@ -211,7 +233,7 @@ const allMetrics = [
 		name: 'Options Notional Volume',
 		mainRoute: '/options/notional-volume',
 		protocolsRoute: `/options/notional-volume/chain/{chain}`,
-		chainsRoute: '/options/chains',
+		chainsRoute: '/options/notional-volume/chains',
 		protocolsTracked: metadataCache.totalTrackedByMetric.options.protocols,
 		chainsTracked: metadataCache.totalTrackedByMetric.options.chains,
 		description: 'Notional value of all options trades that went through the Options protocols'
