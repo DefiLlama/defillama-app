@@ -83,31 +83,29 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
 					{tab === 'Chains' ? (
 						<>
-							{allMetrics
-								.filter((c) => c.chainsRoute)
-								.map((metric) => (
-									<BasicLink
-										key={`chain-metric-${metric.name}`}
-										className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
-										href={metric.chainsRoute}
-									>
-										<span className="flex items-center gap-2 flex-wrap justify-between w-full">
-											<span className="font-medium">{metric.name}</span>
-											{metric.chainsTracked ? (
-												<span className="text-xs text-[var(--link)]">{metric.chainsTracked} tracked</span>
-											) : null}
-										</span>
-										<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
-									</BasicLink>
-								))}
-						</>
-					) : (
-						<>
-							{allMetrics.map((metric) => (
+							{chainsMetrics.map((metric) => (
 								<BasicLink
 									key={`chain-metric-${metric.name}`}
 									className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
-									href={chain ? `${metric.protocolsRoute.replace('{chain}', chain)}` : metric.mainRoute}
+									href={metric.route}
+								>
+									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
+										<span className="font-medium">{metric.name}</span>
+										{metric.chainsTracked ? (
+											<span className="text-xs text-[var(--link)]">{metric.chainsTracked} tracked</span>
+										) : null}
+									</span>
+									<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
+								</BasicLink>
+							))}
+						</>
+					) : (
+						<>
+							{protocolsMetrics.map((metric) => (
+								<BasicLink
+									key={`protocol-metric-${metric.name}`}
+									className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									href={chain ? `${metric.chainRoute.replace('{chain}', chain)}` : metric.mainRoute}
 								>
 									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 										<span className="font-medium">{metric.name}</span>
@@ -126,123 +124,142 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 	)
 }
 
-const allMetrics: Array<{
-	name: TMetric
+const protocolsMetrics: Array<{
+	name: string
 	mainRoute: string
-	protocolsRoute: string
-	chainsRoute: string | null
+	chainRoute: string
 	protocolsTracked: number
-	chainsTracked: number
 	description: string
 }> = [
 	{
 		name: 'TVL',
 		mainRoute: '/',
-		protocolsRoute: `/chain/{chain}`,
-		chainsRoute: `/chains`,
+		chainRoute: `/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.tvl.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.tvl.chains,
 		description: 'Total value of all coins held in smart contracts of the protocols'
-	},
-	{
-		name: 'Stablecoins',
-		mainRoute: '/stablecoins',
-		protocolsRoute: `/stablecoins/{chain}`,
-		chainsRoute: `/stablecoins/chains`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.stablecoins.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.stablecoins.chains,
-		description: 'Total market cap of stable assets currently deployed on the chain'
 	},
 	{
 		name: 'Fees',
 		mainRoute: '/fees',
-		protocolsRoute: `/fees/chain/{chain}`,
-		chainsRoute: '/fees/chains',
+		chainRoute: `/fees/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.fees.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.fees.chains,
 		description: 'Total fees paid by users when using the protocol'
 	},
 	{
 		name: 'Revenue',
 		mainRoute: '/revenue',
-		protocolsRoute: `/revenue/chain/{chain}`,
-		chainsRoute: '/revenue/chains',
+		chainRoute: `/revenue/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.revenue.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.revenue.chains,
 		description:
 			"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
 	},
 	{
 		name: 'Holders Revenue',
 		mainRoute: '/holders-revenue',
-		protocolsRoute: `/holders-revenue/chain/{chain}`,
-		chainsRoute: '/holders-revenue/chains',
+		chainRoute: `/holders-revenue/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.holdersRevenue.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.holdersRevenue.chains,
 		description:
-			'Subset of revenue that is distributed to tokenholders by means of buyback and burn, burning fees or direct distribution to stakers'
+			'Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers'
 	},
 	{
-		name: 'DEXs',
+		name: 'Stablecoin Supply',
+		mainRoute: '/stablecoins',
+		chainRoute: `/stablecoins/{chain}`,
+		protocolsTracked: metadataCache.totalTrackedByMetric.stablecoins.protocols,
+		description: 'Total market cap of stable assets currently deployed on the chain'
+	},
+	{
+		name: 'DEX Volume',
 		mainRoute: '/dexs',
-		protocolsRoute: `/dexs/chain/{chain}`,
-		chainsRoute: '/dexs/chains',
+		chainRoute: `/dexs/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.dexs.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.dexs.chains,
-		description: 'Sum of value of all spot token trades that went through the DEX'
+		description: 'Volume of all spot token swaps that go through a DEX'
 	},
 	{
-		name: 'DEX Aggregators',
-		mainRoute: '/dex-aggregators',
-		protocolsRoute: `/dex-aggregators/chain/{chain}`,
-		chainsRoute: '/dex-aggregators/chains',
-		protocolsTracked: metadataCache.totalTrackedByMetric.dexAggregators.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.dexAggregators.chains,
-		description: 'Sum of value of all spot token trades that went through the DEX Aggregators'
-	},
-	{
-		name: 'Perps',
+		name: 'Perp Volume',
 		mainRoute: '/perps',
-		protocolsRoute: `/perps/chain/{chain}`,
-		chainsRoute: '/perps/chains',
+		chainRoute: `/perps/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.perps.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.perps.chains,
-		description: 'Sum of value of all futures trades that went through the Perps protocols'
+		description: 'Notional volume of all trades in a perp exchange, includes leverage'
 	},
 	{
-		name: 'Perps Aggregators',
-		mainRoute: '/perps-aggregators',
-		protocolsRoute: `/perps-aggregators/chain/{chain}`,
-		chainsRoute: '/perps-aggregators/chains',
-		protocolsTracked: metadataCache.totalTrackedByMetric.perpAggregators.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.perpAggregators.chains,
-		description: 'Sum of value of all futures trades that went through the Perps Aggregators'
+		name: 'DEX Aggregator Volume',
+		mainRoute: '/dex-aggregators',
+		chainRoute: `/dex-aggregators/chain/{chain}`,
+		protocolsTracked: metadataCache.totalTrackedByMetric.dexAggregators.protocols,
+		description: 'Volume of spot token swaps that go through a DEX aggregator'
 	},
 	{
 		name: 'Options Premium Volume',
 		mainRoute: '/options/premium-volume',
-		protocolsRoute: `/options/premium-volume/chain/{chain}`,
-		chainsRoute: '/options/premium-volume/chains',
+		chainRoute: `/options/premium-volume/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.options.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.options.chains,
-		description: 'Premium value of all options trades that went through the Options protocols'
+		description: 'Sum of value paid buying and selling options'
 	},
 	{
 		name: 'Options Notional Volume',
 		mainRoute: '/options/notional-volume',
-		protocolsRoute: `/options/notional-volume/chain/{chain}`,
-		chainsRoute: '/options/notional-volume/chains',
+		chainRoute: `/options/notional-volume/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.options.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.options.chains,
-		description: 'Notional value of all options trades that went through the Options protocols'
+		description: 'Sum of the notional value of all options that have been traded on an options exchange'
 	},
 	{
-		name: 'Bridge Aggregators',
+		name: 'Bridge Aggregator Volume',
 		mainRoute: '/bridge-aggregators',
-		protocolsRoute: `/bridge-aggregators/chain/{chain}`,
-		chainsRoute: '/bridge-aggregators/chains',
+		chainRoute: `/bridge-aggregators/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.bridgeAggregators.protocols,
-		chainsTracked: metadataCache.totalTrackedByMetric.bridgeAggregators.chains,
 		description: 'Sum of value of all assets that were bridged through the Bridge Aggregators'
+	},
+	{
+		name: 'Perp Aggregators Volume',
+		mainRoute: '/perps-aggregators',
+		chainRoute: `/perps-aggregators/chain/{chain}`,
+		protocolsTracked: metadataCache.totalTrackedByMetric.perpAggregators.protocols,
+		description: 'Notional volume of all trades in a perp aggregator, includes leverage'
+	}
+]
+
+const chainsMetrics: Array<{
+	name: string
+	route: string
+	chainsTracked: number
+	description: string
+}> = [
+	{
+		name: 'TVL',
+		route: `/chains`,
+		chainsTracked: metadataCache.totalTrackedByMetric.tvl.chains,
+		description: 'Total value of all coins held in smart contracts of the protocols'
+	},
+	{
+		name: 'Fees',
+		route: '/fees/chains',
+		chainsTracked: metadataCache.totalTrackedByMetric.fees.chains,
+		description: 'Total fees paid by users when using the protocol'
+	},
+	{
+		name: 'Revenue',
+		route: '/revenue/chains',
+		chainsTracked: metadataCache.totalTrackedByMetric.revenue.chains,
+		description:
+			"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
+	},
+	{
+		name: 'Stablecoin Supply',
+		route: `/stablecoins/chains`,
+		chainsTracked: metadataCache.totalTrackedByMetric.stablecoins.chains,
+		description: 'Total market cap of stable assets currently deployed on all chains'
+	},
+	{
+		name: 'DEX Volume',
+		route: '/dexs/chains',
+		chainsTracked: metadataCache.totalTrackedByMetric.dexs.chains,
+		description: 'Volume of all spot token swaps that go through a DEX'
+	},
+	{
+		name: 'Perp Volume',
+		route: '/perps/chains',
+		chainsTracked: metadataCache.totalTrackedByMetric.perps.chains,
+		description: 'Notional volume of all trades in a perp exchange, includes leverage'
 	}
 ]
