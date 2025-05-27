@@ -41,9 +41,9 @@ import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { getAllProtocolEmissions, getETFData, getProtocolEmissons } from '~/api/categories/protocols'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
-	const metadata =
+	const metadata: IChainMetadata =
 		chain === 'All'
-			? { name: 'All', tvl: true, stablecoins: true, fees: true, dexs: true, derivatives: true }
+			? { name: 'All', stablecoins: true, fees: true, dexs: true, derivatives: true }
 			: metadataCache.chainMetadata[slug(chain)]
 
 	if (!metadata) return null
