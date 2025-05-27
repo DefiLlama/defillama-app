@@ -306,7 +306,7 @@ export const getAdapterByChainPageData = async ({
 
 			parentProtocols[protocol.linkedProtocols[0]] = parentProtocols[protocol.linkedProtocols[0]] || []
 			parentProtocols[protocol.linkedProtocols[0]].push({
-				name: protocol.name,
+				name: protocol.displayName,
 				slug: protocol.slug,
 				logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
 				chains: protocol.chains,
@@ -331,8 +331,8 @@ export const getAdapterByChainPageData = async ({
 						: protocol.methodology?.['Fees']
 					: null
 
-			protocols[protocol.name] = {
-				name: protocol.name,
+			protocols[protocol.displayName] = {
+				name: protocol.displayName,
 				slug: protocol.slug,
 				logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
 				chains: protocol.chains,
@@ -354,6 +354,12 @@ export const getAdapterByChainPageData = async ({
 	}
 
 	for (const protocol in parentProtocols) {
+		if (parentProtocols[protocol].length === 1) {
+			protocols[protocol] = {
+				...parentProtocols[protocol][0]
+			}
+			continue
+		}
 		const total24h = parentProtocols[protocol].some((p) => p.total24h != null)
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total24h ?? 0), 0)
 			: null
@@ -411,7 +417,9 @@ export const getAdapterByChainPageData = async ({
 
 		const categories = Array.from(new Set(parentProtocols[protocol].filter((p) => p.category).map((p) => p.category)))
 
-		const hasMethodology = parentProtocols[protocol].some((p) => p.methodology != null)
+		const methodology = Array.from(
+			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
+		).join(', ')
 
 		protocols[protocol] = {
 			name: protocol,
@@ -428,11 +436,9 @@ export const getAdapterByChainPageData = async ({
 			childProtocols: parentProtocols[protocol],
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),
-			...(hasMethodology
+			...(methodology
 				? {
-						methodology: `Sum of all ${dataType ? 'revenue' : 'fees'} from ${parentProtocols[protocol]
-							.map((p) => p.name)
-							.join(', ')}`
+						methodology
 				  }
 				: {})
 		}
