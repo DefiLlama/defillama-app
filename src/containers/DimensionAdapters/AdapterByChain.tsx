@@ -48,7 +48,7 @@ export function AdapterByChain(props: IProps) {
 	const router = useRouter()
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
-	const { selectedCategories, protocols } = useMemo(() => {
+	const { selectedCategories, protocols, columnsOptions } = useMemo(() => {
 		const selectedCategories = router.query.category
 			? typeof router.query.category === 'string'
 				? [router.query.category]
@@ -122,7 +122,8 @@ export function AdapterByChain(props: IProps) {
 
 		return {
 			selectedCategories,
-			protocols: finalProtocols
+			protocols: finalProtocols,
+			columnsOptions: getColumnsOptions(props.type)
 		}
 	}, [router.query.category, props, enabledSettings])
 
@@ -276,6 +277,30 @@ export function AdapterByChain(props: IProps) {
 	}
 
 	const metricName = ['Fees', 'Revenue', 'Holders Revenue'].includes(props.type) ? props.type : `${props.type} Volume`
+	const columnsKey = `columns-${props.type}`
+
+	const clearAllColumns = () => {
+		window.localStorage.setItem(columnsKey, '{}')
+		instance.getToggleAllColumnsVisibilityHandler()({ checked: false } as any)
+	}
+	const toggleAllColumns = () => {
+		const ops = JSON.stringify(Object.fromEntries(columnsOptions.map((option) => [option.key, true])))
+		window.localStorage.setItem(columnsKey, ops)
+		instance.getToggleAllColumnsVisibilityHandler()({ checked: true } as any)
+	}
+
+	const addColumn = (newOptions) => {
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
+		)
+		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
+		instance.setColumnVisibility(ops)
+	}
+
+	const selectedColumns = instance
+		.getAllLeafColumns()
+		.filter((col) => col.getIsVisible())
+		.map((col) => col.id)
 
 	return (
 		<>
@@ -357,6 +382,20 @@ export function AdapterByChain(props: IProps) {
 							className="border border-[var(--form-control-border)] w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
+					<SelectWithCombobox
+						allValues={columnsOptions}
+						selectedValues={selectedColumns}
+						setSelectedValues={addColumn}
+						toggleAll={toggleAllColumns}
+						clearAll={clearAllColumns}
+						nestedMenu={false}
+						label={'Columns'}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+						}}
+					/>
 					{props.categories.length > 0 && (
 						<SelectWithCombobox
 							allValues={props.categories}
@@ -406,6 +445,9 @@ const chartKeys: Record<IProps['type'], string> = {
 	'Perp Aggregator Volume': 'perpsAggregators',
 	'DEX Aggregator Volume': 'dexAggregators'
 }
+
+const getColumnsOptions = (type) =>
+	columnsByType[type].map((c: any) => ({ name: c.header as string, key: c.id ?? (c.accessorKey as string) }))
 
 const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['protocols'][0]> => {
 	return {
