@@ -576,7 +576,7 @@ export function useFetchAndFormatChartData({
 		if (holdersRevenueData) {
 			chartsUnique.push('Holders Revenue')
 
-			for (const [dateS, value] of holdersRevenueData.totalDataChart) {
+			for (const [dateS, value] of holdersRevenueData.totalDataChart ?? []) {
 				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
 				if (!chartData[date]) {
