@@ -162,8 +162,7 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText:
-				'Total fees paid by users when using the protocol in the last 24 hours, updated daily at 00:00 UTC'
+			headerHelperText: 'Sum of value currently borrowed across all active loans on a Lending protocol'
 		},
 		size: 128
 	},
