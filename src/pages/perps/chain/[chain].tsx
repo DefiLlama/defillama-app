@@ -11,7 +11,7 @@ import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 
 const adapterType = ADAPTER_TYPES.PERPS
-const type = 'Perps'
+const type: TMetric = 'Perps'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't

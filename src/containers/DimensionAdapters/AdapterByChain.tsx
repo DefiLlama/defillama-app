@@ -29,7 +29,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { AdapterByChainChart } from './ChainChart'
 
 interface IProps extends IAdapterByChainPageData {
-	type: Exclude<TMetric, 'Stablecoins' | 'TVL'>
+	type: Exclude<TMetric, 'Stablecoin Supply' | 'TVL'>
 }
 
 export function AdapterByChain(props: IProps) {
@@ -384,11 +384,11 @@ const chartKeys: Record<IProps['type'], string> = {
 	'Holders Revenue': 'holdersRevenue',
 	'Options Premium Volume': 'optionsPremiumVolume',
 	'Options Notional Volume': 'optionsNotionalVolume',
-	DEXs: 'dexVolume',
-	Perps: 'perpsVolume',
-	'Bridge Aggregators': 'bridgeAggregators',
-	'Perps Aggregators': 'perpsAggregators',
-	'DEX Aggregators': 'dexAggregators'
+	'DEX Volume': 'dexVolume',
+	'Perp Volume': 'perpsVolume',
+	'Bridge Aggregator Volume': 'bridgeAggregators',
+	'Perp Aggregator Volume': 'perpsAggregators',
+	'DEX Aggregator Volume': 'dexAggregators'
 }
 
 const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['protocols'][0]> => {
@@ -489,7 +489,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Fees paid by users in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText:
+					'Total fees paid by users when using the protocol in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 128
 		},
@@ -501,7 +502,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Fees paid by users in the last 30 days'
+				headerHelperText: 'Total fees paid by users when using the protocol in the last 30 days'
 			},
 			size: 128
 		}
@@ -585,7 +586,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Revenue earned by token holders in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText:
+					'Revenue earned by token holders of the protocol in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 180
 		},
@@ -597,7 +599,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Revenue earned by token holders in the last 30 days'
+				headerHelperText: 'Revenue earned by token holders of the protocol in the last 30 days'
 			},
 			size: 180
 		}
@@ -612,7 +614,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Options Premium volume in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText:
+					'Sum of value paid buying and selling options on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 180
 		},
@@ -624,7 +627,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Options Premium volume in the last 30 days'
+				headerHelperText: 'Sum of value paid buying and selling options on the options exchange in the last 30 days'
 			},
 			size: 180
 		}
@@ -639,7 +642,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Options Notional volume in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText:
+					'Sum of the notional value of all options that have been traded on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 180
 		},
@@ -651,13 +655,14 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Options Notional volume in the last 30 days'
+				headerHelperText:
+					'Sum of the notional value of all options that have been traded on the options exchange in the last 30 days'
 			},
 			size: 180
 		}
 	],
-	DEXs: [
-		NameColumn('DEXs'),
+	'DEX Volume': [
+		NameColumn('DEX Volume'),
 		{
 			id: 'total24h',
 			header: 'DEX Volume 24h',
@@ -666,7 +671,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume of spot trades in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: 'Volume of all spot swaps on the dex in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 152
 		},
@@ -678,46 +683,47 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume of spot trades in the last 30 days'
+				headerHelperText: 'Volume of all spot swaps on the dex in the last 30 days'
 			},
 			size: 152
 		}
 	],
-	Perps: [
-		NameColumn('Perps'),
+	'Perp Volume': [
+		NameColumn('Perp Volume'),
 		{
 			id: 'total24h',
-			header: 'Perps Volume 24h',
+			header: 'Perp Volume 24h',
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume of perpetual futures trades in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText:
+					'Notional volume of all trades on the perp exchange, including leverage in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 160
 		},
 		{
 			id: 'total30d',
-			header: 'Perps Volume 30d',
+			header: 'Perp Volume 30d',
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume of perpetual futures trades in the last 30 days'
+				headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage in the last 30 days'
 			},
 			size: 160
 		}
 	],
-	'Perps Aggregators': [
-		NameColumn('Perps Aggregators'),
+	'Perp Aggregator Volume': [
+		NameColumn('Perp Aggregator Volume'),
 		{
 			id: 'total24h',
 			header: () => (
 				<>
-					<span className="md:hidden">Perps Agg Vol 24h</span>
-					<span className="hidden md:block">Perps Aggregator Volume 24h</span>
+					<span className="md:hidden">Perp Agg Vol 24h</span>
+					<span className="hidden md:block">Perp Aggregator Volume 24h</span>
 				</>
 			),
 			accessorFn: (protocol) => protocol.total24h,
@@ -725,7 +731,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume of perpetual futures trades in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText:
+					'Notional volume of all trades on the perp aggregator, including leverage in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 160
 		},
@@ -733,8 +740,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			id: 'total30d',
 			header: () => (
 				<>
-					<span className="md:hidden">Perps Agg Vol 30d</span>
-					<span className="hidden md:block">Perps Aggregator Volume 30d</span>
+					<span className="md:hidden">Perp Agg Vol 30d</span>
+					<span className="hidden md:block">Perp Aggregator Volume 30d</span>
 				</>
 			),
 			accessorFn: (protocol) => protocol.total30d,
@@ -742,13 +749,13 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume of perpetual futures trades in the last 30 days'
+				headerHelperText: 'Notional volume of all trades on the perp aggregator, including leverage in the last 30 days'
 			},
 			size: 160
 		}
 	],
-	'Bridge Aggregators': [
-		NameColumn('Bridge Aggregators'),
+	'Bridge Aggregator Volume': [
+		NameColumn('Bridge Aggregator Volume'),
 		{
 			id: 'total24h',
 			header: () => (
@@ -762,7 +769,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume on aggregator in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText:
+					'Sum of value of all assets that were bridged through the bridge Aggregator in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 160
 		},
@@ -779,13 +787,14 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume on aggregator in the last 30 days'
+				headerHelperText:
+					'Sum of value of all assets that were bridged through the bridge Aggregator in the last 30 days'
 			},
 			size: 160
 		}
 	],
-	'DEX Aggregators': [
-		NameColumn('DEX Aggregators'),
+	'DEX Aggregator Volume': [
+		NameColumn('DEX Aggregator Volume'),
 		{
 			id: 'total24h',
 			header: () => (
@@ -799,7 +808,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume of spot trades in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText:
+					'Volume of spot token swaps on the DEX aggregator in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 160
 		},
@@ -816,7 +826,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			sortUndefined: 'last',
 			meta: {
 				align: 'end',
-				headerHelperText: 'Volume of spot trades in the last 30 days'
+				headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 30 days'
 			},
 			size: 160
 		}

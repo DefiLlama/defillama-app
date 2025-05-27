@@ -21,17 +21,17 @@ export interface ITotalTrackedByMetric {
 
 export type TMetric =
 	| 'TVL'
-	| 'Stablecoins'
+	| 'Stablecoin Supply'
 	| 'Fees'
 	| 'Revenue'
 	| 'Holders Revenue'
-	| 'DEXs'
-	| 'DEX Aggregators'
-	| 'Perps'
-	| 'Perps Aggregators'
+	| 'DEX Volume'
+	| 'Perp Volume'
+	| 'DEX Aggregator Volume'
+	| 'Perp Aggregator Volume'
 	| 'Options Premium Volume'
 	| 'Options Notional Volume'
-	| 'Bridge Aggregators'
+	| 'Bridge Aggregator Volume'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -43,7 +43,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 		<Ariakit.DialogProvider store={dialogStore}>
 			<p
 				className={`text-center ${
-					currentMetric === 'Stablecoins' && !isChains ? 'my-1' : '-mt-2 mb-1'
+					currentMetric === 'Stablecoin Supply' && !isChains ? 'my-1' : '-mt-2 mb-1'
 				} flex items-center gap-1 justify-center flex-wrap`}
 			>
 				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
@@ -125,7 +125,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 }
 
 const protocolsMetrics: Array<{
-	name: string
+	name: TMetric
 	mainRoute: string
 	chainRoute: string
 	protocolsTracked: number
@@ -211,7 +211,7 @@ const protocolsMetrics: Array<{
 		description: 'Sum of value of all assets that were bridged through the Bridge Aggregators'
 	},
 	{
-		name: 'Perp Aggregators Volume',
+		name: 'Perp Aggregator Volume',
 		mainRoute: '/perps-aggregators',
 		chainRoute: `/perps-aggregators/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.perpAggregators.protocols,

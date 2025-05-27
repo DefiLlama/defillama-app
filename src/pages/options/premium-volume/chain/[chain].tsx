@@ -9,10 +9,11 @@ import metadataCache from '~/utils/metadata'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
+import { TMetric } from '~/components/Metrics'
 
 const adapterType = ADAPTER_TYPES.OPTIONS
 const dataType = 'dailyPremiumVolume'
-const type = 'Options Premium Volume'
+const type: TMetric = 'Options Premium Volume'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
@@ -41,7 +42,7 @@ export const getStaticPaths = async () => {
 }
 
 export const getStaticProps = withPerformanceLogging(
-	`${slug(type)}/chain/[chain]`,
+	`${type}/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		if (!metadataCache.chainMetadata[chain].options) {
@@ -66,7 +67,7 @@ export const getStaticProps = withPerformanceLogging(
 
 const PremiumVolumeOnChain = (props) => {
 	return (
-		<Layout title={`${props.chain} ${type} - DefiLlama`} defaultSEO>
+		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

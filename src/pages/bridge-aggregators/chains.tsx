@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 const BridgeAggregatorsByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout title="Bridge Aggregators by chain - DefiLlama">
-			<ChainsByAdapter {...props} type="Bridge Aggregators" />
+			<ChainsByAdapter {...props} type="Bridge Aggregator Volume" />
 		</Layout>
 	)
 }

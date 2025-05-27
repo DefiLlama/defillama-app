@@ -7,7 +7,7 @@ import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.PERPS
-const type = 'Perps'
+const type: TMetric = 'Perps'
 
 export const getStaticProps = withPerformanceLogging(`${slug(type)}/index`, async () => {
 	const data = await getAdapterByChainPageData({

@@ -242,7 +242,7 @@ function PeggedAssetsOverview({
 		<>
 			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
 
-			<Metrics currentMetric="Stablecoins" />
+			<Metrics currentMetric="Stablecoin Supply" />
 
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 

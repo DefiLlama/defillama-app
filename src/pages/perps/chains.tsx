@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 const PerpsByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout title="Perps by chain - DefiLlama">
-			<ChainsByAdapter {...props} type="Perps" />
+			<ChainsByAdapter {...props} type="Perp Volume" />
 		</Layout>
 	)
 }
