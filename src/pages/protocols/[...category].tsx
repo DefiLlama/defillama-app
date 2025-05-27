@@ -18,7 +18,7 @@ export const getStaticProps = withPerformanceLogging(
 			category: [category, chain]
 		}
 	}) => {
-		const categoryName = Object.entries(descriptions).find((d) => slug(d[0]) === slug(category))
+		const categoryName = Object.entries(descriptions).find((d) => slug(d[0]) === slug(category))?.[0]
 
 		if (!categoryName) {
 			return {
@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const props = await getProtocolsPageData(categoryName[0], chain)
+		const props = await getProtocolsPageData(categoryName, chain)
 
 		if (props.filteredProtocols.length === 0) {
 			return {

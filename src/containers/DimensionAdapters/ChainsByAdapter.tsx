@@ -26,7 +26,19 @@ import { Icon } from '~/components/Icon'
 import { ChainsByAdapterChart } from './ChainChart'
 
 interface IProps extends IChainsByAdapterPageData {
-	type: Exclude<TMetric, 'Stablecoin Supply' | 'TVL'>
+	type: Extract<
+		TMetric,
+		| 'Fees'
+		| 'Revenue'
+		| 'Holders Revenue'
+		| 'DEX Volume'
+		| 'Perp Volume'
+		| 'Bridge Aggregator Volume'
+		| 'Perp Aggregator Volume'
+		| 'DEX Aggregator Volume'
+		| 'Options Premium Volume'
+		| 'Options Notional Volume'
+	>
 }
 
 export function ChainsByAdapter(props: IProps) {

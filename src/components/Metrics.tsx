@@ -32,6 +32,7 @@ export type TMetric =
 	| 'Options Premium Volume'
 	| 'Options Notional Volume'
 	| 'Bridge Aggregator Volume'
+	| 'Total Borrowed'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -174,6 +175,13 @@ const protocolsMetrics: Array<{
 		chainRoute: `/dexs/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.dexs.protocols,
 		description: 'Volume of all spot token swaps that go through a DEX'
+	},
+	{
+		name: 'Total Borrowed',
+		mainRoute: '/total-borrowed',
+		chainRoute: `/total-borrowed/chain/{chain}`,
+		protocolsTracked: metadataCache.totalTrackedByMetric.tvl.protocols,
+		description: 'Sum of value currently borrowed across all active loans on a Lending protocol'
 	},
 	{
 		name: 'Perp Volume',

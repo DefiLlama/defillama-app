@@ -29,7 +29,19 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { AdapterByChainChart } from './ChainChart'
 
 interface IProps extends IAdapterByChainPageData {
-	type: Exclude<TMetric, 'Stablecoin Supply' | 'TVL'>
+	type: Extract<
+		TMetric,
+		| 'Fees'
+		| 'Revenue'
+		| 'Holders Revenue'
+		| 'DEX Volume'
+		| 'Perp Volume'
+		| 'Bridge Aggregator Volume'
+		| 'Perp Aggregator Volume'
+		| 'DEX Aggregator Volume'
+		| 'Options Premium Volume'
+		| 'Options Notional Volume'
+	>
 }
 
 export function AdapterByChain(props: IProps) {
@@ -180,6 +192,7 @@ export function AdapterByChain(props: IProps) {
 	}, [projectName, instance])
 
 	const windowSize = useWindowSize()
+
 	useEffect(() => {
 		const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
 		const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
@@ -270,7 +283,7 @@ export function AdapterByChain(props: IProps) {
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' ? (
-				<div className="grid grid-cols-3 relative isolate gap-1 text-base">
+				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1 text-base">
 					<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{props.chain !== 'All' && (
 							<h1 className="flex items-center flex-nowrap gap-2">

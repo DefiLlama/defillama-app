@@ -7,7 +7,6 @@ const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.jso
 const STABLECOINS_DATA_URL = 'https://stablecoins.llama.fi/stablecoins'
 
 interface IChainMetadata {
-	tvl?: boolean
 	stablecoins?: boolean
 	dexs?: boolean
 	name: string
