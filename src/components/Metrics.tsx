@@ -53,11 +53,11 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				} flex items-center gap-1 justify-center flex-wrap`}
 			>
 				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
-					{isChains ? 'Chains' : 'Protocols'}
+					{currentMetric === 'CEX Assets' ? 'CEXs' : isChains ? 'Chains' : 'Protocols'}
 				</Ariakit.DialogDisclosure>
 				<span>ranked by </span>
 				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
-					{currentMetric}
+					{currentMetric === 'CEX Assets' ? 'Assets' : currentMetric}
 				</Ariakit.DialogDisclosure>
 				<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs">
 					<Icon name="pencil" height={12} width={12} />
