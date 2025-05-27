@@ -5,49 +5,31 @@ import { Metrics } from '~/components/Metrics'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { PROTOCOLS_TREASURY } from '~/constants'
+import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { getChainsByREVPageData } from '~/containers/DimensionAdapters/queries'
+import { IChainsByREVPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
-import { formattedNum, slug } from '~/utils'
+import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-interface INetProjectTreasuryByChain {
-	protocols: Array<{ name: string; logo: string; slug: string; netTreasury: number }>
-}
+const adapterType = ADAPTER_TYPES.FEES
 
-export const getStaticProps = withPerformanceLogging(`net-project-treasury/index`, async () => {
-	const treasuries = await fetch(PROTOCOLS_TREASURY).then((res) => res.json())
-
-	const protocols = treasuries
-		.map((t) => {
-			let netTreasury = 0
-			for (const category in t.tokenBreakdowns) {
-				if (category !== 'ownTokens') {
-					netTreasury += t.tokenBreakdowns[category]
-				}
-			}
-			return {
-				name: t.name,
-				logo: `${t.logo.replace('https://icons.llama.fi', 'https://icons.llamao.fi/icons/protocols')}?w=48&h=48`,
-				slug: slug(t.name),
-				netTreasury
-			}
-		})
-		.filter((t) => t.netTreasury > 0)
-		.sort((a, b) => b.netTreasury - a.netTreasury)
+export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
+	const data = await getChainsByREVPageData()
 
 	return {
-		props: { protocols },
+		props: data,
 		revalidate: maxAgeForNext([22])
 	}
 })
 
-const NetProjectTreasuries = (props) => {
+const REVByChain = (props: IChainsByREVPageData) => {
 	return (
-		<Layout title={`Net Project Treasury - DefiLlama`} defaultSEO>
+		<Layout title="REV by chain - DefiLlama">
 			<ProtocolsChainsSearch hideFilters />
-			<Metrics currentMetric="Net Project Treasury" />
+			<Metrics currentMetric="REV" />
 			<TableWithSearch
-				data={props.protocols}
+				data={props.chains}
 				columns={columns}
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
@@ -57,7 +39,7 @@ const NetProjectTreasuries = (props) => {
 	)
 }
 
-const columns: ColumnDef<INetProjectTreasuryByChain['protocols'][0]>[] = [
+const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 	{
 		id: 'name',
 		header: 'Name',
@@ -75,7 +57,7 @@ const columns: ColumnDef<INetProjectTreasuryByChain['protocols'][0]>[] = [
 
 					<span className="flex flex-col -my-2">
 						<BasicLink
-							href={`/protocol/${row.original.slug}?borrowed=true`}
+							href={`/chain/${row.original.slug}`}
 							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
@@ -87,17 +69,29 @@ const columns: ColumnDef<INetProjectTreasuryByChain['protocols'][0]>[] = [
 		size: 280
 	},
 	{
-		id: 'netTreasury',
-		header: 'Net Treasury',
-		accessorFn: (protocol) => protocol.netTreasury,
+		id: 'total24h',
+		header: 'REV 24h',
+		accessorFn: (protocol) => protocol.total24h,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: "Value of tokens owned by a protocol, excluding it's own token"
+			headerHelperText: 'Chain fees and MEV tips in the last 24 hours'
+		},
+		size: 128
+	},
+	{
+		id: 'total30d',
+		header: 'REV 30d',
+		accessorFn: (protocol) => protocol.total30d,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Chain fees and MEV tips in the last 30 days'
 		},
 		size: 128
 	}
 ]
 
-export default NetProjectTreasuries
+export default REVByChain

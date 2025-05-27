@@ -218,7 +218,7 @@ const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains']
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
 					<BasicLink
-						href={`/${route}/chain/${slug(value)}`}
+						href={route ? `/${route}/chain/${slug(value)}` : `/chain/${slug(value)}`}
 						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{value}

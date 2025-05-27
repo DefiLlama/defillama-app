@@ -1,9 +1,16 @@
-import { BASE_API, DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API, MCAPS_API, PROTOCOLS_API } from '~/constants'
+import {
+	BASE_API,
+	DIMENISIONS_OVERVIEW_API,
+	DIMENISIONS_SUMMARY_BASE_API,
+	MCAPS_API,
+	PROTOCOLS_API,
+	REV_PROTOCOLS
+} from '~/constants'
 import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
 import metadataCache from '~/utils/metadata'
-import { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
+import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
 
 const fetch = fetchWithErrorLogging
 
@@ -483,33 +490,41 @@ export const getChainsByAdapterPageData = async ({
 			}
 		}
 
-		const chainsData = await Promise.all(
-			allChains.map(async (chain) =>
-				getAdapterChainOverview({
-					adapterType,
-					dataType,
-					chain,
-					excludeTotalDataChart: false,
-					excludeTotalDataChartBreakdown: true
-				})
-			)
-		)
-
-		const bribesByChain = {}
-		const tokenTaxesByChain = {}
-
-		if (adapterType === 'fees') {
-			const bribesData = await Promise.all(
+		const chainsData = (
+			await Promise.allSettled(
 				allChains.map(async (chain) =>
 					getAdapterChainOverview({
 						adapterType,
-						dataType: 'dailyBribesRevenue',
+						dataType,
 						chain,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
 					})
 				)
 			)
+		)
+			.map((e) => (e.status === 'fulfilled' ? e.value : null))
+			.filter((e) => e != null)
+
+		const bribesByChain = {}
+		const tokenTaxesByChain = {}
+
+		if (adapterType === 'fees') {
+			const bribesData = (
+				await Promise.allSettled(
+					allChains.map(async (chain) =>
+						getAdapterChainOverview({
+							adapterType,
+							dataType: 'dailyBribesRevenue',
+							chain,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+					)
+				)
+			)
+				.map((e) => (e.status === 'fulfilled' ? e.value : null))
+				.filter((e) => e != null)
 
 			for (const chain of bribesData) {
 				bribesByChain[chain.chain] = {
@@ -518,17 +533,21 @@ export const getChainsByAdapterPageData = async ({
 				}
 			}
 
-			const tokensTaxesData = await Promise.all(
-				allChains.map(async (chain) =>
-					getAdapterChainOverview({
-						adapterType,
-						dataType: 'dailyBribesRevenue',
-						chain,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true
-					})
+			const tokensTaxesData = (
+				await Promise.allSettled(
+					allChains.map(async (chain) =>
+						getAdapterChainOverview({
+							adapterType,
+							dataType: 'dailyBribesRevenue',
+							chain,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+					)
 				)
 			)
+				.map((e) => (e.status === 'fulfilled' ? e.value : null))
+				.filter((e) => e != null)
 
 			for (const chain of tokensTaxesData) {
 				tokenTaxesByChain[chain.chain] = {
@@ -564,6 +583,53 @@ export const getChainsByAdapterPageData = async ({
 			chains,
 			allChains: chains.map((c) => c.name)
 		}
+	} catch (error) {}
+}
+
+export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> => {
+	try {
+		const allChains = []
+		for (const chain in metadataCache.chainMetadata) {
+			if (metadataCache.chainMetadata[chain]['chainFees']) {
+				allChains.push(chain)
+			}
+		}
+
+		const protocolsByChainsData = await Promise.allSettled(
+			allChains.map(async (chain) =>
+				getAdapterChainOverview({
+					adapterType: 'fees',
+					chain,
+					excludeTotalDataChart: false,
+					excludeTotalDataChartBreakdown: true
+				})
+			)
+		)
+
+		const chainFeesData = await getAdapterChainOverview({
+			adapterType: 'fees',
+			chain: 'All',
+			excludeTotalDataChart: true,
+			excludeTotalDataChartBreakdown: true
+		})
+
+		const chains = allChains.map((chain, index) => {
+			const chainFees = chainFeesData.protocols.find((p) => p.slug === chain)
+			const protocols = protocolsByChainsData[index].status === 'fulfilled' ? protocolsByChainsData[index].value : null
+			return {
+				name: metadataCache.chainMetadata[chain].name,
+				slug: chain,
+				logo: chainIconUrl(chain),
+				total24h:
+					(chainFees?.total24h ?? 0) +
+					(protocols?.protocols ?? []).reduce((acc, curr) => {
+						return REV_PROTOCOLS[chain]?.includes(curr.slug) ? acc + (curr.total24h ?? 0) : acc
+					}, 0),
+				total30d: chainFees?.total30d ?? null
+			}
+		})
+
+		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
 	} catch (error) {}
 }
 

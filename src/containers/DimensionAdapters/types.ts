@@ -129,3 +129,13 @@ export interface IChainsByAdapterPageData {
 	}>
 	allChains: Array<string>
 }
+
+export interface IChainsByREVPageData {
+	chains: Array<{
+		name: string
+		slug: string
+		logo: string
+		total24h: number | null
+		total30d: number | null
+	}>
+}

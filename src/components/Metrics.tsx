@@ -41,6 +41,7 @@ export type TMetric =
 	| 'Total Raised'
 	| 'Bridged TVL'
 	| 'NFT Volume'
+	| 'REV'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -296,6 +297,12 @@ const chainsMetrics: Array<{
 		chainsTracked: metadataCache.totalTrackedByMetric.revenue.chains,
 		description:
 			"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
+	},
+	{
+		name: 'REV',
+		route: '/rev/chains',
+		chainsTracked: metadataCache.totalTrackedByMetric.fees.chains,
+		description: 'Sum of chain fees and MEV tips'
 	},
 	{
 		name: 'Bridged TVL',
