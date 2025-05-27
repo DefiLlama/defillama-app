@@ -10,17 +10,29 @@ const CACHE_FILE = path.join(CACHE_DIR, 'lastPull.json')
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
 const STABLECOINS_DATA_URL = 'https://stablecoins.llama.fi/stablecoins'
+const PROTOCOLS_LIST = 'https://api.llama.fi/lite/protocols2'
+const TREASURY_DATA_URL = 'https://api.llama.fi/treasuries'
 const FIVE_MINUTES = 5 * 60 * 1000
 
 const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
 async function pullData() {
 	try {
-		const protocols = await fetchJson(PROTOCOLS_DATA_URL)
-		const chains = await fetchJson(CHAINS_DATA_URL)
-		const stablecoins = await fetchJson(STABLECOINS_DATA_URL)
-			.then((res) => ({ protocols: res.peggedAssets.length, chains: res.chains.length }))
-			.catch(() => ({ protocols: 0, chains: 0 }))
+		const [protocols, chains, lending, stablecoins, treasury] = await Promise.all([
+			fetchJson(PROTOCOLS_DATA_URL),
+			fetchJson(CHAINS_DATA_URL),
+			fetchJson(PROTOCOLS_LIST)
+				.then((res) =>
+					res.protocols.filter((p) => p.category === 'Lending').then((r) => ({ protocols: r.length, chains: 0 }))
+				)
+				.catch(() => ({ protocols: 0, chains: 0 })),
+			fetchJson(STABLECOINS_DATA_URL)
+				.then((res) => ({ protocols: res.peggedAssets.length, chains: res.chains.length }))
+				.catch(() => ({ protocols: 0, chains: 0 })),
+			fetchJson(TREASURY_DATA_URL)
+				.then((res) => ({ protocols: res.length, chains: 0 }))
+				.catch(() => ({ protocols: 0, chains: 0 }))
+		])
 
 		if (!fs.existsSync(CACHE_DIR)) {
 			fs.mkdirSync(CACHE_DIR)
@@ -41,7 +53,9 @@ async function pullData() {
 			perps: { protocols: 0, chains: 0 },
 			perpAggregators: { protocols: 0, chains: 0 },
 			options: { protocols: 0, chains: 0 },
-			bridgeAggregators: { protocols: 0, chains: 0 }
+			bridgeAggregators: { protocols: 0, chains: 0 },
+			lending,
+			treasury
 		}
 
 		for (const p in protocols) {

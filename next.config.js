@@ -533,6 +533,11 @@ const nextConfig = {
 				source: '/subscribe',
 				destination: '/subscription',
 				permanent: true
+			},
+			{
+				source: '/net-protocol-treasury',
+				destination: '/net-project-treasury',
+				permanent: true
 			}
 		]
 	},

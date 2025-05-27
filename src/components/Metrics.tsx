@@ -33,6 +33,7 @@ export type TMetric =
 	| 'Options Notional Volume'
 	| 'Bridge Aggregator Volume'
 	| 'Total Borrowed'
+	| 'Net Project Treasury'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -106,7 +107,9 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 								<BasicLink
 									key={`protocol-metric-${metric.name}`}
 									className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
-									href={chain ? `${metric.chainRoute.replace('{chain}', chain)}` : metric.mainRoute}
+									href={
+										chain && metric.chainRoute ? `${metric.chainRoute.replace('{chain}', chain)}` : metric.mainRoute
+									}
 								>
 									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 										<span className="font-medium">{metric.name}</span>
@@ -180,8 +183,15 @@ const protocolsMetrics: Array<{
 		name: 'Total Borrowed',
 		mainRoute: '/total-borrowed',
 		chainRoute: `/total-borrowed/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.tvl.protocols,
+		protocolsTracked: metadataCache.totalTrackedByMetric.lending.protocols,
 		description: 'Sum of value currently borrowed across all active loans on a Lending protocol'
+	},
+	{
+		name: 'Net Project Treasury',
+		mainRoute: '/net-project-treasury',
+		chainRoute: null,
+		protocolsTracked: metadataCache.totalTrackedByMetric.treasury.protocols,
+		description: "Value of tokens owned by a protocol, excluding it's own token"
 	},
 	{
 		name: 'Perp Volume',

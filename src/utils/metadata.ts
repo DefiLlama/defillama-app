@@ -5,6 +5,8 @@ import totalTrackedByMetric from '../../.cache/totalTrackedByMetric.json'
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
 const STABLECOINS_DATA_URL = 'https://stablecoins.llama.fi/stablecoins'
+const PROTOCOLS_LIST = 'https://api.llama.fi/lite/protocols2'
+const TREASURY_DATA_URL = 'https://api.llama.fi/treasuries'
 
 interface IChainMetadata {
 	stablecoins?: boolean
@@ -66,6 +68,8 @@ interface ITotalTrackedByMetric {
 	perpAggregators: { protocols: number; chains: number }
 	options: { protocols: number; chains: number }
 	bridgeAggregators: { protocols: number; chains: number }
+	lending: { protocols: number; chains: number }
+	treasury: { protocols: number; chains: number }
 }
 
 const metadataCache: {
@@ -81,11 +85,21 @@ const metadataCache: {
 setInterval(async () => {
 	const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
-	const protocols = await fetchJson(PROTOCOLS_DATA_URL)
-	const chains = await fetchJson(CHAINS_DATA_URL)
-	const stablecoins = await fetchJson(STABLECOINS_DATA_URL)
-		.then((res) => ({ protocols: res.peggedAssets.length as number, chains: res.chains.length as number }))
-		.catch(() => ({ protocols: 0, chains: 0 }))
+	const [protocols, chains, lending, stablecoins, treasury] = await Promise.all([
+		fetchJson(PROTOCOLS_DATA_URL),
+		fetchJson(CHAINS_DATA_URL),
+		fetchJson(PROTOCOLS_LIST)
+			.then((res) =>
+				res.protocols.filter((p) => p.category === 'Lending').then((r) => ({ protocols: r.length, chains: 0 }))
+			)
+			.catch(() => ({ protocols: 0, chains: 0 })),
+		fetchJson(STABLECOINS_DATA_URL)
+			.then((res) => ({ protocols: res.peggedAssets.length, chains: res.chains.length }))
+			.catch(() => ({ protocols: 0, chains: 0 })),
+		fetchJson(TREASURY_DATA_URL)
+			.then((res) => ({ protocols: res.length, chains: 0 }))
+			.catch(() => ({ protocols: 0, chains: 0 }))
+	])
 
 	const protocolKeys = Object.keys(protocols)
 	const chainKeys = Object.keys(chains)
@@ -120,7 +134,9 @@ setInterval(async () => {
 		perps: { protocols: 0, chains: 0 },
 		perpAggregators: { protocols: 0, chains: 0 },
 		options: { protocols: 0, chains: 0 },
-		bridgeAggregators: { protocols: 0, chains: 0 }
+		bridgeAggregators: { protocols: 0, chains: 0 },
+		lending,
+		treasury
 	}
 
 	for (const p in metadataCache.protocolMetadata) {
