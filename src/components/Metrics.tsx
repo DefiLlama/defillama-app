@@ -37,6 +37,7 @@ export type TMetric =
 	| 'App Revenue'
 	| 'Oracle TVS'
 	| 'TVL in forks'
+	| 'CEX Assets'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -223,6 +224,13 @@ const protocolsMetrics: Array<{
 		chainRoute: `/dex-aggregators/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.dexAggregators.protocols,
 		description: 'Volume of spot token swaps that go through a DEX aggregator'
+	},
+	{
+		name: 'CEX Assets',
+		mainRoute: '/cexs',
+		chainRoute: null,
+		protocolsTracked: 0,
+		description: 'Sum of assets held on a centralized exchange such as Binance'
 	},
 	{
 		name: 'Options Premium Volume',
