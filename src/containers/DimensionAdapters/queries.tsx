@@ -417,9 +417,7 @@ export const getAdapterByChainPageData = async ({
 
 		const categories = Array.from(new Set(parentProtocols[protocol].filter((p) => p.category).map((p) => p.category)))
 
-		const methodology = Array.from(
-			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
-		).join(', ')
+		const hasMethodology = parentProtocols[protocol].some((p) => p.methodology != null)
 
 		protocols[protocol] = {
 			name: protocol,
@@ -436,9 +434,11 @@ export const getAdapterByChainPageData = async ({
 			childProtocols: parentProtocols[protocol],
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),
-			...(methodology
+			...(hasMethodology
 				? {
-						methodology
+						methodology: `Sum of all ${dataType ? 'revenue' : 'fees'} from ${parentProtocols[protocol]
+							.map((p) => p.name)
+							.join(', ')}`
 				  }
 				: {})
 		}
