@@ -35,6 +35,7 @@ export type TMetric =
 	| 'Total Borrowed'
 	| 'Net Project Treasury'
 	| 'App Revenue'
+	| 'Oracle TVS'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -200,6 +201,13 @@ const protocolsMetrics: Array<{
 		chainRoute: `/perps/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.perps.protocols,
 		description: 'Notional volume of all trades in a perp exchange, includes leverage'
+	},
+	{
+		name: 'Oracle TVS',
+		mainRoute: '/oracles',
+		chainRoute: `/oracles/chain/{chain}`,
+		protocolsTracked: metadataCache.totalTrackedByMetric.perps.protocols,
+		description: 'Total Value Secured by an oracle, where oracle failure would lead to a loss equal to TVS'
 	},
 	{
 		name: 'DEX Aggregator Volume',
