@@ -13,6 +13,7 @@ import { forksColumn } from '~/components/Table/Defi/columns'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download } from '~/utils'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { Metrics } from '~/components/Metrics'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -82,6 +83,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 	return (
 		<Layout title={`Forks - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
+			<Metrics currentMetric="TVL in forks" />
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="isolate relative rounded-md p-3 bg-[var(--cards-bg)] flex-1 min-h-[360px] flex flex-col">

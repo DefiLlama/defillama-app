@@ -7,6 +7,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import metadata from '~/utils/metadata'
 import { maxAgeForNext } from '~/api'
 import { slug } from '~/utils'
+import { Metrics } from '~/components/Metrics'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging('forks', async ({ params: { fork } }) => {
@@ -37,6 +38,7 @@ export default function Forks(props) {
 	return (
 		<Layout title={`Forks - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
+			<Metrics currentMetric="TVL in forks" />
 			{props.tokenLinks?.length > 0 && (
 				<RowLinksWithDropdown links={props.tokenLinks} activeLink={props.token} alternativeOthersText="Others" />
 			)}
