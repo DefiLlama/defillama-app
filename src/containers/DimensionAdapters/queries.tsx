@@ -415,8 +415,6 @@ export const getAdapterByChainPageData = async ({
 			  )
 			: null
 
-		const categories = Array.from(new Set(parentProtocols[protocol].filter((p) => p.category).map((p) => p.category)))
-
 		const methodology = Array.from(
 			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
 		).join(', ')
