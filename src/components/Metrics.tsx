@@ -40,6 +40,7 @@ export type TMetric =
 	| 'CEX Assets'
 	| 'Total Raised'
 	| 'Bridged TVL'
+	| 'NFT Volume'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -325,5 +326,17 @@ const chainsMetrics: Array<{
 		route: '/perps/chains',
 		chainsTracked: metadataCache.totalTrackedByMetric.perps.chains,
 		description: 'Notional volume of all trades in a perp exchange, includes leverage'
+	},
+	{
+		name: 'NFT Volume',
+		route: '/nfts/chains',
+		chainsTracked: 0,
+		description: 'Sum of volume across all NFT exchanges'
+	},
+	{
+		name: 'Total Raised',
+		route: '/raises',
+		chainsTracked: 0,
+		description: 'Total amount of capital raised by a protocol'
 	}
 ]

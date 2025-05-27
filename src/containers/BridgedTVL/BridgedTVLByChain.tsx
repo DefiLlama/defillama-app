@@ -60,7 +60,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 			<Layout title={`${chainName} Bridged TVL - DefiLlama`}>
 				<ProtocolsChainsSearch />
 				<SEO cardName={chainName} token={chain} />
-				<Metrics currentMetric="Bridged TVL" />
+				<Metrics currentMetric="Bridged TVL" isChains={chainName === 'All Chains'} />
 				<RowLinksWithDropdown links={chains} activeLink={chainName} />
 				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 					<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
