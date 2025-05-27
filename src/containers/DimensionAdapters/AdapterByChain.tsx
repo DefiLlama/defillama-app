@@ -383,10 +383,10 @@ export function AdapterByChain(props: IProps) {
 }
 
 const columnSizes = Object.entries({
-	0: { name: 180 },
-	640: { name: 240 },
-	768: { name: 280 },
-	1536: { name: 280, definition: 440 }
+	0: { name: 180, definition: 400 },
+	640: { name: 240, definition: 400 },
+	768: { name: 280, definition: 400 },
+	1536: { name: 280, definition: 400 }
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
 const columnOrders = Object.entries({
@@ -568,7 +568,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			header: 'Definition',
 			accessorFn: (protocol) => protocol.methodology ?? null,
 			enableSorting: false,
-			size: 128,
+			size: 400,
 			meta: {
 				align: 'end'
 			}
@@ -626,7 +626,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			header: 'Definition',
 			accessorFn: (protocol) => protocol.methodology ?? null,
 			enableSorting: false,
-			size: 128,
+			size: 400,
 			meta: {
 				align: 'end'
 			}
