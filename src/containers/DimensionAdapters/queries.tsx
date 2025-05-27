@@ -292,9 +292,18 @@ export const getAdapterByChainPageData = async ({
 	const parentProtocols = {}
 	const categories = new Set()
 	for (const protocol of data.protocols) {
-		if (protocol.total24h == null) continue
+		if (protocol.totalAllTime == null) continue
 
 		if (protocol.linkedProtocols?.length > 1) {
+			const methodology =
+				adapterType === 'fees'
+					? dataType === 'dailyRevenue'
+						? protocol.methodology?.['Revenue']
+						: dataType === 'dailyHoldersRevenue'
+						? protocol.methodology?.['HoldersRevenue']
+						: protocol.methodology?.['Fees']
+					: null
+
 			parentProtocols[protocol.linkedProtocols[0]] = parentProtocols[protocol.linkedProtocols[0]] || []
 			parentProtocols[protocol.linkedProtocols[0]].push({
 				name: protocol.name,
@@ -309,9 +318,19 @@ export const getAdapterByChainPageData = async ({
 				totalAllTime: protocol.totalAllTime ?? null,
 				mcap: mcapData[protocol.name] ?? null,
 				...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
-				...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {})
+				...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
+				...(methodology ? { methodology } : {})
 			})
 		} else {
+			const methodology =
+				adapterType === 'fees'
+					? dataType === 'dailyRevenue'
+						? protocol.methodology?.['Revenue']
+						: dataType === 'dailyHoldersRevenue'
+						? protocol.methodology?.['HoldersRevenue']
+						: protocol.methodology?.['Fees']
+					: null
+
 			protocols[protocol.name] = {
 				name: protocol.name,
 				slug: protocol.slug,
@@ -325,7 +344,8 @@ export const getAdapterByChainPageData = async ({
 				totalAllTime: protocol.totalAllTime ?? null,
 				mcap: mcapData[protocol.name] ?? null,
 				...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
-				...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {})
+				...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
+				...(methodology ? { methodology } : {})
 			}
 		}
 		if (protocol.category) {

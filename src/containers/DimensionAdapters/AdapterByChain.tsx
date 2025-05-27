@@ -382,13 +382,16 @@ export function AdapterByChain(props: IProps) {
 	)
 }
 
-const columnSizes = Object.entries({ 0: { name: 180 }, 640: { name: 240 }, 768: { name: 280 } }).sort(
-	(a, b) => Number(b[0]) - Number(a[0])
-)
+const columnSizes = Object.entries({
+	0: { name: 180 },
+	640: { name: 240 },
+	768: { name: 280 },
+	1536: { name: 280, definition: 440 }
+}).sort((a, b) => Number(b[0]) - Number(a[0]))
 
 const columnOrders = Object.entries({
-	0: ['name', 'total24h', 'total30d', 'category'],
-	640: ['name', 'category', 'total24h', 'total30d']
+	0: ['name', 'total24h', 'total30d', 'category', 'definition'],
+	640: ['name', 'category', 'definition', 'total24h', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
 const chartKeys: Record<IProps['type'], string> = {
@@ -495,6 +498,23 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			}
 		},
 		{
+			id: 'definition',
+			header: 'Definition',
+			accessorFn: (protocol) => protocol.methodology ?? null,
+			cell: ({ getValue }) => (
+				<Tooltip content={getValue() as string}>
+					<span className="whitespace-nowrap overflow-hidden text-ellipsis text-end ml-auto">
+						{getValue() as string}
+					</span>
+				</Tooltip>
+			),
+			enableSorting: false,
+			size: 400,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
 			id: 'total24h',
 			header: 'Fees 24h',
 			accessorFn: (protocol) => protocol.total24h,
@@ -544,6 +564,16 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			}
 		},
 		{
+			id: 'definition',
+			header: 'Definition',
+			accessorFn: (protocol) => protocol.methodology ?? null,
+			enableSorting: false,
+			size: 128,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
 			id: 'total24h',
 			header: 'Revenue 24h',
 			accessorFn: (protocol) => protocol.total24h,
@@ -586,6 +616,16 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 				) : (
 					''
 				),
+			size: 128,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
+			id: 'definition',
+			header: 'Definition',
+			accessorFn: (protocol) => protocol.methodology ?? null,
+			enableSorting: false,
 			size: 128,
 			meta: {
 				align: 'end'

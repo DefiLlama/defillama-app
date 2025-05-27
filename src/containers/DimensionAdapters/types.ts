@@ -91,6 +91,7 @@ interface IProtocol {
 		total1y: number | null
 		totalAllTime: number | null
 	}
+	methodology?: string | null
 }
 
 interface IAdapterByChainPageProtocol extends IProtocol {
