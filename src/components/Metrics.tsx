@@ -39,6 +39,7 @@ export type TMetric =
 	| 'TVL in forks'
 	| 'CEX Assets'
 	| 'Total Raised'
+	| 'Bridged TVL'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -294,6 +295,12 @@ const chainsMetrics: Array<{
 		chainsTracked: metadataCache.totalTrackedByMetric.revenue.chains,
 		description:
 			"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
+	},
+	{
+		name: 'Bridged TVL',
+		route: '/bridged',
+		chainsTracked: 0,
+		description: 'Value of all tokens held on the chain'
 	},
 	{
 		name: 'App Revenue',
