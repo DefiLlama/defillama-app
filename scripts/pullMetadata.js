@@ -22,9 +22,8 @@ async function pullData() {
 			fetchJson(PROTOCOLS_DATA_URL),
 			fetchJson(CHAINS_DATA_URL),
 			fetchJson(PROTOCOLS_LIST)
-				.then((res) =>
-					res.protocols.filter((p) => p.category === 'Lending').then((r) => ({ protocols: r.length, chains: 0 }))
-				)
+				.then((res) => res.protocols.filter((p) => p.category === 'Lending'))
+				.then((r) => ({ protocols: r.length, chains: 0 }))
 				.catch(() => ({ protocols: 0, chains: 0 })),
 			fetchJson(STABLECOINS_DATA_URL)
 				.then((res) => ({ protocols: res.peggedAssets.length, chains: res.chains.length }))
