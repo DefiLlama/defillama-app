@@ -38,6 +38,7 @@ interface IProps extends IChainsByAdapterPageData {
 		| 'DEX Aggregator Volume'
 		| 'Options Premium Volume'
 		| 'Options Notional Volume'
+		| 'App Revenue'
 	>
 }
 
@@ -310,6 +311,35 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'end',
 				headerHelperText: 'Revenue earned by token holders of all the protocols on the chain in the last 30 days'
+			},
+			size: 180
+		}
+	],
+	'App Revenue': [
+		NameColumn('app-revenue'),
+		{
+			id: 'total24h',
+			header: 'App Revenue 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText:
+					'Total revenue earned by the apps on the chain, updated daily at 00:00 UTC. Excludes liquid staking apps and gas fees'
+			},
+			size: 180
+		},
+		{
+			id: 'total30d',
+			header: 'App Revenue 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText:
+					'Total revenue earned by the apps on the chain in the last 30 days. Excludes liquid staking apps and gas fees'
 			},
 			size: 180
 		}

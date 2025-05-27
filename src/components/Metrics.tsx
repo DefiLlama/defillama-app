@@ -34,6 +34,7 @@ export type TMetric =
 	| 'Bridge Aggregator Volume'
 	| 'Total Borrowed'
 	| 'Net Project Treasury'
+	| 'App Revenue'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -261,6 +262,12 @@ const chainsMetrics: Array<{
 		chainsTracked: metadataCache.totalTrackedByMetric.revenue.chains,
 		description:
 			"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
+	},
+	{
+		name: 'App Revenue',
+		route: '/app-revenue/chains',
+		chainsTracked: metadataCache.totalTrackedByMetric.fees.chains,
+		description: 'Total revenue earned by the apps on the chain. Excludes liquid staking apps and gas fees'
 	},
 	{
 		name: 'Stablecoin Supply',

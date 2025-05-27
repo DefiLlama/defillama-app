@@ -262,7 +262,7 @@ export const getAdapterByChainPageData = async ({
 
 	const bribesProtocols =
 		bribesData?.protocols.reduce((acc, p) => {
-			if (p.total24h != null) {
+			if (p.totalAllTime != null) {
 				acc[p.name] = {
 					total24h: p.total24h ?? null,
 					total7d: p.total7d ?? null,
@@ -276,7 +276,7 @@ export const getAdapterByChainPageData = async ({
 
 	const tokenTaxesProtocols =
 		tokenTaxesData?.protocols.reduce((acc, p) => {
-			if (p.total24h != null) {
+			if (p.totalAllTime != null) {
 				acc[p.name] = {
 					total24h: p.total24h ?? null,
 					total7d: p.total7d ?? null,
