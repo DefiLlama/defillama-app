@@ -9,9 +9,10 @@ import metadataCache from '~/utils/metadata'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
+import { TMetric } from '~/components/Metrics'
 
 const adapterType = ADAPTER_TYPES.PERPS
-const type: TMetric = 'Perps'
+const type: TMetric = 'Perp Volume'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
@@ -40,7 +41,7 @@ export const getStaticPaths = async () => {
 }
 
 export const getStaticProps = withPerformanceLogging(
-	`${slug(type)}/chain/[chain]`,
+	`${type}/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		if (!metadataCache.chainMetadata[chain].derivatives) {
@@ -50,7 +51,7 @@ export const getStaticProps = withPerformanceLogging(
 		const data = await getAdapterByChainPageData({
 			adapterType,
 			chain: metadataCache.chainMetadata[chain].name,
-			route: slug(type)
+			route: 'perps'
 		}).catch((e) => console.info(`Chain page data not found ${adapterType} : chain:${chain}`, e))
 
 		if (!data) return { notFound: true }
@@ -64,7 +65,7 @@ export const getStaticProps = withPerformanceLogging(
 
 const PerpsVolumeOnChain = (props) => {
 	return (
-		<Layout title={`${props.chain} ${type} - DefiLlama`} defaultSEO>
+		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

@@ -270,7 +270,7 @@ export function AdapterByChain(props: IProps) {
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' ? (
-				<div className="grid grid-cols-3 relative isolate gap-1">
+				<div className="grid grid-cols-3 relative isolate gap-1 text-base">
 					<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{props.chain !== 'All' && (
 							<h1 className="flex items-center flex-nowrap gap-2">
@@ -290,7 +290,7 @@ export function AdapterByChain(props: IProps) {
 							</p>
 						) : null}
 
-						<div className="flex flex-col gap-1 text-base">
+						<div className="flex flex-col gap-1">
 							{props.total30d != null ? (
 								<p className="flex items-center gap-4 justify-between flex-wrap">
 									<span className="font-normal text-[#545757] dark:text-[#cccccc]">{metricName} (30d)</span>
