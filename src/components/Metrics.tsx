@@ -3,7 +3,8 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import metadataCache from '~/utils/metadata'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { matchSorter } from 'match-sorter'
 
 export interface ITotalTrackedByMetric {
 	tvl: { protocols: number; chains: number }
@@ -49,6 +50,27 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 	const chain = router.query.chain as string
 	const [tab, setTab] = useState<'Protocols' | 'Chains'>(isChains ? 'Chains' : 'Protocols')
 
+	const [searchValue, setSearchValue] = useState('')
+
+	const { chains, protocols } = useMemo(() => {
+		if (searchValue.length < 2) {
+			return { chains: chainsMetrics, protocols: protocolsMetrics }
+		}
+
+		const chains = matchSorter(chainsMetrics, searchValue, {
+			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+			keys: ['name'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+
+		const protocols = matchSorter(protocolsMetrics, searchValue, {
+			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+			keys: ['name'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+
+		return { chains, protocols }
+	}, [searchValue])
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
 			<p
@@ -69,31 +91,48 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				</Ariakit.DialogDisclosure>
 			</p>
 			<Ariakit.Dialog className="dialog gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] max-sm:drawer" unmountOnHide>
-				<Ariakit.DialogDismiss
-					className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-[var(--divider)] text-[var(--text3)] hover:text-[var(--text1)]"
-					aria-label="Close modal"
-				>
-					<Icon name="x" height={20} width={20} />
-				</Ariakit.DialogDismiss>
-				<div className="flex items-center gap-2">
-					<Ariakit.DialogHeading className="text-2xl font-bold">Metrics for</Ariakit.DialogHeading>
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
-						{['Protocols', 'Chains'].map((dataType) => (
-							<button
-								onClick={() => setTab(dataType as 'Protocols' | 'Chains')}
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-								data-active={tab === dataType}
-								key={dataType}
-							>
-								{dataType}
-							</button>
-						))}
+				<div className="p-1 bg-[var(--cards-bg)] rounded-md flex flex-col gap-2">
+					<div className="flex items-center gap-2">
+						<Ariakit.DialogHeading className="text-2xl font-bold">Metrics for</Ariakit.DialogHeading>
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-1">
+							{['Protocols', 'Chains'].map((dataType) => (
+								<button
+									onClick={() => setTab(dataType as 'Protocols' | 'Chains')}
+									className="flex-shrink-0 py-1 px-[10px] min-h-8 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white rounded-md"
+									data-active={tab === dataType}
+									key={dataType}
+								>
+									{dataType}
+								</button>
+							))}
+						</div>
+						<Ariakit.DialogDismiss
+							className="ml-auto p-2 -my-2 rounded-lg hover:bg-[var(--divider)] text-[var(--text3)] hover:text-[var(--text1)]"
+							aria-label="Close modal"
+						>
+							<Icon name="x" height={20} width={20} />
+						</Ariakit.DialogDismiss>
+					</div>
+					<div className="relative">
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						/>
+						<input
+							type="text"
+							placeholder="Search..."
+							className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-none"
+							value={searchValue}
+							onChange={(e) => setSearchValue(e.target.value)}
+						/>
 					</div>
 				</div>
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
 					{tab === 'Chains' ? (
 						<>
-							{chainsMetrics.map((metric) => (
+							{chains.map((metric) => (
 								<BasicLink
 									key={`chain-metric-${metric.name}`}
 									className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
@@ -111,7 +150,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 						</>
 					) : (
 						<>
-							{protocolsMetrics.map((metric) => (
+							{protocols.map((metric) => (
 								<BasicLink
 									key={`protocol-metric-${metric.name}`}
 									className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
