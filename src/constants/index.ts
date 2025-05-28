@@ -205,7 +205,7 @@ export const scams = [
 export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Staking Pool']
 
 export const REV_PROTOCOLS = {
-	ethereum: ['flashbots'], // missing: eden
+	ethereum: ['flashbots', 'eden-relay'],
 	solana: ['jito-mev-tips', 'bloxroute'],
 	arbitrum: ['arbitrum-timeboost'],
 	polygon: ['fastlane'],
