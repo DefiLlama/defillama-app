@@ -409,7 +409,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			if (others) {
 				uniqueUnlockTokens.add('Others')
 			}
-			const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? ['Others', others] : []))
+			const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? [['Others', others]] : []))
 			return [+date, finalTokens]
 		}) as Array<[number, Record<string, number>]>
 
