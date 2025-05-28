@@ -183,7 +183,7 @@ export function VirtualTable({
 									style={{ minWidth: `${header.getSize() ?? 100}px` }}
 									className={`flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r last:border-r-0 border-[var(--divider)] first:sticky first:left-0 first:z-[1] ${
 										compact
-											? 'flex items-center px-5 h-[64px] first:pl-3 last:pr-3 last:justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
+											? 'flex items-center px-5 h-[64px] first:pl-3 last:pr-3 lg:last:justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
 											: ''
 									}`}
 								>
@@ -257,7 +257,7 @@ export function VirtualTable({
 											data-chainpage={isChainPage}
 											className={`flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r border-[var(--divider)] first:sticky first:left-0 first:z-[1] ${
 												compact
-													? 'flex items-center px-5 first:pl-3 last:pr-3 last:justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
+													? 'flex items-center px-5 first:pl-3 last:pr-3 lg:last:justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
 													: ''
 											}`}
 											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
