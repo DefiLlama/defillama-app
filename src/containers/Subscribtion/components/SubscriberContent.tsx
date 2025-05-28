@@ -237,11 +237,7 @@ export const SubscriberContent = ({
 													<span className="text-sm">Rate Limit</span>
 												</div>
 												<div className="flex items-baseline gap-1">
-													<span className="text-white font-semibold">
-														{subscription?.status === 'active' || subscription?.status === 'contributor'
-															? '1,000'
-															: '100'}
-													</span>
+													<span className="text-white font-semibold">{isPro ? '1,000' : '0'}</span>
 													<span className="text-[#8a8c90] text-xs">requests/minute</span>
 												</div>
 											</div>
@@ -253,20 +249,7 @@ export const SubscriberContent = ({
 											</div>
 
 											<div className="flex justify-between items-center text-xs text-[#8a8c90]">
-												<span>
-													{subscription?.status === 'active'
-														? 'Pro tier access'
-														: subscription?.status === 'contributor'
-														? 'Contributor tier access'
-														: 'LlamaFeed tier'}
-												</span>
-												<span>
-													{subscription?.status === 'active'
-														? 'Pro & Contributor'
-														: subscription?.status === 'contributor'
-														? 'Contributor'
-														: 'LlamaFeed'}
-												</span>
+												<span>{isPro ? 'Pro' : isLlamaFeed ? 'Llama+' : ''}</span>
 											</div>
 										</div>
 									</div>
