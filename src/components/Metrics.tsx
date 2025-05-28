@@ -75,7 +75,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 		<Ariakit.DialogProvider store={dialogStore}>
 			<p
 				className={`text-center ${
-					currentMetric === 'Stablecoin Supply' && !isChains ? 'my-1' : '-mt-2 mb-1'
+					currentMetric === 'Stablecoin Supply' && !isChains ? 'my-1' : 'mt-1 lg:-mt-2 mb-1'
 				} flex items-center gap-1 justify-center flex-wrap`}
 			>
 				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
