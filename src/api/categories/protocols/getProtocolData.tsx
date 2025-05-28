@@ -371,7 +371,8 @@ export const getProtocolData = async (
 							emissions24h: protocolEmissionsData.emission24h,
 							emissions7d: protocolEmissionsData.emission7d,
 							emissions30d: protocolEmissionsData.emission30d,
-							emissionsAllTime: protocolEmissions.unlockUsdChart.reduce((acc, curr) => acc + curr[1], 0)
+							emissionsAllTime: protocolEmissionsData.emissionsAllTime,
+							average1y: protocolEmissionsData.emissionsAverage1y
 						}
 					})
 					.catch(() => null)
@@ -666,7 +667,8 @@ export const getProtocolData = async (
 				users:
 					'This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon.',
 				incentives:
-					'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms.'
+					'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms',
+				earnings: 'Earnings is the revenue of the protocol minus the incentives distributed to users'
 			},
 			expenses: expenses.find((e) => e.protocolId == protocolData.id) ?? null,
 			tokenLiquidity,
