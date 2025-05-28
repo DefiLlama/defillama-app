@@ -571,6 +571,12 @@ export const cexData: Array<ICex> = [
 		walletsLink: null
 	},
 	{
+		name: 'Zoomex',
+		slug: 'zoomex',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'CoinEx',
 		slug: 'coinex',
 		coin: 'CET',
