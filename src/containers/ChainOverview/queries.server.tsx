@@ -506,11 +506,12 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 }
 
 export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; metadata: IChainMetadata }) => {
-	const [{ protocols, chains, parentProtocols }, fees, revenue, dexs]: [
+	const [{ protocols, chains, parentProtocols }, fees, revenue, dexs, emissionsData]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
 		IAdapterOverview | null,
 		IAdapterOverview | null,
-		IAdapterOverview | null
+		IAdapterOverview | null,
+		any
 	] = await Promise.all([
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
 		metadata.fees
@@ -546,7 +547,13 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					console.log(err)
 					return null
 			  })
-			: Promise.resolve(null)
+			: Promise.resolve(null),
+		fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(err)
+				return null
+			})
 	])
 
 	const dimensionProtocols = {}
@@ -592,6 +599,29 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					total7d: protocol.total7d ?? null,
 					change_7dover7d: protocol.change_7dover7d ?? null,
 					totalAllTime: protocol.totalAllTime ?? null
+				}
+			}
+		}
+	}
+	const emissionsProtocols = {}
+	if (emissionsData?.protocols) {
+		for (const emissionProtocol of emissionsData.protocols) {
+			if (
+				emissionProtocol.emission24h != null ||
+				emissionProtocol.emission7d != null ||
+				emissionProtocol.emission30d != null ||
+				emissionProtocol.emission1y != null ||
+				emissionProtocol.emissionsAverage1y != null ||
+				emissionProtocol.emissionsAllTime != null
+			) {
+				emissionsProtocols[emissionProtocol.defillamaId || emissionProtocol.name] = {
+					emissions24h: emissionProtocol.emission24h ?? null,
+					emissions7d: emissionProtocol.emission7d ?? null,
+					emissions30d: emissionProtocol.emission30d ?? null,
+					emissions1y: emissionProtocol.emission1y ?? null,
+					emissionsAverage1y: emissionProtocol.emissionsAverage1y ?? null,
+					emissionsAllTime: emissionProtocol.emissionsAllTime ?? null,
+					name: emissionProtocol.name
 				}
 			}
 		}
@@ -699,6 +729,21 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				childStore.dexs = dimensionProtocols[protocol.defillamaId].dexs
 			}
 
+			const emissionsMatch =
+				emissionsProtocols[protocol.defillamaId] ||
+				emissionsProtocols[metadataCache.protocolMetadata[protocol.defillamaId]?.displayName]
+
+			if (emissionsMatch) {
+				childStore.emissions = {
+					total24h: emissionsMatch.emissions24h,
+					total7d: emissionsMatch.emissions7d,
+					total30d: emissionsMatch.emissions30d,
+					total1y: emissionsMatch.emissions1y,
+					average1y: emissionsMatch.emissionsAverage1y,
+					totalAllTime: emissionsMatch.emissionsAllTime
+				}
+			}
+
 			if (protocol.parentProtocol && metadataCache.protocolMetadata[protocol.parentProtocol]) {
 				parentStore[protocol.parentProtocol] = [...(parentStore?.[protocol.parentProtocol] ?? []), childStore]
 			} else {
@@ -758,6 +803,29 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				  }, {} as IChildProtocol['dexs'])
 				: null
 
+			let parentEmissions = parentStore[parentProtocol.id].some((child) => child.emissions !== null)
+				? parentStore[parentProtocol.id].reduce((acc, curr) => {
+						for (const key1 in curr.emissions ?? {}) {
+							acc[key1] = (acc[key1] ?? 0) + curr.emissions[key1]
+						}
+						return acc
+				  }, {} as IChildProtocol['emissions'])
+				: null
+
+			if (!parentEmissions) {
+				const parentEmissionsMatch = emissionsProtocols[metadataCache.protocolMetadata[parentProtocol.id]?.displayName]
+				if (parentEmissionsMatch) {
+					parentEmissions = {
+						total24h: parentEmissionsMatch.emissions24h,
+						total7d: parentEmissionsMatch.emissions7d,
+						total30d: parentEmissionsMatch.emissions30d,
+						total1y: parentEmissionsMatch.emissions1y,
+						average1y: parentEmissionsMatch.emissionsAverage1y,
+						totalAllTime: parentEmissionsMatch.emissionsAllTime
+					}
+				}
+			}
+
 			if (parentTvl?.excludeParent) {
 				parentTvl.default.tvl -= parentTvl.excludeParent.tvl ?? 0
 				parentTvl.default.tvlPrevDay -= parentTvl.excludeParent.tvlPrevDay ?? 0
@@ -798,6 +866,9 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			if (parentDexs) {
 				finalProtocols[parentProtocol.id].dexs = parentDexs
 			}
+			if (parentEmissions) {
+				finalProtocols[parentProtocol.id].emissions = parentEmissions
+			}
 		}
 	}
 
@@ -805,6 +876,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 		protocols: Object.values(finalProtocols).sort((a, b) => (b.tvl?.default?.tvl ?? 0) - (a.tvl?.default?.tvl ?? 0)),
 		chains,
 		fees,
-		dexs
+		dexs,
+		emissionsData
 	}
 }
