@@ -140,7 +140,7 @@ export async function getBridgeOverviewPageData(chain) {
 		currentTimestamp - numberOfDaysForLargeTx * secondsInDay,
 		currentTimestamp
 	)
-	const largeTxsData = unformattedLargeTxsData.map((transaction) => {
+	const largeTxsData = unformattedLargeTxsData?.map((transaction) => {
 		const { token, symbol, isDeposit, chain: txChain } = transaction
 		const symbolAndTokenForExplorer = `${symbol}#${token}`
 		let correctedIsDeposit = isDeposit
@@ -165,7 +165,7 @@ export async function getBridgeOverviewPageData(chain) {
 		chartDataByBridge,
 		chainVolumeData: chainVolumeData ?? [],
 		bridgeStatsCurrentDay,
-		largeTxsData,
+		largeTxsData: largeTxsData ?? [],
 		chain: chain ?? 'All'
 	}
 }
