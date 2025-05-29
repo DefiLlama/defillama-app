@@ -64,14 +64,17 @@ interface IProtocolContainerProps {
 	} | null
 	fees30d: number | null
 	revenue30d: number | null
+	holdersRevenue30d: number | null
 	tokenTaxesRevenue30d: number | null
 	bribesRevenue30d: number | null
 	allTimeFees: number | null
 	allTimeRevenue: number | null
+	allTimeHoldersRevenue: number | null
 	allTimeBribesRevenue: number | null
 	allTimeTokenTaxesRevenue: number | null
 	dailyFees: number | null
 	dailyRevenue: number | null
+	dailyHoldersRevenue: number | null
 	dailyBribesRevenue: number | null
 	dailyTokenTaxes: number | null
 	dailyVolume: number | null
@@ -82,7 +85,8 @@ interface IProtocolContainerProps {
 	allTimeAggregatorsVolume: number | null
 	dailyPerpsAggregatorVolume: number | null
 	allTimePerpsAggregatorVolume: number | null
-	dailyOptionsVolume: number | null
+	dailyOptionsPremiumVolume: number | null
+	dailyOptionsNotionalVolume: number | null
 	controversialProposals: Array<{ title: string; link?: string }> | null
 	governanceApis: Array<string> | null
 	expenses: any
@@ -164,14 +168,17 @@ const ProtocolContainer = ({
 	users,
 	fees30d,
 	revenue30d,
+	holdersRevenue30d,
 	allTimeFees,
 	dailyFees,
 	dailyRevenue,
+	dailyHoldersRevenue,
 	dailyBribesRevenue,
 	dailyTokenTaxes,
 	bribesRevenue30d,
 	tokenTaxesRevenue30d,
 	allTimeRevenue,
+	allTimeHoldersRevenue,
 	allTimeBribesRevenue,
 	allTimeTokenTaxesRevenue,
 	dailyVolume,
@@ -182,7 +189,8 @@ const ProtocolContainer = ({
 	allTimeAggregatorsVolume,
 	dailyPerpsAggregatorVolume,
 	allTimePerpsAggregatorVolume,
-	dailyOptionsVolume,
+	dailyOptionsPremiumVolume,
+	dailyOptionsNotionalVolume,
 	controversialProposals,
 	governanceApis,
 	expenses,
@@ -387,28 +395,43 @@ const ProtocolContainer = ({
 		return formattedNum(value, true)
 	}
 
-	let revenue30dFinal = revenue30d
-	let dailyRevenueFinal = dailyRevenue
 	let dailyFeesFinal = dailyFees
 	let fees30dFinal = fees30d
 	let allTimeFeesFinal = allTimeFees
+
+	let dailyRevenueFinal = dailyRevenue
+	let revenue30dFinal = revenue30d
 	let allTimeRevenueFinal = allTimeRevenue
 
+	let dailyHoldersRevenueFinal = dailyHoldersRevenue
+	let holdersRevenue30dFinal = holdersRevenue30d
+	let allTimeHoldersRevenueFinal = allTimeHoldersRevenue
+
 	if (extraTvlsEnabled[FEES_SETTINGS.BRIBES] && dailyBribesRevenue != null) {
-		dailyRevenueFinal = dailyRevenue + (dailyBribesRevenue ?? 0)
-		revenue30dFinal = revenue30d + (bribesRevenue30d ?? 0)
 		dailyFeesFinal = dailyFees + (dailyBribesRevenue ?? 0)
 		fees30dFinal = fees30d + (bribesRevenue30d ?? 0)
 		allTimeFeesFinal = allTimeFees + (allTimeBribesRevenue ?? 0)
+
+		dailyRevenueFinal = dailyRevenue + (dailyBribesRevenue ?? 0)
+		revenue30dFinal = revenue30d + (bribesRevenue30d ?? 0)
 		allTimeRevenueFinal = allTimeRevenue + (allTimeBribesRevenue ?? 0)
+
+		dailyHoldersRevenueFinal = dailyHoldersRevenue + (dailyBribesRevenue ?? 0)
+		holdersRevenue30dFinal = holdersRevenue30d + (bribesRevenue30d ?? 0)
+		allTimeHoldersRevenueFinal = allTimeHoldersRevenue + (allTimeBribesRevenue ?? 0)
 	}
 	if (extraTvlsEnabled[FEES_SETTINGS.TOKENTAX] && dailyTokenTaxes != null) {
-		dailyRevenueFinal = dailyRevenue + (dailyTokenTaxes ?? 0)
-		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
 		dailyFeesFinal = dailyFees + (dailyTokenTaxes ?? 0)
 		fees30dFinal = fees30d + (tokenTaxesRevenue30d ?? 0)
 		allTimeFeesFinal = allTimeFees + (allTimeTokenTaxesRevenue ?? 0)
+
+		dailyRevenueFinal = dailyRevenue + (dailyTokenTaxes ?? 0)
+		revenue30dFinal = revenue30dFinal + (tokenTaxesRevenue30d ?? 0)
 		allTimeRevenueFinal = allTimeRevenue + (allTimeTokenTaxesRevenue ?? 0)
+
+		dailyHoldersRevenueFinal = dailyHoldersRevenue + (dailyTokenTaxes ?? 0)
+		holdersRevenue30dFinal = holdersRevenue30d + (tokenTaxesRevenue30d ?? 0)
+		allTimeHoldersRevenueFinal = allTimeHoldersRevenue + (allTimeTokenTaxesRevenue ?? 0)
 	}
 
 	return (
@@ -441,7 +464,7 @@ const ProtocolContainer = ({
 							</h1>
 
 							{totalValue || hasTvl ? (
-								<details className="group mt-6 mb-4">
+								<details className="group mt-6">
 									<summary className="flex items-center">
 										<Icon
 											name="chevron-right"
@@ -746,7 +769,7 @@ const ProtocolContainer = ({
 										<RowWithSubRows
 											protocolName={protocolData.name}
 											dataType="Volume"
-											rowHeader="Volume 24h"
+											rowHeader="DEX Volume 24h"
 											rowValue={formatPrice(dailyVolume)}
 											helperText="Sum of value of all spot trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
 											subRows={
@@ -892,7 +915,7 @@ const ProtocolContainer = ({
 										</tr>
 									) : null}
 
-									{dailyOptionsVolume ? (
+									{dailyOptionsPremiumVolume ? (
 										<tr className="group">
 											<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
 												<Tooltip
@@ -907,7 +930,30 @@ const ProtocolContainer = ({
 													className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 												/>
 											</th>
-											<td className="font-jetbrains text-right whitespace-nowrap">{formatPrice(dailyOptionsVolume)}</td>
+											<td className="font-jetbrains text-right whitespace-nowrap">
+												{formatPrice(dailyOptionsPremiumVolume)}
+											</td>
+										</tr>
+									) : null}
+
+									{dailyOptionsNotionalVolume ? (
+										<tr className="group">
+											<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
+												<Tooltip
+													content="Sum of value of all options trades that went through the protocol in the last 24 hours, updated daily at 00:00UTC"
+													className="underline decoration-dotted"
+												>
+													Options Notional Volume 24h
+												</Tooltip>
+												<Flag
+													protocol={protocolData.name}
+													dataType={'Options Notional Volume 24h'}
+													className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+												/>
+											</th>
+											<td className="font-jetbrains text-right whitespace-nowrap">
+												{formatPrice(dailyOptionsNotionalVolume)}
+											</td>
 										</tr>
 									) : null}
 
@@ -993,6 +1039,49 @@ const ProtocolContainer = ({
 														<tr>
 															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Revenue`}</th>
 															<td className="text-sm text-right">{formatPrice(allTimeRevenueFinal)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : null}
+									{holdersRevenue30dFinal != null ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Revenue"
+											rowHeader="Holders Revenue (annualized)"
+											rowValue={formatPrice(holdersRevenue30dFinal * 12.2)}
+											helperText={explainAnnualized(helperTexts?.revenue)}
+											subRows={
+												<>
+													<tr>
+														<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															<Tooltip
+																content="Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC"
+																className="underline decoration-dotted"
+															>
+																Holders Revenue 30d
+															</Tooltip>
+														</th>
+														<td className="text-sm text-right">{formatPrice(holdersRevenue30dFinal)}</td>
+													</tr>
+													{dailyHoldersRevenueFinal != null ? (
+														<tr>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<Tooltip
+																	content="Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC"
+																	className="underline decoration-dotted"
+																>
+																	Holders Revenue 24h
+																</Tooltip>
+															</th>
+															<td className="text-sm text-right">{formatPrice(dailyRevenueFinal)}</td>
+														</tr>
+													) : null}
+													{allTimeHoldersRevenueFinal != null ? (
+														<tr>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Holders Revenue`}</th>
+															<td className="text-sm text-right">{formatPrice(allTimeHoldersRevenueFinal)}</td>
 														</tr>
 													) : null}
 												</>

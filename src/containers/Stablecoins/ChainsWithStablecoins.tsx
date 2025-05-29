@@ -16,6 +16,7 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { Metrics } from '~/components/Metrics'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -143,6 +144,8 @@ function PeggedChainsOverview({
 	return (
 		<>
 			<PeggedSearch />
+
+			<Metrics currentMetric="Stablecoin Supply" isChains={true} />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">

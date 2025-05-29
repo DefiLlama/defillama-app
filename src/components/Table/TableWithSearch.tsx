@@ -7,10 +7,13 @@ import {
 	ColumnFiltersState,
 	getFilteredRowModel,
 	ExpandedState,
-	getExpandedRowModel
+	getExpandedRowModel,
+	ColumnOrderState,
+	ColumnSizingState
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import { Icon } from '~/components/Icon'
+import useWindowSize from '~/hooks/useWindowSize'
 
 export function TableWithSearch({
 	data,
@@ -19,11 +22,15 @@ export function TableWithSearch({
 	columnToSearch,
 	customFilters = null,
 	header = null,
-	renderSubComponent = null
+	renderSubComponent = null,
+	columnSizes = null,
+	columnOrders = null
 }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
+	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
+	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 
 	const instance = useReactTable({
 		data,
@@ -31,13 +38,42 @@ export function TableWithSearch({
 		state: {
 			sorting,
 			columnFilters,
-			expanded
+			expanded,
+			columnSizing,
+			columnOrder
+		},
+		sortingFns: {
+			alphanumericFalsyLast: (rowA, rowB, columnId) => {
+				const desc = sorting.length ? sorting[0].desc : true
+
+				let a = (rowA.getValue(columnId) ?? null) as any
+				let b = (rowB.getValue(columnId) ?? null) as any
+
+				if (typeof a === 'number' && a <= 0) a = null
+				if (typeof b === 'number' && b <= 0) b = null
+
+				if (a === null && b !== null) {
+					return desc ? -1 : 1
+				}
+
+				if (a !== null && b === null) {
+					return desc ? 1 : -1
+				}
+
+				if (a === null && b === null) {
+					return 0
+				}
+
+				return a - b
+			}
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
 		getSubRows: (row: any) => row.subRows,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
+		onColumnSizingChange: setColumnSizing,
+		onColumnOrderChange: setColumnOrder,
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -55,6 +91,20 @@ export function TableWithSearch({
 
 		return () => clearTimeout(id)
 	}, [projectName, instance, columnToSearch])
+
+	const windowSize = useWindowSize()
+
+	React.useEffect(() => {
+		if (columnSizes && Array.isArray(columnSizes)) {
+			const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
+			instance.setColumnSizing(colSize[1])
+		}
+
+		if (columnOrders && Array.isArray(columnOrders)) {
+			const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
+			instance.setColumnOrder(colOrder[1])
+		}
+	}, [instance, windowSize])
 
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md">

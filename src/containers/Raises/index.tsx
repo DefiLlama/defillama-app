@@ -11,6 +11,7 @@ import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { oldBlue } from '~/constants/colors'
+import { Metrics } from '~/components/Metrics'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -45,7 +46,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				<br />
 				<span>Are you a VC and want to submit your investments in bulk? Email them to us at raises@llama.fi</span>
 			</Announcement>
-
+			<Metrics currentMetric="Total Raised" />
 			<RaisesFilters
 				header={investorName ? `${investorName} raises` : 'Raises'}
 				rounds={rounds}

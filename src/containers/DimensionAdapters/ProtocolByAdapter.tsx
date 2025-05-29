@@ -4,18 +4,17 @@ import { CopyHelper } from '~/components/Copy'
 import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { AuditInfo } from '~/components/AuditInfo'
 import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
-import { VOLUME_TYPE_ADAPTORS } from '~/api/categories/adaptors'
 import { formatTimestampAsDate } from '~/api/categories/adaptors/utils'
 import { Announcement } from '~/components/Announcement'
 import { SEO } from '~/components/SEO'
 import type { IProtocolContainerProps } from './types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
-import { DimensionProtocolChartByType, DimensionProtocolOverviewChart } from './charts/ProtocolChart'
+import { DimensionProtocolChartByType, DimensionProtocolOverviewChart } from './ProtocolChart'
 import { useRouter } from 'next/router'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
-import { ADAPTOR_TYPES } from './constants'
+import { ADAPTER_TYPES, VOLUME_TYPE_ADAPTERS } from './constants'
 import { BasicLink } from '~/components/Link'
 import { defaultPageStyles } from '../ProtocolOverview/queries'
 
@@ -57,8 +56,8 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 	const enableVersionsChart = linkedProtocols?.length > 0 && !parentProtocol ? true : false
 	const enableChainsChart = chains?.length > 1 ? true : false
 
-	const typeSimple = VOLUME_TYPE_ADAPTORS.includes(type) ? 'volume' : type
-	const typeString = VOLUME_TYPE_ADAPTORS.includes(type) ? 'Volume' : capitalizeFirstLetter(type)
+	const typeSimple = VOLUME_TYPE_ADAPTERS.includes(type) ? 'volume' : type
+	const typeString = VOLUME_TYPE_ADAPTERS.includes(type) ? 'Volume' : capitalizeFirstLetter(type)
 
 	const router = useRouter()
 
@@ -95,7 +94,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 					</nav>
 				)}
 
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto text-base">
 					<>
 						{name && (
 							<h1 className="flex items-center gap-2 text-xl">
@@ -104,7 +103,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 							</h1>
 						)}
 						{total24h || total24h === 0 ? (
-							<p className="flex flex-col gap-1 text-base">
+							<p className="flex flex-col gap-1">
 								<span className="text-[#545757] dark:text-[#cccccc]">
 									{disabled === true
 										? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
@@ -123,7 +122,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 							</p>
 						) : null}
 						{dailyRevenue != null || dailyBribesRevenue != null ? (
-							<p className="flex flex-col gap-1 text-base">
+							<p className="flex flex-col gap-1">
 								<span className="text-[#545757] dark:text-[#cccccc]">
 									{disabled === true
 										? `Last day revenue (${formatTimestampAsDate(
@@ -142,7 +141,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 							</p>
 						) : null}
 						{totalAllTime ? (
-							<p className="flex flex-col gap-1 text-base">
+							<p className="flex flex-col gap-1">
 								<span className="text-[#545757] dark:text-[#cccccc]">{`All time ${typeSimple}`}</span>
 								<span className="font-jetbrains font-semibold text-2xl">
 									{formattedNum(
@@ -279,7 +278,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 					<div className="grid grid-cols-2 gap-1">
 						{enableVersionsChart && (
 							<DimensionProtocolChartByType
-								adapterType={type as `${ADAPTOR_TYPES}`}
+								adapterType={type as `${ADAPTER_TYPES}`}
 								protocolName={pSlug}
 								chartType="version"
 								metadata={{
@@ -290,7 +289,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 						)}
 						{enableChainsChart && (
 							<DimensionProtocolChartByType
-								adapterType={type as `${ADAPTOR_TYPES}`}
+								adapterType={type as `${ADAPTER_TYPES}`}
 								protocolName={pSlug}
 								chartType="chain"
 								metadata={{

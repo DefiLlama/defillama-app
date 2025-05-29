@@ -422,19 +422,20 @@ export function useLocalStorageSettingsManager(type: TSETTINGTYPE): [Record<stri
 
 	const isClient = useIsClient()
 
-	const toggledSettings = useMemo(() => {
+	return useMemo(() => {
 		const urlParams = isClient ? new URLSearchParams(window.location.search) : null
 
 		const ps = JSON.parse(store)
-		return Object.fromEntries(
-			getSettingKeys(type).map((s) => [
-				s,
-				(urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false
-			])
-		)
+		return [
+			Object.fromEntries(
+				getSettingKeys(type).map((s) => [
+					s,
+					(urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false
+				])
+			),
+			updateSetting
+		]
 	}, [store, type, isClient])
-
-	return [toggledSettings, updateSetting]
 }
 
 const updateAllSettings = (keys: Record<string, boolean>) => {
@@ -546,29 +547,6 @@ export function useWatchlist() {
 		selectedPortfolio,
 		setSelectedPortfolio
 	}
-}
-
-const updateChartInterval = (value: 'Daily' | 'Weekly' | 'Monthly') => {
-	const current = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
-	localStorage.setItem(DEFILLAMA, JSON.stringify({ ...current, [DIMENSIONS_CHART_INTERVAL_KEY]: value }))
-	window.dispatchEvent(new Event('storage'))
-}
-
-export const useDimensionChartInterval = () => {
-	const store = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(DEFILLAMA) ?? '{}',
-		() => '{}'
-	)
-
-	const chartInterval = useMemo(() => {
-		const currentStore = JSON.parse(store)
-		return ['Daily', 'Weekly', 'Monthly'].includes(currentStore[DIMENSIONS_CHART_INTERVAL_KEY])
-			? currentStore[DIMENSIONS_CHART_INTERVAL_KEY]
-			: 'Daily'
-	}, [store])
-
-	return [chartInterval, updateChartInterval] as const
 }
 
 export function useCustomColumns() {

@@ -6,6 +6,7 @@ import { cexData } from '~/pages/cexs'
 import { DateFilter } from './DateFilter'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import Layout from '~/layout'
+import { Metrics } from '~/components/Metrics'
 
 const getOutflowsByTimerange = async (startTime, endTime) => {
 	if (startTime && endTime) {
@@ -78,6 +79,7 @@ export const Cexs = ({ cexs }) => {
 
 	return (
 		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
+			<Metrics currentMetric="CEX Assets" />
 			<TableWithSearch
 				data={cexsWithCustomRange}
 				columns={cexColumn}

@@ -17,7 +17,7 @@ import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { SortIcon } from '~/components/Table/SortIcon'
-import { TABLE_CATEGORIES, TABLE_PERIODS, defaultColumns, protocolsByChainTableColumns } from '.'
+import { TABLE_CATEGORIES, TABLE_PERIODS, protocolsByChainTableColumns } from '.'
 
 export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain })

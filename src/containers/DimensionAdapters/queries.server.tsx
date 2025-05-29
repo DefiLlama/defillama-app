@@ -1,5 +1,5 @@
 import metadataCache from '~/utils/metadata'
-import { ADAPTOR_TYPES } from './constants'
+import { ADAPTER_TYPES } from './constants'
 import { getAdapterChainOverview } from './queries'
 import { postRuntimeLogs } from '~/utils/async'
 
@@ -8,7 +8,7 @@ export async function getDimensionAdapterChainsOverview({
 	adapterType,
 	dataType
 }: {
-	adapterType: `${ADAPTOR_TYPES}`
+	adapterType: `${ADAPTER_TYPES}`
 	dataType?: string
 }) {
 	const chains = []
@@ -22,7 +22,7 @@ export async function getDimensionAdapterChainsOverview({
 		chains.map((chain) =>
 			getAdapterChainOverview({
 				chain,
-				type: adapterType,
+				adapterType,
 				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true,
 				dataType

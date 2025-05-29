@@ -72,6 +72,7 @@ type Name =
 	| 'linear-unlock'
 	| 'cliff-unlock'
 	| 'calendar-plus'
+	| 'pencil'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -79,7 +80,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v1.svg#${name}`} />
+			<use href={`/icons/v2.svg#${name}`} />
 		</svg>
 	)
 })

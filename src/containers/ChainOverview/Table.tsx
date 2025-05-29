@@ -39,9 +39,6 @@ export interface CustomColumnDef {
 	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 }
 
-const optionsKey = 'ptc'
-const filterStatekey = 'ptcfs'
-
 export const ChainProtocolsTable = ({
 	protocols,
 	sampleRow = sampleProtocol
@@ -68,13 +65,13 @@ export const ChainProtocolsTable = ({
 
 	const columnsInStorage = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		() => localStorage.getItem(tableColumnOptionsKey) ?? defaultColumns,
 		() => defaultColumns
 	)
 
 	const filterState = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(filterStatekey) ?? null,
+		() => localStorage.getItem(tableFilterStateKey) ?? null,
 		() => null
 	)
 
@@ -87,7 +84,7 @@ export const ChainProtocolsTable = ({
 				])
 			)
 		)
-		window.localStorage.setItem(optionsKey, ops)
+		window.localStorage.setItem(tableColumnOptionsKey, ops)
 		window.dispatchEvent(new Event('storage'))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(JSON.parse(ops))
@@ -102,7 +99,7 @@ export const ChainProtocolsTable = ({
 				])
 			)
 		)
-		window.localStorage.setItem(optionsKey, ops)
+		window.localStorage.setItem(tableColumnOptionsKey, ops)
 		window.dispatchEvent(new Event('storage'))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(JSON.parse(ops))
@@ -145,7 +142,7 @@ export const ChainProtocolsTable = ({
 			const allKeys = [...columnOptions.map((c) => c.key), ...next.map((_, idx) => `custom_formula_${idx}`)]
 			let ops: Record<string, boolean> = {}
 			try {
-				ops = JSON.parse(localStorage.getItem(optionsKey) ?? '{}')
+				ops = JSON.parse(localStorage.getItem(tableColumnOptionsKey) ?? '{}')
 			} catch {}
 			allKeys.forEach((key) => {
 				if (key === newColumnKey) {
@@ -154,7 +151,7 @@ export const ChainProtocolsTable = ({
 					ops[key] = false
 				}
 			})
-			localStorage.setItem(optionsKey, JSON.stringify(ops))
+			localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
 			window.dispatchEvent(new Event('storage'))
 			if (instance && instance.setColumnVisibility) {
 				instance.setColumnVisibility(ops)
@@ -179,7 +176,7 @@ export const ChainProtocolsTable = ({
 	const addColumn = (newColumns) => {
 		const allKeys = mergedColumns.map((col) => col.key)
 		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key) ? true : false]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(ops)
@@ -368,12 +365,12 @@ export const ChainProtocolsTable = ({
 
 		if (columnsInStorage === JSON.stringify(newColumns)) {
 			toggleAllColumns()
-			window.localStorage.setItem(filterStatekey, null)
+			window.localStorage.setItem(tableFilterStateKey, null)
 			instance.setSorting([{ id: 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		} else {
-			window.localStorage.setItem(optionsKey, JSON.stringify(newColumns))
-			window.localStorage.setItem(filterStatekey, newState)
+			window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(newColumns))
+			window.localStorage.setItem(tableFilterStateKey, newState)
 			instance.setSorting([{ id: MAIN_COLUMN_BY_CATEGORY[newState] ?? 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		}
@@ -432,6 +429,9 @@ export const ChainProtocolsTable = ({
 		</div>
 	)
 }
+
+const tableColumnOptionsKey = 'ptc'
+const tableFilterStateKey = 'ptcfs'
 
 enum TABLE_CATEGORIES {
 	FEES = 'Fees',
@@ -515,9 +515,7 @@ const columnOptions = [
 		category: TABLE_CATEGORIES.REVENUE
 	},
 	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Cumulative Fees', key: 'cumulativeFees', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Cumulative Revenue', key: 'cumulativeRevenue', category: TABLE_CATEGORIES.REVENUE },
-	{ name: 'Cumulative Incentives', key: 'cumulativeEmissions', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'Cumulative Fees', key: 'fees_cumulative', category: TABLE_CATEGORIES.FEES },
 	{
 		name: 'Holders Revenue 24h',
 		key: 'holderRevenue_24h',
@@ -544,15 +542,15 @@ const columnOptions = [
 	},
 	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
 	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Spot Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Spot Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Spot Volume 24h', key: 'dex_volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Spot Volume 7d', key: 'dex_volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
 	{
 		name: 'Spot Volume Change 7d',
-		key: 'volumeChange_7d',
+		key: 'dex_volume_change_7d',
 		category: TABLE_CATEGORIES.VOLUME,
 		period: TABLE_PERIODS.SEVEN_DAYS
 	},
-	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
+	{ name: 'Spot Cumulative Volume', key: 'dex_cumulative_volume', category: TABLE_CATEGORIES.VOLUME }
 ]
 
 const columnHelper = createColumnHelper<IProtocol>()
@@ -569,7 +567,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
-						<span key={`/protocol/${row.original.slug}` + chain} className="flex items-center gap-1">
+						<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
 							<TokenLogo logo={chainIconUrl(chain)} size={14} />
 							<span>{chain}</span>
 						</span>
@@ -894,7 +892,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 180
 			}),
 			columnHelper.accessor((row) => row.fees?.totalAllTime, {
-				id: 'cumulativeFees',
+				id: 'fees_cumulative',
 				header: 'Cumulative Fees',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
@@ -1068,7 +1066,7 @@ const columns: ColumnDef<IProtocol>[] = [
 		header: 'Volume',
 		columns: [
 			columnHelper.accessor((row) => row.dexs?.total24h, {
-				id: 'volume_24h',
+				id: 'dex_volume_24h',
 				header: 'Spot Volume 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
@@ -1079,7 +1077,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 150
 			}),
 			columnHelper.accessor((row) => row.dexs?.total7d, {
-				id: 'volume_7d',
+				id: 'dex_volume_7d',
 				header: 'Spot Volume 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
@@ -1090,7 +1088,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 150
 			}),
 			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
-				id: 'volumeChange_7d',
+				id: 'dex_volume_change_7d',
 				header: 'Spot Change 7d',
 				cell: ({ getValue }) => <>{getValue() != 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
@@ -1101,7 +1099,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				size: 140
 			}),
 			columnHelper.accessor((row) => row.dexs?.totalAllTime, {
-				id: 'cumulativeVolume',
+				id: 'dex_cumulative_volume',
 				header: 'Spot Cumulative Volume',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
@@ -1149,17 +1147,16 @@ const defaultColumns = JSON.stringify({
 	cumulativeEmissions: false,
 	cumulativeEarnings: false,
 	userFees_24h: false,
-	cumulativeFees: false,
-	cumulativeRevenue: false,
+	fees_cumulative: false,
 	holderRevenue_24h: false,
 	treasuryRevenue_24h: false,
 	supplySideRevenue_24h: false,
 	pf: false,
 	ps: false,
-	volume_24h: true,
-	volume_7d: false,
-	volumeChange_7d: false,
-	cumulativeVolume: false
+	dex_volume_24h: true,
+	dex_volume_7d: false,
+	dex_volume_change_7d: false,
+	dex_cumulative_volume: false
 })
 
 const Tvl = ({ rowValues }) => {

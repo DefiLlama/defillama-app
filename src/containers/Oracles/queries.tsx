@@ -28,7 +28,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
 			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
 			getAdapterChainOverview({
-				type: 'derivatives',
+				adapterType: 'derivatives',
 				chain: 'All',
 				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
@@ -137,26 +137,12 @@ export async function getOraclePageData(oracle = null, chain = null) {
 
 export async function getOraclePageDataByChain(chain: string) {
 	try {
-		const [
-			{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle },
-			{ protocols },
-			{ protocols: derivativeProtocols }
-		]: [
+		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle }, { protocols }]: [
 			IOracleApiResponse,
-			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
-			IAdapterOverview | null
+			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> }
 		] = await Promise.all([
 			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
-			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
-			getAdapterChainOverview({
-				type: 'derivatives',
-				chain: 'All',
-				excludeTotalDataChart: true,
-				excludeTotalDataChartBreakdown: true
-			}).catch((err) => {
-				console.log(err)
-				return null
-			})
+			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 		])
 
 		const filteredProtocols = formatProtocolsData({ protocols, chain })

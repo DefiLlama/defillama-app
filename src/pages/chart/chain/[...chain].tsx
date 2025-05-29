@@ -71,7 +71,7 @@ export default function ChainChartPage({
 		denomination: typeof denomination === 'string' ? denomination : 'USD',
 		selectedChain,
 		chainGeckoId,
-		volumeData: { total24h: volumeData?.totalVolume24h },
+		dexsData: { total24h: volumeData?.totalVolume24h },
 		feesData: { total24h: feesAndRevenueData?.totalFees24h },
 		revenueData: { total24h: feesAndRevenueData?.totalRevenue24h },
 		appRevenueData: { total24h: feesAndRevenueData?.totalAppRevenue24h },
