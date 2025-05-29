@@ -27,7 +27,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 	return (
 		<Layout title="REV by chain - DefiLlama">
 			<ProtocolsChainsSearch hideFilters />
-			<Metrics currentMetric="REV" />
+			<Metrics currentMetric="REV" isChains />
 			<TableWithSearch
 				data={props.chains}
 				columns={columns}
