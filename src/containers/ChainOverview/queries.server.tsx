@@ -610,7 +610,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				emissionProtocol.emission24h != null ||
 				emissionProtocol.emission7d != null ||
 				emissionProtocol.emission30d != null ||
-				emissionProtocol.emission1y != null ||
+				emissionProtocol.emissions1y != null ||
 				emissionProtocol.emissionsAverage1y != null ||
 				emissionProtocol.emissionsAllTime != null
 			) {
@@ -618,7 +618,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					emissions24h: emissionProtocol.emission24h ?? null,
 					emissions7d: emissionProtocol.emission7d ?? null,
 					emissions30d: emissionProtocol.emission30d ?? null,
-					emissions1y: emissionProtocol.emission1y ?? null,
+					emissions1y: emissionProtocol.emissions1y ?? null,
 					emissionsAverage1y: emissionProtocol.emissionsAverage1y ?? null,
 					emissionsAllTime: emissionProtocol.emissionsAllTime ?? null,
 					name: emissionProtocol.name
