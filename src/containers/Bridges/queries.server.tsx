@@ -140,15 +140,17 @@ export async function getBridgeOverviewPageData(chain) {
 		currentTimestamp - numberOfDaysForLargeTx * secondsInDay,
 		currentTimestamp
 	)
-	const largeTxsData = unformattedLargeTxsData?.map((transaction) => {
-		const { token, symbol, isDeposit, chain: txChain } = transaction
-		const symbolAndTokenForExplorer = `${symbol}#${token}`
-		let correctedIsDeposit = isDeposit
-		if (chain) {
-			correctedIsDeposit = chain.toLowerCase() === txChain.toLowerCase() ? isDeposit : !isDeposit
-		}
-		return { ...transaction, isDeposit: correctedIsDeposit, symbol: symbolAndTokenForExplorer }
-	})
+	const largeTxsData = Array.isArray(unformattedLargeTxsData)
+		? unformattedLargeTxsData.map((transaction) => {
+				const { token, symbol, isDeposit, chain: txChain } = transaction
+				const symbolAndTokenForExplorer = `${symbol}#${token}`
+				let correctedIsDeposit = isDeposit
+				if (chain) {
+					correctedIsDeposit = chain.toLowerCase() === txChain.toLowerCase() ? isDeposit : !isDeposit
+				}
+				return { ...transaction, isDeposit: correctedIsDeposit, symbol: symbolAndTokenForExplorer }
+		  })
+		: []
 
 	const filteredBridges = formatBridgesData({
 		bridges,
@@ -165,7 +167,7 @@ export async function getBridgeOverviewPageData(chain) {
 		chartDataByBridge,
 		chainVolumeData: chainVolumeData ?? [],
 		bridgeStatsCurrentDay,
-		largeTxsData: largeTxsData ?? [],
+		largeTxsData,
 		chain: chain ?? 'All'
 	}
 }
