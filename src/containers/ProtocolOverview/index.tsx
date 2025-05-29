@@ -96,6 +96,7 @@ interface IProtocolContainerProps {
 		revenue?: string | null
 		users?: string | null
 		incentives?: string | null
+		earnings?: string | null
 	}
 	tokenLiquidity: Array<[string, string, number]>
 	tokenCGData: {
@@ -1124,6 +1125,55 @@ const ProtocolContainer = ({
 														<tr>
 															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Incentives`}</th>
 															<td className="text-sm text-right">{formatPrice(incentivesData.emissionsAllTime)}</td>
+														</tr>
+													) : null}
+												</>
+											}
+										/>
+									) : null}
+									{incentivesData != null && revenue30dFinal != null ? (
+										<RowWithSubRows
+											protocolName={protocolData.name}
+											dataType="Earnings"
+											rowHeader="Earnings (annualized)"
+											rowValue={formatPrice((revenue30d - incentivesData.emissions30d) * 12.2)}
+											helperText={explainAnnualized(helperTexts?.earnings)}
+											subRows={
+												<>
+													<tr>
+														<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+															<Tooltip
+																content="Total earnings (revenue - incentives) of the protocol in the last 30 days, updated daily at 00:00UTC"
+																className="underline decoration-dotted"
+															>
+																Earnings 30d
+															</Tooltip>
+														</th>
+														<td className="text-sm text-right">
+															{formatPrice(revenue30d - incentivesData.emissions30d)}
+														</td>
+													</tr>
+													{dailyRevenueFinal != null ? (
+														<tr>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">
+																<Tooltip
+																	content="Total earnings (revenue - incentives) of the protocol in the last 24 hours, updated daily at 00:00UTC"
+																	className="underline decoration-dotted"
+																>
+																	Earnings 24h
+																</Tooltip>
+															</th>
+															<td className="text-sm text-right">
+																{formatPrice(dailyRevenueFinal - incentivesData.emissions24h)}
+															</td>
+														</tr>
+													) : null}
+													{incentivesData.emissionsAllTime != null ? (
+														<tr>
+															<th className="text-sm text-left font-normal pl-1 pb-1 text-[#545757] dark:text-[#cccccc]">{`Cumulative Earnings`}</th>
+															<td className="text-sm text-right">
+																{formatPrice(allTimeRevenueFinal - incentivesData.emissionsAllTime)}
+															</td>
 														</tr>
 													) : null}
 												</>

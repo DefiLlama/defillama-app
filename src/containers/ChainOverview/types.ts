@@ -191,6 +191,14 @@ export interface IChildProtocol {
 		totalAllTime: number | null
 		change_7dover7d: number | null
 	}
+	emissions?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		average1y: number | null
+		totalAllTime: number | null
+	}
 	deprecated?: boolean
 }
 

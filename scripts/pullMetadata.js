@@ -3,8 +3,9 @@
 
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CACHE_DIR = path.join(__dirname, '../.cache')
 const CACHE_FILE = path.join(CACHE_DIR, 'lastPull.json')
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
