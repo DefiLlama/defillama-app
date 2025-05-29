@@ -267,93 +267,103 @@ export const getAdapterByChainPageData = async ({
 	}
 	const mcapData = { ...protocolsMcap, chainsMcap }
 
+	const allProtocols = [...data.protocols]
+
 	const bribesProtocols =
 		bribesData?.protocols.reduce((acc, p) => {
-			if (p.totalAllTime != null) {
-				acc[p.name] = {
-					total24h: p.total24h ?? null,
-					total7d: p.total7d ?? null,
-					total30d: p.total30d ?? null,
-					total1y: p.total1y ?? null,
-					totalAllTime: p.totalAllTime ?? null
-				}
+			acc[p.name] = {
+				total24h: p.total24h ?? null,
+				total7d: p.total7d ?? null,
+				total30d: p.total30d ?? null,
+				total1y: p.total1y ?? null,
+				totalAllTime: p.totalAllTime ?? null
 			}
+
+			const protocolExists = allProtocols.find((ap) => ap.name === p.name)
+			if (!protocolExists) {
+				allProtocols.push({
+					...p,
+					total24h: null,
+					total7d: null,
+					total30d: null,
+					total1y: null,
+					totalAllTime: null
+				})
+			}
+
 			return acc
 		}, {}) ?? {}
 
 	const tokenTaxesProtocols =
 		tokenTaxesData?.protocols.reduce((acc, p) => {
-			if (p.totalAllTime != null) {
-				acc[p.name] = {
-					total24h: p.total24h ?? null,
-					total7d: p.total7d ?? null,
-					total30d: p.total30d ?? null,
-					total1y: p.total1y ?? null,
-					totalAllTime: p.totalAllTime ?? null
-				}
+			acc[p.name] = {
+				total24h: p.total24h ?? null,
+				total7d: p.total7d ?? null,
+				total30d: p.total30d ?? null,
+				total1y: p.total1y ?? null,
+				totalAllTime: p.totalAllTime ?? null
 			}
+
+			const protocolExists = allProtocols.find((ap) => ap.name === p.name)
+			if (!protocolExists) {
+				allProtocols.push({
+					...p,
+					total24h: null,
+					total7d: null,
+					total30d: null,
+					total1y: null,
+					totalAllTime: null
+				})
+			}
+
 			return acc
 		}, {}) ?? {}
 
 	const protocols = {}
 	const parentProtocols = {}
 	const categories = new Set()
-	for (const protocol of data.protocols) {
-		if (protocol.totalAllTime == null) continue
+	for (const protocol of allProtocols) {
+		const methodology =
+			adapterType === 'fees'
+				? dataType === 'dailyRevenue'
+					? protocol.methodology?.['Revenue'] ??
+					  protocol.methodology?.['BribeRevenue'] ??
+					  protocol.methodology?.['TokenTaxes']
+					: dataType === 'dailyHoldersRevenue'
+					? protocol.methodology?.['HoldersRevenue'] ??
+					  protocol.methodology?.['BribeRevenue'] ??
+					  protocol.methodology?.['TokenTaxes']
+					: protocol.methodology?.['Fees'] ??
+					  protocol.methodology?.['BribeRevenue'] ??
+					  protocol.methodology?.['TokenTaxes']
+				: null
+
+		if (protocol.name === 'Berachain Bribes') {
+			console.log({ methodology })
+		}
+
+		const summary = {
+			name: protocol.displayName,
+			slug: protocol.slug,
+			logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
+			chains: protocol.chains,
+			category: protocol.category ?? null,
+			total24h: protocol.total24h ?? null,
+			total7d: protocol.total7d ?? null,
+			total30d: protocol.total30d ?? null,
+			total1y: protocol.total1y ?? null,
+			totalAllTime: protocol.totalAllTime ?? null,
+			mcap: mcapData[protocol.name] ?? null,
+			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
+			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
+			...(methodology ? { methodology } : {})
+		}
 
 		if (protocol.linkedProtocols?.length > 1) {
-			const methodology =
-				adapterType === 'fees'
-					? dataType === 'dailyRevenue'
-						? protocol.methodology?.['Revenue']
-						: dataType === 'dailyHoldersRevenue'
-						? protocol.methodology?.['HoldersRevenue']
-						: protocol.methodology?.['Fees']
-					: null
-
 			parentProtocols[protocol.linkedProtocols[0]] = parentProtocols[protocol.linkedProtocols[0]] || []
-			parentProtocols[protocol.linkedProtocols[0]].push({
-				name: protocol.displayName,
-				slug: protocol.slug,
-				logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
-				chains: protocol.chains,
-				category: protocol.category ?? null,
-				total24h: protocol.total24h ?? null,
-				total7d: protocol.total7d ?? null,
-				total30d: protocol.total30d ?? null,
-				total1y: protocol.total1y ?? null,
-				totalAllTime: protocol.totalAllTime ?? null,
-				mcap: mcapData[protocol.name] ?? null,
-				...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
-				...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
-				...(methodology ? { methodology } : {})
-			})
+			parentProtocols[protocol.linkedProtocols[0]].push(summary)
 		} else {
-			const methodology =
-				adapterType === 'fees'
-					? dataType === 'dailyRevenue'
-						? protocol.methodology?.['Revenue']
-						: dataType === 'dailyHoldersRevenue'
-						? protocol.methodology?.['HoldersRevenue']
-						: protocol.methodology?.['Fees']
-					: null
-
-			protocols[protocol.displayName] = {
-				name: protocol.displayName,
-				slug: protocol.slug,
-				logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
-				chains: protocol.chains,
-				category: protocol.category ?? null,
-				total24h: protocol.total24h ?? null,
-				total7d: protocol.total7d ?? null,
-				total30d: protocol.total30d ?? null,
-				total1y: protocol.total1y ?? null,
-				totalAllTime: protocol.totalAllTime ?? null,
-				mcap: mcapData[protocol.name] ?? null,
-				...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
-				...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
-				...(methodology ? { methodology } : {})
-			}
+			protocols[protocol.displayName] = summary
 		}
 		if (protocol.category) {
 			categories.add(protocol.category)
