@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
-import { toYearMonth } from '~/utils'
+import { slug, toYearMonth } from '~/utils'
 
 export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 	const { query } = useRouter()
@@ -43,9 +43,11 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 
 		if (chain) {
 			if (typeof chain === 'string') {
-				selectedChains = chain === 'All' ? [...chains] : chain === 'None' ? [] : [chain]
+				selectedChains =
+					chain === 'All' ? [...chains] : chain === 'None' ? [] : [chains.find((c) => slug(c) === slug(chain)) ?? chain]
 			} else {
-				selectedChains = [...chain]
+				const schain = chains.map((c) => slug(c))
+				selectedChains = [...chains.filter((c) => schain.includes(slug(c)))]
 			}
 		} else selectedChains = [...chains]
 

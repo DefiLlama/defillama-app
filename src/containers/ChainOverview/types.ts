@@ -1,7 +1,6 @@
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 
 export interface IChainMetadata {
-	tvl?: boolean
 	stablecoins?: boolean
 	dexs?: boolean
 	name: string

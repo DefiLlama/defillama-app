@@ -28,7 +28,7 @@ export const ProtocolsChainsSearch = ({ hideFilters, ...props }: IProtocolsChain
 	return (
 		<span className="hidden lg:block min-h-[44px]">
 			<SearchV2 indexName="protocols">
-				<Search {...props} />
+				<Search {...props} hideFilters={hideFilters} />
 			</SearchV2>
 		</span>
 	)
@@ -46,7 +46,10 @@ const Search = ({ hideFilters = false, options, ...props }: IProtocolsChainsSear
 		[refine]
 	)
 
-	const memoizedFilters = useMemo(() => (hideFilters ? null : <TvlOptions options={options} />), [hideFilters, options])
+	const memoizedFilters = useMemo(
+		() => (hideFilters || (options && options.length === 0) ? null : <TvlOptions options={options} />),
+		[hideFilters, options]
+	)
 
 	return (
 		<>

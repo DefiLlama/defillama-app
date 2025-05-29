@@ -41,9 +41,9 @@ import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { getAllProtocolEmissions, getETFData, getProtocolEmissons } from '~/api/categories/protocols'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
-	const metadata =
+	const metadata: IChainMetadata =
 		chain === 'All'
-			? { name: 'All', tvl: true, stablecoins: true, fees: true, dexs: true, derivatives: true }
+			? { name: 'All', stablecoins: true, fees: true, dexs: true, derivatives: true }
 			: metadataCache.chainMetadata[slug(chain)]
 
 	if (!metadata) return null
@@ -213,7 +213,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				.catch(() => ({})),
 			metadata.fees && chain !== 'All'
 				? getAdapterChainOverview({
-						type: 'fees',
+						adapterType: 'fees',
 						chain: metadata.name,
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true,
@@ -248,7 +248,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				: Promise.resolve(null),
 			metadata.derivatives
 				? getAdapterChainOverview({
-						type: 'derivatives',
+						adapterType: 'derivatives',
 						chain: metadata.name,
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true
@@ -515,7 +515,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
 		metadata.fees
 			? getAdapterChainOverview({
-					type: 'fees',
+					adapterType: 'fees',
 					chain: metadata.name,
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: false
@@ -526,7 +526,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			: Promise.resolve(null),
 		metadata.fees
 			? getAdapterChainOverview({
-					type: 'fees',
+					adapterType: 'fees',
 					chain: metadata.name,
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true,
@@ -538,7 +538,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			: Promise.resolve(null),
 		metadata.dexs
 			? getAdapterChainOverview({
-					type: 'dexs',
+					adapterType: 'dexs',
 					chain: metadata.name,
 					excludeTotalDataChart: false,
 					excludeTotalDataChartBreakdown: true

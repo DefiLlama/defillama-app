@@ -1,4 +1,5 @@
 import type { IJoin2ReturnType, IOverviewProps, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
+import { ADAPTER_TYPES } from './constants'
 
 export interface IProtocolContainerProps {
 	protocolSummary: ProtocolAdaptorSummaryProps
@@ -63,3 +64,78 @@ export interface IDimenisionProtocolChartProps {
 }
 
 export type IDimensionChartTypes = 'chain' | 'version' | 'tokens'
+
+interface IProtocol {
+	name: string
+	slug: string
+	logo: string
+	chains: Array<string>
+	category: string | null
+	total24h: number | null
+	total7d: number | null
+	total30d: number | null
+	total1y: number | null
+	totalAllTime: number | null
+	mcap: number | null
+	bribes?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		totalAllTime: number | null
+	}
+	tokenTax?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		totalAllTime: number | null
+	}
+	methodology?: string | null
+}
+
+interface IAdapterByChainPageProtocol extends IProtocol {
+	childProtocols?: Array<IProtocol>
+}
+
+export interface IAdapterByChainPageData {
+	chain: string
+	chains: Array<{ label: string; to: string }>
+	protocols: Array<IAdapterByChainPageProtocol>
+	categories: Array<string>
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: string | null
+	chartData: Array<[number, number]>
+	total24h: number | null
+	total7d: number | null
+	total30d: number | null
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	change_7dover7d: number | null
+}
+
+export interface IChainsByAdapterPageData {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: string | null
+	chartData: Record<string, Record<string, number>>
+	chains: Array<{
+		name: string
+		logo: string
+		total24h: number | null
+		total30d: number | null
+		bribes?: { total24h: number | null; total30d: number | null }
+		tokenTax?: { total24h: number | null; total30d: number | null }
+	}>
+	allChains: Array<string>
+}
+
+export interface IChainsByREVPageData {
+	chains: Array<{
+		name: string
+		slug: string
+		logo: string
+		total24h: number | null
+		total30d: number | null
+	}>
+}

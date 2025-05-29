@@ -30,7 +30,7 @@ export const getChainsByCategory = async ({
 		) as Promise<IChainsByCategory>,
 		getDimensionAdapterChainsOverview({ adapterType: 'dexs' }),
 		getAdapterChainOverview({
-			type: 'fees',
+			adapterType: 'fees',
 			chain: 'All',
 			excludeTotalDataChart: true,
 			excludeTotalDataChartBreakdown: true
@@ -39,7 +39,7 @@ export const getChainsByCategory = async ({
 			return null
 		}) as Promise<IAdapterOverview | null>,
 		getAdapterChainOverview({
-			type: 'fees',
+			adapterType: 'fees',
 			chain: 'All',
 			excludeTotalDataChart: true,
 			excludeTotalDataChartBreakdown: true,

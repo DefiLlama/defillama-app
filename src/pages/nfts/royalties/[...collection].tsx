@@ -6,7 +6,7 @@ import { formattedNum } from '~/utils'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
-import { DimensionProtocolOverviewChart } from '~/containers/DimensionAdapters/charts/ProtocolChart'
+import { DimensionProtocolOverviewChart } from '~/containers/DimensionAdapters/ProtocolChart'
 import { useMemo } from 'react'
 
 export default function Collection() {

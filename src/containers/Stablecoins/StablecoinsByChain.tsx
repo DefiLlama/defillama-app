@@ -15,11 +15,12 @@ import {
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { formattedNum, getPercentChange, toNiceCsvDate, download } from '~/utils'
+import { formattedNum, getPercentChange, toNiceCsvDate, download, slug } from '~/utils'
 import { PeggedFilters } from '~/components/Filters/stablecoins'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
+import { Metrics } from '~/components/Metrics'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -241,6 +242,8 @@ function PeggedAssetsOverview({
 		<>
 			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
 
+			<Metrics currentMetric="Stablecoin Supply" />
+
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
@@ -387,7 +390,7 @@ function handleRouting(selectedChain, queryParams) {
 	})
 
 	if (selectedChain === 'All') return `/stablecoins${params}`
-	return `/stablecoins/${selectedChain}${params}`
+	return `/stablecoins/${slug(selectedChain)}${params}`
 }
 
 const inflowsChartOptions = {

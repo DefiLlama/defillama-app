@@ -7,6 +7,7 @@ export interface IProtocolMetadata {
 	raises?: boolean
 	fees?: boolean
 	revenue?: boolean
+	holdersRevenue?: boolean
 	dexs?: boolean
 	perps?: boolean
 	aggregator?: boolean

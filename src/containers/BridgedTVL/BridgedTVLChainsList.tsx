@@ -47,19 +47,17 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 		<>
 			<ProtocolsChainsSearch />
 			<RowLinksWithDropdown links={chains} activeLink="All" />
-			<div className="bg-[var(--cards-bg)] rounded-md">
-				<TableWithSearch
-					data={data}
-					columns={bridgedColumns}
-					placeholder={'Search chains...'}
-					columnToSearch={['name']}
-					customFilters={
-						<>
-							<CSVDownloadButton onClick={onCSVDownload} className="min-h-[34px]" />
-						</>
-					}
-				/>
-			</div>
+			<TableWithSearch
+				data={data}
+				columns={bridgedColumns}
+				placeholder={'Search chains...'}
+				columnToSearch={['name']}
+				customFilters={
+					<>
+						<CSVDownloadButton onClick={onCSVDownload} className="min-h-[34px]" />
+					</>
+				}
+			/>
 		</>
 	)
 }

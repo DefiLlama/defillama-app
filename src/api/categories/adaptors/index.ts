@@ -205,7 +205,7 @@ function getTVLData(protocolsData: { protocols: Array<ILiteProtocol> }, chain?: 
 	)
 }
 
-// - used in /[type] and /[type]/chains/[chain]
+// - used in /[type] and /[type]/chain/[chain]
 export const getDimensionAdapterChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
 	if (chain && !chainMetadata[slug(chain)][type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type]) {
 		return null

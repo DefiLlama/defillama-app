@@ -11,6 +11,7 @@ import { BasicLink } from '~/components/Link'
 import { IconsRow } from '~/components/IconsRow'
 import type { ColumnDef } from '@tanstack/react-table'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { Metrics } from '~/components/Metrics'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -62,6 +63,8 @@ export const OraclesByChain = ({
 	return (
 		<Layout title={`Oracles - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
+
+			<Metrics currentMetric="Oracle TVS" />
 
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
@@ -167,7 +170,7 @@ const columns: ColumnDef<IOraclesRow>[] = [
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Excludes CeFi'
+			headerHelperText: 'Total Value Secured by the Oracle. Excludes CeFi'
 		}
 	}
 ]

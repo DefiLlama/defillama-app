@@ -114,7 +114,7 @@ const nextConfig = {
 				permanent: true
 			},
 			{
-				source: '/aggregator',
+				source: '/swap',
 				destination: 'https://swap.defillama.com/',
 				permanent: true
 			},
@@ -141,46 +141,6 @@ const nextConfig = {
 			{
 				source: '/tokenUsage',
 				destination: '/token-usage',
-				permanent: true
-			},
-			{
-				source: '/derivatives',
-				destination: '/perps',
-				permanent: true
-			},
-			{
-				source: '/derivatives/:slug',
-				destination: '/perps/:slug',
-				permanent: true
-			},
-			{
-				source: '/derivatives/chains',
-				destination: '/perps/chains',
-				permanent: true
-			},
-			{
-				source: '/derivatives/chains/:slug',
-				destination: '/perps/chains/:slug',
-				permanent: true
-			},
-			{
-				source: '/derivatives-aggregator',
-				destination: '/perps-aggregators',
-				permanent: true
-			},
-			{
-				source: '/derivatives-aggregator/:slug',
-				destination: '/perps-aggregators/:slug',
-				permanent: true
-			},
-			{
-				source: '/derivatives-aggregator/chains',
-				destination: '/perps-aggregators/chains',
-				permanent: true
-			},
-			{
-				source: '/derivatives-aggregator/chains/:slug',
-				destination: '/perps-aggregators/chains/:slug',
 				permanent: true
 			},
 			{
@@ -211,17 +171,32 @@ const nextConfig = {
 			},
 			{
 				source: '/fees/chains/hyperliquid',
-				destination: '/fees/chains/hyperliquid-l1',
+				destination: '/fees/chain/hyperliquid-l1',
+				permanent: true
+			},
+			{
+				source: '/fees/chain/hyperliquid',
+				destination: '/fees/chain/hyperliquid-l1',
 				permanent: true
 			},
 			{
 				source: '/dexs/chains/hyperliquid',
-				destination: '/dexs/chains/hyperliquid-l1',
+				destination: '/dexs/chain/hyperliquid-l1',
+				permanent: true
+			},
+			{
+				source: '/dexs/chain/hyperliquid',
+				destination: '/dexs/chain/hyperliquid-l1',
 				permanent: true
 			},
 			{
 				source: '/perps/chains/hyperliquid',
-				destination: '/perps/chains/hyperliquid-l1',
+				destination: '/perps/chain/hyperliquid-l1',
+				permanent: true
+			},
+			{
+				source: '/perps/chain/hyperliquid',
+				destination: '/perps/chain/hyperliquid-l1',
 				permanent: true
 			},
 			{
@@ -300,23 +275,203 @@ const nextConfig = {
 				permanent: true
 			},
 			{
+				source: '/fees/simple',
+				destination: '/fees',
+				permanent: true
+			},
+			{
+				source: '/fees/simple/chains',
+				destination: '/fees',
+				permanent: true
+			},
+			{
+				source: '/fees/simple/chains/:slug',
+				destination: '/fees/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/fees/chains/:slug',
+				destination: '/fees/chain/:slug',
+				permanent: true
+			},
+			{
 				source: '/dex',
 				destination: '/dexs',
 				permanent: true
 			},
 			{
+				source: '/dex/chain',
+				destination: '/dexs/chains',
+				permanent: true
+			},
+			{
+				source: '/dexs/chain',
+				destination: '/dexs/chains',
+				permanent: true
+			},
+			{
+				source: '/dex/chains/:slug',
+				destination: '/dexs/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/dexs/chains/:slug',
+				destination: '/dexs/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/derivatives',
+				destination: '/perps',
+				permanent: true
+			},
+			{
+				source: '/derivatives/:slug',
+				destination: '/perps/:slug',
+				permanent: true
+			},
+			{
+				source: '/derivatives/chains',
+				destination: '/perps/chains',
+				permanent: true
+			},
+			{
+				source: '/derivatives/chain/:slug',
+				destination: '/perps/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/derivatives/chains/:slug',
+				destination: '/perps/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/perp',
+				destination: '/perps',
+				permanent: true
+			},
+			{
+				source: '/perps/chain',
+				destination: '/perps/chains',
+				permanent: true
+			},
+			{
+				source: '/perps/chains/:slug',
+				destination: '/perps/chain/:slug',
+				permanent: true
+			},
+			{
 				source: '/option',
-				destination: '/options',
+				destination: '/options/premium-volume',
+				permanent: true
+			},
+			{
+				source: '/options',
+				destination: '/options/premium-volume',
+				permanent: true
+			},
+			{
+				source: '/options/chain',
+				destination: '/options/premium-volume/chains',
+				permanent: true
+			},
+			{
+				source: '/options/chains',
+				destination: '/options/premium-volume/chains',
+				permanent: true
+			},
+			{
+				source: '/options/chains/:slug',
+				destination: '/options/premium-volume/chain/:slug',
 				permanent: true
 			},
 			{
 				source: '/aggregator',
-				destination: '/aggregators',
+				destination: '/dex-aggregators',
+				permanent: true
+			},
+			{
+				source: '/aggregators',
+				destination: '/dex-aggregators',
+				permanent: true
+			},
+			{
+				source: '/aggregators/chain',
+				destination: '/dex-aggregators/chains',
+				permanent: true
+			},
+			{
+				source: '/aggregators/chains',
+				destination: '/dex-aggregators/chains',
+				permanent: true
+			},
+			{
+				source: '/aggregators/chain/:slug',
+				destination: '/dex-aggregators/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/aggregators/chains/:slug',
+				destination: '/dex-aggregators/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/dex-aggregators/chains/:slug',
+				destination: '/dex-aggregators/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/derivatives-aggregator',
+				destination: '/perps-aggregators',
+				permanent: true
+			},
+			{
+				source: '/derivatives-aggregator/:slug',
+				destination: '/perps-aggregators/:slug',
+				permanent: true
+			},
+			{
+				source: '/derivatives-aggregator/chains',
+				destination: '/perps-aggregators/chains',
+				permanent: true
+			},
+			{
+				source: '/derivatives-aggregator/chain/:slug',
+				destination: '/perps-aggregators/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/derivatives-aggregator/chains/:slug',
+				destination: '/perps-aggregators/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/perps-aggregator/chains/:slug',
+				destination: '/perps-aggregators/chain/:slug',
+				permanent: true
+			},
+			{
+				source: '/perps-aggregator',
+				destination: '/perps-aggregators',
+				permanent: true
+			},
+			{
+				source: '/perps-aggregators/chains/:slug',
+				destination: '/perps-aggregators/chain/:slug',
 				permanent: true
 			},
 			{
 				source: '/bridge-aggregator',
 				destination: '/bridge-aggregators',
+				permanent: true
+			},
+			{
+				source: '/bridge-aggregators/chains',
+				destination: '/bridge-aggregators',
+				permanent: true
+			},
+			{
+				source: '/bridge-aggregators/chains/:slug',
+				destination: '/bridge-aggregators/chain/:slug',
 				permanent: true
 			},
 			{
@@ -327,21 +482,6 @@ const nextConfig = {
 			{
 				source: '/raise',
 				destination: '/raises',
-				permanent: true
-			},
-			{
-				source: '/dex/chain',
-				destination: '/dex/chains',
-				permanent: true
-			},
-			{
-				source: '/perps/chain',
-				destination: '/perps/chains',
-				permanent: true
-			},
-			{
-				source: '/options/chain',
-				destination: '/options/chains',
 				permanent: true
 			},
 			{
@@ -392,6 +532,11 @@ const nextConfig = {
 			{
 				source: '/subscribe',
 				destination: '/subscription',
+				permanent: true
+			},
+			{
+				source: '/net-protocol-treasury',
+				destination: '/net-project-treasury',
 				permanent: true
 			}
 		]

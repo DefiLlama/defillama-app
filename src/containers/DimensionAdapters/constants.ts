@@ -1,4 +1,4 @@
-export enum ADAPTOR_TYPES {
+export enum ADAPTER_TYPES {
 	DEXS = 'dexs',
 	FEES = 'fees',
 	AGGREGATORS = 'aggregators',
@@ -8,7 +8,7 @@ export enum ADAPTOR_TYPES {
 	BRIDGE_AGGREGATORS = 'bridge-aggregators'
 }
 
-export const VOLUME_TYPE_ADAPTORS = [
+export const VOLUME_TYPE_ADAPTERS = [
 	'dexs',
 	'derivatives',
 	'options',
@@ -16,3 +16,13 @@ export const VOLUME_TYPE_ADAPTORS = [
 	'derivatives-aggregator',
 	'bridge-aggregators'
 ]
+
+export const ADAPTER_TYPES_TO_METADATA_TYPE = {
+	[ADAPTER_TYPES.DEXS]: 'dexs',
+	[ADAPTER_TYPES.FEES]: 'fees',
+	[ADAPTER_TYPES.AGGREGATORS]: 'aggregators',
+	[ADAPTER_TYPES.PERPS]: 'derivatives',
+	[ADAPTER_TYPES.PERPS_AGGREGATOR]: 'aggregator-derivatives',
+	[ADAPTER_TYPES.OPTIONS]: 'options',
+	[ADAPTER_TYPES.BRIDGE_AGGREGATORS]: 'bridge-aggregators'
+}

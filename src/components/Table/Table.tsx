@@ -15,6 +15,7 @@ interface ITableProps {
 	renderSubComponent?: ({ row }: { row: any }) => JSX.Element
 	stripedBg?: boolean
 	style?: React.CSSProperties
+	compact?: boolean
 }
 
 declare module '@tanstack/table-core' {
@@ -31,6 +32,7 @@ export function VirtualTable({
 	rowSize,
 	renderSubComponent,
 	stripedBg = false,
+	compact = false,
 	...props
 }: ITableProps) {
 	const router = useRouter()
@@ -179,7 +181,11 @@ export function VirtualTable({
 									key={header.id}
 									data-chainpage={isChainPage}
 									style={{ minWidth: `${header.getSize() ?? 100}px` }}
-									className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r last:border-r-0 border-[var(--divider)] first:sticky first:left-0 first:z-[1]"
+									className={`flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r last:border-r-0 border-[var(--divider)] first:sticky first:left-0 first:z-[1] ${
+										compact
+											? 'flex items-center px-5 h-[64px] first:pl-3 last:pr-3 lg:last:justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
+											: ''
+									}`}
 								>
 									<span
 										className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap"
@@ -249,7 +255,11 @@ export function VirtualTable({
 											key={cell.id}
 											data-ligther={stripedBg && i % 2 === 0}
 											data-chainpage={isChainPage}
-											className="flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r border-[var(--divider)] first:sticky first:left-0 first:z-[1]"
+											className={`flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r border-[var(--divider)] first:sticky first:left-0 first:z-[1] ${
+												compact
+													? 'flex items-center px-5 first:pl-3 last:pr-3 lg:last:justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
+													: ''
+											}`}
 											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}

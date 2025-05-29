@@ -54,7 +54,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 				isVisible: true
 			},
 			{
-				id: 'volume',
+				id: 'dexs',
 				name: 'DEXs Volume',
 				isVisible: props.dexs?.total24h != null ? true : false
 			},
@@ -151,7 +151,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 	const { totalValueUSD, change24h, valueChange24hUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
 		denomination,
 		selectedChain: props.metadata.name,
-		volumeData: props.dexs,
+		dexsData: props.dexs,
 		feesData: props.chainFees,
 		revenueData: props.chainRevenue,
 		appRevenueData: props.appRevenue,
