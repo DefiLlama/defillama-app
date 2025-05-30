@@ -1088,7 +1088,7 @@ const ProtocolContainer = ({
 											}
 										/>
 									) : null}
-									{incentivesData.incentivesChart != null ? (
+									{incentivesData != null ? (
 										<RowWithSubRows
 											protocolName={protocolData.name}
 											dataType="Incentives"
@@ -1131,7 +1131,7 @@ const ProtocolContainer = ({
 											}
 										/>
 									) : null}
-									{incentivesData.incentivesChart != null && revenue30dFinal != null ? (
+									{incentivesData != null && revenue30dFinal != null ? (
 										<RowWithSubRows
 											protocolName={protocolData.name}
 											dataType="Earnings"

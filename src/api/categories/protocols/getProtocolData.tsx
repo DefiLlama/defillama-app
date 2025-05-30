@@ -401,8 +401,8 @@ export const getProtocolData = async (
 							average1y: protocolEmissionsData.emissionsAverage1y
 						}
 					})
-					.catch(() => {})
-			: {}
+					.catch(() => null)
+			: null
 	])
 
 	let nftDataExist = protocolMetadata[protocolData.id]?.nfts ? true : false
@@ -745,7 +745,7 @@ export const getProtocolData = async (
 			clientSide: isCpusHot,
 			pageStyles,
 			metrics: getProtocolMetrics({ protocolData: protocolRes as any, metadata }),
-			incentivesData: incentivesData
+			incentivesData
 		},
 		revalidate: maxAgeForNext([22])
 	}
