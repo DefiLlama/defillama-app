@@ -401,11 +401,9 @@ export const getProtocolData = async (
 							average1y: protocolEmissionsData.emissionsAverage1y
 						}
 					})
-					.catch(() => null)
+					.catch(() => {})
 			: {}
 	])
-
-	let inflowsExist = false
 
 	let nftDataExist = protocolMetadata[protocolData.id]?.nfts ? true : false
 	let nftVolumeData = []
