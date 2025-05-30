@@ -73,7 +73,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 					) : matches.length ? (
 						<>
 							{matches.slice(0, viewableMatches + 1).map((option) => (
-								<Row key={option.name} onItemClick={props.onItemClick} data={option} />
+								<Row key={option.name} onItemClick={props.onItemClick} data={option} setOpen={setOpen} />
 							))}
 
 							{matches.length > viewableMatches ? (
@@ -159,7 +159,13 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange, varia
 	)
 }
 
-const Row = ({ data, onItemClick }) => {
+interface IRowProps {
+	data: any
+	onItemClick?: (data: any) => void
+	setOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+const Row = ({ data, onItemClick, setOpen }: IRowProps) => {
 	const [loading, setLoading] = React.useState(false)
 	const router = useRouter()
 
@@ -173,6 +179,10 @@ const Row = ({ data, onItemClick }) => {
 					window.open(data.route)
 				} else {
 					setLoading(true)
+					//delay to show loading state before closing modal better ux
+					setTimeout(() => {
+						setOpen(false)
+					}, 300)
 					router.push(data.route).then(() => {
 						setLoading(false)
 					})
