@@ -469,6 +469,16 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 				</span>
 			)
 
+			const basePath = row.original.category === 'Chain' ? 'chain' : 'protocol'
+			const chartKey =
+				row.original.category === 'Chain'
+					? type === 'Fees'
+						? 'chainFees'
+						: type.includes('Revenue')
+						? 'chainRevenue'
+						: chartKeys[type]
+					: chartKeys[type]
+
 			return (
 				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
 					{row.subRows?.length > 0 ? (
@@ -498,7 +508,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 					<span className="flex flex-col -my-2">
 						<BasicLink
-							href={`/protocol/${row.original.slug}?tvl=false&events=false&${chartKeys[type]}=true`}
+							href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
 							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
