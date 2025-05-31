@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging(
 		const [protocolData, adapterData, pageStyles] = await Promise.all([
 			getProtocol(protocol),
 			getAdapterProtocolSummary({
-				type: 'aggregators',
+				adapterType: 'aggregators',
 				protocol: metadata.name,
 				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true

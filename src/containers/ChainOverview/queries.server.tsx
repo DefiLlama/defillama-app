@@ -225,7 +225,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				: Promise.resolve(null),
 			metadata.chainFees
 				? getAdapterProtocolSummary({
-						type: 'fees',
+						adapterType: 'fees',
 						protocol: metadata.name,
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true
@@ -236,7 +236,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				: Promise.resolve(null),
 			metadata.chainFees
 				? getAdapterProtocolSummary({
-						type: 'fees',
+						adapterType: 'fees',
 						protocol: metadata.name,
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true,

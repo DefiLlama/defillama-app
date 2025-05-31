@@ -14,7 +14,6 @@ import {
 	useFetchProtocolDevMetrics
 } from '~/api/categories/protocols/client'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour } from '~/utils'
-import { useGetDimensionAdapterChartData } from '~/containers/DimensionAdapters/hooks'
 import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
 import { useFetchBridgeVolumeOnAllChains } from '~/containers/Bridges/BridgeProtocolOverview'
 import { fetchWithErrorLogging } from '~/utils/async'
@@ -22,6 +21,7 @@ import dayjs from 'dayjs'
 import { CACHE_SERVER } from '~/constants'
 import { useQuery } from '@tanstack/react-query'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 
 const fetch = fetchWithErrorLogging
 
@@ -151,29 +151,6 @@ export function useFetchAndFormatChartData({
 		staleTime: 60 * 60 * 1000
 	})
 
-	const { data: feesAndRevenue, isLoading: fetchingFees } = useGetDimensionAdapterChartData({
-		protocolName: protocol,
-		adapterType: 'fees',
-		disabled: isRouterReady && (fees === 'true' || revenue === 'true') && metrics.fees ? false : true
-	})
-
-	const { data: holdersRevenueData, isLoading: fetchingHoldersRevenue } = useQuery({
-		queryKey: ['holders-revenue', protocol, holdersRevenue, metrics.fees, isRouterReady],
-		queryFn:
-			isRouterReady && holdersRevenue === 'true' && metrics.fees
-				? () =>
-						getAdapterProtocolSummary({
-							type: 'fees',
-							dataType: 'dailyHoldersRevenue',
-							protocol,
-							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true
-						})
-				: () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0
-	})
-
 	const { data: activeAddressesData, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
 		isRouterReady && activeAddresses === 'true' && activeUsersId ? activeUsersId : null
 	)
@@ -215,46 +192,225 @@ export function useFetchAndFormatChartData({
 			: null
 	)
 
-	const { data: volumeData, isLoading: fetchingVolume } = useGetDimensionAdapterChartData({
-		protocolName: protocol,
-		adapterType: 'dexs',
-		disabled: isRouterReady && volume === 'true' && metrics.dexs ? false : true
+	const { data: feesData, isLoading: fetchingFees } = useQuery({
+		queryKey: ['fees', protocol, fees, metrics.fees, isRouterReady],
+		queryFn:
+			isRouterReady && fees === 'true' && metrics.fees
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'fees',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
 	})
 
-	const { data: perpsVolumeData, isLoading: fetchingPerpsVolume } = useGetDimensionAdapterChartData({
-		protocolName: protocol,
-		adapterType: 'derivatives',
-		disabled: isRouterReady && perpsVolume === 'true' && metrics.perps ? false : true
+	const { data: revenueData, isLoading: fetchingRevenue } = useQuery({
+		queryKey: ['revenue', protocol, revenue, metrics.fees, isRouterReady],
+		queryFn:
+			isRouterReady && revenue === 'true' && metrics.fees
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'fees',
+							dataType: 'dailyRevenue',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
 	})
 
-	const { data: optionsData, isLoading: fetchingOptionsVolume } = useGetDimensionAdapterChartData({
-		protocolName: protocol,
-		adapterType: 'options',
-		disabled:
-			isRouterReady && (optionsPremiumVolume === 'true' || optionsNotionalVolume === 'true') && metrics.options
-				? false
-				: true
+	const { data: holdersRevenueData, isLoading: fetchingHoldersRevenue } = useQuery({
+		queryKey: ['holders-revenue', protocol, holdersRevenue, metrics.fees, isRouterReady],
+		queryFn:
+			isRouterReady && holdersRevenue === 'true' && metrics.fees
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'fees',
+							dataType: 'dailyHoldersRevenue',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
 	})
 
-	const { data: aggregatorsVolumeData, isLoading: fetchingAggregatorsVolume } = useGetDimensionAdapterChartData({
-		protocolName: protocol,
-		adapterType: 'aggregators',
-		disabled: isRouterReady && metrics.dexAggregators && aggregators === 'true' ? false : true
+	const [feesSettings] = useLocalStorageSettingsManager('fees')
+
+	const bribes = feesSettings?.bribes
+	const tokenTax = feesSettings?.tokentax
+
+	const { data: bribesData, isLoading: fetchingBribes } = useQuery({
+		queryKey: [
+			'bribes',
+			protocol,
+			fees === 'true' || revenue === 'true' || holdersRevenue === 'true',
+			bribes,
+			metrics.bribes,
+			isRouterReady
+		],
+		queryFn:
+			isRouterReady && (fees === 'true' || revenue === 'true' || holdersRevenue === 'true') && bribes && metrics.bribes
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'fees',
+							dataType: 'dailyBribesRevenue',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
 	})
 
-	const { data: perpsAggregatorsVolumeData, isLoading: fetchingPerpsAggregatorsVolume } =
-		useGetDimensionAdapterChartData({
-			protocolName: protocol,
-			adapterType: 'derivatives-aggregator',
-			disabled: isRouterReady && metrics.perpsAggregators && perpsAggregators === 'true' ? false : true
-		})
+	const { data: tokenTaxesData, isLoading: fetchingTokenTaxes } = useQuery({
+		queryKey: [
+			'token-taxes',
+			protocol,
+			fees === 'true' || revenue === 'true' || holdersRevenue === 'true',
+			tokenTax,
+			metrics.tokenTax,
+			isRouterReady
+		],
+		queryFn:
+			isRouterReady &&
+			(fees === 'true' || revenue === 'true' || holdersRevenue === 'true') &&
+			tokenTax &&
+			metrics.tokenTax
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'fees',
+							dataType: 'dailyTokenTaxes',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
 
-	const { data: bridgeAggregatorsVolumeData, isLoading: fetchingBriddgeAggregatorsVolume } =
-		useGetDimensionAdapterChartData({
-			protocolName: protocol,
-			adapterType: 'bridge-aggregators',
-			disabled: isRouterReady && metrics.bridgeAggregators && bridgeAggregators === 'true' ? false : true
-		})
+	const { data: dexVolumeData, isLoading: fetchingDexVolume } = useQuery({
+		queryKey: ['dex', protocol, volume, metrics.dexs, isRouterReady],
+		queryFn:
+			isRouterReady && volume === 'true' && metrics.dexs
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'dexs',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
+
+	const { data: perpsVolumeData, isLoading: fetchingPerpsVolume } = useQuery({
+		queryKey: ['perps', protocol, perpsVolume, metrics.perps, isRouterReady],
+		queryFn:
+			isRouterReady && perpsVolume === 'true' && metrics.perps
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'derivatives',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
+
+	const { data: optionsPremiumVolumeData, isLoading: fetchingOptionsPremiumVolume } = useQuery({
+		queryKey: ['options-premium', protocol, optionsPremiumVolume, metrics.options, isRouterReady],
+		queryFn:
+			isRouterReady && optionsPremiumVolume === 'true' && metrics.options
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'options',
+							dataType: 'dailyPremiumVolume',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
+
+	const { data: optionsNotionalVolumeData, isLoading: fetchingOptionsNotionalVolume } = useQuery({
+		queryKey: ['options-notional', protocol, optionsNotionalVolume, metrics.options, isRouterReady],
+		queryFn:
+			isRouterReady && optionsNotionalVolume === 'true' && metrics.options
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'options',
+							dataType: 'dailyNotionalVolume',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
+
+	const { data: aggregatorsVolumeData, isLoading: fetchingAggregatorsVolume } = useQuery({
+		queryKey: ['dex-aggregators', protocol, aggregators, metrics.dexAggregators, isRouterReady],
+		queryFn:
+			isRouterReady && aggregators === 'true' && metrics.dexAggregators
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'aggregators',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
+
+	const { data: perpsAggregatorsVolumeData, isLoading: fetchingPerpsAggregatorsVolume } = useQuery({
+		queryKey: ['perp-aggregators', protocol, perpsAggregators, metrics.perpsAggregators, isRouterReady],
+		queryFn:
+			isRouterReady && perpsAggregators === 'true' && metrics.perpsAggregators
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'derivatives-aggregator',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
+
+	const { data: bridgeAggregatorsVolumeData, isLoading: fetchingBriddgeAggregatorsVolume } = useQuery({
+		queryKey: ['perp-aggregators', protocol, bridgeAggregators, metrics.bridgeAggregators, isRouterReady],
+		queryFn:
+			isRouterReady && bridgeAggregators === 'true' && metrics.bridgeAggregators
+				? () =>
+						getAdapterProtocolSummary({
+							adapterType: 'bridge-aggregators',
+							protocol,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+						})
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
 
 	const showNonUsdDenomination =
 		denomination &&
@@ -441,134 +597,202 @@ export function useFetchAndFormatChartData({
 			}
 		}
 
-		if (volumeData) {
+		if (dexVolumeData) {
 			chartsUnique.push('DEX Volume')
 
-			for (const item of volumeData.totalDataChart[0]) {
-				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+			for (const [dateS, value] of dexVolumeData.totalDataChart ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
 
 				chartData[date]['DEX Volume'] = showNonUsdDenomination
-					? +item.Dexs / getPriceAtDate(date, denominationHistory.prices)
-					: item.Dexs
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
 			}
 		}
 
 		if (perpsVolumeData) {
 			chartsUnique.push('Perps Volume')
 
-			for (const item of perpsVolumeData.totalDataChart[0]) {
-				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+			for (const [dateS, value] of perpsVolumeData.totalDataChart ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
 
 				chartData[date]['Perps Volume'] = showNonUsdDenomination
-					? +item.Derivatives / getPriceAtDate(date, denominationHistory.prices)
-					: item.Derivatives
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
 			}
 		}
 
-		if (optionsData) {
-			if (optionsPremiumVolume === 'true') {
-				chartsUnique.push('Options Premium Volume')
-			}
-			if (optionsNotionalVolume === 'true') {
-				chartsUnique.push('Options Notional Volume')
-			}
+		if (optionsPremiumVolumeData) {
+			chartsUnique.push('Options Premium Volume')
 
-			for (const item of optionsData.totalDataChart[0]) {
-				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+			for (const [dateS, value] of optionsPremiumVolumeData.totalDataChart ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
 
-				if (optionsPremiumVolume === 'true') {
-					chartData[date]['Options Premium Volume'] = showNonUsdDenomination
-						? +item['Premium volume'] / getPriceAtDate(date, denominationHistory.prices)
-						: item['Premium volume']
+				chartData[date]['Options Premium Volume'] = showNonUsdDenomination
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
+			}
+		}
+
+		if (optionsNotionalVolumeData) {
+			chartsUnique.push('Options Notional Volume')
+
+			for (const [dateS, value] of optionsNotionalVolumeData.totalDataChart ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = { date }
 				}
 
-				if (optionsNotionalVolume === 'true') {
-					chartData[date]['Options Notional Volume'] = showNonUsdDenomination
-						? +item['Notional volume'] / getPriceAtDate(date, denominationHistory.prices)
-						: item['Notional volume']
-				}
+				chartData[date]['Options Notional Volume'] = showNonUsdDenomination
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
 			}
 		}
 
 		if (aggregatorsVolumeData) {
 			chartsUnique.push('DEX Aggregators Volume')
 
-			for (const item of aggregatorsVolumeData.totalDataChart[0]) {
-				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+			for (const [dateS, value] of aggregatorsVolumeData.totalDataChart ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
 
 				chartData[date]['DEX Aggregators Volume'] = showNonUsdDenomination
-					? +item.Aggregators / getPriceAtDate(date, denominationHistory.prices)
-					: item.Aggregators
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
 			}
 		}
 
 		if (perpsAggregatorsVolumeData) {
 			chartsUnique.push('Perps Aggregators Volume')
 
-			for (const item of perpsAggregatorsVolumeData.totalDataChart[0]) {
-				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+			for (const [dateS, value] of perpsAggregatorsVolumeData.totalDataChart ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
 
 				chartData[date]['Perps Aggregators Volume'] = showNonUsdDenomination
-					? +item['Aggregator-derivatives'] / getPriceAtDate(date, denominationHistory.prices)
-					: item['Aggregator-derivatives']
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
 			}
 		}
 
 		if (bridgeAggregatorsVolumeData) {
 			chartsUnique.push('Bridge Aggregators Volume')
 
-			for (const item of bridgeAggregatorsVolumeData.totalDataChart[0]) {
-				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+			for (const [dateS, value] of bridgeAggregatorsVolumeData.totalDataChart ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
 
 				chartData[date]['Bridge Aggregators Volume'] = showNonUsdDenomination
-					? +item['Bridge-aggregators'] / getPriceAtDate(date, denominationHistory.prices)
-					: item['Bridge-aggregators']
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
 			}
 		}
 
-		if (feesAndRevenue) {
-			if (fees === 'true') {
-				chartsUnique.push('Fees')
-			}
+		if (feesData) {
+			chartsUnique.push('Fees')
 
-			if (revenue === 'true') {
-				chartsUnique.push('Revenue')
-			}
+			for (const [dateS, value] of feesData.totalDataChart ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
 
-			for (const item of feesAndRevenue.totalDataChart[0]) {
-				const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
 				if (!chartData[date]) {
 					chartData[date] = { date }
 				}
 
-				if (fees === 'true') {
-					chartData[date]['Fees'] = showNonUsdDenomination
-						? +item.Fees / getPriceAtDate(date, denominationHistory.prices)
-						: item.Fees
+				chartData[date]['Fees'] = showNonUsdDenomination
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
+			}
+
+			if (bribesData) {
+				for (const [dateS, value] of bribesData.totalDataChart ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
+					if (!chartData[date]) {
+						chartData[date] = { date }
+					}
+
+					chartData[date]['Fees'] =
+						(chartData[date]['Fees'] || 0) +
+						(showNonUsdDenomination ? +value / getPriceAtDate(date, denominationHistory.prices) : value)
+				}
+			}
+
+			if (tokenTaxesData) {
+				for (const [dateS, value] of tokenTaxesData.totalDataChart ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
+					if (!chartData[date]) {
+						chartData[date] = { date }
+					}
+
+					chartData[date]['Fees'] =
+						(chartData[date]['Fees'] || 0) +
+						(showNonUsdDenomination ? +value / getPriceAtDate(date, denominationHistory.prices) : value)
+				}
+			}
+		}
+
+		if (revenueData) {
+			chartsUnique.push('Revenue')
+
+			for (const [dateS, value] of revenueData.totalDataChart ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
+				if (!chartData[date]) {
+					chartData[date] = { date }
 				}
 
-				if (revenue === 'true') {
-					chartData[date]['Revenue'] = showNonUsdDenomination
-						? +item.Revenue / getPriceAtDate(date, denominationHistory.prices)
-						: item.Revenue
+				chartData[date]['Revenue'] = showNonUsdDenomination
+					? +value / getPriceAtDate(date, denominationHistory.prices)
+					: value
+			}
+
+			if (bribesData) {
+				for (const [dateS, value] of bribesData.totalDataChart ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
+					if (!chartData[date]) {
+						chartData[date] = { date }
+					}
+
+					chartData[date]['Revenue'] =
+						(chartData[date]['Revenue'] || 0) +
+						(showNonUsdDenomination ? +value / getPriceAtDate(date, denominationHistory.prices) : value)
+				}
+			}
+
+			if (tokenTaxesData) {
+				for (const [dateS, value] of tokenTaxesData.totalDataChart ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
+					if (!chartData[date]) {
+						chartData[date] = { date }
+					}
+
+					chartData[date]['Revenue'] =
+						(chartData[date]['Revenue'] || 0) +
+						(showNonUsdDenomination ? +value / getPriceAtDate(date, denominationHistory.prices) : value)
 				}
 			}
 		}
@@ -586,6 +810,34 @@ export function useFetchAndFormatChartData({
 				chartData[date]['Holders Revenue'] = showNonUsdDenomination
 					? +value / getPriceAtDate(date, denominationHistory.prices)
 					: value
+			}
+
+			if (bribesData) {
+				for (const [dateS, value] of bribesData.totalDataChart ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
+					if (!chartData[date]) {
+						chartData[date] = { date }
+					}
+
+					chartData[date]['Holders Revenue'] =
+						(chartData[date]['Holders Revenue'] || 0) +
+						(showNonUsdDenomination ? +value / getPriceAtDate(date, denominationHistory.prices) : value)
+				}
+			}
+
+			if (tokenTaxesData) {
+				for (const [dateS, value] of tokenTaxesData.totalDataChart ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+
+					if (!chartData[date]) {
+						chartData[date] = { date }
+					}
+
+					chartData[date]['Holders Revenue'] =
+						(chartData[date]['Holders Revenue'] || 0) +
+						(showNonUsdDenomination ? +value / getPriceAtDate(date, denominationHistory.prices) : value)
+				}
 			}
 		}
 
@@ -1038,13 +1290,18 @@ export function useFetchAndFormatChartData({
 		protocolCGData,
 		tokenLiquidityData,
 		bridgeVolumeData,
-		volumeData,
+		dexVolumeData,
 		perpsVolumeData,
-		optionsData,
+		optionsPremiumVolumeData,
+		optionsNotionalVolumeData,
 		aggregatorsVolumeData,
 		perpsAggregatorsVolumeData,
 		bridgeAggregatorsVolumeData,
-		feesAndRevenue,
+		feesData,
+		revenueData,
+		holdersRevenueData,
+		bribesData,
+		tokenTaxesData,
 		twitterData,
 		unlocksData,
 		activeAddressesData,
@@ -1070,10 +1327,6 @@ export function useFetchAndFormatChartData({
 		fdv,
 		fdvData,
 		tokenVolume,
-		fees,
-		revenue,
-		optionsPremiumVolume,
-		optionsNotionalVolume,
 		incentives,
 		incentivesData,
 		groupBy
@@ -1116,21 +1369,27 @@ export function useFetchAndFormatChartData({
 	}
 
 	if (fetchingFees) {
-		if (fees === 'true') {
-			fetchingTypes.push('fees')
-		}
+		fetchingTypes.push('fees')
+	}
 
-		if (revenue === 'true') {
-			fetchingTypes.push('revenue')
-		}
+	if (fetchingRevenue) {
+		fetchingTypes.push('revenue')
 	}
 
 	if (fetchingHoldersRevenue) {
 		fetchingTypes.push('holders revenue')
 	}
 
-	if (fetchingVolume) {
-		fetchingTypes.push('volume')
+	if (fetchingDexVolume) {
+		fetchingTypes.push('dexvolume')
+	}
+
+	if (fetchingBribes) {
+		fetchingTypes.push('bribes')
+	}
+
+	if (fetchingTokenTaxes) {
+		fetchingTypes.push('token taxes')
 	}
 
 	if (fetchingPerpsVolume) {
@@ -1183,8 +1442,12 @@ export function useFetchAndFormatChartData({
 		fetchingTypes.push('aggregators volume')
 	}
 
-	if (fetchingOptionsVolume) {
-		fetchingTypes.push('options volume')
+	if (fetchingOptionsPremiumVolume) {
+		fetchingTypes.push('options premium volume')
+	}
+
+	if (fetchingOptionsNotionalVolume) {
+		fetchingTypes.push('options notional volume')
 	}
 
 	if (fetchingPerpsAggregatorsVolume) {
@@ -1200,8 +1463,9 @@ export function useFetchAndFormatChartData({
 		fetchingFdv ||
 		denominationLoading ||
 		fetchingFees ||
+		fetchingRevenue ||
 		fetchingHoldersRevenue ||
-		fetchingVolume ||
+		fetchingDexVolume ||
 		fetchingPerpsVolume ||
 		fetchingActiveAddresses ||
 		fetchingNewAddresses ||
@@ -1216,7 +1480,8 @@ export function useFetchAndFormatChartData({
 		fetchingTwitter ||
 		fetchingDevMetrics ||
 		fetchingAggregatorsVolume ||
-		fetchingOptionsVolume ||
+		fetchingOptionsPremiumVolume ||
+		fetchingOptionsNotionalVolume ||
 		fetchingPerpsAggregatorsVolume ||
 		fetchingBriddgeAggregatorsVolume
 

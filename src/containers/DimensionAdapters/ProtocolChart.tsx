@@ -1,15 +1,15 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { IJoin2ReturnType } from '~/api/categories/adaptors'
+import { getDimensionProtocolPageData, IJoin2ReturnType } from '~/api/categories/adaptors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, download, toNiceCsvDate } from '~/utils'
 import { ADAPTER_TYPES } from './constants'
-import { useGetDimensionAdapterChartData } from './hooks'
 import { LazyChart } from '~/components/LazyChart'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { oldBlue } from '~/constants/colors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { useQuery } from '@tanstack/react-query'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
@@ -278,11 +278,15 @@ export const DimensionProtocolChartByType = ({
 	chartType: 'overview' | 'chain' | 'version'
 	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
 }) => {
-	const { data, isLoading } = useGetDimensionAdapterChartData({
-		protocolName,
-		adapterType,
-		disabled: false,
-		metadata
+	const { data, isLoading } = useQuery({
+		queryKey: ['dimension-adapter-chart', adapterType, protocolName, JSON.stringify(metadata)],
+		queryFn: () =>
+			getDimensionProtocolPageData({ protocolName, adapterType, metadata }).then((data) => {
+				if (!data || data.totalDataChart[0].length === 0) return null
+				return data
+			}),
+		staleTime: 60 * 60 * 1000,
+		retry: 0
 	})
 
 	if (isLoading) {
