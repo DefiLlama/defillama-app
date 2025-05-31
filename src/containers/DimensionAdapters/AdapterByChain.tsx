@@ -558,7 +558,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 				</Tooltip>
 			),
 			enableSorting: false,
-			size: 280
+			size: 400
 		},
 		{
 			id: 'total24h',
