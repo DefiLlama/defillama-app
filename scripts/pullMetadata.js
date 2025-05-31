@@ -128,8 +128,10 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'totalTrackedByMetric.json'), JSON.stringify(totalTrackedByMetric))
 
 		console.log('Data pulled and cached successfully.')
+		return true
 	} catch (error) {
 		console.error('Error pulling data:', error)
+		process.exit(1) // Exit with error code
 	}
 }
 
@@ -146,6 +148,14 @@ function shouldPullData() {
 
 if (shouldPullData()) {
 	pullData()
+		.then(() => {
+			process.exit(0) // Exit successfully
+		})
+		.catch((error) => {
+			console.error('Fatal error:', error)
+			process.exit(1) // Exit with error code
+		})
 } else {
 	console.log('Metadata was pulled recently. No need to pull again.')
+	process.exit(0) // Exit successfully
 }
