@@ -90,7 +90,10 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 					<span>Click to change</span>
 				</Ariakit.DialogDisclosure>
 			</p>
-			<Ariakit.Dialog className="dialog gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] max-sm:drawer" unmountOnHide>
+			<Ariakit.Dialog
+				className="dialog gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] max-sm:drawer h-[70vh] lg:h-[calc(100vh-32px)]"
+				unmountOnHide
+			>
 				<div className="p-1 bg-[var(--cards-bg)] rounded-md flex flex-col gap-2">
 					<div className="flex items-center gap-2">
 						<Ariakit.DialogHeading className="text-2xl font-bold">Metrics for</Ariakit.DialogHeading>
