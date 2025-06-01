@@ -1618,7 +1618,19 @@ const ProtocolContainer = ({
 											target="_blank"
 											rel="noopener noreferrer"
 										>
-											<span>Volume</span>
+											<span>DEX Volume</span>
+											<Icon name="arrow-up-right" height={12} width={12} />
+										</a>
+									)}
+
+									{methodologyUrls?.dexAggregators && (
+										<a
+											href={methodologyUrls.dexAggregators}
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<span>DEX Aggregator Volume</span>
 											<Icon name="arrow-up-right" height={12} width={12} />
 										</a>
 									)}
@@ -1630,7 +1642,19 @@ const ProtocolContainer = ({
 											target="_blank"
 											rel="noopener noreferrer"
 										>
-											<span>Perps Volume</span>
+											<span>Perp Volume</span>
+											<Icon name="arrow-up-right" height={12} width={12} />
+										</a>
+									)}
+
+									{methodologyUrls?.options && (
+										<a
+											href={methodologyUrls.options}
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											<span>Options Volume</span>
 											<Icon name="arrow-up-right" height={12} width={12} />
 										</a>
 									)}
@@ -1642,7 +1666,7 @@ const ProtocolContainer = ({
 											target="_blank"
 											rel="noopener noreferrer"
 										>
-											<span>Bridge Aggregators Volume</span>
+											<span>Bridge Aggregator Volume</span>
 											<Icon name="arrow-up-right" height={12} width={12} />
 										</a>
 									)}

@@ -23,7 +23,7 @@ export const BAR_CHARTS = [
 	'Devs Commits',
 	'Contributers Commits',
 	'NFT Volume',
-	'Aggregators Volume',
+	'DEX Aggregators Volume',
 	'Options Premium Volume',
 	'Options Notional Volume',
 	'Perps Aggregators Volume',

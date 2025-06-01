@@ -725,6 +725,10 @@ export const getProtocolData = async (
 				fees: feesData?.[0]?.methodologyURL ?? null,
 				dexs: volumeData?.[0]?.methodologyURL ?? null,
 				perps: perpsData?.[0]?.methodologyURL ?? null,
+				dexAggregators: aggregatorsData?.[0]?.methodologyURL ?? null,
+				options:
+					optionsPremiumVolumeData?.[0]?.methodologyURL ?? optionsNotionalVolumeData?.[0]?.methodologyURL ?? null,
+				perpsAggregator: perpsAggregatorData?.[0]?.methodologyURL ?? null,
 				treasury: protocolData.treasury
 					? `https://github.com/DefiLlama/DefiLlama-Adapters/blob/main/projects/treasury/${protocolData.treasury}`
 					: null,
