@@ -15,6 +15,7 @@ import { useRouter } from 'next/router'
 
 import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
+import { Metrics } from '~/components/Metrics'
 
 dayjs.extend(weekOfYear)
 
@@ -104,7 +105,7 @@ export default function Protocols({ data }) {
 	return (
 		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>
-				<span>Are we missing any protocol?</span>{' '}
+				<span>Are we missing any protocol?</span>
 				<a
 					href="https://airtable.com/shrD1bSGYNcdFQ6kd"
 					className="text-[var(--blue)] underline font-medium"
@@ -114,6 +115,8 @@ export default function Protocols({ data }) {
 					Add it here!
 				</a>
 			</Announcement>
+
+			<Metrics currentMetric="Unlocks" />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
