@@ -77,8 +77,13 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 			<p
 				className={`text-center ${
 					currentMetric === 'Stablecoin Supply' && !isChains ? 'my-1' : 'mt-1 lg:-mt-2 mb-1'
-				} flex items-center gap-1 justify-center flex-wrap`}
+				} flex items-center gap-1 justify-center flex-wrap relative w-full isolate rounded-md h-10 bg-[var(--cards-bg)] p-1`}
 			>
+				<img src="/icons/metrics-l.svg" width={189} height={82} alt="" className="rounded-l-md absolute left-0" />
+				<span className="bg-[var(--old-blue)] text-white text-xs rounded-md h-6 flex items-center gap-2 px-2 absolute left-2">
+					<img src="/icons/new.svg" width={12} height={12} alt="" />
+					<span>New</span>
+				</span>
 				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
 					{currentMetric === 'CEX Assets' ? 'CEXs' : isChains ? 'Chains' : 'Protocols'}
 				</Ariakit.DialogDisclosure>
@@ -90,6 +95,30 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 					<Icon name="pencil" height={12} width={12} />
 					<span>Click to change</span>
 				</Ariakit.DialogDisclosure>
+				<img src="/icons/metrics-r.svg" width={189} height={82} alt="" className="rounded-r-md absolute right-0" />
+				<svg width="100%" height="100%" className="absolute top-0 left-0 z-0 text-[#e6e6e6] dark:text-[#222324]">
+					<defs>
+						<linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+							<stop offset="0%" stopColor="#1f67d2" />
+							<stop offset="8%" stopColor="#1f67d2" />
+							<stop offset="18%" stopColor="currentColor" />
+							<stop offset="82%" stopColor="currentColor" />
+							<stop offset="92%" stopColor="#1f67d2" />
+							<stop offset="100%" stopColor="#1f67d2" />
+						</linearGradient>
+					</defs>
+					<rect
+						x="1"
+						y="1"
+						width="calc(100% - 2px)"
+						height="calc(100% - 2px)"
+						rx="6"
+						ry="6"
+						fill="none"
+						stroke="url(#border-gradient)"
+						strokeWidth="1"
+					/>
+				</svg>
 			</p>
 			<Ariakit.Dialog
 				className="dialog gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] max-sm:drawer h-[70vh] lg:h-[calc(100vh-32px)]"
