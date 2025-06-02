@@ -27,6 +27,7 @@ interface IAsset {
 		price: number
 		priceSource: number
 	}
+	deprecated?: boolean
 }
 
 export interface IPeggedAssetsRow extends IAsset {

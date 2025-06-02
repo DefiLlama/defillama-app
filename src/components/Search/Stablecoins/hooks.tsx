@@ -12,7 +12,8 @@ export function useGetStablecoinsSearchList({ disabled }: { disabled?: boolean }
 			data?.peggedAssets?.map((asset) => ({
 				logo: peggedAssetIconUrl(asset.name),
 				route: `/stablecoin/${slug(asset.name)}`,
-				name: `${asset.name} (${asset.symbol})`
+				name: `${asset.name} (${asset.symbol})`,
+				...(asset.deprecated ? { deprecated: true } : {})
 			})) ?? [],
 		[data]
 	)

@@ -179,12 +179,32 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				<span className="flex items-center gap-2">
 					<span className="flex-shrink-0">{index + 1}</span>
 					<TokenLogo logo={peggedAssetIconUrl(row.original.name)} data-lgonly />
-					<BasicLink
-						href={`/stablecoin/${slug(row.original.name)}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string}
-					</BasicLink>
+					{row.original?.deprecated ? (
+						<BasicLink
+							href={`/stablecoin/${slug(row.original.name)}`}
+							className="flex items-center gap-1 text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
+							<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
+								{getValue() as string}
+							</span>
+							<span className="text-red-600 dark:text-red-400 text-xs font-medium flex items-center gap-1">
+								<Tooltip
+									content="Deprecated"
+									className="bg-red-600 dark:bg-red-400 text-white text-[10px] h-3 w-3 flex items-center justify-center rounded-full"
+								>
+									!
+								</Tooltip>
+								<span>Deprecated</span>
+							</span>
+						</BasicLink>
+					) : (
+						<BasicLink
+							href={`/stablecoin/${slug(row.original.name)}`}
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
+							{getValue() as string}
+						</BasicLink>
+					)}
 				</span>
 			)
 		},

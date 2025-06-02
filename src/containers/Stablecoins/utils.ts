@@ -195,7 +195,8 @@ export const peggedPropertiesToKeep = [
 	'circulatingPrevDay',
 	'circulatingPrevWeek',
 	'circulatingPrevMonth',
-	'delisted'
+	'delisted',
+	'deprecated'
 ]
 
 const getTargetPrice = (pegType: string, ratesChart: any, daysBefore: number) => {

@@ -26,6 +26,7 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { defaultPageStyles } from '../ProtocolOverview/queries'
+import { Tooltip } from '~/components/Tooltip'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -198,6 +199,17 @@ export const PeggedAssetInfo = ({
 									<TokenLogo logo={logo} size={24} />
 									<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 									<span className="font-normal mr-auto">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
+									{peggedAssetData.deprecated ? (
+										<span className="text-red-600 dark:text-red-400 text-xs font-medium flex items-center gap-1">
+											<Tooltip
+												content="Deprecated"
+												className="bg-red-600 dark:bg-red-400 text-white text-[10px] h-3 w-3 flex items-center justify-center rounded-full"
+											>
+												!
+											</Tooltip>
+											<span>Deprecated</span>
+										</span>
+									) : null}
 								</h1>
 
 								<p className="flex flex-col gap-1">
