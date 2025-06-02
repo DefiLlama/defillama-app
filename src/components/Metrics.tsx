@@ -80,7 +80,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				} flex items-center gap-1 justify-center flex-wrap relative w-full isolate rounded-md h-10 bg-[var(--cards-bg)] p-1`}
 			>
 				<img src="/icons/metrics-l.svg" width={189} height={82} alt="" className="rounded-l-md absolute left-0" />
-				<span className="bg-[var(--old-blue)] text-white text-xs rounded-md h-6 flex items-center gap-2 px-2 absolute left-2">
+				<span className="bg-[var(--old-blue)] text-white text-xs rounded-md h-6 items-center gap-2 px-2 absolute left-2 hidden lg:flex">
 					<img src="/icons/new.svg" width={12} height={12} alt="" />
 					<span>New</span>
 				</span>
