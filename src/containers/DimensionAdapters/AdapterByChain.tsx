@@ -49,16 +49,23 @@ export function AdapterByChain(props: IProps) {
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
 	const { selectedCategories, protocols, columnsOptions } = useMemo(() => {
-		const selectedCategories = router.query.category
-			? typeof router.query.category === 'string'
-				? [router.query.category]
+		const selectedCategories =
+			props.categories.length > 0 && router.query.hasOwnProperty('category') && router.query.category === ''
+				? []
 				: router.query.category
-			: props.categories
+				? typeof router.query.category === 'string'
+					? [router.query.category]
+					: router.query.category
+				: props.categories
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
 		const protocols =
-			categoriesToFilter.length > 0
+			props.categories.length === 0
+				? props.protocols
+				: selectedCategories.length === 0
+				? []
+				: categoriesToFilter.length > 0
 				? props.protocols.filter((protocol) => categoriesToFilter.includes(protocol.category))
 				: props.protocols
 
@@ -263,13 +270,19 @@ export function AdapterByChain(props: IProps) {
 	}
 
 	const clearAllCategories = () => {
+		const newQuery: any = {
+			...queries,
+			...(!router.basePath.includes('/chain/') && chain ? { chain } : {})
+		}
+
+		if (props.categories.length > 0) {
+			newQuery.category = ''
+		}
+
 		router.push(
 			{
 				pathname: router.basePath,
-				query: {
-					...queries,
-					...(!router.basePath.includes('/chain/') && chain ? { chain } : {})
-				}
+				query: newQuery
 			},
 			undefined,
 			{ shallow: true }
@@ -447,7 +460,41 @@ const chartKeys: Record<IProps['type'], string> = {
 }
 
 const getColumnsOptions = (type) =>
-	columnsByType[type].map((c: any) => ({ name: c.header as string, key: c.id ?? (c.accessorKey as string) }))
+	columnsByType[type].map((c: any) => {
+		let headerName: string
+		if (typeof c.header === 'function') {
+			switch (c.id) {
+				case 'total24h':
+					if (type === 'Perp Aggregator Volume') {
+						headerName = 'Perp Aggregator Volume 24h'
+					} else if (type === 'Bridge Aggregator Volume') {
+						headerName = 'Bridge Aggregator Volume 24h'
+					} else if (type === 'DEX Aggregator Volume') {
+						headerName = 'DEX Aggregator Volume 24h'
+					} else {
+						headerName = c.id
+					}
+					break
+				case 'total30d':
+					if (type === 'Perp Aggregator Volume') {
+						headerName = 'Perp Aggregator Volume 30d'
+					} else if (type === 'Bridge Aggregator Volume') {
+						headerName = 'Bridge Aggregator Volume 30d'
+					} else if (type === 'DEX Aggregator Volume') {
+						headerName = 'DEX Aggregator Volume 30d'
+					} else {
+						headerName = c.id
+					}
+					break
+				default:
+					headerName = c.id
+			}
+		} else {
+			headerName = c.header as string
+		}
+
+		return { name: headerName, key: c.id ?? (c.accessorKey as string) }
+	})
 
 const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['protocols'][0]> => {
 	return {
