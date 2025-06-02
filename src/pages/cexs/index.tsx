@@ -269,7 +269,7 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'bitmex'
 	},
 	{
-		name: 'Swissborg',
+		name: 'SwissBorg',
 		slug: 'swissborg',
 		coin: 'BORG',
 		coinSymbol: 'BORG',
