@@ -43,7 +43,7 @@ export function ChartCard({ chart, onRemove, getChainInfo, getProtocolInfo, onGr
 
 	return (
 		<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 p-4 h-full relative bg-clip-padding flex flex-col">
-			<div className="flex justify-between items-start mb-2">
+			<div className="flex justify-between items-center mb-2">
 				<div className="flex items-center gap-2">
 					{itemIconUrl ? (
 						<img src={itemIconUrl} alt={itemName} className="w-6 h-6 rounded-full" />
@@ -56,7 +56,26 @@ export function ChartCard({ chart, onRemove, getChainInfo, getProtocolInfo, onGr
 						{itemName} {chartTypeDetails.title}
 					</h2>
 				</div>
-				<div className="flex flex-col items-end">
+				<div className="flex items-center gap-2">
+					{isGroupable && (
+						<div className="flex border border-[var(--form-control-border)] rounded-md overflow-hidden">
+							{groupingOptions.map((option, index) => (
+								<button
+									key={option}
+									onClick={() => onGroupingChange(chart.id, option)}
+									className={`px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
+										${index > 0 ? 'border-l border-[var(--form-control-border)]' : ''}
+										${
+											chart.grouping === option
+												? 'bg-[var(--primary1)] text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:ring-opacity-50'
+												: 'bg-transparent hover:bg-[var(--bg3)] text-[var(--text2)] focus:outline-none focus:ring-1 focus:ring-[var(--form-control-border)]'
+										}`}
+								>
+									{option.charAt(0).toUpperCase() + option.slice(1)}
+								</button>
+							))}
+						</div>
+					)}
 					<button
 						className="p-1 rounded-md hover:bg-[var(--bg3)] text-[var(--text3)] hover:text-[var(--text1)]"
 						onClick={() => onRemove(chart.id)}
@@ -66,26 +85,6 @@ export function ChartCard({ chart, onRemove, getChainInfo, getProtocolInfo, onGr
 					</button>
 				</div>
 			</div>
-
-			{isGroupable && (
-				<div className="mb-3 self-start flex border border-[var(--form-control-border)] rounded-md overflow-hidden">
-					{groupingOptions.map((option, index) => (
-						<button
-							key={option}
-							onClick={() => onGroupingChange(chart.id, option)}
-							className={`px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
-								${index > 0 ? 'border-l border-[var(--form-control-border)]' : ''}
-								${
-									chart.grouping === option
-										? 'bg-[var(--primary1)] text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:ring-opacity-50'
-										: 'bg-transparent hover:bg-[var(--bg3)] text-[var(--text2)] focus:outline-none focus:ring-1 focus:ring-[var(--form-control-border)]'
-								}`}
-						>
-							{option.charAt(0).toUpperCase() + option.slice(1)}
-						</button>
-					))}
-				</div>
-			)}
 
 			<div style={{ height: '300px', flexGrow: 1 }}>
 				{renderChart({ chart, data, isLoading, hasError, refetch, itemName })}
@@ -122,8 +121,26 @@ function renderChart({ chart, data, isLoading, hasError, refetch, itemName }) {
 	const chartType = CHART_TYPES[chart.type]
 
 	if (chartType.chartType === 'bar') {
-		return <BarChart chartData={data} valueSymbol="$" height="300px" color={chartType.color} hideDataZoom />
+		return (
+			<BarChart
+				chartData={data}
+				valueSymbol="$"
+				height="300px"
+				color={chartType.color}
+				hideDataZoom
+				hideDownloadButton
+			/>
+		)
 	} else {
-		return <AreaChart chartData={data} valueSymbol="$" color={chartType.color} height="300px" hideDataZoom />
+		return (
+			<AreaChart
+				chartData={data}
+				valueSymbol="$"
+				color={chartType.color}
+				height="300px"
+				hideDataZoom
+				hideDownloadButton
+			/>
+		)
 	}
 }

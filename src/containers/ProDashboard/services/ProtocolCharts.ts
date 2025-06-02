@@ -1,5 +1,6 @@
+import dayjs from 'dayjs'
 import { getAPIUrlSummary } from '~/api/categories/adaptors/client'
-import { PROTOCOL_API } from '~/constants'
+import { CACHE_SERVER, PROTOCOL_API, YIELD_PROJECT_MEDIAN_API } from '~/constants'
 
 interface DateTvl {
 	date: number
@@ -15,6 +16,19 @@ interface ProtocolApiResponse {
 }
 
 export default class ProtocolCharts {
+	private static convertToNumberFormat(data: any[], convertoToSeconds: boolean = false): [number, number][] {
+		if (!Array.isArray(data)) return []
+
+		return data.map(([date, value]) => [
+			typeof date === 'string'
+				? convertoToSeconds
+					? parseInt(date, 10) / 1000
+					: parseInt(date, 10) / 1000
+				: date / (convertoToSeconds ? 1000 : 1),
+			typeof value === 'string' ? parseFloat(value) : value
+		])
+	}
+
 	static async tvl(protocolId: string): Promise<[number, number][]> {
 		if (!protocolId) {
 			return []
@@ -45,24 +59,53 @@ export default class ProtocolCharts {
 			return []
 		}
 	}
-	static async summary(protocol: string, type: string, dataType?: string): Promise<any> {
+	static async summary(protocol: string, type: string, dataType?: string): Promise<[number, number][]> {
 		if (!protocol) return []
 		const url = getAPIUrlSummary(type, protocol, dataType)
 		const response = await fetch(url)
 		const data = await response.json()
 		console.log(data)
-		return data.totalDataChart ?? []
+		return this.convertToNumberFormat(data.totalDataChart ?? [])
 	}
 
 	static async volume(protocol: string): Promise<[number, number][]> {
 		return this.summary(protocol, 'dexs')
 	}
 
-	static async fees(protocol: string): Promise<any> {
+	static async fees(protocol: string): Promise<[number, number][]> {
 		return this.summary(protocol, 'fees')
 	}
 
-	static async revenue(protocol: string): Promise<any> {
+	static async revenue(protocol: string): Promise<[number, number][]> {
 		return this.summary(protocol, 'fees', 'dailyRevenue')
+	}
+
+	static async getTokenData(geckoId: string) {
+		let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
+		const response = await fetch(url)
+		const { data } = await response.json()
+		return data
+	}
+
+	static async tokenMcap(_: string, geckoId: string): Promise<[number, number][]> {
+		const data = await this.getTokenData(geckoId)
+		return this.convertToNumberFormat(data.mcaps ?? [], true)
+	}
+
+	static async tokenPrice(_: string, geckoId: string): Promise<[number, number][]> {
+		const data = await this.getTokenData(geckoId)
+		return this.convertToNumberFormat(data.prices ?? [], true)
+	}
+
+	static async tokenVolume(_: string, geckoId: string): Promise<[number, number][]> {
+		const data = await this.getTokenData(geckoId)
+		return this.convertToNumberFormat(data.volumes ?? [], true)
+	}
+
+	static async medianApy(protocol: string): Promise<[number, number][]> {
+		const response = await fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
+		const { data } = await response.json()
+		const res = data.map((item) => [dayjs(item.timestamp).unix(), item.medianApy])
+		return res
 	}
 }

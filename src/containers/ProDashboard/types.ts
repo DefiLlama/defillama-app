@@ -21,6 +21,7 @@ export interface ChartConfig {
 	hasError?: boolean
 	refetch?: () => void
 	grouping?: 'day' | 'week' | 'month'
+	geckoId?: string | null
 }
 
 export interface ProtocolsTableConfig {
@@ -35,6 +36,7 @@ export interface Protocol {
 	logo?: string
 	slug: string
 	tvl: number
+	geckoId?: string | null
 }
 
 export const CHART_TYPES = {
@@ -43,28 +45,31 @@ export const CHART_TYPES = {
 	fees: { id: 'fees', title: 'Fees', chartType: 'bar', color: '#F2994A', groupable: true },
 	users: { id: 'users', title: 'Users', chartType: 'bar', color: '#8A2BE2', groupable: true },
 	txs: { id: 'txs', title: 'Transactions', chartType: 'bar', color: '#FF6347', groupable: true },
-	perpsVolume: { id: 'perpsVolume', title: 'Perps Volume', chartType: 'bar', color: '#8B5CF6', groupable: true },
-	optionsVolume: { id: 'optionsVolume', title: 'Options Volume', chartType: 'bar', color: '#F472B6', groupable: true },
-	aggregatorsVolume: {
-		id: 'aggregatorsVolume',
-		title: 'Aggregators Volume',
+	options: { id: 'options', title: 'Options', chartType: 'bar', color: '#F472B6', groupable: true },
+	revenue: { id: 'revenue', title: 'Revenue', chartType: 'bar', color: '#E59421', groupable: true },
+	aggregators: { id: 'aggregators', title: 'DEX Aggregators', chartType: 'bar', color: '#FF9500', groupable: true },
+	perps: { id: 'perps', title: 'Perps', chartType: 'bar', color: '#B91C1C', groupable: true },
+	bridgeAggregators: {
+		id: 'bridgeAggregators',
+		title: 'Bridge Aggregators',
 		chartType: 'bar',
-		color: '#34D399',
+		color: '#7C2D92',
 		groupable: true
 	},
-	perpsAggregatorsVolume: {
-		id: 'perpsAggregatorsVolume',
-		title: 'Perps Aggregators Volume',
+	perpsAggregators: {
+		id: 'perpsAggregators',
+		title: 'Perps Aggregators',
 		chartType: 'bar',
-		color: '#F59E42',
+		color: '#DC2626',
 		groupable: true
 	},
-	bridgeAggregatorsVolume: {
-		id: 'bridgeAggregatorsVolume',
-		title: 'Bridge Aggregators Volume',
-		chartType: 'bar',
-		color: '#60A5FA',
-		groupable: true
-	},
-	revenue: { id: 'revenue', title: 'Revenue', chartType: 'bar', color: '#E59421', groupable: true }
+	bribes: { id: 'bribes', title: 'Bribes Revenue', chartType: 'bar', color: '#059669', groupable: true },
+	tokenTax: { id: 'tokenTax', title: 'Token Tax', chartType: 'bar', color: '#7C3AED', groupable: true },
+	tokenPrice: { id: 'tokenPrice', title: 'Token Price', chartType: 'area', color: '#16A34A' },
+	tokenMcap: { id: 'tokenMcap', title: 'Token Market Cap', chartType: 'area', color: '#2563EB' },
+	tokenVolume: { id: 'tokenVolume', title: 'Token Volume', chartType: 'bar', color: '#F59E0B', groupable: true },
+	activeUsers: { id: 'activeUsers', title: 'Active Users', chartType: 'bar', color: '#EC4899', groupable: true },
+	newUsers: { id: 'newUsers', title: 'New Users', chartType: 'bar', color: '#8B5CF6', groupable: true },
+	gasUsed: { id: 'gasUsed', title: 'Gas Used', chartType: 'bar', color: '#F59E0B', groupable: true },
+	medianApy: { id: 'medianApy', title: 'Median APY', chartType: 'area', color: '#059669' }
 }

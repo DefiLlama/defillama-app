@@ -4,6 +4,7 @@ import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { ChartCard } from './ChartCard'
 import { DashboardItemConfig, Chain, Protocol } from '../types'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
+import { Icon } from '~/components/Icon'
 
 interface ChartGridProps {
 	charts: DashboardItemConfig[]
@@ -60,7 +61,18 @@ export function ChartGrid({
 										onGroupingChange={onGroupingChange}
 									/>
 								) : (
-									<ProtocolsByChainTable chain={item.chain} />
+									<div className="relative h-full">
+										<div className="absolute top-2 right-2 z-10">
+											<button
+												className="p-1 rounded-md hover:bg-[var(--bg3)] text-[var(--text3)] hover:text-[var(--text1)] bg-[var(--bg7)]"
+												onClick={() => onRemoveChart(item.id)}
+												aria-label="Remove table"
+											>
+												<Icon name="x" height={16} width={16} />
+											</button>
+										</div>
+										<ProtocolsByChainTable chain={item.chain} />
+									</div>
 								)}
 							</SortableItem>
 						))}
