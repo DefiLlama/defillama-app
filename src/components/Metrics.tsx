@@ -43,6 +43,7 @@ export type TMetric =
 	| 'Bridged TVL'
 	| 'NFT Volume'
 	| 'REV'
+	| 'Unlocks'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -312,6 +313,14 @@ const protocolsMetrics: Array<{
 		chainRoute: `/perps-aggregators/chain/{chain}`,
 		protocolsTracked: metadataCache.totalTrackedByMetric.perpAggregators.protocols,
 		description: 'Notional volume of all trades in a perp aggregator, includes leverage'
+	},
+	{
+		name: 'Unlocks',
+		mainRoute: '/unlocks',
+		chainRoute: null,
+		protocolsTracked: metadataCache.totalTrackedByMetric.emissions.protocols,
+		description:
+			'Tracks the release of locked tokens into circulation according to tokenomics schedules. Includes team, investor, ecosystem, and other vesting-based unlocks'
 	}
 ]
 
@@ -387,5 +396,12 @@ const chainsMetrics: Array<{
 		route: '/raises',
 		chainsTracked: 0,
 		description: 'Total amount of capital raised by a protocol'
+	},
+	{
+		name: 'Unlocks',
+		route: '/unlocks',
+		chainsTracked: 0,
+		description:
+			'Tracks the release of locked tokens into circulation according to tokenomics schedules. Includes team, investor, ecosystem, and other vesting-based unlocks'
 	}
 ]

@@ -7,6 +7,7 @@ const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.jso
 const STABLECOINS_DATA_URL = 'https://stablecoins.llama.fi/stablecoins'
 const PROTOCOLS_LIST = 'https://api.llama.fi/lite/protocols2'
 const TREASURY_DATA_URL = 'https://api.llama.fi/treasuries'
+const PROTOCOL_EMISSIONS_LIST_API = 'https://defillama-datasets.llama.fi/emissionsProtocolsList'
 
 interface IChainMetadata {
 	stablecoins?: boolean
@@ -70,6 +71,7 @@ interface ITotalTrackedByMetric {
 	bridgeAggregators: { protocols: number; chains: number }
 	lending: { protocols: number; chains: number }
 	treasury: { protocols: number; chains: number }
+	emissions: { protocols: number; chains: number }
 }
 
 const metadataCache: {
@@ -85,7 +87,7 @@ const metadataCache: {
 setInterval(async () => {
 	const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
-	const [protocols, chains, lending, stablecoins, treasury] = await Promise.all([
+	const [protocols, chains, lending, stablecoins, treasury, emissions] = await Promise.all([
 		fetchJson(PROTOCOLS_DATA_URL),
 		fetchJson(CHAINS_DATA_URL),
 		fetchJson(PROTOCOLS_LIST)
@@ -96,6 +98,9 @@ setInterval(async () => {
 			.then((res) => ({ protocols: res.peggedAssets.length, chains: res.chains.length }))
 			.catch(() => ({ protocols: 0, chains: 0 })),
 		fetchJson(TREASURY_DATA_URL)
+			.then((res) => ({ protocols: res.length, chains: 0 }))
+			.catch(() => ({ protocols: 0, chains: 0 })),
+		fetchJson(PROTOCOL_EMISSIONS_LIST_API)
 			.then((res) => ({ protocols: res.length, chains: 0 }))
 			.catch(() => ({ protocols: 0, chains: 0 }))
 	])
@@ -135,7 +140,8 @@ setInterval(async () => {
 		options: { protocols: 0, chains: 0 },
 		bridgeAggregators: { protocols: 0, chains: 0 },
 		lending,
-		treasury
+		treasury,
+		emissions
 	}
 
 	for (const p in metadataCache.protocolMetadata) {

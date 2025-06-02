@@ -13,13 +13,14 @@ const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.jso
 const STABLECOINS_DATA_URL = 'https://stablecoins.llama.fi/stablecoins'
 const PROTOCOLS_LIST = 'https://api.llama.fi/lite/protocols2'
 const TREASURY_DATA_URL = 'https://api.llama.fi/treasuries'
+const PROTOCOL_EMISSIONS_LIST_API = 'https://defillama-datasets.llama.fi/emissionsProtocolsList'
 const FIVE_MINUTES = 5 * 60 * 1000
 
 const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
 async function pullData() {
 	try {
-		const [protocols, chains, lending, stablecoins, treasury] = await Promise.all([
+		const [protocols, chains, lending, stablecoins, treasury, emissions] = await Promise.all([
 			fetchJson(PROTOCOLS_DATA_URL),
 			fetchJson(CHAINS_DATA_URL),
 			fetchJson(PROTOCOLS_LIST)
@@ -30,6 +31,9 @@ async function pullData() {
 				.then((res) => ({ protocols: res.peggedAssets.length, chains: res.chains.length }))
 				.catch(() => ({ protocols: 0, chains: 0 })),
 			fetchJson(TREASURY_DATA_URL)
+				.then((res) => ({ protocols: res.length, chains: 0 }))
+				.catch(() => ({ protocols: 0, chains: 0 })),
+			fetchJson(PROTOCOL_EMISSIONS_LIST_API)
 				.then((res) => ({ protocols: res.length, chains: 0 }))
 				.catch(() => ({ protocols: 0, chains: 0 }))
 		])
@@ -55,7 +59,8 @@ async function pullData() {
 			options: { protocols: 0, chains: 0 },
 			bridgeAggregators: { protocols: 0, chains: 0 },
 			lending,
-			treasury
+			treasury,
+			emissions
 		}
 
 		for (const p in protocols) {
