@@ -92,9 +92,28 @@
   </g>
   <defs>
     <clipPath id="clip0_67_12257">
-      <rect width="12" height="12" fill="white"/>
+      <rect width="12" height="12" fill="currentColor"/>
     </clipPath>
   </defs>
+</symbol>
+<symbol id="sparkles" viewBox="0 0 12 12" fill="none">
+  <g clip-path="url(#clip0_133_12595)">
+    <path d="M4.9685 7.75C4.92386 7.57697 4.83367 7.41905 4.70731 7.29269C4.58095 7.16633 4.42304 7.07614 4.25 7.0315L1.1825 6.2405C1.13017 6.22565 1.08411 6.19413 1.05131 6.15072C1.01851 6.10732 1.00076 6.0544 1.00076 6C1.00076 5.9456 1.01851 5.89268 1.05131 5.84928C1.08411 5.80588 1.13017 5.77436 1.1825 5.7595L4.25 4.968C4.42298 4.92341 4.58085 4.83329 4.7072 4.70702C4.83356 4.58075 4.92378 4.42295 4.9685 4.25L5.7595 1.1825C5.7742 1.12996 5.80569 1.08367 5.84916 1.0507C5.89263 1.01773 5.94569 0.999878 6.00025 0.999878C6.05481 0.999878 6.10787 1.01773 6.15134 1.0507C6.19481 1.08367 6.2263 1.12996 6.241 1.1825L7.0315 4.25C7.07614 4.42304 7.16633 4.58095 7.29269 4.70731C7.41905 4.83367 7.57696 4.92386 7.75 4.9685L10.8175 5.759C10.8703 5.77355 10.9168 5.80501 10.9499 5.84854C10.9831 5.89207 11.001 5.94528 11.001 6C11.001 6.05472 10.9831 6.10793 10.9499 6.15146C10.9168 6.195 10.8703 6.22645 10.8175 6.241L7.75 7.0315C7.57696 7.07614 7.41905 7.16633 7.29269 7.29269C7.16633 7.41905 7.07614 7.57697 7.0315 7.75L6.2405 10.8175C6.2258 10.87 6.19431 10.9163 6.15084 10.9493C6.10737 10.9823 6.05431 11.0001 5.99975 11.0001C5.94519 11.0001 5.89213 10.9823 5.84866 10.9493C5.80519 10.9163 5.7737 10.87 5.759 10.8175L4.9685 7.75Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M10 1.5V3.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M11 2.5H9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2 8.5V9.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2.5 9H1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <defs>
+    <clipPath id="clip0_133_12595">
+      <rect width="12" height="12" fill="currentColor"/>
+    </clipPath>
+  </defs>
+</symbol>
+<symbol id="chat" viewBox="0 0 17 16" fill="none">
+  <path d="M14.5 10C14.5 10.3536 14.3595 10.6928 14.1095 10.9428C13.8594 11.1929 13.5203 11.3333 13.1667 11.3333H5.16667L2.5 14V3.33333C2.5 2.97971 2.64048 2.64057 2.89052 2.39052C3.14057 2.14048 3.47971 2 3.83333 2H13.1667C13.5203 2 13.8594 2.14048 14.1095 2.39052C14.3595 2.64057 14.5 2.97971 14.5 3.33333V10Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8.5 4.66663V8.66663" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M6.5 6.66663H10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </symbol>
 </defs>
 </svg>

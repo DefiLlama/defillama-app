@@ -81,7 +81,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 			>
 				<img src="/icons/metrics-l.svg" width={189} height={82} alt="" className="rounded-l-md absolute left-0" />
 				<span className="bg-[var(--old-blue)] text-white text-xs rounded-md h-6 items-center gap-2 px-2 absolute left-2 hidden lg:flex">
-					<img src="/icons/new.svg" width={12} height={12} alt="" />
+					<Icon name="sparkles" height={12} width={12} />
 					<span>New</span>
 				</span>
 				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
@@ -208,7 +208,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 	)
 }
 
-const protocolsMetrics: Array<{
+export const protocolsMetrics: Array<{
 	name: TMetric
 	mainRoute: string
 	chainRoute: string
@@ -353,7 +353,7 @@ const protocolsMetrics: Array<{
 	}
 ]
 
-const chainsMetrics: Array<{
+export const chainsMetrics: Array<{
 	name: string
 	route: string
 	chainsTracked: number
@@ -425,12 +425,5 @@ const chainsMetrics: Array<{
 		route: '/raises',
 		chainsTracked: 0,
 		description: 'Total amount of capital raised by a protocol'
-	},
-	{
-		name: 'Unlocks',
-		route: '/unlocks',
-		chainsTracked: 0,
-		description:
-			'Tracks the release of locked tokens into circulation according to tokenomics schedules. Includes team, investor, ecosystem, and other vesting-based unlocks'
 	}
 ]

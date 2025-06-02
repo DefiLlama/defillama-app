@@ -1,3 +1,4 @@
+import { chainsMetrics, protocolsMetrics } from '~/components/Metrics'
 import { PROTOCOLS_API } from '~/constants/index'
 import { slug } from '~/utils'
 
@@ -17,7 +18,7 @@ function url(urlToAdd) {
 }
 
 function prefixedUrl(prefix) {
-	return (urlToAdd) => url(`${prefix}/${urlToAdd}`)
+	return (urlToAdd) => (urlToAdd.includes('&') ? '' : url(`${prefix}/${urlToAdd}`))
 }
 
 function generateSiteMap(protocols, chains, categories) {
@@ -30,6 +31,14 @@ function generateSiteMap(protocols, chains, categories) {
     ${chains.map(prefixedUrl('chain')).join('')}
     ${categories.map((category) => url(`protocols/${category.toLowerCase()}`)).join('')}
     ${protocols.map(prefixedUrl('protocol')).join('')}
+		${protocolsMetrics
+			.slice(1)
+			.map((p) => url(p.mainRoute.slice(1)))
+			.join('')}
+		${chainsMetrics
+			.slice(1)
+			.map((p) => url(p.route.slice(1)))
+			.join('')}
    </urlset>
  `
 }
