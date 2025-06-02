@@ -84,14 +84,14 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 					<img src="/icons/new.svg" width={12} height={12} alt="" />
 					<span>New</span>
 				</span>
-				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
+				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
 					{currentMetric === 'CEX Assets' ? 'CEXs' : isChains ? 'Chains' : 'Protocols'}
 				</Ariakit.DialogDisclosure>
 				<span>ranked by </span>
-				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md">
+				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
 					{currentMetric === 'CEX Assets' ? 'Assets' : currentMetric}
 				</Ariakit.DialogDisclosure>
-				<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs">
+				<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs z-10">
 					<Icon name="pencil" height={12} width={12} />
 					<span>Click to change</span>
 				</Ariakit.DialogDisclosure>
