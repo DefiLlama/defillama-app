@@ -17,13 +17,6 @@ export function ChainOverview(props: IChainOverviewData) {
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
 			defaultSEO
 		>
-			<Announcement>
-				We just launched{' '}
-				<a href="https://llamafeed.io/" target="_blank" rel="noreferrer noopener" className="underline">
-					LlamaFeed Pro
-				</a>
-				, stay updated without having to doomscroll twitter
-			</Announcement>
 			<ProtocolsChainsSearch />
 			<Metrics currentMetric="TVL" />
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
