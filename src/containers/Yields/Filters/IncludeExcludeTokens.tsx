@@ -66,11 +66,11 @@ export function IncludeExcludeTokens({
 
 	const matches = useMemo(() => {
 		return matchSorter(
-			Object.values(tokens) as Array<{ name: string; symbol: string; logo?: string; fallbackLogo?: string }>,
+			tokens as Array<{ name: string; symbol: string; logo?: string; fallbackLogo?: string }>,
 			searchValue,
 			{
 				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-				keys: ['name', 'symbol'],
+				keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
 				threshold: matchSorter.rankings.CONTAINS
 			}
 		)

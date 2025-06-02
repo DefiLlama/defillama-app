@@ -47,8 +47,7 @@ export function toFilterPool({
 	const tokensInPool: Array<string> = curr.symbol
 		.split('(')[0]
 		.split('-')
-		.map((x) => x.toLowerCase())
-		.map((x) => x.trim())
+		.map((x) => x.toLowerCase().trim().replace('₮0', 't').replace('₮', 't'))
 
 	if (exactTokens.length === 0) {
 		const includeToken =
