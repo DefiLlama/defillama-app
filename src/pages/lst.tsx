@@ -26,7 +26,7 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	const data = await getLSDPageData()
 
-	const finalData = getChartData({ ...data.props })
+	const finalData = await getChartData({ ...data.props })
 
 	return {
 		props: { ...finalData, tokensList: finalData.tokensList.filter((lsd) => lsd.name !== 'diva') },
@@ -163,7 +163,7 @@ export default function LSDs(props) {
 	)
 }
 
-function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
+async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	// for beth we are adding up values on ethereum and bsc chain
 	const beth = chartData.find((protocol) => protocol.name === 'Binance staked ETH')
 
@@ -190,6 +190,21 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 		}
 		return protocol
 	})
+
+	// Fetch ETH price from API
+	const fetchEthPrice = async () => {
+		try {
+			const response = await fetch('https://coins.llama.fi/prices/current/ethereum:0x0000000000000000000000000000000000000000')
+			const data = await response.json()
+			return data.coins['ethereum:0x0000000000000000000000000000000000000000'].price
+		} catch (error) {
+			console.error('Error fetching ETH price:', error)
+			return null
+		}
+	}
+
+	const ethPrice = await fetchEthPrice()
+	const PRICE_DIFF_THRESHOLD = 0.01 // 1% difference threshold
 
 	const historicData = chartData
 		.map((protocol) => {
@@ -292,17 +307,29 @@ function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 			}
 
 			const eth = getETH(lastTokens)
+			const ethInUsd = getETH(lastTokensInUsd)
 			const eth7d = lastTokens7d !== undefined ? getETH(lastTokens7d) : null
 			const eth30d = lastTokens30d !== undefined ? getETH(lastTokens30d) : null
+
+			// Validate and correct stakedEth value if needed
+			let correctedEth = eth
+			if (ethPrice && ethInUsd) {
+				const calculatedEth = ethInUsd / ethPrice
+				const diff = Math.abs(calculatedEth - eth) / eth
+				if (diff > PRICE_DIFF_THRESHOLD) {
+					console.log(`Correcting ${protocol.name} stakedEth from ${eth} to ${calculatedEth} (${diff * 100}% difference)`)
+					correctedEth = calculatedEth
+				}
+			}
 
 			return {
 				name: protocol.name,
 				logo: protocol.logo,
 				mcap: protocol.mcap,
-				stakedEth: eth,
-				stakedEthInUsd: getETH(lastTokensInUsd),
-				stakedEthPctChange7d: eth7d !== null ? ((eth - eth7d) / eth7d) * 100 : null,
-				stakedEthPctChange30d: eth30d !== null ? ((eth - eth30d) / eth30d) * 100 : null
+				stakedEth: correctedEth,
+				stakedEthInUsd: ethInUsd,
+				stakedEthPctChange7d: eth7d !== null ? ((correctedEth - eth7d) / eth7d) * 100 : null,
+				stakedEthPctChange30d: eth30d !== null ? ((correctedEth - eth30d) / eth30d) * 100 : null
 			}
 		})
 		.filter((p) => p.stakedEth !== 0)
