@@ -52,10 +52,10 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 	} = useMutation({
 		mutationFn: fetchPromptResponse,
 		onMutate: ({ userQuestion }) => {
-			const prevPrompt = JSON.parse(window.localStorage.getItem(promptStorageKey) ?? '[]') as string[]
-			const newPrompts = [...prevPrompt, `${Date.now()}--${userQuestion}`]
-			window.localStorage.setItem(promptStorageKey, JSON.stringify(newPrompts))
-			window.dispatchEvent(new Event('storage'))
+			// const prevPrompt = JSON.parse(window.localStorage.getItem(promptStorageKey) ?? '[]') as string[]
+			// const newPrompts = [...prevPrompt, `${Date.now()}--${userQuestion}`]
+			// window.localStorage.setItem(promptStorageKey, JSON.stringify(newPrompts))
+			// window.dispatchEvent(new Event('storage'))
 		},
 		onSuccess: () => {
 			setPrompt('')
