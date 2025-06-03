@@ -29,7 +29,7 @@ async function fetchPromptResponse({
 			throw new Error(data.error)
 		}
 
-		return { prompt: userQuestion, response: data }
+		return { prompt: userQuestion, response: data as { answer: string } }
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch prompt response')
 	}
@@ -383,8 +383,16 @@ function useProgressiveWords(text: string, delay = 15) {
 	return displayed
 }
 
-const PromptResponse = ({ response, error, isPending }: { response?: string; error?: string; isPending: boolean }) => {
-	const animatedResponse = useProgressiveWords(response ?? '', 15)
+const PromptResponse = ({
+	response,
+	error,
+	isPending
+}: {
+	response?: { answer: string }
+	error?: string
+	isPending: boolean
+}) => {
+	const animatedResponse = useProgressiveWords(response?.answer ?? '', 15)
 
 	if (error) {
 		return <p className="text-red-500">{error}</p>
