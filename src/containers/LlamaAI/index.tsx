@@ -10,26 +10,34 @@ import { matchSorter } from 'match-sorter'
 import { getList, getValue } from './list'
 
 async function fetchPromptResponse({
+	prompt,
 	userQuestion,
 	matchedEntities
 }: {
+	prompt?: string
 	userQuestion: string
 	matchedEntities?: Record<string, string[]>
 }) {
 	try {
 		const data = await fetch('https://ask.llama.fi/ask', {
 			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
 			body: JSON.stringify({
-				user_question: userQuestion,
-				matched_entities: matchedEntities ?? {}
+				question: userQuestion
 			})
+			// body: JSON.stringify({
+			// 	user_question: userQuestion,
+			// 	matched_entities: matchedEntities ?? {}
+			// })
 		}).then((res) => res.json())
 
 		if (data.error) {
 			throw new Error(data.error)
 		}
 
-		return { prompt: userQuestion, response: data as { answer: string } }
+		return { prompt: prompt ?? userQuestion, response: data as { answer: string } }
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch prompt response')
 	}
@@ -77,8 +85,16 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 		e.preventDefault()
 		const form = e.target as HTMLFormElement
 		setPrompt(form.prompt.value)
+		let prompt = form.prompt.value
+		if (entities.length > 0) {
+			entities.forEach((entity) => {
+				const [name, slug] = entity.split(':')
+				prompt = prompt.replace(name, slug)
+			})
+		}
 		submitPrompt({
-			userQuestion: form.prompt.value,
+			prompt: form.prompt.value,
+			userQuestion: prompt,
 			matchedEntities: entities.reduce((acc, entity) => {
 				const [name, slug] = entity.split(':')
 				const [entityName, entitySlug] = slug.split('=')
