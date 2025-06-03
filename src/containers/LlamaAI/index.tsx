@@ -81,20 +81,18 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 		return Array.isArray(data) ? data : [data]
 	}, [prevPromptsInStorage])
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		const form = e.target as HTMLFormElement
-		setPrompt(form.prompt.value)
-		let prompt = form.prompt.value
+	const handleSubmit = (prompt) => {
+		setPrompt(prompt)
+		let finalPrompt = prompt
 		if (entities.length > 0) {
 			entities.forEach((entity) => {
 				const [name, slug] = entity.split(':')
-				prompt = prompt.replace(name, slug)
+				finalPrompt = finalPrompt.replace(name, slug)
 			})
 		}
 		submitPrompt({
-			prompt: form.prompt.value,
-			userQuestion: prompt,
+			prompt,
+			userQuestion: finalPrompt,
 			matchedEntities: entities.reduce((acc, entity) => {
 				const [name, slug] = entity.split(':')
 				const [entityName, entitySlug] = slug.split('=')
@@ -102,7 +100,6 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 				return acc
 			}, {} as Record<string, string[]>)
 		})
-		form.reset()
 	}
 
 	const isSubmitted = isPending || error || promptResponse ? true : false
@@ -231,7 +228,7 @@ const PromptInput = ({
 	searchData,
 	setEntities
 }: {
-	handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+	handleSubmit: (prompt: string) => void
 	isPending: boolean
 	searchData: any
 	setEntities: React.Dispatch<React.SetStateAction<string[]>>
@@ -312,7 +309,15 @@ const PromptInput = ({
 
 	return (
 		<>
-			<form className="w-full relative" onSubmit={handleSubmit}>
+			<form
+				className="w-full relative"
+				onSubmit={(e) => {
+					e.preventDefault()
+					const form = e.target as HTMLFormElement
+					handleSubmit(form.prompt.value)
+					setValue('')
+				}}
+			>
 				<Ariakit.Combobox
 					store={combobox}
 					autoSelect
