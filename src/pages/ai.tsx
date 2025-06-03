@@ -1,6 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants'
 import { LlamaAI } from '~/containers/LlamaAI'
+import { slug } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -15,21 +16,24 @@ export const getStaticProps = withPerformanceLogging('LlamaAi', async () => {
 	data.protocols.forEach((protocol: any) => {
 		searchData.protocolsAndChains.push({
 			value: protocol.name,
-			listValue: `@${protocol.name}`
+			listValue: `@${protocol.name}`,
+			slug: `protocol=${slug(protocol.name)}`
 		})
 	})
 
 	data.parentProtocols.forEach((protocol: any) => {
 		searchData.protocolsAndChains.push({
 			value: protocol.name,
-			listValue: `@${protocol.name}`
+			listValue: `@${protocol.name}`,
+			slug: `protocol_parent=${slug(protocol.name)}`
 		})
 	})
 
 	data.chains.forEach((chain: any) => {
 		searchData.protocolsAndChains.push({
 			value: chain,
-			listValue: `@${chain}`
+			listValue: `@${chain}`,
+			slug: `chain=${slug(chain)}`
 		})
 	})
 

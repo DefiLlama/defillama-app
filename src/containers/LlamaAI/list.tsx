@@ -13,5 +13,5 @@ export function getList(trigger: string | null, searchData: any) {
 
 export function getValue(listValue: string, trigger: string | null, searchData: any) {
 	const list = trigger === '@' ? searchData.protocolsAndChains : trigger === '$' ? searchData.tokens : []
-	return list.find((item) => item.listValue === listValue)?.value
+	return list.find((item) => item.listValue === listValue)
 }

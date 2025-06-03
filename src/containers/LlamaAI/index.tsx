@@ -9,12 +9,28 @@ import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceVal
 import { matchSorter } from 'match-sorter'
 import { getList, getValue } from './list'
 
-async function fetchPromptResponse(prompt: string) {
+async function fetchPromptResponse({
+	userQuestion,
+	matchedEntities
+}: {
+	userQuestion: string
+	matchedEntities?: Record<string, string[]>
+}) {
 	try {
-		await new Promise((resolve) => setTimeout(resolve, 2000))
-		return { prompt, response: new Array(10).fill(prompt).join(', ') }
+		const data = await fetch('https://ask.llama.fi/ask', {
+			method: 'POST',
+			body: JSON.stringify({
+				user_question: userQuestion,
+				matched_entities: matchedEntities ?? {}
+			})
+		}).then((res) => res.json())
+
+		if (data.error) {
+			throw new Error(data.error)
+		}
+
+		return { prompt: userQuestion, response: data }
 	} catch (error) {
-		console.log(error)
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch prompt response')
 	}
 }
@@ -25,18 +41,19 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 	const [showChat, setShowChat] = useState(true)
 
 	const [prompt, setPrompt] = useState('')
+	const [entities, setEntities] = useState<string[]>([])
 
 	const {
 		data: promptResponse,
-		mutateAsync: submitPrompt,
+		mutate: submitPrompt,
 		isPending,
 		error,
 		reset: resetPrompt
 	} = useMutation({
 		mutationFn: fetchPromptResponse,
-		onMutate: (prompt) => {
+		onMutate: ({ userQuestion }) => {
 			const prevPrompt = JSON.parse(window.localStorage.getItem(promptStorageKey) ?? '[]') as string[]
-			const newPrompts = [...prevPrompt, prompt]
+			const newPrompts = [...prevPrompt, `${Date.now()}--${userQuestion}`]
 			window.localStorage.setItem(promptStorageKey, JSON.stringify(newPrompts))
 			window.dispatchEvent(new Event('storage'))
 		},
@@ -60,7 +77,15 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 		e.preventDefault()
 		const form = e.target as HTMLFormElement
 		setPrompt(form.prompt.value)
-		submitPrompt(form.prompt.value)
+		submitPrompt({
+			userQuestion: form.prompt.value,
+			matchedEntities: entities.reduce((acc, entity) => {
+				const [name, slug] = entity.split(':')
+				const [entityName, entitySlug] = slug.split('=')
+				acc[entityName] = [entitySlug]
+				return acc
+			}, {} as Record<string, string[]>)
+		})
 		form.reset()
 	}
 
@@ -69,8 +94,8 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 	return (
 		<Layout title="LlamaAI" defaultSEO>
 			<ProtocolsChainsSearch hideFilters />
-			<div className={showChat ? 'grid grid-cols-2 lg:grid-cols-3 gap-2 h-full' : 'flex gap-2 h-full'}>
-				{showChat ? (
+			<div className={showChat ? 'grid grid-cols-2 lg:grid-cols-2 gap-2 h-full flex-1' : 'flex gap-2 h-full flex-1'}>
+				{/* {showChat ? (
 					<div className="hidden lg:flex flex-col gap-3 col-span-1 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-3">
 						<div className="flex items-center gap-2">
 							<button
@@ -107,10 +132,10 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 											onClick={() => {
 												if (prevP == promptResponse?.prompt || isPending) return
 												setPrompt(prevP)
-												submitPrompt(prevP)
+												submitPrompt({ userQuestion: prevP })
 											}}
 										>
-											{prevP}
+											{prevP.split('--')[1] ?? prevP}
 										</button>
 									))}
 								</div>
@@ -127,13 +152,13 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 							<span className="sr-only">Show chat history</span>
 						</button>
 					</div>
-				)}
+				)} */}
 				<div className="flex-1 col-span-2 flex flex-col items-center justify-start gap-3 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-3 relative overflow-auto">
 					{isSubmitted ? (
 						<div className="flex flex-col gap-3 mb-auto w-full">
 							<h1 className="bg-[var(--app-bg)] rounded-lg p-4 w-full">{promptResponse?.prompt ?? prompt}</h1>
 							<div className="flex flex-col gap-[10px]">
-								<PromptResponse response={promptResponse?.response} isPending={isPending} />
+								<PromptResponse response={promptResponse?.response} error={error?.message} isPending={isPending} />
 							</div>
 						</div>
 					) : (
@@ -148,7 +173,12 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 							<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
 						</>
 					)}
-					<PromptInput handleSubmit={handleSubmit} isPending={isPending} searchData={searchData} />
+					<PromptInput
+						handleSubmit={handleSubmit}
+						isPending={isPending}
+						searchData={searchData}
+						setEntities={setEntities}
+					/>
 					{!isSubmitted ? (
 						<div className="flex items-center gap-4 justify-around flex-wrap w-full pb-[100px]">
 							{recommendedPrompts.map((prompt) => (
@@ -156,7 +186,7 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 									key={prompt}
 									onClick={() => {
 										setPrompt(prompt)
-										submitPrompt(prompt)
+										submitPrompt({ userQuestion: prompt })
 									}}
 									disabled={isPending}
 									className="flex items-center justify-center rounded-lg gap-2 px-4 py-1 text-[#666] dark:text-[#919296] border border-[#e6e6e6] dark:border-[#222324]"
@@ -182,11 +212,13 @@ const recommendedPrompts = [
 const PromptInput = ({
 	handleSubmit,
 	isPending,
-	searchData
+	searchData,
+	setEntities
 }: {
 	handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 	isPending: boolean
 	searchData: any
+	setEntities: React.Dispatch<React.SetStateAction<string[]>>
 }) => {
 	const ref = useRef<HTMLTextAreaElement>(null)
 	const [value, setValue] = useState('')
@@ -253,11 +285,12 @@ const PromptInput = ({
 		const textarea = ref.current
 		if (!textarea) return
 		const offset = getTriggerOffset(textarea)
-		const displayValue = getValue(value, trigger, searchData)
-		if (!displayValue) return
+		const itemValue: { listValue: string; slug: string; value: string } = getValue(value, trigger, searchData)
+		if (!itemValue) return
+		setEntities((prev) => [...prev, `${itemValue.value}:${itemValue.slug}`])
 		setTrigger(null)
-		setValue(replaceValue(offset, searchValue, displayValue))
-		const nextCaretOffset = offset + displayValue.length + 1
+		setValue(replaceValue(offset, searchValue, itemValue.value))
+		const nextCaretOffset = offset + itemValue.value.length + 1
 		setCaretOffset(nextCaretOffset)
 	}
 
@@ -292,6 +325,7 @@ const PromptInput = ({
 							name="prompt"
 						/>
 					}
+					disabled={isPending}
 				/>
 				<Ariakit.ComboboxPopover
 					store={combobox}
@@ -325,24 +359,6 @@ const PromptInput = ({
 					<span className="sr-only">Submit prompt</span>
 				</button>
 			</form>
-
-			{/* <form className="w-full" onSubmit={handleSubmit}>
-				<span className="relative">
-					<textarea
-						name="prompt"
-						className="min-h-[100px] bg-[var(--app-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-4 w-full"
-						placeholder="Ask LlamaAI..."
-						disabled={isPending}
-					/>
-					<button
-						className="flex items-center justify-center rounded-md gap-2 h-6 w-6 bg-[rgba(31,103,210,0.12)] border border-[var(--old-blue)] text-[var(--old-blue)] absolute bottom-3 right-2"
-						disabled={isPending}
-					>
-						<Icon name="arrow-up" height={16} width={16} />
-						<span className="sr-only">Submit prompt</span>
-					</button>
-				</span>
-			</form> */}
 		</>
 	)
 }
@@ -367,8 +383,12 @@ function useProgressiveWords(text: string, delay = 15) {
 	return displayed
 }
 
-const PromptResponse = ({ response, isPending }: { response?: string; isPending: boolean }) => {
+const PromptResponse = ({ response, error, isPending }: { response?: string; error?: string; isPending: boolean }) => {
 	const animatedResponse = useProgressiveWords(response ?? '', 15)
 
-	return <p>{isPending ? 'Loading...' : animatedResponse}</p>
+	if (error) {
+		return <p className="text-red-500">{error}</p>
+	}
+
+	return <p>{isPending ? 'Thinking...' : animatedResponse}</p>
 }
