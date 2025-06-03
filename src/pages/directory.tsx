@@ -4,7 +4,7 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { tokenIconUrl } from '~/utils'
 import { Announcement } from '~/components/Announcement'
 import { withPerformanceLogging } from '~/utils/perf'
-import { startTransition, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
@@ -28,14 +28,15 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 
 export default function Protocols({ protocols }) {
 	const [searchValue, setSearchValue] = useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const matches = useMemo(() => {
-		return matchSorter(protocols as Array<{ name: string; logo: string; route: string }>, searchValue, {
+		return matchSorter(protocols as Array<{ name: string; logo: string; route: string }>, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [protocols, searchValue])
+	}, [protocols, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)
 

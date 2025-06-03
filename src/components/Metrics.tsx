@@ -3,7 +3,7 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import metadataCache from '~/utils/metadata'
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { matchSorter } from 'match-sorter'
 
 export interface ITotalTrackedByMetric {
@@ -52,26 +52,28 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 	const [tab, setTab] = useState<'Protocols' | 'Chains'>(isChains ? 'Chains' : 'Protocols')
 
 	const [searchValue, setSearchValue] = useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const { chains, protocols } = useMemo(() => {
-		if (searchValue.length < 2) {
+		if (deferredSearchValue.length < 2) {
 			return { chains: chainsMetrics, protocols: protocolsMetrics }
 		}
 
-		const chains = matchSorter(chainsMetrics, searchValue, {
+		const chains = matchSorter(chainsMetrics, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
 
-		const protocols = matchSorter(protocolsMetrics, searchValue, {
+		const protocols = matchSorter(protocolsMetrics, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
 
 		return { chains, protocols }
-	}, [searchValue])
+	}, [deferredSearchValue])
+
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
 			<p

@@ -3,6 +3,7 @@ import * as Ariakit from '@ariakit/react'
 import type { ISearchItem } from '~/components/Search/types'
 import { matchSorter } from 'match-sorter'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { useDeferredValue } from 'react'
 
 interface IProps {
 	options: ISearchItem[]
@@ -12,14 +13,15 @@ interface IProps {
 
 export function BridgeChainSelector({ options, currentChain, handleClick }: IProps) {
 	const [searchValue, setSearchValue] = React.useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const matches = React.useMemo(() => {
-		return matchSorter(options, searchValue, {
+		return matchSorter(options, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [options, searchValue])
+	}, [options, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 

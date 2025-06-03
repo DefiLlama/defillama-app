@@ -10,6 +10,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { useDeferredValue } from 'react'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	const {
@@ -154,15 +155,16 @@ const TokensSelect = ({
 	}
 
 	const [searchValue, setSearchValue] = React.useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const matches = React.useMemo(() => {
 		const data = Object.values(searchData)
-		return matchSorter(data, searchValue, {
+		return matchSorter(data, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name', 'symbol'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [searchData, searchValue])
+	}, [searchData, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, startTransition } from 'react'
+import { useState, useRef, useMemo, startTransition, useDeferredValue } from 'react'
 import { useRouter } from 'next/router'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Icon } from '~/components/Icon'
@@ -63,18 +63,19 @@ export function IncludeExcludeTokens({
 	}
 
 	const [searchValue, setSearchValue] = useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const matches = useMemo(() => {
 		return matchSorter(
 			tokens as Array<{ name: string; symbol: string; logo?: string; fallbackLogo?: string }>,
-			searchValue,
+			deferredSearchValue,
 			{
 				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 				keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
 				threshold: matchSorter.rankings.CONTAINS
 			}
 		)
-	}, [tokens, searchValue])
+	}, [tokens, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)
 

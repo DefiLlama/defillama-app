@@ -4,21 +4,23 @@ import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { matchSorter } from 'match-sorter'
 import * as Ariakit from '@ariakit/react'
+import { useDeferredValue } from 'react'
 
 export function YieldsSearch({ lend = false, searchData, value }) {
 	const [searchValue, setSearchValue] = React.useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const matches = React.useMemo(() => {
 		return matchSorter(
 			Object.values(searchData) as Array<{ name: string; symbol: string; logo?: string; fallbackLogo?: string }>,
-			searchValue,
+			deferredSearchValue,
 			{
 				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 				keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
 				threshold: matchSorter.rankings.CONTAINS
 			}
 		)
-	}, [searchData, searchValue])
+	}, [searchData, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 
