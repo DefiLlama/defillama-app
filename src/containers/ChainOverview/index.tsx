@@ -48,7 +48,7 @@ export function ChainOverview(props: IChainOverviewData) {
 					))}
 				</div>
 			) : null}
-			{/* <Suspense
+			<Suspense
 				fallback={
 					<div
 						style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
@@ -57,7 +57,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				}
 			>
 				<Table protocols={props.protocols} />
-			</Suspense> */}
+			</Suspense>
 		</Layout>
 	)
 }
