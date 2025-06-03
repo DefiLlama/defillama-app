@@ -41,6 +41,7 @@ interface IProps extends IAdapterByChainPageData {
 		| 'DEX Aggregator Volume'
 		| 'Options Premium Volume'
 		| 'Options Notional Volume'
+		| 'Earnings'
 	>
 }
 
@@ -456,7 +457,8 @@ const chartKeys: Record<IProps['type'], string> = {
 	'Perp Volume': 'perpsVolume',
 	'Bridge Aggregator Volume': 'bridgeAggregators',
 	'Perp Aggregator Volume': 'perpsAggregators',
-	'DEX Aggregator Volume': 'dexAggregators'
+	'DEX Aggregator Volume': 'dexAggregators',
+	Earnings: 'earnings'
 }
 
 const getColumnsOptions = (type) =>
@@ -965,6 +967,51 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			meta: {
 				align: 'end',
 				headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 30 days'
+			},
+			size: 160
+		}
+	],
+	Earnings: [
+		NameColumn('Earnings'),
+		{
+			id: 'category',
+			header: 'Category',
+			accessorFn: (protocol) => protocol.category,
+			enableSorting: false,
+			cell: ({ getValue }) =>
+				getValue() ? (
+					<BasicLink
+						href={`/protocols/${slug(getValue() as string)}`}
+						className="text-sm font-medium text-[var(--link-text)]"
+					>
+						{getValue() as string}
+					</BasicLink>
+				) : (
+					''
+				),
+			size: 128
+		},
+		{
+			id: 'total24h',
+			header: 'Earnings 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				headerHelperText:
+					'Earnings (Revenue - Incentives) earned by the protocol in the last 24 hours, updated daily at 00:00 UTC'
+			},
+			size: 160
+		},
+		{
+			id: 'total30d',
+			header: 'Earnings 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			meta: {
+				align: 'end',
+				headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 30 days'
 			},
 			size: 160
 		}

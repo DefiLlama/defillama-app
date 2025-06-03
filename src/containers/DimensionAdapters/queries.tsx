@@ -110,6 +110,32 @@ export interface IAdapterSummary {
 	linkedProtocols?: string[]
 }
 
+//breakdown is using chain internal name so we need to map it
+let chainMappingCache: Record<string, string> | null = null
+
+async function getChainMapping() {
+	if (chainMappingCache) {
+		return chainMappingCache
+	}
+
+	try {
+		const mapping = await fetchWithErrorLogging('https://api.llama.fi/overview/_internal/chain-name-id-map').then(
+			handleFetchResponse
+		)
+		chainMappingCache = mapping
+		return mapping
+	} catch (error) {
+		console.warn('Failed to fetch chain mapping, falling back to toLowerCase conversion')
+		return {}
+	}
+}
+
+function getInternalChainName(displayChain: string, chainMapping: Record<string, string>) {
+	const mapped = Object.entries(chainMapping).find(([display, internal]) => display === displayChain)?.[1]
+	if (mapped) return mapped
+	return slug(displayChain)
+}
+
 export async function getAdapterChainOverview({
 	adapterType,
 	chain,
@@ -123,19 +149,133 @@ export async function getAdapterChainOverview({
 	excludeTotalDataChartBreakdown: boolean
 	dataType?: string
 }) {
-	let url = `${DIMENISIONS_OVERVIEW_API}/${
-		adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
-	}${
-		chain && chain !== 'All' ? `/${slug(chain)}` : ''
-	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	if (dataType !== 'dailyEarnings') {
+		let url = `${DIMENISIONS_OVERVIEW_API}/${
+			adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
+		}${
+			chain && chain !== 'All' ? `/${slug(chain)}` : ''
+		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
-	if (dataType) {
-		url += `&dataType=${dataType}`
+		if (dataType) {
+			url += `&dataType=${dataType}`
+		}
+
+		const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
+
+		return data as IAdapterOverview
+	} else {
+		//earnings we don't need to filter by chain, instead we filter it later on
+		let url = `${DIMENISIONS_OVERVIEW_API}/${
+			adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
+		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+
+		if (dataType) {
+			url += `&dataType=dailyRevenue`
+		}
+
+		const [data, emissionsData, chainMapping] = await Promise.all([
+			fetchWithErrorLogging(url).then(handleFetchResponse),
+			getEmissionsData(),
+			getChainMapping()
+		])
+
+		const earningsData = processEarningsData(data, emissionsData)
+
+		let filteredEarningsData = earningsData
+		let chainSpecificTotal24h = 0
+		let chainSpecificTotal7d = 0
+		let chainSpecificTotal30d = 0
+		let chainSpecificTotal1y = 0
+
+		if (chain && chain !== 'All') {
+			const internalChainName = getInternalChainName(chain, chainMapping)
+
+			filteredEarningsData = earningsData
+				.filter((protocol) => {
+					return protocol.breakdown24h && protocol.breakdown24h[internalChainName]
+				})
+				.map((protocol) => {
+					const chainRevenue24h: number = protocol.breakdown24h?.[internalChainName]
+						? (Object.values(protocol.breakdown24h[internalChainName]) as number[]).reduce(
+								(sum: number, val: number) => sum + (val || 0),
+								0
+						  )
+						: 0
+					const chainRevenue30d: number = protocol.breakdown30d?.[internalChainName]
+						? (Object.values(protocol.breakdown30d[internalChainName]) as number[]).reduce(
+								(sum: number, val: number) => sum + (val || 0),
+								0
+						  )
+						: 0
+
+					const totalRevenue24h: number = (
+						Object.values(protocol.breakdown24h || {}) as Record<string, number>[]
+					).reduce(
+						(sum: number, chainData) =>
+							sum +
+							(Object.values(chainData as Record<string, number>) as number[]).reduce(
+								(s: number, v: number) => s + (v || 0),
+								0
+							),
+						0
+					)
+					const totalRevenue30d: number = (
+						Object.values(protocol.breakdown30d || {}) as Record<string, number>[]
+					).reduce(
+						(sum: number, chainData) =>
+							sum +
+							(Object.values(chainData as Record<string, number>) as number[]).reduce(
+								(s: number, v: number) => s + (v || 0),
+								0
+							),
+						0
+					)
+
+					const chainRevenueRatio24h = totalRevenue24h > 0 ? chainRevenue24h / totalRevenue24h : 0
+					const chainRevenueRatio30d = totalRevenue30d > 0 ? chainRevenue30d / totalRevenue30d : 0
+
+					const emissions = protocol._emissions
+
+					const chainEmissions24h = (emissions?.emission24h || 0) * chainRevenueRatio24h
+					const chainEmissions30d = (emissions?.emission30d || 0) * chainRevenueRatio30d
+
+					const chainEarnings24h = chainRevenue24h - chainEmissions24h
+					const chainEarnings30d = chainRevenue30d - chainEmissions30d
+
+					chainSpecificTotal24h += chainEarnings24h
+					chainSpecificTotal30d += chainEarnings30d
+
+					return {
+						...protocol,
+						//use chain earnings (revenue - emissions)
+						total24h: chainEarnings24h,
+						total30d: chainEarnings30d
+					}
+				})
+		} else {
+			const processedEarningsData = earningsData.map((protocol) => {
+				const emissions = (protocol as any)._emissions
+				return calculateEarnings(protocol, emissions)
+			})
+
+			chainSpecificTotal24h = processedEarningsData.reduce((sum, p) => sum + (p.total24h ?? 0), 0)
+			chainSpecificTotal7d = processedEarningsData.reduce((sum, p) => sum + (p.total7d ?? 0), 0)
+			chainSpecificTotal30d = processedEarningsData.reduce((sum, p) => sum + (p.total30d ?? 0), 0)
+			chainSpecificTotal1y = processedEarningsData.reduce((sum, p) => sum + (p.total1y ?? 0), 0)
+
+			filteredEarningsData = processedEarningsData
+		}
+
+		return {
+			...data,
+			chain: chain === 'All' ? null : chain,
+			total24h: chainSpecificTotal24h,
+			total7d: chainSpecificTotal7d,
+			total30d: chainSpecificTotal30d,
+			total1y: chainSpecificTotal1y,
+			protocols: filteredEarningsData
+		}
 	}
-
-	const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
-
-	return data as IAdapterOverview
 }
 
 export async function getAdapterProtocolSummary({
@@ -184,6 +324,111 @@ export async function getCexVolume() {
 	// cexs might not be a list TypeError: cexs.filter is not a function
 	const volume = cexs.filter((c) => c.trust_score >= 9).reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
 	return volume
+}
+
+async function getEmissionsData() {
+	const data = await fetchWithErrorLogging('https://api.llama.fi/emissionsBreakdownAggregated').then(
+		handleFetchResponse
+	)
+	return data
+}
+
+function findEmissionsForProtocol(protocolVersions: any[], emissionsData: any) {
+	const parentKey = protocolVersions[0].parentProtocol || protocolVersions[0].defillamaId
+
+	let emissions = emissionsData.protocols.find((p) => {
+		if (p.defillamaId === parentKey) return true
+		if (protocolVersions.some((pv) => p.defillamaId === pv.defillamaId)) return true
+		if (p.linked && protocolVersions.some((pv) => p.linked.includes(pv.defillamaId))) return true
+		return false
+	})
+
+	// Special case for Chain category protocols
+	if (!emissions && protocolVersions.length === 1 && protocolVersions[0].category === 'Chain') {
+		const protocol = protocolVersions[0]
+		emissions = emissionsData.protocols.find((p) => p.name === protocol.name || p.name === protocol.displayName)
+	}
+
+	return emissions
+}
+
+function calculateEarnings(protocolData: any, emissions: any) {
+	return {
+		...protocolData,
+		total24h: (protocolData.total24h ?? 0) - (emissions?.emission24h ?? 0),
+		total7d: (protocolData.total7d ?? 0) - (emissions?.emission7d ?? 0),
+		total30d: (protocolData.total30d ?? 0) - (emissions?.emission30d ?? 0),
+		total1y: (protocolData.total1y ?? 0) - (emissions?.emission1y ?? 0),
+		totalAllTime: (protocolData.totalAllTime ?? 0) - (emissions?.emissionAllTime ?? 0),
+		_emissions: emissions
+	}
+}
+
+function aggregateProtocolVersions(protocolVersions: any[]) {
+	const aggregatedRevenue = {
+		total24h: protocolVersions.reduce((sum, p) => sum + (p.total24h ?? 0), 0),
+		total7d: protocolVersions.reduce((sum, p) => sum + (p.total7d ?? 0), 0),
+		total30d: protocolVersions.reduce((sum, p) => sum + (p.total30d ?? 0), 0),
+		total1y: protocolVersions.reduce((sum, p) => sum + (p.total1y ?? 0), 0),
+		totalAllTime: protocolVersions.reduce((sum, p) => sum + (p.totalAllTime ?? 0), 0)
+	}
+
+	const mergedBreakdown24h = mergeBreakdowns(protocolVersions.map((p) => p.breakdown24h).filter(Boolean))
+	const mergedBreakdown30d = mergeBreakdowns(protocolVersions.map((p) => p.breakdown30d).filter(Boolean))
+
+	const parentProtocol = protocolVersions[0]
+	return {
+		...parentProtocol,
+		name: parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.name,
+		displayName: parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.displayName,
+		...aggregatedRevenue,
+		chains: [...new Set(protocolVersions.flatMap((p) => p.chains))],
+		breakdown24h: mergedBreakdown24h,
+		breakdown30d: mergedBreakdown30d,
+		linkedProtocols: undefined,
+		parentProtocol: undefined
+	}
+}
+
+function mergeBreakdowns(breakdowns: Record<string, Record<string, number>>[]) {
+	const merged = {}
+	for (const breakdown of breakdowns) {
+		if (!breakdown) continue
+		for (const [chainName, protocolData] of Object.entries(breakdown)) {
+			if (!merged[chainName]) {
+				merged[chainName] = {}
+			}
+			for (const [protocolName, value] of Object.entries(protocolData)) {
+				merged[chainName][protocolName] = (merged[chainName][protocolName] || 0) + value
+			}
+		}
+	}
+	return merged
+}
+
+function processEarningsData(data: IAdapterOverview, emissionsData: any) {
+	const protocolGroups = new Map<string, any[]>()
+
+	for (const protocol of data.protocols) {
+		const parentKey = protocol.parentProtocol || protocol.defillamaId
+		if (!protocolGroups.has(parentKey)) {
+			protocolGroups.set(parentKey, [])
+		}
+		protocolGroups.get(parentKey)!.push(protocol)
+	}
+	const earningsData = []
+	for (const [parentKey, protocolVersions] of protocolGroups) {
+		const emissions = findEmissionsForProtocol(protocolVersions, emissionsData)
+
+		if (protocolVersions.length === 1) {
+			earningsData.push(calculateEarnings(protocolVersions[0], emissions))
+		} else {
+			const aggregatedProtocol = aggregateProtocolVersions(protocolVersions)
+			earningsData.push(calculateEarnings(aggregatedProtocol, emissions))
+		}
+	}
+
+	return earningsData
 }
 
 export const getAdapterByChainPageData = async ({
@@ -339,10 +584,6 @@ export const getAdapterByChainPageData = async ({
 					  protocol.methodology?.['BribeRevenue'] ??
 					  protocol.methodology?.['TokenTaxes']
 				: null
-
-		if (protocol.name === 'Berachain Bribes') {
-			console.log({ methodology })
-		}
 
 		const summary = {
 			name: protocol.displayName,
