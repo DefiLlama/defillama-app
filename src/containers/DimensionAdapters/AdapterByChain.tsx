@@ -998,8 +998,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['p
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
 			meta: {
-				headerHelperText:
-					'Earnings (Revenue - Incentives) earned by the protocol in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 24 hours'
 			},
 			size: 160
 		},
