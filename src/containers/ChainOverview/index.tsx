@@ -6,7 +6,6 @@ import { Suspense, lazy } from 'react'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Icon } from '~/components/Icon'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { Announcement } from '~/components/Announcement'
 import { Metrics } from '~/components/Metrics'
 
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
@@ -49,7 +48,7 @@ export function ChainOverview(props: IChainOverviewData) {
 					))}
 				</div>
 			) : null}
-			<Suspense
+			{/* <Suspense
 				fallback={
 					<div
 						style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
@@ -58,7 +57,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				}
 			>
 				<Table protocols={props.protocols} />
-			</Suspense>
+			</Suspense> */}
 		</Layout>
 	)
 }
