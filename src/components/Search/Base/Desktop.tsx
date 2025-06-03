@@ -6,6 +6,7 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { Tooltip } from '~/components/Tooltip'
+import { BasicLink } from '~/components/Link'
 
 export const DesktopSearch = (props: IBaseSearchProps) => {
 	const {
@@ -90,6 +91,13 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 					)}
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
+			<BasicLink
+				href="/ai"
+				className="flex items-center gap-[10px] text-white py-2 px-4 text-xs rounded-md mr-auto bg-[linear-gradient(94deg,#1F67D2_24.73%,#5A9CFF_57.42%,#1F67D2_99.73%)] shadow-[0px_0px_30px_0px_rgba(31,103,210,0.50),_0px_0px_1px_2px_rgba(255,255,255,0.10)]"
+			>
+				<span>Ask LlamaAI</span>
+				<img src="/icons/ask-llama-ai.svg" alt="Ask LlamaAI" className="w-4 h-4 ml-auto" />
+			</BasicLink>
 			<>{filters}</>
 		</div>
 	)
