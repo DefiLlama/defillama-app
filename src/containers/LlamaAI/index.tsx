@@ -335,7 +335,7 @@ const PromptInput = ({
 						<textarea
 							ref={ref}
 							rows={5}
-							placeholder="Type @ or $"
+							placeholder="Type @ to insert an entity"
 							// We need to re-calculate the position of the combobox popover
 							// when the textarea contents are scrolled.
 							onScroll={combobox.render}
