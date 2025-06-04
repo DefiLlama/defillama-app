@@ -268,7 +268,7 @@ export async function getAdapterChainOverview({
 
 		return {
 			...data,
-			chain: chain === 'All' ? null : chain,
+			chain,
 			total24h: chainSpecificTotal24h,
 			total7d: chainSpecificTotal7d,
 			total30d: chainSpecificTotal30d,

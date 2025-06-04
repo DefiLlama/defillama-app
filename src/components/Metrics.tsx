@@ -111,8 +111,8 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 					<rect
 						x="1"
 						y="1"
-						width="calc(100% - 1px)"
-						height="calc(100% - 1px)"
+						width="calc(100% - 1.5px)"
+						height="calc(100% - 1.5px)"
 						rx="6"
 						ry="6"
 						fill="none"
