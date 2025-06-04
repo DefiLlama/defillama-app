@@ -271,6 +271,7 @@ const PromptInput = ({
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
 			handleSubmit(value)
+			setValue('')
 		}
 	}
 
