@@ -284,7 +284,8 @@ const PromptInput = ({
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
-			handleSubmit(value)
+			console.log(entitiesRef.current)
+			// handleSubmit(value)
 			setValue('')
 			if (highlightRef.current) {
 				highlightRef.current.innerHTML = ''
@@ -340,16 +341,14 @@ const PromptInput = ({
 		const itemValue: { listValue: string; slug: string; value: string } = getValue(listValue, trigger, searchData)
 		if (!itemValue) return
 
-		// entitiesRef.current.push(`${itemValue.value}:${itemValue.slug}`)
-
-		entitiesRef.current.entities.push(itemValue.value)
+		entitiesRef.current.entities.push(itemValue.listValue)
 		const [mekey, mevalue] = itemValue.slug.split('=')
 		entitiesRef.current.matchedEntities[mekey].push(mevalue)
 
 		setTrigger(null)
-		const getNewValue = replaceValue(offset, searchValue, itemValue.value)
+		const getNewValue = replaceValue(offset, searchValue, itemValue.listValue)
 		setValue(getNewValue)
-		const nextCaretOffset = offset + itemValue.value.length + 1
+		const nextCaretOffset = offset + itemValue.listValue.length + 1
 		setCaretOffset(nextCaretOffset)
 
 		if (highlightRef.current) {
