@@ -33,7 +33,9 @@ const FeesToggles = ({ dataType }: { dataType?: string }) => {
 				allValues={feesOptions}
 				selectedValues={selectedValues}
 				setSelectedValues={setSelectedValues}
-				label={`Include in ${['dailyRevenue', 'dailyHoldersRevenue'].includes(dataType) ? 'Revenue' : 'Fees'}`}
+				label={`Include in ${
+					['dailyRevenue', 'dailyHoldersRevenue', 'dailyEarnings'].includes(dataType) ? 'Revenue' : 'Fees'
+				}`}
 				triggerProps={{
 					className:
 						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C]'
