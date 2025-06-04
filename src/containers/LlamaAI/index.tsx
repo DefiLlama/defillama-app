@@ -267,6 +267,11 @@ const PromptInput = ({
 		if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
 			combobox.hide()
 		}
+
+		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
+			event.preventDefault()
+			handleSubmit(value)
+		}
 	}
 
 	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -448,6 +453,15 @@ const PromptResponse = ({
 			{showTable ? (
 				<div className="overflow-x-auto w-full">
 					<table className="border-collapse w-full">
+						<thead>
+							<tr>
+								{Object.keys(response?.rows[0]).map((key) => (
+									<th key={`${key}-header`} className="border border-[#e6e6e6] dark:border-[#222324] py-1 px-2">
+										{key}
+									</th>
+								))}
+							</tr>
+						</thead>
 						<tbody>
 							{response?.rows?.map((row) => {
 								let id = ''
@@ -457,7 +471,10 @@ const PromptResponse = ({
 								return (
 									<tr key={id} className="border border-[#e6e6e6] dark:border-[#222324]">
 										{Object.values(row).map((value) => (
-											<td key={`${id}-${value}`} className="border border-[#e6e6e6] dark:border-[#222324] py-1 px-2">
+											<td
+												key={`${id}-${value}`}
+												className="border border-[#e6e6e6] dark:border-[#222324] py-1 px-2 text-center"
+											>
 												{value}
 											</td>
 										))}
@@ -468,7 +485,7 @@ const PromptResponse = ({
 					</table>
 				</div>
 			) : null}
-			{response?.sql ? <p className="text-xs bg-[var(--app-bg)] rounded-lg p-4 w-full">SQL: {response.sql}</p> : null}
+			{response?.sql ? <pre className="text-xs bg-[var(--app-bg)] rounded-lg p-4 w-full">{response.sql}</pre> : null}
 			<ProgressiveText text={response?.answer ?? ''} />
 		</>
 	)
