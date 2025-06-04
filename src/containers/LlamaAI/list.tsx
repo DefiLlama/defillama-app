@@ -1,11 +1,13 @@
+import { ISearchData } from './types'
+
 export const defaultTriggers = ['@', '$']
 
-export function getList(trigger: string | null, searchData: any) {
+export function getList(trigger: string | null, searchData: ISearchData) {
 	switch (trigger) {
 		case '@':
-			return searchData.protocolsAndChains.map((item) => item.listValue)
+			return searchData.protocolsAndChains
 		case '$':
-			return searchData.tokens.map((item) => item.listValue)
+			return searchData.tokens
 		default:
 			return []
 	}

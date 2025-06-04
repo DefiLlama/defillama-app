@@ -9,6 +9,7 @@ import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceVal
 import { matchSorter } from 'match-sorter'
 import { getList, getValue } from './list'
 import { CopyHelper } from '~/components/Copy'
+import { ISearchData } from './types'
 
 async function fetchPromptResponse({
 	prompt,
@@ -50,7 +51,7 @@ async function fetchPromptResponse({
 
 const promptStorageKey = 'llama-ai'
 
-export function LlamaAI({ searchData }: { searchData: { label: string; slug: string }[] }) {
+export function LlamaAI({ searchData }: { searchData: ISearchData }) {
 	const [showChat, setShowChat] = useState(true)
 
 	const [prompt, setPrompt] = useState('')
@@ -238,7 +239,7 @@ const PromptInput = ({
 }: {
 	handleSubmit: (prompt: string) => void
 	isPending: boolean
-	searchData: any
+	searchData: ISearchData
 	entitiesRef: React.MutableRefObject<{ entities: Array<string>; matchedEntities: Record<string, string[]> }>
 }) => {
 	const ref = useRef<HTMLTextAreaElement>(null)
@@ -254,7 +255,9 @@ const PromptInput = ({
 
 	const matches = useMemo(() => {
 		return matchSorter(getList(trigger, searchData), deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1)
+			keys: ['listValue'],
+			sorter: (rankedItems) => rankedItems.sort((a, b) => b.item.tvl - a.item.tvl),
+			threshold: matchSorter.rankings.CONTAINS
 		}).slice(0, 10)
 	}, [trigger, deferredSearchValue])
 
@@ -419,15 +422,15 @@ const PromptInput = ({
 					}}
 					className="relative z-50 flex flex-col overflow-auto overscroll-contain min-w-[100px] max-w-[280px] rounded-md border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
 				>
-					{matches.map((value) => (
+					{matches.map(({ listValue }) => (
 						<Ariakit.ComboboxItem
-							key={value}
-							value={value}
+							key={listValue}
+							value={listValue}
 							focusOnHover
-							onClick={onItemClick(value)}
+							onClick={onItemClick(listValue)}
 							className="flex items-center justify-between gap-3 py-2 px-3 bg-[var(--bg1)] hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer"
 						>
-							<span>{value}</span>
+							<span>{listValue}</span>
 						</Ariakit.ComboboxItem>
 					))}
 				</Ariakit.ComboboxPopover>
