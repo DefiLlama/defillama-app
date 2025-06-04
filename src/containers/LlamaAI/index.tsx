@@ -233,12 +233,7 @@ export function LlamaAI({ searchData }: { searchData: ISearchData }) {
 	)
 }
 
-const recommendedPrompts = [
-	'Top 5 protocols by tvl',
-	'Top 5 tokenless projects',
-	'Chains ranked by app fees',
-	'Biggest TVL gainers'
-]
+const recommendedPrompts = ['Top 5 protocols by tvl', 'Recent hacks', 'Protocols by holder revenue']
 
 const PromptInput = ({
 	handleSubmit,
