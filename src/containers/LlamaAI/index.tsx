@@ -55,12 +55,12 @@ export function LlamaAI({ searchData }: { searchData: ISearchData }) {
 	const [showChat, setShowChat] = useState(true)
 
 	const [prompt, setPrompt] = useState('')
-	const entitiesRef = useRef<{ entities: Array<string>; matchedEntities: Record<string, string[]> }>({
-		entities: [],
+	const entitiesRef = useRef<{ entities: Set<string>; matchedEntities: Record<string, Set<string>> }>({
+		entities: new Set(),
 		matchedEntities: {
-			chain: [],
-			protocol: [],
-			protocol_parent: []
+			chain: new Set(),
+			protocol: new Set(),
+			protocol_parent: new Set()
 		}
 	})
 
@@ -81,11 +81,11 @@ export function LlamaAI({ searchData }: { searchData: ISearchData }) {
 		onSuccess: () => {
 			setPrompt('')
 			entitiesRef.current = {
-				entities: [],
+				entities: new Set(),
 				matchedEntities: {
-					chain: [],
-					protocol: [],
-					protocol_parent: []
+					chain: new Set(),
+					protocol: new Set(),
+					protocol_parent: new Set()
 				}
 			}
 		}
@@ -103,11 +103,20 @@ export function LlamaAI({ searchData }: { searchData: ISearchData }) {
 	}, [prevPromptsInStorage])
 
 	const handleSubmit = (prompt) => {
-		setPrompt(prompt)
+		let finalPrompt = prompt.trim()
+		Array.from(entitiesRef.current.entities).forEach((entity) => {
+			finalPrompt = finalPrompt.replaceAll(entity, entity.replace(/@/g, ''))
+		})
+
+		setPrompt(finalPrompt)
 
 		submitPrompt({
-			userQuestion: prompt,
-			matchedEntities: entitiesRef.current.matchedEntities
+			userQuestion: finalPrompt,
+			matchedEntities: {
+				chain: Array.from(entitiesRef.current.matchedEntities.chain),
+				protocol: Array.from(entitiesRef.current.matchedEntities.protocol),
+				protocol_parent: Array.from(entitiesRef.current.matchedEntities.protocol_parent)
+			}
 		})
 	}
 
@@ -240,7 +249,7 @@ const PromptInput = ({
 	handleSubmit: (prompt: string) => void
 	isPending: boolean
 	searchData: ISearchData
-	entitiesRef: React.MutableRefObject<{ entities: Array<string>; matchedEntities: Record<string, string[]> }>
+	entitiesRef: React.MutableRefObject<{ entities: Set<string>; matchedEntities: Record<string, Set<string>> }>
 }) => {
 	const ref = useRef<HTMLTextAreaElement>(null)
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -284,8 +293,7 @@ const PromptInput = ({
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
-			console.log(entitiesRef.current)
-			// handleSubmit(value)
+			handleSubmit(value)
 			setValue('')
 			if (highlightRef.current) {
 				highlightRef.current.innerHTML = ''
@@ -306,7 +314,7 @@ const PromptInput = ({
 		}
 		highlightTimerId.current = setTimeout(() => {
 			if (highlightRef.current) {
-				highlightRef.current.innerHTML = highlightWord(event.target.value, entitiesRef.current.entities)
+				highlightRef.current.innerHTML = highlightWord(event.target.value, Array.from(entitiesRef.current.entities))
 			}
 		}, 300)
 
@@ -341,9 +349,9 @@ const PromptInput = ({
 		const itemValue: { listValue: string; slug: string; value: string } = getValue(listValue, trigger, searchData)
 		if (!itemValue) return
 
-		entitiesRef.current.entities.push(itemValue.listValue)
+		entitiesRef.current.entities.add(itemValue.listValue)
 		const [mekey, mevalue] = itemValue.slug.split('=')
-		entitiesRef.current.matchedEntities[mekey].push(mevalue)
+		entitiesRef.current.matchedEntities[mekey].add(mevalue)
 
 		setTrigger(null)
 		const getNewValue = replaceValue(offset, searchValue, itemValue.listValue)
@@ -352,7 +360,7 @@ const PromptInput = ({
 		setCaretOffset(nextCaretOffset)
 
 		if (highlightRef.current) {
-			highlightRef.current.innerHTML = highlightWord(getNewValue(value), entitiesRef.current.entities)
+			highlightRef.current.innerHTML = highlightWord(getNewValue(value), Array.from(entitiesRef.current.entities))
 		}
 	}
 
