@@ -25,16 +25,23 @@ async function fetchPromptResponse({
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				user_question: userQuestion,
+				question: userQuestion,
 				matched_entities: matchedEntities ?? {}
 			})
-		}).then((res) => res.json())
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				if (data.error) {
+					throw new Error(data.error)
+				}
 
-		if (data.error) {
-			throw new Error(data.error)
+				return data
+			})
+
+		return {
+			prompt: prompt ?? userQuestion,
+			response: data as { answer: string; sql?: string; rows?: Array<Record<string, string | number>> }
 		}
-
-		return { prompt: prompt ?? userQuestion, response: data as { answer: string } }
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch prompt response')
 	}
@@ -124,7 +131,7 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 							<h1 className="text-[#666] dark:text-[#919296]">Chats</h1>
 							{prevPrompts.length === 0 ? (
 								<p className="p-4 text-center border border-dashed rounded-md text-[#666] dark:text-[#919296] border-[#666]/50 dark:border-[#919296]/50">
-									You don’t have any chats yet
+									You don't have any chats yet
 								</p>
 							) : (
 								<div className="flex flex-col w-full items-start gap-2">
@@ -395,20 +402,74 @@ function useProgressiveWords(text: string, delay = 15) {
 	return displayed
 }
 
+const ProgressiveText = ({ text }: { text: string }) => {
+	const animatedResponse = useProgressiveWords(text, 15)
+
+	return <>{animatedResponse}</>
+}
+
+const Thinking = () => {
+	const [dots, setDots] = useState('')
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setDots((prev) => {
+				if (prev.length >= 3) return ''
+				return prev + '.'
+			})
+		}, 350)
+		return () => clearInterval(interval)
+	}, [])
+
+	return <p>Thinking{dots}</p>
+}
+
 const PromptResponse = ({
 	response,
 	error,
 	isPending
 }: {
-	response?: { answer: string }
+	response?: { answer: string; sql?: string; rows?: Array<Record<string, string | number>> }
 	error?: string
 	isPending: boolean
 }) => {
-	const animatedResponse = useProgressiveWords(response?.answer ?? '', 15)
-
 	if (error) {
 		return <p className="text-red-500">{error}</p>
 	}
 
-	return <p>{isPending ? 'Thinking...' : animatedResponse}</p>
+	if (isPending) {
+		return <Thinking />
+	}
+
+	const showTable = response?.rows?.length > 1 && Object.keys(response?.rows[0]).length > 1
+
+	return (
+		<>
+			{showTable ? (
+				<div className="overflow-x-auto w-full">
+					<table className="border-collapse w-full">
+						<tbody>
+							{response?.rows?.map((row) => {
+								let id = ''
+								for (const key in row) {
+									id += `${key}-${row[key]}`
+								}
+								return (
+									<tr key={id} className="border border-[#e6e6e6] dark:border-[#222324]">
+										{Object.values(row).map((value) => (
+											<td key={`${id}-${value}`} className="border border-[#e6e6e6] dark:border-[#222324] py-1 px-2">
+												{value}
+											</td>
+										))}
+									</tr>
+								)
+							})}
+						</tbody>
+					</table>
+				</div>
+			) : null}
+			{response?.sql ? <p className="text-xs bg-[var(--app-bg)] rounded-lg p-4 w-full">SQL: {response.sql}</p> : null}
+			<ProgressiveText text={response?.answer ?? ''} />
+		</>
+	)
 }
