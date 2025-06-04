@@ -35,6 +35,7 @@ export interface IChartProps {
 	customYAxis?: Array<string>
 	hideOthersInTooltip?: boolean
 	hideDataZoom?: boolean
+	hideDownloadButton?: boolean
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {

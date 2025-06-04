@@ -12,7 +12,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 interface AddChartModalProps {
 	isOpen: boolean
 	onClose: () => void
-	onAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol') => void
+	onAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
 	onAddTable: (chain: string) => void
 	chains: Chain[]
 	chainsLoading: boolean
@@ -122,50 +122,87 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 		[protocols]
 	)
 
-	const protocolChartTypes = [
+	const protocolChartTypes = ['tvl', 'volume', 'fees', 'revenue', 'tokenMcap', 'tokenPrice', 'tokenVolume', 'medianApy']
+
+	const chainChartTypes = [
 		'tvl',
 		'volume',
 		'fees',
+		'users',
+		'txs',
+		'aggregators',
+		'perps',
+		'bridgeAggregators',
+		'perpsAggregators',
+		'options',
 		'revenue',
-		'perpsVolume',
-		'optionsVolume',
-		'aggregatorsVolume',
-		'perpsAggregatorsVolume',
-		'bridgeAggregatorsVolume'
+		'bribes',
+		'tokenTax',
+		'activeUsers',
+		'newUsers',
+		'gasUsed'
 	]
-
-	const chainChartTypes = ['tvl', 'volume', 'fees', 'users', 'txs']
 
 	const prefetchChartTypes = async (itemType: 'chain' | 'protocol', item: string) => {
 		setChartTypesLoading(true)
 		const chartTypes = itemType === 'chain' ? chainChartTypes : protocolChartTypes
 		const ChainCharts = require('../services/ChainCharts').default
 		const ProtocolCharts = require('../services/ProtocolCharts').default
+
+		let protocolGeckoId = null
+		if (itemType === 'protocol') {
+			const protocol = protocols.find((p: Protocol) => p.slug === item)
+			protocolGeckoId = protocol?.geckoId
+		}
+
 		await Promise.all(
 			chartTypes.map(async (type) => {
 				let data
+				const tokenChartTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
+
 				if (itemType === 'chain') {
 					data = queryClient.getQueryData([type, item])
 					if (!Array.isArray(data) || data.length === 0) {
 						await queryClient.prefetchQuery({ queryKey: [type, item], queryFn: () => ChainCharts[type](item) })
 					}
 				} else {
-					data = queryClient.getQueryData([type, undefined, item])
+					const queryKey =
+						tokenChartTypes.includes(type) && protocolGeckoId
+							? [type, undefined, item, protocolGeckoId]
+							: [type, undefined, item]
+					data = queryClient.getQueryData(queryKey)
 					if (!Array.isArray(data) || data.length === 0) {
-						await queryClient.prefetchQuery({
-							queryKey: [type, undefined, item],
-							queryFn: () => ProtocolCharts[type](item)
-						})
+						if (tokenChartTypes.includes(type) && protocolGeckoId) {
+							await queryClient.prefetchQuery({
+								queryKey,
+								queryFn: () => ProtocolCharts[type](item, protocolGeckoId)
+							})
+						} else if (!tokenChartTypes.includes(type)) {
+							await queryClient.prefetchQuery({
+								queryKey,
+								queryFn: () => ProtocolCharts[type](item)
+							})
+						}
 					}
 				}
 			})
 		)
 		const available = chartTypes.filter((type) => {
 			let data
+			const tokenChartTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
+
 			if (itemType === 'chain') {
 				data = queryClient.getQueryData([type, item])
 			} else {
-				data = queryClient.getQueryData([type, undefined, item])
+				const queryKey =
+					tokenChartTypes.includes(type) && protocolGeckoId
+						? [type, undefined, item, protocolGeckoId]
+						: [type, undefined, item]
+				data = queryClient.getQueryData(queryKey)
+
+				if (tokenChartTypes.includes(type) && !protocolGeckoId) {
+					return false
+				}
 			}
 			return Array.isArray(data) && data.length > 0
 		})
@@ -191,7 +228,8 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 		if (selectedItemType === 'chain' && selectedChain) {
 			onAddChart(selectedChain, selectedChartType, 'chain')
 		} else if (selectedItemType === 'protocol' && selectedProtocol) {
-			onAddChart(selectedProtocol, selectedChartType, 'protocol')
+			const protocol = protocols.find((p: Protocol) => p.slug === selectedProtocol)
+			onAddChart(selectedProtocol, selectedChartType, 'protocol', protocol?.geckoId)
 		} else if (selectedItemType === 'table' && selectedChain) {
 			onAddTable(selectedChain)
 		}
@@ -210,7 +248,7 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 			onClick={onClose}
 		>
 			<div
-				className="bg-[#070e0f] border border-white/30 p-6 max-w-md w-full shadow-xl"
+				className="bg-[#070e0f] border border-white/30 p-6 max-w-2xl w-full shadow-xl"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="flex items-center justify-between mb-6">
@@ -341,7 +379,7 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 									<div className="animate-spin h-5 w-5 border-b-2 border-[var(--primary1)]"></div>
 								</div>
 							) : (
-								<div className="grid grid-cols-3 gap-0">
+								<div className="grid grid-cols-2 gap-0">
 									{(selectedItemType === 'chain' ? chainChartTypes : protocolChartTypes)
 										.filter((key) => availableChartTypes.includes(key))
 										.map((key, index, array) => {
@@ -349,7 +387,7 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 											return (
 												<button
 													key={key}
-													className={`px-2 py-3 text-sm font-medium border transition-colors duration-200 ${
+													className={`px-3 py-3 text-sm font-medium border transition-colors duration-200 ${
 														selectedChartType === key
 															? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
 															: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
@@ -357,7 +395,7 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 													onClick={() => setSelectedChartType(key)}
 													disabled={chartTypesLoading}
 												>
-													{title.split(' ')[0]}
+													{title}
 												</button>
 											)
 										})}

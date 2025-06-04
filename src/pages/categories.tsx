@@ -186,7 +186,9 @@ export const descriptions = {
 	'Private Investment Platform':
 		'Protocols that coordinate private, gated investment opportunities onchain, typically for startups or early-stage projects, often led by curated investor groups',
 	'Risk Curators':
-		'Projects that analyze DeFi risks and help users choose strategies across lending, trading, or staking systems to improve safety and returns.'
+		'Projects that analyze DeFi risks and help users choose strategies across lending, trading, or staking systems to improve safety and returns.',
+	'DAO Service Provider': 'Protocols that provide services to DAOs',
+	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {

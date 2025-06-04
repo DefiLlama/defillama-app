@@ -25,7 +25,7 @@ export function useProtocolsAndChains() {
 			}
 			const data = await response.json()
 			return {
-				protocols: data.protocols.map((p) => ({ ...p, slug: sluggify(p.name) })),
+				protocols: data.protocols.map((p) => ({ ...p, slug: sluggify(p.name), geckoId: p.geckoId || null })),
 				chains: data.chains.map((name) => ({ name, slug: sluggify(name) }))
 			}
 		}
@@ -69,6 +69,28 @@ export function useChartData(chain: string, type: string) {
 				return () => ChainCharts.users(chain)
 			case 'txs':
 				return () => ChainCharts.txs(chain)
+			case 'aggregators':
+				return () => ChainCharts.aggregators(chain)
+			case 'perps':
+				return () => ChainCharts.perps(chain)
+			case 'bridgeAggregators':
+				return () => ChainCharts.bridgeAggregators(chain)
+			case 'perpsAggregators':
+				return () => ChainCharts.perpsAggregators(chain)
+			case 'options':
+				return () => ChainCharts.options(chain)
+			case 'revenue':
+				return () => ChainCharts.revenue(chain)
+			case 'bribes':
+				return () => ChainCharts.bribes(chain)
+			case 'tokenTax':
+				return () => ChainCharts.tokenTax(chain)
+			case 'activeUsers':
+				return () => ChainCharts.activeUsers(chain)
+			case 'newUsers':
+				return () => ChainCharts.newUsers(chain)
+			case 'gasUsed':
+				return () => ChainCharts.gasUsed(chain)
 			default:
 				console.error(`Unknown chart type: ${chartType}`)
 				return () => ChainCharts.tvl(chain)
@@ -85,7 +107,7 @@ export function useChartData(chain: string, type: string) {
 export function useChartsData(charts) {
 	return useQueries({
 		queries: charts.map((chart) => ({
-			queryKey: [chart.type, chart.chain, chart.protocol].filter(Boolean),
+			queryKey: [chart.type, chart.chain, chart.protocol, chart.geckoId].filter(Boolean),
 			queryFn: () => {
 				if (chart.protocol) {
 					switch (chart.type) {
@@ -97,6 +119,15 @@ export function useChartsData(charts) {
 							return ProtocolCharts.fees(chart.protocol)
 						case 'revenue':
 							return ProtocolCharts.revenue(chart.protocol)
+						case 'tokenMcap':
+							return ProtocolCharts.tokenMcap(chart.protocol, chart.geckoId)
+						case 'tokenPrice':
+							return ProtocolCharts.tokenPrice(chart.protocol, chart.geckoId)
+						case 'tokenVolume':
+							return ProtocolCharts.tokenVolume(chart.protocol, chart.geckoId)
+						case 'medianApy':
+							return ProtocolCharts.medianApy(chart.protocol)
+
 						default:
 							console.error(`Unknown chart type for protocol: ${chart.type}`)
 							return Promise.resolve([])
@@ -113,6 +144,28 @@ export function useChartsData(charts) {
 							return ChainCharts.users(chart.chain)
 						case 'txs':
 							return ChainCharts.txs(chart.chain)
+						case 'aggregators':
+							return ChainCharts.aggregators(chart.chain)
+						case 'perps':
+							return ChainCharts.perps(chart.chain)
+						case 'bridgeAggregators':
+							return ChainCharts.bridgeAggregators(chart.chain)
+						case 'perpsAggregators':
+							return ChainCharts.perpsAggregators(chart.chain)
+						case 'options':
+							return ChainCharts.options(chart.chain)
+						case 'revenue':
+							return ChainCharts.revenue(chart.chain)
+						case 'bribes':
+							return ChainCharts.bribes(chart.chain)
+						case 'tokenTax':
+							return ChainCharts.tokenTax(chart.chain)
+						case 'activeUsers':
+							return ChainCharts.activeUsers(chart.chain)
+						case 'newUsers':
+							return ChainCharts.newUsers(chart.chain)
+						case 'gasUsed':
+							return ChainCharts.gasUsed(chart.chain)
 						default:
 							console.error(`Unknown chart type for chain: ${chart.type}`)
 							return ChainCharts.tvl(chart.chain)

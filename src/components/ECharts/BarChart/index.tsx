@@ -22,7 +22,8 @@ export default function BarChart({
 	stackColors,
 	tooltipOrderBottomUp,
 	groupBy,
-	hideDataZoom = false
+	hideDataZoom = false,
+	hideDownloadButton = false
 }: IBarChartProps) {
 	const id = useId()
 
@@ -205,32 +206,34 @@ export default function BarChart({
 						portal
 					/>
 				)}
-				<CSVDownloadButton
-					onClick={() => {
-						try {
-							let rows = []
-							if (!stackKeys || stackKeys.length === 0) {
-								rows = [['Timestamp', 'Date', 'Value']]
-								for (const [date, value] of chartData ?? []) {
-									rows.push([date, toNiceCsvDate(date), value])
+				{hideDownloadButton ? null : (
+					<CSVDownloadButton
+						onClick={() => {
+							try {
+								let rows = []
+								if (!stackKeys || stackKeys.length === 0) {
+									rows = [['Timestamp', 'Date', 'Value']]
+									for (const [date, value] of chartData ?? []) {
+										rows.push([date, toNiceCsvDate(date), value])
+									}
+								} else {
+									rows = [['Timestamp', 'Date', ...selectedStacks]]
+									for (const item of chartData ?? []) {
+										const { date, ...rest } = item
+										rows.push([date, toNiceCsvDate(date), ...selectedStacks.map((stack) => rest[stack] ?? '')])
+									}
 								}
-							} else {
-								rows = [['Timestamp', 'Date', ...selectedStacks]]
-								for (const item of chartData ?? []) {
-									const { date, ...rest } = item
-									rows.push([date, toNiceCsvDate(date), ...selectedStacks.map((stack) => rest[stack] ?? '')])
-								}
+								const Mytitle = title ? slug(title) : 'data'
+								const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+								download(filename, rows.map((r) => r.join(',')).join('\n'))
+							} catch (error) {
+								console.error('Error generating CSV:', error)
 							}
-							const Mytitle = title ? slug(title) : 'data'
-							const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-							download(filename, rows.map((r) => r.join(',')).join('\n'))
-						} catch (error) {
-							console.error('Error generating CSV:', error)
-						}
-					}}
-					smol
-					className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
-				/>
+						}}
+						smol
+						className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+					/>
+				)}
 			</div>
 			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
 		</div>

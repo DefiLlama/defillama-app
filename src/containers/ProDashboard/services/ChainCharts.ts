@@ -1,78 +1,98 @@
-import { CHART_API, DIMENISIONS_OVERVIEW_API, PROTOCOL_ACTIVE_USERS_API, PROTOCOL_TRANSACTIONS_API } from '~/constants'
+import {
+	CHART_API,
+	DIMENISIONS_OVERVIEW_API,
+	PROTOCOL_ACTIVE_USERS_API,
+	PROTOCOL_TRANSACTIONS_API,
+	PROTOCOL_NEW_USERS_API,
+	PROTOCOL_GAS_USED_API
+} from '~/constants'
 
 export default class ChainCharts {
-	static tvl = async (chain: string): Promise<[string, number][]> => {
-		try {
-			const response = await fetch(`${CHART_API}/${chain}`)
-
-			if (!response.ok) {
-				throw new Error(`Failed to fetch TVL data for ${chain}: ${response.status} ${response.statusText}`)
-			}
-			const jsonData = await response.json()
-			if (!jsonData.tvl || !Array.isArray(jsonData.tvl)) {
-				return []
-			}
-
-			return jsonData.tvl
-		} catch (error) {
-			throw error
-		}
+	private static convertToNumberFormat(data: [string, number][]): [number, number][] {
+		return data.map(([date, value]) => [typeof date === 'string' ? parseInt(date, 10) : date, value])
 	}
 
-	static volume = async (chain: string): Promise<[string, number][]> => {
-		try {
-			const response = await fetch(`${DIMENISIONS_OVERVIEW_API}/dexs/${chain}`)
-
-			if (!response.ok) {
-				throw new Error(`Failed to fetch voume data for ${chain}: ${response.status} ${response.statusText}`)
-			}
-			const jsonData = await response.json()
-			if (!jsonData.totalDataChart || !Array.isArray(jsonData.totalDataChart)) {
-				return []
-			}
-
-			return jsonData.totalDataChart
-		} catch (error) {
-			throw error
-		}
+	static async dimensionsData(chain: string, type: string, dataType?: string): Promise<[number, number][]> {
+		if (!chain) return []
+		const url = dataType
+			? `${DIMENISIONS_OVERVIEW_API}/${type}/${chain}?dataType=${dataType}`
+			: `${DIMENISIONS_OVERVIEW_API}/${type}/${chain}`
+		const response = await fetch(url)
+		const data = await response.json()
+		return this.convertToNumberFormat(data.totalDataChart ?? [])
 	}
 
-	static fees = async (chain: string): Promise<[string, number][]> => {
-		try {
-			const response = await fetch(`${DIMENISIONS_OVERVIEW_API}/fees/${chain}`)
-			if (!response.ok) {
-				throw new Error(`Failed to fetch fees data for ${chain}: ${response.status} ${response.statusText}`)
-			}
-			const jsonData = await response.json()
-
-			if (!jsonData.totalDataChart || !Array.isArray(jsonData.totalDataChart)) {
-				return []
-			}
-
-			return jsonData.totalDataChart
-		} catch (error) {
-			console.error(`Error in fees fetch for ${chain}:`, error)
-			throw error
-		}
+	static async userMetrics(chain: string, api: string): Promise<[number, number][]> {
+		if (!chain) return []
+		const response = await fetch(`${api}/chain$${chain}`)
+		const data = await response.json()
+		return this.convertToNumberFormat(data ?? [])
 	}
-	static users = async (chain: string): Promise<[string, number][]> => {
-		try {
-			const response = await fetch(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chain}`)
-			const jsonData = await response.json()
-			return jsonData
-		} catch (error) {
-			console.error(`Error in users fetch for ${chain}:`, error)
-			throw error
-		}
+
+	static async tvl(chain: string): Promise<[number, number][]> {
+		if (!chain) return []
+		const response = await fetch(`${CHART_API}/${chain}`)
+		const data = await response.json()
+		return this.convertToNumberFormat(data.tvl ?? [])
 	}
-	static txs = async (chain: string): Promise<[string, number][]> => {
-		try {
-			const response = await fetch(`${PROTOCOL_TRANSACTIONS_API}/chain$${chain}`)
-			const jsonData = await response.json()
-			return jsonData
-		} catch (error) {
-			console.error(`Error in txs fetch for ${chain}:`, error)
-			throw error
-		}
+
+	static async volume(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'dexs')
+	}
+
+	static async fees(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'fees')
+	}
+
+	static async revenue(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'fees', 'dailyRevenue')
+	}
+
+	static async bribes(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'fees', 'dailyBribesRevenue')
+	}
+
+	static async tokenTax(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'fees', 'dailyTokenTaxes')
+	}
+
+	static async aggregators(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'aggregators')
+	}
+
+	static async perps(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'derivatives')
+	}
+
+	static async bridgeAggregators(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'bridge-aggregators')
+	}
+
+	static async perpsAggregators(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'aggregator-derivatives')
+	}
+
+	static async options(chain: string): Promise<[number, number][]> {
+		return this.dimensionsData(chain, 'options')
+	}
+
+	static async users(chain: string): Promise<[number, number][]> {
+		return this.userMetrics(chain, PROTOCOL_ACTIVE_USERS_API)
+	}
+
+	static async activeUsers(chain: string): Promise<[number, number][]> {
+		return this.userMetrics(chain, PROTOCOL_ACTIVE_USERS_API)
+	}
+
+	static async newUsers(chain: string): Promise<[number, number][]> {
+		return this.userMetrics(chain, PROTOCOL_NEW_USERS_API)
+	}
+
+	static async txs(chain: string): Promise<[number, number][]> {
+		return this.userMetrics(chain, PROTOCOL_TRANSACTIONS_API)
+	}
+
+	static async gasUsed(chain: string): Promise<[number, number][]> {
+		return this.userMetrics(chain, PROTOCOL_GAS_USED_API)
 	}
 }

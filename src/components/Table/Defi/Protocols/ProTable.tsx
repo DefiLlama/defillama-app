@@ -107,7 +107,7 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 
 	return (
 		<div className="w-full bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 p-4 h-full relative bg-clip-padding flex flex-col">
-			<div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+			<div className="flex items-center justify-between flex-wrap gap-2 mb-2 pr-6">
 				<h3 className="text-base font-semibold mr-auto">{chain} Protocols</h3>
 				<TagGroup
 					setValue={setFilter('category')}

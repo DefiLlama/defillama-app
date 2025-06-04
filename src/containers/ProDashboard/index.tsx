@@ -85,7 +85,7 @@ export default function ProDashboard() {
 		}
 	}, [chains, items.length])
 
-	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol') => {
+	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
 		const newChartId = `${item}-${chartType}-${Date.now()}`
 		const chartTypeDetails = CHART_TYPES[chartType]
 
@@ -104,7 +104,8 @@ export default function ProDashboard() {
 			newChart = {
 				...newChartBase,
 				protocol: item,
-				chain: ''
+				chain: '',
+				geckoId
 			} as ChartConfig
 		} else {
 			newChart = {

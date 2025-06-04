@@ -256,7 +256,8 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Fees', path: '/fees' },
 			{ name: 'Revenue', path: '/revenue' },
-			{ name: 'Holders Revenue', path: '/holders-revenue' }
+			{ name: 'Holders Revenue', path: '/holders-revenue' },
+			{ name: 'Earnings', path: '/earnings' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <Icon name="pie-chart" height={16} width={16} />

@@ -41,6 +41,7 @@ interface IProps extends IAdapterByChainPageData {
 		| 'DEX Aggregator Volume'
 		| 'Options Premium Volume'
 		| 'Options Notional Volume'
+		| 'Earnings'
 	>
 }
 
@@ -141,7 +142,7 @@ export function AdapterByChain(props: IProps) {
 
 	const instance = useReactTable({
 		data: protocols,
-		columns: columnsByType[props.type] as any,
+		columns: getColumnsByType(props.chain !== 'All')[props.type] as any,
 		state: {
 			sorting,
 			columnFilters,
@@ -456,7 +457,8 @@ const chartKeys: Record<IProps['type'], string> = {
 	'Perp Volume': 'perpsVolume',
 	'Bridge Aggregator Volume': 'bridgeAggregators',
 	'Perp Aggregator Volume': 'perpsAggregators',
-	'DEX Aggregator Volume': 'dexAggregators'
+	'DEX Aggregator Volume': 'dexAggregators',
+	Earnings: 'earnings'
 }
 
 const getColumnsOptions = (type) =>
@@ -572,401 +574,456 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 	}
 }
 
-const columnsByType: Record<IProps['type'], ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> = {
-	Fees: [
-		NameColumn('Fees'),
-		{
-			id: 'category',
-			header: 'Category',
-			accessorFn: (protocol) => protocol.category,
-			enableSorting: false,
-			cell: ({ getValue }) =>
-				getValue() ? (
-					<BasicLink
-						href={`/protocols/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-[var(--link-text)]"
-					>
-						{getValue() as string}
-					</BasicLink>
-				) : (
-					''
+const getColumnsByType = (
+	isChain: boolean = false
+): Record<IProps['type'], ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
+	return {
+		Fees: [
+			NameColumn('Fees'),
+			{
+				id: 'category',
+				header: 'Category',
+				accessorFn: (protocol) => protocol.category,
+				enableSorting: false,
+				cell: ({ getValue }) =>
+					getValue() ? (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-[var(--link-text)]"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						''
+					),
+				size: 128
+			},
+			{
+				id: 'definition',
+				header: 'Definition',
+				accessorFn: (protocol) => protocol.methodology ?? null,
+				cell: ({ getValue }) => (
+					<Tooltip content={getValue() as string} className="flex-1">
+						<span className="overflow-hidden text-ellipsis whitespace-normal line-clamp-2 min-w-0">
+							{getValue() as string}
+						</span>
+					</Tooltip>
 				),
-			size: 128
-		},
-		{
-			id: 'definition',
-			header: 'Definition',
-			accessorFn: (protocol) => protocol.methodology ?? null,
-			cell: ({ getValue }) => (
-				<Tooltip content={getValue() as string} className="flex-1">
-					<span className="overflow-hidden text-ellipsis whitespace-normal line-clamp-2 min-w-0">
-						{getValue() as string}
-					</span>
-				</Tooltip>
-			),
-			enableSorting: false,
-			size: 400
-		},
-		{
-			id: 'total24h',
-			header: 'Fees 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText:
-					'Total fees paid by users when using the protocol in the last 24 hours, updated daily at 00:00 UTC'
+				enableSorting: false,
+				size: 400
 			},
-			size: 128
-		},
-		{
-			id: 'total30d',
-			header: 'Fees 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Total fees paid by users when using the protocol in the last 30 days'
+			{
+				id: 'total24h',
+				header: 'Fees 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText:
+						'Total fees paid by users when using the protocol in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 128
 			},
-			size: 128
-		}
-	],
-	Revenue: [
-		NameColumn('Revenue'),
-		{
-			id: 'category',
-			header: 'Category',
-			accessorFn: (protocol) => protocol.category,
-			enableSorting: false,
-			cell: ({ getValue }) =>
-				getValue() ? (
-					<BasicLink
-						href={`/protocols/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-[var(--link-text)]"
-					>
-						{getValue() as string}
-					</BasicLink>
-				) : (
-					''
+			{
+				id: 'total30d',
+				header: 'Fees 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Total fees paid by users when using the protocol in the last 30 days'
+				},
+				size: 128
+			}
+		],
+		Revenue: [
+			NameColumn('Revenue'),
+			{
+				id: 'category',
+				header: 'Category',
+				accessorFn: (protocol) => protocol.category,
+				enableSorting: false,
+				cell: ({ getValue }) =>
+					getValue() ? (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-[var(--link-text)]"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						''
+					),
+				size: 128
+			},
+			{
+				id: 'definition',
+				header: 'Definition',
+				accessorFn: (protocol) => protocol.methodology ?? null,
+				cell: ({ getValue }) => (
+					<Tooltip content={getValue() as string} className="flex-1">
+						<span className="overflow-hidden text-ellipsis whitespace-normal line-clamp-2 min-w-0">
+							{getValue() as string}
+						</span>
+					</Tooltip>
 				),
-			size: 128
-		},
-		{
-			id: 'definition',
-			header: 'Definition',
-			accessorFn: (protocol) => protocol.methodology ?? null,
-			cell: ({ getValue }) => (
-				<Tooltip content={getValue() as string} className="flex-1">
-					<span className="overflow-hidden text-ellipsis whitespace-normal line-clamp-2 min-w-0">
-						{getValue() as string}
-					</span>
-				</Tooltip>
-			),
-			enableSorting: false,
-			size: 400
-		},
-		{
-			id: 'total24h',
-			header: 'Revenue 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText: 'Revenue earned by the protocol in the last 24 hours, updated daily at 00:00 UTC'
+				enableSorting: false,
+				size: 400
 			},
-			size: 128
-		},
-		{
-			id: 'total30d',
-			header: 'Revenue 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Revenue earned by the protocol in the last 30 days'
+			{
+				id: 'total24h',
+				header: 'Revenue 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText: 'Revenue earned by the protocol in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 128
 			},
-			size: 128
-		}
-	],
-	'Holders Revenue': [
-		NameColumn('Holders Revenue'),
-		{
-			id: 'category',
-			header: 'Category',
-			accessorFn: (protocol) => protocol.category,
-			enableSorting: false,
-			cell: ({ getValue }) =>
-				getValue() ? (
-					<BasicLink
-						href={`/protocols/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-[var(--link-text)]"
-					>
-						{getValue() as string}
-					</BasicLink>
-				) : (
-					''
+			{
+				id: 'total30d',
+				header: 'Revenue 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
+				},
+				size: 128
+			}
+		],
+		'Holders Revenue': [
+			NameColumn('Holders Revenue'),
+			{
+				id: 'category',
+				header: 'Category',
+				accessorFn: (protocol) => protocol.category,
+				enableSorting: false,
+				cell: ({ getValue }) =>
+					getValue() ? (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-[var(--link-text)]"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						''
+					),
+				size: 128
+			},
+			{
+				id: 'definition',
+				header: 'Definition',
+				accessorFn: (protocol) => protocol.methodology ?? null,
+				cell: ({ getValue }) => (
+					<Tooltip content={getValue() as string} className="flex-1">
+						<span className="overflow-hidden text-ellipsis whitespace-normal line-clamp-2 min-w-0">
+							{getValue() as string}
+						</span>
+					</Tooltip>
 				),
-			size: 128
-		},
-		{
-			id: 'definition',
-			header: 'Definition',
-			accessorFn: (protocol) => protocol.methodology ?? null,
-			cell: ({ getValue }) => (
-				<Tooltip content={getValue() as string} className="flex-1">
-					<span className="overflow-hidden text-ellipsis whitespace-normal line-clamp-2 min-w-0">
-						{getValue() as string}
-					</span>
-				</Tooltip>
-			),
-			enableSorting: false,
-			size: 400
-		},
-		{
-			id: 'total24h',
-			header: 'Holders Revenue 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText:
-					'Revenue earned by token holders of the protocol in the last 24 hours, updated daily at 00:00 UTC'
+				enableSorting: false,
+				size: 400
 			},
-			size: 180
-		},
-		{
-			id: 'total30d',
-			header: 'Holders Revenue 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Revenue earned by token holders of the protocol in the last 30 days'
+			{
+				id: 'total24h',
+				header: 'Holders Revenue 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText:
+						'Revenue earned by token holders of the protocol in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 180
 			},
-			size: 180
-		}
-	],
-	'Options Premium Volume': [
-		NameColumn('Options Premium Volume'),
-		{
-			id: 'total24h',
-			header: 'Premium Volume 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText:
-					'Sum of value paid buying and selling options on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
+			{
+				id: 'total30d',
+				header: 'Holders Revenue 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Revenue earned by token holders of the protocol in the last 30 days'
+				},
+				size: 180
+			}
+		],
+		'Options Premium Volume': [
+			NameColumn('Options Premium Volume'),
+			{
+				id: 'total24h',
+				header: 'Premium Volume 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText:
+						'Sum of value paid buying and selling options on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 180
 			},
-			size: 180
-		},
-		{
-			id: 'total30d',
-			header: 'Premium Volume 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Sum of value paid buying and selling options on the options exchange in the last 30 days'
+			{
+				id: 'total30d',
+				header: 'Premium Volume 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Sum of value paid buying and selling options on the options exchange in the last 30 days'
+				},
+				size: 180
+			}
+		],
+		'Options Notional Volume': [
+			NameColumn('Options Notional Volume'),
+			{
+				id: 'total24h',
+				header: 'Notional Volume 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText:
+						'Sum of the notional value of all options that have been traded on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 180
 			},
-			size: 180
-		}
-	],
-	'Options Notional Volume': [
-		NameColumn('Options Notional Volume'),
-		{
-			id: 'total24h',
-			header: 'Notional Volume 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText:
-					'Sum of the notional value of all options that have been traded on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
+			{
+				id: 'total30d',
+				header: 'Notional Volume 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText:
+						'Sum of the notional value of all options that have been traded on the options exchange in the last 30 days'
+				},
+				size: 180
+			}
+		],
+		'DEX Volume': [
+			NameColumn('DEX Volume'),
+			{
+				id: 'total24h',
+				header: 'DEX Volume 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText: 'Volume of all spot swaps on the dex in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 152
 			},
-			size: 180
-		},
-		{
-			id: 'total30d',
-			header: 'Notional Volume 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText:
-					'Sum of the notional value of all options that have been traded on the options exchange in the last 30 days'
+			{
+				id: 'total30d',
+				header: 'DEX Volume 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Volume of all spot swaps on the dex in the last 30 days'
+				},
+				size: 152
+			}
+		],
+		'Perp Volume': [
+			NameColumn('Perp Volume'),
+			{
+				id: 'total24h',
+				header: 'Perp Volume 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText:
+						'Notional volume of all trades on the perp exchange, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 160
 			},
-			size: 180
-		}
-	],
-	'DEX Volume': [
-		NameColumn('DEX Volume'),
-		{
-			id: 'total24h',
-			header: 'DEX Volume 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText: 'Volume of all spot swaps on the dex in the last 24 hours, updated daily at 00:00 UTC'
+			{
+				id: 'total30d',
+				header: 'Perp Volume 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage in the last 30 days'
+				},
+				size: 160
+			}
+		],
+		'Perp Aggregator Volume': [
+			NameColumn('Perp Aggregator Volume'),
+			{
+				id: 'total24h',
+				header: () => (
+					<>
+						<span className="md:hidden">Perp Agg Vol 24h</span>
+						<span className="hidden md:block">Perp Aggregator Volume 24h</span>
+					</>
+				),
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText:
+						'Notional volume of all trades on the perp aggregator, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 160
 			},
-			size: 152
-		},
-		{
-			id: 'total30d',
-			header: 'DEX Volume 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Volume of all spot swaps on the dex in the last 30 days'
+			{
+				id: 'total30d',
+				header: () => (
+					<>
+						<span className="md:hidden">Perp Agg Vol 30d</span>
+						<span className="hidden md:block">Perp Aggregator Volume 30d</span>
+					</>
+				),
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText:
+						'Notional volume of all trades on the perp aggregator, including leverage in the last 30 days'
+				},
+				size: 160
+			}
+		],
+		'Bridge Aggregator Volume': [
+			NameColumn('Bridge Aggregator Volume'),
+			{
+				id: 'total24h',
+				header: () => (
+					<>
+						<span className="md:hidden">Bridge Agg Vol 24h</span>
+						<span className="hidden md:block">Bridge Aggregator Volume 24h</span>
+					</>
+				),
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText:
+						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 160
 			},
-			size: 152
-		}
-	],
-	'Perp Volume': [
-		NameColumn('Perp Volume'),
-		{
-			id: 'total24h',
-			header: 'Perp Volume 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText:
-					'Notional volume of all trades on the perp exchange, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+			{
+				id: 'total30d',
+				header: () => (
+					<>
+						<span className="md:hidden">Bridge Agg Vol 30d</span>
+						<span className="hidden md:block">Bridge Aggregator Volume 30d</span>
+					</>
+				),
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText:
+						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 30 days'
+				},
+				size: 160
+			}
+		],
+		'DEX Aggregator Volume': [
+			NameColumn('DEX Aggregator Volume'),
+			{
+				id: 'total24h',
+				header: () => (
+					<>
+						<span className="md:hidden">DEX Agg Vol 24h</span>
+						<span className="hidden md:block">DEX Aggregator Volume 24h</span>
+					</>
+				),
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText:
+						'Volume of spot token swaps on the DEX aggregator in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 160
 			},
-			size: 160
-		},
-		{
-			id: 'total30d',
-			header: 'Perp Volume 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage in the last 30 days'
+			{
+				id: 'total30d',
+				header: () => (
+					<>
+						<span className="md:hidden">DEX Agg Vol 30d</span>
+						<span className="hidden md:block">DEX Aggregator Volume 30d</span>
+					</>
+				),
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 30 days'
+				},
+				size: 160
+			}
+		],
+		Earnings: [
+			NameColumn('Earnings'),
+			{
+				id: 'category',
+				header: 'Category',
+				accessorFn: (protocol) => protocol.category,
+				enableSorting: false,
+				cell: ({ getValue }) =>
+					getValue() ? (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-[var(--link-text)]"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						''
+					),
+				size: 128
 			},
-			size: 160
-		}
-	],
-	'Perp Aggregator Volume': [
-		NameColumn('Perp Aggregator Volume'),
-		{
-			id: 'total24h',
-			header: () => (
-				<>
-					<span className="md:hidden">Perp Agg Vol 24h</span>
-					<span className="hidden md:block">Perp Aggregator Volume 24h</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText:
-					'Notional volume of all trades on the perp aggregator, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+			{
+				id: 'total24h',
+				header: 'Earnings 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					headerHelperText:
+						'Earnings (Revenue - Incentives) earned by the protocol in the last 24 hours' +
+						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
+				},
+				size: 160
 			},
-			size: 160
-		},
-		{
-			id: 'total30d',
-			header: () => (
-				<>
-					<span className="md:hidden">Perp Agg Vol 30d</span>
-					<span className="hidden md:block">Perp Aggregator Volume 30d</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Notional volume of all trades on the perp aggregator, including leverage in the last 30 days'
-			},
-			size: 160
-		}
-	],
-	'Bridge Aggregator Volume': [
-		NameColumn('Bridge Aggregator Volume'),
-		{
-			id: 'total24h',
-			header: () => (
-				<>
-					<span className="md:hidden">Bridge Agg Vol 24h</span>
-					<span className="hidden md:block">Bridge Aggregator Volume 24h</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText:
-					'Sum of value of all assets that were bridged through the bridge Aggregator in the last 24 hours, updated daily at 00:00 UTC'
-			},
-			size: 160
-		},
-		{
-			id: 'total30d',
-			header: () => (
-				<>
-					<span className="md:hidden">Bridge Agg Vol 30d</span>
-					<span className="hidden md:block">Bridge Aggregator Volume 30d</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText:
-					'Sum of value of all assets that were bridged through the bridge Aggregator in the last 30 days'
-			},
-			size: 160
-		}
-	],
-	'DEX Aggregator Volume': [
-		NameColumn('DEX Aggregator Volume'),
-		{
-			id: 'total24h',
-			header: () => (
-				<>
-					<span className="md:hidden">DEX Agg Vol 24h</span>
-					<span className="hidden md:block">DEX Aggregator Volume 24h</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				headerHelperText:
-					'Volume of spot token swaps on the DEX aggregator in the last 24 hours, updated daily at 00:00 UTC'
-			},
-			size: 160
-		},
-		{
-			id: 'total30d',
-			header: () => (
-				<>
-					<span className="md:hidden">DEX Agg Vol 30d</span>
-					<span className="hidden md:block">DEX Aggregator Volume 30d</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			sortUndefined: 'last',
-			meta: {
-				align: 'end',
-				headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 30 days'
-			},
-			size: 160
-		}
-	]
+			{
+				id: 'total30d',
+				header: 'Earnings 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText:
+						'Earnings (Revenue - Incentives) earned by the protocol in the last 30 days' +
+						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
+				},
+				size: 160
+			}
+		]
+	}
 }
+
+const columnsByType = getColumnsByType()

@@ -30,6 +30,7 @@ export default function AreaChart({
 	hideLegend = true,
 	hideDefaultLegend,
 	hideDataZoom = false,
+	hideDownloadButton = false,
 	...props
 }: IChartProps) {
 	const id = useId()
@@ -311,32 +312,34 @@ export default function AreaChart({
 						portal
 					/>
 				)}
-				<CSVDownloadButton
-					onClick={() => {
-						try {
-							let rows = []
-							if (!chartsStack || chartsStack.length === 0) {
-								rows = [['Timestamp', 'Date', 'Value']]
-								for (const [date, value] of chartData ?? []) {
-									rows.push([date, toNiceCsvDate(date), value])
+				{hideDownloadButton ? null : (
+					<CSVDownloadButton
+						onClick={() => {
+							try {
+								let rows = []
+								if (!chartsStack || chartsStack.length === 0) {
+									rows = [['Timestamp', 'Date', 'Value']]
+									for (const [date, value] of chartData ?? []) {
+										rows.push([date, toNiceCsvDate(date), value])
+									}
+								} else {
+									rows = [['Timestamp', 'Date', ...chartsStack]]
+									for (const item of chartData ?? []) {
+										const { date, ...rest } = item
+										rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
+									}
 								}
-							} else {
-								rows = [['Timestamp', 'Date', ...chartsStack]]
-								for (const item of chartData ?? []) {
-									const { date, ...rest } = item
-									rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
-								}
+								const Mytitle = title ? slug(title) : 'data'
+								const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+								download(filename, rows.map((r) => r.join(',')).join('\n'))
+							} catch (error) {
+								console.error('Error generating CSV:', error)
 							}
-							const Mytitle = title ? slug(title) : 'data'
-							const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-							download(filename, rows.map((r) => r.join(',')).join('\n'))
-						} catch (error) {
-							console.error('Error generating CSV:', error)
-						}
-					}}
-					smol
-					className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
-				/>
+						}}
+						smol
+						className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+					/>
+				)}
 			</div>
 			<div id={id} className="min-h-[360px] my-auto mx-0" style={height ? { height } : undefined} />
 		</div>
