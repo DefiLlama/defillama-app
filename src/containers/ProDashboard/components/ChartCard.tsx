@@ -1,7 +1,8 @@
 import { Icon } from '~/components/Icon'
-import { chainIconUrl, formattedNum } from '~/utils'
 import dynamic from 'next/dynamic'
 import { ChartConfig, CHART_TYPES, Chain, Protocol } from '../types'
+import { LoadingSpinner } from './LoadingSpinner'
+import { getItemIconUrl } from '../utils'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -34,11 +35,11 @@ export function ChartCard({ chart, onRemove, getChainInfo, getProtocolInfo, onGr
 		itemInfo = getProtocolInfo(chart.protocol)
 		console.log(itemInfo, chart)
 		itemName = itemInfo?.name || chart.protocol
-		itemIconUrl = itemInfo?.logo || `https://defillama.com/icons/protocols/${itemInfo?.id || chart.protocol}.jpg`
+		itemIconUrl = getItemIconUrl('protocol', itemInfo, chart.protocol)
 	} else if (chart.chain) {
 		itemInfo = getChainInfo(chart.chain)
 		itemName = chart.chain
-		itemIconUrl = chainIconUrl(chart.chain)
+		itemIconUrl = getItemIconUrl('chain', itemInfo, chart.chain)
 	}
 
 	return (
@@ -97,7 +98,7 @@ function renderChart({ chart, data, isLoading, hasError, refetch, itemName }) {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center h-full">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary1)]"></div>
+				<LoadingSpinner />
 			</div>
 		)
 	}
