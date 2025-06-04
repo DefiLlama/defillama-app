@@ -25,12 +25,9 @@ async function fetchPromptResponse({
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				question: userQuestion
+				user_question: userQuestion,
+				matched_entities: matchedEntities ?? {}
 			})
-			// body: JSON.stringify({
-			// 	user_question: userQuestion,
-			// 	matched_entities: matchedEntities ?? {}
-			// })
 		}).then((res) => res.json())
 
 		if (data.error) {
@@ -67,6 +64,7 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 		},
 		onSuccess: () => {
 			setPrompt('')
+			setEntities([])
 		}
 	})
 
@@ -83,16 +81,9 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 
 	const handleSubmit = (prompt) => {
 		setPrompt(prompt)
-		let finalPrompt = prompt
-		if (entities.length > 0) {
-			entities.forEach((entity) => {
-				const [name, slug] = entity.split(':')
-				finalPrompt = finalPrompt.replace(name, slug)
-			})
-		}
+
 		submitPrompt({
-			prompt,
-			userQuestion: finalPrompt,
+			userQuestion: prompt,
 			matchedEntities: entities.reduce((acc, entity) => {
 				const [name, slug] = entity.split(':')
 				const [entityName, entitySlug] = slug.split('=')
