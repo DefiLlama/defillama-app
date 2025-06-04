@@ -54,7 +54,14 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 	const [showChat, setShowChat] = useState(true)
 
 	const [prompt, setPrompt] = useState('')
-	const [entities, setEntities] = useState<string[]>([])
+	const entitiesRef = useRef<{ entities: Array<string>; matchedEntities: Record<string, string[]> }>({
+		entities: [],
+		matchedEntities: {
+			chain: [],
+			protocol: [],
+			protocol_parent: []
+		}
+	})
 
 	const {
 		data: promptResponse,
@@ -64,7 +71,7 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 		reset: resetPrompt
 	} = useMutation({
 		mutationFn: fetchPromptResponse,
-		onMutate: ({ userQuestion }) => {
+		onMutate: ({ userQuestion, matchedEntities }) => {
 			// const prevPrompt = JSON.parse(window.localStorage.getItem(promptStorageKey) ?? '[]') as string[]
 			// const newPrompts = [...prevPrompt, `${Date.now()}--${userQuestion}`]
 			// window.localStorage.setItem(promptStorageKey, JSON.stringify(newPrompts))
@@ -72,7 +79,14 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 		},
 		onSuccess: () => {
 			setPrompt('')
-			setEntities([])
+			entitiesRef.current = {
+				entities: [],
+				matchedEntities: {
+					chain: [],
+					protocol: [],
+					protocol_parent: []
+				}
+			}
 		}
 	})
 
@@ -92,12 +106,7 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 
 		submitPrompt({
 			userQuestion: prompt,
-			matchedEntities: entities.reduce((acc, entity) => {
-				const [name, slug] = entity.split(':')
-				const [entityName, entitySlug] = slug.split('=')
-				acc[entityName] = [entitySlug]
-				return acc
-			}, {} as Record<string, string[]>)
+			matchedEntities: entitiesRef.current.matchedEntities
 		})
 	}
 
@@ -189,7 +198,7 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 						handleSubmit={handleSubmit}
 						isPending={isPending}
 						searchData={searchData}
-						setEntities={setEntities}
+						entitiesRef={entitiesRef}
 					/>
 					{!isSubmitted ? (
 						<div className="flex items-center gap-4 justify-center flex-wrap w-full pb-[100px]">
@@ -225,14 +234,15 @@ const PromptInput = ({
 	handleSubmit,
 	isPending,
 	searchData,
-	setEntities
+	entitiesRef
 }: {
 	handleSubmit: (prompt: string) => void
 	isPending: boolean
 	searchData: any
-	setEntities: React.Dispatch<React.SetStateAction<string[]>>
+	entitiesRef: React.MutableRefObject<{ entities: Array<string>; matchedEntities: Record<string, string[]> }>
 }) => {
 	const ref = useRef<HTMLTextAreaElement>(null)
+	const highlightRef = useRef<HTMLDivElement>(null)
 	const [value, setValue] = useState('')
 	const [trigger, setTrigger] = useState<string | null>(null)
 	const [caretOffset, setCaretOffset] = useState<number | null>(null)
@@ -273,10 +283,29 @@ const PromptInput = ({
 			event.preventDefault()
 			handleSubmit(value)
 			setValue('')
+			if (highlightRef.current) {
+				highlightRef.current.innerHTML = ''
+			}
 		}
 	}
 
+	const highlightTimerId = useRef<NodeJS.Timeout | null>(null)
+
 	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = event.target.value
+		}
+
+		// delay the highlight to avoid flickering
+		if (highlightTimerId.current) {
+			clearTimeout(highlightTimerId.current)
+		}
+		highlightTimerId.current = setTimeout(() => {
+			if (highlightRef.current) {
+				highlightRef.current.innerHTML = highlightWord(event.target.value, entitiesRef.current.entities)
+			}
+		}, 300)
+
 		const trigger = getTrigger(event.target)
 		const searchValue = getSearchValue(event.target)
 		// If there's a trigger character, we'll show the combobox popover. This can
@@ -299,17 +328,30 @@ const PromptInput = ({
 		combobox.setValue(searchValue)
 	}
 
-	const onItemClick = (value: string) => () => {
+	const onItemClick = (listValue: string) => () => {
 		const textarea = ref.current
 		if (!textarea) return
+
 		const offset = getTriggerOffset(textarea)
-		const itemValue: { listValue: string; slug: string; value: string } = getValue(value, trigger, searchData)
+
+		const itemValue: { listValue: string; slug: string; value: string } = getValue(listValue, trigger, searchData)
 		if (!itemValue) return
-		setEntities((prev) => [...prev, `${itemValue.value}:${itemValue.slug}`])
+
+		// entitiesRef.current.push(`${itemValue.value}:${itemValue.slug}`)
+
+		entitiesRef.current.entities.push(itemValue.value)
+		const [mekey, mevalue] = itemValue.slug.split('=')
+		entitiesRef.current.matchedEntities[mekey].push(mevalue)
+
 		setTrigger(null)
-		setValue(replaceValue(offset, searchValue, itemValue.value))
+		const getNewValue = replaceValue(offset, searchValue, itemValue.value)
+		setValue(getNewValue)
 		const nextCaretOffset = offset + itemValue.value.length + 1
 		setCaretOffset(nextCaretOffset)
+
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = highlightWord(getNewValue(value), entitiesRef.current.entities)
+		}
 	}
 
 	return (
@@ -321,38 +363,50 @@ const PromptInput = ({
 					const form = e.target as HTMLFormElement
 					handleSubmit(form.prompt.value)
 					setValue('')
+					if (highlightRef.current) {
+						highlightRef.current.innerHTML = ''
+					}
 				}}
 			>
-				<Ariakit.Combobox
-					store={combobox}
-					autoSelect
-					value={value}
-					// We'll overwrite how the combobox popover is shown, so we disable
-					// the default behaviors.
-					showOnClick={false}
-					showOnChange={false}
-					showOnKeyPress={false}
-					// To the combobox state, we'll only set the value after the trigger
-					// character (the search value), so we disable the default behavior.
-					setValueOnChange={false}
-					className="min-h-[100px] bg-[var(--app-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-4 w-full"
-					render={
-						<textarea
-							ref={ref}
-							rows={5}
-							placeholder="Type @ to insert an entity"
-							// We need to re-calculate the position of the combobox popover
-							// when the textarea contents are scrolled.
-							onScroll={combobox.render}
-							// Hide the combobox popover whenever the selection changes.
-							onPointerDown={combobox.hide}
-							onChange={onChange}
-							onKeyDown={onKeyDown}
-							name="prompt"
-						/>
-					}
-					disabled={isPending}
-				/>
+				<div className="w-full relative">
+					<Ariakit.Combobox
+						store={combobox}
+						autoSelect
+						value={value}
+						// We'll overwrite how the combobox popover is shown, so we disable
+						// the default behaviors.
+						showOnClick={false}
+						showOnChange={false}
+						showOnKeyPress={false}
+						// To the combobox state, we'll only set the value after the trigger
+						// character (the search value), so we disable the default behavior.
+						setValueOnChange={false}
+						render={
+							<textarea
+								ref={ref}
+								rows={5}
+								placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+								// We need to re-calculate the position of the combobox popover
+								// when the textarea contents are scrolled.
+								onScroll={combobox.render}
+								// Hide the combobox popover whenever the selection changes.
+								onPointerDown={combobox.hide}
+								onChange={onChange}
+								onKeyDown={onKeyDown}
+								name="prompt"
+								className="min-h-[100px] bg-[var(--app-bg)] border border-[#e6e6e6] dark:border-[#222324] text-[var(--app-bg)] caret-black dark:caret-white rounded-md p-4 w-full"
+								autoCorrect="off"
+								autoComplete="off"
+								spellCheck="false"
+							/>
+						}
+						disabled={isPending}
+					/>
+					<div
+						className="absolute top-0 left-0 bottom-0 right-0 whitespace-pre-wrap pointer-events-none z-[1] highlighted-text p-4"
+						ref={highlightRef}
+					/>
+				</div>
 				<Ariakit.ComboboxPopover
 					store={combobox}
 					hidden={!hasMatches}
@@ -500,4 +554,16 @@ const Code = ({ text }: { text: string }) => {
 			<CopyHelper toCopy={text} className="absolute bottom-2 right-2 z-10" />
 		</span>
 	)
+}
+
+// function highlightWord(text, word) {
+// 	const regex = new RegExp(`(${word})`, 'gi')
+// 	return text.replace(regex, '<span class="highlight">$1</span>')
+// }
+function highlightWord(text, words) {
+	if (!Array.isArray(words) || words.length === 0) return text
+	// Escape special regex characters in each word
+	const escapedWords = words.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+	const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi')
+	return text.replace(regex, '<span class="highlight">$1</span>')
 }

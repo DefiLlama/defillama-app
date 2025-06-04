@@ -230,6 +230,10 @@
 	#fees-generated-chart > div > div > svg > g > image {
 		clip-path: inset(0% round 50%);
 	}
+
+	.highlighted-text .highlight {
+		@apply text-[var(--link-text)] bg-[var(--link-bg)];
+	}
 }
 
 @layer utilities {
