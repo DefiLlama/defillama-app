@@ -192,7 +192,7 @@ export function LlamaAI({ searchData }: { searchData: { label: string; slug: str
 						setEntities={setEntities}
 					/>
 					{!isSubmitted ? (
-						<div className="flex items-center gap-4 justify-around flex-wrap w-full pb-[100px]">
+						<div className="flex items-center gap-4 justify-center flex-wrap w-full pb-[100px]">
 							{recommendedPrompts.map((prompt) => (
 								<button
 									key={prompt}
