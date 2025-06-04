@@ -44,6 +44,7 @@ export type TMetric =
 	| 'NFT Volume'
 	| 'REV'
 	| 'Unlocks'
+	| 'Earnings'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -110,8 +111,8 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 					<rect
 						x="1"
 						y="1"
-						width="calc(100% - 1px)"
-						height="calc(100% - 1px)"
+						width="calc(100% - 1.5px)"
+						height="calc(100% - 1.5px)"
 						rx="6"
 						ry="6"
 						fill="none"
@@ -350,6 +351,14 @@ export const protocolsMetrics: Array<{
 		protocolsTracked: metadataCache.totalTrackedByMetric.emissions.protocols,
 		description:
 			'Tracks the release of locked tokens into circulation according to tokenomics schedules. Includes team, investor, ecosystem, and other vesting-based unlocks'
+	},
+	{
+		name: 'Earnings',
+		mainRoute: '/earnings',
+		chainRoute: null,
+		protocolsTracked: metadataCache.totalTrackedByMetric.revenue.protocols,
+		description:
+			'Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself.'
 	}
 ]
 
