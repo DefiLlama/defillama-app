@@ -253,17 +253,11 @@ export async function getAdapterChainOverview({
 					}
 				})
 		} else {
-			const processedEarningsData = earningsData.map((protocol) => {
-				const emissions = (protocol as any)._emissions
-				return calculateEarnings(protocol, emissions)
-			})
-
-			chainSpecificTotal24h = processedEarningsData.reduce((sum, p) => sum + (p.total24h ?? 0), 0)
-			chainSpecificTotal7d = processedEarningsData.reduce((sum, p) => sum + (p.total7d ?? 0), 0)
-			chainSpecificTotal30d = processedEarningsData.reduce((sum, p) => sum + (p.total30d ?? 0), 0)
-			chainSpecificTotal1y = processedEarningsData.reduce((sum, p) => sum + (p.total1y ?? 0), 0)
-
-			filteredEarningsData = processedEarningsData
+			chainSpecificTotal24h = earningsData.reduce((sum, p) => sum + (p.total24h ?? 0), 0)
+			chainSpecificTotal7d = earningsData.reduce((sum, p) => sum + (p.total7d ?? 0), 0)
+			chainSpecificTotal30d = earningsData.reduce((sum, p) => sum + (p.total30d ?? 0), 0)
+			chainSpecificTotal1y = earningsData.reduce((sum, p) => sum + (p.total1y ?? 0), 0)
+			filteredEarningsData = earningsData
 		}
 
 		return {
