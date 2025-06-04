@@ -8,6 +8,7 @@ import * as Ariakit from '@ariakit/react'
 import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from './utils'
 import { matchSorter } from 'match-sorter'
 import { getList, getValue } from './list'
+import { CopyHelper } from '~/components/Copy'
 
 async function fetchPromptResponse({
 	prompt,
@@ -486,8 +487,17 @@ const PromptResponse = ({
 					</table>
 				</div>
 			) : null}
-			{response?.sql ? <pre className="text-xs bg-[var(--app-bg)] rounded-lg p-4 w-full">{response.sql}</pre> : null}
+			{response?.sql ? <Code text={response.sql} /> : null}
 			<ProgressiveText text={response?.answer ?? ''} />
 		</>
+	)
+}
+
+const Code = ({ text }: { text: string }) => {
+	return (
+		<span className="relative">
+			<pre className="text-xs bg-[var(--app-bg)] rounded-lg p-4 w-full">{text}</pre>
+			<CopyHelper toCopy={text} className="absolute bottom-2 right-2 z-10" />
+		</span>
 	)
 }
