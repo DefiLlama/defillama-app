@@ -299,7 +299,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						})
 						.catch(() => null)
 				: Promise.resolve(null),
-			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
+			chain === 'All' ? getAllProtocolEmissions() : Promise.resolve(null),
 			chain !== 'All'
 				? fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
 						.then((res) => res.json())

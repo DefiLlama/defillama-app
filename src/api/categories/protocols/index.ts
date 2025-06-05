@@ -120,12 +120,10 @@ export const getProtocolEmissionsList = async () => {
 
 export const getAllProtocolEmissions = async ({
 	startDate,
-	endDate,
-	getHistoricalPrices = true
+	endDate
 }: {
 	startDate?: number
 	endDate?: number
-	getHistoricalPrices?: boolean
 } = {}) => {
 	try {
 		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
@@ -140,7 +138,6 @@ export const getAllProtocolEmissions = async ({
 
 		const priceReqs = {}
 		res.forEach((protocol) => {
-			if (!getHistoricalPrices) return
 			if (!protocol.gecko_id) return
 			let lastEventTimestamp = protocol.events
 				?.filter(
