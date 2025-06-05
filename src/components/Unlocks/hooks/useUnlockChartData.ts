@@ -2,7 +2,7 @@ import * as React from 'react'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { COLOR_PALETTE } from '../constants'
-import type { DailyUnlocks } from '../types'
+import type { DailyUnlocks, PrecomputedData } from '../types'
 
 interface UseUnlockChartDataProps {
 	currentDate: Dayjs
@@ -10,20 +10,45 @@ interface UseUnlockChartDataProps {
 	unlocksData: {
 		[date: string]: DailyUnlocks
 	}
+	precomputedData?: PrecomputedData
 }
 
-export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUnlockChartDataProps) => {
-	const weeklyChartData = React.useMemo(() => {
+export const useUnlockChartData = ({
+	currentDate,
+	viewMode,
+	unlocksData,
+	precomputedData
+}: UseUnlockChartDataProps) => {
+	const weekRange = React.useMemo(() => {
 		if (viewMode !== 'week') return null
-
 		const startOfWeek = currentDate.startOf('week')
+		return {
+			start: startOfWeek,
+			dates: Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day').format('YYYY-MM-DD'))
+		}
+	}, [currentDate, viewMode])
+
+	const monthRange = React.useMemo(() => {
+		if (viewMode !== 'month') return null
+		const startOfMonth = currentDate.startOf('month')
+		const endOfMonth = currentDate.endOf('month')
+		const daysInMonth = endOfMonth.date()
+		return {
+			start: startOfMonth,
+			end: endOfMonth,
+			daysInMonth,
+			dates: Array.from({ length: daysInMonth }, (_, i) => startOfMonth.date(i + 1).format('YYYY-MM-DD'))
+		}
+	}, [currentDate, viewMode])
+
+	const weeklyChartData = React.useMemo(() => {
+		if (viewMode !== 'week' || !weekRange) return null
+
 		const weekData: Array<any> = []
 		const protocolTotals: { [key: string]: number } = {}
 		const protocolColorMap: { [key: string]: string } = {}
 
-		for (let i = 0; i < 7; i++) {
-			const day = startOfWeek.add(i, 'day')
-			const dateStr = day.format('YYYY-MM-DD')
+		weekRange.dates.forEach((dateStr) => {
 			const dayData = unlocksData?.[dateStr]
 			if (dayData?.events) {
 				dayData.events.forEach((event) => {
@@ -33,7 +58,7 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 					protocolTotals[event.protocol] += event.value
 				})
 			}
-		}
+		})
 
 		const sortedProtocols = Object.keys(protocolTotals).sort((a, b) => protocolTotals[b] - protocolTotals[a])
 
@@ -41,9 +66,8 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 			protocolColorMap[protocol] = COLOR_PALETTE[index % COLOR_PALETTE.length]
 		})
 
-		for (let i = 0; i < 7; i++) {
-			const day = startOfWeek.add(i, 'day')
-			const dateStr = day.format('YYYY-MM-DD')
+		weekRange.dates.forEach((dateStr, i) => {
+			const day = weekRange.start.add(i, 'day')
 			const dayData = unlocksData?.[dateStr]
 			const dataPoint: { date: number; [key: string]: number } = { date: day.unix() }
 
@@ -59,7 +83,7 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 				})
 			}
 			weekData.push(dataPoint)
-		}
+		})
 
 		if (sortedProtocols.length === 0) {
 			return {
@@ -79,21 +103,16 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 			stacks,
 			stackColors: protocolColorMap
 		}
-	}, [currentDate, viewMode, unlocksData])
+	}, [weekRange, unlocksData])
 
 	const monthlyChartData = React.useMemo(() => {
-		if (viewMode !== 'month') return null
+		if (viewMode !== 'month' || !monthRange) return null
 
-		const startOfMonth = currentDate.startOf('month')
-		const endOfMonth = currentDate.endOf('month')
-		const daysInMonth = endOfMonth.date()
 		const monthData: Array<any> = []
 		const protocolTotals: { [key: string]: number } = {}
 		const protocolColorMap: { [key: string]: string } = {}
 
-		for (let i = 1; i <= daysInMonth; i++) {
-			const day = startOfMonth.date(i)
-			const dateStr = day.format('YYYY-MM-DD')
+		monthRange.dates.forEach((dateStr) => {
 			const dayData = unlocksData?.[dateStr]
 			if (dayData?.events) {
 				dayData.events.forEach((event) => {
@@ -103,7 +122,7 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 					protocolTotals[event.protocol] += event.value
 				})
 			}
-		}
+		})
 
 		const sortedProtocols = Object.keys(protocolTotals).sort((a, b) => protocolTotals[b] - protocolTotals[a])
 
@@ -111,9 +130,8 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 			protocolColorMap[protocol] = COLOR_PALETTE[index % COLOR_PALETTE.length]
 		})
 
-		for (let i = 1; i <= daysInMonth; i++) {
-			const day = startOfMonth.date(i)
-			const dateStr = day.format('YYYY-MM-DD')
+		monthRange.dates.forEach((dateStr, i) => {
+			const day = monthRange.start.date(i + 1)
 			const dayData = unlocksData[dateStr]
 			const dataPoint: { date: number; [key: string]: number } = { date: day.unix() }
 
@@ -129,7 +147,7 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 				})
 			}
 			monthData.push(dataPoint)
-		}
+		})
 
 		if (sortedProtocols.length === 0) {
 			return {
@@ -149,27 +167,10 @@ export const useUnlockChartData = ({ currentDate, viewMode, unlocksData }: UseUn
 			stacks,
 			stackColors: protocolColorMap
 		}
-	}, [currentDate, viewMode, unlocksData])
-
-	const maxMonthlyValue = React.useMemo(() => {
-		if (viewMode !== 'month') return 0
-		const startOfMonth = currentDate.startOf('month')
-		const endOfMonth = currentDate.endOf('month')
-		let max = 0
-		Object.entries(unlocksData || {}).forEach(([dateStr, dailyData]) => {
-			const date = dayjs(dateStr)
-			if (date.isBetween(startOfMonth.subtract(1, 'day'), endOfMonth.add(1, 'day'))) {
-				if (dailyData.totalValue > max) {
-					max = dailyData.totalValue
-				}
-			}
-		})
-		return max
-	}, [currentDate, viewMode, unlocksData])
+	}, [monthRange, unlocksData])
 
 	return {
 		weeklyChartData,
-		monthlyChartData,
-		maxMonthlyValue
+		monthlyChartData
 	}
 }
