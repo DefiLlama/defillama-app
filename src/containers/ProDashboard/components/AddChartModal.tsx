@@ -1,13 +1,10 @@
-import { useState, useMemo, useRef } from 'react'
-import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
+import { useState, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { chainIconUrl } from '~/utils'
-import { CHART_TYPES, Chain, Protocol } from '../types'
-import { useProtocolsAndChains } from '../queries'
-import { createFilter } from 'react-select'
+import { CHART_TYPES, Chain, Protocol, getProtocolChartTypes, getChainChartTypes } from '../types'
+import { useProtocolsAndChains, useAvailableChartTypes } from '../queries'
 import { sluggify } from '~/utils/cache-client'
-import { useQueryClient } from '@tanstack/react-query'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { LoadingSpinner } from './LoadingSpinner'
+import { ItemSelect } from './ItemSelect'
 
 interface AddChartModalProps {
 	isOpen: boolean
@@ -18,94 +15,29 @@ interface AddChartModalProps {
 	chainsLoading: boolean
 }
 
-const CustomChainOption = ({ innerProps, label, data }) => (
-	<div {...innerProps} style={{ display: 'flex', alignItems: 'center', padding: '8px', cursor: 'pointer' }}>
-		<img
-			src={chainIconUrl(label)}
-			alt={label}
-			style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
-		/>
-		{label}
-	</div>
-)
-
-const CustomProtocolOption = ({ innerProps, label, data }) => (
-	<div {...innerProps} style={{ display: 'flex', alignItems: 'center', padding: '8px', cursor: 'pointer' }}>
-		{data.logo && (
-			<img
-				src={data.logo}
-				alt={label}
-				style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
-			/>
-		)}
-		{!data.logo && (
-			<div
-				style={{
-					width: '20px',
-					height: '20px',
-					marginRight: '10px',
-					borderRadius: '50%',
-					backgroundColor: 'var(--bg2)'
-				}}
-			/>
-		)}
-		{label}
-	</div>
-)
-
-function VirtualizedMenuList(props) {
-	const { options, children, maxHeight, getValue } = props
-	const listRef = useRef()
-	const itemCount = options.length
-	const virtualizer = useVirtualizer({
-		count: itemCount,
-		getScrollElement: () => listRef.current,
-		estimateSize: () => 40
-	})
-	return (
-		<div
-			ref={listRef}
-			style={{
-				maxHeight,
-				overflowY: 'auto',
-				position: 'relative'
-			}}
-		>
-			<div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
-				{virtualizer.getVirtualItems().map((virtualRow) => (
-					<div
-						key={virtualRow.key}
-						data-index={virtualRow.index}
-						style={{
-							position: 'absolute',
-							top: 0,
-							left: 0,
-							width: '100%',
-							transform: `translateY(${virtualRow.start}px)`
-						}}
-					>
-						{children[virtualRow.index]}
-					</div>
-				))}
-			</div>
-		</div>
-	)
-}
 
 export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsLoading }: AddChartModalProps) {
 	const [selectedItemType, setSelectedItemType] = useState<'chain' | 'protocol' | 'table'>('chain')
 	const [selectedChain, setSelectedChain] = useState<string | null>(null)
 	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
-	const [availableChartTypes, setAvailableChartTypes] = useState<string[]>([])
-	const [chartTypesLoading, setChartTypesLoading] = useState(false)
 
-	const queryClient = useQueryClient()
 	const { data: { protocols = [], chains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
+	
+	const selectedProtocolData = useMemo(() => 
+		protocols.find((p: Protocol) => p.slug === selectedProtocol), 
+		[protocols, selectedProtocol]
+	)
+
+	const { availableChartTypes, isLoading: chartTypesLoading } = useAvailableChartTypes(
+		selectedItemType === 'chain' ? selectedChain : selectedProtocol,
+		selectedItemType === 'table' ? 'chain' : selectedItemType,
+		selectedProtocolData?.geckoId
+	)
 
 	const chainOptions = useMemo(
 		() =>
-			chains.map((chain) => ({
+			chains.map((chain: Chain) => ({
 				value: chain.name,
 				label: chain.name
 			})),
@@ -122,106 +54,19 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 		[protocols]
 	)
 
-	const protocolChartTypes = ['tvl', 'volume', 'fees', 'revenue', 'tokenMcap', 'tokenPrice', 'tokenVolume', 'medianApy']
+	const protocolChartTypes = getProtocolChartTypes()
+	const chainChartTypes = getChainChartTypes()
 
-	const chainChartTypes = [
-		'tvl',
-		'volume',
-		'fees',
-		'users',
-		'txs',
-		'aggregators',
-		'perps',
-		'bridgeAggregators',
-		'perpsAggregators',
-		'options',
-		'revenue',
-		'bribes',
-		'tokenTax',
-		'activeUsers',
-		'newUsers',
-		'gasUsed'
-	]
-
-	const prefetchChartTypes = async (itemType: 'chain' | 'protocol', item: string) => {
-		setChartTypesLoading(true)
-		const chartTypes = itemType === 'chain' ? chainChartTypes : protocolChartTypes
-		const ChainCharts = require('../services/ChainCharts').default
-		const ProtocolCharts = require('../services/ProtocolCharts').default
-
-		let protocolGeckoId = null
-		if (itemType === 'protocol') {
-			const protocol = protocols.find((p: Protocol) => p.slug === item)
-			protocolGeckoId = protocol?.geckoId
-		}
-
-		await Promise.all(
-			chartTypes.map(async (type) => {
-				let data
-				const tokenChartTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
-
-				if (itemType === 'chain') {
-					data = queryClient.getQueryData([type, item])
-					if (!Array.isArray(data) || data.length === 0) {
-						await queryClient.prefetchQuery({ queryKey: [type, item], queryFn: () => ChainCharts[type](item) })
-					}
-				} else {
-					const queryKey =
-						tokenChartTypes.includes(type) && protocolGeckoId
-							? [type, undefined, item, protocolGeckoId]
-							: [type, undefined, item]
-					data = queryClient.getQueryData(queryKey)
-					if (!Array.isArray(data) || data.length === 0) {
-						if (tokenChartTypes.includes(type) && protocolGeckoId) {
-							await queryClient.prefetchQuery({
-								queryKey,
-								queryFn: () => ProtocolCharts[type](item, protocolGeckoId)
-							})
-						} else if (!tokenChartTypes.includes(type)) {
-							await queryClient.prefetchQuery({
-								queryKey,
-								queryFn: () => ProtocolCharts[type](item)
-							})
-						}
-					}
-				}
-			})
-		)
-		const available = chartTypes.filter((type) => {
-			let data
-			const tokenChartTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
-
-			if (itemType === 'chain') {
-				data = queryClient.getQueryData([type, item])
-			} else {
-				const queryKey =
-					tokenChartTypes.includes(type) && protocolGeckoId
-						? [type, undefined, item, protocolGeckoId]
-						: [type, undefined, item]
-				data = queryClient.getQueryData(queryKey)
-
-				if (tokenChartTypes.includes(type) && !protocolGeckoId) {
-					return false
-				}
-			}
-			return Array.isArray(data) && data.length > 0
-		})
-		setAvailableChartTypes(available)
-		setChartTypesLoading(false)
-	}
-
-	const handleChainChange = async (option: any) => {
+	const handleChainChange = (option: any) => {
 		setSelectedChain(option.value)
 		setSelectedProtocol(null)
 		setSelectedChartType('tvl')
-		await prefetchChartTypes('chain', option.value)
 	}
 
-	const handleProtocolChange = async (option: any) => {
+	const handleProtocolChange = (option: any) => {
 		setSelectedProtocol(option.value)
 		setSelectedChain(null)
 		setSelectedChartType('tvl')
-		await prefetchChartTypes('protocol', option.value)
 	}
 
 	const handleSubmit = () => {
@@ -237,7 +82,6 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 		setSelectedChartType('tvl')
 		setSelectedChain(null)
 		setSelectedProtocol(null)
-		setAvailableChartTypes([])
 	}
 
 	if (!isOpen) return null
@@ -273,7 +117,6 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 								setSelectedItemType('chain')
 								setSelectedChain(null)
 								setSelectedProtocol(null)
-								setAvailableChartTypes([])
 							}}
 						>
 							Chain
@@ -288,7 +131,6 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 								setSelectedItemType('protocol')
 								setSelectedChain(null)
 								setSelectedProtocol(null)
-								setAvailableChartTypes([])
 							}}
 						>
 							Protocol
@@ -303,7 +145,6 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 								setSelectedItemType('table')
 								setSelectedChain(null)
 								setSelectedProtocol(null)
-								setAvailableChartTypes([])
 							}}
 						>
 							Table
@@ -311,64 +152,39 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 					</div>
 
 					{selectedItemType === 'chain' && (
-						<div>
-							<label className="block mb-2 text-sm font-medium text-[var(--text2)]">Select Chain</label>
-							{chainsLoading ? (
-								<div className="flex items-center justify-center h-10">
-									<div className="animate-spin h-5 w-5 border-b-2 border-[var(--primary1)]"></div>
-								</div>
-							) : (
-								<ReactSelect
-									options={chainOptions}
-									value={chainOptions.find((option) => option.value === selectedChain)}
-									onChange={handleChainChange}
-									components={{ Option: CustomChainOption, MenuList: VirtualizedMenuList }}
-									placeholder="Select a chain..."
-									className="w-full"
-								/>
-							)}
-						</div>
+						<ItemSelect
+							label="Select Chain"
+							options={chainOptions}
+							selectedValue={selectedChain}
+							onChange={handleChainChange}
+							isLoading={chainsLoading}
+							placeholder="Select a chain..."
+							itemType="chain"
+						/>
 					)}
 
 					{selectedItemType === 'table' && (
-						<div>
-							<label className="block mb-2 text-sm font-medium text-[var(--text2)]">Select Chain</label>
-							{chainsLoading ? (
-								<div className="flex items-center justify-center h-10">
-									<div className="animate-spin h-5 w-5 border-b-2 border-[var(--primary1)]"></div>
-								</div>
-							) : (
-								<ReactSelect
-									options={chainOptions}
-									value={chainOptions.find((option) => option.value === selectedChain)}
-									onChange={(option: any) => setSelectedChain(option.value)}
-									components={{ Option: CustomChainOption, MenuList: VirtualizedMenuList }}
-									placeholder="Select a chain..."
-									className="w-full"
-								/>
-							)}
-						</div>
+						<ItemSelect
+							label="Select Chain"
+							options={chainOptions}
+							selectedValue={selectedChain}
+							onChange={(option: any) => setSelectedChain(option.value)}
+							isLoading={chainsLoading}
+							placeholder="Select a chain..."
+							itemType="chain"
+						/>
 					)}
 
 					{selectedItemType === 'protocol' && (
-						<div>
-							<label className="block mb-2 text-sm font-medium text-[var(--text2)]">Select Protocol</label>
-							{protocolsLoading ? (
-								<div className="flex items-center justify-center h-10">
-									<div className="animate-spin h-5 w-5 border-b-2 border-[var(--primary1)]"></div>
-								</div>
-							) : (
-								<ReactSelect
-									options={protocolOptions}
-									value={protocolOptions.find((option) => option.value === selectedProtocol)}
-									onChange={handleProtocolChange}
-									components={{ Option: CustomProtocolOption, MenuList: VirtualizedMenuList }}
-									placeholder="Select a protocol..."
-									className="w-full"
-									filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
-								/>
-							)}
-						</div>
+						<ItemSelect
+							label="Select Protocol"
+							options={protocolOptions}
+							selectedValue={selectedProtocol}
+							onChange={handleProtocolChange}
+							isLoading={protocolsLoading}
+							placeholder="Select a protocol..."
+							itemType="protocol"
+						/>
 					)}
 
 					{selectedItemType !== 'table' && (
@@ -376,14 +192,14 @@ export function AddChartModal({ isOpen, onClose, onAddChart, onAddTable, chainsL
 							<label className="block mb-3 text-sm font-medium text-[var(--text2)]">Chart Type</label>
 							{chartTypesLoading ? (
 								<div className="flex items-center justify-center h-10">
-									<div className="animate-spin h-5 w-5 border-b-2 border-[var(--primary1)]"></div>
+									<LoadingSpinner size="sm" />
 								</div>
 							) : (
 								<div className="grid grid-cols-2 gap-0">
 									{(selectedItemType === 'chain' ? chainChartTypes : protocolChartTypes)
 										.filter((key) => availableChartTypes.includes(key))
-										.map((key, index, array) => {
-											const { title, color } = CHART_TYPES[key]
+										.map((key) => {
+											const { title } = CHART_TYPES[key]
 											return (
 												<button
 													key={key}

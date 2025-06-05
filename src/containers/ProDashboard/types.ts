@@ -73,3 +73,29 @@ export const CHART_TYPES = {
 	gasUsed: { id: 'gasUsed', title: 'Gas Used', chartType: 'bar', color: '#F59E0B', groupable: true },
 	medianApy: { id: 'medianApy', title: 'Median APY', chartType: 'area', color: '#059669' }
 }
+
+// Helper functions to extract chart types from CHART_TYPES
+export const getProtocolChartTypes = (): string[] => {
+	return ['tvl', 'volume', 'fees', 'revenue', 'tokenMcap', 'tokenPrice', 'tokenVolume', 'medianApy']
+}
+
+export const getChainChartTypes = (): string[] => {
+	return [
+		'tvl',
+		'volume',
+		'fees',
+		'users',
+		'txs',
+		'aggregators',
+		'perps',
+		'bridgeAggregators',
+		'perpsAggregators',
+		'options',
+		'revenue',
+		'bribes',
+		'tokenTax',
+		'activeUsers',
+		'newUsers',
+		'gasUsed'
+	]
+}

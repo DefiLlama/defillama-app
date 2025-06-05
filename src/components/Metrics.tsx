@@ -3,7 +3,7 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import metadataCache from '~/utils/metadata'
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { matchSorter } from 'match-sorter'
 
 export interface ITotalTrackedByMetric {
@@ -74,6 +74,20 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 
 		return { chains, protocols }
 	}, [deferredSearchValue])
+
+	useEffect(() => {
+		const handleRouteChange = () => {
+			dialogStore.hide()
+		}
+
+		router.events.on('routeChangeComplete', handleRouteChange)
+
+		// If the component is unmounted, unsubscribe
+		// from the event with the `off` method:
+		return () => {
+			router.events.off('routeChangeComplete', handleRouteChange)
+		}
+	}, [router, dialogStore])
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>

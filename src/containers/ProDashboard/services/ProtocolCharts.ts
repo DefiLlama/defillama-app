@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { getAPIUrlSummary } from '~/api/categories/adaptors/client'
 import { CACHE_SERVER, PROTOCOL_API, YIELD_PROJECT_MEDIAN_API } from '~/constants'
+import { convertToNumberFormat } from '../utils'
 
 interface DateTvl {
 	date: number
@@ -16,18 +17,6 @@ interface ProtocolApiResponse {
 }
 
 export default class ProtocolCharts {
-	private static convertToNumberFormat(data: any[], convertoToSeconds: boolean = false): [number, number][] {
-		if (!Array.isArray(data)) return []
-
-		return data.map(([date, value]) => [
-			typeof date === 'string'
-				? convertoToSeconds
-					? parseInt(date, 10) / 1000
-					: parseInt(date, 10) / 1000
-				: date / (convertoToSeconds ? 1000 : 1),
-			typeof value === 'string' ? parseFloat(value) : value
-		])
-	}
 
 	static async tvl(protocolId: string): Promise<[number, number][]> {
 		if (!protocolId) {
@@ -65,7 +54,7 @@ export default class ProtocolCharts {
 		const response = await fetch(url)
 		const data = await response.json()
 		console.log(data)
-		return this.convertToNumberFormat(data.totalDataChart ?? [])
+		return convertToNumberFormat(data.totalDataChart ?? [])
 	}
 
 	static async volume(protocol: string): Promise<[number, number][]> {
@@ -89,17 +78,17 @@ export default class ProtocolCharts {
 
 	static async tokenMcap(_: string, geckoId: string): Promise<[number, number][]> {
 		const data = await this.getTokenData(geckoId)
-		return this.convertToNumberFormat(data.mcaps ?? [], true)
+		return convertToNumberFormat(data.mcaps ?? [], true)
 	}
 
 	static async tokenPrice(_: string, geckoId: string): Promise<[number, number][]> {
 		const data = await this.getTokenData(geckoId)
-		return this.convertToNumberFormat(data.prices ?? [], true)
+		return convertToNumberFormat(data.prices ?? [], true)
 	}
 
 	static async tokenVolume(_: string, geckoId: string): Promise<[number, number][]> {
 		const data = await this.getTokenData(geckoId)
-		return this.convertToNumberFormat(data.volumes ?? [], true)
+		return convertToNumberFormat(data.volumes ?? [], true)
 	}
 
 	static async medianApy(protocol: string): Promise<[number, number][]> {

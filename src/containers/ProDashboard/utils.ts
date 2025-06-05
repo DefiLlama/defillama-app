@@ -1,3 +1,16 @@
+export const convertToNumberFormat = (data: any[], convertToSeconds: boolean = false): [number, number][] => {
+	if (!Array.isArray(data)) return []
+
+	return data.map(([date, value]) => [
+		typeof date === 'string'
+			? convertToSeconds
+				? parseInt(date, 10) / 1000
+				: parseInt(date, 10) / 1000
+			: date / (convertToSeconds ? 1000 : 1),
+		typeof value === 'string' ? parseFloat(value) : value
+	])
+}
+
 export const getStartOfWeek = (date: Date): Date => {
 	const dt = new Date(date.getFullYear(), date.getMonth(), date.getDate())
 	const day = dt.getDay()
@@ -44,4 +57,15 @@ export const groupData = (
 	})
 
 	return Object.entries(groupedData).sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+}
+
+// Icon URL helper functions
+export const getItemIconUrl = (itemType: 'chain' | 'protocol', itemInfo: any, itemIdentifier: string): string => {
+	if (itemType === 'chain') {
+		// Replicate chainIconUrl logic from main utils
+		return `https://icons.llamao.fi/icons/chains/rsz_${itemIdentifier?.toLowerCase()}?w=48&h=48`
+	} else {
+		// Protocol icon logic
+		return itemInfo?.logo || `https://icons.llamao.fi/icons/protocols/${itemInfo?.id || itemIdentifier}.jpg`
+	}
 }

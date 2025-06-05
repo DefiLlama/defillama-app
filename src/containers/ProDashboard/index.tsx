@@ -12,6 +12,7 @@ import { useRouter } from 'next/router'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { useLocalStorageContext, PRO_DASHBOARD_ITEMS } from '~/contexts/LocalStorage'
+import { LoadingSpinner } from './components/LoadingSpinner'
 
 export default function ProDashboard() {
 	const { data: { protocols = [], chains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
@@ -145,7 +146,7 @@ export default function ProDashboard() {
 	if (isSubLoading) {
 		return (
 			<div className="flex justify-center items-center h-[40vh]">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary1)]"></div>
+				<LoadingSpinner />
 			</div>
 		)
 	}
@@ -180,7 +181,7 @@ export default function ProDashboard() {
 
 			{protocolsLoading && items.length === 0 && (
 				<div className="flex items-center justify-center h-40">
-					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary1)]"></div>
+					<LoadingSpinner />
 				</div>
 			)}
 
