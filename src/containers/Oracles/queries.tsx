@@ -13,7 +13,7 @@ interface IOracleProtocols {
 interface IOracleApiResponse {
 	chart: Record<string, Record<string, Record<string, number>>>
 	chainChart: Record<string, Record<string, Record<string, number>>>
-	oracles: Record<string, Array<string>>
+	oracles: Record<string, Record<string, number>>
 	chainsByOracle: Record<string, Array<string>>
 }
 
@@ -25,7 +25,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
 			IAdapterOverview | null
 		] = await Promise.all([
-			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
+			fetchWithErrorLogging('http://127.0.0.1:8080/final_a.json').then((r) => r.json()),
 			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
 			getAdapterChainOverview({
 				adapterType: 'derivatives',
@@ -46,7 +46,25 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			}
 		}
 
-		const filteredProtocols = formatProtocolsData({ oracle, protocols, chain })
+		const oracleFilteredProtocols =
+			oracle && oracles[oracle] ? protocols.filter((protocol) => protocol.name in oracles[oracle]) : protocols
+
+		const filteredProtocols = formatProtocolsData({ oracle, protocols: oracleFilteredProtocols, chain })
+		const protocolsWithTvs = filteredProtocols.map((protocol) => {
+			let tvs = null
+			const oraclesToCheck = oracle ? [oracle] : Object.keys(oracles)
+			for (const oracleKey of oraclesToCheck) {
+				const oracleData = oracles[oracleKey]
+				if (oracleData && oracleData[protocol.name]) {
+					tvs = oracleData[protocol.name]
+					break
+				}
+			}
+			return {
+				...protocol,
+				tvs
+			}
+		})
 
 		let chartData = Object.entries(chart)
 		const chainChartData = chain
@@ -81,7 +99,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		const oraclesProtocols: IOracleProtocols = {}
 
 		for (const orc in oracles) {
-			oraclesProtocols[orc] = oracles[orc]?.length
+			oraclesProtocols[orc] = Object.keys(oracles[orc] || {}).length
 		}
 
 		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
@@ -124,7 +142,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			tokenLinks: oracleLinks,
 			token: oracle,
 			tokensProtocols: oraclesProtocols,
-			filteredProtocols,
+			filteredProtocols: protocolsWithTvs,
 			chartData,
 			oraclesColors: colors,
 			derivativeProtocols: perps?.protocols ?? []
@@ -146,6 +164,20 @@ export async function getOraclePageDataByChain(chain: string) {
 		])
 
 		const filteredProtocols = formatProtocolsData({ protocols, chain })
+		const protocolsWithTvs = filteredProtocols.map((protocol) => {
+			let tvs = null
+			for (const oracleKey of Object.keys(oracles)) {
+				const oracleData = oracles[oracleKey]
+				if (oracleData && oracleData[protocol.name]) {
+					tvs = oracleData[protocol.name]
+					break
+				}
+			}
+			return {
+				...protocol,
+				tvs
+			}
+		})
 
 		let chartData = Object.entries(chart)
 		const chainChartData = chain
@@ -214,7 +246,7 @@ export async function getOraclePageDataByChain(chain: string) {
 			tokens: oraclesUnique,
 			tokenLinks: oracleLinks,
 			tokensProtocols: oraclesProtocols,
-			filteredProtocols,
+			filteredProtocols: protocolsWithTvs,
 			chartData: chainChartData,
 			oraclesColors: colors
 		}

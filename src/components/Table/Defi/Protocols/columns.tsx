@@ -560,6 +560,114 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	}
 ]
 
+export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const value = getValue() as string
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			const Chains = () => (
+				<span className="flex flex-col gap-1">
+					{row.original.chains.map((chain) => (
+						<span key={`/protocolll/${value}/${chain}`} className="flex items-center gap-1">
+							<TokenLogo logo={chainIconUrl(chain)} size={14} />
+							<span>{chain}</span>
+						</span>
+					))}
+				</span>
+			)
+
+			return (
+				<span
+					className="flex items-center gap-2 relative"
+					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
+				>
+					{row.subRows?.length > 0 ? (
+						<button
+							className="absolute -left-[2px]"
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? (
+								<>
+									<Icon name="chevron-down" height={16} width={16} />
+									<span className="sr-only">View child protocols</span>
+								</>
+							) : (
+								<>
+									<Icon name="chevron-right" height={16} width={16} />
+									<span className="sr-only">Hide child protocols</span>
+								</>
+							)}
+						</button>
+					) : (
+						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
+					)}
+
+					<span className="flex-shrink-0">{index + 1}</span>
+
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+
+					<span className="flex flex-col -my-2">
+						{row.original?.deprecated ? (
+							<BasicLink
+								href={`/protocol/${slug(value)}`}
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+							>
+								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
+								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
+									Deprecated
+								</span>
+							</BasicLink>
+						) : (
+							<BasicLink
+								href={`/protocol/${slug(value)}`}
+								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>{`${value}`}</BasicLink>
+						)}
+
+						<Tooltip content={<Chains />} className="text-[0.7rem]">
+							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+						</Tooltip>
+					</span>
+					{value === 'SyncDEX Finance' && (
+						<Tooltip content={'Many users have reported issues with this protocol'}>
+							<Icon name="alert-triangle" height={14} width={14} />
+						</Tooltip>
+					)}
+				</span>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Category',
+		accessorKey: 'category',
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-[var(--link-text)]">
+					{getValue() as string | null}
+				</BasicLink>
+			) : (
+				''
+			),
+		size: 140
+	},
+	{
+		header: 'TVS',
+		accessorKey: 'tvs',
+		cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	}
+]
+
 export const listedAtColumn = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
