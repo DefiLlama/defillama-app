@@ -25,7 +25,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
 			IAdapterOverview | null
 		] = await Promise.all([
-			fetchWithErrorLogging('http://127.0.0.1:8080/final_a.json').then((r) => r.json()),
+			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
 			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
 			getAdapterChainOverview({
 				adapterType: 'derivatives',
