@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Icon } from '~/components/Icon'
-import { ChartConfig, CHART_TYPES, DashboardItemConfig, ProtocolsTableConfig } from './types'
+import { ChartConfig, CHART_TYPES, DashboardItemConfig, ProtocolsTableConfig, MultiChartConfig } from './types'
 import { AddChartModal } from './components/AddChartModal'
 import { ChartGrid } from './components/ChartGrid'
 import { EmptyState } from './components/EmptyState'
@@ -36,6 +36,13 @@ export default function ProDashboard() {
 				return chartConfigToSave
 			} else if (item.kind === 'table') {
 				return item as ProtocolsTableConfig
+			} else if (item.kind === 'multi') {
+				const { items: nestedItems, ...rest } = item as MultiChartConfig
+				const cleanNestedItems = nestedItems.map((nestedItem) => {
+					const { data, isLoading, hasError, refetch, ...cleanItem } = nestedItem
+					return cleanItem
+				})
+				return { ...rest, items: cleanNestedItems }
 			}
 			return item
 		})
@@ -48,13 +55,21 @@ export default function ProDashboard() {
 		}
 	}, [items, localStorageState, updateKey])
 
-	const chartItems = items.filter((item) => item.kind === 'chart') as ChartConfig[]
-	const chartQueries = useChartsData(chartItems)
+	const allChartItems: ChartConfig[] = []
+	items.forEach((item) => {
+		if (item.kind === 'chart') {
+			allChartItems.push(item)
+		} else if (item.kind === 'multi') {
+			allChartItems.push(...item.items)
+		}
+	})
+
+	const chartQueries = useChartsData(allChartItems)
 
 	const chartsWithData: DashboardItemConfig[] = items.map((item) => {
 		if (item.kind === 'chart') {
 			const chart = item
-			const idx = chartItems.findIndex((c) => c.id === chart.id)
+			const idx = allChartItems.findIndex((c) => c.id === chart.id)
 			const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
 			const chartTypeDetails = CHART_TYPES[chart.type]
 			let processedData = query.data || []
@@ -67,6 +82,27 @@ export default function ProDashboard() {
 				isLoading: query.isLoading || false,
 				hasError: query.isError || false,
 				refetch: query.refetch || (() => {})
+			}
+		} else if (item.kind === 'multi') {
+			const processedItems = item.items.map((nestedChart) => {
+				const idx = allChartItems.findIndex((c) => c.id === nestedChart.id)
+				const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
+				const chartTypeDetails = CHART_TYPES[nestedChart.type]
+				let processedData = query.data || []
+				if (chartTypeDetails?.groupable) {
+					processedData = groupData(query.data, nestedChart.grouping)
+				}
+				return {
+					...nestedChart,
+					data: processedData,
+					isLoading: query.isLoading || false,
+					hasError: query.isError || false,
+					refetch: query.refetch || (() => {})
+				}
+			})
+			return {
+				...item,
+				items: processedItems
 			}
 		}
 		return item
@@ -125,6 +161,17 @@ export default function ProDashboard() {
 			chain
 		}
 		setItems((prev) => [...prev, newTable])
+	}
+
+	const handleAddMultiChart = (chartItems: ChartConfig[], name?: string) => {
+		const newMultiChart: MultiChartConfig = {
+			id: `multi-${Date.now()}`,
+			kind: 'multi',
+			name: name || `Multi-Chart ${items.filter((item) => item.kind === 'multi').length + 1}`,
+			items: chartItems,
+			grouping: 'day'
+		}
+		setItems((prev) => [...prev, newMultiChart])
 	}
 
 	const handleRemoveChart = (chartId: string) => {
@@ -194,7 +241,14 @@ export default function ProDashboard() {
 					getProtocolInfo={getProtocolInfo}
 					onGroupingChange={(chartId: string, newGrouping: 'day' | 'week' | 'month') => {
 						setItems((prev) =>
-							prev.map((c) => (c.id === chartId && c.kind === 'chart' ? { ...c, grouping: newGrouping } : c))
+							prev.map((item) => {
+								if (item.id === chartId && item.kind === 'chart') {
+									return { ...item, grouping: newGrouping }
+								} else if (item.kind === 'multi' && item.id === chartId) {
+									return { ...item, grouping: newGrouping }
+								}
+								return item
+							})
 						)
 					}}
 					onAddChartClick={() => setShowAddModal(true)}
@@ -206,6 +260,7 @@ export default function ProDashboard() {
 				onClose={() => setShowAddModal(false)}
 				onAddChart={handleAddChart}
 				onAddTable={handleAddTable}
+				onAddMultiChart={handleAddMultiChart}
 				chains={chains}
 				chainsLoading={protocolsLoading}
 			/>

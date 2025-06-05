@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
@@ -5,6 +6,10 @@ import { ChartCard } from './ChartCard'
 import { DashboardItemConfig, Chain, Protocol } from '../types'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
 import { Icon } from '~/components/Icon'
+
+const MultiChartCard = dynamic(() => import('./MultiChartCard'), {
+	ssr: false
+})
 
 interface ChartGridProps {
 	charts: DashboardItemConfig[]
@@ -55,6 +60,14 @@ export function ChartGrid({
 								{item.kind === 'chart' ? (
 									<ChartCard
 										chart={item}
+										onRemove={onRemoveChart}
+										getChainInfo={getChainInfo}
+										getProtocolInfo={getProtocolInfo}
+										onGroupingChange={onGroupingChange}
+									/>
+								) : item.kind === 'multi' ? (
+									<MultiChartCard
+										multi={item}
 										onRemove={onRemoveChart}
 										getChainInfo={getChainInfo}
 										getProtocolInfo={getProtocolInfo}

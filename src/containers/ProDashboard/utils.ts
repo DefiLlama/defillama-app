@@ -5,7 +5,7 @@ export const convertToNumberFormat = (data: any[], convertToSeconds: boolean = f
 		typeof date === 'string'
 			? convertToSeconds
 				? parseInt(date, 10) / 1000
-				: parseInt(date, 10) / 1000
+				: parseInt(date, 10) / 1
 			: date / (convertToSeconds ? 1000 : 1),
 		typeof value === 'string' ? parseFloat(value) : value
 	])
@@ -68,4 +68,34 @@ export const getItemIconUrl = (itemType: 'chain' | 'protocol', itemInfo: any, it
 		// Protocol icon logic
 		return itemInfo?.logo || `https://icons.llamao.fi/icons/protocols/${itemInfo?.id || itemIdentifier}.jpg`
 	}
+}
+
+const CHART_COLORS = [
+	'#FF6B6B', // Red
+	'#4ECDC4', // Teal
+	'#45B7D1', // Blue
+	'#96CEB4', // Green
+	'#FFEAA7', // Yellow
+	'#DDA0DD', // Plum
+	'#98D8C8', // Mint
+	'#F7DC6F', // Light Yellow
+	'#BB8FCE', // Light Purple
+	'#85C1E9', // Light Blue
+	'#F8C471', // Orange
+	'#82E0AA', // Light Green
+	'#F1948A', // Light Red
+	'#85929E', // Gray
+	'#D7BDE2' // Light Lavender
+]
+
+export const generateChartColor = (index: number, itemName: string, fallbackColor: string): string => {
+	let hash = 0
+	for (let i = 0; i < itemName.length; i++) {
+		const char = itemName.charCodeAt(i)
+		hash = (hash << 5) - hash + char
+		hash = hash & hash
+	}
+
+	const colorIndex = (Math.abs(hash) + index) % CHART_COLORS.length
+	return CHART_COLORS[colorIndex] || fallbackColor
 }

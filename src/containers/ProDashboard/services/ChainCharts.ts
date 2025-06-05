@@ -37,6 +37,7 @@ export default class ChainCharts {
 			: `${DIMENISIONS_OVERVIEW_API}/${endpoint}/${chain}`
 		const response = await fetch(url)
 		const data = await response.json()
+		console.log(data)
 		return convertToNumberFormat(data.totalDataChart ?? [])
 	}
 
@@ -51,10 +52,11 @@ export default class ChainCharts {
 		if (!chain) return []
 		const response = await fetch(`${CHART_API}/${chain}`)
 		const data = await response.json()
-		return convertToNumberFormat(data.tvl ?? [])
+		const res = convertToNumberFormat(data.tvl ?? [])
+		console.log(res)
+		return res
 	}
 
-	// Generic method that routes to the appropriate data fetcher based on metadata
 	static async getData(chartType: string, chain: string): Promise<[number, number][]> {
 		const metadata = CHART_METADATA[chartType]
 

@@ -8,7 +8,15 @@ export interface Chain {
 	chainId?: string
 }
 
-export type DashboardItemConfig = ChartConfig | ProtocolsTableConfig
+export interface MultiChartConfig {
+	id: string
+	kind: 'multi'
+	name?: string
+	items: ChartConfig[]
+	grouping?: 'day' | 'week' | 'month'
+}
+
+export type DashboardItemConfig = ChartConfig | ProtocolsTableConfig | MultiChartConfig
 
 export interface ChartConfig {
 	id: string
@@ -99,3 +107,5 @@ export const getChainChartTypes = (): string[] => {
 		'gasUsed'
 	]
 }
+
+export const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'

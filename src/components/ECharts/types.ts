@@ -67,6 +67,29 @@ export interface ILineAndBarChartProps {
 	alwaysShowTooltip?: boolean
 }
 
+export interface IMultiSeriesChartProps {
+	series?: Array<{
+		data: Array<[number, number]>
+		type: 'line' | 'bar'
+		name: string
+		color: string
+		logo?: string
+	}>
+	chartOptions?: {
+		[key: string]: {
+			[key: string]: Value | Array<Value> | ((params: any) => string)
+		}
+	}
+	height?: string
+	groupBy?: 'daily' | 'weekly' | 'monthly'
+	hallmarks?: [number, string][]
+	valueSymbol?: string
+	alwaysShowTooltip?: boolean
+	hideDataZoom?: boolean
+	hideDownloadButton?: boolean
+	title?: string
+}
+
 export interface IPieChartProps {
 	title?: string
 	chartData: Array<{ name: string; value: number }>

@@ -4,6 +4,7 @@ import { createFilter } from 'react-select'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRef } from 'react'
 import { getItemIconUrl } from '../utils'
+import { reactSelectStyles } from '../utils/reactSelectStyles'
 
 interface ItemSelectProps {
 	label: string
@@ -133,6 +134,7 @@ export function ItemSelect({
 					placeholder={placeholder}
 					className="w-full"
 					filterOption={filterOption}
+					styles={reactSelectStyles}
 				/>
 			)}
 		</div>
