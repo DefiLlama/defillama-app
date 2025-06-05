@@ -6,30 +6,20 @@ import { ChartCard } from './ChartCard'
 import { DashboardItemConfig, Chain, Protocol } from '../types'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
 import { Icon } from '~/components/Icon'
+import { useProDashboard } from '../ProDashboardContext'
 
 const MultiChartCard = dynamic(() => import('./MultiChartCard'), {
 	ssr: false
 })
 
 interface ChartGridProps {
-	charts: DashboardItemConfig[]
-	onChartsReordered: (newCharts: DashboardItemConfig[]) => void
-	onRemoveChart: (id: string) => void
-	getChainInfo: (chainName: string) => Chain | undefined
-	getProtocolInfo: (protocolId: string) => Protocol | undefined
-	onGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month') => void
 	onAddChartClick: () => void
 }
 
 export function ChartGrid({
-	charts,
-	onChartsReordered,
-	onRemoveChart,
-	getChainInfo,
-	getProtocolInfo,
-	onGroupingChange,
 	onAddChartClick
 }: ChartGridProps) {
+	const { chartsWithData, handleChartsReordered, handleRemoveChart } = useProDashboard()
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -43,42 +33,34 @@ export function ChartGrid({
 		const { active, over } = event
 
 		if (active.id !== over.id) {
-			const oldIndex = charts.findIndex((item) => item.id === active.id)
-			const newIndex = charts.findIndex((item) => item.id === over.id)
-			const newCharts = arrayMove(charts, oldIndex, newIndex)
-			onChartsReordered(newCharts)
+			const oldIndex = chartsWithData.findIndex((item) => item.id === active.id)
+			const newIndex = chartsWithData.findIndex((item) => item.id === over.id)
+			const newCharts = arrayMove(chartsWithData, oldIndex, newIndex)
+			handleChartsReordered(newCharts)
 		}
 	}
 
 	return (
 		<div className="mt-4">
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-				<SortableContext items={charts.map((c) => c.id)} strategy={rectSortingStrategy}>
+				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-						{charts.map((item) => (
+						{chartsWithData.map((item) => (
 							<SortableItem key={item.id} id={item.id} isTable={item.kind === 'table'}>
 								{item.kind === 'chart' ? (
 									<ChartCard
 										chart={item}
-										onRemove={onRemoveChart}
-										getChainInfo={getChainInfo}
-										getProtocolInfo={getProtocolInfo}
-										onGroupingChange={onGroupingChange}
 									/>
 								) : item.kind === 'multi' ? (
 									<MultiChartCard
 										multi={item}
-										onRemove={onRemoveChart}
-										getChainInfo={getChainInfo}
-										getProtocolInfo={getProtocolInfo}
-										onGroupingChange={onGroupingChange}
 									/>
 								) : (
 									<div className="relative h-full">
 										<div className="absolute top-2 right-2 z-10">
 											<button
 												className="p-1 rounded-md hover:bg-[var(--bg3)] text-[var(--text3)] hover:text-[var(--text1)] bg-[var(--bg7)]"
-												onClick={() => onRemoveChart(item.id)}
+												onClick={() => handleRemoveChart(item.id)}
 												aria-label="Remove table"
 											>
 												<Icon name="x" height={16} width={16} />

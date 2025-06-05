@@ -1,31 +1,23 @@
 import { useState, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHART_TYPES, Chain, Protocol, getProtocolChartTypes, getChainChartTypes, ChartConfig } from '../types'
-import { useProtocolsAndChains, useAvailableChartTypes, useChartData } from '../queries'
+import { useAvailableChartTypes, useChartData } from '../queries'
 import { sluggify } from '~/utils/cache-client'
 import { LoadingSpinner } from './LoadingSpinner'
 import { ItemSelect } from './ItemSelect'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { reactSelectStyles } from '../utils/reactSelectStyles'
 import { ChartPreview } from './ChartPreview'
+import { useProDashboard } from '../ProDashboardContext'
 
 interface AddChartModalProps {
 	isOpen: boolean
 	onClose: () => void
-	onAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
-	onAddTable: (chain: string) => void
-	onAddMultiChart: (items: ChartConfig[], name?: string) => void
-	chains: Chain[]
-	chainsLoading: boolean
 }
 
 export function AddChartModal({
 	isOpen,
-	onClose,
-	onAddChart,
-	onAddTable,
-	onAddMultiChart,
-	chainsLoading
+	onClose
 }: AddChartModalProps) {
 	const [selectedMainTab, setSelectedMainTab] = useState<'chart' | 'composer' | 'table'>('chart')
 	const [selectedChartTab, setSelectedChartTab] = useState<'chain' | 'protocol'>('chain')
@@ -36,7 +28,15 @@ export function AddChartModal({
 	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
 
-	const { data: { protocols = [], chains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
+	const { 
+		protocols, 
+		chains, 
+		protocolsLoading,
+		timePeriod,
+		handleAddChart, 
+		handleAddTable, 
+		handleAddMultiChart 
+	} = useProDashboard()
 
 	const selectedProtocolData = useMemo(
 		() => protocols.find((p: Protocol) => p.slug === selectedProtocol),
@@ -66,7 +66,8 @@ export function AddChartModal({
 	const { availableChartTypes, isLoading: chartTypesLoading } = useAvailableChartTypes(
 		getCurrentSelectedItem(),
 		selectedMainTab === 'table' ? 'chain' : getCurrentItemType(),
-		selectedProtocolData?.geckoId
+		selectedProtocolData?.geckoId,
+		timePeriod
 	)
 
 	const shouldFetchPreviewData = selectedMainTab === 'chart' && getCurrentSelectedItem() && selectedChartType
@@ -74,7 +75,8 @@ export function AddChartModal({
 		selectedChartType,
 		getCurrentItemType(),
 		getCurrentSelectedItem() || '',
-		selectedProtocolData?.geckoId
+		selectedProtocolData?.geckoId,
+		timePeriod
 	)
 
 	const showPreview = shouldFetchPreviewData && availableChartTypes.includes(selectedChartType)
@@ -147,16 +149,16 @@ export function AddChartModal({
 
 	const handleSubmit = () => {
 		if (selectedMainTab === 'composer' && composerItems.length > 0) {
-			onAddMultiChart(composerItems, composerChartName.trim() || undefined)
+			handleAddMultiChart(composerItems, composerChartName.trim() || undefined)
 			setComposerItems([])
 			setComposerChartName('')
 		} else if (selectedMainTab === 'chart' && selectedChartTab === 'chain' && selectedChain) {
-			onAddChart(selectedChain, selectedChartType, 'chain')
+			handleAddChart(selectedChain, selectedChartType, 'chain')
 		} else if (selectedMainTab === 'chart' && selectedChartTab === 'protocol' && selectedProtocol) {
 			const protocol = protocols.find((p: Protocol) => p.slug === selectedProtocol)
-			onAddChart(selectedProtocol, selectedChartType, 'protocol', protocol?.geckoId)
+			handleAddChart(selectedProtocol, selectedChartType, 'protocol', protocol?.geckoId)
 		} else if (selectedMainTab === 'table' && selectedChain) {
-			onAddTable(selectedChain)
+			handleAddTable(selectedChain)
 		}
 		onClose()
 		setSelectedChartType('tvl')
@@ -268,7 +270,7 @@ export function AddChartModal({
 										options={chainOptions}
 										selectedValue={selectedChain}
 										onChange={handleChainChange}
-										isLoading={chainsLoading}
+										isLoading={protocolsLoading}
 										placeholder="Select a chain..."
 										itemType="chain"
 									/>
@@ -401,7 +403,7 @@ export function AddChartModal({
 											options={chainOptions}
 											selectedValue={selectedChain}
 											onChange={handleChainChange}
-											isLoading={chainsLoading}
+											isLoading={protocolsLoading}
 											placeholder="Select a chain..."
 											itemType="chain"
 										/>
@@ -503,7 +505,7 @@ export function AddChartModal({
 							options={chainOptions}
 							selectedValue={selectedChain}
 							onChange={(option: any) => setSelectedChain(option.value)}
-							isLoading={chainsLoading}
+							isLoading={protocolsLoading}
 							placeholder="Select a chain..."
 							itemType="chain"
 						/>

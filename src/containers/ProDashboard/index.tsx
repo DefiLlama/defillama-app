@@ -1,194 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { ChartConfig, CHART_TYPES, DashboardItemConfig, ProtocolsTableConfig, MultiChartConfig } from './types'
 import { AddChartModal } from './components/AddChartModal'
 import { ChartGrid } from './components/ChartGrid'
 import { EmptyState } from './components/EmptyState'
-import { useChartsData, useProtocolsAndChains } from './queries'
-import { QueryObserverResult } from '@tanstack/react-query'
-import { groupData } from './utils'
-import { Protocol } from './types'
-import { useRouter } from 'next/router'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { useLocalStorageContext, PRO_DASHBOARD_ITEMS } from '~/contexts/LocalStorage'
 import { LoadingSpinner } from './components/LoadingSpinner'
+import { ProDashboardProvider, useProDashboard, TimePeriod } from './ProDashboardContext'
 
-export default function ProDashboard() {
-	const { data: { protocols = [], chains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
+function ProDashboardContent() {
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
-	const [items, setItems] = useState<DashboardItemConfig[]>([])
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
-	const router = useRouter()
-	const [localStorageState, { updateKey }] = useLocalStorageContext()
+	const {
+		items,
+		protocolsLoading,
+		timePeriod,
+		setTimePeriod
+	} = useProDashboard()
 
-	useEffect(() => {
-		const savedItems = localStorageState?.[PRO_DASHBOARD_ITEMS]
-		if (savedItems && Array.isArray(savedItems) && savedItems.length > 0) {
-			setItems(savedItems)
-		}
-	}, [localStorageState])
-
-	useEffect(() => {
-		const itemsToSave = items.map((item) => {
-			if (item.kind === 'chart') {
-				const { data, isLoading, hasError, refetch, ...chartConfigToSave } = item as ChartConfig
-				return chartConfigToSave
-			} else if (item.kind === 'table') {
-				return item as ProtocolsTableConfig
-			} else if (item.kind === 'multi') {
-				const { items: nestedItems, ...rest } = item as MultiChartConfig
-				const cleanNestedItems = nestedItems.map((nestedItem) => {
-					const { data, isLoading, hasError, refetch, ...cleanItem } = nestedItem
-					return cleanItem
-				})
-				return { ...rest, items: cleanNestedItems }
-			}
-			return item
-		})
-
-		const currentlySavedItemsString = JSON.stringify(localStorageState?.[PRO_DASHBOARD_ITEMS] || [])
-		const itemsToSaveString = JSON.stringify(itemsToSave)
-
-		if (itemsToSaveString !== currentlySavedItemsString) {
-			updateKey(PRO_DASHBOARD_ITEMS, itemsToSave)
-		}
-	}, [items, localStorageState, updateKey])
-
-	const allChartItems: ChartConfig[] = []
-	items.forEach((item) => {
-		if (item.kind === 'chart') {
-			allChartItems.push(item)
-		} else if (item.kind === 'multi') {
-			allChartItems.push(...item.items)
-		}
-	})
-
-	const chartQueries = useChartsData(allChartItems)
-
-	const chartsWithData: DashboardItemConfig[] = items.map((item) => {
-		if (item.kind === 'chart') {
-			const chart = item
-			const idx = allChartItems.findIndex((c) => c.id === chart.id)
-			const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
-			const chartTypeDetails = CHART_TYPES[chart.type]
-			let processedData = query.data || []
-			if (chartTypeDetails?.groupable) {
-				processedData = groupData(query.data, chart.grouping)
-			}
-			return {
-				...chart,
-				data: processedData,
-				isLoading: query.isLoading || false,
-				hasError: query.isError || false,
-				refetch: query.refetch || (() => {})
-			}
-		} else if (item.kind === 'multi') {
-			const processedItems = item.items.map((nestedChart) => {
-				const idx = allChartItems.findIndex((c) => c.id === nestedChart.id)
-				const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
-				const chartTypeDetails = CHART_TYPES[nestedChart.type]
-				let processedData = query.data || []
-				if (chartTypeDetails?.groupable) {
-					processedData = groupData(query.data, nestedChart.grouping)
-				}
-				return {
-					...nestedChart,
-					data: processedData,
-					isLoading: query.isLoading || false,
-					hasError: query.isError || false,
-					refetch: query.refetch || (() => {})
-				}
-			})
-			return {
-				...item,
-				items: processedItems
-			}
-		}
-		return item
-	})
-
-	useEffect(() => {
-		if (chains.length > 0) {
-			const topChainName = chains[0].name
-			if (items.length === 0) {
-				const initialCharts: DashboardItemConfig[] = [
-					{ id: `${topChainName}-tvl`, kind: 'chart', chain: topChainName, type: 'tvl' },
-					{ id: `${topChainName}-volume`, kind: 'chart', chain: topChainName, type: 'volume', grouping: 'day' },
-					{ id: `${topChainName}-fees`, kind: 'chart', chain: topChainName, type: 'fees', grouping: 'day' }
-				]
-				setItems(initialCharts)
-			}
-		}
-	}, [chains, items.length])
-
-	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
-		const newChartId = `${item}-${chartType}-${Date.now()}`
-		const chartTypeDetails = CHART_TYPES[chartType]
-
-		const newChartBase: Partial<ChartConfig> = {
-			id: newChartId,
-			kind: 'chart',
-			type: chartType
-		}
-
-		if (chartTypeDetails?.groupable) {
-			newChartBase.grouping = 'day'
-		}
-
-		let newChart: ChartConfig
-		if (itemType === 'protocol') {
-			newChart = {
-				...newChartBase,
-				protocol: item,
-				chain: '',
-				geckoId
-			} as ChartConfig
-		} else {
-			newChart = {
-				...newChartBase,
-				chain: item
-			} as ChartConfig
-		}
-
-		setItems((prev) => [...prev, newChart])
-	}
-
-	const handleAddTable = (chain: string) => {
-		const newTable: ProtocolsTableConfig = {
-			id: `table-${chain}-${Date.now()}`,
-			kind: 'table',
-			chain
-		}
-		setItems((prev) => [...prev, newTable])
-	}
-
-	const handleAddMultiChart = (chartItems: ChartConfig[], name?: string) => {
-		const newMultiChart: MultiChartConfig = {
-			id: `multi-${Date.now()}`,
-			kind: 'multi',
-			name: name || `Multi-Chart ${items.filter((item) => item.kind === 'multi').length + 1}`,
-			items: chartItems,
-			grouping: 'day'
-		}
-		setItems((prev) => [...prev, newMultiChart])
-	}
-
-	const handleRemoveChart = (chartId: string) => {
-		setItems((prev) => prev.filter((item) => item.id !== chartId))
-	}
-
-	const handleChartsReordered = (newCharts: ChartConfig[]) => {
-		setItems(newCharts)
-	}
-
-	const getChainInfo = (chainName: string) => {
-		return chains.find((chain) => chain.name === chainName)
-	}
-
-	const getProtocolInfo = (protocolId: string) => {
-		return protocols.find((p: Protocol) => p.slug === protocolId)
-	}
+	const timePeriods: { value: TimePeriod; label: string }[] = [
+		{ value: '30d', label: '30d' },
+		{ value: '90d', label: '90d' },
+		{ value: '365d', label: '365d' },
+		{ value: 'all', label: 'All' }
+	]
 
 	if (isSubLoading) {
 		return (
@@ -216,7 +51,22 @@ export default function ProDashboard() {
 
 	return (
 		<div className="p-4 md:p-6">
-			<div className="flex justify-end items-center mb-6">
+			<div className="flex justify-between items-center mb-6">
+				<div className="grid grid-cols-4 gap-0">
+					{timePeriods.map((period) => (
+						<button
+							key={period.value}
+							className={`px-4 py-3 text-sm font-medium border transition-colors duration-200 ${
+								timePeriod === period.value
+									? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
+									: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
+							}`}
+							onClick={() => setTimePeriod(period.value)}
+						>
+							{period.label}
+						</button>
+					))}
+				</div>
 				<button
 					className="px-4 py-2 rounded-md bg-[var(--primary1)] text-white flex items-center gap-2 hover:bg-[var(--primary1-hover)]"
 					onClick={() => setShowAddModal(true)}
@@ -234,23 +84,6 @@ export default function ProDashboard() {
 
 			{items.length > 0 && (
 				<ChartGrid
-					charts={chartsWithData}
-					onChartsReordered={handleChartsReordered}
-					onRemoveChart={handleRemoveChart}
-					getChainInfo={getChainInfo}
-					getProtocolInfo={getProtocolInfo}
-					onGroupingChange={(chartId: string, newGrouping: 'day' | 'week' | 'month') => {
-						setItems((prev) =>
-							prev.map((item) => {
-								if (item.id === chartId && item.kind === 'chart') {
-									return { ...item, grouping: newGrouping }
-								} else if (item.kind === 'multi' && item.id === chartId) {
-									return { ...item, grouping: newGrouping }
-								}
-								return item
-							})
-						)
-					}}
 					onAddChartClick={() => setShowAddModal(true)}
 				/>
 			)}
@@ -258,14 +91,17 @@ export default function ProDashboard() {
 			<AddChartModal
 				isOpen={showAddModal}
 				onClose={() => setShowAddModal(false)}
-				onAddChart={handleAddChart}
-				onAddTable={handleAddTable}
-				onAddMultiChart={handleAddMultiChart}
-				chains={chains}
-				chainsLoading={protocolsLoading}
 			/>
 
 			{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={() => setShowAddModal(true)} />}
 		</div>
+	)
+}
+
+export default function ProDashboard() {
+	return (
+		<ProDashboardProvider>
+			<ProDashboardContent />
+		</ProDashboardProvider>
 	)
 }

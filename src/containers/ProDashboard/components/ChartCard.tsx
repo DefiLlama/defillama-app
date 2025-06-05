@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic'
 import { ChartConfig, CHART_TYPES, Chain, Protocol } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 import { getItemIconUrl } from '../utils'
+import { useProDashboard } from '../ProDashboardContext'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -14,13 +15,10 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 
 interface ChartCardProps {
 	chart: ChartConfig
-	onRemove: (id: string) => void
-	getChainInfo: (chainName: string) => Chain | undefined
-	getProtocolInfo: (protocolId: string) => Protocol | undefined
-	onGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month') => void
 }
 
-export function ChartCard({ chart, onRemove, getChainInfo, getProtocolInfo, onGroupingChange }: ChartCardProps) {
+export function ChartCard({ chart }: ChartCardProps) {
+	const { handleRemoveChart, getChainInfo, getProtocolInfo, handleGroupingChange } = useProDashboard()
 	const { data, isLoading, hasError, refetch } = chart
 	const chartTypeDetails = CHART_TYPES[chart.type]
 	const isGroupable = chartTypeDetails?.groupable
@@ -63,7 +61,7 @@ export function ChartCard({ chart, onRemove, getChainInfo, getProtocolInfo, onGr
 							{groupingOptions.map((option, index) => (
 								<button
 									key={option}
-									onClick={() => onGroupingChange(chart.id, option)}
+									onClick={() => handleGroupingChange(chart.id, option)}
 									className={`px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
 										${index > 0 ? 'border-l border-[var(--form-control-border)]' : ''}
 										${
@@ -79,7 +77,7 @@ export function ChartCard({ chart, onRemove, getChainInfo, getProtocolInfo, onGr
 					)}
 					<button
 						className="p-1 rounded-md hover:bg-[var(--bg3)] text-[var(--text3)] hover:text-[var(--text1)]"
-						onClick={() => onRemove(chart.id)}
+						onClick={() => handleRemoveChart(chart.id)}
 						aria-label="Remove chart"
 					>
 						<Icon name="x" height={16} width={16} />

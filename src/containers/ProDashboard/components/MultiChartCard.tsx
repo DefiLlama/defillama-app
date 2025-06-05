@@ -3,6 +3,7 @@ import { Icon } from '~/components/Icon'
 import { CHART_TYPES, MultiChartConfig, Chain, Protocol } from '../types'
 import { useChartsData } from '../queries'
 import { generateChartColor } from '../utils'
+import { useProDashboard } from '../ProDashboardContext'
 
 const MultiSeriesChart = dynamic(() => import('~/components/ECharts/MultiSeriesChart'), {
 	ssr: false
@@ -10,10 +11,6 @@ const MultiSeriesChart = dynamic(() => import('~/components/ECharts/MultiSeriesC
 
 interface MultiChartCardProps {
 	multi: MultiChartConfig
-	onRemove: (id: string) => void
-	getChainInfo: (chainName: string) => Chain | undefined
-	getProtocolInfo: (protocolId: string) => Protocol | undefined
-	onGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month') => void
 }
 
 function groupData(data: [string, number][] | undefined, grouping: 'day' | 'week' | 'month'): [string, number][] {
@@ -40,8 +37,9 @@ function groupData(data: [string, number][] | undefined, grouping: 'day' | 'week
 	return data
 }
 
-export default function MultiChartCard({ multi, onRemove, getProtocolInfo, onGroupingChange }: MultiChartCardProps) {
-	const queries = useChartsData(multi.items)
+export default function MultiChartCard({ multi }: MultiChartCardProps) {
+	const { handleRemoveChart, getProtocolInfo, handleGroupingChange, timePeriod } = useProDashboard()
+	const queries = useChartsData(multi.items, timePeriod)
 
 	const series = multi.items.map((cfg, i) => {
 		const q = queries[i]
@@ -67,8 +65,8 @@ export default function MultiChartCard({ multi, onRemove, getProtocolInfo, onGro
 	const hasError = queries.some((q) => q.isError)
 	const isDataLoading = queries.some((q) => q.isLoading)
 
-	const handleGroupingChange = (newGrouping: 'day' | 'week' | 'month') => {
-		onGroupingChange(multi.id, newGrouping)
+	const handleLocalGroupingChange = (newGrouping: 'day' | 'week' | 'month') => {
+		handleGroupingChange(multi.id, newGrouping)
 	}
 
 	return (
@@ -83,7 +81,7 @@ export default function MultiChartCard({ multi, onRemove, getProtocolInfo, onGro
 				<div className="flex items-center gap-2">
 					<button
 						className="p-1 rounded-md hover:bg-[var(--bg3)] text-[var(--text3)] hover:text-[var(--text1)]"
-						onClick={() => onRemove(multi.id)}
+						onClick={() => handleRemoveChart(multi.id)}
 						aria-label="Remove multi-chart"
 					>
 						<Icon name="x" height={16} width={16} />
