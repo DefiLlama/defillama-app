@@ -183,7 +183,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 			</div>
 
 			{viewMode === 'week' && weeklyChartData && (
-				<div className="mb-4">
+				<div className="mb-4 min-h-[350px]">
 					<LazyChart>
 						<BarChart
 							chartData={weeklyChartData.chartData}
@@ -249,7 +249,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 			) : viewMode === 'month' ? (
 				<>
 					{monthlyChartData && (
-						<div className="mb-4">
+						<div className="mb-4 min-h-[350px]">
 							<LazyChart>
 								<BarChart
 									chartData={monthlyChartData.chartData}
