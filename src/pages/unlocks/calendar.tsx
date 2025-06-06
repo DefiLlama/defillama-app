@@ -9,6 +9,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { CalendarView } from '~/components/Unlocks/CalendarView'
 import { Announcement } from '~/components/Announcement'
 import dayjs from 'dayjs'
+import type { PrecomputedData } from '~/components/Unlocks/types'
 
 const determineUnlockType = (
 	event: { timestamp: number; noOfTokens: number[]; description?: string; category?: string },
@@ -48,6 +49,11 @@ const determineUnlockType = (
 export const getStaticProps = withPerformanceLogging('unlocks-calendar', async () => {
 	const data = await getAllProtocolEmissionsWithHistory()
 	const unlocksData: { [date: string]: { totalValue: number; events: Array<any> } } = {}
+
+	const precomputedData = {
+		monthlyMaxValues: {} as { [monthKey: string]: number },
+		listEvents: {} as { [startDateKey: string]: Array<{ date: string; event: any }> }
+	}
 
 	data?.forEach((protocol) => {
 		if (!protocol.events || protocol.tPrice === null || protocol.tPrice === undefined) {
@@ -120,9 +126,50 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 		unlocksData[date].events.sort((a, b) => b.value - a.value)
 	})
 
+	const currentYear = new Date().getFullYear()
+	for (let year = currentYear - 1; year <= currentYear + 2; year++) {
+		for (let month = 0; month < 12; month++) {
+			const startOfMonth = dayjs().year(year).month(month).startOf('month')
+			const endOfMonth = startOfMonth.endOf('month')
+			const monthKey = `${year}-${month.toString().padStart(2, '0')}`
+
+			let maxValue = 0
+			Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+				const date = dayjs(dateStr)
+				if (date.isBetween(startOfMonth.subtract(1, 'day'), endOfMonth.add(1, 'day'))) {
+					if (dailyData.totalValue > maxValue) {
+						maxValue = dailyData.totalValue
+					}
+				}
+			})
+			precomputedData.monthlyMaxValues[monthKey] = maxValue
+		}
+	}
+
+	const now = dayjs()
+	for (let i = 0; i < 6; i++) {
+		const startDate = now.add(i * 30, 'days').startOf('day')
+		const endDate = startDate.add(30, 'days')
+		const startDateKey = startDate.format('YYYY-MM-DD')
+
+		const events: Array<{ date: string; event: any }> = []
+		Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+			const date = dayjs(dateStr)
+			if (date.isBetween(startDate.subtract(1, 'day'), endDate)) {
+				dailyData.events.forEach((event) => {
+					events.push({ date: dateStr, event })
+				})
+			}
+		})
+
+		events.sort((a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf())
+		precomputedData.listEvents[startDateKey] = events
+	}
+
 	return {
 		props: {
-			unlocksData
+			unlocksData,
+			precomputedData
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -141,7 +188,13 @@ interface UnlocksData {
 	}
 }
 
-export default function UnlocksCalendar({ unlocksData: initialUnlocksData }: { unlocksData: UnlocksData }) {
+export default function UnlocksCalendar({
+	unlocksData: initialUnlocksData,
+	precomputedData
+}: {
+	unlocksData: UnlocksData
+	precomputedData: PrecomputedData
+}) {
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
 	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
 	const { savedProtocols } = useWatchlist()
@@ -217,7 +270,7 @@ export default function UnlocksCalendar({ unlocksData: initialUnlocksData }: { u
 			</div>
 
 			<div className="bg-[var(--cards-bg)] rounded-md p-3">
-				<CalendarView unlocksData={unlocksData} />
+				<CalendarView unlocksData={unlocksData} precomputedData={precomputedData} />
 			</div>
 		</Layout>
 	)

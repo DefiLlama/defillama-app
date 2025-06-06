@@ -12,27 +12,62 @@ import { formattedNum } from '~/utils'
 import { UpcomingUnlockVolumeChart } from '~/components/Charts/UpcomingUnlockVolumeChart'
 import { useWatchlist } from '~/contexts/LocalStorage'
 import { useRouter } from 'next/router'
-
-import dayjs from 'dayjs'
-import weekOfYear from 'dayjs/plugin/weekOfYear'
 import { Metrics } from '~/components/Metrics'
 
-dayjs.extend(weekOfYear)
+const calculateUnlockStatistics = (data) => {
+	let upcomingUnlocks30dValue = 0
+	let upcomingUnlocks7dValue = 0
+	const now = Date.now() / 1000
+	const thirtyDaysLater = now + 30 * 24 * 60 * 60
+	const sevenDaysLater = now + 7 * 24 * 60 * 60
+
+	data?.forEach((protocol) => {
+		if (!protocol.upcomingEvent || protocol.tPrice === null || protocol.tPrice === undefined) {
+			return
+		}
+
+		protocol.upcomingEvent.forEach((event) => {
+			if (event.timestamp === null || !event.noOfTokens || event.noOfTokens.length === 0) {
+				return
+			}
+
+			const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
+			if (totalTokens === 0) {
+				return
+			}
+
+			const valueUSD = totalTokens * protocol.tPrice
+			if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
+				upcomingUnlocks30dValue += valueUSD
+			}
+			if (event.timestamp >= now && event.timestamp <= sevenDaysLater) {
+				upcomingUnlocks7dValue += valueUSD
+			}
+		})
+	})
+
+	return {
+		upcomingUnlocks7dValue,
+		upcomingUnlocks30dValue,
+		totalProtocols: data?.length || 0
+	}
+}
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const data = await getAllProtocolEmissions({
 		endDate: Date.now() / 1000 + 30 * 24 * 60 * 60
 	})
-
+	const unlockStats = calculateUnlockStatistics(data)
 	return {
 		props: {
-			data
+			data,
+			unlockStats
 		},
 		revalidate: maxAgeForNext([22])
 	}
 })
 
-export default function Protocols({ data }) {
+export default function Protocols({ data, unlockStats }) {
 	const [projectName, setProjectName] = React.useState('')
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
 	const { savedProtocols } = useWatchlist()
@@ -42,65 +77,7 @@ export default function Protocols({ data }) {
 	const min = typeof minUnlockValue === 'string' && minUnlockValue !== '' ? Number(minUnlockValue) : null
 	const max = typeof maxUnlockValue === 'string' && maxUnlockValue !== '' ? Number(maxUnlockValue) : null
 
-	const { upcomingUnlocks30dValue } = React.useMemo(() => {
-		let upcomingUnlocks30dValue = 0
-		const now = Date.now() / 1000
-		const thirtyDaysLater = now + 30 * 24 * 60 * 60
-
-		data?.forEach((protocol) => {
-			if (!protocol.upcomingEvent || protocol.tPrice === null || protocol.tPrice === undefined) {
-				return
-			}
-
-			protocol.upcomingEvent.forEach((event) => {
-				if (event.timestamp === null || !event.noOfTokens || event.noOfTokens.length === 0) {
-					return
-				}
-
-				const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
-				if (totalTokens === 0) {
-					return
-				}
-
-				const valueUSD = totalTokens * protocol.tPrice
-				if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
-					upcomingUnlocks30dValue += valueUSD
-				}
-			})
-		})
-
-		return { upcomingUnlocks30dValue }
-	}, [data])
-
-	const { upcomingUnlocks7dValue } = React.useMemo(() => {
-		let upcomingUnlocks7dValue = 0
-		const now = Date.now() / 1000
-		const thirtyDaysLater = now + 7 * 24 * 60 * 60
-
-		data?.forEach((protocol) => {
-			if (!protocol.upcomingEvent || protocol.tPrice === null || protocol.tPrice === undefined) {
-				return
-			}
-
-			protocol.upcomingEvent.forEach((event) => {
-				if (event.timestamp === null || !event.noOfTokens || event.noOfTokens.length === 0) {
-					return
-				}
-
-				const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
-				if (totalTokens === 0) {
-					return
-				}
-
-				const valueUSD = totalTokens * protocol.tPrice
-				if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
-					upcomingUnlocks7dValue += valueUSD
-				}
-			})
-		})
-
-		return { upcomingUnlocks7dValue }
-	}, [data])
+	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
 
 	return (
 		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
@@ -123,7 +100,7 @@ export default function Protocols({ data }) {
 					<h1 className="text-xl font-semibold">Unlock Statistics</h1>
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Protocols Tracked</span>
-						<span className="font-semibold text-3xl font-jetbrains">{data?.length || 0}</span>
+						<span className="font-semibold text-3xl font-jetbrains">{totalProtocols}</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Upcoming Unlocks (7d)</span>

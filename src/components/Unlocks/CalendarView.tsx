@@ -11,17 +11,20 @@ import { useUnlockChartData } from './hooks/useUnlockChartData'
 import { CalendarDayCell } from './components/CalendarDayCell'
 import { WeekDayColumn } from './components/WeekDayColumn'
 import { UnlocksListView } from './components/UnlocksListView'
+import { LazyChart } from '~/components/LazyChart'
 
 dayjs.extend(isBetween)
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), { ssr: false })
 const UnlocksTreemapChart = dynamic(() => import('~/components/ECharts/UnlocksTreemapChart'), { ssr: false })
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
+export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomputedData }) => {
 	const [currentDate, setCurrentDate] = React.useState(dayjs())
 	const [viewMode, setViewMode] = React.useState<'month' | 'week' | 'list' | 'treemap'>('month')
 
 	const calendarDays = React.useMemo(() => {
+		if (viewMode === 'list' || viewMode === 'treemap') return []
+
 		if (viewMode === 'week') {
 			return generateWeekDays(currentDate) as DayInfo[]
 		}
@@ -32,6 +35,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 		if (viewMode !== 'list') return []
 
 		const startDate = currentDate.startOf('day')
+		const startDateKey = startDate.format('YYYY-MM-DD')
+
+		if (precomputedData?.listEvents[startDateKey]) {
+			return precomputedData.listEvents[startDateKey].map(({ date, event }) => ({
+				date: dayjs(date),
+				event
+			}))
+		}
+
 		const listDurationDays = 30
 		const endDate = startDate.add(listDurationDays, 'days')
 		const events: Array<{ date: Dayjs; event: any }> = []
@@ -48,12 +60,24 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 		events.sort((a, b) => a.date.valueOf() - b.date.valueOf())
 
 		return events
-	}, [currentDate, viewMode, unlocksData])
+	}, [currentDate, viewMode, unlocksData, precomputedData])
 
-	const { weeklyChartData, monthlyChartData } = useUnlockChartData({ currentDate, viewMode, unlocksData })
+	const { weeklyChartData, monthlyChartData } = useUnlockChartData({
+		currentDate,
+		viewMode,
+		unlocksData,
+		precomputedData
+	})
 
 	const maxMonthlyValue = React.useMemo(() => {
 		if (viewMode !== 'month') return 0
+
+		const monthKey = `${currentDate.year()}-${currentDate.month().toString().padStart(2, '0')}`
+
+		if (precomputedData?.monthlyMaxValues[monthKey] !== undefined) {
+			return precomputedData.monthlyMaxValues[monthKey]
+		}
+
 		const startOfMonth = currentDate.startOf('month')
 		const endOfMonth = currentDate.endOf('month')
 		let max = 0
@@ -70,19 +94,27 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 			}
 		})
 		return max
-	}, [currentDate, viewMode, unlocksData])
+	}, [currentDate, viewMode, unlocksData, precomputedData])
 
-	const next = () => {
+	const next = React.useCallback(() => {
 		const duration = viewMode === 'list' ? 30 : 1
 		const unit = viewMode === 'list' ? 'day' : viewMode === 'treemap' ? 'year' : viewMode
-		setCurrentDate(currentDate.add(duration, unit))
-	}
+		setCurrentDate((prev) => prev.add(duration, unit))
+	}, [viewMode])
 
-	const prev = () => {
+	const prev = React.useCallback(() => {
 		const duration = viewMode === 'list' ? 30 : 1
 		const unit = viewMode === 'list' ? 'day' : viewMode === 'treemap' ? 'year' : viewMode
-		setCurrentDate(currentDate.subtract(duration, unit))
-	}
+		setCurrentDate((prev) => prev.subtract(duration, unit))
+	}, [viewMode])
+
+	const goToToday = React.useCallback(() => {
+		setCurrentDate(dayjs())
+	}, [])
+
+	const handleViewModeChange = React.useCallback((newMode: 'month' | 'week' | 'list' | 'treemap') => {
+		setViewMode(newMode)
+	}, [])
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -98,28 +130,28 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 				</h2>
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 					<button
-						onClick={() => setViewMode('month')}
+						onClick={() => handleViewModeChange('month')}
 						data-active={viewMode === 'month'}
 						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						Month
 					</button>
 					<button
-						onClick={() => setViewMode('week')}
+						onClick={() => handleViewModeChange('week')}
 						data-active={viewMode === 'week'}
 						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						Week
 					</button>
 					<button
-						onClick={() => setViewMode('treemap')}
+						onClick={() => handleViewModeChange('treemap')}
 						data-active={viewMode === 'treemap'}
 						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
 						TreeMap
 					</button>
 					<button
-						onClick={() => setViewMode('list')}
+						onClick={() => handleViewModeChange('list')}
 						data-active={viewMode === 'list'}
 						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
 					>
@@ -135,7 +167,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 						←
 					</button>
 					<button
-						onClick={() => setCurrentDate(dayjs())}
+						onClick={goToToday}
 						className="px-3 py-1 rounded hover:bg-[var(--bg7)] text-[var(--text2)] hover:text-[var(--text1)]"
 					>
 						Today
@@ -151,125 +183,131 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData }) => {
 			</div>
 
 			{viewMode === 'week' && weeklyChartData && (
-				<div className="mb-4">
-					<BarChart
-						chartData={weeklyChartData.chartData}
-						stacks={weeklyChartData.stacks}
-						stackColors={weeklyChartData.stackColors}
-						valueSymbol="$"
-						height="300px"
-						chartOptions={{
-							tooltip: {
-								trigger: 'axis',
-								formatter: (params: any) => {
-									if (!params || params.length === 0) return ''
+				<div className="mb-4 min-h-[350px]">
+					<LazyChart>
+						<BarChart
+							chartData={weeklyChartData.chartData}
+							stacks={weeklyChartData.stacks}
+							stackColors={weeklyChartData.stackColors}
+							valueSymbol="$"
+							height="300px"
+							chartOptions={{
+								tooltip: {
+									trigger: 'axis',
+									formatter: (params: any) => {
+										if (!params || params.length === 0) return ''
 
-									const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
-									let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
-									let totalValue = 0
+										const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
+										let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
+										let totalValue = 0
 
-									const validParams = params
-										.filter((param) => param.value && param.value[1] > 0)
-										.sort((a, b) => b.value[1] - a.value[1])
+										const validParams = params
+											.filter((param) => param.value && param.value[1] > 0)
+											.sort((a, b) => b.value[1] - a.value[1])
 
-									if (validParams.length === 0) {
-										tooltipContent += 'No unlocks'
-									} else {
-										validParams.forEach((param) => {
-											const value = param.value[1]
-											totalValue += value
-											tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-												<span>${param.marker} ${param.seriesName}</span>
-												<span style="font-weight: 500;">${formattedNum(value, true)}</span>
-											</div>`
-										})
-										if (validParams.length > 1) {
-											tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-												<span><strong>Total</strong></span>
-												<span style="font-weight: 600;">${formattedNum(totalValue, true)}</span>
-											</div>`
+										if (validParams.length === 0) {
+											tooltipContent += 'No unlocks'
+										} else {
+											validParams.forEach((param) => {
+												const value = param.value[1]
+												totalValue += value
+												tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+													<span>${param.marker} ${param.seriesName}</span>
+													<span style="font-weight: 500;">${formattedNum(value, true)}</span>
+												</div>`
+											})
+											if (validParams.length > 1) {
+												tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+													<span><strong>Total</strong></span>
+													<span style="font-weight: 600;">${formattedNum(totalValue, true)}</span>
+												</div>`
+											}
 										}
-									}
 
-									return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+										return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+									}
+								},
+								legend: {
+									type: 'scroll',
+									bottom: 0,
+									left: 'center',
+									itemGap: 15
+								},
+								grid: {
+									bottom: 40
 								}
-							},
-							legend: {
-								type: 'scroll',
-								bottom: 0,
-								left: 'center',
-								itemGap: 15
-							},
-							grid: {
-								bottom: 40
-							}
-						}}
-					/>
+							}}
+						/>
+					</LazyChart>
 				</div>
 			)}
 
 			{viewMode === 'treemap' ? (
-				<UnlocksTreemapChart unlocksData={unlocksData} height="600px" filterYear={currentDate.year()} />
+				<LazyChart className="h-[600px]">
+					<UnlocksTreemapChart unlocksData={unlocksData} height="600px" filterYear={currentDate.year()} />
+				</LazyChart>
 			) : viewMode === 'month' ? (
 				<>
 					{monthlyChartData && (
-						<div className="mb-4">
-							<BarChart
-								chartData={monthlyChartData.chartData}
-								stacks={monthlyChartData.stacks}
-								stackColors={monthlyChartData.stackColors}
-								valueSymbol="$"
-								height="300px"
-								chartOptions={{
-									tooltip: {
-										trigger: 'axis',
-										formatter: (params: any) => {
-											if (!params || params.length === 0) return ''
+						<div className="mb-4 min-h-[350px]">
+							<LazyChart>
+								<BarChart
+									chartData={monthlyChartData.chartData}
+									stacks={monthlyChartData.stacks}
+									stackColors={monthlyChartData.stackColors}
+									valueSymbol="$"
+									height="300px"
+									chartOptions={{
+										tooltip: {
+											trigger: 'axis',
+											formatter: (params: any) => {
+												if (!params || params.length === 0) return ''
 
-											const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
-											let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
-											let totalValue = 0
+												const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
+												let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
+												let totalValue = 0
 
-											const validParams = params
-												.filter((param) => param.value && param.value[1] > 0)
-												.sort((a, b) => b.value[1] - a.value[1])
+												const validParams = params
+													.filter((param) => param.value && param.value[1] > 0)
+													.sort((a, b) => b.value[1] - a.value[1])
 
-											if (validParams.length === 0) {
-												tooltipContent += 'No unlocks'
-											} else {
-												validParams.forEach((param) => {
-													const value = param.value[1]
-													totalValue += value
-													tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-														<span>${param.marker} ${param.seriesName}</span>
-														<span style="font-weight: 500;">${formattedNum(value, true)}</span>
-													</div>`
-												})
-												if (validParams.length > 1) {
-													tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-														<span><strong>Total</strong></span>
-														<span style="font-weight: 600;">${formattedNum(totalValue, true)}</span>
-													</div>`
+												if (validParams.length === 0) {
+													tooltipContent += 'No unlocks'
+												} else {
+													validParams.forEach((param) => {
+														const value = param.value[1]
+														totalValue += value
+														tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+															<span>${param.marker} ${param.seriesName}</span>
+															<span style="font-weight: 500;">${formattedNum(value, true)}</span>
+														</div>`
+													})
+													if (validParams.length > 1) {
+														tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+															<span><strong>Total</strong></span>
+															<span style="font-weight: 600;">${formattedNum(totalValue, true)}</span>
+														</div>`
+													}
 												}
-											}
 
-											return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+												return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+											}
+										},
+										legend: {
+											type: 'scroll',
+											bottom: 0,
+											left: 'center',
+											itemGap: 15
+										},
+										grid: {
+											bottom: 40
+										},
+										xAxis: {
+											type: 'time'
 										}
-									},
-									legend: {
-										type: 'scroll',
-										bottom: 0,
-										left: 'center',
-										itemGap: 15
-									},
-									grid: {
-										bottom: 40
-									},
-									xAxis: {
-										type: 'time'
-									}
-								}}
-							/>
+									}}
+								/>
+							</LazyChart>
 						</div>
 					)}
 					<div className="grid grid-cols-7 text-center text-sm text-[var(--text2)] font-medium py-2">

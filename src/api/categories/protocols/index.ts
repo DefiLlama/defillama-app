@@ -213,7 +213,9 @@ export const getAllProtocolEmissions = async ({
 					const coin = coins.coins['coingecko:' + protocol.gecko_id]
 					const tSymbol = coin?.symbol ?? null
 					const historicalPrice = historicalPrices[`coingecko:${protocol.gecko_id}`]
-
+					//remove protocol.unlockEvents
+					protocol.unlockEvents = null
+					protocol.sources = null
 					return {
 						...protocol,
 						upcomingEvent,
