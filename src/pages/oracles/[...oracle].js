@@ -12,6 +12,7 @@ import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { getOraclePageData } from '~/containers/Oracles/queries'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { oldBlue } from '~/constants/colors'
+import { protocolsOracleColumns } from '~/components/Table/Defi/Protocols/columns'
 
 const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
@@ -83,7 +84,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 	if (protocolsData.length > 0) {
 		topToken.name = protocolsData[0]?.name
-		topToken.tvl = protocolsData[0]?.tvl
+		topToken.tvl = protocolsData[0]?.tvs
 	}
 
 	const dominance = getTokenDominance(topToken, totalValue)
@@ -112,7 +113,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 				</div>
 			</div>
 
-			<ProtocolsTableWithSearch data={protocolsData} />
+			<ProtocolsTableWithSearch data={protocolsData} columns={protocolsOracleColumns} />
 		</>
 	)
 }
