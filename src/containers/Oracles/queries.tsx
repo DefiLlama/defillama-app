@@ -13,14 +13,14 @@ interface IOracleProtocols {
 interface IOracleApiResponse {
 	chart: Record<string, Record<string, Record<string, number>>>
 	chainChart: Record<string, Record<string, Record<string, number>>>
-	oracles: Record<string, Record<string, number>>
+	oraclesTVS: Record<string, Record<string, number>>
 	chainsByOracle: Record<string, Array<string>>
 }
 
 // - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null, chain = null) {
 	try {
-		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle }, { protocols }, perps]: [
+		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }, perps]: [
 			IOracleApiResponse,
 			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
 			IAdapterOverview | null
@@ -38,7 +38,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			})
 		])
 
-		const oracleExists = oracle ? oracles[oracle] && (chain ? chainsByOracle[oracle].includes(chain) : true) : true
+		const oracleExists = oracle ? oraclesTVS[oracle] && (chain ? chainsByOracle[oracle].includes(chain) : true) : true
 
 		if (!oracleExists) {
 			return {
@@ -47,14 +47,14 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		}
 
 		const oracleFilteredProtocols =
-			oracle && oracles[oracle] ? protocols.filter((protocol) => protocol.name in oracles[oracle]) : protocols
+			oracle && oraclesTVS[oracle] ? protocols.filter((protocol) => protocol.name in oraclesTVS[oracle]) : protocols
 
 		const filteredProtocols = formatProtocolsData({ oracle, protocols: oracleFilteredProtocols, chain })
 		const protocolsWithTvs = filteredProtocols.map((protocol) => {
 			let tvs = null
-			const oraclesToCheck = oracle ? [oracle] : Object.keys(oracles)
+			const oraclesToCheck = oracle ? [oracle] : Object.keys(oraclesTVS)
 			for (const oracleKey of oraclesToCheck) {
-				const oracleData = oracles[oracleKey]
+				const oracleData = oraclesTVS[oracleKey]
 				if (oracleData && oracleData[protocol.name]) {
 					tvs = oracleData[protocol.name]
 					break
@@ -98,8 +98,8 @@ export async function getOraclePageData(oracle = null, chain = null) {
 
 		const oraclesProtocols: IOracleProtocols = {}
 
-		for (const orc in oracles) {
-			oraclesProtocols[orc] = Object.keys(oracles[orc] || {}).length
+		for (const orc in oraclesTVS) {
+			oraclesProtocols[orc] = Object.keys(oraclesTVS[orc] || {}).length
 		}
 
 		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
@@ -155,7 +155,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 
 export async function getOraclePageDataByChain(chain: string) {
 	try {
-		const [{ chart = {}, chainChart = {}, oracles = {}, chainsByOracle }, { protocols }]: [
+		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
 			IOracleApiResponse,
 			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> }
 		] = await Promise.all([
@@ -166,8 +166,8 @@ export async function getOraclePageDataByChain(chain: string) {
 		const filteredProtocols = formatProtocolsData({ protocols, chain })
 		const protocolsWithTvs = filteredProtocols.map((protocol) => {
 			let tvs = null
-			for (const oracleKey of Object.keys(oracles)) {
-				const oracleData = oracles[oracleKey]
+			for (const oracleKey of Object.keys(oraclesTVS)) {
+				const oracleData = oraclesTVS[oracleKey]
 				if (oracleData && oracleData[protocol.name]) {
 					tvs = oracleData[protocol.name]
 					break
@@ -206,7 +206,7 @@ export async function getOraclePageDataByChain(chain: string) {
 
 		const oraclesProtocols: IOracleProtocols = {}
 
-		for (const orc in oracles) {
+		for (const orc in oraclesTVS) {
 			oraclesProtocols[orc] = protocols.filter((p) => p.oracles?.includes(orc) && p.chains.includes(chain)).length
 		}
 
