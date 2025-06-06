@@ -109,7 +109,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				</Ariakit.DialogDisclosure>
 				<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs z-10">
 					<Icon name="pencil" height={12} width={12} />
-					<span>Click to change</span>
+					<span className="hidden sm:block">Click to change</span>
 				</Ariakit.DialogDisclosure>
 				<img src="/icons/metrics-r.svg" width={189} height={82} alt="" className="rounded-r-md absolute right-0" />
 				<svg width="100%" height="100%" className="absolute top-0 left-0 z-0 text-[#e6e6e6] dark:text-[#222324]">
