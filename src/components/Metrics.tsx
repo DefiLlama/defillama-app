@@ -112,7 +112,11 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 					<span className="hidden sm:block">Click to change</span>
 				</Ariakit.DialogDisclosure>
 				<img src="/icons/metrics-r.svg" width={189} height={82} alt="" className="rounded-r-md absolute right-0" />
-				<svg width="100%" height="100%" className="absolute top-0 left-0 z-0 text-[#e6e6e6] dark:text-[#222324]">
+				<svg
+					width="100%"
+					height="100%"
+					className="absolute top-0 left-0 right-0 bottom-0 z-0 text-[#e6e6e6] dark:text-[#222324]"
+				>
 					<defs>
 						<linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
 							<stop offset="0%" stopColor="#1f67d2" />
