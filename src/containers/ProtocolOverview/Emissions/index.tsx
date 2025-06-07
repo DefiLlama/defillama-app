@@ -418,6 +418,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									if (newCategories.length === 0) return
 									setSelectedCategories(newCategories)
 								}}
+								selectOnlyOne={(newCategory) => {
+									setSelectedCategories([newCategory])
+								}}
 								label="Categories"
 								clearAll={() => {
 									if (selectedCategories.length > 0) {

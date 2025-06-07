@@ -1,9 +1,9 @@
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { updateAllSettingsInLsAndUrl, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { feesOptions } from './options'
 import { useMemo } from 'react'
 
 export function useProtocolsFilterState(options) {
-	const [extraTvlsEnabled, updater] = useLocalStorageSettingsManager('tvl')
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const [extraFeesEnabled] = useLocalStorageSettingsManager('fees')
 
 	const { selectedValues } = useMemo(() => {
@@ -15,13 +15,11 @@ export function useProtocolsFilterState(options) {
 	}, [extraTvlsEnabled, extraFeesEnabled, options])
 
 	const setSelectedValues = (values) => {
-		if (values.length < selectedValues.length) {
-			const off = selectedValues.find((o) => !values.includes(o))
-			updater(off)
-		} else {
-			const on = values.find((o) => !selectedValues.includes(o))
-			updater(on)
+		const newValues = {}
+		for (const o of options) {
+			newValues[o.key] = values.includes(o.key) ? true : false
 		}
+		updateAllSettingsInLsAndUrl(newValues)
 	}
 
 	return { selectedValues, setSelectedValues }
@@ -35,13 +33,11 @@ export function useFeesFilterState(props?: { [key: string]: any }) {
 	const selectedValues = fitlers.filter((key) => extraTvlsEnabled[key])
 
 	const setSelectedValues = (values) => {
-		if (values.length < selectedValues.length) {
-			const off = selectedValues.find((o) => !values.includes(o))
-			updater(off)
-		} else {
-			const on = values.find((o) => !selectedValues.includes(o))
-			updater(on)
+		const newValues = {}
+		for (const o of feesOptions) {
+			newValues[o.key] = values.includes(o.key) ? true : false
 		}
+		updateAllSettingsInLsAndUrl(newValues)
 	}
 
 	return { selectedValues, setSelectedValues }
@@ -56,20 +52,18 @@ export function useTvlAndFeesFilterState({
 		help?: string
 	}[]
 }) {
-	const [toggledKeys, updater] = useLocalStorageSettingsManager('tvl_fees')
+	const [toggledKeys] = useLocalStorageSettingsManager('tvl_fees')
 
 	const fitlers = options.map((o) => o.key)
 
 	const selectedValues = fitlers.filter((key) => toggledKeys[key])
 
 	const setSelectedValues = (values) => {
-		if (values.length < selectedValues.length) {
-			const off = selectedValues.find((o) => !values.includes(o))
-			updater(off)
-		} else {
-			const on = values.find((o) => !selectedValues.includes(o))
-			updater(on)
+		const newValues = {}
+		for (const o of options) {
+			newValues[o.key] = values.includes(o.key) ? true : false
 		}
+		updateAllSettingsInLsAndUrl(newValues)
 	}
 
 	return { selectedValues, setSelectedValues }

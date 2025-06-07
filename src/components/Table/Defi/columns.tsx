@@ -350,7 +350,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 				</div>
 			)
 		},
-		size: 100,
+		size: 140,
 		meta: {
 			align: 'end'
 		}

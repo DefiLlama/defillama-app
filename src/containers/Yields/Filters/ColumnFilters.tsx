@@ -73,6 +73,19 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		)
 	}
 
+	const addOnlyOneOption = (newOption) => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: { ...queries, [newOption]: true }
+			},
+			undefined,
+			{
+				shallow: true
+			}
+		)
+	}
+
 	const toggleAll = () => {
 		router.push(
 			{
@@ -105,6 +118,7 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 			allValues={options}
 			selectedValues={selectedOptions}
 			setSelectedValues={addOption}
+			selectOnlyOne={addOnlyOneOption}
 			toggleAll={toggleAll}
 			clearAll={clearAll}
 			nestedMenu={nestedMenu}

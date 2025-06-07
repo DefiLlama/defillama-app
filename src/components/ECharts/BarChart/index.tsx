@@ -195,6 +195,9 @@ export default function BarChart({
 						allValues={customLegendOptions}
 						selectedValues={legendOptions}
 						setSelectedValues={setLegendOptions}
+						selectOnlyOne={(newOption) => {
+							setLegendOptions([newOption])
+						}}
 						label={customLegendName}
 						clearAll={() => setLegendOptions([])}
 						toggleAll={() => setLegendOptions(customLegendOptions)}

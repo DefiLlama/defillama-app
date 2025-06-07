@@ -106,6 +106,9 @@ export function BackingType({ pathname, nestedMenu }: { pathname: string; nested
 			allValues={stablecoinBackingOptions}
 			selectedValues={selectedValues}
 			setSelectedValues={setSelectedValues}
+			selectOnlyOne={(newOption) => {
+				setSelectedValues([newOption])
+			}}
 			label="Backing Type"
 			clearAll={clearAll}
 			toggleAll={toggleAll}

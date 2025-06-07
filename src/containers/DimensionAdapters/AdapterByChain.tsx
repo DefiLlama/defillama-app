@@ -340,6 +340,14 @@ export function AdapterByChain(props: IProps) {
 		instance.setColumnVisibility(ops)
 	}
 
+	const addOnlyOneColumn = (newOption) => {
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
+		)
+		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
+		instance.setColumnVisibility(ops)
+	}
+
 	const selectedColumns = instance
 		.getAllLeafColumns()
 		.filter((col) => col.getIsVisible())
@@ -429,6 +437,7 @@ export function AdapterByChain(props: IProps) {
 						allValues={columnsOptions}
 						selectedValues={selectedColumns}
 						setSelectedValues={addColumn}
+						selectOnlyOne={addOnlyOneColumn}
 						toggleAll={toggleAllColumns}
 						clearAll={clearAllColumns}
 						nestedMenu={false}
@@ -444,6 +453,7 @@ export function AdapterByChain(props: IProps) {
 							allValues={props.categories}
 							selectedValues={selectedCategories}
 							setSelectedValues={addCategory}
+							selectOnlyOne={addCategory}
 							toggleAll={toggleAllCategories}
 							clearAll={clearAllCategories}
 							nestedMenu={false}

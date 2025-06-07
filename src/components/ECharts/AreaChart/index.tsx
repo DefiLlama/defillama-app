@@ -301,6 +301,9 @@ export default function AreaChart({
 						allValues={customLegendOptions}
 						selectedValues={legendOptions}
 						setSelectedValues={setLegendOptions}
+						selectOnlyOne={(newOption) => {
+							setLegendOptions([newOption])
+						}}
 						label={legendTitle}
 						clearAll={() => setLegendOptions([])}
 						toggleAll={() => setLegendOptions(customLegendOptions)}

@@ -33,6 +33,9 @@ const FeesToggles = ({ dataType }: { dataType?: string }) => {
 				allValues={feesOptions}
 				selectedValues={selectedValues}
 				setSelectedValues={setSelectedValues}
+				selectOnlyOne={(newOption) => {
+					setSelectedValues([newOption])
+				}}
 				label={`Include in ${
 					['dailyRevenue', 'dailyHoldersRevenue', 'dailyEarnings'].includes(dataType) ? 'Revenue' : 'Fees'
 				}`}

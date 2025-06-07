@@ -184,6 +184,9 @@ export function PegType({ pathname, nestedMenu }: { pathname: string; nestedMenu
 			allValues={stablecoinPegTypeOptions}
 			selectedValues={selectedValues}
 			setSelectedValues={setSelectedValues}
+			selectOnlyOne={(newOption) => {
+				setSelectedValues([newOption])
+			}}
 			label="Peg Type"
 			clearAll={clearAll}
 			toggleAll={toggleAll}

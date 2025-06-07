@@ -244,6 +244,14 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
+
+	const addOnlyOneOption = (newOption) => {
+		const ops = Object.fromEntries(
+			protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption ? true : false])
+		)
+		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		window.dispatchEvent(new Event('storage'))
+	}
 	const setFilter = (key) => (newState) => {
 		const newOptions = Object.fromEntries(
 			protocolsByChainTableColumns.map((column) => [
@@ -285,6 +293,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					allValues={protocolsByChainTableColumns}
 					selectedValues={selectedOptions}
 					setSelectedValues={addOption}
+					selectOnlyOne={addOnlyOneOption}
 					toggleAll={toggleAllOptions}
 					clearAll={clearAllOptions}
 					nestedMenu={false}

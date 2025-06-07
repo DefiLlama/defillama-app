@@ -95,6 +95,14 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 		window.dispatchEvent(new Event('storage'))
 	}
 
+	const addOnlyOneColumn = (newOption) => {
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
+		)
+		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		window.dispatchEvent(new Event('storage'))
+	}
+
 	const selectedColumns = instance
 		.getAllLeafColumns()
 		.filter((col) => col.getIsVisible())
@@ -132,6 +140,20 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 		}
 	}
 
+	const addOnlyOneAggrOption = (newOption) => {
+		DEFI_CHAINS_SETTINGS.forEach((item) => {
+			if (item.key === newOption) {
+				if (!selectedAggregateTypes.includes(item.key)) {
+					updater(item.key)
+				}
+			} else {
+				if (selectedAggregateTypes.includes(item.key)) {
+					updater(item.key)
+				}
+			}
+		})
+	}
+
 	const selectedAggregateTypes = React.useMemo(() => {
 		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
@@ -159,6 +181,7 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 					allValues={DEFI_CHAINS_SETTINGS}
 					selectedValues={selectedAggregateTypes}
 					setSelectedValues={addAggrOption}
+					selectOnlyOne={addOnlyOneAggrOption}
 					toggleAll={toggleAllAggrOptions}
 					clearAll={clearAllAggrOptions}
 					nestedMenu={false}
@@ -173,6 +196,7 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 					allValues={columnOptions}
 					selectedValues={selectedColumns}
 					setSelectedValues={addColumn}
+					selectOnlyOne={addOnlyOneColumn}
 					toggleAll={toggleAllColumns}
 					clearAll={clearAllColumns}
 					nestedMenu={false}

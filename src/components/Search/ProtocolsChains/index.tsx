@@ -91,6 +91,9 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 					allValues={tvlOptions}
 					selectedValues={selectedValues}
 					setSelectedValues={setSelectedValues}
+					selectOnlyOne={(newOption) => {
+						setSelectedValues([newOption])
+					}}
 					label={hasFees ? 'Include in TVL, Fees' : 'Include in TVL'}
 					triggerProps={{
 						className:
@@ -107,6 +110,9 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 				allValues={tvlOptions}
 				selectedValues={selectedValues}
 				setSelectedValues={setSelectedValues}
+				selectOnlyOne={(newOption) => {
+					setSelectedValues([newOption])
+				}}
 				label="Include in TVL"
 				triggerProps={{
 					className:

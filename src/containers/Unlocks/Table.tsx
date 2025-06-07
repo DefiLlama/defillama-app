@@ -135,6 +135,12 @@ export const UnlocksTable = ({
 		window.dispatchEvent(new Event('storage'))
 	}
 
+	const addOnlyOneOption = (newOption) => {
+		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, col.key === newOption ? true : false]))
+		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
+		window.dispatchEvent(new Event('storage'))
+	}
+
 	const setFilter = (key) => (newState) => {
 		const newOptions = Object.fromEntries(
 			columnOptions.map((column) => [
@@ -318,6 +324,7 @@ export const UnlocksTable = ({
 					allValues={columnOptions}
 					selectedValues={selectedOptions}
 					setSelectedValues={addOption}
+					selectOnlyOne={addOnlyOneOption}
 					toggleAll={toggleAllOptions}
 					clearAll={clearAllOptions}
 					nestedMenu={false}
@@ -333,6 +340,7 @@ export const UnlocksTable = ({
 					allValues={UNLOCK_TYPES.map((type) => ({ name: type.charAt(0).toUpperCase() + type.slice(1), key: type }))}
 					selectedValues={selectedUnlockTypes}
 					setSelectedValues={setSelectedUnlockTypes}
+					selectOnlyOne={(value) => setSelectedUnlockTypes([value])}
 					toggleAll={() => setSelectedUnlockTypes(UNLOCK_TYPES)}
 					clearAll={() => setSelectedUnlockTypes([])}
 					nestedMenu={false}
@@ -366,30 +374,31 @@ export const UnlocksTable = ({
 	)
 }
 
-enum TABLE_CATEGORIES {
-	UNLOCKS = 'Unlocks',
-	TOKENS = 'Tokens',
-	TIME = 'Time'
-}
-
 const columnOptions = [
 	{ name: 'Name', key: 'name' },
-	{ name: 'Price', key: 'price', category: TABLE_CATEGORIES.TOKENS },
-	{ name: 'Market Cap', key: 'mcap', category: TABLE_CATEGORIES.TOKENS },
-	{ name: 'Token Symbol', key: 'symbol', category: TABLE_CATEGORIES.TOKENS },
-	{ name: 'Next Unlock Date', key: 'nextUnlockDate', category: TABLE_CATEGORIES.TIME },
-	{ name: 'Token Amount', key: 'unlockAmount', category: TABLE_CATEGORIES.UNLOCKS },
-	{ name: 'Value (USD)', key: 'unlockValue', category: TABLE_CATEGORIES.UNLOCKS },
-	{ name: '% of Supply', key: 'percSupply', category: TABLE_CATEGORIES.UNLOCKS }
+	{ name: 'Price', key: 'tPrice' },
+	{ name: 'Market Cap', key: 'mcap' },
+	{ name: 'Total Unlocked', key: 'totalLocked' },
+	{ name: 'Prev. Unlock Analysis', key: 'prevUnlock' },
+	{ name: '7d Post Unlock', key: 'postUnlock' },
+	{ name: 'Daily Unlocks', key: 'nextEvent' },
+	{ name: 'Next Event', key: 'upcomingEvent' }
 ]
+
+// these are mising in emissionsColumns
+// { name: 'Token Symbol', key: 'symbol' },
+// { name: 'Next Unlock Date', key: 'nextUnlockDate' },
+// { name: 'Token Amount', key: 'unlockAmount' },
+// { name: 'Value (USD)', key: 'unlockValue' },
+// { name: '% of Supply', key: 'percSupply' },
 
 const defaultColumns = JSON.stringify({
 	name: true,
-	price: true,
+	tPrice: true,
 	mcap: true,
-	symbol: true,
-	nextUnlockDate: true,
-	unlockAmount: true,
-	unlockValue: true,
-	percSupply: true
+	totalLocked: true,
+	prevUnlock: true,
+	postUnlock: true,
+	nextEvent: true,
+	upcomingEvent: true
 })

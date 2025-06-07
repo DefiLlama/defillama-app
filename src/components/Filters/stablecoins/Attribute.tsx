@@ -96,6 +96,9 @@ export function Attribute({ pathname, nestedMenu }: { pathname: string; nestedMe
 			allValues={stablecoinAttributeOptions}
 			selectedValues={selectedValues}
 			setSelectedValues={setSelectedValues}
+			selectOnlyOne={(newOption) => {
+				setSelectedValues([newOption])
+			}}
 			label="Attribute"
 			clearAll={clearAll}
 			toggleAll={toggleAll}

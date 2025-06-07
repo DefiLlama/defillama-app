@@ -379,6 +379,26 @@ const updateSetting = (key) => {
 	window.dispatchEvent(new Event('storage'))
 }
 
+export const updateAllSettingsInLsAndUrl = (keys: Record<string, boolean>) => {
+	const current = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+
+	const url = new URL(window.location.href)
+
+	for (const key in keys) {
+		if (keys[key]) {
+			url.searchParams.set(key, 'true')
+		} else {
+			url.searchParams.delete(key)
+		}
+	}
+
+	window.history.pushState({}, '', url)
+
+	localStorage.setItem(DEFILLAMA, JSON.stringify({ ...current, ...keys }))
+
+	window.dispatchEvent(new Event('storage'))
+}
+
 export type TSETTINGTYPE =
 	| 'tvl'
 	| 'fees'
@@ -438,7 +458,7 @@ export function useLocalStorageSettingsManager(type: TSETTINGTYPE): [Record<stri
 	}, [store, type, isClient])
 }
 
-const updateAllSettings = (keys: Record<string, boolean>) => {
+export const updateAllSettings = (keys: Record<string, boolean>) => {
 	const current = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
 	localStorage.setItem(DEFILLAMA, JSON.stringify({ ...current, ...keys }))
 	window.dispatchEvent(new Event('storage'))

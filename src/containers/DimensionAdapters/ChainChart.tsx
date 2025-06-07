@@ -202,6 +202,9 @@ export const ChainsByAdapterChart = ({
 						allValues={allChains}
 						selectedValues={selectedChains}
 						setSelectedValues={setSelectedChains}
+						selectOnlyOne={(newChain) => {
+							setSelectedChains([newChain])
+						}}
 						label="Chains"
 						clearAll={() => setSelectedChains([])}
 						toggleAll={() => setSelectedChains(allChains)}

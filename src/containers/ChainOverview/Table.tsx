@@ -177,9 +177,24 @@ export const ChainProtocolsTable = ({
 		const allKeys = mergedColumns.map((col) => col.key)
 		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key) ? true : false]))
 		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
+
+		if (instance && instance.setColumnVisibility) {
+			instance.setColumnVisibility(ops)
+		} else {
+			window.dispatchEvent(new Event('storage'))
+		}
+	}
+
+	const addOnlyOneColumn = (newOption) => {
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
+		)
+		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(ops)
+		} else {
+			window.dispatchEvent(new Event('storage'))
 		}
 	}
 
@@ -394,6 +409,7 @@ export const ChainProtocolsTable = ({
 					allValues={mergedColumns}
 					selectedValues={selectedColumns}
 					setSelectedValues={addColumn}
+					selectOnlyOne={addOnlyOneColumn}
 					toggleAll={toggleAllColumns}
 					clearAll={clearAllColumns}
 					nestedMenu={false}
