@@ -4,7 +4,7 @@ import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortab
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { ChartCard } from './ChartCard'
 import { DashboardItemConfig, Chain, Protocol } from '../types'
-import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols/ProTable'
+import { ProtocolsByChainTable } from './ProTable'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardContext'
 
@@ -16,9 +16,7 @@ interface ChartGridProps {
 	onAddChartClick: () => void
 }
 
-export function ChartGrid({
-	onAddChartClick
-}: ChartGridProps) {
+export function ChartGrid({ onAddChartClick }: ChartGridProps) {
 	const { chartsWithData, handleChartsReordered, handleRemoveChart } = useProDashboard()
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -48,13 +46,9 @@ export function ChartGrid({
 						{chartsWithData.map((item) => (
 							<SortableItem key={item.id} id={item.id} isTable={item.kind === 'table'}>
 								{item.kind === 'chart' ? (
-									<ChartCard
-										chart={item}
-									/>
+									<ChartCard chart={item} />
 								) : item.kind === 'multi' ? (
-									<MultiChartCard
-										multi={item}
-									/>
+									<MultiChartCard multi={item} />
 								) : (
 									<div className="relative h-full">
 										<div className="absolute top-2 right-2 z-10">
