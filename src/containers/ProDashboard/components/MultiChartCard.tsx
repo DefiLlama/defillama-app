@@ -1,9 +1,9 @@
 import dynamic from 'next/dynamic'
-import { Icon } from '~/components/Icon'
 import { CHART_TYPES, MultiChartConfig, Chain, Protocol } from '../types'
 import { useChartsData } from '../queries'
 import { generateChartColor } from '../utils'
 import { useProDashboard } from '../ProDashboardContext'
+import { Icon } from '~/components/Icon'
 
 const MultiSeriesChart = dynamic(() => import('~/components/ECharts/MultiSeriesChart'), {
 	ssr: false
@@ -38,7 +38,7 @@ function groupData(data: [string, number][] | undefined, grouping: 'day' | 'week
 }
 
 export default function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { handleRemoveChart, getProtocolInfo, handleGroupingChange, timePeriod } = useProDashboard()
+	const { getProtocolInfo, handleGroupingChange, timePeriod } = useProDashboard()
 	const queries = useChartsData(multi.items, timePeriod)
 
 	const series = multi.items.map((cfg, i) => {
@@ -65,27 +65,14 @@ export default function MultiChartCard({ multi }: MultiChartCardProps) {
 	const hasError = queries.some((q) => q.isError)
 	const isDataLoading = queries.some((q) => q.isLoading)
 
-	const handleLocalGroupingChange = (newGrouping: 'day' | 'week' | 'month') => {
-		handleGroupingChange(multi.id, newGrouping)
-	}
 
 	return (
-		<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 p-4 h-full min-h-[340px] relative bg-clip-padding flex flex-col">
+		<div className="p-4 h-full min-h-[340px] flex flex-col">
 			<div className="flex items-center justify-between mb-2">
 				<div className="flex items-center gap-2">
 					<h3 className="text-sm font-medium text-[var(--text1)]">
 						{multi.name || `Multi-Chart (${multi.items.length})`}
 					</h3>
-				</div>
-
-				<div className="flex items-center gap-2">
-					<button
-						className="p-1 rounded-md hover:bg-[var(--bg3)] text-[var(--text3)] hover:text-[var(--text1)]"
-						onClick={() => handleRemoveChart(multi.id)}
-						aria-label="Remove multi-chart"
-					>
-						<Icon name="x" height={16} width={16} />
-					</button>
 				</div>
 			</div>
 

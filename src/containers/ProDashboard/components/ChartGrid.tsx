@@ -17,7 +17,7 @@ interface ChartGridProps {
 }
 
 export function ChartGrid({ onAddChartClick }: ChartGridProps) {
-	const { chartsWithData, handleChartsReordered, handleRemoveChart } = useProDashboard()
+	const { chartsWithData, handleChartsReordered, handleRemoveChart, handleColSpanChange } = useProDashboard()
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -38,32 +38,56 @@ export function ChartGrid({ onAddChartClick }: ChartGridProps) {
 		}
 	}
 
+	const getColSpanClass = (colSpan?: 1 | 2) => {
+		return colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
+	}
+
 	return (
 		<div className="mt-4">
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 						{chartsWithData.map((item) => (
-							<SortableItem key={item.id} id={item.id} isTable={item.kind === 'table'}>
-								{item.kind === 'chart' ? (
-									<ChartCard chart={item} />
-								) : item.kind === 'multi' ? (
-									<MultiChartCard multi={item} />
-								) : (
-									<div className="relative h-full">
-										<div className="absolute top-2 right-2 z-10">
+							<div key={item.id} className={`${getColSpanClass(item.colSpan)}`}>
+								<SortableItem id={item.id} isTable={item.kind === 'table'}>
+									<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full relative">
+										<div className="absolute top-1 right-1 z-20 flex gap-1">
 											<button
-												className="p-1 rounded-md hover:bg-[var(--bg3)] text-[var(--text3)] hover:text-[var(--text1)] bg-[var(--bg7)]"
-												onClick={() => handleRemoveChart(item.id)}
-												aria-label="Remove table"
+												className="p-1.5 text-sm   hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+												onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
+												aria-label={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
+												title={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
 											>
-												<Icon name="x" height={16} width={16} />
+												{item.colSpan === 1 ? (
+													<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(45deg)' }} />
+												) : (
+													<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(-135deg)' }} />
+												)}
+											</button>
+											<button
+												className="p-1.5 text-sm   hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+												onClick={() => handleRemoveChart(item.id)}
+												aria-label="Remove item"
+											>
+												<Icon name="x" height={14} width={14} />
 											</button>
 										</div>
-										<ProtocolsByChainTable chain={item.chain} />
+										<div className={item.kind === 'table' ? 'pr-12' : ''}>
+											{item.kind === 'chart' ? (
+												<ChartCard key={`${item.id}-${item.colSpan}`} chart={item} />
+											) : item.kind === 'multi' ? (
+												<MultiChartCard key={`${item.id}-${item.colSpan}`} multi={item} />
+											) : (
+												<ProtocolsByChainTable
+													key={`${item.id}-${item.colSpan}`}
+													chain={item.chain}
+													colSpan={item.colSpan}
+												/>
+											)}
+										</div>
 									</div>
-								)}
-							</SortableItem>
+								</SortableItem>
+							</div>
 						))}
 						<div
 							onClick={onAddChartClick}

@@ -22,6 +22,7 @@ interface ProDashboardContextType {
 	handleRemoveChart: (chartId: string) => void
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
 	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month') => void
+	handleColSpanChange: (chartId: string, newColSpan: 1 | 2) => void
 	getChainInfo: (chainName: string) => Chain | undefined
 	getProtocolInfo: (protocolId: string) => Protocol | undefined
 }
@@ -127,9 +128,9 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 			const topChainName = chains[0].name
 			if (items.length === 0) {
 				const initialCharts: DashboardItemConfig[] = [
-					{ id: `${topChainName}-tvl`, kind: 'chart', chain: topChainName, type: 'tvl' },
-					{ id: `${topChainName}-volume`, kind: 'chart', chain: topChainName, type: 'volume', grouping: 'day' },
-					{ id: `${topChainName}-fees`, kind: 'chart', chain: topChainName, type: 'fees', grouping: 'day' }
+					{ id: `${topChainName}-tvl`, kind: 'chart', chain: topChainName, type: 'tvl', colSpan: 1 },
+					{ id: `${topChainName}-volume`, kind: 'chart', chain: topChainName, type: 'volume', grouping: 'day', colSpan: 1 },
+					{ id: `${topChainName}-fees`, kind: 'chart', chain: topChainName, type: 'fees', grouping: 'day', colSpan: 1 }
 				]
 				setItems(initialCharts)
 			}
@@ -143,7 +144,8 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 		const newChartBase: Partial<ChartConfig> = {
 			id: newChartId,
 			kind: 'chart',
-			type: chartType
+			type: chartType,
+			colSpan: 1
 		}
 
 		if (chartTypeDetails?.groupable) {
@@ -172,7 +174,8 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 		const newTable: ProtocolsTableConfig = {
 			id: `table-${chain}-${Date.now()}`,
 			kind: 'table',
-			chain
+			chain,
+			colSpan: 2
 		}
 		setItems((prev) => [...prev, newTable])
 	}
@@ -183,7 +186,8 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 			kind: 'multi',
 			name: name || `Multi-Chart ${items.filter((item) => item.kind === 'multi').length + 1}`,
 			items: chartItems,
-			grouping: 'day'
+			grouping: 'day',
+			colSpan: 1
 		}
 		setItems((prev) => [...prev, newMultiChart])
 	}
@@ -203,6 +207,17 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 					return { ...item, grouping: newGrouping }
 				} else if (item.kind === 'multi' && item.id === chartId) {
 					return { ...item, grouping: newGrouping }
+				}
+				return item
+			})
+		)
+	}
+
+	const handleColSpanChange = (chartId: string, newColSpan: 1 | 2) => {
+		setItems((prev) =>
+			prev.map((item) => {
+				if (item.id === chartId) {
+					return { ...item, colSpan: newColSpan }
 				}
 				return item
 			})
@@ -231,6 +246,7 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 		handleRemoveChart,
 		handleChartsReordered,
 		handleGroupingChange,
+		handleColSpanChange,
 		getChainInfo,
 		getProtocolInfo
 	}

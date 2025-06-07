@@ -5,7 +5,7 @@ import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { TableBody } from './TableBody'
 import { TablePagination } from './TablePagination'
 
-export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
+export function ProtocolsByChainTable({ chain = 'All', colSpan = 2 }: { chain: string; colSpan?: 1 | 2 }) {
 	const {
 		table,
 		showColumnPanel,
@@ -22,7 +22,7 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 	} = useProTable(chain)
 
 	return (
-		<div className="w-full bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-[var(--divider)] p-4 h-full relative bg-clip-padding flex flex-col">
+		<div className="w-full p-4 h-full flex flex-col">
 			<TableHeader
 				chain={chain}
 				columnPresets={columnPresets}
@@ -30,6 +30,7 @@ export function ProtocolsByChainTable({ chain = 'All' }: { chain: string }) {
 				showColumnPanel={showColumnPanel}
 				setShowColumnPanel={setShowColumnPanel}
 				downloadCSV={downloadCSV}
+				colSpan={colSpan}
 			/>
 
 			<ColumnManagementPanel

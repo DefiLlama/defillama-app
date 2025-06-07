@@ -18,7 +18,7 @@ interface ChartCardProps {
 }
 
 export function ChartCard({ chart }: ChartCardProps) {
-	const { handleRemoveChart, getChainInfo, getProtocolInfo, handleGroupingChange } = useProDashboard()
+	const { getChainInfo, getProtocolInfo, handleGroupingChange } = useProDashboard()
 	const { data, isLoading, hasError, refetch } = chart
 	const chartTypeDetails = CHART_TYPES[chart.type]
 	const isGroupable = chartTypeDetails?.groupable
@@ -41,8 +41,8 @@ export function ChartCard({ chart }: ChartCardProps) {
 	}
 
 	return (
-		<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 p-4 h-full relative bg-clip-padding flex flex-col">
-			<div className="flex justify-between items-center mb-2">
+		<div className="p-4 h-full flex flex-col">
+			<div className="flex justify-between items-center mb-2 pr-8">
 				<div className="flex items-center gap-2">
 					{itemIconUrl ? (
 						<img src={itemIconUrl} alt={itemName} className="w-6 h-6 rounded-full" />
@@ -57,7 +57,7 @@ export function ChartCard({ chart }: ChartCardProps) {
 				</div>
 				<div className="flex items-center gap-2">
 					{isGroupable && (
-						<div className="flex border border-[var(--form-control-border)] rounded-md overflow-hidden">
+						<div className="flex border border-[var(--form-control-border)] overflow-hidden mr-4">
 							{groupingOptions.map((option, index) => (
 								<button
 									key={option}
@@ -75,24 +75,15 @@ export function ChartCard({ chart }: ChartCardProps) {
 							))}
 						</div>
 					)}
-					<button
-						className="p-1 rounded-md hover:bg-[var(--bg3)] text-[var(--text3)] hover:text-[var(--text1)]"
-						onClick={() => handleRemoveChart(chart.id)}
-						aria-label="Remove chart"
-					>
-						<Icon name="x" height={16} width={16} />
-					</button>
 				</div>
 			</div>
 
-			<div style={{ height: '300px', flexGrow: 1 }}>
-				{renderChart({ chart, data, isLoading, hasError, refetch, itemName })}
-			</div>
+			<div style={{ height: '300px', flexGrow: 1 }}>{renderChart({ chart, data, isLoading, hasError, refetch })}</div>
 		</div>
 	)
 }
 
-function renderChart({ chart, data, isLoading, hasError, refetch, itemName }) {
+function renderChart({ chart, data, isLoading, hasError, refetch }) {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center h-full">

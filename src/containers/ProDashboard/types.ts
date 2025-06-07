@@ -14,6 +14,7 @@ export interface MultiChartConfig {
 	name?: string
 	items: ChartConfig[]
 	grouping?: 'day' | 'week' | 'month'
+	colSpan?: 1 | 2
 }
 
 export type DashboardItemConfig = ChartConfig | ProtocolsTableConfig | MultiChartConfig
@@ -30,12 +31,14 @@ export interface ChartConfig {
 	refetch?: () => void
 	grouping?: 'day' | 'week' | 'month'
 	geckoId?: string | null
+	colSpan?: 1 | 2
 }
 
 export interface ProtocolsTableConfig {
 	id: string
 	kind: 'table'
 	chain: string
+	colSpan?: 1 | 2
 }
 
 export interface Protocol {
