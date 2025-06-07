@@ -100,18 +100,9 @@ function AboutPage(props: any) {
 						className="text-[var(--blue)] hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="mailto:0xngmi@llama.fi"
+						href="mailto:support@defillama.com"
 					>
-						0xngmi@llama.fi
-					</a>{' '}
-					or{' '}
-					<a
-						className="text-[var(--blue)] hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="mailto:contact@llama-corp.com"
-					>
-						contact@llama-corp.com
+						support@defillama.com
 					</a>
 					.
 				</p>

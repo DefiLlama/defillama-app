@@ -44,7 +44,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					Add it here!
 				</a>
 				<br />
-				<span>Are you a VC and want to submit your investments in bulk? Email them to us at raises@llama.fi</span>
+				<span>Are you a VC and want to submit your investments in bulk? Email them to us at support@defillama.com</span>
 			</Announcement>
 			<Metrics currentMetric="Total Raised" />
 			<RaisesFilters

@@ -63,7 +63,7 @@ export function SubscribeLayout({ children }) {
 								<a href="https://github.com/DefiLlama" className="hover:text-white transition-colors">
 									GitHub
 								</a>
-								<a href="mailto:support@llama.fi" className="hover:text-white transition-colors">
+								<a href="mailto:support@defillama.com" className="hover:text-white transition-colors">
 									Contact Us
 								</a>
 							</div>

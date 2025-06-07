@@ -12,8 +12,8 @@ export default function FulfillmentPolicies() {
 					<h2 className="text-xl text-white font-semibold">Refund Policy</h2>
 					<p>
 						If you haven't made any request to the API yet and all your credits are unused, please send an email to{' '}
-						<a href="mailto:support@llama.fi" className="underline">
-							support@llama.fi
+						<a href="mailto:support@defillama.com" className="underline">
+							support@defillama.com
 						</a>{' '}
 						and we'll refund your payment. In case you've already made any API request, no refunds will be given, but
 						you can still cancel your subscription.
@@ -44,7 +44,7 @@ export function SubscribeLayout2({ children }) {
 					<a href="https://discord.defillama.com" className="underline">
 						Discord
 					</a>
-					<a href="mailto:support@llama.fi" className="underline">
+					<a href="mailto:support@defillama.com" className="underline">
 						Contact Us
 					</a>
 

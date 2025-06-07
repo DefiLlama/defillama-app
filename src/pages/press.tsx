@@ -90,9 +90,9 @@ function PressPage() {
 						className="text-[var(--blue)] hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="mailto:0xngmi@llama.fi"
+						href="mailto:support@defillama.com"
 					>
-						0xngmi@llama.fi
+						support@defillama.com
 					</a>
 				</p>
 				<p>

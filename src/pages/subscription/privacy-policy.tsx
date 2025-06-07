@@ -138,8 +138,8 @@ export default function PrivacyPolicy() {
 					<p>
 						<span className="text-white font-medium">5.1</span> You may update, correct or delete information about you
 						at any time emailing us at{' '}
-						<a href="mailto:support@llama.fi" className="underline">
-							support@llama.fi
+						<a href="mailto:support@defillama.com" className="underline">
+							support@defillama.com
 						</a>
 						, but note that we may retain certain information as required by law or for legitimate business purposes. We
 						may also retain cached or archived copies of information about you for a certain period of time.
@@ -151,8 +151,8 @@ export default function PrivacyPolicy() {
 					<p>
 						<span className="text-white font-medium">6.1</span> If you have any questions about this Privacy Policy,
 						please contact us by email at{' '}
-						<a href="mailto:support@llama.fi" className="underline">
-							support@llama.fi
+						<a href="mailto:support@defillama.com" className="underline">
+							support@defillama.com
 						</a>
 					</p>
 				</div>
