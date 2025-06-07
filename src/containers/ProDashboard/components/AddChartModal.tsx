@@ -19,7 +19,7 @@ export function AddChartModal({
 	isOpen,
 	onClose
 }: AddChartModalProps) {
-	const [selectedMainTab, setSelectedMainTab] = useState<'chart' | 'composer' | 'table'>('chart')
+	const [selectedMainTab, setSelectedMainTab] = useState<'chart' | 'composer' | 'table' | 'text'>('chart')
 	const [selectedChartTab, setSelectedChartTab] = useState<'chain' | 'protocol'>('chain')
 	const [composerItems, setComposerItems] = useState<ChartConfig[]>([])
 	const [composerSubType, setComposerSubType] = useState<'chain' | 'protocol'>('chain')
@@ -27,6 +27,8 @@ export function AddChartModal({
 	const [selectedChain, setSelectedChain] = useState<string | null>(null)
 	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
+	const [textTitle, setTextTitle] = useState<string>('')
+	const [textContent, setTextContent] = useState<string>('')
 
 	const { 
 		protocols, 
@@ -35,7 +37,8 @@ export function AddChartModal({
 		timePeriod,
 		handleAddChart, 
 		handleAddTable, 
-		handleAddMultiChart 
+		handleAddMultiChart,
+		handleAddText 
 	} = useProDashboard()
 
 	const selectedProtocolData = useMemo(
@@ -159,6 +162,10 @@ export function AddChartModal({
 			handleAddChart(selectedProtocol, selectedChartType, 'protocol', protocol?.geckoId)
 		} else if (selectedMainTab === 'table' && selectedChain) {
 			handleAddTable(selectedChain)
+		} else if (selectedMainTab === 'text' && textContent.trim()) {
+			handleAddText(textTitle.trim() || undefined, textContent.trim())
+			setTextTitle('')
+			setTextContent('')
 		}
 		onClose()
 		setSelectedChartType('tvl')
@@ -166,7 +173,7 @@ export function AddChartModal({
 		setSelectedProtocol(null)
 	}
 
-	const handleMainTabChange = (tab: 'chart' | 'composer' | 'table') => {
+	const handleMainTabChange = (tab: 'chart' | 'composer' | 'table' | 'text') => {
 		setSelectedMainTab(tab)
 		setSelectedChain(null)
 		setSelectedProtocol(null)
@@ -194,7 +201,7 @@ export function AddChartModal({
 					</button>
 				</div>
 
-				<div className="grid grid-cols-3 gap-0 mb-6">
+				<div className="grid grid-cols-4 gap-0 mb-6">
 					<button
 						className={`px-4 py-3 text-sm font-medium border transition-colors duration-200 ${
 							selectedMainTab === 'chart'
@@ -224,6 +231,16 @@ export function AddChartModal({
 						onClick={() => handleMainTabChange('table')}
 					>
 						Table <span className="text-[var(--text3)]">(Dataset)</span>
+					</button>
+					<button
+						className={`px-4 py-3 text-sm font-medium border transition-colors duration-200 ${
+							selectedMainTab === 'text'
+								? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
+								: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
+						}`}
+						onClick={() => handleMainTabChange('text')}
+					>
+						Text <span className="text-[var(--text3)]">(Markdown)</span>
 					</button>
 				</div>
 
@@ -511,6 +528,36 @@ export function AddChartModal({
 						/>
 					)}
 
+					{selectedMainTab === 'text' && (
+						<div className="space-y-4">
+							<div>
+								<label className="block mb-2 text-sm font-medium text-[var(--text2)]">Title (Optional)</label>
+								<input
+									type="text"
+									value={textTitle}
+									onChange={(e) => setTextTitle(e.target.value)}
+									placeholder="Enter text title..."
+									className="w-full px-3 py-2 border border-white/20 text-[var(--text1)] placeholder-[var(--text3)] focus:border-[var(--primary1)] focus:outline-none"
+									style={{ backgroundColor: '#070e0f' }}
+								/>
+							</div>
+							<div>
+								<label className="block mb-2 text-sm font-medium text-[var(--text2)]">Content (Markdown)</label>
+								<textarea
+									value={textContent}
+									onChange={(e) => setTextContent(e.target.value)}
+									placeholder="Enter markdown content..."
+									rows={12}
+									className="w-full px-3 py-2 border border-white/20 text-[var(--text1)] placeholder-[var(--text3)] focus:border-[var(--primary1)] focus:outline-none resize-none font-mono text-sm"
+									style={{ backgroundColor: '#070e0f' }}
+								/>
+								<div className="mt-2 text-xs text-[var(--text3)]">
+									Supports markdown: **bold**, *italic*, # headers, - lists, `code`, [links](url)
+								</div>
+							</div>
+						</div>
+					)}
+
 					<div className="flex justify-end mt-7">
 						<button
 							className="px-6 py-3 bg-[var(--primary1)] text-white font-medium hover:bg-[var(--primary1-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
@@ -520,13 +567,16 @@ export function AddChartModal({
 								(selectedMainTab === 'chart' && selectedChartTab === 'chain' && !selectedChain) ||
 								(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && !selectedProtocol) ||
 								(selectedMainTab === 'table' && !selectedChain) ||
-								(selectedMainTab === 'composer' && composerItems.length === 0)
+								(selectedMainTab === 'composer' && composerItems.length === 0) ||
+								(selectedMainTab === 'text' && !textContent.trim())
 							}
 						>
 							{selectedMainTab === 'table'
 								? 'Add Table'
 								: selectedMainTab === 'composer'
 								? 'Add Multi-Chart'
+								: selectedMainTab === 'text'
+								? 'Add Text'
 								: 'Add Chart'}
 						</button>
 					</div>

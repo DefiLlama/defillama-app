@@ -10,13 +10,9 @@ import { ProDashboardProvider, useProDashboard, TimePeriod } from './ProDashboar
 
 function ProDashboardContent() {
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
+	const [isEditingName, setIsEditingName] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
-	const {
-		items,
-		protocolsLoading,
-		timePeriod,
-		setTimePeriod
-	} = useProDashboard()
+	const { items, protocolsLoading, timePeriod, setTimePeriod, dashboardName, setDashboardName } = useProDashboard()
 
 	const timePeriods: { value: TimePeriod; label: string }[] = [
 		{ value: '30d', label: '30d' },
@@ -24,6 +20,19 @@ function ProDashboardContent() {
 		{ value: '365d', label: '365d' },
 		{ value: 'all', label: 'All' }
 	]
+
+	const handleNameSubmit = (e: React.FormEvent) => {
+		e.preventDefault()
+		setIsEditingName(false)
+	}
+
+	const handleNameKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === 'Enter') {
+			setIsEditingName(false)
+		} else if (e.key === 'Escape') {
+			setIsEditingName(false)
+		}
+	}
 
 	if (isSubLoading) {
 		return (
@@ -51,12 +60,12 @@ function ProDashboardContent() {
 
 	return (
 		<div className="p-4 md:p-6">
-			<div className="flex justify-between items-center mb-6">
-				<div className="grid grid-cols-4 gap-0">
+			<div className="grid grid-cols-3 items-center mb-2 gap-4">
+				<div className="grid grid-cols-4 gap-0 justify-self-start">
 					{timePeriods.map((period) => (
 						<button
 							key={period.value}
-							className={`px-4 py-3 text-sm font-medium border transition-colors duration-200 ${
+							className={`px-4 py-2 text-sm font-medium border transition-colors duration-200 ${
 								timePeriod === period.value
 									? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
 									: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
@@ -67,8 +76,34 @@ function ProDashboardContent() {
 						</button>
 					))}
 				</div>
+
+				<div className="justify-self-center">
+					{isEditingName ? (
+						<form onSubmit={handleNameSubmit} className="flex items-center">
+							<input
+								type="text"
+								value={dashboardName}
+								onChange={(e) => setDashboardName(e.target.value)}
+								onBlur={() => setIsEditingName(false)}
+								onKeyDown={handleNameKeyDown}
+								className="text-xl font-semibold text-center bg-transparent border-b-2 border-[var(--primary1)] text-[var(--text1)] focus:outline-none px-3 py-2 min-w-0"
+								autoFocus
+								placeholder="Dashboard Name"
+							/>
+						</form>
+					) : (
+						<button
+							onClick={() => setIsEditingName(true)}
+							className="group text-xl font-semibold text-[var(--text1)] px-3 py-2 hover:bg-[var(--bg3)] border border-transparent hover:border-[var(--form-control-border)] flex items-center gap-2"
+						>
+							{dashboardName}
+							<Icon name="pencil" height={14} width={14} className="text-[var(--text1)]" />
+						</button>
+					)}
+				</div>
+
 				<button
-					className="px-4 py-2 rounded-md bg-[var(--primary1)] text-white flex items-center gap-2 hover:bg-[var(--primary1-hover)]"
+					className="px-4 py-2 bg-[var(--primary1)] text-white flex items-center gap-2 hover:bg-[var(--primary1-hover)] justify-self-end"
 					onClick={() => setShowAddModal(true)}
 				>
 					<Icon name="plus" height={16} width={16} />
@@ -82,16 +117,9 @@ function ProDashboardContent() {
 				</div>
 			)}
 
-			{items.length > 0 && (
-				<ChartGrid
-					onAddChartClick={() => setShowAddModal(true)}
-				/>
-			)}
+			{items.length > 0 && <ChartGrid onAddChartClick={() => setShowAddModal(true)} />}
 
-			<AddChartModal
-				isOpen={showAddModal}
-				onClose={() => setShowAddModal(false)}
-			/>
+			<AddChartModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
 
 			{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={() => setShowAddModal(true)} />}
 		</div>

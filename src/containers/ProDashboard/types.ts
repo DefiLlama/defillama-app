@@ -17,7 +17,15 @@ export interface MultiChartConfig {
 	colSpan?: 1 | 2
 }
 
-export type DashboardItemConfig = ChartConfig | ProtocolsTableConfig | MultiChartConfig
+export interface TextConfig {
+	id: string
+	kind: 'text'
+	title?: string
+	content: string
+	colSpan?: 1 | 2
+}
+
+export type DashboardItemConfig = ChartConfig | ProtocolsTableConfig | MultiChartConfig | TextConfig
 
 export interface ChartConfig {
 	id: string
@@ -112,3 +120,4 @@ export const getChainChartTypes = (): string[] => {
 }
 
 export const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'
+export const isText = (x: DashboardItemConfig): x is TextConfig => x.kind === 'text'

@@ -3,6 +3,7 @@ import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, us
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { ChartCard } from './ChartCard'
+import { TextCard } from './TextCard'
 import { DashboardItemConfig, Chain, Protocol } from '../types'
 import { ProtocolsByChainTable } from './ProTable'
 import { Icon } from '~/components/Icon'
@@ -17,7 +18,7 @@ interface ChartGridProps {
 }
 
 export function ChartGrid({ onAddChartClick }: ChartGridProps) {
-	const { chartsWithData, handleChartsReordered, handleRemoveChart, handleColSpanChange } = useProDashboard()
+	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange } = useProDashboard()
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -43,10 +44,10 @@ export function ChartGrid({ onAddChartClick }: ChartGridProps) {
 	}
 
 	return (
-		<div className="mt-4">
+		<div className="mt-2">
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 						{chartsWithData.map((item) => (
 							<div key={item.id} className={`${getColSpanClass(item.colSpan)}`}>
 								<SortableItem id={item.id} isTable={item.kind === 'table'}>
@@ -66,7 +67,7 @@ export function ChartGrid({ onAddChartClick }: ChartGridProps) {
 											</button>
 											<button
 												className="p-1.5 text-sm   hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
-												onClick={() => handleRemoveChart(item.id)}
+												onClick={() => handleRemoveItem(item.id)}
 												aria-label="Remove item"
 											>
 												<Icon name="x" height={14} width={14} />
@@ -77,6 +78,8 @@ export function ChartGrid({ onAddChartClick }: ChartGridProps) {
 												<ChartCard key={`${item.id}-${item.colSpan}`} chart={item} />
 											) : item.kind === 'multi' ? (
 												<MultiChartCard key={`${item.id}-${item.colSpan}`} multi={item} />
+											) : item.kind === 'text' ? (
+												<TextCard key={`${item.id}-${item.colSpan}`} text={item} />
 											) : (
 												<ProtocolsByChainTable
 													key={`${item.id}-${item.colSpan}`}

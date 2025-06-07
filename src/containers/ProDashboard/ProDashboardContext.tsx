@@ -1,6 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { QueryObserverResult } from '@tanstack/react-query'
-import { ChartConfig, CHART_TYPES, DashboardItemConfig, ProtocolsTableConfig, MultiChartConfig, Chain } from './types'
+import {
+	ChartConfig,
+	CHART_TYPES,
+	DashboardItemConfig,
+	ProtocolsTableConfig,
+	MultiChartConfig,
+	TextConfig,
+	Chain
+} from './types'
 import { useChartsData, useProtocolsAndChains } from './queries'
 import { groupData } from './utils'
 import { Protocol } from './types'
@@ -15,11 +23,14 @@ interface ProDashboardContextType {
 	chains: Chain[]
 	protocolsLoading: boolean
 	timePeriod: TimePeriod
+	dashboardName: string
 	setTimePeriod: (period: TimePeriod) => void
+	setDashboardName: (name: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
 	handleAddTable: (chain: string) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
-	handleRemoveChart: (chartId: string) => void
+	handleAddText: (title: string | undefined, content: string) => void
+	handleRemoveItem: (itemId: string) => void
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
 	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month') => void
 	handleColSpanChange: (chartId: string, newColSpan: 1 | 2) => void
@@ -31,16 +42,24 @@ const ProDashboardContext = createContext<ProDashboardContextType | undefined>(u
 
 export function ProDashboardProvider({ children }: { children: ReactNode }) {
 	const { data: { protocols = [], chains: rawChains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
-	
+
 	const chains: Chain[] = rawChains
 	const [items, setItems] = useState<DashboardItemConfig[]>([])
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all')
+	const [dashboardName, setDashboardName] = useState<string>('My Dashboard')
 	const [localStorageState, { updateKey }] = useLocalStorageContext()
 
 	useEffect(() => {
-		const savedItems = localStorageState?.[PRO_DASHBOARD_ITEMS]
-		if (savedItems && Array.isArray(savedItems) && savedItems.length > 0) {
-			setItems(savedItems)
+		const savedData = localStorageState?.[PRO_DASHBOARD_ITEMS]
+		if (savedData) {
+			if (savedData.items && Array.isArray(savedData.items) && savedData.items.length > 0) {
+				setItems(savedData.items)
+			}
+			if (savedData.dashboardName && typeof savedData.dashboardName === 'string') {
+				setDashboardName(savedData.dashboardName)
+			}
+		} else if (Array.isArray(savedData) && savedData.length > 0) {
+			setItems(savedData)
 		}
 	}, [localStorageState])
 
@@ -51,6 +70,8 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 				return chartConfigToSave
 			} else if (item.kind === 'table') {
 				return item as ProtocolsTableConfig
+			} else if (item.kind === 'text') {
+				return item as TextConfig
 			} else if (item.kind === 'multi') {
 				const { items: nestedItems, ...rest } = item as MultiChartConfig
 				const cleanNestedItems = nestedItems.map((nestedItem) => {
@@ -62,13 +83,18 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 			return item
 		})
 
-		const currentlySavedItemsString = JSON.stringify(localStorageState?.[PRO_DASHBOARD_ITEMS] || [])
-		const itemsToSaveString = JSON.stringify(itemsToSave)
-
-		if (itemsToSaveString !== currentlySavedItemsString) {
-			updateKey(PRO_DASHBOARD_ITEMS, itemsToSave)
+		const dataToSave = {
+			items: itemsToSave,
+			dashboardName
 		}
-	}, [items, localStorageState, updateKey])
+
+		const currentlySavedDataString = JSON.stringify(localStorageState?.[PRO_DASHBOARD_ITEMS] || {})
+		const dataToSaveString = JSON.stringify(dataToSave)
+
+		if (dataToSaveString !== currentlySavedDataString) {
+			updateKey(PRO_DASHBOARD_ITEMS, dataToSave)
+		}
+	}, [items, dashboardName, localStorageState, updateKey])
 
 	const allChartItems: ChartConfig[] = []
 	items.forEach((item) => {
@@ -129,7 +155,14 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 			if (items.length === 0) {
 				const initialCharts: DashboardItemConfig[] = [
 					{ id: `${topChainName}-tvl`, kind: 'chart', chain: topChainName, type: 'tvl', colSpan: 1 },
-					{ id: `${topChainName}-volume`, kind: 'chart', chain: topChainName, type: 'volume', grouping: 'day', colSpan: 1 },
+					{
+						id: `${topChainName}-volume`,
+						kind: 'chart',
+						chain: topChainName,
+						type: 'volume',
+						grouping: 'day',
+						colSpan: 1
+					},
 					{ id: `${topChainName}-fees`, kind: 'chart', chain: topChainName, type: 'fees', grouping: 'day', colSpan: 1 }
 				]
 				setItems(initialCharts)
@@ -192,8 +225,19 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 		setItems((prev) => [...prev, newMultiChart])
 	}
 
-	const handleRemoveChart = (chartId: string) => {
-		setItems((prev) => prev.filter((item) => item.id !== chartId))
+	const handleAddText = (title: string | undefined, content: string) => {
+		const newText: TextConfig = {
+			id: `text-${Date.now()}`,
+			kind: 'text',
+			title,
+			content,
+			colSpan: 1
+		}
+		setItems((prev) => [...prev, newText])
+	}
+
+	const handleRemoveItem = (itemId: string) => {
+		setItems((prev) => prev.filter((item) => item.id !== itemId))
 	}
 
 	const handleChartsReordered = (newCharts: DashboardItemConfig[]) => {
@@ -239,11 +283,14 @@ export function ProDashboardProvider({ children }: { children: ReactNode }) {
 		chains,
 		protocolsLoading,
 		timePeriod,
+		dashboardName,
 		setTimePeriod,
+		setDashboardName,
 		handleAddChart,
 		handleAddTable,
 		handleAddMultiChart,
-		handleRemoveChart,
+		handleAddText,
+		handleRemoveItem,
 		handleChartsReordered,
 		handleGroupingChange,
 		handleColSpanChange,
