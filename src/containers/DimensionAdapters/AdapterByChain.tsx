@@ -45,6 +45,35 @@ interface IProps extends IAdapterByChainPageData {
 	>
 }
 
+const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'], categoriesToFilter: Array<string>) => {
+	const final = []
+
+	for (const protocol of protocols) {
+		if (protocol.childProtocols) {
+			const childProtocols = protocol.childProtocols.filter((childProtocol) =>
+				categoriesToFilter.includes(childProtocol.category)
+			)
+
+			if (childProtocols.length === protocol.childProtocols.length) {
+				final.push(protocol)
+			} else {
+				for (const childProtocol of childProtocols) {
+					final.push(childProtocol)
+				}
+			}
+
+			continue
+		}
+
+		if (categoriesToFilter.includes(protocol.category)) {
+			final.push(protocol)
+			continue
+		}
+	}
+
+	return final
+}
+
 export function AdapterByChain(props: IProps) {
 	const router = useRouter()
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
@@ -67,7 +96,7 @@ export function AdapterByChain(props: IProps) {
 				: selectedCategories.length === 0
 				? []
 				: categoriesToFilter.length > 0
-				? props.protocols.filter((protocol) => categoriesToFilter.includes(protocol.category))
+				? getProtocolsByCategory(props.protocols, categoriesToFilter)
 				: props.protocols
 
 		const finalProtocols =
@@ -133,7 +162,7 @@ export function AdapterByChain(props: IProps) {
 			protocols: finalProtocols,
 			columnsOptions: getColumnsOptions(props.type)
 		}
-	}, [router.query.category, props, enabledSettings])
+	}, [router.query, props, enabledSettings])
 
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
