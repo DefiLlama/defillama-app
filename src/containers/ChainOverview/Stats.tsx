@@ -78,6 +78,11 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 				name: 'App Revenue',
 				isVisible: props.appRevenue?.total24h != null ? true : false
 			},
+			{
+				id: 'appFees',
+				name: 'App Fees',
+				isVisible: props.appFees?.total24h != null ? true : false
+			},
 			{ id: 'perps', name: 'Perps Volume', isVisible: props.perps?.total24h != null ? true : false },
 			{ id: 'chainAssets', name: 'Bridged TVL', isVisible: props.chainAssets != null ? true : false },
 			{
@@ -155,6 +160,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 		feesData: props.chainFees,
 		revenueData: props.chainRevenue,
 		appRevenueData: props.appRevenue,
+		appFeesData: props.appFees,
 		stablecoinsData: props.stablecoins,
 		inflowsData: props.inflows,
 		userData: props.users,
@@ -335,6 +341,21 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									</Tooltip>
 								</th>
 								<td className="font-jetbrains text-right">{formattedNum(props.appRevenue?.total24h, true)}</td>
+							</tr>
+						) : null}
+						{props.appFees?.total24h != null && props.appFees?.total24h > 1e3 ? (
+							<tr>
+								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">
+									<Tooltip
+										content={
+											'Total fees paid by users when using the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
+										}
+										className="underline decoration-dotted"
+									>
+										App Fees (24h)
+									</Tooltip>
+								</th>
+								<td className="font-jetbrains text-right">{formattedNum(props.appFees?.total24h, true)}</td>
 							</tr>
 						) : null}
 						{props.dexs?.total24h != null ? (

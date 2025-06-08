@@ -904,6 +904,40 @@ export const getAppRevenueByChain = async ({
 	}
 }
 
+export const getAppFeesByChain = async ({
+	chain,
+	excludeTotalDataChart = true,
+	excludeTotalDataChartBreakdown = true
+}: {
+	chain?: string
+	excludeTotalDataChart?: boolean
+	excludeTotalDataChartBreakdown?: boolean
+}) => {
+	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
+		chain && chain !== 'All' ? '/' + slug(chain) : ''
+	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}&dataType=dailyAppFees`
+
+	const fees = await fetchWithErrorLogging(apiUrl)
+		.then((res) => {
+			if (res.status === 200) {
+				return res.json()
+			} else {
+				return null
+			}
+		})
+		.catch((err) => {
+			console.log('Error at ', apiUrl, err)
+			return null
+		})
+
+	return {
+		totalAppFees24h: fees?.total24h ?? null,
+		totalDataChart: fees?.totalDataChart ?? [],
+		protocols: fees?.protocols ?? [],
+		chain
+	}
+}
+
 // - used in /fees and /fees/chain/[chain]
 export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: string }) => {
 	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${

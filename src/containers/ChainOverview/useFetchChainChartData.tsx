@@ -8,6 +8,7 @@ import {
 } from '~/api/categories/protocols/client'
 import {
 	useGetAppRevenueChartDataByChain,
+	useGetAppFeesChartDataByChain,
 	useGetChainAssetsChart,
 	useGetFeesAndRevenueChartDataByChain,
 	useGetItemOverviewByChain,
@@ -25,6 +26,7 @@ export const useFetchChainChartData = ({
 	feesData,
 	revenueData,
 	appRevenueData,
+	appFeesData,
 	stablecoinsData,
 	inflowsData,
 	userData,
@@ -65,6 +67,10 @@ export const useFetchChainChartData = ({
 		appRevenueData?.total24h && router.query.appRevenue === 'true' ? selectedChain : null
 	)
 
+	const { data: appFeesChart, isLoading: fetchingAppFees } = useGetAppFeesChartDataByChain(
+		appFeesData?.total24h && router.query.appFees === 'true' ? selectedChain : null
+	)
+
 	const { data: stablecoinsChartData, isLoading: fetchingStablecoinsChartDataByChain } =
 		useGetStabelcoinsChartDataByChain(stablecoinsData?.mcap && router.query.stables === 'true' ? selectedChain : null)
 
@@ -94,6 +100,7 @@ export const useFetchChainChartData = ({
 		fetchingVolumeChartDataByChain ||
 		fetchingFeesAndRevenueChartDataByChain ||
 		fetchingAppRevenue ||
+		fetchingAppFees ||
 		fetchingStablecoinsChartDataByChain ||
 		fetchingInflowsChartData ||
 		fetchingUsersChartData ||
@@ -185,6 +192,10 @@ export const useFetchChainChartData = ({
 			? appRevenueChart?.map(([date, revenue]) => [date, revenue / normalizedDenomination[date]])
 			: appRevenueChart
 
+		const finalAppFeesChart = isNonUSDDenomination
+			? appFeesChart?.map(([date, fees]) => [date, fees / normalizedDenomination[date]])
+			: appFeesChart
+
 		const finalDevsChart = devMetricsData?.report?.monthly_devs?.map(({ k, v }) => [
 			Math.floor(nearestUtcZeroHour(dayjs(k).toDate().getTime()) / 1000),
 			v
@@ -219,6 +230,7 @@ export const useFetchChainChartData = ({
 			{
 				feesChart: finalFeesAndRevenueChart,
 				appRevenueChart: finalAppRevenueChart,
+				appFeesChart: finalAppFeesChart,
 				dexsChart: finalDexsChart,
 				globalChart: finalTvlChart,
 				raisesData: raisesChart,
@@ -246,6 +258,7 @@ export const useFetchChainChartData = ({
 		perpsChart?.totalDataChart,
 		feesAndRevenueChart,
 		appRevenueChart,
+		appFeesChart,
 		devMetricsData?.report?.monthly_devs,
 		chainAssetsChart,
 		raisesChart,

@@ -63,6 +63,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			nftVolumesData,
 			chainAssets,
 			appRevenue,
+			appFees,
 			chainFees,
 			chainRevenue,
 			perps,
@@ -103,6 +104,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			} | null,
 			Record<string, number>,
 			IChainAssets | null,
+			IAdapterSummary | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
@@ -218,6 +220,18 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						excludeTotalDataChart: true,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyAppRevenue'
+				  }).catch((err) => {
+						console.log(err)
+						return null
+				  })
+				: Promise.resolve(null),
+			metadata.fees && chain !== 'All'
+				? getAdapterChainOverview({
+						adapterType: 'fees',
+						chain: metadata.name,
+						excludeTotalDataChart: true,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyAppFees'
 				  }).catch((err) => {
 						console.log(err)
 						return null
@@ -450,6 +464,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			},
 			chainRevenue: { total24h: chainRevenue?.total24h ?? null },
 			appRevenue: { total24h: appRevenue?.total24h ?? null },
+			appFees: { total24h: appFees?.total24h ?? null },
 			dexs: {
 				total24h: dexs?.total24h ?? null,
 				total7d: dexs?.total7d ?? null,

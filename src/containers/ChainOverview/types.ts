@@ -63,6 +63,7 @@ export interface IChainOverviewData {
 		incentivesChart: Array<[number, number]> | null
 	}
 	appRevenue: { total24h: number | null }
+	appFees: { total24h: number | null }
 	dexs: {
 		total24h: number | null
 		total7d: number | null

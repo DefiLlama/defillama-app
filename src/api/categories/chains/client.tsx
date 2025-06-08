@@ -2,6 +2,7 @@ import {
 	getOverview,
 	getDexVolumeByChain,
 	getAppRevenueByChain,
+	getAppFeesByChain,
 	getFeesAndRevenueByChain,
 	getFeesAndRevenueProtocolsByChain
 } from '../adaptors'
@@ -79,6 +80,21 @@ export function useGetAppRevenueChartDataByChain(chain?: string) {
 			chain && chain !== 'All'
 				? () =>
 						getAppRevenueByChain({
+							chain,
+							excludeTotalDataChart: false
+						}).then((data) => data.totalDataChart)
+				: () => null,
+		staleTime: 60 * 60 * 1000
+	})
+}
+
+export function useGetAppFeesChartDataByChain(chain?: string) {
+	return useQuery({
+		queryKey: [`appFeesByChain/${chain}`],
+		queryFn:
+			chain && chain !== 'All'
+				? () =>
+						getAppFeesByChain({
 							chain,
 							excludeTotalDataChart: false
 						}).then((data) => data.totalDataChart)

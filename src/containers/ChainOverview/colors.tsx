@@ -22,6 +22,7 @@ export const chainOverviewChartColors = {
 	chainAssets: '#fa7b00',
 	tokenVolume: '#ff008c',
 	appRevenue: '#A020F0',
+	appFees: '#FF4500',
 	chainIncentives: '#FF9800'
 } as const
 
