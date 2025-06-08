@@ -38,6 +38,11 @@ export const defaultToolsAndFooterLinks = {
 			newTag: true
 		},
 		{
+			name: 'Support',
+			path: '/support',
+			external: false
+		},
+		{
 			name: 'Report Error',
 			path: '/report-error',
 			external: false,
