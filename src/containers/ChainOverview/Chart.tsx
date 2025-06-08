@@ -230,6 +230,26 @@ export function ChainChart({
 				})
 			}
 
+			if (route.appFees === 'true' && data?.appFeesChart) {
+				const color = getColor(isCompare) || chainOverviewChartColors.appFees
+				const areaColor = getAreaColor(color, isThemeDark)
+				series.push({
+					name: namePrefix + 'App Fees',
+					chartId: 'App Fees',
+					symbol: 'none',
+					type: groupBy === 'cumulative' ? 'line' : 'bar',
+					data: [],
+					yAxisIndex: 5,
+					itemStyle: {
+						color
+					},
+					areaStyle: areaColor
+				})
+				data?.appFeesChart.forEach(([date, value]) => {
+					series[series.length - 1].data.push([+date * 1e3, value])
+				})
+			}
+
 			if (route.price === 'true' && data?.priceData && denomination === 'USD') {
 				const color = getColor(isCompare) || chainOverviewChartColors.price
 				const areaColor = getAreaColor(color, isThemeDark)
@@ -239,7 +259,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 5,
+					yAxisIndex: 6,
 					itemStyle: {
 						color
 					},
@@ -263,7 +283,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 6,
+					yAxisIndex: 7,
 					itemStyle: {
 						color: color1
 					},
@@ -279,7 +299,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 6,
+					yAxisIndex: 7,
 					itemStyle: {
 						color: color2
 					},
@@ -299,7 +319,7 @@ export function ChainChart({
 					type: 'bar',
 					symbol: 'none',
 					data: [],
-					yAxisIndex: 7,
+					yAxisIndex: 8,
 					itemStyle: {
 						color
 					},
@@ -320,7 +340,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 8,
+					yAxisIndex: 9,
 					itemStyle: {
 						color
 					},
@@ -341,7 +361,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 9,
+					yAxisIndex: 10,
 					itemStyle: {
 						color
 					},
@@ -362,7 +382,7 @@ export function ChainChart({
 					stack: 'bridge',
 					symbol: 'none',
 					data: [],
-					yAxisIndex: 10,
+					yAxisIndex: 11,
 					itemStyle: {
 						color
 					},
@@ -383,7 +403,7 @@ export function ChainChart({
 					stack: 'developers',
 					symbol: 'none',
 					data: [],
-					yAxisIndex: 11,
+					yAxisIndex: 12,
 					itemStyle: {
 						color
 					},
@@ -403,7 +423,7 @@ export function ChainChart({
 					type: 'bar',
 					stack: 'commits',
 					data: [],
-					yAxisIndex: 12,
+					yAxisIndex: 13,
 					itemStyle: {
 						color
 					},
@@ -423,7 +443,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 13,
+					yAxisIndex: 14,
 					itemStyle: {
 						color: color
 					},
@@ -445,7 +465,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 14,
+					yAxisIndex: 15,
 					itemStyle: {
 						color: color
 					},
@@ -466,7 +486,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 15,
+					yAxisIndex: 16,
 					itemStyle: {
 						color: color
 					},
@@ -486,7 +506,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: 'bar',
 					data: [],
-					yAxisIndex: 16,
+					yAxisIndex: 17,
 					itemStyle: {
 						color: color
 					},
@@ -506,7 +526,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: 'line',
 					data: [],
-					yAxisIndex: 17,
+					yAxisIndex: 18,
 					itemStyle: {
 						color: color
 					},
@@ -525,7 +545,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 18,
+					yAxisIndex: 19,
 					itemStyle: {
 						color: color
 					},
@@ -546,7 +566,7 @@ export function ChainChart({
 					symbol: 'none',
 					type: groupBy === 'cumulative' ? 'line' : 'bar',
 					data: [],
-					yAxisIndex: 19,
+					yAxisIndex: 20,
 					itemStyle: {
 						color
 					},
@@ -587,6 +607,7 @@ export function ChainChart({
 		route.chainAssets,
 		route.chainTokenVolume,
 		route.appRevenue,
+		route.appFees,
 		denomination,
 		isThemeDark
 	])
