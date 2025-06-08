@@ -71,7 +71,7 @@ function ReportError() {
 						<span>How can we contact you? (optional)</span>
 						<input
 							name="contact"
-							placeholder="Email or telegram"
+							placeholder="Email address"
 							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
 						/>
 					</label>
