@@ -79,6 +79,10 @@ export function SubscribeLayout({ children }) {
 								<BasicLink href="/subscription/fulfillment-policies" className="hover:text-white transition-colors">
 									Fulfillment Policies
 								</BasicLink>
+
+								<BasicLink href="/terms" className="hover:text-white transition-colors">
+									Terms of Service
+								</BasicLink>
 							</div>
 						</div>
 					</div>

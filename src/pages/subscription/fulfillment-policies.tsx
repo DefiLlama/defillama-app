@@ -55,6 +55,10 @@ export function SubscribeLayout2({ children }) {
 					<BasicLink href="/subscription/fulfillment-policies" className="underline">
 						Fulfillment policies
 					</BasicLink>
+
+					<BasicLink href="/terms" className="underline">
+						Terms of Service
+					</BasicLink>
 				</footer>
 			</div>
 		</>
