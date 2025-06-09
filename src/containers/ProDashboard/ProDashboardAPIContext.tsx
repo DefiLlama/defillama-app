@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, ReactNode, useCallback, useRef } from 'react'
-import { QueryObserverResult, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react'
+import { QueryObserverResult, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import {
@@ -14,8 +14,10 @@ import {
 import { useChartsData, useProtocolsAndChains } from './queries'
 import { groupData } from './utils'
 import { Protocol } from './types'
-import { dashboardAPI, Dashboard } from './services/DashboardAPI'
+import { Dashboard } from './services/DashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useDashboardAPI, useAutoSave, useDashboardPermissions } from './hooks'
+import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
 
 export type TimePeriod = '30d' | '90d' | '365d' | 'all'
 
@@ -63,35 +65,40 @@ export function ProDashboardAPIProvider({
 	initialDashboardId?: string
 }) {
 	const router = useRouter()
-	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 	const { data: { protocols = [], chains: rawChains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
 
 	const chains: Chain[] = rawChains
 	const [items, setItems] = useState<DashboardItemConfig[]>([])
-
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all')
 	const [dashboardName, setDashboardName] = useState<string>('My Dashboard')
 	const [dashboardId, setDashboardId] = useState<string | null>(initialDashboardId || null)
-	const [isReadOnly, setIsReadOnly] = useState<boolean>(false)
-	const [dashboardOwnerId, setDashboardOwnerId] = useState<string | null>(null)
+	const [currentDashboard, setCurrentDashboard] = useState<Dashboard | null>(null)
 
-	const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+	// Use the dashboard API hook
+	const {
+		dashboards,
+		isLoadingDashboards,
+		createDashboard,
+		updateDashboard,
+		deleteDashboard: deleteDashboardWithConfirmation,
+		loadDashboard: loadDashboardData,
+		navigateToDashboard
+	} = useDashboardAPI()
 
-	const { data: dashboards = [], isLoading: isLoadingDashboards } = useQuery({
-		queryKey: ['dashboards'],
-		queryFn: async () => {
-			if (!isAuthenticated) return []
-			try {
-				return await dashboardAPI.listDashboards(authorizedFetch)
-			} catch (error) {
-				console.error('Failed to load dashboards:', error)
-				return []
-			}
-		},
-		enabled: isAuthenticated
+	// Use the permissions hook
+	const { isReadOnly, dashboardOwnerId } = useDashboardPermissions(currentDashboard)
+
+	// Use the auto-save hook
+	const { autoSave } = useAutoSave({
+		dashboardId,
+		dashboardName,
+		isAuthenticated,
+		updateDashboard,
+		cleanItemsForSaving
 	})
 
+	// Load initial dashboard
 	const { isLoading: isLoadingDashboard } = useQuery({
 		queryKey: ['dashboard', initialDashboardId],
 		queryFn: async () => {
@@ -100,7 +107,7 @@ export function ProDashboardAPIProvider({
 			}
 
 			try {
-				const dashboard = await dashboardAPI.getDashboard(initialDashboardId, authorizedFetch)
+				const dashboard = await loadDashboardData(initialDashboardId)
 
 				if (!dashboard?.data?.items || !Array.isArray(dashboard.data.items)) {
 					throw new Error('Invalid dashboard data structure')
@@ -109,12 +116,8 @@ export function ProDashboardAPIProvider({
 				setDashboardId(dashboard.id)
 				setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
 				setItems(dashboard.data.items)
-				setDashboardOwnerId(dashboard.user)
-				
-				// Check if current user is the owner
-				const isOwner = user?.id === dashboard.user
-				setIsReadOnly(!isOwner)
-				
+				setCurrentDashboard(dashboard)
+
 				return dashboard
 			} catch (error) {
 				console.error('Failed to load dashboard:', error)
@@ -126,96 +129,7 @@ export function ProDashboardAPIProvider({
 		enabled: !!initialDashboardId && isAuthenticated
 	})
 
-	const createDashboardMutation = useMutation({
-		mutationFn: async (data: { items: DashboardItemConfig[]; dashboardName: string }) => {
-			return await dashboardAPI.createDashboard(data, authorizedFetch)
-		},
-		onSuccess: (dashboard) => {
-			setDashboardId(dashboard.id)
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			toast.success('Dashboard created successfully')
-			router.push(`/pro/${dashboard.id}`)
-		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to create dashboard')
-		}
-	})
-
-	// Mutation to update dashboard
-	const updateDashboardMutation = useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: { items: DashboardItemConfig[]; dashboardName: string } }) => {
-			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to save dashboard')
-		}
-	})
-
-	const deleteDashboardMutation = useMutation({
-		mutationFn: async (id: string) => {
-			return await dashboardAPI.deleteDashboard(id, authorizedFetch)
-		},
-		onSuccess: (_, deletedId) => {
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			toast.success('Dashboard deleted successfully')
-			if (dashboardId === deletedId) {
-				setDashboardId(null)
-				setItems([])
-				setDashboardName('My Dashboard')
-				router.push('/pro')
-			}
-		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to delete dashboard')
-		}
-	})
-
-	// Clean items before saving (remove runtime data)
-	const cleanItemsForSaving = useCallback((items: DashboardItemConfig[]) => {
-		return items.map((item) => {
-			if (item.kind === 'chart') {
-				const { data, isLoading, hasError, refetch, ...chartConfigToSave } = item as ChartConfig
-				return chartConfigToSave
-			} else if (item.kind === 'table') {
-				return item as ProtocolsTableConfig
-			} else if (item.kind === 'text') {
-				return item as TextConfig
-			} else if (item.kind === 'multi') {
-				const { items: nestedItems, ...rest } = item as MultiChartConfig
-				const cleanNestedItems = nestedItems.map((nestedItem) => {
-					const { data, isLoading, hasError, refetch, ...cleanItem } = nestedItem
-					return cleanItem
-				})
-				return { ...rest, items: cleanNestedItems }
-			}
-			return item
-		})
-	}, [])
-
-	const autoSave = useCallback(
-		(newItems: DashboardItemConfig[]) => {
-			if (!dashboardId || !isAuthenticated) return
-
-			if (autoSaveTimeoutRef.current) {
-				clearTimeout(autoSaveTimeoutRef.current)
-			}
-
-			const cleanedItems = cleanItemsForSaving(newItems)
-			const data = { items: cleanedItems, dashboardName }
-
-			autoSaveTimeoutRef.current = setTimeout(() => {
-				updateDashboardMutation.mutateAsync({ id: dashboardId, data }).catch((error) => {
-					console.error('Auto-save failed:', error)
-				})
-			}, 1000)
-		},
-		[dashboardId, isAuthenticated, dashboardName, cleanItemsForSaving, updateDashboardMutation]
-	)
-
-	// Save dashboard (manual save)
+	// Save dashboard
 	const saveDashboard = useCallback(async () => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to save dashboards')
@@ -226,61 +140,27 @@ export function ProDashboardAPIProvider({
 		const data = { items: cleanedItems, dashboardName }
 
 		if (dashboardId) {
-			await updateDashboardMutation.mutateAsync({ id: dashboardId, data })
+			await updateDashboard({ id: dashboardId, data })
 		} else {
-			await createDashboardMutation.mutateAsync(data)
+			const newDashboard = await createDashboard(data)
+			setDashboardId(newDashboard.id)
 		}
-	}, [
-		items,
-		dashboardName,
-		dashboardId,
-		isAuthenticated,
-		cleanItemsForSaving,
-		updateDashboardMutation,
-		createDashboardMutation
-	])
+	}, [items, dashboardName, dashboardId, isAuthenticated, updateDashboard, createDashboard])
 
-	// Create new dashboard
-	const createNewDashboard = useCallback(async () => {
-		setDashboardId(null)
-		setDashboardName('My Dashboard')
-		setItems([])
-		setIsReadOnly(false)
-		setDashboardOwnerId(null)
-		router.push('/pro/new')
-	}, [router])
-
-	// Load dashboard
-	const loadDashboard = useCallback(
-		async (id: string) => {
-			router.push(`/pro/${id}`)
-		},
-		[router]
-	)
-
-	const deleteDashboard = useCallback(
-		async (id: string) => {
-			if (confirm('Are you sure you want to delete this dashboard?')) {
-				await deleteDashboardMutation.mutateAsync(id)
-			}
-		},
-		[deleteDashboardMutation]
-	)
-
-	// Save dashboard name when needed
+	// Save dashboard name
 	const saveDashboardName = useCallback(async () => {
 		if (dashboardId && isAuthenticated) {
 			const cleanedItems = cleanItemsForSaving(items)
 			const data = { items: cleanedItems, dashboardName }
 			try {
-				await updateDashboardMutation.mutateAsync({ id: dashboardId, data })
+				await updateDashboard({ id: dashboardId, data })
 			} catch (error) {
 				console.error('Failed to save dashboard name:', error)
 			}
 		}
-	}, [dashboardId, isAuthenticated, items, dashboardName, cleanItemsForSaving, updateDashboardMutation])
+	}, [dashboardId, isAuthenticated, items, dashboardName, updateDashboard])
 
-	// Copy dashboard function for read-only dashboards
+	// Copy dashboard
 	const copyDashboard = useCallback(async () => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to copy dashboards')
@@ -288,18 +168,36 @@ export function ProDashboardAPIProvider({
 		}
 
 		const cleanedItems = cleanItemsForSaving(items)
-		const data = { 
-			items: cleanedItems, 
-			dashboardName: `${dashboardName} (Copy)` 
+		const data = {
+			items: cleanedItems,
+			dashboardName: `${dashboardName} (Copy)`
 		}
 
 		try {
-			await createDashboardMutation.mutateAsync(data)
+			await createDashboard(data)
 		} catch (error) {
 			console.error('Failed to copy dashboard:', error)
 		}
-	}, [items, dashboardName, isAuthenticated, cleanItemsForSaving, createDashboardMutation])
+	}, [items, dashboardName, isAuthenticated, createDashboard])
 
+	// Create new dashboard
+	const createNewDashboard = useCallback(async () => {
+		setDashboardId(null)
+		setDashboardName('My Dashboard')
+		setItems([])
+		setCurrentDashboard(null)
+		router.push('/pro/new')
+	}, [router])
+
+	// Load dashboard
+	const loadDashboard = useCallback(
+		async (id: string) => {
+			navigateToDashboard(id)
+		},
+		[navigateToDashboard]
+	)
+
+	// Chart data processing
 	const allChartItems: ChartConfig[] = []
 	items.forEach((item) => {
 		if (item.kind === 'chart') {
@@ -353,8 +251,9 @@ export function ProDashboardAPIProvider({
 		return item
 	})
 
+	// Handle adding items
 	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
-		const newChartId = `${item}-${chartType}-${Date.now()}`
+		const newChartId = generateItemId(chartType, item)
 		const chartTypeDetails = CHART_TYPES[chartType]
 
 		const newChartBase: Partial<ChartConfig> = {
@@ -392,7 +291,7 @@ export function ProDashboardAPIProvider({
 
 	const handleAddTable = (chain: string) => {
 		const newTable: ProtocolsTableConfig = {
-			id: `table-${chain}-${Date.now()}`,
+			id: generateItemId('table', chain),
 			kind: 'table',
 			chain,
 			colSpan: 2
@@ -406,7 +305,7 @@ export function ProDashboardAPIProvider({
 
 	const handleAddMultiChart = (chartItems: ChartConfig[], name?: string) => {
 		const newMultiChart: MultiChartConfig = {
-			id: `multi-${Date.now()}`,
+			id: generateItemId('multi', ''),
 			kind: 'multi',
 			name: name || `Multi-Chart ${items.filter((item) => item.kind === 'multi').length + 1}`,
 			items: chartItems,
@@ -422,7 +321,7 @@ export function ProDashboardAPIProvider({
 
 	const handleAddText = (title: string | undefined, content: string) => {
 		const newText: TextConfig = {
-			id: `text-${Date.now()}`,
+			id: generateItemId('text', ''),
 			kind: 'text',
 			title,
 			content,
@@ -496,6 +395,8 @@ export function ProDashboardAPIProvider({
 		dashboards,
 		isLoadingDashboards,
 		isLoadingDashboard,
+		isReadOnly,
+		dashboardOwnerId,
 		setTimePeriod,
 		setDashboardName,
 		handleAddChart,
@@ -510,12 +411,10 @@ export function ProDashboardAPIProvider({
 		getProtocolInfo,
 		createNewDashboard,
 		loadDashboard,
-		deleteDashboard,
+		deleteDashboard: deleteDashboardWithConfirmation,
 		saveDashboard,
 		saveDashboardName,
-		copyDashboard,
-		isReadOnly,
-		dashboardOwnerId
+		copyDashboard
 	}
 
 	return <ProDashboardContext.Provider value={value}>{children}</ProDashboardContext.Provider>

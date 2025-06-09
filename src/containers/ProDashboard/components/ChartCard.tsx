@@ -4,6 +4,7 @@ import { ChartConfig, CHART_TYPES, Chain, Protocol } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 import { getItemIconUrl } from '../utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
+import { memo } from 'react'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -17,7 +18,67 @@ interface ChartCardProps {
 	chart: ChartConfig
 }
 
-export function ChartCard({ chart }: ChartCardProps) {
+interface ChartRendererProps {
+	chart: ChartConfig
+	data: [string, number][]
+	isLoading: boolean
+	hasError: boolean
+	refetch: () => void
+}
+
+const ChartRenderer = memo(function ChartRenderer({ chart, data, isLoading, hasError, refetch }: ChartRendererProps) {
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center h-full">
+				<LoadingSpinner />
+			</div>
+		)
+	}
+
+	if (hasError) {
+		return (
+			<div className="flex flex-col items-center justify-center h-full text-[var(--text3)]">
+				<Icon name="alert-triangle" height={24} width={24} className="mb-2 text-[#F2994A]" />
+				<p>Error loading data</p>
+				<button className="mt-2 text-sm text-[var(--primary1)] hover:underline" onClick={() => refetch()}>
+					Try again
+				</button>
+			</div>
+		)
+	}
+
+	if (!data || data.length === 0) {
+		return <div className="flex items-center justify-center h-full text-[var(--text3)]">No data available</div>
+	}
+
+	const chartType = CHART_TYPES[chart.type]
+
+	if (chartType.chartType === 'bar') {
+		return (
+			<BarChart
+				chartData={data}
+				valueSymbol="$"
+				height="300px"
+				color={chartType.color}
+				hideDataZoom
+				hideDownloadButton
+			/>
+		)
+	} else {
+		return (
+			<AreaChart
+				chartData={data}
+				valueSymbol="$"
+				color={chartType.color}
+				height="300px"
+				hideDataZoom
+				hideDownloadButton
+			/>
+		)
+	}
+})
+
+export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 	const { getChainInfo, getProtocolInfo, handleGroupingChange } = useProDashboard()
 	const { data, isLoading, hasError, refetch } = chart
 	const chartTypeDetails = CHART_TYPES[chart.type]
@@ -78,59 +139,9 @@ export function ChartCard({ chart }: ChartCardProps) {
 				</div>
 			</div>
 
-			<div style={{ height: '300px', flexGrow: 1 }}>{renderChart({ chart, data, isLoading, hasError, refetch })}</div>
+			<div style={{ height: '300px', flexGrow: 1 }}>
+				<ChartRenderer chart={chart} data={data} isLoading={isLoading} hasError={hasError} refetch={refetch} />
+			</div>
 		</div>
 	)
-}
-
-function renderChart({ chart, data, isLoading, hasError, refetch }) {
-	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center h-full">
-				<LoadingSpinner />
-			</div>
-		)
-	}
-
-	if (hasError) {
-		return (
-			<div className="flex flex-col items-center justify-center h-full text-[var(--text3)]">
-				<Icon name="alert-triangle" height={24} width={24} className="mb-2 text-[#F2994A]" />
-				<p>Error loading data</p>
-				<button className="mt-2 text-sm text-[var(--primary1)] hover:underline" onClick={() => refetch()}>
-					Try again
-				</button>
-			</div>
-		)
-	}
-
-	if (!data || data.length === 0) {
-		return <div className="flex items-center justify-center h-full text-[var(--text3)]">No data available</div>
-	}
-
-	const chartType = CHART_TYPES[chart.type]
-
-	if (chartType.chartType === 'bar') {
-		return (
-			<BarChart
-				chartData={data}
-				valueSymbol="$"
-				height="300px"
-				color={chartType.color}
-				hideDataZoom
-				hideDownloadButton
-			/>
-		)
-	} else {
-		return (
-			<AreaChart
-				chartData={data}
-				valueSymbol="$"
-				color={chartType.color}
-				height="300px"
-				hideDataZoom
-				hideDownloadButton
-			/>
-		)
-	}
-}
+})

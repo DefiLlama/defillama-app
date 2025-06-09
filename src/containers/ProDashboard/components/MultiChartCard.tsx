@@ -3,6 +3,7 @@ import { CHART_TYPES, MultiChartConfig } from '../types'
 import { generateChartColor } from '../utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { Icon } from '~/components/Icon'
+import { memo } from 'react'
 
 const MultiSeriesChart = dynamic(() => import('~/components/ECharts/MultiSeriesChart'), {
 	ssr: false
@@ -12,8 +13,7 @@ interface MultiChartCardProps {
 	multi: MultiChartConfig
 }
 
-
-export default function MultiChartCard({ multi }: MultiChartCardProps) {
+const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
 	const { getProtocolInfo } = useProDashboard()
 
 	// Filter valid items and create series data
@@ -110,4 +110,6 @@ export default function MultiChartCard({ multi }: MultiChartCardProps) {
 			</div>
 		</div>
 	)
-}
+})
+
+export default MultiChartCard

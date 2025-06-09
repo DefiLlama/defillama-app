@@ -1,11 +1,12 @@
 import ReactMarkdown from 'react-markdown'
 import { TextConfig } from '../types'
+import { memo } from 'react'
 
 interface TextCardProps {
 	text: TextConfig
 }
 
-export function TextCard({ text }: TextCardProps) {
+export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 	return (
 		<div className="p-4 h-full flex flex-col">
 			{text.title && (
@@ -57,4 +58,4 @@ export function TextCard({ text }: TextCardProps) {
 			</div>
 		</div>
 	)
-}
+})

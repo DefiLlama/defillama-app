@@ -4,8 +4,9 @@ import { TableHeader } from './TableHeader'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { TableBody } from './TableBody'
 import { TablePagination } from './TablePagination'
+import { memo } from 'react'
 
-export function ProtocolsByChainTable({ chain = 'All', colSpan = 2 }: { chain: string; colSpan?: 1 | 2 }) {
+export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({ chain = 'All', colSpan = 2 }: { chain: string; colSpan?: 1 | 2 }) {
 	const {
 		table,
 		showColumnPanel,
@@ -49,4 +50,4 @@ export function ProtocolsByChainTable({ chain = 'All', colSpan = 2 }: { chain: s
 			<TablePagination table={table} />
 		</div>
 	)
-}
+})
