@@ -31,6 +31,8 @@ interface ProDashboardContextType {
 	dashboards: Dashboard[]
 	isLoadingDashboards: boolean
 	isLoadingDashboard: boolean
+	isReadOnly: boolean
+	dashboardOwnerId: string | null
 	setTimePeriod: (period: TimePeriod) => void
 	setDashboardName: (name: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
@@ -48,6 +50,7 @@ interface ProDashboardContextType {
 	deleteDashboard: (id: string) => Promise<void>
 	saveDashboard: () => Promise<void>
 	saveDashboardName: () => Promise<void>
+	copyDashboard: () => Promise<void>
 }
 
 const ProDashboardContext = createContext<ProDashboardContextType | undefined>(undefined)
@@ -61,7 +64,7 @@ export function ProDashboardAPIProvider({
 }) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { authorizedFetch, isAuthenticated } = useAuthContext()
+	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 	const { data: { protocols = [], chains: rawChains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
 
 	const chains: Chain[] = rawChains
@@ -70,6 +73,8 @@ export function ProDashboardAPIProvider({
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all')
 	const [dashboardName, setDashboardName] = useState<string>('My Dashboard')
 	const [dashboardId, setDashboardId] = useState<string | null>(initialDashboardId || null)
+	const [isReadOnly, setIsReadOnly] = useState<boolean>(false)
+	const [dashboardOwnerId, setDashboardOwnerId] = useState<string | null>(null)
 
 	const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -104,6 +109,12 @@ export function ProDashboardAPIProvider({
 				setDashboardId(dashboard.id)
 				setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
 				setItems(dashboard.data.items)
+				setDashboardOwnerId(dashboard.user)
+				
+				// Check if current user is the owner
+				const isOwner = user?.id === dashboard.user
+				setIsReadOnly(!isOwner)
+				
 				return dashboard
 			} catch (error) {
 				console.error('Failed to load dashboard:', error)
@@ -234,6 +245,8 @@ export function ProDashboardAPIProvider({
 		setDashboardId(null)
 		setDashboardName('My Dashboard')
 		setItems([])
+		setIsReadOnly(false)
+		setDashboardOwnerId(null)
 		router.push('/pro/new')
 	}, [router])
 
@@ -266,6 +279,26 @@ export function ProDashboardAPIProvider({
 			}
 		}
 	}, [dashboardId, isAuthenticated, items, dashboardName, cleanItemsForSaving, updateDashboardMutation])
+
+	// Copy dashboard function for read-only dashboards
+	const copyDashboard = useCallback(async () => {
+		if (!isAuthenticated) {
+			toast.error('Please sign in to copy dashboards')
+			return
+		}
+
+		const cleanedItems = cleanItemsForSaving(items)
+		const data = { 
+			items: cleanedItems, 
+			dashboardName: `${dashboardName} (Copy)` 
+		}
+
+		try {
+			await createDashboardMutation.mutateAsync(data)
+		} catch (error) {
+			console.error('Failed to copy dashboard:', error)
+		}
+	}, [items, dashboardName, isAuthenticated, cleanItemsForSaving, createDashboardMutation])
 
 	const allChartItems: ChartConfig[] = []
 	items.forEach((item) => {
@@ -479,7 +512,10 @@ export function ProDashboardAPIProvider({
 		loadDashboard,
 		deleteDashboard,
 		saveDashboard,
-		saveDashboardName
+		saveDashboardName,
+		copyDashboard,
+		isReadOnly,
+		dashboardOwnerId
 	}
 
 	return <ProDashboardContext.Provider value={value}>{children}</ProDashboardContext.Provider>

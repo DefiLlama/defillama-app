@@ -32,7 +32,9 @@ function ProDashboardContent() {
 		loadDashboard,
 		deleteDashboard,
 		saveDashboard,
-		saveDashboardName
+		saveDashboardName,
+		isReadOnly,
+		copyDashboard
 	} = useProDashboard()
 
 	const timePeriods: { value: TimePeriod; label: string }[] = [
@@ -112,7 +114,7 @@ function ProDashboardContent() {
 				</div>
 
 				<div className="justify-self-center flex items-center gap-2">
-					{isEditingName ? (
+					{isEditingName && !isReadOnly ? (
 						<form onSubmit={handleNameSubmit} className="flex items-center">
 							<input
 								type="text"
@@ -130,11 +132,15 @@ function ProDashboardContent() {
 						</form>
 					) : (
 						<button
-							onClick={() => setIsEditingName(true)}
-							className="group text-xl font-semibold text-[var(--text1)] px-3 py-2 bg-[var(--bg7)] bg-opacity-30 hover:bg-[var(--bg3)] hover:border-[var(--form-control-border)] flex items-center gap-2 transition-colors"
+							onClick={() => !isReadOnly && setIsEditingName(true)}
+							className={`group text-xl font-semibold text-[var(--text1)] px-3 py-2 bg-[var(--bg7)] bg-opacity-30 ${
+								!isReadOnly ? 'hover:bg-[var(--bg3)] hover:border-[var(--form-control-border)]' : ''
+							} flex items-center gap-2 transition-colors`}
+							disabled={isReadOnly}
 						>
 							{dashboardName}
-							<Icon name="pencil" height={14} width={14} className="text-[var(--text1)]" />
+							{!isReadOnly && <Icon name="pencil" height={14} width={14} className="text-[var(--text1)]" />}
+							{isReadOnly && <span className="text-xs text-[var(--text3)] ml-2">(Read-only)</span>}
 						</button>
 					)}
 
@@ -153,17 +159,45 @@ function ProDashboardContent() {
 									<div className="fixed inset-0 z-10" onClick={() => setShowDashboardMenu(false)} />
 									<div className="absolute right-0 top-full mt-2 w-64 bg-[var(--bg7)] bg-opacity-90 backdrop-filter backdrop-blur-xl border border-white/30 shadow-lg z-20">
 										<div className="p-2">
-											<button
-												onClick={() => {
-													saveDashboard()
-													setShowDashboardMenu(false)
-												}}
-												className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] flex items-center gap-2"
-												disabled={!dashboardId && items.length === 0}
-											>
-												<Icon name="download-cloud" height={16} width={16} />
-												{dashboardId ? 'Save Dashboard' : 'Save as New Dashboard'}
-											</button>
+											{isReadOnly ? (
+												<button
+													onClick={() => {
+														copyDashboard()
+														setShowDashboardMenu(false)
+													}}
+													className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] flex items-center gap-2"
+												>
+													<Icon name="copy" height={16} width={16} />
+													Copy Dashboard
+												</button>
+											) : (
+												<>
+													<button
+														onClick={() => {
+															saveDashboard()
+															setShowDashboardMenu(false)
+														}}
+														className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] flex items-center gap-2"
+														disabled={!dashboardId && items.length === 0}
+													>
+														<Icon name="download-cloud" height={16} width={16} />
+														{dashboardId ? 'Save Dashboard' : 'Save as New Dashboard'}
+													</button>
+
+													{dashboardId && (
+														<button
+															onClick={() => {
+																deleteDashboard(dashboardId)
+																setShowDashboardMenu(false)
+															}}
+															className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] text-red-500 flex items-center gap-2"
+														>
+															<Icon name="trash-2" height={16} width={16} />
+															Delete Dashboard
+														</button>
+													)}
+												</>
+											)}
 
 											<button
 												onClick={() => {
@@ -175,19 +209,6 @@ function ProDashboardContent() {
 												<Icon name="plus" height={16} width={16} />
 												New Dashboard
 											</button>
-
-											{dashboardId && (
-												<button
-													onClick={() => {
-														deleteDashboard(dashboardId)
-														setShowDashboardMenu(false)
-													}}
-													className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] text-red-500 flex items-center gap-2"
-												>
-													<Icon name="trash-2" height={16} width={16} />
-													Delete Dashboard
-												</button>
-											)}
 
 											{dashboards.length > 0 && (
 												<>
@@ -232,8 +253,9 @@ function ProDashboardContent() {
 				</div>
 
 				<button
-					className="px-4 py-2 bg-[var(--primary1)] text-white flex items-center gap-2 hover:bg-[var(--primary1-hover)] justify-self-end"
-					onClick={() => setShowAddModal(true)}
+					className={`px-4 py-2 ${!isReadOnly ? 'bg-[var(--primary1)] hover:bg-[var(--primary1-hover)]' : 'bg-[var(--bg3)] cursor-not-allowed'} text-white flex items-center gap-2 justify-self-end`}
+					onClick={() => !isReadOnly && setShowAddModal(true)}
+					disabled={isReadOnly}
 				>
 					<Icon name="plus" height={16} width={16} />
 					Add Item

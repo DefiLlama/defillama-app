@@ -18,7 +18,7 @@ interface ChartGridProps {
 }
 
 export function ChartGrid({ onAddChartClick }: ChartGridProps) {
-	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange } = useProDashboard()
+	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, isReadOnly } = useProDashboard()
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -41,6 +41,36 @@ export function ChartGrid({ onAddChartClick }: ChartGridProps) {
 
 	const getColSpanClass = (colSpan?: 1 | 2) => {
 		return colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
+	}
+
+	if (isReadOnly) {
+		return (
+			<div className="mt-2">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
+					{chartsWithData.map((item) => (
+						<div key={item.id} className={`${getColSpanClass(item.colSpan)}`}>
+							<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full relative">
+								<div className={item.kind === 'table' ? 'pr-12' : ''}>
+									{item.kind === 'chart' ? (
+										<ChartCard key={`${item.id}-${item.colSpan}`} chart={item} />
+									) : item.kind === 'multi' ? (
+										<MultiChartCard key={`${item.id}-${item.colSpan}`} multi={item} />
+									) : item.kind === 'text' ? (
+										<TextCard key={`${item.id}-${item.colSpan}`} text={item} />
+									) : (
+										<ProtocolsByChainTable
+											key={`${item.id}-${item.colSpan}`}
+											chain={item.chain}
+											colSpan={item.colSpan}
+										/>
+									)}
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+		)
 	}
 
 	return (
