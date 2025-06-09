@@ -34,7 +34,7 @@ export default function HomePage() {
 
 	const loadDashboards = async () => {
 		if (!authorizedFetch) return
-		
+
 		setIsLoadingDashboards(true)
 		try {
 			const data = await dashboardAPI.listDashboards(authorizedFetch)
@@ -57,10 +57,10 @@ export default function HomePage() {
 
 	const handleDeleteDashboard = async (dashboardId: string) => {
 		if (!authorizedFetch) return
-		
+
 		try {
 			await dashboardAPI.deleteDashboard(dashboardId, authorizedFetch)
-			setDashboards(prev => prev.filter(d => d.id !== dashboardId))
+			setDashboards((prev) => prev.filter((d) => d.id !== dashboardId))
 		} catch (error) {
 			console.error('Failed to delete dashboard:', error)
 		}
@@ -80,11 +80,7 @@ export default function HomePage() {
 	if (!isAuthenticated || subscription?.status !== 'active') {
 		return (
 			<Layout title="DefiLlama - Pro Dashboard">
-				<WalletProvider>
-					<ProDashboardAPIProvider initialDashboardId="demo">
-						<DemoPreview />
-					</ProDashboardAPIProvider>
-				</WalletProvider>
+				<DemoPreview />
 			</Layout>
 		)
 	}

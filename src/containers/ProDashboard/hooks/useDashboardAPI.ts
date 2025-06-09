@@ -90,8 +90,7 @@ export function useDashboardAPI() {
 				return dashboard
 			} catch (error) {
 				console.error('Failed to load dashboard:', error)
-				toast.error('Failed to load dashboard')
-				throw error
+				return null
 			}
 		},
 		[isAuthenticated, authorizedFetch]

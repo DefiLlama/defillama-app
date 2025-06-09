@@ -106,7 +106,7 @@ const DemoMultiChartCard = ({ multi }: { multi: MultiChartConfig }) => {
 			0.08
 		)
 
-		const data: [number, number][] = fakeData.map(([timestamp, value]) => [parseInt(timestamp) * 1000, value])
+		const data: [number, number][] = fakeData.map(([timestamp, value]) => [parseInt(timestamp), value])
 
 		const chartType = CHART_TYPES[item.type] || { title: item.type, chartType: 'line' }
 

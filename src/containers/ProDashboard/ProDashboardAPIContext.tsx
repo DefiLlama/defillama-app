@@ -121,7 +121,6 @@ export function ProDashboardAPIProvider({
 				return dashboard
 			} catch (error) {
 				console.error('Failed to load dashboard:', error)
-				toast.error('Failed to load dashboard')
 				router.push('/pro')
 				return null
 			}
