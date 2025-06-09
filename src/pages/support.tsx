@@ -26,6 +26,12 @@ function Support() {
 		const form = e.target as HTMLFormElement
 		const formData = new FormData(form)
 
+		// Remove the file field if no file is selected
+		const fileInput = form.querySelector('input[type="file"]') as HTMLInputElement
+		if (fileInput && (!fileInput.files || fileInput.files.length === 0)) {
+			formData.delete('attachment')
+		}
+
 		mutateAsync(formData)
 			.then((data) => {
 				console.log({ data })
@@ -52,6 +58,7 @@ function Support() {
 						<input
 							type="text"
 							name="name"
+							required
 							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
 						/>
 					</label>
@@ -61,6 +68,7 @@ function Support() {
 						<input
 							type="email"
 							name="email"
+							required
 							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
 						/>
 					</label>
@@ -69,13 +77,18 @@ function Support() {
 						<span>Description</span>
 						<textarea
 							name="body"
+							required
 							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
 						></textarea>
 					</label>
 
 					<label className="flex flex-col gap-1">
 						<span>Attachment (optional)</span>
-						<input type="file" name="attachment" />
+						<input
+							type="file"
+							name="attachment"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+						/>
 					</label>
 
 					<button
