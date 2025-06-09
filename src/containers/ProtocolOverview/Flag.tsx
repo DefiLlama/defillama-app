@@ -37,7 +37,8 @@ export function Flag({
 				protocol,
 				dataType: dataType ?? form.dataType?.value ?? '',
 				message: form.message?.value ?? '',
-				correctSource: form.correctSource?.value ?? ''
+				correctSource: form.correctSource?.value ?? '',
+				contact: form.contact?.value ?? ''
 			})
 		})
 			.then((res) => res.json())
@@ -139,6 +140,14 @@ export function Flag({
 						<span>Where can we find correct information? (optional)</span>
 						<textarea
 							name="correctSource"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+						/>
+					</label>
+					<label className="flex flex-col gap-1">
+						<span>How can we contact you? (optional)</span>
+						<input
+							name="contact"
+							placeholder="Email address"
 							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
 						/>
 					</label>

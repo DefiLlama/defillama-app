@@ -15,6 +15,7 @@ async function reportError(report: any) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to report')
 	}
 }
+
 function ReportError() {
 	const { mutateAsync, isPending, error } = useMutation({ mutationFn: reportError })
 	const onSubmit = async (e) => {

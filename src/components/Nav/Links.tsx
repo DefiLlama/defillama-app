@@ -40,7 +40,8 @@ export const defaultToolsAndFooterLinks = {
 		{
 			name: 'Support',
 			path: '/support',
-			external: false
+			external: false,
+			newTag: true
 		},
 		{
 			name: 'Report Error',
@@ -176,6 +177,12 @@ export const navLinks: ILinks = {
 			{ name: 'Halal', path: '/yields/halal' }
 		],
 		tools: [
+			{
+				name: 'Support',
+				path: '/support',
+				external: false,
+				newTag: true
+			},
 			{
 				name: 'Report Error',
 				path: '/report-error',
