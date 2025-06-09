@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { AddChartModal } from './components/AddChartModal'
 import { ChartGrid } from './components/ChartGrid'
@@ -6,13 +7,33 @@ import { EmptyState } from './components/EmptyState'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { LoadingSpinner } from './components/LoadingSpinner'
-import { ProDashboardProvider, useProDashboard, TimePeriod } from './ProDashboardContext'
+import { useProDashboard, TimePeriod } from './ProDashboardAPIContext'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 function ProDashboardContent() {
+	const router = useRouter()
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
+	const [showDashboardMenu, setShowDashboardMenu] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
-	const { items, protocolsLoading, timePeriod, setTimePeriod, dashboardName, setDashboardName } = useProDashboard()
+	const { isAuthenticated } = useAuthContext()
+	const {
+		items,
+		protocolsLoading,
+		timePeriod,
+		setTimePeriod,
+		dashboardName,
+		setDashboardName,
+		dashboardId,
+		dashboards,
+		isLoadingDashboards,
+		isLoadingDashboard,
+		createNewDashboard,
+		loadDashboard,
+		deleteDashboard,
+		saveDashboard,
+		saveDashboardName
+	} = useProDashboard()
 
 	const timePeriods: { value: TimePeriod; label: string }[] = [
 		{ value: '30d', label: '30d' },
@@ -24,17 +45,20 @@ function ProDashboardContent() {
 	const handleNameSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
 		setIsEditingName(false)
+		saveDashboardName()
 	}
 
 	const handleNameKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === 'Enter') {
 			setIsEditingName(false)
+			saveDashboardName()
 		} else if (e.key === 'Escape') {
 			setIsEditingName(false)
+			saveDashboardName()
 		}
 	}
 
-	if (isSubLoading) {
+	if (isSubLoading || isLoadingDashboard) {
 		return (
 			<div className="flex justify-center items-center h-[40vh]">
 				<LoadingSpinner />
@@ -60,6 +84,16 @@ function ProDashboardContent() {
 
 	return (
 		<div className="p-4 md:p-6">
+			<div className="mb-4">
+				<button
+					onClick={() => router.push('/pro')}
+					className="flex items-center gap-2 text-[var(--text2)] hover:text-[var(--text1)] transition-colors"
+				>
+					<Icon name="arrow-left" height={16} width={16} />
+					Back to Dashboards
+				</button>
+			</div>
+
 			<div className="grid grid-cols-3 items-center mb-2 gap-4">
 				<div className="grid grid-cols-4 gap-0 justify-self-start">
 					{timePeriods.map((period) => (
@@ -77,14 +111,17 @@ function ProDashboardContent() {
 					))}
 				</div>
 
-				<div className="justify-self-center">
+				<div className="justify-self-center flex items-center gap-2">
 					{isEditingName ? (
 						<form onSubmit={handleNameSubmit} className="flex items-center">
 							<input
 								type="text"
 								value={dashboardName}
 								onChange={(e) => setDashboardName(e.target.value)}
-								onBlur={() => setIsEditingName(false)}
+								onBlur={() => {
+									setIsEditingName(false)
+									saveDashboardName()
+								}}
 								onKeyDown={handleNameKeyDown}
 								className="text-xl font-semibold text-center bg-transparent border-b-2 border-[var(--primary1)] text-[var(--text1)] focus:outline-none px-3 py-2 min-w-0"
 								autoFocus
@@ -94,11 +131,103 @@ function ProDashboardContent() {
 					) : (
 						<button
 							onClick={() => setIsEditingName(true)}
-							className="group text-xl font-semibold text-[var(--text1)] px-3 py-2 hover:bg-[var(--bg3)] border border-transparent hover:border-[var(--form-control-border)] flex items-center gap-2"
+							className="group text-xl font-semibold text-[var(--text1)] px-3 py-2 bg-[var(--bg7)] bg-opacity-30 hover:bg-[var(--bg3)] hover:border-[var(--form-control-border)] flex items-center gap-2 transition-colors"
 						>
 							{dashboardName}
 							<Icon name="pencil" height={14} width={14} className="text-[var(--text1)]" />
 						</button>
+					)}
+
+					{isAuthenticated && (
+						<div className="relative">
+							<button
+								onClick={() => setShowDashboardMenu(!showDashboardMenu)}
+								className="p-2 bg-[var(--bg7)] bg-opacity-30  hover:bg-[var(--bg3)] hover:border-[var(--form-control-border)] transition-colors"
+								title="Dashboard menu"
+							>
+								<Icon name="chevron-down" height={16} width={16} className="text-[var(--text1)]" />
+							</button>
+
+							{showDashboardMenu && (
+								<>
+									<div className="fixed inset-0 z-10" onClick={() => setShowDashboardMenu(false)} />
+									<div className="absolute right-0 top-full mt-2 w-64 bg-[var(--bg7)] bg-opacity-90 backdrop-filter backdrop-blur-xl border border-white/30 shadow-lg z-20">
+										<div className="p-2">
+											<button
+												onClick={() => {
+													saveDashboard()
+													setShowDashboardMenu(false)
+												}}
+												className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] flex items-center gap-2"
+												disabled={!dashboardId && items.length === 0}
+											>
+												<Icon name="download-cloud" height={16} width={16} />
+												{dashboardId ? 'Save Dashboard' : 'Save as New Dashboard'}
+											</button>
+
+											<button
+												onClick={() => {
+													createNewDashboard()
+													setShowDashboardMenu(false)
+												}}
+												className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] flex items-center gap-2"
+											>
+												<Icon name="plus" height={16} width={16} />
+												New Dashboard
+											</button>
+
+											{dashboardId && (
+												<button
+													onClick={() => {
+														deleteDashboard(dashboardId)
+														setShowDashboardMenu(false)
+													}}
+													className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] text-red-500 flex items-center gap-2"
+												>
+													<Icon name="trash-2" height={16} width={16} />
+													Delete Dashboard
+												</button>
+											)}
+
+											{dashboards.length > 0 && (
+												<>
+													<div className="border-t border-[var(--divider)] my-2" />
+													<div className="text-xs text-[var(--text3)] px-3 py-1">My Dashboards</div>
+													{isLoadingDashboards ? (
+														<div className="px-3 py-2 text-sm text-[var(--text3)]">Loading...</div>
+													) : (
+														<div className="max-h-64 overflow-y-auto">
+															{dashboards.map((dashboard) => (
+																<button
+																	key={dashboard.id}
+																	onClick={() => {
+																		loadDashboard(dashboard.id)
+																		setShowDashboardMenu(false)
+																	}}
+																	className={`w-full text-left px-3 py-2 hover:bg-[var(--bg3)] text-sm ${
+																		dashboard.id === dashboardId ? 'bg-[var(--bg3)]' : ''
+																	}`}
+																>
+																	<div className="flex items-center justify-between">
+																		<span className="truncate">{dashboard.data.dashboardName}</span>
+																		{dashboard.id === dashboardId && (
+																			<Icon name="check" height={14} width={14} className="text-[var(--primary1)]" />
+																		)}
+																	</div>
+																	<div className="text-xs text-[var(--text3)]">
+																		{new Date(dashboard.updated).toLocaleDateString()}
+																	</div>
+																</button>
+															))}
+														</div>
+													)}
+												</>
+											)}
+										</div>
+									</div>
+								</>
+							)}
+						</div>
 					)}
 				</div>
 
@@ -110,6 +239,13 @@ function ProDashboardContent() {
 					Add Item
 				</button>
 			</div>
+
+			{!isAuthenticated && (
+				<div className="bg-[var(--bg3)] border border-[var(--divider)] p-3 mb-4 text-sm text-[var(--text2)]">
+					<Icon name="help-circle" height={16} width={16} className="inline mr-2" />
+					Sign in to save and manage multiple dashboards
+				</div>
+			)}
 
 			{protocolsLoading && items.length === 0 && (
 				<div className="flex items-center justify-center h-40">
@@ -127,9 +263,5 @@ function ProDashboardContent() {
 }
 
 export default function ProDashboard() {
-	return (
-		<ProDashboardProvider>
-			<ProDashboardContent />
-		</ProDashboardProvider>
-	)
+	return <ProDashboardContent />
 }

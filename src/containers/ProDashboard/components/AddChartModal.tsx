@@ -8,7 +8,7 @@ import { ItemSelect } from './ItemSelect'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { reactSelectStyles } from '../utils/reactSelectStyles'
 import { ChartPreview } from './ChartPreview'
-import { useProDashboard } from '../ProDashboardContext'
+import { useProDashboard } from '../ProDashboardAPIContext'
 
 interface AddChartModalProps {
 	isOpen: boolean

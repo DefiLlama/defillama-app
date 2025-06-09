@@ -6,18 +6,18 @@ interface EmptyStateProps {
 
 export function EmptyState({ onAddChart }: EmptyStateProps) {
 	return (
-		<div className="text-center py-10">
-			<div className="bg-[var(--bg2)] rounded-lg p-8 max-w-md mx-auto">
-				<div className="mb-4">
-					<Icon name="bar-chart-2" height={48} width={48} className="mx-auto text-[var(--text3)]" />
+		<div className="text-center py-16">
+			<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 p-12 max-w-lg mx-auto">
+				<div className="mb-6">
+					<Icon name="bar-chart-2" height={64} width={64} className="mx-auto text-[var(--text3)] opacity-50" />
 				</div>
-				<h2 className="text-xl font-semibold mb-2">No charts added yet</h2>
-				<p className="text-[var(--text2)] mb-4">Click the "Add Chart" button to start building your dashboard</p>
+				<h2 className="text-2xl font-semibold text-[var(--text1)] mb-3">No charts added yet</h2>
+				<p className="text-[var(--text2)] mb-6 text-lg">Click the "Add Item" button to start building your dashboard</p>
 				<button
-					className="px-4 py-2 rounded-md bg-[var(--primary1)] text-white flex items-center gap-2 mx-auto hover:bg-[var(--primary1-hover)]"
+					className="px-6 py-3 bg-[var(--primary1)] text-white flex items-center gap-2 mx-auto hover:bg-[var(--primary1-hover)] text-base font-medium"
 					onClick={onAddChart}
 				>
-					<Icon name="plus" height={16} width={16} />
+					<Icon name="plus" height={20} width={20} />
 					Add Your First Chart
 				</button>
 			</div>

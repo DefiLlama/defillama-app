@@ -4,7 +4,7 @@ import { sluggify } from '~/utils/cache-client'
 import ProtocolCharts from './services/ProtocolCharts'
 import ChainCharts from './services/ChainCharts'
 import { getProtocolChartTypes, getChainChartTypes } from './types'
-import { TimePeriod } from './ProDashboardContext'
+import { TimePeriod } from './ProDashboardAPIContext'
 import dayjs from 'dayjs'
 
 function generateChartKey(type: string, itemType: 'chain' | 'protocol', item: string, geckoId?: string | null, timePeriod?: TimePeriod): string {
@@ -226,7 +226,7 @@ export function useChartsData(charts, timePeriod?: TimePeriod) {
 			const item = chart.protocol || chart.chain
 
 			return {
-				queryKey: getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod),
+				queryKey: [...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod), chart.id],
 				queryFn: getChartQueryFn(chart.type, itemType, item, chart.geckoId, timePeriod),
 				enabled:
 					!!item &&

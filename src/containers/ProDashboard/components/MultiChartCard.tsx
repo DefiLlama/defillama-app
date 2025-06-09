@@ -1,8 +1,7 @@
 import dynamic from 'next/dynamic'
-import { CHART_TYPES, MultiChartConfig, Chain, Protocol } from '../types'
-import { useChartsData } from '../queries'
+import { CHART_TYPES, MultiChartConfig } from '../types'
 import { generateChartColor } from '../utils'
-import { useProDashboard } from '../ProDashboardContext'
+import { useProDashboard } from '../ProDashboardAPIContext'
 import { Icon } from '~/components/Icon'
 
 const MultiSeriesChart = dynamic(() => import('~/components/ECharts/MultiSeriesChart'), {
@@ -13,43 +12,32 @@ interface MultiChartCardProps {
 	multi: MultiChartConfig
 }
 
-function groupData(data: [string, number][] | undefined, grouping: 'day' | 'week' | 'month'): [string, number][] {
-	if (!data || !CHART_TYPES[grouping]?.groupable) return data || []
-
-	if (grouping === 'week') {
-		const grouped: { [key: string]: number } = {}
-		data.forEach(([date, value]) => {
-			const d = new Date(date)
-			const weekStart = new Date(d.setDate(d.getDate() - d.getDay()))
-			const weekKey = weekStart.toISOString().split('T')[0]
-			grouped[weekKey] = (grouped[weekKey] || 0) + value
-		})
-		return Object.entries(grouped).map(([date, value]) => [date, value])
-	} else if (grouping === 'month') {
-		const grouped: { [key: string]: number } = {}
-		data.forEach(([date, value]) => {
-			const monthKey = date.substring(0, 7) + '-01' // YYYY-MM-01
-			grouped[monthKey] = (grouped[monthKey] || 0) + value
-		})
-		return Object.entries(grouped).map(([date, value]) => [date, value])
-	}
-
-	return data
-}
 
 export default function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { getProtocolInfo, handleGroupingChange, timePeriod } = useProDashboard()
-	const queries = useChartsData(multi.items, timePeriod)
+	const { getProtocolInfo } = useProDashboard()
 
-	const series = multi.items.map((cfg, i) => {
-		const q = queries[i]
-		const rawData = q?.data as [string, number][] | undefined
-		const processedData = CHART_TYPES[cfg.type]?.groupable ? groupData(rawData, multi.grouping || 'day') : rawData
+	// Filter valid items and create series data
+	const validItems = multi.items.filter((cfg) => {
+		// Skip if loading, has error, or invalid data
+		if (cfg.isLoading || cfg.hasError) return false
+		
+		// Check if data is a valid array
+		const rawData = cfg.data as [string, number][] | undefined | null
+		return Array.isArray(rawData) && rawData.length > 0
+	})
+
+	const failedItems = multi.items.filter((cfg) => {
+		return cfg.hasError || !Array.isArray(cfg.data) || (Array.isArray(cfg.data) && cfg.data.length === 0)
+	})
+
+	const loadingItems = multi.items.filter((cfg) => cfg.isLoading)
+
+	const series = validItems.map((cfg, i) => {
+		const rawData = cfg.data as [string, number][]
 		const meta = CHART_TYPES[cfg.type]
-
 		const name = cfg.protocol ? getProtocolInfo(cfg.protocol)?.name || cfg.protocol : cfg.chain
 
-		const data: [number, number][] = (processedData || []).map(([timestamp, value]) => [
+		const data: [number, number][] = rawData.map(([timestamp, value]) => [
 			Math.floor(new Date(timestamp).getTime()),
 			value
 		])
@@ -62,8 +50,9 @@ export default function MultiChartCard({ multi }: MultiChartCardProps) {
 		}
 	})
 
-	const hasError = queries.some((q) => q.isError)
-	const isDataLoading = queries.some((q) => q.isLoading)
+	const hasAnyData = validItems.length > 0
+	const isAllLoading = loadingItems.length === multi.items.length
+	const hasPartialFailures = failedItems.length > 0 && validItems.length > 0
 
 
 	return (
@@ -73,22 +62,46 @@ export default function MultiChartCard({ multi }: MultiChartCardProps) {
 					<h3 className="text-sm font-medium text-[var(--text1)]">
 						{multi.name || `Multi-Chart (${multi.items.length})`}
 					</h3>
+					{hasPartialFailures && (
+						<div className="flex items-center gap-1 text-xs text-yellow-500">
+							<Icon name="alert-triangle" height={12} width={12} />
+							<span>Partial data</span>
+						</div>
+					)}
 				</div>
 			</div>
 
+			{/* Status info for failures */}
+			{(failedItems.length > 0 || loadingItems.length > 0) && (
+				<div className="mb-2 text-xs text-[var(--text3)]">
+					{loadingItems.length > 0 && (
+						<div>Loading: {loadingItems.length} chart{loadingItems.length > 1 ? 's' : ''}</div>
+					)}
+					{failedItems.length > 0 && (
+						<div>Failed: {failedItems.length} chart{failedItems.length > 1 ? 's' : ''}</div>
+					)}
+					{hasAnyData && (
+						<div>Showing: {validItems.length} chart{validItems.length > 1 ? 's' : ''}</div>
+					)}
+				</div>
+			)}
+
 			<div style={{ height: '300px', flexGrow: 1 }}>
-				{hasError ? (
-					<div className="flex items-center justify-center h-full">
-						<div className="text-center">
-							<Icon name="alert-triangle" height={24} width={24} className="mx-auto mb-2 text-red-500" />
-							<p className="text-sm text-[var(--text3)]">Failed to load chart data</p>
-						</div>
-					</div>
-				) : isDataLoading ? (
+				{!hasAnyData && isAllLoading ? (
 					<div className="flex items-center justify-center h-full">
 						<div className="text-center">
 							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary1)] mx-auto mb-2"></div>
 							<p className="text-sm text-[var(--text3)]">Loading charts...</p>
+						</div>
+					</div>
+				) : !hasAnyData ? (
+					<div className="flex items-center justify-center h-full">
+						<div className="text-center">
+							<Icon name="alert-triangle" height={24} width={24} className="mx-auto mb-2 text-red-500" />
+							<p className="text-sm text-[var(--text3)]">Failed to load chart data</p>
+							<p className="text-xs text-[var(--text3)] mt-1">
+								{failedItems.length} of {multi.items.length} charts failed
+							</p>
 						</div>
 					</div>
 				) : (

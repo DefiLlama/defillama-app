@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import { ChartConfig, CHART_TYPES, Chain, Protocol } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 import { getItemIconUrl } from '../utils'
-import { useProDashboard } from '../ProDashboardContext'
+import { useProDashboard } from '../ProDashboardAPIContext'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false

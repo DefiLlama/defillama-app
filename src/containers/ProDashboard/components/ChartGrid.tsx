@@ -7,7 +7,7 @@ import { TextCard } from './TextCard'
 import { DashboardItemConfig, Chain, Protocol } from '../types'
 import { ProtocolsByChainTable } from './ProTable'
 import { Icon } from '~/components/Icon'
-import { useProDashboard } from '../ProDashboardContext'
+import { useProDashboard } from '../ProDashboardAPIContext'
 
 const MultiChartCard = dynamic(() => import('./MultiChartCard'), {
 	ssr: false
@@ -50,7 +50,7 @@ export function ChartGrid({ onAddChartClick }: ChartGridProps) {
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 						{chartsWithData.map((item) => (
 							<div key={item.id} className={`${getColSpanClass(item.colSpan)}`}>
-								<SortableItem id={item.id} isTable={item.kind === 'table'}>
+								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
 									<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full relative">
 										<div className="absolute top-1 right-1 z-20 flex gap-1">
 											<button
