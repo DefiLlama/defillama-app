@@ -74,6 +74,7 @@ export default function ChainChartPage({
 		dexsData: { total24h: volumeData?.totalVolume24h },
 		feesData: { total24h: feesAndRevenueData?.totalFees24h },
 		revenueData: { total24h: feesAndRevenueData?.totalRevenue24h },
+		appFeesData: { total24h: feesAndRevenueData?.totalAppRevenue24h },
 		appRevenueData: { total24h: feesAndRevenueData?.totalAppRevenue24h },
 		stablecoinsData: { stablecoinsData: stablecoinsData?.totalMcapCurrent },
 		inflowsData,
