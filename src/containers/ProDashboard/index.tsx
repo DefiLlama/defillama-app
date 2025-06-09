@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { AddChartModal } from './components/AddChartModal'
 import { ChartGrid } from './components/ChartGrid'
 import { EmptyState } from './components/EmptyState'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { DemoPreview } from './components/DemoPreview'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { useProDashboard, TimePeriod } from './ProDashboardAPIContext'
@@ -68,20 +68,9 @@ function ProDashboardContent() {
 		)
 	}
 
-	if (subscription?.status !== 'active') {
-		return (
-			<div className="flex flex-col items-center justify-center w-full px-4 py-10">
-				<div className="mb-10 text-center w-full max-w-3xl">
-					<h2 className="text-3xl font-extrabold text-white mb-3">Unlock the Full Picture</h2>
-					<p className="text-[#b4b7bc] text-lg mb-4">
-						The Pro Dashboard offers dynamic, customizable charts. Here's a sneak peek of what you can explore with a
-						Llama+ subscription:
-					</p>
-				</div>
-
-				<SubscribePlusCard context="modal" />
-			</div>
-		)
+	// Show demo preview to both non-authenticated users and non-subscribers
+	if (!isAuthenticated || subscription?.status !== 'active') {
+		return <DemoPreview />
 	}
 
 	return (

@@ -4,7 +4,9 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { DemoPreview } from '~/containers/ProDashboard/components/DemoPreview'
+import { ProDashboardAPIProvider } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { WalletProvider } from '~/layout/WalletProvider'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { dashboardAPI, Dashboard } from '~/containers/ProDashboard/services/DashboardAPI'
@@ -74,20 +76,15 @@ export default function HomePage() {
 		)
 	}
 
-	if (subscription?.status !== 'active') {
+	// Show demo preview to both non-authenticated users and non-subscribers
+	if (!isAuthenticated || subscription?.status !== 'active') {
 		return (
 			<Layout title="DefiLlama - Pro Dashboard">
-				<div className="flex flex-col items-center justify-center w-full px-4 py-10">
-					<div className="mb-10 text-center w-full max-w-3xl">
-						<h2 className="text-3xl font-extrabold text-white mb-3">Unlock the Full Picture</h2>
-						<p className="text-[#b4b7bc] text-lg mb-4">
-							The Pro Dashboard offers dynamic, customizable charts. Here's a sneak peek of what you can explore with a
-							Llama+ subscription:
-						</p>
-					</div>
-
-					<SubscribePlusCard context="modal" />
-				</div>
+				<WalletProvider>
+					<ProDashboardAPIProvider initialDashboardId="demo">
+						<DemoPreview />
+					</ProDashboardAPIProvider>
+				</WalletProvider>
 			</Layout>
 		)
 	}

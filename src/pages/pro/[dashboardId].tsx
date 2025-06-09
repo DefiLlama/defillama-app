@@ -38,6 +38,7 @@ interface DashboardPageProps {
 }
 
 export default function DashboardPage({ dashboardId }: DashboardPageProps) {
+	const router = useRouter()
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
 	const [isValidating, setIsValidating] = useState(true)
 
@@ -50,6 +51,12 @@ export default function DashboardPage({ dashboardId }: DashboardPageProps) {
 		setIsValidating(false)
 	}, [dashboardId])
 
+	useEffect(() => {
+		if (!isSubLoading && subscription?.status !== 'active') {
+			router.push('/pro')
+		}
+	}, [subscription?.status, isSubLoading, router])
+
 	if (isSubLoading || isValidating) {
 		return (
 			<Layout title="DefiLlama - Pro Dashboard">
@@ -61,21 +68,7 @@ export default function DashboardPage({ dashboardId }: DashboardPageProps) {
 	}
 
 	if (subscription?.status !== 'active') {
-		return (
-			<Layout title="DefiLlama - Pro Dashboard">
-				<div className="flex flex-col items-center justify-center w-full px-4 py-10">
-					<div className="mb-10 text-center w-full max-w-3xl">
-						<h2 className="text-3xl font-extrabold text-white mb-3">Unlock the Full Picture</h2>
-						<p className="text-[#b4b7bc] text-lg mb-4">
-							The Pro Dashboard offers dynamic, customizable charts. Here's a sneak peek of what you can explore with a
-							Llama+ subscription:
-						</p>
-					</div>
-
-					<SubscribePlusCard context="modal" />
-				</div>
-			</Layout>
-		)
+		return null // Will redirect via useEffect
 	}
 
 	const initialId = dashboardId === 'new' ? undefined : dashboardId
