@@ -7,6 +7,7 @@ import ProDashboard from '~/containers/ProDashboard'
 import { ProDashboardAPIProvider } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { LoadingSpinner } from '~/containers/ProDashboard/components/LoadingSpinner'
 
 export const getStaticPaths = async () => {
@@ -40,6 +41,7 @@ interface DashboardPageProps {
 export default function DashboardPage({ dashboardId }: DashboardPageProps) {
 	const router = useRouter()
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
+	const { isAuthenticated } = useAuthContext()
 	const [isValidating, setIsValidating] = useState(true)
 
 	useEffect(() => {
@@ -51,12 +53,6 @@ export default function DashboardPage({ dashboardId }: DashboardPageProps) {
 		setIsValidating(false)
 	}, [dashboardId])
 
-	useEffect(() => {
-		if (!isSubLoading && subscription?.status !== 'active') {
-			router.push('/pro')
-		}
-	}, [subscription?.status, isSubLoading, router])
-
 	if (isSubLoading || isValidating) {
 		return (
 			<Layout title="DefiLlama - Pro Dashboard">
@@ -67,7 +63,7 @@ export default function DashboardPage({ dashboardId }: DashboardPageProps) {
 		)
 	}
 
-	if (subscription?.status !== 'active') {
+	if (!isAuthenticated) {
 		return null // Will redirect via useEffect
 	}
 

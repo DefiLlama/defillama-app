@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Dashboard } from '../services/DashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/hooks/useSubscribe'
 
 interface DashboardPermissions {
 	isReadOnly: boolean
@@ -10,6 +11,7 @@ interface DashboardPermissions {
 
 export function useDashboardPermissions(dashboard: Dashboard | null): DashboardPermissions {
 	const { user } = useAuthContext()
+	const { subscription } = useSubscribe()
 	const [permissions, setPermissions] = useState<DashboardPermissions>({
 		isReadOnly: false,
 		isOwner: true,
@@ -18,21 +20,28 @@ export function useDashboardPermissions(dashboard: Dashboard | null): DashboardP
 
 	useEffect(() => {
 		if (!dashboard) {
+			// For new dashboards, non-subscribers are in readonly mode
+			const hasActiveSubscription = subscription?.status === 'active'
 			setPermissions({
-				isReadOnly: false,
-				isOwner: true,
+				isReadOnly: !hasActiveSubscription,
+				isOwner: hasActiveSubscription,
 				dashboardOwnerId: null
 			})
 			return
 		}
 
 		const isOwner = user?.id === dashboard.user
+		const hasActiveSubscription = subscription?.status === 'active'
+		
+		// User is readonly if they don't own the dashboard OR don't have an active subscription
+		const isReadOnly = !isOwner || !hasActiveSubscription
+		
 		setPermissions({
-			isReadOnly: !isOwner,
-			isOwner,
+			isReadOnly,
+			isOwner: isOwner && hasActiveSubscription,
 			dashboardOwnerId: dashboard.user
 		})
-	}, [dashboard, user?.id])
+	}, [dashboard, user?.id, subscription?.status])
 
 	return permissions
 }

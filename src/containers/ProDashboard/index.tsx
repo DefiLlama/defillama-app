@@ -68,8 +68,7 @@ function ProDashboardContent() {
 		)
 	}
 
-	// Show demo preview to both non-authenticated users and non-subscribers
-	if (!isAuthenticated || subscription?.status !== 'active') {
+	if (!isAuthenticated) {
 		return <DemoPreview />
 	}
 
@@ -242,7 +241,9 @@ function ProDashboardContent() {
 				</div>
 
 				<button
-					className={`px-4 py-2 ${!isReadOnly ? 'bg-[var(--primary1)] hover:bg-[var(--primary1-hover)]' : 'bg-[var(--bg3)] cursor-not-allowed'} text-white flex items-center gap-2 justify-self-end`}
+					className={`px-4 py-2 ${
+						!isReadOnly ? 'bg-[var(--primary1)] hover:bg-[var(--primary1-hover)]' : 'bg-[var(--bg3)] cursor-not-allowed'
+					} text-white flex items-center gap-2 justify-self-end`}
 					onClick={() => !isReadOnly && setShowAddModal(true)}
 					disabled={isReadOnly}
 				>
