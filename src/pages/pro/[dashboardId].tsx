@@ -63,12 +63,7 @@ export default function DashboardPage({ dashboardId }: DashboardPageProps) {
 		)
 	}
 
-	if (!isAuthenticated) {
-		return null // Will redirect via useEffect
-	}
-
 	const initialId = dashboardId === 'new' ? undefined : dashboardId
-	console.log('Passing to provider:', { dashboardId, initialId })
 
 	return (
 		<Layout title="DefiLlama - Pro Dashboard">
