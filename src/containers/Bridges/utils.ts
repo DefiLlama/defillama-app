@@ -100,9 +100,19 @@ export const formatBridgesData = ({
 		return keepNeededProperties(bridge, bridgeProps)
 	})
 
-	filteredBridges = filteredBridges.sort((a, b) => b.lastDailyVolume - a.lastDailyVolume)
+	const messagingProtocols = ['layerzero', 'wormhole']
+	const regularBridges = filteredBridges.filter((bridge) => !messagingProtocols.includes(bridge.name?.toLowerCase()))
+	const messagingProtocolsBridges = filteredBridges.filter((bridge) =>
+		messagingProtocols.includes(bridge.name?.toLowerCase())
+	)
 
-	return filteredBridges
+	const sortedRegularBridges = regularBridges.sort((a, b) => b.lastDailyVolume - a.lastDailyVolume)
+	const sortedMessagingProtocols = messagingProtocolsBridges.sort((a, b) => b.lastDailyVolume - a.lastDailyVolume)
+
+	return {
+		bridges: sortedRegularBridges,
+		messagingProtocols: sortedMessagingProtocols
+	}
 }
 
 export const formatChainsData = ({

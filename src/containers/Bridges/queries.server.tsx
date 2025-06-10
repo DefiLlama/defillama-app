@@ -152,7 +152,7 @@ export async function getBridgeOverviewPageData(chain) {
 		  })
 		: []
 
-	const filteredBridges = formatBridgesData({
+	const { bridges: filteredBridges, messagingProtocols } = formatBridgesData({
 		bridges,
 		chartDataByBridge,
 		bridgeNameToChartDataIndex,
@@ -162,6 +162,7 @@ export async function getBridgeOverviewPageData(chain) {
 	return {
 		chains: chainList,
 		filteredBridges,
+		messagingProtocols,
 		bridgeNames,
 		bridgeNameToChartDataIndex,
 		chartDataByBridge,

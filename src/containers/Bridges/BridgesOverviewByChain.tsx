@@ -33,6 +33,7 @@ export function BridgesOverviewByChain({
 	selectedChain = 'All',
 	chains = [],
 	filteredBridges,
+	messagingProtocols,
 	bridgeNames,
 	bridgeNameToChartDataIndex,
 	chartDataByBridge,
@@ -43,6 +44,7 @@ export function BridgesOverviewByChain({
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
+	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging'>('bridges')
 
 	useEffect(() => {
 		setChartView('netflow')
@@ -108,11 +110,16 @@ export function BridgesOverviewByChain({
 	}, [chainVolumeData])
 
 	const downloadCsv = () => {
-		const filteredBridgeNames = bridgeNames.filter((bridgeName) => {
+		const currentBridges = activeTab === 'bridges' ? filteredBridges : messagingProtocols
+		const currentBridgeNames = currentBridges.map((bridge) => bridge.displayName)
+
+		const filteredBridgeNames = currentBridgeNames.filter((bridgeName) => {
 			const chartDataIndex = bridgeNameToChartDataIndex[bridgeName]
 			const charts = chartDataByBridge[chartDataIndex]
-			return charts.length
+			return charts && charts.length
 		})
+
+		const fileName = activeTab === 'bridges' ? 'bridge-volumes.csv' : 'messaging-protocols-volumes.csv'
 		const rows = [['Timestamp', 'Date', ...filteredBridgeNames, 'Total']]
 		let stackedDatasetObject = {} as any
 		filteredBridgeNames.map((bridgeName) => {
@@ -139,7 +146,7 @@ export function BridgesOverviewByChain({
 					}, 0)
 				])
 			})
-		download('bridge-volumes.csv', rows.map((r) => r.join(',')).join('\n'))
+		download(fileName, rows.map((r) => r.join(',')).join('\n'))
 	}
 
 	const downloadChartCsv = () => {
@@ -196,8 +203,10 @@ export function BridgesOverviewByChain({
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
 		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
 
-		if (filteredBridges) {
-			filteredBridges?.forEach((bridge) => {
+		const bridgesToCalculate = activeTab === 'bridges' ? filteredBridges : messagingProtocols
+
+		if (bridgesToCalculate) {
+			bridgesToCalculate?.forEach((bridge) => {
 				dayTotalVolume += Number(bridge?.lastDailyVolume) || 0
 				weekTotalVolume += Number(bridge?.weeklyVolume) || 0
 				monthTotalVolume += Number(bridge?.monthlyVolume) || 0
@@ -215,7 +224,7 @@ export function BridgesOverviewByChain({
 			}
 		}
 		return { dayTotalVolume, weekTotalVolume, monthTotalVolume }
-	}, [chainVolumeData, selectedChain, filteredBridges])
+	}, [chainVolumeData, selectedChain, filteredBridges, messagingProtocols, activeTab])
 
 	return (
 		<>
@@ -321,14 +330,32 @@ export function BridgesOverviewByChain({
 			</div>
 
 			<div className="bg-[var(--cards-bg)] rounded-md">
-				<div className="p-3 w-full max-w-fit ml-auto">
-					<TxsTableSwitch />
+				<div className="flex items-center justify-between p-3">
+					<div className="flex items-center">
+						<button
+							className="px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:border-[var(--old-blue)]"
+							data-active={activeTab === 'bridges'}
+							onClick={() => setActiveTab('bridges')}
+						>
+							Bridges
+						</button>
+						<button
+							className="px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:border-[var(--old-blue)]"
+							data-active={activeTab === 'messaging'}
+							onClick={() => setActiveTab('messaging')}
+						>
+							Messaging Protocols
+						</button>
+					</div>
+					<div className="ml-auto">
+						<TxsTableSwitch />
+					</div>
 				</div>
 
 				{isBridgesShowingTxs ? (
 					<LargeTxsTable data={largeTxsData} chain={selectedChain} />
 				) : (
-					<BridgesTable data={filteredBridges} />
+					<BridgesTable data={activeTab === 'bridges' ? filteredBridges : messagingProtocols} />
 				)}
 			</div>
 		</>
