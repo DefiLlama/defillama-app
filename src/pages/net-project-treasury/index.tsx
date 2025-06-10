@@ -25,10 +25,11 @@ export const getStaticProps = withPerformanceLogging(`net-project-treasury/index
 					netTreasury += t.tokenBreakdowns[category]
 				}
 			}
+			const name = t.name.replace(' (treasury)', '')
 			return {
-				name: t.name,
+				name,
 				logo: `${t.logo.replace('https://icons.llama.fi', 'https://icons.llamao.fi/icons/protocols')}?w=48&h=48`,
-				slug: slug(t.name),
+				slug: slug(name),
 				netTreasury
 			}
 		})
@@ -75,7 +76,7 @@ const columns: ColumnDef<INetProjectTreasuryByChain['protocols'][0]>[] = [
 
 					<span className="flex flex-col -my-2">
 						<BasicLink
-							href={`/protocol/${row.original.slug}?borrowed=true`}
+							href={`/protocol/treasury/${row.original.slug}`}
 							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
