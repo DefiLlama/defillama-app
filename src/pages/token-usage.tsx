@@ -80,7 +80,13 @@ export default function Tokens({ searchData }) {
 	return (
 		<Layout title="Token Usage - DefiLlama" defaultSEO>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
-			<DesktopSearch data={searchData} placeholder="Search tokens..." data-alwaysdisplay onItemClick={onItemClick} />
+			<DesktopSearch
+				data={searchData}
+				placeholder="Search tokens..."
+				data-alwaysdisplay
+				onItemClick={onItemClick}
+				customSearchRoute="/token-usage?token="
+			/>
 			<div className="bg-[var(--cards-bg)] rounded-md w-full">
 				{isLoading ? (
 					<div className="flex items-center justify-center mx-auto w-full my-32">
@@ -90,24 +96,27 @@ export default function Tokens({ searchData }) {
 					<></>
 				) : (
 					<>
-						<div className="flex items-center gap-2 justify-between p-3">
-							<h1 className="text-xl font-medium">{`${tokenSymbol.toUpperCase()} usage in protocols`}</h1>
+						<div className="flex items-center flex-wrap gap-4 justify-end p-3">
+							<h1 className="text-xl font-medium mr-auto">{`${tokenSymbol.toUpperCase()} usage in protocols`}</h1>
 							<CSVDownloadButton onClick={downloadCSV} />
-
-							{/* <div className="flex items-center gap-4">
+							<label className="flex items-center gap-2 cursor-pointer">
 								<input
 									type="checkbox"
 									value="includeCentraliseExchanges"
 									checked={includeCentraliseExchanges}
 									onChange={() =>
-										router.push({
-											pathname: router.pathname,
-											query: { ...router.query, includecex: !includeCentraliseExchanges }
-										})
+										router.push(
+											{
+												pathname: router.pathname,
+												query: { ...router.query, includecex: !includeCentraliseExchanges }
+											},
+											undefined,
+											{ shallow: true }
+										)
 									}
 								/>
 								<span>Include CEXs</span>
-							</div> */}
+							</label>
 						</div>
 
 						<Suspense

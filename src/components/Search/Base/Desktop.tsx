@@ -18,6 +18,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		className,
 		variant,
 		skipSearching,
+		customSearchRoute,
 		...extra
 	} = props
 
@@ -35,6 +36,8 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 
 	const [open, setOpen] = React.useState(false)
+
+	const router = useRouter()
 
 	return (
 		<div
@@ -85,6 +88,22 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 								</button>
 							) : null}
 						</>
+					) : customSearchRoute ? (
+						<div className="flex flex-col gap-2 p-3">
+							<button
+								className="text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+								onClick={() => {
+									if (props.onItemClick) {
+										props.onItemClick({ route: `${customSearchRoute}${searchValue}`, name: searchValue })
+									} else {
+										router.push(`${customSearchRoute}${searchValue}`)
+									}
+									setOpen(false)
+								}}
+							>
+								Search for {searchValue}
+							</button>
+						</div>
 					) : (
 						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
 					)}
