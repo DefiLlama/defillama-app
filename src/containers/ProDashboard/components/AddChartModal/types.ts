@@ -1,0 +1,44 @@
+import { DashboardItemConfig, ChartConfig } from '../../types'
+
+export interface AddChartModalProps {
+	isOpen: boolean
+	onClose: () => void
+	editItem?: DashboardItemConfig | null
+}
+
+export type MainTabType = 'chart' | 'composer' | 'table' | 'text'
+export type ChartTabType = 'chain' | 'protocol'
+
+export interface ModalState {
+	selectedMainTab: MainTabType
+	selectedChartTab: ChartTabType
+	composerItems: ChartConfig[]
+	composerSubType: ChartTabType
+	composerChartName: string
+	selectedChain: string | null
+	selectedProtocol: string | null
+	selectedChartType: string
+	textTitle: string
+	textContent: string
+}
+
+export interface ModalActions {
+	setSelectedMainTab: (tab: MainTabType) => void
+	setSelectedChartTab: (tab: ChartTabType) => void
+	setComposerItems: React.Dispatch<React.SetStateAction<ChartConfig[]>>
+	setComposerSubType: (type: ChartTabType) => void
+	setComposerChartName: (name: string) => void
+	setSelectedChain: (chain: string | null) => void
+	setSelectedProtocol: (protocol: string | null) => void
+	setSelectedChartType: (type: string) => void
+	setTextTitle: (title: string) => void
+	setTextContent: (content: string) => void
+	handleChainChange: (option: any) => void
+	handleProtocolChange: (option: any) => void
+	handleAddToComposer: () => void
+	handleRemoveFromComposer: (id: string) => void
+	handleMainTabChange: (tab: MainTabType) => void
+	handleSubmit: () => void
+	handleChartTabChange: (tab: ChartTabType) => void
+	handleComposerSubTypeChange: (type: ChartTabType) => void
+}

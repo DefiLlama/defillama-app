@@ -22,7 +22,7 @@ export function TableHeader({
 	colSpan = 2
 }: TableHeaderProps) {
 	return (
-		<div className="flex items-center justify-between flex-wrap gap-2 mb-2 pr-4">
+		<div className="flex items-center justify-between flex-wrap gap-2 mb-2 pr-28">
 			<h3 className="text-base font-semibold mr-auto">{chain} Protocols</h3>
 
 			{colSpan === 2 && (

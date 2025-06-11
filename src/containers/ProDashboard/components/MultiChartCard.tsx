@@ -57,7 +57,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 	return (
 		<div className="p-4 h-full min-h-[340px] flex flex-col">
-			<div className="flex items-center justify-between mb-2">
+			<div className="flex items-center justify-between mb-2 pr-28">
 				<div className="flex items-center gap-2">
 					<h3 className="text-sm font-medium text-[var(--text1)]">
 						{multi.name || `Multi-Chart (${multi.items.length})`}

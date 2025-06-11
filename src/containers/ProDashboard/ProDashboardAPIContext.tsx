@@ -41,6 +41,7 @@ interface ProDashboardContextType {
 	handleAddTable: (chain: string) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
+	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 	handleRemoveItem: (itemId: string) => void
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
 	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month') => void
@@ -343,6 +344,16 @@ export function ProDashboardAPIProvider({
 		})
 	}
 
+	const handleEditItem = (itemId: string, newItem: DashboardItemConfig) => {
+		setItems((prev) => {
+			const newItems = prev.map((item) => 
+				item.id === itemId ? newItem : item
+			)
+			autoSave(newItems)
+			return newItems
+		})
+	}
+
 	const handleRemoveItem = (itemId: string) => {
 		setItems((prev) => {
 			const newItems = prev.filter((item) => item.id !== itemId)
@@ -412,6 +423,7 @@ export function ProDashboardAPIProvider({
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
+		handleEditItem,
 		handleRemoveItem,
 		handleChartsReordered,
 		handleGroupingChange,

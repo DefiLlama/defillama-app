@@ -7,6 +7,7 @@ import { TextCard } from './TextCard'
 import { ProtocolsByChainTable } from './ProTable'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
+import { DashboardItemConfig } from '../types'
 
 const MultiChartCard = dynamic(() => import('./MultiChartCard'), {
 	ssr: false
@@ -14,9 +15,10 @@ const MultiChartCard = dynamic(() => import('./MultiChartCard'), {
 
 interface ChartGridProps {
 	onAddChartClick: () => void
+	onEditItem?: (item: DashboardItemConfig) => void
 }
 
-export function ChartGrid({ onAddChartClick }: ChartGridProps) {
+export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, isReadOnly } = useProDashboard()
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -94,6 +96,16 @@ export function ChartGrid({ onAddChartClick }: ChartGridProps) {
 													<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(-135deg)' }} />
 												)}
 											</button>
+											{onEditItem && (
+												<button
+													className="p-1.5 text-sm   hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+													onClick={() => onEditItem(item)}
+													aria-label="Edit item"
+													title="Edit item"
+												>
+													<Icon name="pencil" height={14} width={14} />
+												</button>
+											)}
 											<button
 												className="p-1.5 text-sm   hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
 												onClick={() => handleRemoveItem(item.id)}

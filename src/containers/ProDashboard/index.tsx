@@ -8,11 +8,13 @@ import { DemoPreview } from './components/DemoPreview'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { useProDashboard, TimePeriod } from './ProDashboardAPIContext'
+import { DashboardItemConfig } from './types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 function ProDashboardContent() {
 	const router = useRouter()
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
+	const [editItem, setEditItem] = useState<DashboardItemConfig | null>(null)
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
 	const [showDashboardMenu, setShowDashboardMenu] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
@@ -265,9 +267,24 @@ function ProDashboardContent() {
 				</div>
 			)}
 
-			{items.length > 0 && <ChartGrid onAddChartClick={() => setShowAddModal(true)} />}
+			{items.length > 0 && (
+				<ChartGrid 
+					onAddChartClick={() => setShowAddModal(true)} 
+					onEditItem={(item) => {
+						setEditItem(item)
+						setShowAddModal(true)
+					}}
+				/>
+			)}
 
-			<AddChartModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
+			<AddChartModal 
+				isOpen={showAddModal} 
+				onClose={() => {
+					setShowAddModal(false)
+					setEditItem(null)
+				}} 
+				editItem={editItem}
+			/>
 
 			{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={() => setShowAddModal(true)} />}
 		</div>

@@ -10,7 +10,7 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 	return (
 		<div className="p-4 h-full flex flex-col">
 			{text.title && (
-				<div className="mb-3 flex-shrink-0">
+				<div className="mb-3 flex-shrink-0 pr-28">
 					<h2 className="text-lg font-semibold text-[var(--text1)]">
 						{text.title}
 					</h2>

@@ -103,7 +103,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 
 	return (
 		<div className="p-4 h-full flex flex-col">
-			<div className="flex justify-between items-center mb-2 pr-8">
+			<div className="flex justify-between items-center mb-2 pr-28">
 				<div className="flex items-center gap-2">
 					{itemIconUrl ? (
 						<img src={itemIconUrl} alt={itemName} className="w-6 h-6 rounded-full" />
@@ -118,7 +118,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 				</div>
 				<div className="flex items-center gap-2">
 					{isGroupable && (
-						<div className="flex border border-[var(--form-control-border)] overflow-hidden mr-4">
+						<div className="flex border border-[var(--form-control-border)] overflow-hidden">
 							{groupingOptions.map((option, index) => (
 								<button
 									key={option}
