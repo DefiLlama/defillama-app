@@ -12,8 +12,9 @@ export function SortableItem(props) {
 		gridColumn: props.isTable ? '1/-1' : 'auto'
 	}
 
+	const tableListeners = props.isTable ? { ...listeners, onKeyDown: (e) => e.stopPropagation() } : listeners
 	return (
-		<div ref={setNodeRef} style={style} {...props} {...attributes} {...listeners}>
+		<div ref={setNodeRef} style={style} {...props} {...attributes} {...tableListeners}>
 			{props.children}
 		</div>
 	)

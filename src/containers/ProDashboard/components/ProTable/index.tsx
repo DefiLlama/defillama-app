@@ -19,7 +19,11 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({ chain
 		toggleColumnVisibility,
 		columnPresets,
 		applyPreset,
-		downloadCSV
+		downloadCSV,
+		customColumns,
+		addCustomColumn,
+		removeCustomColumn,
+		updateCustomColumn
 	} = useProTable(chain)
 
 	return (
@@ -43,6 +47,10 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({ chain
 				columnOrder={columnOrder}
 				addOption={addOption}
 				toggleColumnVisibility={toggleColumnVisibility}
+				customColumns={customColumns}
+				onAddCustomColumn={addCustomColumn}
+				onRemoveCustomColumn={removeCustomColumn}
+				onUpdateCustomColumn={updateCustomColumn}
 			/>
 
 			<TableBody table={table} />

@@ -79,6 +79,7 @@ function VirtualizedMenuList(props) {
 	return (
 		<div
 			ref={listRef}
+			className="thin-scrollbar"
 			style={{
 				maxHeight,
 				overflowY: 'auto',

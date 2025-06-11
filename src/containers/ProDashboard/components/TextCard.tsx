@@ -17,7 +17,7 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 				</div>
 			)}
 
-			<div className="overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--bg3)] scrollbar-track-transparent" style={{ height: '300px', flexGrow: 1 }}>
+			<div className="overflow-y-auto thin-scrollbar" style={{ height: '300px', flexGrow: 1 }}>
 				<div className="prose prose-invert prose-sm max-w-none text-[var(--text1)]">
 					<ReactMarkdown
 						components={{
@@ -34,7 +34,7 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 								</code>
 							),
 							pre: ({ children }) => (
-								<pre className="bg-[var(--bg3)] p-3 rounded mb-2 overflow-x-auto">
+								<pre className="bg-[var(--bg3)] p-3 rounded mb-2 overflow-x-auto thin-scrollbar">
 									{children}
 								</pre>
 							),

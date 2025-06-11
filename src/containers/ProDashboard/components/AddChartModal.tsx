@@ -485,7 +485,7 @@ export function AddChartModal({
 
 								<div className="flex-[3] border border-white/20 p-4">
 									<div className="text-sm font-medium text-[var(--text2)] mb-3">Charts ({composerItems.length})</div>
-									<div className="space-y-2 overflow-y-auto max-h-80">
+									<div className="space-y-2 overflow-y-auto max-h-80 thin-scrollbar">
 										{composerItems.length === 0 ? (
 											<div className="text-xs text-[var(--text3)] text-center py-8">No charts added yet</div>
 										) : (

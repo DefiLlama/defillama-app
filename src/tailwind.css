@@ -189,6 +189,25 @@
 		display: none;
 	}
 
+	.thin-scrollbar {
+		scrollbar-width: thin;
+		scrollbar-color: var(--bg4) transparent;
+	}
+	.thin-scrollbar::-webkit-scrollbar {
+		width: 6px;
+		height: 6px;
+	}
+	.thin-scrollbar::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.thin-scrollbar::-webkit-scrollbar-thumb {
+		background: var(--bg4);
+		border-radius: 3px;
+	}
+	.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+		background: var(--bg5);
+	}
+
 	.dialog {
 		@apply fixed top-0 left-0 bottom-0 right-0 z-50 m-auto mb-0 flex flex-col gap-8 overflow-auto p-4 rounded-t-md w-full max-w-full min-h-[40vh] max-h-[70vh] sm:mb-auto sm:h-fit sm:min-h-[initial] sm:max-h-[calc(100%_-_32px)] sm:max-w-[min(calc(100%_-_32px),560px)] sm:rounded-md bg-[var(--app-bg)] dark:border border-[#39393E];
 	}

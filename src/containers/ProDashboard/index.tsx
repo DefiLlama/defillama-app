@@ -205,7 +205,7 @@ function ProDashboardContent() {
 													{isLoadingDashboards ? (
 														<div className="px-3 py-2 text-sm text-[var(--text3)]">Loading...</div>
 													) : (
-														<div className="max-h-64 overflow-y-auto">
+														<div className="max-h-64 overflow-y-auto thin-scrollbar">
 															{dashboards.map((dashboard) => (
 																<button
 																	key={dashboard.id}

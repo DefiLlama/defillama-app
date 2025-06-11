@@ -7,14 +7,24 @@ import {
 	ExpandedState,
 	getExpandedRowModel,
 	getFilteredRowModel,
-	getPaginationRowModel
+	getPaginationRowModel,
+	ColumnDef
 } from '@tanstack/react-table'
+import { Parser } from 'expr-eval'
 import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { TABLE_CATEGORIES, protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/columns'
+
+interface CustomColumn {
+	id: string
+	name: string
+	expression: string
+	isValid: boolean
+	errorMessage?: string
+}
 
 export function useProTable(chain: string) {
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain })
@@ -35,16 +45,106 @@ export function useProTable(chain: string) {
 	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees])
 
 	const optionsKey = 'protocolsTableColumns'
+	const customColumnsKey = 'protocolsTableCustomColumns'
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [filterState, setFilterState] = React.useState(TABLE_CATEGORIES.TVL)
 	const [showColumnPanel, setShowColumnPanel] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState('')
 	const [columnOrder, setColumnOrder] = React.useState<string[]>([])
+	const [customColumns, setCustomColumns] = React.useState<CustomColumn[]>([])
+
+	// Load custom columns from localStorage on mount
+	React.useEffect(() => {
+		const savedCustomColumns = window.localStorage.getItem(customColumnsKey)
+		if (savedCustomColumns) {
+			try {
+				const parsed = JSON.parse(savedCustomColumns) as CustomColumn[]
+				setCustomColumns(parsed)
+			} catch (error) {
+				console.error('Failed to parse saved custom columns:', error)
+			}
+		}
+	}, [customColumnsKey])
+
+	// Create custom column definitions
+	const customColumnDefs = React.useMemo(() => {
+		const parser = new Parser()
+		
+		return customColumns
+			.filter(col => col.isValid)
+			.map((customCol): ColumnDef<IProtocolRow> => ({
+				id: customCol.id,
+				header: customCol.name,
+				accessorFn: (row) => {
+					try {
+						// Create a context with available variables
+						const context: Record<string, number> = {}
+						
+						// Map row data to available variables
+						protocolsByChainTableColumns.forEach((tableCol) => {
+							const value = row[tableCol.key as keyof IProtocolRow]
+							if (typeof value === 'number') {
+								context[tableCol.key] = value
+							} else if (typeof value === 'string') {
+								// Try to parse numeric strings
+								const numValue = parseFloat(value)
+								if (!isNaN(numValue)) {
+									context[tableCol.key] = numValue
+								}
+							}
+						})
+
+						const expr = parser.parse(customCol.expression)
+						const result = expr.evaluate(context)
+						
+						return typeof result === 'number' ? result : null
+					} catch (error) {
+						console.warn(`Error evaluating custom column "${customCol.name}":`, error)
+						return null
+					}
+				},
+				cell: ({ getValue }) => {
+					const value = getValue() as number | null
+					if (value === null || value === undefined) return '-'
+					
+					// Format the number based on magnitude
+					if (Math.abs(value) >= 1e9) {
+						return `$${(value / 1e9).toFixed(2)}B`
+					} else if (Math.abs(value) >= 1e6) {
+						return `$${(value / 1e6).toFixed(2)}M`
+					} else if (Math.abs(value) >= 1e3) {
+						return `$${(value / 1e3).toFixed(2)}K`
+					} else {
+						return value.toFixed(2)
+					}
+				},
+				sortingFn: (rowA, rowB, columnId) => {
+					const desc = false // Will be handled by table sorting state
+					let a = (rowA.getValue(columnId) ?? null) as any
+					let b = (rowB.getValue(columnId) ?? null) as any
+					if (a === null && b !== null) {
+						return desc ? -1 : 1
+					}
+					if (a !== null && b === null) {
+						return desc ? 1 : -1
+					}
+					if (a === null && b === null) {
+						return 0
+					}
+					return a - b
+				},
+			}))
+	}, [customColumns])
+
+	// Merge standard and custom columns
+	const allColumns = React.useMemo(() => {
+		return [...protocolsByChainColumns, ...customColumnDefs]
+	}, [customColumnDefs])
 
 	const table = useReactTable({
 		data: finalProtocolsList,
-		columns: protocolsByChainColumns,
+		columns: allColumns,
 		state: {
 			sorting,
 			expanded
@@ -192,6 +292,32 @@ export function useProTable(chain: string) {
 		document.body.removeChild(link)
 	}
 
+	// Custom column management functions
+	const addCustomColumn = (column: CustomColumn) => {
+		const updatedColumns = [...customColumns, column]
+		setCustomColumns(updatedColumns)
+		window.localStorage.setItem(customColumnsKey, JSON.stringify(updatedColumns))
+	}
+
+	const removeCustomColumn = (columnId: string) => {
+		const updatedColumns = customColumns.filter(col => col.id !== columnId)
+		setCustomColumns(updatedColumns)
+		window.localStorage.setItem(customColumnsKey, JSON.stringify(updatedColumns))
+		
+		// Also remove from visible columns if it's currently shown
+		const newVisibility = { ...table.getState().columnVisibility }
+		delete newVisibility[columnId]
+		table.setColumnVisibility(newVisibility)
+	}
+
+	const updateCustomColumn = (columnId: string, updates: Partial<CustomColumn>) => {
+		const updatedColumns = customColumns.map(col => 
+			col.id === columnId ? { ...col, ...updates } : col
+		)
+		setCustomColumns(updatedColumns)
+		window.localStorage.setItem(customColumnsKey, JSON.stringify(updatedColumns))
+	}
+
 	return {
 		table,
 		showColumnPanel,
@@ -204,6 +330,10 @@ export function useProTable(chain: string) {
 		toggleColumnVisibility,
 		columnPresets,
 		applyPreset,
-		downloadCSV
+		downloadCSV,
+		customColumns,
+		addCustomColumn,
+		removeCustomColumn,
+		updateCustomColumn
 	}
 }

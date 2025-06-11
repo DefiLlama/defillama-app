@@ -10,7 +10,7 @@ interface TableBodyProps {
 export function TableBody({ table }: TableBodyProps) {
 	if (!table) {
 		return (
-			<div className="relative w-full flex-1 min-h-0 overflow-x-auto overflow-y-auto" style={{ height: '100%' }}>
+			<div className="relative w-full flex-1 min-h-0 overflow-x-auto overflow-y-auto thin-scrollbar" style={{ height: '100%' }}>
 				<div className="flex items-center justify-center h-32">
 					<div className="text-[var(--text3)]">Loading table...</div>
 				</div>
@@ -19,7 +19,7 @@ export function TableBody({ table }: TableBodyProps) {
 	}
 
 	return (
-		<div className="relative w-full flex-1 min-h-0 overflow-x-auto overflow-y-auto" style={{ height: '100%' }}>
+		<div className="relative w-full flex-1 min-h-0 overflow-x-auto overflow-y-auto thin-scrollbar" style={{ height: '100%' }}>
 			<table className="min-w-full text-[var(--text1)] text-sm border-collapse">
 				<thead>
 					{table.getHeaderGroups().map((headerGroup) => (
