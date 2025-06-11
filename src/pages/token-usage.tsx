@@ -58,13 +58,9 @@ export default function Tokens({ searchData }) {
 
 	const filteredProtocols = useMemo(() => {
 		return (
-			protocols
-				?.filter((protocol) =>
-					!protocol.misrepresentedTokens && protocol.category?.toLowerCase() === 'cex'
-						? includeCentraliseExchanges
-						: true
-				)
-				?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ?? []
+			protocols?.filter((protocol) =>
+				!protocol.misrepresentedTokens && protocol.category?.toLowerCase() === 'cex' ? includeCentraliseExchanges : true
+			) ?? []
 		)
 	}, [protocols, includeCentraliseExchanges])
 
@@ -135,7 +131,10 @@ const fetchProtocols = async (tokenSymbol) => {
 	if (!tokenSymbol) return null
 	try {
 		const data = await fetch(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`).then((res) => res.json())
-		return data
+		return (
+			data?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ??
+			[]
+		)
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
 	}
