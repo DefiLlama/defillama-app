@@ -179,14 +179,24 @@ export function ProDashboardAPIProvider({
 		}
 	}, [items, dashboardName, isAuthenticated, createDashboard])
 
-	// Create new dashboard
 	const createNewDashboard = useCallback(async () => {
-		setDashboardId(null)
-		setDashboardName('My Dashboard')
-		setItems([])
-		setCurrentDashboard(null)
-		router.push('/pro/new')
-	}, [router])
+		if (!isAuthenticated) {
+			toast.error('Please sign in to create dashboards')
+			return
+		}
+
+		try {
+			const data = {
+				items: [],
+				dashboardName: 'My Dashboard'
+			}
+
+			await createDashboard(data)
+		} catch (error) {
+			console.error('Failed to create new dashboard:', error)
+			toast.error('Failed to create new dashboard')
+		}
+	}, [isAuthenticated, createDashboard])
 
 	// Load dashboard
 	const loadDashboard = useCallback(

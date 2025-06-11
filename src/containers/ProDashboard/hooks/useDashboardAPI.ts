@@ -30,14 +30,11 @@ export function useDashboardAPI() {
 		enabled: isAuthenticated
 	})
 
-	// Mutation to create dashboard
 	const createDashboardMutation = useMutation({
 		mutationFn: async (data: { items: DashboardItemConfig[]; dashboardName: string }) => {
 			return await dashboardAPI.createDashboard(data, authorizedFetch)
 		},
 		onSuccess: (dashboard) => {
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			toast.success('Dashboard created successfully')
 			router.push(`/pro/${dashboard.id}`)
 		},
 		onError: (error: any) => {
@@ -45,7 +42,6 @@ export function useDashboardAPI() {
 		}
 	})
 
-	// Mutation to update dashboard
 	const updateDashboardMutation = useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: { items: DashboardItemConfig[]; dashboardName: string } }) => {
 			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)

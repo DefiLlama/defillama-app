@@ -5,11 +5,9 @@ import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
 import { DemoPreview } from '~/containers/ProDashboard/components/DemoPreview'
-import { ProDashboardAPIProvider } from '~/containers/ProDashboard/ProDashboardAPIContext'
-import { WalletProvider } from '~/layout/WalletProvider'
+import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { dashboardAPI, Dashboard } from '~/containers/ProDashboard/services/DashboardAPI'
 import { LoadingSpinner } from '~/containers/ProDashboard/components/LoadingSpinner'
 
 export const getStaticProps = withPerformanceLogging('index/pro', async () => {
@@ -19,51 +17,18 @@ export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 	}
 })
 
-export default function HomePage() {
+function ProPageContent() {
 	const router = useRouter()
-	const [dashboards, setDashboards] = useState<Dashboard[]>([])
-	const [isLoadingDashboards, setIsLoadingDashboards] = useState(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
-	const { authorizedFetch, isAuthenticated } = useAuthContext()
-
-	useEffect(() => {
-		if (subscription?.status === 'active' && isAuthenticated && authorizedFetch) {
-			loadDashboards()
-		}
-	}, [subscription?.status, isAuthenticated, authorizedFetch])
-
-	const loadDashboards = async () => {
-		if (!authorizedFetch) return
-
-		setIsLoadingDashboards(true)
-		try {
-			const data = await dashboardAPI.listDashboards(authorizedFetch)
-			setDashboards(data || [])
-		} catch (error) {
-			console.error('Failed to load dashboards:', error)
-			setDashboards([])
-		} finally {
-			setIsLoadingDashboards(false)
-		}
-	}
+	const { isAuthenticated } = useAuthContext()
+	const { dashboards, isLoadingDashboards, createNewDashboard, deleteDashboard } = useProDashboard()
 
 	const handleSelectDashboard = (dashboardId: string) => {
 		router.push(`/pro/${dashboardId}`)
 	}
 
-	const handleCreateNew = () => {
-		router.push('/pro/new')
-	}
-
 	const handleDeleteDashboard = async (dashboardId: string) => {
-		if (!authorizedFetch) return
-
-		try {
-			await dashboardAPI.deleteDashboard(dashboardId, authorizedFetch)
-			setDashboards((prev) => prev.filter((d) => d.id !== dashboardId))
-		} catch (error) {
-			console.error('Failed to delete dashboard:', error)
-		}
+		await deleteDashboard(dashboardId)
 	}
 
 	if (isSubLoading) {
@@ -76,7 +41,6 @@ export default function HomePage() {
 		)
 	}
 
-	// Show demo preview to both non-authenticated users and non-subscribers
 	if (!isAuthenticated || subscription?.status !== 'active') {
 		return (
 			<Layout title="DefiLlama - Pro Dashboard">
@@ -91,9 +55,17 @@ export default function HomePage() {
 				dashboards={dashboards}
 				isLoading={isLoadingDashboards}
 				onSelectDashboard={handleSelectDashboard}
-				onCreateNew={handleCreateNew}
+				onCreateNew={createNewDashboard}
 				onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
 			/>
 		</Layout>
+	)
+}
+
+export default function HomePage() {
+	return (
+		<ProDashboardAPIProvider>
+			<ProPageContent />
+		</ProDashboardAPIProvider>
 	)
 }
