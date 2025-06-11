@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -94,17 +94,14 @@ export default function MultiSeriesChart({
 		)
 	}, [series, isThemeDark])
 
-	const chartRef = useRef<echarts.ECharts | null>(null)
+	const createInstance = useCallback(() => {
+		const instance = echarts.getInstanceByDom(document.getElementById(id))
+
+		return instance || echarts.init(document.getElementById(id))
+	}, [id])
 
 	useEffect(() => {
-		const chartDom = document.getElementById(id)
-		if (!chartDom) return
-
-		let chartInstance = echarts.getInstanceByDom(chartDom)
-		if (!chartInstance) {
-			chartInstance = echarts.init(chartDom)
-		}
-		chartRef.current = chartInstance
+		const chartInstance = createInstance()
 
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
@@ -194,8 +191,10 @@ export default function MultiSeriesChart({
 
 		return () => {
 			window.removeEventListener('resize', resize)
+			chartInstance.dispose()
 		}
 	}, [
+		createInstance,
 		defaultChartSettings,
 		processedSeries,
 		chartOptions,
@@ -203,32 +202,8 @@ export default function MultiSeriesChart({
 		hallmarks,
 		isThemeDark,
 		alwaysShowTooltip,
-		series,
-		id
+		series
 	])
-
-	useEffect(() => {
-		return () => {
-			const chartDom = document.getElementById(id)
-			if (chartDom) {
-				const chartInstance = echarts.getInstanceByDom(chartDom)
-				if (chartInstance) {
-					chartInstance.dispose()
-				}
-			}
-			if (chartRef.current) {
-				chartRef.current = null
-			}
-		}
-	}, [id])
-
-	useEffect(() => {
-		if (chartRef.current) {
-			setTimeout(() => {
-				chartRef.current?.resize()
-			}, 0)
-		}
-	})
 
 	return (
 		<div className="relative">

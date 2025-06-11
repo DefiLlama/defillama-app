@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState, useRef } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { stringToColour } from '../utils'
 import type { IBarChartProps } from '../types'
@@ -122,18 +122,17 @@ export default function BarChart({
 		}
 	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
 
-	const chartRef = useRef<echarts.ECharts | null>(null)
+	const createInstance = useCallback(() => {
+		const instance = echarts.getInstanceByDom(document.getElementById(id))
+
+		return instance || echarts.init(document.getElementById(id))
+	}, [id])
 
 	useEffect(() => {
-		const chartDom = document.getElementById(id)
-		if (!chartDom) return
+		// create instance
+		const chartInstance = createInstance()
 
-		let chartInstance = echarts.getInstanceByDom(chartDom)
-		if (!chartInstance) {
-			chartInstance = echarts.init(chartDom)
-		}
-		chartRef.current = chartInstance
-
+		// override default chart settings
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
 				// update tooltip formatter
@@ -184,31 +183,9 @@ export default function BarChart({
 
 		return () => {
 			window.removeEventListener('resize', resize)
+			chartInstance.dispose()
 		}
-	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id])
-
-	useEffect(() => {
-		return () => {
-			const chartDom = document.getElementById(id)
-			if (chartDom) {
-				const chartInstance = echarts.getInstanceByDom(chartDom)
-				if (chartInstance) {
-					chartInstance.dispose()
-				}
-			}
-			if (chartRef.current) {
-				chartRef.current = null
-			}
-		}
-	}, [id])
-
-	useEffect(() => {
-		if (chartRef.current) {
-			setTimeout(() => {
-				chartRef.current?.resize()
-			}, 0)
-		}
-	})
+	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom])
 
 	return (
 		<div className="relative">

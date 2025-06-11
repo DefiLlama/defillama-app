@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react'
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react'
 import { QueryObserverResult, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
@@ -219,7 +219,7 @@ export function ProDashboardAPIProvider({
 
 	const chartQueries = useChartsData(allChartItems, timePeriod)
 
-	const chartsWithData: DashboardItemConfig[] = useMemo(() => items.map((item) => {
+	const chartsWithData: DashboardItemConfig[] = items.map((item) => {
 		if (item.kind === 'chart') {
 			const chart = item
 			const idx = allChartItems.findIndex((c) => c.id === chart.id)
@@ -259,7 +259,7 @@ export function ProDashboardAPIProvider({
 			}
 		}
 		return item
-	}), [items, chartQueries, allChartItems])
+	})
 
 	// Handle adding items
 	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
@@ -354,20 +354,20 @@ export function ProDashboardAPIProvider({
 		})
 	}
 
-	const handleRemoveItem = useCallback((itemId: string) => {
+	const handleRemoveItem = (itemId: string) => {
 		setItems((prev) => {
 			const newItems = prev.filter((item) => item.id !== itemId)
 			autoSave(newItems)
 			return newItems
 		})
-	}, [autoSave])
+	}
 
-	const handleChartsReordered = useCallback((newCharts: DashboardItemConfig[]) => {
+	const handleChartsReordered = (newCharts: DashboardItemConfig[]) => {
 		setItems(newCharts)
 		autoSave(newCharts)
-	}, [autoSave])
+	}
 
-	const handleGroupingChange = useCallback((chartId: string, newGrouping: 'day' | 'week' | 'month') => {
+	const handleGroupingChange = (chartId: string, newGrouping: 'day' | 'week' | 'month') => {
 		setItems((prev) => {
 			const newItems = prev.map((item) => {
 				if (item.id === chartId && item.kind === 'chart') {
@@ -380,9 +380,9 @@ export function ProDashboardAPIProvider({
 			autoSave(newItems)
 			return newItems
 		})
-	}, [autoSave])
+	}
 
-	const handleColSpanChange = useCallback((chartId: string, newColSpan: 1 | 2) => {
+	const handleColSpanChange = (chartId: string, newColSpan: 1 | 2) => {
 		setItems((prev) => {
 			const newItems = prev.map((item) => {
 				if (item.id === chartId) {
@@ -393,7 +393,7 @@ export function ProDashboardAPIProvider({
 			autoSave(newItems)
 			return newItems
 		})
-	}, [autoSave])
+	}
 
 	const getChainInfo = (chainName: string) => {
 		return chains.find((chain) => chain.name === chainName)

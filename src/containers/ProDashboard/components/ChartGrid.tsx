@@ -29,10 +29,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		useSensor(KeyboardSensor)
 	)
 
-	const handleDragEnd = (event: any) => {
+	const handleDragEnd = (event) => {
 		const { active, over } = event
 
-		if (over && active.id !== over.id) {
+		if (active.id !== over.id) {
 			const oldIndex = chartsWithData.findIndex((item) => item.id === active.id)
 			const newIndex = chartsWithData.findIndex((item) => item.id === over.id)
 			const newCharts = arrayMove(chartsWithData, oldIndex, newIndex)
@@ -49,7 +49,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 			<div className="mt-2">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 					{chartsWithData.map((item) => (
-						<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
+						<div key={item.id} className={`${getColSpanClass(item.colSpan)}`}>
 							<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full relative">
 								<div className={item.kind === 'table' ? 'pr-12' : ''}>
 									{item.kind === 'chart' ? (
@@ -80,7 +80,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 						{chartsWithData.map((item) => (
-							<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
+							<div key={item.id} className={`${getColSpanClass(item.colSpan)}`}>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
 									<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full relative">
 										<div className="absolute top-1 right-1 z-20 flex gap-1">
