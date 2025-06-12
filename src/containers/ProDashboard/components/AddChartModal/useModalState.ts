@@ -9,6 +9,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [composerSubType, setComposerSubType] = useState<ChartTabType>('chain')
 	const [composerChartName, setComposerChartName] = useState<string>('')
 	const [selectedChain, setSelectedChain] = useState<string | null>(null)
+	const [selectedChains, setSelectedChains] = useState<string[]>([])
 	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
 	const [textTitle, setTextTitle] = useState<string>('')
@@ -33,7 +34,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				}
 			} else if (editItem.kind === 'table') {
 				setSelectedMainTab('table')
-				setSelectedChain(editItem.chain)
+				setSelectedChains(editItem.chains || [])
 			} else if (editItem.kind === 'text') {
 				setSelectedMainTab('text')
 				setTextTitle(editItem.title || '')
@@ -47,6 +48,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setComposerSubType('chain')
 			setComposerChartName('')
 			setSelectedChain(null)
+			setSelectedChains([])
 			setSelectedProtocol(null)
 			setSelectedChartType('tvl')
 			setTextTitle('')
@@ -61,6 +63,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setTextContent('')
 		setSelectedChartType('tvl')
 		setSelectedChain(null)
+		setSelectedChains([])
 		setSelectedProtocol(null)
 	}
 
@@ -71,6 +74,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		composerSubType,
 		composerChartName,
 		selectedChain,
+		selectedChains,
 		selectedProtocol,
 		selectedChartType,
 		textTitle,
@@ -86,6 +90,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setComposerSubType,
 			setComposerChartName,
 			setSelectedChain,
+			setSelectedChains,
 			setSelectedProtocol,
 			setSelectedChartType,
 			setTextTitle,

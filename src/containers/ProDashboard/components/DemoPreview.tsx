@@ -463,7 +463,7 @@ export const DemoPreview = () => {
 
 						<div className="md:col-span-2 min-h-[400px]">
 							<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
-								<ProtocolsByChainTable chain="Ethereum" colSpan={2} />
+								<ProtocolsByChainTable chains={["Ethereum"]} colSpan={2} />
 							</div>
 						</div>
 

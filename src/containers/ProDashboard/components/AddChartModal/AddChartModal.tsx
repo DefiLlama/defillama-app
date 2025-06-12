@@ -116,10 +116,10 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 
 					{state.selectedMainTab === 'table' && (
 						<TableTab
-							selectedChain={state.selectedChain}
+							selectedChains={state.selectedChains}
 							chainOptions={computed.chainOptions}
 							protocolsLoading={computed.protocolsLoading}
-							onChainChange={(option: any) => actions.setSelectedChain(option.value)}
+							onChainsChange={actions.handleChainsChange}
 						/>
 					)}
 
@@ -137,6 +137,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						selectedMainTab={state.selectedMainTab}
 						selectedChartTab={state.selectedChartTab}
 						selectedChain={state.selectedChain}
+						selectedChains={state.selectedChains}
 						selectedProtocol={state.selectedProtocol}
 						composerItems={state.composerItems}
 						textContent={state.textContent}

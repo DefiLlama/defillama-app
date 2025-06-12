@@ -16,6 +16,7 @@ export interface ModalState {
 	composerSubType: ChartTabType
 	composerChartName: string
 	selectedChain: string | null
+	selectedChains: string[]
 	selectedProtocol: string | null
 	selectedChartType: string
 	textTitle: string
@@ -29,11 +30,13 @@ export interface ModalActions {
 	setComposerSubType: (type: ChartTabType) => void
 	setComposerChartName: (name: string) => void
 	setSelectedChain: (chain: string | null) => void
+	setSelectedChains: (chains: string[]) => void // New action for multi-chain selection
 	setSelectedProtocol: (protocol: string | null) => void
 	setSelectedChartType: (type: string) => void
 	setTextTitle: (title: string) => void
 	setTextContent: (content: string) => void
 	handleChainChange: (option: any) => void
+	handleChainsChange: (options: any[]) => void // New handler for multi-chain selection
 	handleProtocolChange: (option: any) => void
 	handleAddToComposer: () => void
 	handleRemoveFromComposer: (id: string) => void

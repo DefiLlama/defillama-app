@@ -4,9 +4,16 @@ import { TableHeader } from './TableHeader'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { TableBody } from './TableBody'
 import { TablePagination } from './TablePagination'
-import { memo } from 'react'
+import { memo, useMemo } from 'react'
 
-export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({ chain = 'All', colSpan = 2 }: { chain: string; colSpan?: 1 | 2 }) {
+export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
+	chains = ['All'],
+	colSpan = 2
+}: {
+	chains: string[]
+	colSpan?: 1 | 2
+}) {
+	const memoizedChains = useMemo(() => chains, [chains.join(',')])
 	const {
 		table,
 		showColumnPanel,
@@ -24,12 +31,12 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({ chain
 		addCustomColumn,
 		removeCustomColumn,
 		updateCustomColumn
-	} = useProTable(chain)
+	} = useProTable(memoizedChains)
 
 	return (
 		<div className="w-full p-4 h-full flex flex-col">
 			<TableHeader
-				chain={chain}
+				chains={chains}
 				columnPresets={columnPresets}
 				applyPreset={applyPreset}
 				showColumnPanel={showColumnPanel}

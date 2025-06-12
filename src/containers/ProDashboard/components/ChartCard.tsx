@@ -92,7 +92,6 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 
 	if (chart.protocol) {
 		itemInfo = getProtocolInfo(chart.protocol)
-		console.log(itemInfo, chart)
 		itemName = itemInfo?.name || chart.protocol
 		itemIconUrl = getItemIconUrl('protocol', itemInfo, chart.protocol)
 	} else if (chart.chain) {

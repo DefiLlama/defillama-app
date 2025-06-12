@@ -937,7 +937,7 @@ export async function getCoinPerformance(categoryId) {
 	performanceTimeSeries['365'] = ts365
 	performanceTimeSeries['ytd'] = tsYtd
 
-	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)[0][name] ?? null
+	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)[0]?.[name] ?? null
 	const pctChanges = coinInfo.map((i) => ({
 		...i,
 		change1W: getCumulativeChangeOfPeriod('7', i.name),

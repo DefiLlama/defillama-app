@@ -6,6 +6,7 @@ interface SubmitButtonProps {
 	selectedMainTab: MainTabType
 	selectedChartTab: ChartTabType
 	selectedChain: string | null
+	selectedChains: string[]
 	selectedProtocol: string | null
 	composerItems: ChartConfig[]
 	textContent: string
@@ -18,6 +19,7 @@ export function SubmitButton({
 	selectedMainTab,
 	selectedChartTab,
 	selectedChain,
+	selectedChains = [],
 	selectedProtocol,
 	composerItems,
 	textContent,
@@ -28,7 +30,7 @@ export function SubmitButton({
 		chartTypesLoading ||
 		(selectedMainTab === 'chart' && selectedChartTab === 'chain' && !selectedChain) ||
 		(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && !selectedProtocol) ||
-		(selectedMainTab === 'table' && !selectedChain) ||
+		(selectedMainTab === 'table' && (!selectedChains || selectedChains.length === 0)) ||
 		(selectedMainTab === 'composer' && composerItems.length === 0) ||
 		(selectedMainTab === 'text' && !textContent.trim())
 

@@ -1,17 +1,19 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { toK } from '~/utils'
-import type { IBarChartProps } from '~/components/ECharts/types'
+import { lastDayOfWeek, firstDayOfMonth, toK, download, toNiceCsvDate } from '~/utils'
+import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ETFColumn } from '~/components/Table/Defi/columns'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getETFData } from '~/api/categories/protocols'
 import Layout from '~/layout'
-import { groupDataByDays } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Select } from '~/components/Select'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
+	ssr: false,
+	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
+}) as React.FC<ILineAndBarChartProps>
 
 interface AssetSectionProps {
 	name: string
@@ -78,14 +80,71 @@ interface PageViewProps {
 
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('weekly')
-	const tickers = ['Bitcoin', 'Ethereum']
+	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum'])
 
-	const chartData = groupDataByDays(flows, groupBy, tickers, true)
+	const charts = React.useMemo(() => {
+		const bitcoin = {}
+		const ethereum = {}
+
+		let totalBitcoin = 0
+		let totalEthereum = 0
+		for (const flowDate in flows) {
+			const date = ['daily', 'cumulative'].includes(groupBy)
+				? flowDate
+				: groupBy === 'weekly'
+				? lastDayOfWeek(+flowDate * 1000)
+				: firstDayOfMonth(+flowDate * 1000)
+
+			bitcoin[date] = (bitcoin[date] || 0) + (flows[flowDate]['Bitcoin'] ?? 0) + totalBitcoin
+			if (flows[flowDate]['Ethereum']) {
+				ethereum[date] = (ethereum[date] || 0) + (flows[flowDate]['Ethereum'] ?? 0) + totalEthereum
+			}
+
+			if (groupBy === 'cumulative') {
+				totalBitcoin += +(flows[flowDate]['Bitcoin'] ?? 0)
+				totalEthereum += +(flows[flowDate]['Ethereum'] ?? 0)
+			}
+		}
+
+		const charts = {
+			Bitcoin: {
+				name: 'Bitcoin',
+				stack: 'Bitcoin',
+				type: groupBy === 'cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
+				data: [],
+				color: '#F7931A'
+			},
+			Ethereum: {
+				name: 'Ethereum',
+				stack: 'Ethereum',
+				type: groupBy === 'cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
+				data: [],
+				color: '#6B7280'
+			}
+		}
+
+		for (const date in bitcoin) {
+			charts.Bitcoin.data.push([+date * 1000, bitcoin[date]])
+			charts.Ethereum.data.push([+date * 1000, ethereum[date] || null])
+		}
+
+		return charts
+	}, [flows, groupBy])
+
+	const finalCharts = React.useMemo(() => {
+		const newCharts: any = {}
+		if (tickers.includes('Bitcoin')) {
+			newCharts.Bitcoin = charts.Bitcoin
+		}
+		if (tickers.includes('Ethereum')) {
+			newCharts.Ethereum = charts.Ethereum
+		}
+		return newCharts
+	}, [charts, tickers])
 
 	return (
 		<>
 			<div className="flex flex-col md:flex-row gap-1 min-h-[434px]">
-				{/* Left Panel */}
 				<div className="w-full md:w-80 flex flex-col bg-[var(--cards-bg)] rounded-md">
 					<div className="flex flex-col gap-2 p-3">
 						<h1 className="text-xl font-semibold">Daily Stats</h1>
@@ -108,56 +167,81 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 						/>
 					</div>
 				</div>
+				<div className="flex flex-col flex-1 w-full bg-[var(--cards-bg)] rounded-md">
+					<div className="flex flex-wrap justify-end gap-2 p-3">
+						<h2 className="text-lg font-semibold mr-auto">Flows (Source: Farside)</h2>
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+							<button
+								data-active={groupBy === 'daily'}
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								onClick={() => setGroupBy('daily')}
+							>
+								Daily
+							</button>
 
-				{/* Main Chart Area */}
-				<div className="flex flex-col flex-1 w-full bg-[var(--cards-bg)] rounded-md [&[role='combobox']]:*:*:-mb-9">
-					<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
-						<button
-							data-active={groupBy === 'daily'}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							onClick={() => setGroupBy('daily')}
-						>
-							Daily
-						</button>
+							<button
+								data-active={groupBy === 'weekly'}
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								onClick={() => setGroupBy('weekly')}
+							>
+								Weekly
+							</button>
 
-						<button
-							data-active={groupBy === 'weekly'}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							onClick={() => setGroupBy('weekly')}
-						>
-							Weekly
-						</button>
+							<button
+								data-active={groupBy === 'monthly'}
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								onClick={() => setGroupBy('monthly')}
+							>
+								Monthly
+							</button>
 
-						<button
-							data-active={groupBy === 'monthly'}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							onClick={() => setGroupBy('monthly')}
-						>
-							Monthly
-						</button>
+							<button
+								data-active={groupBy === 'cumulative'}
+								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								onClick={() => setGroupBy('cumulative')}
+							>
+								Cumulative
+							</button>
+						</div>
+						<Select
+							allValues={['Bitcoin', 'Ethereum']}
+							selectedValues={tickers}
+							setSelectedValues={setTickers}
+							selectOnlyOne={(newOption) => {
+								setTickers([newOption])
+							}}
+							label={'ETF'}
+							clearAll={() => setTickers([])}
+							toggleAll={() => setTickers(['Bitcoin', 'Ethereum'])}
+							labelType="smol"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+							}}
+							portal
+						/>
+						<CSVDownloadButton
+							onClick={() => {
+								try {
+									let rows = []
 
-						<button
-							data-active={groupBy === 'cumulative'}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
-							onClick={() => setGroupBy('cumulative')}
-						>
-							Cumulative
-						</button>
+									rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum']]
+									for (const date in flows) {
+										rows.push([date, toNiceCsvDate(date), flows[date]['Bitcoin'] ?? '', flows[date]['Ethereum'] ?? ''])
+									}
+									const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
+									download(filename, rows.map((r) => r.join(',')).join('\n'))
+								} catch (error) {
+									console.error('Error generating CSV:', error)
+								}
+							}}
+							smol
+							className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+						/>
 					</div>
-
-					<BarChart
-						chartData={chartData}
-						hideDefaultLegend
-						customLegendName="ETF"
-						customLegendOptions={tickers}
-						stacks={{ Bitcoin: 'A', Ethereum: 'A' }}
-						stackColors={{ Bitcoin: '#F7931A', Ethereum: '#6B7280' }}
-						valueSymbol="$"
-						title="Flows (Source: Farside)"
-					/>
+					<LineAndBarChart charts={finalCharts} groupBy={groupBy === 'cumulative' ? 'daily' : groupBy} />
 				</div>
 			</div>
-
 			<TableWithSearch data={snapshot} columns={ETFColumn} columnToSearch={'ticker'} placeholder={'Search ETF...'} />
 		</>
 	)

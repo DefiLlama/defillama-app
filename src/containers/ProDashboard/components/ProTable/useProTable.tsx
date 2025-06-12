@@ -26,23 +26,42 @@ interface CustomColumn {
 	errorMessage?: string
 }
 
-export function useProTable(chain: string) {
-	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain })
-	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByChain(chain)
-	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByChain(chain)
+export function useProTable(chains: string[]) {
+	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain: 'All' })
+	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByChain('All')
+	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByChain('All')
+
+	const allFormattedProtocols = React.useMemo(() => {
+		if (!fullProtocolsList) return []
+
+		return formatProtocolsList({
+			extraTvlsEnabled: {},
+			protocols: fullProtocolsList,
+			parentProtocols,
+			volumeData: chainProtocolsVolumes,
+			feesData: chainProtocolsFees
+		})
+	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees])
 
 	const finalProtocolsList = React.useMemo(() => {
-		const list = fullProtocolsList
-			? formatProtocolsList({
-					extraTvlsEnabled: {},
-					protocols: fullProtocolsList,
-					parentProtocols,
-					volumeData: chainProtocolsVolumes,
-					feesData: chainProtocolsFees
-			  })
-			: []
-		return list
-	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees])
+		if (chains.length === 0 || chains.includes('All')) {
+			return allFormattedProtocols
+		}
+
+		const chainSet = new Set(chains)
+
+		return allFormattedProtocols.filter((protocol) => {
+			if (protocol.chains && Array.isArray(protocol.chains)) {
+				return protocol.chains.some((protocolChain) => chainSet.has(protocolChain))
+			}
+
+			if (protocol.chainTvls && typeof protocol.chainTvls === 'object') {
+				return Object.keys(protocol.chainTvls).some((chain) => chainSet.has(chain))
+			}
+
+			return false
+		})
+	}, [allFormattedProtocols, chains])
 
 	const optionsKey = 'protocolsTableColumns'
 	const customColumnsKey = 'protocolsTableCustomColumns'
@@ -70,74 +89,71 @@ export function useProTable(chain: string) {
 	// Create custom column definitions
 	const customColumnDefs = React.useMemo(() => {
 		const parser = new Parser()
-		
-		return customColumns
-			.filter(col => col.isValid)
-			.map((customCol): ColumnDef<IProtocolRow> => ({
-				id: customCol.id,
-				header: customCol.name,
-				accessorFn: (row) => {
-					try {
-						// Create a context with available variables
-						const context: Record<string, number> = {}
-						
-						// Map row data to available variables
-						protocolsByChainTableColumns.forEach((tableCol) => {
-							const value = row[tableCol.key as keyof IProtocolRow]
-							if (typeof value === 'number') {
-								context[tableCol.key] = value
-							} else if (typeof value === 'string') {
-								// Try to parse numeric strings
-								const numValue = parseFloat(value)
-								if (!isNaN(numValue)) {
-									context[tableCol.key] = numValue
-								}
-							}
-						})
 
-						const expr = parser.parse(customCol.expression)
-						const result = expr.evaluate(context)
-						
-						return typeof result === 'number' ? result : null
-					} catch (error) {
-						console.warn(`Error evaluating custom column "${customCol.name}":`, error)
-						return null
+		return customColumns
+			.filter((col) => col.isValid)
+			.map(
+				(customCol): ColumnDef<IProtocolRow> => ({
+					id: customCol.id,
+					header: customCol.name,
+					accessorFn: (row) => {
+						try {
+							const context: Record<string, number> = {}
+
+							protocolsByChainTableColumns.forEach((tableCol) => {
+								const value = row[tableCol.key as keyof IProtocolRow]
+								if (typeof value === 'number') {
+									context[tableCol.key] = value
+								} else if (typeof value === 'string') {
+									const numValue = parseFloat(value)
+									if (!isNaN(numValue)) {
+										context[tableCol.key] = numValue
+									}
+								}
+							})
+
+							const expr = parser.parse(customCol.expression)
+							const result = expr.evaluate(context)
+
+							return typeof result === 'number' ? result : null
+						} catch (error) {
+							console.warn(`Error evaluating custom column "${customCol.name}":`, error)
+							return null
+						}
+					},
+					cell: ({ getValue }) => {
+						const value = getValue() as number | null
+						if (value === null || value === undefined) return '-'
+
+						if (Math.abs(value) >= 1e9) {
+							return `$${(value / 1e9).toFixed(2)}B`
+						} else if (Math.abs(value) >= 1e6) {
+							return `$${(value / 1e6).toFixed(2)}M`
+						} else if (Math.abs(value) >= 1e3) {
+							return `$${(value / 1e3).toFixed(2)}K`
+						} else {
+							return value.toFixed(2)
+						}
+					},
+					sortingFn: (rowA, rowB, columnId) => {
+						const desc = false
+						let a = (rowA.getValue(columnId) ?? null) as any
+						let b = (rowB.getValue(columnId) ?? null) as any
+						if (a === null && b !== null) {
+							return desc ? -1 : 1
+						}
+						if (a !== null && b === null) {
+							return desc ? 1 : -1
+						}
+						if (a === null && b === null) {
+							return 0
+						}
+						return a - b
 					}
-				},
-				cell: ({ getValue }) => {
-					const value = getValue() as number | null
-					if (value === null || value === undefined) return '-'
-					
-					// Format the number based on magnitude
-					if (Math.abs(value) >= 1e9) {
-						return `$${(value / 1e9).toFixed(2)}B`
-					} else if (Math.abs(value) >= 1e6) {
-						return `$${(value / 1e6).toFixed(2)}M`
-					} else if (Math.abs(value) >= 1e3) {
-						return `$${(value / 1e3).toFixed(2)}K`
-					} else {
-						return value.toFixed(2)
-					}
-				},
-				sortingFn: (rowA, rowB, columnId) => {
-					const desc = false // Will be handled by table sorting state
-					let a = (rowA.getValue(columnId) ?? null) as any
-					let b = (rowB.getValue(columnId) ?? null) as any
-					if (a === null && b !== null) {
-						return desc ? -1 : 1
-					}
-					if (a !== null && b === null) {
-						return desc ? 1 : -1
-					}
-					if (a === null && b === null) {
-						return 0
-					}
-					return a - b
-				},
-			}))
+				})
+			)
 	}, [customColumns])
 
-	// Merge standard and custom columns
 	const allColumns = React.useMemo(() => {
 		return [...protocolsByChainColumns, ...customColumnDefs]
 	}, [customColumnDefs])
@@ -285,7 +301,13 @@ export function useProTable(chain: string) {
 		const link = document.createElement('a')
 		const url = URL.createObjectURL(blob)
 		link.setAttribute('href', url)
-		link.setAttribute('download', `${chain}_protocols_${new Date().toISOString().split('T')[0]}.csv`)
+		const filename =
+			chains.length === 1
+				? `${chains[0]}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+				: chains.length <= 3
+				? `${chains.join('_')}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+				: `multi_chain_${chains.length}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+		link.setAttribute('download', filename)
 		link.style.visibility = 'hidden'
 		document.body.appendChild(link)
 		link.click()
@@ -300,10 +322,10 @@ export function useProTable(chain: string) {
 	}
 
 	const removeCustomColumn = (columnId: string) => {
-		const updatedColumns = customColumns.filter(col => col.id !== columnId)
+		const updatedColumns = customColumns.filter((col) => col.id !== columnId)
 		setCustomColumns(updatedColumns)
 		window.localStorage.setItem(customColumnsKey, JSON.stringify(updatedColumns))
-		
+
 		// Also remove from visible columns if it's currently shown
 		const newVisibility = { ...table.getState().columnVisibility }
 		delete newVisibility[columnId]
@@ -311,9 +333,7 @@ export function useProTable(chain: string) {
 	}
 
 	const updateCustomColumn = (columnId: string, updates: Partial<CustomColumn>) => {
-		const updatedColumns = customColumns.map(col => 
-			col.id === columnId ? { ...col, ...updates } : col
-		)
+		const updatedColumns = customColumns.map((col) => (col.id === columnId ? { ...col, ...updates } : col))
 		setCustomColumns(updatedColumns)
 		window.localStorage.setItem(customColumnsKey, JSON.stringify(updatedColumns))
 	}

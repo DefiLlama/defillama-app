@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react'
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react'
 import { QueryObserverResult, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
@@ -38,7 +38,7 @@ interface ProDashboardContextType {
 	setTimePeriod: (period: TimePeriod) => void
 	setDashboardName: (name: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
-	handleAddTable: (chain: string) => void
+	handleAddTable: (chains: string[]) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -219,7 +219,7 @@ export function ProDashboardAPIProvider({
 
 	const chartQueries = useChartsData(allChartItems, timePeriod)
 
-	const chartsWithData: DashboardItemConfig[] = items.map((item) => {
+	const chartsWithData: DashboardItemConfig[] = useMemo(() => items.map((item) => {
 		if (item.kind === 'chart') {
 			const chart = item
 			const idx = allChartItems.findIndex((c) => c.id === chart.id)
@@ -259,7 +259,7 @@ export function ProDashboardAPIProvider({
 			}
 		}
 		return item
-	})
+	}), [items, chartQueries, allChartItems])
 
 	// Handle adding items
 	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
@@ -299,11 +299,12 @@ export function ProDashboardAPIProvider({
 		})
 	}
 
-	const handleAddTable = (chain: string) => {
+	const handleAddTable = (chains: string[]) => {
+		const chainIdentifier = chains.length > 1 ? 'multi' : chains[0] || 'table'
 		const newTable: ProtocolsTableConfig = {
-			id: generateItemId('table', chain),
+			id: generateItemId('table', chainIdentifier),
 			kind: 'table',
-			chain,
+			chains,
 			colSpan: 2
 		}
 		setItems((prev) => {
@@ -354,20 +355,20 @@ export function ProDashboardAPIProvider({
 		})
 	}
 
-	const handleRemoveItem = (itemId: string) => {
+	const handleRemoveItem = useCallback((itemId: string) => {
 		setItems((prev) => {
 			const newItems = prev.filter((item) => item.id !== itemId)
 			autoSave(newItems)
 			return newItems
 		})
-	}
+	}, [autoSave])
 
-	const handleChartsReordered = (newCharts: DashboardItemConfig[]) => {
+	const handleChartsReordered = useCallback((newCharts: DashboardItemConfig[]) => {
 		setItems(newCharts)
 		autoSave(newCharts)
-	}
+	}, [autoSave])
 
-	const handleGroupingChange = (chartId: string, newGrouping: 'day' | 'week' | 'month') => {
+	const handleGroupingChange = useCallback((chartId: string, newGrouping: 'day' | 'week' | 'month') => {
 		setItems((prev) => {
 			const newItems = prev.map((item) => {
 				if (item.id === chartId && item.kind === 'chart') {
@@ -380,9 +381,9 @@ export function ProDashboardAPIProvider({
 			autoSave(newItems)
 			return newItems
 		})
-	}
+	}, [autoSave])
 
-	const handleColSpanChange = (chartId: string, newColSpan: 1 | 2) => {
+	const handleColSpanChange = useCallback((chartId: string, newColSpan: 1 | 2) => {
 		setItems((prev) => {
 			const newItems = prev.map((item) => {
 				if (item.id === chartId) {
@@ -393,7 +394,7 @@ export function ProDashboardAPIProvider({
 			autoSave(newItems)
 			return newItems
 		})
-	}
+	}, [autoSave])
 
 	const getChainInfo = (chainName: string) => {
 		return chains.find((chain) => chain.name === chainName)
