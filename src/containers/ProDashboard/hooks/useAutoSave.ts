@@ -16,7 +16,7 @@ export function useAutoSave({
 	isAuthenticated,
 	updateDashboard,
 	cleanItemsForSaving,
-	delay = 1000
+	delay = 2000
 }: UseAutoSaveOptions) {
 	const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 

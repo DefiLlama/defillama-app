@@ -3,7 +3,7 @@ import { Icon } from '~/components/Icon'
 import { ProTableCSVButton } from './CsvButton'
 
 interface TableHeaderProps {
-	chain: string
+	chains: string[]
 	columnPresets: Record<string, string[]>
 	applyPreset: (presetName: string) => void
 	showColumnPanel: boolean
@@ -13,7 +13,7 @@ interface TableHeaderProps {
 }
 
 export function TableHeader({
-	chain,
+	chains,
 	columnPresets,
 	applyPreset,
 	showColumnPanel,
@@ -21,9 +21,16 @@ export function TableHeader({
 	downloadCSV,
 	colSpan = 2
 }: TableHeaderProps) {
+	const displayTitle = React.useMemo(() => {
+		if (chains.length === 0) return 'All Protocols'
+		if (chains.length === 1) return `${chains[0]} Protocols`
+		if (chains.length <= 3) return `${chains.join(', ')} Protocols`
+		return `${chains.length} Chains Protocols`
+	}, [chains])
+	
 	return (
 		<div className="flex items-center justify-between flex-wrap gap-2 mb-2 pr-28">
-			<h3 className="text-base font-semibold mr-auto">{chain} Protocols</h3>
+			<h3 className="text-base font-semibold mr-auto">{displayTitle}</h3>
 
 			{colSpan === 2 && (
 				<div className="flex items-center gap-2">

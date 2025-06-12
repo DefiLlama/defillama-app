@@ -38,7 +38,7 @@ interface ProDashboardContextType {
 	setTimePeriod: (period: TimePeriod) => void
 	setDashboardName: (name: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
-	handleAddTable: (chain: string) => void
+	handleAddTable: (chains: string[]) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -299,11 +299,12 @@ export function ProDashboardAPIProvider({
 		})
 	}
 
-	const handleAddTable = (chain: string) => {
+	const handleAddTable = (chains: string[]) => {
+		const chainIdentifier = chains.length > 1 ? 'multi' : chains[0] || 'table'
 		const newTable: ProtocolsTableConfig = {
-			id: generateItemId('table', chain),
+			id: generateItemId('table', chainIdentifier),
 			kind: 'table',
-			chain,
+			chains,
 			colSpan: 2
 		}
 		setItems((prev) => {

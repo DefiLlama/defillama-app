@@ -1,21 +1,21 @@
-import { ItemSelect } from '../ItemSelect'
+import { MultiItemSelect } from '../MultiItemSelect'
 
 interface TableTabProps {
-	selectedChain: string | null
+	selectedChains: string[]
 	chainOptions: Array<{ value: string; label: string }>
 	protocolsLoading: boolean
-	onChainChange: (option: any) => void
+	onChainsChange: (options: any[]) => void
 }
 
-export function TableTab({ selectedChain, chainOptions, protocolsLoading, onChainChange }: TableTabProps) {
+export function TableTab({ selectedChains, chainOptions, protocolsLoading, onChainsChange }: TableTabProps) {
 	return (
-		<ItemSelect
-			label="Select Chain"
+		<MultiItemSelect
+			label="Select Chains"
 			options={chainOptions}
-			selectedValue={selectedChain}
-			onChange={onChainChange}
+			selectedValues={selectedChains}
+			onChange={onChainsChange}
 			isLoading={protocolsLoading}
-			placeholder="Select a chain..."
+			placeholder="Select chains..."
 			itemType="chain"
 		/>
 	)

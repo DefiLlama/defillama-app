@@ -45,7 +45,7 @@ export interface ChartConfig {
 export interface ProtocolsTableConfig {
 	id: string
 	kind: 'table'
-	chain: string
+	chains: string[]
 	colSpan?: 1 | 2
 }
 
