@@ -9,7 +9,7 @@
 	"scripts": {
 		"analyze": "ANALYZE=true yarn build",
 		"postinstall": "./scripts/postinstall.sh",
-		"dev": "node scripts/pullMetadata.js && next dev",
+		"dev": "yarn run build:metadata && next dev",
 		"format": "prettier --write .",
 		"build:metadata": "node scripts/pullMetadata.js",
 		"build": "yarn run build:metadata && ./scripts/build.sh",

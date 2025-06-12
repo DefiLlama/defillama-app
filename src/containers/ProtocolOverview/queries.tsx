@@ -1,56 +1,19 @@
 import { darken, transparentize } from 'polished'
-import { tokenIconPaletteUrl } from '~/utils'
+import { slug, tokenIconPaletteUrl } from '~/utils'
 import { oldBlue, primaryColor } from '~/constants/colors'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { HOURLY_PROTOCOL_API, PROTOCOL_API } from '~/constants'
-import { IRaise } from '~/api/types'
-import { IProtocolMetadata, IProtocolPageMetrics } from './types'
+import { HOURLY_PROTOCOL_API, PROTOCOL_API, PROTOCOLS_TREASURY, YIELD_POOLS_API } from '~/constants'
+import {
+	IProtocolMetadata,
+	IProtocolOverviewPageData,
+	IProtocolPageMetrics,
+	IProtocolPageStyles,
+	IUpdatedProtocol,
+	CardType
+} from './types'
+import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 
-interface IUpdatedProtocol {
-	id: string
-	name: string
-	address?: string | null
-	symbol?: string | null
-	url: string
-	description: string
-	chain: string
-	logo: string
-	audits: string | null
-	audit_note: string | null
-	gecko_id: string | null
-	cmcId: string | null
-	category: string
-	chains: Array<string>
-	module: string
-	treasury?: string | null
-	twitter: string
-	audit_links: Array<string>
-	openSource?: boolean
-	forkedFrom: Array<string>
-	oraclesByChain: Record<string, Array<string>>
-	parentProtocol?: string
-	governanceID?: Array<string>
-	github?: Array<string>
-	chainTvls?: Record<
-		string,
-		{
-			tvl: Array<{ date: number; totalLiquidityUSD: number }>
-			tokens: Array<{ date: number; tokens: Record<string, number> }>
-			tokensInUsd: Array<{ date: number; tokens: Record<string, number> }>
-		}
-	>
-	currentChainTvls?: Record<string, number>
-	isParentProtocol?: boolean
-	mcap: number | null
-	methodology?: string
-	raises: Array<IRaise>
-	otherProtocols?: Array<string>
-	hallmarks?: Array<[number, string]>
-	stablecoins?: Array<string>
-	misrepresentedTokens?: boolean
-}
-
-export const getProtocol = async (protocolName: string) => {
+export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
 	try {
 		const data: IUpdatedProtocol = await fetchWithErrorLogging(`${PROTOCOL_API}/${protocolName}`).then((res) =>
@@ -85,8 +48,8 @@ export const getProtocol = async (protocolName: string) => {
 	}
 }
 
-export const getProtocolPageStyles = async (protocol: string) => {
-	const bgColor = await getColor(tokenIconPaletteUrl(protocol))
+export const getProtocolPageStyles = async (protocolName: string): Promise<IProtocolPageStyles> => {
+	const bgColor = await getColor(tokenIconPaletteUrl(protocolName))
 
 	const bgColor2 = bgColor.length < 7 ? oldBlue : bgColor
 	const backgroundColor = isDarkColor(bgColor2) ? oldBlue : bgColor2
@@ -200,4 +163,537 @@ export const getProtocolMetrics = ({
 		dev: protocolData.github ? true : false,
 		inflows: inflowsExist
 	}
+}
+
+const chartTypes = [
+	'TVL',
+	'Mcap',
+	'Token Price',
+	'FDV',
+	'Fees',
+	'Revenue',
+	'Holders Revenue',
+	'DEX Volume',
+	'Perps Volume',
+	'Unlocks',
+	'Active Addresses',
+	'New Addresses',
+	'Transactions',
+	'Gas Used',
+	'Staking',
+	'Borrowed',
+	'Median APY',
+	'USD Inflows',
+	'Total Proposals',
+	'Successful Proposals',
+	'Max Votes',
+	'Treasury',
+	'Bridge Deposits',
+	'Bridge Withdrawals',
+	'Token Volume',
+	'Token Liquidity',
+	'Tweets',
+	'Developers',
+	'Contributers',
+	'Devs Commits',
+	'Contributers Commits',
+	'NFT Volume',
+	'Options Premium Volume',
+	'Options Notional Volume',
+	'Perps Aggregators Volume',
+	'Bridge Aggregators Volume',
+	'DEX Aggregators Volume',
+	'Incentives'
+]
+
+export const getProtocolOverviewPageData = async ({
+	protocolId,
+	metadata
+}: {
+	protocolId: string
+	metadata: IProtocolMetadata
+}): Promise<IProtocolOverviewPageData> => {
+	const [
+		protocolData,
+		pageStyles,
+		feesProtocols,
+		revenueProtocols,
+		holdersRevenueProtocols,
+		bribesProtocols,
+		tokenTaxProtocols,
+		dexVolumeProtocols,
+		dexAggregatorVolumeProtocols,
+		perpVolumeProtocols,
+		perpAggregatorVolumeProtocols,
+		bridgeAggregatorVolumeProtocols,
+		optionsPremiumVolumeProtocols,
+		optionsNotionalVolumeProtocols,
+		treasury,
+		yieldsData
+	]: [
+		IUpdatedProtocol,
+		IProtocolPageStyles,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		IAdapterOverview | null,
+		{
+			ownTokens: number
+			stablecoins: number
+			majors: number
+			others: number
+		} | null,
+		any
+	] = await Promise.all([
+		getProtocol(metadata.name),
+		getProtocolPageStyles(metadata.name),
+		metadata.fees
+			? getAdapterChainOverview({
+					adapterType: 'fees',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.revenue
+			? getAdapterChainOverview({
+					adapterType: 'fees',
+					dataType: 'dailyRevenue',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.holdersRevenue
+			? getAdapterChainOverview({
+					adapterType: 'fees',
+					dataType: 'dailyHoldersRevenue',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.bribeRevenue
+			? getAdapterChainOverview({
+					adapterType: 'fees',
+					dataType: 'dailyBribesRevenue',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.tokenTax
+			? getAdapterChainOverview({
+					adapterType: 'fees',
+					dataType: 'dailyTokenTaxes',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.dexs
+			? getAdapterChainOverview({
+					adapterType: 'dexs',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.aggregator
+			? getAdapterChainOverview({
+					adapterType: 'aggregators',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.perps
+			? getAdapterChainOverview({
+					adapterType: 'derivatives',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.perpsAggregators
+			? getAdapterChainOverview({
+					adapterType: 'derivatives-aggregator',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.bridgeAggregators
+			? getAdapterChainOverview({
+					adapterType: 'bridge-aggregators',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.options
+			? getAdapterChainOverview({
+					adapterType: 'options',
+					dataType: 'dailyPremiumVolume',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.options
+			? getAdapterChainOverview({
+					adapterType: 'options',
+					dataType: 'dailyNotionalVolume',
+					chain: 'All',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: Promise.resolve(null),
+		metadata.treasury
+			? fetchWithErrorLogging(PROTOCOLS_TREASURY)
+					.then((res) => res.json())
+					.then((res) => res.find((item) => item.id === `${protocolId}-treasury`)?.tokenBreakdowns ?? null)
+					.catch(() => null)
+			: Promise.resolve(null),
+		metadata.yields
+			? fetchWithErrorLogging(YIELD_POOLS_API)
+					.then((res) => res.json())
+					.catch((err) => {
+						console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', metadata.name, err instanceof Error ? err.message : '')
+						return {}
+					})
+			: null
+	])
+
+	const cards: CardType[] = []
+
+	if (treasury) {
+		cards.push('treasury')
+	}
+
+	const feesData = formatAdapterData({
+		data: feesProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'Fees',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+	const revenueData = formatAdapterData({
+		data: revenueProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'Revenue',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const holdersRevenueData = formatAdapterData({
+		data: holdersRevenueProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'HoldersRevenue',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const bribesData = formatAdapterData({
+		data: bribesProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'BribeRevenue',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const tokenTaxData = formatAdapterData({
+		data: tokenTaxProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'TokenTaxes',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const dexVolumeData = formatAdapterData({
+		data: dexVolumeProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'dexs',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const dexAggregatorVolumeData = formatAdapterData({
+		data: dexAggregatorVolumeProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'dexAggregators',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const perpVolumeData = formatAdapterData({
+		data: perpVolumeProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'perps',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const perpAggregatorVolumeData = formatAdapterData({
+		data: perpAggregatorVolumeProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'perpsAggregators',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const bridgeAggregatorVolumeData = formatAdapterData({
+		data: bridgeAggregatorVolumeProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'bridgeAggregators',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const optionsPremiumVolumeData = formatAdapterData({
+		data: optionsPremiumVolumeProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'optionsPremiumVolume',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	const optionsNotionalVolumeData = formatAdapterData({
+		data: optionsNotionalVolumeProtocols,
+		isParentProtocol: protocolData.isParentProtocol,
+		methodologyKey: 'optionsNotionalVolume',
+		protocolName: metadata.displayName,
+		protocolId,
+		otherProtocols: protocolData.otherProtocols
+	})
+
+	if (feesData || bribesData || tokenTaxData) {
+		cards.push('fees')
+	}
+
+	if (revenueData || bribesData || tokenTaxData) {
+		cards.push('revenue')
+	}
+
+	if (holdersRevenueData || bribesData || tokenTaxData) {
+		cards.push('holdersRevenue')
+	}
+
+	if (dexVolumeData) {
+		cards.push('dexVolume')
+	}
+
+	if (dexAggregatorVolumeData) {
+		cards.push('dexAggregatorVolume')
+	}
+
+	if (perpVolumeData) {
+		cards.push('perpVolume')
+	}
+
+	if (perpAggregatorVolumeData) {
+		cards.push('perpAggregatorVolume')
+	}
+
+	if (bridgeAggregatorVolumeData) {
+		cards.push('bridgeAggregatorVolume')
+	}
+
+	if (optionsPremiumVolumeData) {
+		cards.push('optionsPremiumVolume')
+	}
+
+	if (optionsNotionalVolumeData) {
+		cards.push('optionsNotionalVolume')
+	}
+
+	const otherProtocols = protocolData.otherProtocols?.map((p) => slug(p)) ?? []
+	const projectYields = yieldsData?.data?.filter(
+		({ project }) =>
+			[metadata.name, metadata.displayName].includes(project) ||
+			(protocolData?.parentProtocol ? false : otherProtocols.includes(project))
+	)
+	const yields =
+		yieldsData && yieldsData.data && projectYields.length > 0
+			? {
+					noOfPoolsTracked: projectYields.length,
+					averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
+			  }
+			: null
+
+	console.log({ projectYields, yields })
+	if (yields) {
+		cards.push('yields')
+	}
+
+	// if (true) {
+	// 	cards.push('governance')
+	// }
+
+	// if (true) {
+	// 	cards.push('unlocks')
+	// }
+
+	return {
+		name: protocolData.name,
+		symbol: protocolData.symbol ?? null,
+		category: protocolData.category ?? null,
+		otherProtocols: protocolData.otherProtocols ?? null,
+		deprecated: protocolData.deprecated ?? false,
+		chains: protocolData.chains ?? [],
+		currentTvlByChain: protocolData.currentChainTvls ?? {},
+		description: protocolData.description ?? '',
+		website: protocolData.referralUrl ?? protocolData.url ?? null,
+		twitter: protocolData.twitter ?? null,
+		github: protocolData.github
+			? typeof protocolData.github === 'string'
+				? [protocolData.github]
+				: protocolData.github
+			: null,
+		methodology:
+			protocolData.methodology ??
+			(metadata.tvl && protocolData.module && protocolData.module !== 'dummy.js'
+				? 'Total value of all coins held in the smart contracts of the protocol'
+				: null),
+		methodologyURL:
+			metadata.tvl && protocolData.module && protocolData.module !== 'dummy.js'
+				? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
+				: null,
+		pageStyles,
+		metrics: getProtocolMetrics({ protocolData, metadata }),
+		fees: feesData,
+		revenue: revenueData,
+		holdersRevenue: holdersRevenueData,
+		bribeRevenue: bribesData,
+		tokenTax: tokenTaxData,
+		dexVolume: dexVolumeData,
+		dexAggregatorVolume: dexAggregatorVolumeData,
+		perpVolume: perpVolumeData,
+		perpAggregatorVolume: perpAggregatorVolumeData,
+		bridgeAggregatorVolume: bridgeAggregatorVolumeData,
+		optionsPremiumVolume: optionsPremiumVolumeData,
+		optionsNotionalVolume: optionsNotionalVolumeData,
+		treasury,
+		unlocks: null,
+		governance: null,
+		yields,
+		cards,
+		isCEX: false
+	}
+}
+
+function formatAdapterData({
+	data,
+	isParentProtocol,
+	methodologyKey,
+	protocolName,
+	protocolId,
+	otherProtocols
+}: {
+	data: IAdapterOverview | null
+	isParentProtocol: boolean
+	methodologyKey?: string
+	protocolName: string
+	protocolId: string
+	otherProtocols?: string[]
+}): {
+	total24h: number | null
+	total30d: number | null
+	totalAllTime: number | null
+	methodologyURLs?: Record<string, string>
+	methodology?: string | null
+	methodologyURL?: string | null
+	childMethodologies?: Array<[string, string | null, string | null]>
+} | null {
+	if (!data) {
+		return null
+	}
+
+	if (isParentProtocol) {
+		const childProtocols = data?.protocols?.filter((p) => p.linkedProtocols?.includes(protocolName))
+
+		if (childProtocols?.length === 0) {
+			return null
+		}
+
+		let total24h = 0
+		let total30d = 0
+		let totalAllTime = 0
+
+		const childMethodologies = []
+		for (const childProtocol of childProtocols) {
+			total24h += childProtocol.total24h ?? 0
+			total30d += childProtocol.total30d ?? 0
+			totalAllTime += childProtocol.totalAllTime ?? 0
+
+			if (methodologyKey && !commonMethodology[methodologyKey]) {
+				childMethodologies.push([
+					childProtocol.name,
+					childProtocol.methodology?.[methodologyKey] ?? null,
+					childProtocol.methodologyURL ?? null
+				])
+			}
+		}
+
+		const areMethodologiesDifferent = new Set(childMethodologies.map((m) => m[1])).size > 1
+		const topChildMethodology =
+			otherProtocols?.length > 1 ? childMethodologies.find((m) => m[0] === otherProtocols[1]) : null
+
+		return {
+			total24h,
+			total30d,
+			totalAllTime,
+			...(areMethodologiesDifferent
+				? { childMethodologies: childMethodologies.filter((m) => (m[1] || m[2] ? true : false)) }
+				: {
+						methodology: methodologyKey ? topChildMethodology?.[1] ?? commonMethodology[methodologyKey] ?? null : null,
+						methodologyURL: topChildMethodology?.[2] ?? null
+				  })
+		}
+	}
+
+	const adapterProtocol = data?.protocols.find((p) => p.defillamaId === protocolId)
+
+	if (!adapterProtocol) {
+		return null
+	}
+
+	return {
+		total24h: adapterProtocol.total24h ?? null,
+		total30d: adapterProtocol.total30d ?? null,
+		totalAllTime: adapterProtocol.totalAllTime ?? null,
+		methodology: methodologyKey
+			? adapterProtocol.methodology?.[methodologyKey] ?? commonMethodology[methodologyKey] ?? null
+			: null,
+		methodologyURL: adapterProtocol.methodologyURL ?? null
+	}
+}
+
+const commonMethodology = {
+	dexs: 'Volume of all spot token swaps that go through the protocol',
+	dexAggregators: 'Volume of all spot token swaps that go through the protocol',
+	perps: 'Notional volume of all trades in the protocol, includes leverage',
+	perpsAggregators: 'Notional volume of all trades in the protocol, includes leverage',
+	bridgeAggregators: 'Sum of value of all assets that were bridged through the protocol',
+	optionsPremiumVolume: 'Sum of value paid buying and selling options',
+	optionsNotionalVolume: 'Sum of the notional value of all options that have been traded on the protocol'
 }
