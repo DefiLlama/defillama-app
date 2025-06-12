@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { Announcement } from '~/components/Announcement'
 import { scams } from '~/constants'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { slug, tokenIconUrl } from '~/utils'
@@ -122,7 +121,8 @@ export function ProtocolOverviewLayout({
 										<Ariakit.MenuItem
 											key={'navigate to ' + `/protocol/${slug(value)}`}
 											render={<BasicLink href={`/protocol/${slug(value)}`} />}
-											className="flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)] whitespace-nowrap overflow-hidden text-ellipsis"
+											data-active={name === value}
+											className="flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] data-[active=true]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)] whitespace-nowrap overflow-hidden text-ellipsis"
 										>
 											<TokenLogo logo={tokenIconUrl(value)} size={16} />
 											<span>{value}</span>
