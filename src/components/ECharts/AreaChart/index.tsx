@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { stringToColour } from '../utils'
@@ -214,15 +214,17 @@ export default function AreaChart({
 		hideGradient
 	])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
 	useEffect(() => {
-		// create instance
-		const chartInstance = createInstance()
+		const chartDom = document.getElementById(id)
+		if (!chartDom) return
+
+		let chartInstance = echarts.getInstanceByDom(chartDom)
+		if (!chartInstance) {
+			chartInstance = echarts.init(chartDom)
+		}
+		chartRef.current = chartInstance
 
 		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
@@ -287,9 +289,23 @@ export default function AreaChart({
 
 		return () => {
 			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend])
+	}, [defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend, hideDataZoom, id, chartsStack])
+
+	useEffect(() => {
+		return () => {
+			const chartDom = document.getElementById(id)
+			if (chartDom) {
+				const chartInstance = echarts.getInstanceByDom(chartDom)
+				if (chartInstance) {
+					chartInstance.dispose()
+				}
+			}
+			if (chartRef.current) {
+				chartRef.current = null
+			}
+		}
+	}, [id])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
