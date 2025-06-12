@@ -20,7 +20,6 @@ interface IMultiSeriesChartProps {
 	}
 	height?: string
 	groupBy?: 'daily' | 'weekly' | 'monthly'
-	hallmarks?: [number, string][]
 	valueSymbol?: string
 	alwaysShowTooltip?: boolean
 	hideDataZoom?: boolean
@@ -37,7 +36,6 @@ export default function MultiSeriesChart({
 	groupBy,
 	hideDataZoom = false,
 	hideDownloadButton = false,
-	hallmarks,
 	alwaysShowTooltip
 }: IMultiSeriesChartProps) {
 	const id = useId()
@@ -118,34 +116,31 @@ export default function MultiSeriesChart({
 
 		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
+		const maxValues = processedSeries.map((s: any) => {
+			const vals = (s.data || []).map((d: any) => (typeof d[1] === 'number' ? d[1] : 0))
+			return vals.length ? Math.max(...vals) : 0
+		})
+		const overallMax = maxValues.length ? Math.max(...maxValues) : 0
+		const minMax = maxValues.length ? Math.min(...maxValues.filter((v) => v > 0)) : 0
+		const ratioThreshold = 100
+		const needSecondaryAxis = minMax > 0 && overallMax > 0 && overallMax / minMax > ratioThreshold
+
+		let finalYAxis: any = yAxis
 		let seriesWithHallmarks = processedSeries
-		if (hallmarks && processedSeries.length > 0) {
-			seriesWithHallmarks = [...processedSeries]
-			seriesWithHallmarks[0] = {
-				...seriesWithHallmarks[0],
-				markLine: {
-					data: hallmarks.map(([date, event], index: number) => [
-						{
-							name: event,
-							xAxis: +date * 1e3,
-							yAxis: 0,
-							label: {
-								color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-								fontFamily: 'sans-serif',
-								fontSize: 14,
-								fontWeight: 500
-							}
-						},
-						{
-							name: 'end',
-							xAxis: +date * 1e3,
-							yAxis: 'max',
-							y: Math.max(hallmarks.length * 40 - index * 40, 40)
-						}
-					])
-				}
-			}
+
+		if (needSecondaryAxis) {
+			finalYAxis = [
+				{ ...yAxis, position: 'left' },
+				{ ...yAxis, position: 'right' }
+			]
+
+			seriesWithHallmarks = seriesWithHallmarks.map((s: any, idx: number) => ({
+				...s,
+				yAxisIndex: idx < maxValues.length && maxValues[idx] < overallMax / ratioThreshold ? 1 : 0
+			}))
 		}
+
+		const legendRightPadding = needSecondaryAxis ? 40 : legend.right
 
 		chartInstance.setOption({
 			graphic,
@@ -159,10 +154,11 @@ export default function MultiSeriesChart({
 				containLabel: true
 			},
 			xAxis,
-			yAxis,
+			yAxis: finalYAxis,
 			legend: {
 				...legend,
-				data: series?.map((s: any) => s.name) || []
+				data: series?.map((s: any) => s.name) || [],
+				...(legendRightPadding !== undefined ? { right: legendRightPadding } : {})
 			},
 			dataZoom: hideDataZoom ? [] : [...dataZoom],
 			series: seriesWithHallmarks
@@ -195,17 +191,7 @@ export default function MultiSeriesChart({
 		return () => {
 			window.removeEventListener('resize', resize)
 		}
-	}, [
-		defaultChartSettings,
-		processedSeries,
-		chartOptions,
-		hideDataZoom,
-		hallmarks,
-		isThemeDark,
-		alwaysShowTooltip,
-		series,
-		id
-	])
+	}, [defaultChartSettings, processedSeries, chartOptions, hideDataZoom, alwaysShowTooltip, series, id])
 
 	useEffect(() => {
 		return () => {
