@@ -14,6 +14,7 @@ import {
 	IArticle
 } from './types'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
+import { getProtocolEmissons } from '~/api/categories/protocols'
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
@@ -232,7 +233,8 @@ export const getProtocolOverviewPageData = async ({
 		optionsNotionalVolumeProtocols,
 		treasury,
 		yieldsData,
-		articles
+		articles,
+		incentives
 	]: [
 		IUpdatedProtocol,
 		IProtocolPageStyles,
@@ -255,7 +257,8 @@ export const getProtocolOverviewPageData = async ({
 			others: number
 		} | null,
 		any,
-		IArticle[]
+		IArticle[],
+		any
 	] = await Promise.all([
 		getProtocol(metadata.name),
 		getProtocolPageStyles(metadata.name),
@@ -378,7 +381,29 @@ export const getProtocolOverviewPageData = async ({
 		fetchArticles({ tags: metadata.name }).catch((err) => {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', metadata.name, err instanceof Error ? err.message : '')
 			return []
-		})
+		}),
+		metadata?.emissions
+			? fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
+					.then((res) => res.json())
+					.then((data) => {
+						const protocolEmissionsData = data.protocols.find((item) =>
+							protocolId.startsWith('parent#') ? item.name === metadata.displayName : item.defillamaId === protocolId
+						)
+
+						if (!protocolEmissionsData) return null
+
+						return {
+							emissions24h: protocolEmissionsData.emission24h,
+							emissions7d: protocolEmissionsData.emission7d,
+							emissions30d: protocolEmissionsData.emission30d,
+							emissionsAllTime: protocolEmissionsData.emissionsAllTime,
+							average1y: protocolEmissionsData.emissionsAverage1y,
+							methodology:
+								'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms.'
+						}
+					})
+					.catch(() => null)
+			: null
 	])
 
 	const cards: CardType[] = []
@@ -559,7 +584,13 @@ export const getProtocolOverviewPageData = async ({
 	// 	cards.push('unlocks')
 	// }
 
-	console.log({ articles })
+	if (incentives) {
+		cards.push('incentives')
+	}
+
+	if (revenueData && incentives) {
+		cards.push('earnings')
+	}
 
 	return {
 		name: protocolData.name,
@@ -605,6 +636,7 @@ export const getProtocolOverviewPageData = async ({
 		governance: null,
 		yields,
 		articles,
+		incentives,
 		cards,
 		isCEX: false
 	}

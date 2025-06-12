@@ -247,6 +247,17 @@ const KeyMetricsAndProtocolInfo = (props: IProtocolOverviewPageData) => {
 				<MethodologyByAdapter adapter={props.bridgeAggregatorVolume} title="Bridge Aggregator Volume" />
 				<MethodologyByAdapter adapter={props.optionsPremiumVolume} title="Options Premium Volume" />
 				<MethodologyByAdapter adapter={props.optionsNotionalVolume} title="Options Notional Volume" />
+				{props.incentives?.methodology ? (
+					<>
+						<p>
+							<span className="font-medium">Incentives:</span> <span>{props.incentives.methodology}</span>
+						</p>
+						<p>
+							<span className="font-medium">Earnings:</span>{' '}
+							<span>Revenue of the protocol minus the incentives distributed to users</span>
+						</p>
+					</>
+				) : null}
 			</div>
 			<Articles {...props} />
 		</>
@@ -363,6 +374,8 @@ const cardByType: Record<CardType, (props: IProtocolOverviewPageData) => React.R
 	fees: Fees,
 	revenue: Revenue,
 	holdersRevenue: HoldersRevenue,
+	incentives: Incentives,
+	earnings: Earnings,
 	unlocks: Unlocks,
 	governance: Governance,
 	yields: Yields,
@@ -459,19 +472,34 @@ function Fees(props: IProtocolOverviewPageData) {
 				) : null}
 				{fees30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Fees 30d</span>
+						<Tooltip
+							content="Total fees paid by users in the last 30 days, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Fees 30d
+						</Tooltip>
 						<span className="font-jetbrains">{formattedNum(fees30d, true)}</span>
 					</p>
 				) : null}
 				{fees24h != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Fees 24h</span>
+						<Tooltip
+							content="Total fees paid by users in the last 24 hours, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Fees 24h
+						</Tooltip>
 						<span className="font-jetbrains">{formattedNum(fees24h, true)}</span>
 					</p>
 				) : null}
 				{feesAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Fees</span>
+						<Tooltip
+							content="Total fees paid by users since the protocol was launched"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+						>
+							Cumulative Fees
+						</Tooltip>
 						<span className="font-jetbrains">{formattedNum(feesAllTime, true)}</span>
 					</p>
 				) : null}
@@ -522,19 +550,34 @@ function Revenue(props: IProtocolOverviewPageData) {
 				) : null}
 				{revenue30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Revenue 30d</span>
+						<Tooltip
+							content="Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Revenue 30d
+						</Tooltip>
 						<span className="font-jetbrains">{formattedNum(revenue30d, true)}</span>
 					</p>
 				) : null}
 				{revenue24h != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Revenue 24h</span>
+						<Tooltip
+							content="Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Revenue 24h
+						</Tooltip>
 						<span className="font-jetbrains">{formattedNum(revenue24h, true)}</span>
 					</p>
 				) : null}
 				{revenueAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Revenue</span>
+						<Tooltip
+							content="Total revenue earned by the protocol since the protocol was launched"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+						>
+							Cumulative Revenue
+						</Tooltip>
 						<span className="font-jetbrains">{formattedNum(revenueAllTime, true)}</span>
 					</p>
 				) : null}
@@ -589,19 +632,34 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 				) : null}
 				{holdersRevenue30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Holders Revenue 30d</span>
+						<Tooltip
+							content="Total revenue that is distributed to protocol's token holders in the last 30 days, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Holders Revenue 30d
+						</Tooltip>
 						<span className="font-jetbrains">{formattedNum(holdersRevenue30d, true)}</span>
 					</p>
 				) : null}
 				{holdersRevenue24h != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Holders Revenue 24h</span>
+						<Tooltip
+							content="Total revenue that is distributed to protocol's token holders in the last 24 hours, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Holders Revenue 24h
+						</Tooltip>
 						<span className="font-jetbrains">{formattedNum(holdersRevenue24h, true)}</span>
 					</p>
 				) : null}
 				{holdersRevenueAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Holders Revenue</span>
+						<Tooltip
+							content="Total revenue that is distributed to protocol's token holders since the protocol was launched"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+						>
+							Cumulative Holders Revenue
+						</Tooltip>
 						<span className="font-jetbrains">{formattedNum(holdersRevenueAllTime, true)}</span>
 					</p>
 				) : null}
@@ -611,6 +669,152 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
 			>
 				<span>View all Holders Revenue</span>
+				<Icon name="arrow-right" className="w-4 h-4" />
+			</BasicLink>
+		</div>
+	)
+}
+
+function Incentives(props: IProtocolOverviewPageData) {
+	const incentivesData = props.incentives
+	if (!incentivesData) return null
+
+	return (
+		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+			<h2 className="text-base font-semibold">Incentives</h2>
+			<div className="flex flex-col">
+				{incentivesData.emissions30d != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<Tooltip
+							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Incentives (Annualized)
+						</Tooltip>
+						<span className="font-jetbrains">{formattedNum(incentivesData.emissions30d * 12.2, true)}</span>
+					</p>
+				) : null}
+				{incentivesData.emissions30d != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<Tooltip
+							content="Total incentives distributed by the protocol in the last 30 days, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Incentives 30d
+						</Tooltip>
+						<span className="font-jetbrains">{formattedNum(incentivesData.emissions30d, true)}</span>
+					</p>
+				) : null}
+				{incentivesData.emissions24h != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<Tooltip
+							content="Total incentives distributed by the protocol in the last 24 hours, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Incentives 24h
+						</Tooltip>
+						<span className="font-jetbrains">{formattedNum(incentivesData.emissions24h, true)}</span>
+					</p>
+				) : null}
+				{incentivesData.emissionsAllTime != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<Tooltip
+							content="Total incentives distributed by the protocol since the protocol was launched"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+						>
+							Cumulative Incentives
+						</Tooltip>
+						<span className="font-jetbrains">{formattedNum(incentivesData.emissionsAllTime, true)}</span>
+					</p>
+				) : null}
+			</div>
+		</div>
+	)
+}
+
+function Earnings(props: IProtocolOverviewPageData) {
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
+
+	const revenue = props.revenue
+	const bribeRevenue = props.bribeRevenue
+	const tokenTax = props.tokenTax
+	const incentivesData = props.incentives
+
+	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
+	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
+	const bribeRevenueAllTime = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
+	const tokenTax24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
+	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
+	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
+
+	const revenue24h = revenue?.total24h != null ? revenue.total24h + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
+	const revenue30d = revenue?.total30d != null ? revenue.total30d + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
+	const revenueAllTime =
+		revenue?.totalAllTime != null ? revenue.totalAllTime + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0) : null
+
+	const earnings24h =
+		revenue24h != null && incentivesData?.emissions24h != null ? revenue24h - incentivesData.emissions24h : null
+	const earnings30d =
+		revenue30d != null && incentivesData?.emissions30d != null ? revenue30d - incentivesData.emissions30d : null
+	const earningsAllTime =
+		revenueAllTime != null && incentivesData?.emissionsAllTime != null
+			? revenueAllTime - incentivesData.emissionsAllTime
+			: null
+
+	return (
+		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+			<h2 className="text-base font-semibold">Earnings</h2>
+			<div className="flex flex-col">
+				{earnings30d != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<Tooltip
+							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Earnings (Annualized)
+						</Tooltip>
+						<span className="font-jetbrains">{formattedNum(earnings30d * 12.2, true)}</span>
+					</p>
+				) : null}
+				{earnings30d != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<Tooltip
+							content="Total earnings (revenue - incentives) of the protocol in the last 30 days, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Earnings 30d
+						</Tooltip>
+						<span className="font-jetbrains">{formattedNum(earnings30d, true)}</span>
+					</p>
+				) : null}
+				{earnings24h != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<Tooltip
+							content="Total earnings (revenue - incentives) of the protocol in the last 24 hours, updated daily at 00:00UTC"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+						>
+							Earnings 24h
+						</Tooltip>
+						<span className="font-jetbrains">{formattedNum(earnings24h, true)}</span>
+					</p>
+				) : null}
+				{earningsAllTime != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<Tooltip
+							content="Total earnings (revenue - incentives) of the protocol since the protocol was launched"
+							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+						>
+							Cumulative Earnings
+						</Tooltip>
+						<span className="font-jetbrains">{formattedNum(earningsAllTime, true)}</span>
+					</p>
+				) : null}
+			</div>
+			<BasicLink
+				href="/earnings"
+				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
+			>
+				<span>View all Earnings</span>
 				<Icon name="arrow-right" className="w-4 h-4" />
 			</BasicLink>
 		</div>
@@ -1011,6 +1215,10 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 								<Revenue {...props} />
 							) : card === 'holdersRevenue' ? (
 								<HoldersRevenue {...props} />
+							) : card === 'incentives' ? (
+								<Incentives {...props} />
+							) : card === 'earnings' ? (
+								<Earnings {...props} />
 							) : card === 'treasury' ? (
 								<Treasury {...props} />
 							) : card === 'unlocks' ? (
@@ -1046,8 +1254,6 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 // governance
 // token information
 
-// incentives
-// earnings
 // user activity
 // development activity
 

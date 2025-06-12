@@ -137,6 +137,14 @@ export interface IProtocolOverviewPageData {
 	bridgeAggregatorVolume: IAdapterOverview | null
 	optionsPremiumVolume: IAdapterOverview | null
 	optionsNotionalVolume: IAdapterOverview | null
+	incentives?: {
+		emissions24h: number
+		emissions7d: number
+		emissions30d: number
+		emissionsAllTime: number
+		average1y: number
+		methodology?: string
+	} | null
 	treasury: {
 		ownTokens: number
 		stablecoins: number
@@ -172,6 +180,8 @@ export type CardType =
 	| 'fees'
 	| 'revenue'
 	| 'holdersRevenue'
+	| 'incentives'
+	| 'earnings'
 	| 'dexVolume'
 	| 'dexAggregatorVolume'
 	| 'perpVolume'
