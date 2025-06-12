@@ -532,6 +532,8 @@ const columnOptions = [
 	},
 	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Cumulative Fees', key: 'fees_cumulative', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Cumulative Revenue', key: 'cumulativeRevenue', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'Cumulative Incentives', key: 'cumulativeEmissions', category: TABLE_CATEGORIES.REVENUE },
 	{
 		name: 'Holders Revenue 24h',
 		key: 'holderRevenue_24h',
@@ -860,7 +862,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					align: 'end',
 					headerHelperText: 'Average monthly fees paid by users in the last 12 months'
 				},
-				size: 170
+				size: 180
 			}),
 			columnHelper.accessor((row) => row.revenue?.total1y, {
 				id: 'revenue_1y',
@@ -905,7 +907,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					align: 'end',
 					headerHelperText: 'Average monthly incentives distributed to users in the last 12 months'
 				},
-				size: 180
+				size: 220
 			}),
 			columnHelper.accessor((row) => row.fees?.totalAllTime, {
 				id: 'fees_cumulative',
@@ -927,7 +929,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					align: 'end',
 					headerHelperText: 'Total revenue earned by the protocol since the protocol was launched'
 				},
-				size: 150
+				size: 180
 			}),
 			columnHelper.accessor((row) => row.emissions?.totalAllTime, {
 				id: 'cumulativeEmissions',
@@ -938,7 +940,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					align: 'end',
 					headerHelperText: 'Total incentives distributed to users since the protocol was launched'
 				},
-				size: 150
+				size: 180
 			}),
 			columnHelper.accessor((row) => row.fees?.pf, {
 				id: 'pf',
@@ -1050,7 +1052,7 @@ const columns: ColumnDef<IProtocol>[] = [
 						headerHelperText:
 							'Average monthly earnings (Revenue - Incentives) earned by the protocol in the last 12 months'
 					},
-					size: 180
+					size: 200
 				}
 			),
 			columnHelper.accessor(
