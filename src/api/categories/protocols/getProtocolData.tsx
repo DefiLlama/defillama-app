@@ -2,7 +2,6 @@ import { formatPercentage, getNDistinctColors, slug, timeFromNow } from '~/utils
 import { maxAgeForNext } from '~/api'
 import { fuseProtocolData, getProtocolEmissons, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
-import { fetchArticles, IArticle } from '~/api/categories/news'
 import {
 	ACTIVE_USERS_API,
 	PROTOCOLS_EXPENSES_API,
@@ -23,8 +22,9 @@ import { cg_volume_cexs } from '../../../pages/cexs'
 import { sluggify } from '~/utils/cache-client'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import metadata from '~/utils/metadata'
-import { getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { fetchArticles, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { IArticle } from '~/containers/ProtocolOverview/types'
 const { chainMetadata, protocolMetadata } = metadata
 
 const chartTypes = [

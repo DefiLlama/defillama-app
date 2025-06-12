@@ -1,7 +1,7 @@
 import { darken, transparentize } from 'polished'
 import { slug, tokenIconPaletteUrl } from '~/utils'
 import { oldBlue, primaryColor } from '~/constants/colors'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import { HOURLY_PROTOCOL_API, PROTOCOL_API, PROTOCOLS_TREASURY, YIELD_POOLS_API } from '~/constants'
 import {
 	IProtocolMetadata,
@@ -9,7 +9,9 @@ import {
 	IProtocolPageMetrics,
 	IProtocolPageStyles,
 	IUpdatedProtocol,
-	CardType
+	CardType,
+	IArticlesResponse,
+	IArticle
 } from './types'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 
@@ -229,7 +231,8 @@ export const getProtocolOverviewPageData = async ({
 		optionsPremiumVolumeProtocols,
 		optionsNotionalVolumeProtocols,
 		treasury,
-		yieldsData
+		yieldsData,
+		articles
 	]: [
 		IUpdatedProtocol,
 		IProtocolPageStyles,
@@ -251,7 +254,8 @@ export const getProtocolOverviewPageData = async ({
 			majors: number
 			others: number
 		} | null,
-		any
+		any,
+		IArticle[]
 	] = await Promise.all([
 		getProtocol(metadata.name),
 		getProtocolPageStyles(metadata.name),
@@ -370,7 +374,11 @@ export const getProtocolOverviewPageData = async ({
 						console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', metadata.name, err instanceof Error ? err.message : '')
 						return {}
 					})
-			: null
+			: null,
+		fetchArticles({ tags: metadata.name }).catch((err) => {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', metadata.name, err instanceof Error ? err.message : '')
+			return []
+		})
 	])
 
 	const cards: CardType[] = []
@@ -539,8 +547,6 @@ export const getProtocolOverviewPageData = async ({
 					averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
 			  }
 			: null
-
-	console.log({ projectYields, yields })
 	if (yields) {
 		cards.push('yields')
 	}
@@ -552,6 +558,8 @@ export const getProtocolOverviewPageData = async ({
 	// if (true) {
 	// 	cards.push('unlocks')
 	// }
+
+	console.log({ articles })
 
 	return {
 		name: protocolData.name,
@@ -596,6 +604,7 @@ export const getProtocolOverviewPageData = async ({
 		unlocks: null,
 		governance: null,
 		yields,
+		articles,
 		cards,
 		isCEX: false
 	}
@@ -696,4 +705,27 @@ const commonMethodology = {
 	bridgeAggregators: 'Sum of value of all assets that were bridged through the protocol',
 	optionsPremiumVolume: 'Sum of value paid buying and selling options',
 	optionsNotionalVolume: 'Sum of the notional value of all options that have been traded on the protocol'
+}
+
+export const fetchArticles = async ({ tags = '', size = 2 }) => {
+	const articlesRes: IArticlesResponse = await fetchWithTimeout(`https://api.llama.fi/news/articles`, 10_000)
+		.then((res) => res.json())
+		.catch((err) => {
+			console.log(err)
+			return {}
+		})
+
+	const target = tags.toLowerCase()
+
+	const articles: IArticle[] =
+		articlesRes?.content_elements
+			?.filter((element) => element.taxonomy?.tags?.some((tag) => tag.slug.toLowerCase() === target))
+			.map((element) => ({
+				headline: element.headlines.basic,
+				date: element.display_date,
+				href: `https://dlnews.com${element.canonical_url}`,
+				imgSrc: element.promo_items?.basic?.url ?? null
+			})) ?? []
+
+	return articles.slice(0, size)
 }

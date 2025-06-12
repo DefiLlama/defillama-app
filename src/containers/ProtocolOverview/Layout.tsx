@@ -64,7 +64,7 @@ export function ProtocolOverviewLayout({
 			)}
 			{name === 'Curve Finance' && (
 				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-[var(--btn-bg)] border border-[var(--bg-color)] mb-1">
-					Curve Finance updated their address to curve.finance. Update all your bookmarks.
+					Curve Finance updated their website to curve.finance. Update all your bookmarks.
 				</p>
 			)}
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (

@@ -1,11 +1,9 @@
-import ProtocolContainer from '~/containers/ProtocolOverview'
+import ProtocolContainer from '~/containers/ProtocolOverview/index-old'
 import { maxAgeForNext } from '~/api'
 import { fuseProtocolData } from '~/api/categories/protocols'
-import { IProtocolResponse } from '~/api/types'
-import { fetchArticles, IArticle } from '~/api/categories/news'
 import { cexData } from '../../cexs'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { fetchArticles, getProtocol, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/assets/[...cex]',
@@ -22,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const [protocolRes, articles, pageStyles]: [IProtocolResponse, IArticle[], any] = await Promise.all([
+		const [protocolRes, articles, pageStyles]: any = await Promise.all([
 			getProtocol(exchangeName),
 			fetchArticles({ tags: exchangeName }),
 			getProtocolPageStyles(exchangeData.name)

@@ -10,6 +10,8 @@ import { Flag } from './Flag'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { BasicLink } from '~/components/Link'
+import { DLNewsLogo } from '~/components/News/Logo'
+import dayjs from 'dayjs'
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
@@ -246,10 +248,52 @@ const KeyMetricsAndProtocolInfo = (props: IProtocolOverviewPageData) => {
 				<MethodologyByAdapter adapter={props.optionsPremiumVolume} title="Options Premium Volume" />
 				<MethodologyByAdapter adapter={props.optionsNotionalVolume} title="Options Notional Volume" />
 			</div>
+			<Articles {...props} />
 		</>
 	)
 }
 
+const Articles = (props: IProtocolOverviewPageData) => {
+	if (!props.articles) return null
+
+	return (
+		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-2">
+			<div className="flex items-center justify-between">
+				<h3 className="text-base font-semibold">Latest from DL News</h3>
+				<a href="https://www.dlnews.com">
+					<DLNewsLogo width={102} height={22} />
+				</a>
+			</div>
+
+			{props.articles.map((article, idx) => (
+				<a
+					key={`news_card_${idx}`}
+					href={article.href}
+					target="_blank"
+					rel="noreferrer noopener"
+					className="p-2 flex flex-col gap-3 rounded-md bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+				>
+					{article.imgSrc ? (
+						<img
+							className="object-cover rounded h-[100px] w-full flex-shrink-0"
+							src={article.imgSrc}
+							alt={article.headline}
+						/>
+					) : null}
+					<div className="flex flex-col gap-3 justify-between">
+						<p className="text-sm font-medium whitespace-pre-wrap break-keep">{article.headline}</p>
+						<div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
+							<p className="text-xs">{dayjs(article.date).format('MMMM D, YYYY')}</p>
+							<p className="flex items-center justify-between flex-nowrap text-sm font-semibold rounded-md">
+								<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
+							</p>
+						</div>
+					</div>
+				</a>
+			))}
+		</div>
+	)
+}
 const MethodologyByAdapter = ({
 	adapter,
 	title
@@ -1002,7 +1046,6 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 // governance
 // token information
 
-// dlnews
 // incentives
 // earnings
 // user activity

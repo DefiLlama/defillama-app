@@ -154,6 +154,7 @@ export interface IProtocolOverviewPageData {
 			status: string
 		}
 	} | null
+	articles: IArticle[] | null
 	cards: Array<CardType>
 	isCEX?: boolean
 }
@@ -181,3 +182,37 @@ export type CardType =
 	| 'unlocks'
 	| 'governance'
 	| 'yields'
+
+interface ICredit {
+	by: string
+}
+
+interface IContentElement {
+	subheadlines: { basic: string }
+	type: string
+	promo_items: { basic: { url: string } }
+	canonical_url: string
+	display_date: string
+	credits: ICredit[]
+	headlines: { basic: string }
+	taxonomy?: {
+		tags?: {
+			description: string
+			text: string
+			slug: string
+		}[]
+	}
+}
+
+export interface IArticlesResponse {
+	type: string
+	version: string
+	content_elements: IContentElement[]
+}
+
+export interface IArticle {
+	headline: string
+	date: string
+	href: string
+	imgSrc: string | null
+}
