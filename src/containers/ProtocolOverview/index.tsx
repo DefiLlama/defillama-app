@@ -252,10 +252,12 @@ const KeyMetricsAndProtocolInfo = (props: IProtocolOverviewPageData) => {
 						<p>
 							<span className="font-medium">Incentives:</span> <span>{props.incentives.methodology}</span>
 						</p>
-						<p>
-							<span className="font-medium">Earnings:</span>{' '}
-							<span>Revenue of the protocol minus the incentives distributed to users</span>
-						</p>
+						{props.revenue ? (
+							<p>
+								<span className="font-medium">Earnings:</span>{' '}
+								<span>Revenue of the protocol minus the incentives distributed to users</span>
+							</p>
+						) : null}
 					</>
 				) : null}
 			</div>
