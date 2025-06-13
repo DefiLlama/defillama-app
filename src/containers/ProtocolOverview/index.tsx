@@ -1131,12 +1131,12 @@ const ProtocolContainer = ({
 											}
 										/>
 									) : null}
-									{incentivesData != null && revenue30dFinal != null ? (
+									{incentivesData != null ? (
 										<RowWithSubRows
 											protocolName={protocolData.name}
 											dataType="Earnings"
 											rowHeader="Earnings (annualized)"
-											rowValue={formatPrice((revenue30d - incentivesData.emissions30d) * 12.2)}
+											rowValue={formatPrice((revenue30dFinal - incentivesData.emissions30d) * 12.2)}
 											helperText={explainAnnualized(helperTexts?.earnings)}
 											subRows={
 												<>
@@ -1150,7 +1150,7 @@ const ProtocolContainer = ({
 															</Tooltip>
 														</th>
 														<td className="text-sm text-right">
-															{formatPrice(revenue30d - incentivesData.emissions30d)}
+															{formatPrice(revenue30dFinal - incentivesData.emissions30d)}
 														</td>
 													</tr>
 													{dailyRevenueFinal != null ? (
