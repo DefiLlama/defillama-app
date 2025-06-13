@@ -50,23 +50,41 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			oracle && oraclesTVS[oracle] ? protocols.filter((protocol) => protocol.name in oraclesTVS[oracle]) : protocols
 
 		const filteredProtocols = formatProtocolsData({ oracle, protocols: oracleFilteredProtocols, chain })
-		const protocolsWithTvs = filteredProtocols.map((protocol) => {
-			let tvs = null
+
+		const protocolsWithBreakdown = filteredProtocols.map((protocol) => {
+			const tvsBreakdown: { tvl: number; extraTvl: { [key: string]: { tvl: number } } } = {
+				tvl: 0,
+				extraTvl: {}
+			}
 			const oraclesToCheck = oracle ? [oracle] : Object.keys(oraclesTVS)
+
 			for (const oracleKey of oraclesToCheck) {
-				const protocolChainsData = oraclesTVS[oracleKey]?.[protocol.name]
-				if (protocolChainsData) {
-					if (chain) {
-						tvs = protocolChainsData[chain] ?? 0
-					} else {
-						tvs = Object.values(protocolChainsData).reduce((sum, value) => sum + value, 0)
+				const protocolData = oraclesTVS[oracleKey]?.[protocol.name]
+				if (protocolData) {
+					for (const key in protocolData) {
+						const value = protocolData[key]
+						const keyParts = key.split('-')
+						const chainName = keyParts[0]
+						const category = keyParts.length > 1 ? keyParts.slice(1).join('-') : 'tvl'
+
+						if (!chain || chainName === chain) {
+							if (category === 'tvl') {
+								tvsBreakdown.tvl += value
+							} else {
+								if (!tvsBreakdown.extraTvl[category]) {
+									tvsBreakdown.extraTvl[category] = { tvl: 0 }
+								}
+								tvsBreakdown.extraTvl[category].tvl += value
+							}
+						}
 					}
 					break
 				}
 			}
 			return {
 				...protocol,
-				tvs
+				tvl: tvsBreakdown.tvl,
+				extraTvl: tvsBreakdown.extraTvl
 			}
 		})
 
@@ -146,7 +164,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			tokenLinks: oracleLinks,
 			token: oracle,
 			tokensProtocols: oraclesProtocols,
-			filteredProtocols: protocolsWithTvs,
+			filteredProtocols: protocolsWithBreakdown,
 			chartData,
 			oraclesColors: colors,
 			derivativeProtocols: perps?.protocols ?? []
@@ -168,17 +186,40 @@ export async function getOraclePageDataByChain(chain: string) {
 		])
 
 		const filteredProtocols = formatProtocolsData({ protocols, chain })
-		const protocolsWithTvs = filteredProtocols.map((protocol) => {
-			let tvs = 0
+
+		const protocolsWithBreakdown = filteredProtocols.map((protocol) => {
+			const tvsBreakdown: { tvl: number; extraTvl: { [key: string]: { tvl: number } } } = {
+				tvl: 0,
+				extraTvl: {}
+			}
+
 			for (const oracleKey of Object.keys(oraclesTVS)) {
-				const tvlOnChain = oraclesTVS[oracleKey]?.[protocol.name]?.[chain]
-				if (tvlOnChain) {
-					tvs += tvlOnChain
+				const protocolData = oraclesTVS[oracleKey]?.[protocol.name]
+				if (protocolData) {
+					for (const key in protocolData) {
+						const value = protocolData[key]
+						const keyParts = key.split('-')
+						const chainName = keyParts[0]
+						const category = keyParts.length > 1 ? keyParts.slice(1).join('-') : 'tvl'
+
+						if (chainName === chain) {
+							if (category === 'tvl') {
+								tvsBreakdown.tvl += value
+							} else {
+								if (!tvsBreakdown.extraTvl[category]) {
+									tvsBreakdown.extraTvl[category] = { tvl: 0 }
+								}
+								tvsBreakdown.extraTvl[category].tvl += value
+							}
+						}
+					}
 				}
 			}
+
 			return {
 				...protocol,
-				tvs: tvs > 0 ? tvs : null
+				tvl: tvsBreakdown.tvl,
+				extraTvl: tvsBreakdown.extraTvl
 			}
 		})
 
@@ -249,7 +290,7 @@ export async function getOraclePageDataByChain(chain: string) {
 			tokens: oraclesUnique,
 			tokenLinks: oracleLinks,
 			tokensProtocols: oraclesProtocols,
-			filteredProtocols: protocolsWithTvs,
+			filteredProtocols: protocolsWithBreakdown,
 			chartData: chainChartData,
 			oraclesColors: colors
 		}
