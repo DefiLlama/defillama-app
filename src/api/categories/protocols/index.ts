@@ -849,7 +849,7 @@ export async function getCategoryPerformance() {
 	const info = await fetchWithErrorLogging(CATEGORY_INFO_API)
 		.then((r) => r.json())
 		.catch(() => [])
-	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)[0][name] ?? null
+	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)?.[0]?.[name] ?? null
 	const pctChanges = info.map((i) => ({
 		...i,
 		change1W: getCumulativeChangeOfPeriod('7', i.name),
