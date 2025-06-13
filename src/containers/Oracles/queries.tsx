@@ -13,7 +13,7 @@ interface IOracleProtocols {
 interface IOracleApiResponse {
 	chart: Record<string, Record<string, Record<string, number>>>
 	chainChart: Record<string, Record<string, Record<string, number>>>
-	oraclesTVS: Record<string, Record<string, number>>
+	oraclesTVS: Record<string, Record<string, Record<string, number>>>
 	chainsByOracle: Record<string, Array<string>>
 }
 
@@ -54,9 +54,13 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			let tvs = null
 			const oraclesToCheck = oracle ? [oracle] : Object.keys(oraclesTVS)
 			for (const oracleKey of oraclesToCheck) {
-				const oracleData = oraclesTVS[oracleKey]
-				if (oracleData && oracleData[protocol.name]) {
-					tvs = oracleData[protocol.name]
+				const protocolChainsData = oraclesTVS[oracleKey]?.[protocol.name]
+				if (protocolChainsData) {
+					if (chain) {
+						tvs = protocolChainsData[chain] ?? 0
+					} else {
+						tvs = Object.values(protocolChainsData).reduce((sum, value) => sum + value, 0)
+					}
 					break
 				}
 			}
@@ -165,17 +169,16 @@ export async function getOraclePageDataByChain(chain: string) {
 
 		const filteredProtocols = formatProtocolsData({ protocols, chain })
 		const protocolsWithTvs = filteredProtocols.map((protocol) => {
-			let tvs = null
+			let tvs = 0
 			for (const oracleKey of Object.keys(oraclesTVS)) {
-				const oracleData = oraclesTVS[oracleKey]
-				if (oracleData && oracleData[protocol.name]) {
-					tvs = oracleData[protocol.name]
-					break
+				const tvlOnChain = oraclesTVS[oracleKey]?.[protocol.name]?.[chain]
+				if (tvlOnChain) {
+					tvs += tvlOnChain
 				}
 			}
 			return {
 				...protocol,
-				tvs
+				tvs: tvs > 0 ? tvs : null
 			}
 		})
 
