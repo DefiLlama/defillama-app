@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
-import type { IChainTvl, IRaise } from '~/api/types'
+import type { IChainTvl } from '~/api/types'
+import type { IRaise } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import type { ISettings } from '~/contexts/types'
 
@@ -288,14 +289,14 @@ export const buildProtocolAddlChartsData = ({
 	protocolData,
 	extraTvlsEnabled
 }: {
-	protocolData: { name: string; chainTvls: IChainTvl; misrepresentedTokens?: boolean }
+	protocolData: { name: string; chainTvls?: IChainTvl; misrepresentedTokens?: boolean }
 	extraTvlsEnabled: ISettings
 }) => {
 	if (protocolData) {
 		let tokensInUsdExsists = false
 		let tokensExists = false
 
-		Object.values(protocolData.chainTvls).forEach((chain) => {
+		Object.values(protocolData.chainTvls ?? {}).forEach((chain) => {
 			if (!tokensInUsdExsists && chain.tokensInUsd && chain.tokensInUsd.length > 0) {
 				tokensInUsdExsists = true
 			}
@@ -309,13 +310,13 @@ export const buildProtocolAddlChartsData = ({
 			const tokensUnique = getUniqueTokens({ chainTvls: protocolData.chainTvls, extraTvlsEnabled })
 
 			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
-				chainTvls: protocolData.chainTvls,
+				chainTvls: protocolData.chainTvls ?? {},
 				extraTvlsEnabled,
 				tokensUnique
 			})
 
 			const { usdInflows, tokenInflows } = buildInflows({
-				chainTvls: protocolData.chainTvls,
+				chainTvls: protocolData.chainTvls ?? {},
 				extraTvlsEnabled,
 				tokensUnique,
 				datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : []

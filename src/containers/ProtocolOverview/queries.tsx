@@ -1,13 +1,17 @@
 import { darken, transparentize } from 'polished'
-import { slug, tokenIconPaletteUrl } from '~/utils'
+import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug, tokenIconPaletteUrl } from '~/utils'
 import { oldBlue, primaryColor } from '~/constants/colors'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
 	DEV_METRICS_API,
 	HOURLY_PROTOCOL_API,
+	LIQUIDITY_API,
 	PROTOCOL_API,
+	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
+	RAISES_API,
+	YIELD_CONFIG_API,
 	YIELD_POOLS_API
 } from '~/constants'
 import {
@@ -18,10 +22,12 @@ import {
 	IUpdatedProtocol,
 	CardType,
 	IArticlesResponse,
-	IArticle
+	IArticle,
+	IRaise,
+	IProtocolExpenses
 } from './types'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
-import { getProtocolEmissons } from '~/api/categories/protocols'
+import { cg_volume_cexs } from '~/pages/cexs'
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
@@ -242,15 +248,38 @@ export const getProtocolOverviewPageData = async ({
 		yieldsData,
 		articles,
 		incentives,
-		users
+		users,
+		expenses,
+		yieldsConfig,
+		liquidityInfo
 	]: [
 		IUpdatedProtocol & {
+			tokenCGData?: {
+				price: {
+					current: number | null
+					ath: number | null
+					athDate: number | null
+					atl: number | null
+					atlDate: number | null
+				}
+				marketCap: { current: number | null }
+				totalSupply: number | null
+				fdv: { current: number | null }
+				volume24h: {
+					total: number | null
+					cex: number | null
+					dex: number | null
+				}
+				symbol: string | null
+			} | null
+		} & {
 			devMetrics?: {
 				weeklyCommits: number | null
 				monthlyCommits: number | null
 				weeklyDevelopers: number | null
 				monthlyDevelopers: number | null
 				lastCommit: number | null
+				updatedAt: number | null
 			}
 		},
 		IProtocolPageStyles,
@@ -280,7 +309,10 @@ export const getProtocolOverviewPageData = async ({
 			newUsers: number | null
 			transactions: number | null
 			gasUsd: number | null
-		} | null
+		} | null,
+		IProtocolExpenses,
+		any,
+		any
 	] = await Promise.all([
 		getProtocol(metadata.name).then(async (data) => {
 			try {
@@ -288,13 +320,21 @@ export const getProtocolOverviewPageData = async ({
 					? `${DEV_METRICS_API}/parent/${data?.id?.replace('parent#', '')}.json`
 					: `${DEV_METRICS_API}/${data.id}.json`
 
-				const devActivity = data.github
-					? await fetchWithTimeout(devMetricsProtocolUrl, 3_000)
-							.then((r) => r.json())
-							.catch((e) => {
-								return null
-							})
-					: null
+				const [tokenCGData, devActivity] = await Promise.all([
+					data.gecko_id
+						? fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
+								.then((res) => res.json())
+								.then(({ data }) => data)
+								.catch(() => null as any)
+						: Promise.resolve(null),
+					data.github
+						? await fetchWithTimeout(devMetricsProtocolUrl, 3_000)
+								.then((r) => r.json())
+								.catch((e) => {
+									return null
+								})
+						: Promise.resolve(null)
+				])
 
 				const devMetrics = devActivity?.report
 					? {
@@ -302,11 +342,12 @@ export const getProtocolOverviewPageData = async ({
 							monthlyCommits: devActivity?.report?.monthly_contributers.slice(-1)[0]?.cc ?? null,
 							weeklyDevelopers: devActivity?.report?.weekly_contributers.slice(-1)[0]?.v ?? null,
 							monthlyDevelopers: devActivity?.report?.monthly_contributers.slice(-1)[0]?.v ?? null,
-							lastCommit: devActivity?.last_commit_update_time ?? null
+							lastCommit: devActivity?.last_commit_update_time ?? null,
+							updatedAt: devActivity?.last_report_generated_time ?? null
 					  }
 					: null
 
-				return { ...data, devMetrics }
+				return { ...data, devMetrics, tokenCGData: tokenCGData ? getTokenCGData(tokenCGData) : null }
 			} catch (e) {
 				console.log(e)
 				return data
@@ -470,7 +511,29 @@ export const getProtocolOverviewPageData = async ({
 							: null
 					})
 					.catch(() => null)
-			: null
+			: null,
+		metadata.expenses
+			? fetchWithErrorLogging(PROTOCOLS_EXPENSES_API)
+					.then((res) => res.json())
+					.then((data) => data.find((item) => item.protocolId === protocolId))
+					.catch(() => {
+						return null
+					})
+			: null,
+		metadata.liquidity
+			? fetchWithErrorLogging(YIELD_CONFIG_API)
+					.then((res) => res.json())
+					.catch(() => {
+						return null
+					})
+			: null,
+		metadata?.liquidity
+			? fetchWithErrorLogging(LIQUIDITY_API)
+					.then((res) => res.json())
+					.catch(() => {
+						return []
+					})
+			: []
 	])
 
 	const cards: CardType[] = []
@@ -643,6 +706,23 @@ export const getProtocolOverviewPageData = async ({
 		cards.push('yields')
 	}
 
+	const tokenPools =
+		yieldsData?.data && yieldsConfig ? liquidityInfo?.find((p) => p.id === protocolData.id)?.tokenPools ?? [] : []
+
+	const liquidityAggregated = tokenPools.reduce((agg, pool) => {
+		if (!agg[pool.project]) agg[pool.project] = {}
+		agg[pool.project][pool.chain] = pool.tvlUsd + (agg[pool.project][pool.chain] ?? 0)
+		return agg
+	}, {} as any)
+
+	const tokenLiquidity = yieldsConfig
+		? (Object.entries(liquidityAggregated)
+				.filter((x) => (yieldsConfig.protocols[x[0]]?.name ? true : false))
+				.map((p) => Object.entries(p[1]).map((c) => [yieldsConfig.protocols[p[0]].name, c[0], c[1]]))
+				.flat()
+				.sort((a, b) => b[2] - a[2]) as Array<[string, string, number]>)
+		: ([] as Array<[string, string, number]>)
+
 	// if (true) {
 	// 	cards.push('governance')
 	// }
@@ -667,11 +747,25 @@ export const getProtocolOverviewPageData = async ({
 		cards.push('users')
 	}
 
-	console.log({ users })
+	const raises =
+		protocolData.raises
+			?.sort((a, b) => a.date - b.date)
+			?.map((r) => ({
+				...r,
+				investors: (r.leadInvestors ?? []).concat(r.otherInvestors ?? [])
+			})) ?? null
+
+	const hasKeyMetrics =
+		protocolData.currentChainTvls?.staking != null ||
+		protocolData.currentChainTvls?.borrowed != null ||
+		raises?.length ||
+		expenses ||
+		tokenLiquidity?.length
+			? true
+			: false
 
 	return {
 		name: protocolData.name,
-		symbol: protocolData.symbol ?? null,
 		category: protocolData.category ?? null,
 		otherProtocols: protocolData.otherProtocols ?? null,
 		deprecated: protocolData.deprecated ?? false,
@@ -694,6 +788,12 @@ export const getProtocolOverviewPageData = async ({
 			metadata.tvl && protocolData.module && protocolData.module !== 'dummy.js'
 				? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 				: null,
+		token: {
+			symbol: protocolData.symbol ?? protocolData.tokenCGData?.symbol ?? null,
+			gecko_id: protocolData.gecko_id ?? null,
+			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
+			explorer_url: getProtocolTokenUrlOnExplorer(protocolData.address)
+		},
 		pageStyles,
 		metrics: getProtocolMetrics({ protocolData, metadata }),
 		fees: feesData,
@@ -716,8 +816,28 @@ export const getProtocolOverviewPageData = async ({
 		incentives,
 		devMetrics: protocolData.devMetrics ?? null,
 		users,
+		raises,
+		expenses: expenses
+			? {
+					headcount: expenses.headcount ?? null,
+					annualUsdCost: Object.entries(expenses.annualUsdCost ?? {}).map(([category, amount]) => [
+						capitalizeFirstLetter(category),
+						amount ?? null
+					]),
+					total: Object.values(expenses.annualUsdCost ?? {}).reduce((acc, curr) => acc + curr, 0),
+					sources: expenses.sources ?? null,
+					notes: expenses.notes ?? null,
+					lastUpdate: expenses.lastUpdate ?? null
+			  }
+			: null,
+		tokenLiquidity:
+			tokenLiquidity?.length > 0
+				? { pools: tokenLiquidity, total: tokenLiquidity.reduce((acc, curr) => acc + curr[2], 0) }
+				: null,
+		tokenCGData: protocolData.tokenCGData ?? null,
 		cards,
-		isCEX: false
+		isCEX: false,
+		hasKeyMetrics
 	}
 }
 
@@ -839,4 +959,44 @@ export const fetchArticles = async ({ tags = '', size = 2 }) => {
 			})) ?? []
 
 	return articles.slice(0, size)
+}
+
+export function getTokenCGData(tokenCGData: any) {
+	const tokenPrice = tokenCGData?.prices ? tokenCGData.prices[tokenCGData.prices.length - 1][1] : null
+	const tokenInfo = tokenCGData?.coinData
+
+	return {
+		price: {
+			current: tokenPrice ?? null,
+			ath: tokenInfo?.['market_data']?.['ath']?.['usd'] ?? null,
+			athDate: tokenInfo?.['market_data']?.['ath_date']?.['usd'] ?? null,
+			atl: tokenInfo?.['market_data']?.['atl']?.['usd'] ?? null,
+			atlDate: tokenInfo?.['market_data']?.['atl_date']?.['usd'] ?? null
+		},
+		marketCap: { current: tokenInfo?.['market_data']?.['market_cap']?.['usd'] ?? null },
+		totalSupply: tokenInfo?.['market_data']?.['total_supply'] ?? null,
+		fdv: { current: tokenInfo?.['market_data']?.['fully_diluted_valuation']?.['usd'] ?? null },
+		volume24h: {
+			total: tokenInfo?.['market_data']?.['total_volume']?.['usd'] ?? null,
+			cex:
+				tokenInfo?.['tickers']?.reduce(
+					(acc, curr) =>
+						(acc +=
+							curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market.identifier)
+								? curr.converted_volume.usd ?? 0
+								: 0),
+					0
+				) ?? null,
+			dex:
+				tokenInfo?.['tickers']?.reduce(
+					(acc, curr) =>
+						(acc +=
+							curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market.identifier)
+								? 0
+								: curr.converted_volume.usd ?? 0),
+					0
+				) ?? null
+		},
+		symbol: tokenInfo?.['symbol'] ? tokenInfo.symbol.toUpperCase() : null
+	}
 }

@@ -18,11 +18,15 @@ import {
 	DIMENISIONS_OVERVIEW_API,
 	LIQUIDITY_API
 } from '~/constants'
-import { cg_volume_cexs } from '../../../pages/cexs'
 import { sluggify } from '~/utils/cache-client'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import metadata from '~/utils/metadata'
-import { fetchArticles, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import {
+	fetchArticles,
+	getProtocolMetrics,
+	getProtocolPageStyles,
+	getTokenCGData
+} from '~/containers/ProtocolOverview/queries'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { IArticle } from '~/containers/ProtocolOverview/types'
 const { chainMetadata, protocolMetadata } = metadata
@@ -752,43 +756,5 @@ export const getProtocolData = async (
 			incentivesData
 		},
 		revalidate: maxAgeForNext([22])
-	}
-}
-
-function getTokenCGData(tokenCGData: any) {
-	const tokenPrice = tokenCGData?.prices ? tokenCGData.prices[tokenCGData.prices.length - 1][1] : null
-	const tokenInfo = tokenCGData?.coinData
-	return {
-		price: {
-			current: tokenPrice ?? null,
-			ath: tokenInfo?.['market_data']?.['ath']?.['usd'] ?? null,
-			athDate: tokenInfo?.['market_data']?.['ath_date']?.['usd'] ?? null,
-			atl: tokenInfo?.['market_data']?.['atl']?.['usd'] ?? null,
-			atlDate: tokenInfo?.['market_data']?.['atl_date']?.['usd'] ?? null
-		},
-		marketCap: { current: tokenInfo?.['market_data']?.['market_cap']?.['usd'] ?? null },
-		totalSupply: tokenInfo?.['market_data']?.['total_supply'] ?? null,
-		fdv: { current: tokenInfo?.['market_data']?.['fully_diluted_valuation']?.['usd'] ?? null },
-		volume24h: {
-			total: tokenInfo?.['market_data']?.['total_volume']?.['usd'] ?? null,
-			cex:
-				tokenInfo?.['tickers']?.reduce(
-					(acc, curr) =>
-						(acc +=
-							curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market.identifier)
-								? curr.converted_volume.usd ?? 0
-								: 0),
-					0
-				) ?? null,
-			dex:
-				tokenInfo?.['tickers']?.reduce(
-					(acc, curr) =>
-						(acc +=
-							curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market.identifier)
-								? 0
-								: curr.converted_volume.usd ?? 0),
-					0
-				) ?? null
-		}
 	}
 }

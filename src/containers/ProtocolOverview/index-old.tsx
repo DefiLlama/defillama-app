@@ -18,7 +18,6 @@ import { useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/prot
 import type { IFusedProtocolData, IProtocolDevActivity, NftVolumeData } from '~/api/types'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, formatRaisedAmount, formatRaise, useFetchProtocolAddlChartsData } from './utils'
-import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
 import { DLNewsLogo } from '~/components/News/Logo'
 import { Flag } from './Flag'
@@ -30,7 +29,7 @@ import { Icon } from '~/components/Icon'
 import { RowWithSubRows } from './RowWithSubRows'
 import { Tooltip } from '~/components/Tooltip'
 import { ProtocolOverviewLayout } from './Layout'
-import { IProtocolPageMetrics } from './types'
+import { IArticle, IProtocolPageMetrics } from './types'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false

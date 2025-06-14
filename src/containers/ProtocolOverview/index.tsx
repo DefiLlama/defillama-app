@@ -60,7 +60,9 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 
 		return {
 			tvl,
-			tvlByChain,
+			tvlByChain: Object.entries(tvlByChain).sort(
+				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
+			) as [string, number][],
 			hasTvl,
 			toggleOptions
 		}
@@ -96,14 +98,14 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			/>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
 				<div className="hidden xl:flex flex-col gap-6 col-span-1 row-[2_/_3] xl:row-[1_/_2] bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 h-fit xl:min-h-[360px]">
-					<h1 className="flex items-center flex-wrap gap-2 text-xl">
+					<h1 className="flex items-center flex-wrap gap-2 text-xl last:*:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">
 							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
 						</span>
-						<span className="font-normal mr-auto">
-							{props.symbol && props.symbol !== '-' ? `(${props.symbol})` : ''}
-						</span>
+						{props.token.symbol && props.token.symbol !== '-' ? (
+							<span className="font-normal mr-auto">({props.token.symbol})</span>
+						) : null}
 						<Bookmark readableProtocolName={props.name} />
 					</h1>
 					<ProtocolTVL
@@ -113,8 +115,9 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						name={props.name}
 						category={props.category}
 						formatPrice={formatPrice}
+						tvlByChain={tvlByChain}
 					/>
-					<KeyMetricsAndProtocolInfo {...props} />
+					<KeyMetricsAndProtocolInfo {...props} formatPrice={formatPrice} />
 				</div>
 				<div className="grid grid-cols-2 gap-2 col-span-1 xl:col-[2_/_-1]">
 					<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2">
@@ -124,9 +127,9 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								<span className="font-bold">
 									{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
 								</span>
-								<span className="font-normal mr-auto">
-									{props.symbol && props.symbol !== '-' ? `(${props.symbol})` : ''}
-								</span>
+								{props.token.symbol && props.token.symbol !== '-' ? (
+									<span className="font-normal mr-auto">({props.token.symbol})</span>
+								) : null}
 								<Bookmark readableProtocolName={props.name} />
 							</h1>
 							<ProtocolTVL
@@ -136,12 +139,13 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								name={props.name}
 								category={props.category}
 								formatPrice={formatPrice}
+								tvlByChain={tvlByChain}
 							/>
 						</div>
 						<div className="min-h-[360px]"></div>
 					</div>
 					<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:hidden">
-						<KeyMetricsAndProtocolInfo {...props} />
+						<KeyMetricsAndProtocolInfo {...props} formatPrice={formatPrice} />
 					</div>
 					<div className="col-span-full">
 						<MasonryLayout cards={props.cards} props={props} />
@@ -158,7 +162,8 @@ const ProtocolTVL = ({
 	isCEX,
 	name,
 	category,
-	formatPrice
+	formatPrice,
+	tvlByChain
 }: {
 	hasTvl: boolean
 	tvl: number
@@ -166,35 +171,314 @@ const ProtocolTVL = ({
 	name: string
 	category: string
 	formatPrice: (value: number | string | null) => string | number | null
+	tvlByChain: [string, number][]
 }) => {
+	if (!hasTvl) return null
+
+	if (tvlByChain.length === 0) {
+		return (
+			<p className="flex flex-col">
+				<span className="flex items-center flex-nowrap gap-2">
+					{isCEX ? <span>Total Assets</span> : <span>Total Value Locked</span>}
+					<Flag
+						protocol={name}
+						dataType="TVL"
+						isLending={category === 'Lending'}
+						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+					/>
+				</span>
+				<span className="font-semibold text-2xl font-jetbrains min-h-8" suppressHydrationWarning>
+					{formatPrice(tvl)}
+				</span>
+			</p>
+		)
+	}
+
 	return (
-		<>
-			{hasTvl ? (
-				<p className="flex items-center">
-					<span className="flex flex-col">
-						<span className="flex items-center flex-nowrap gap-2">
-							{isCEX ? <span>Total Assets</span> : <span>Total Value Locked</span>}
-							<Flag
-								protocol={name}
-								dataType="TVL"
-								isLending={category === 'Lending'}
-								className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-							/>
-						</span>
-						<span className="font-semibold text-2xl font-jetbrains min-h-8" suppressHydrationWarning>
-							{formatPrice(tvl)}
-						</span>
+		<details className="group">
+			<summary className="flex flex-col">
+				<span className="flex items-center flex-nowrap gap-2">
+					<span className="text-[#545757] dark:text-[#cccccc]">{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
+					<Flag
+						protocol={name}
+						dataType="TVL"
+						isLending={category === 'Lending'}
+						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+					/>
+				</span>
+				<span className="flex items-center flex-nowrap gap-2">
+					<span className="font-semibold text-2xl font-jetbrains min-h-8" suppressHydrationWarning>
+						{formatPrice(tvl)}
 					</span>
-				</p>
-			) : null}
-		</>
+					<Icon
+						name="chevron-down"
+						height={16}
+						width={16}
+						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px]"
+					/>
+				</span>
+			</summary>
+			<div className="flex flex-col text-xs my-3 max-h-[50vh] overflow-auto">
+				{tvlByChain.map(([chain, tvl]) => (
+					<p
+						key={`${chain}-${tvl}-${name}`}
+						className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222224] last:border-none py-1"
+					>
+						<span className="text-[#545757] dark:text-[#cccccc]">{chain}</span>
+						<span className="font-jetbrains">{formatPrice(tvl)}</span>
+					</p>
+				))}
+			</div>
+		</details>
 	)
 }
-const KeyMetricsAndProtocolInfo = (props: IProtocolOverviewPageData) => {
+const KeyMetricsAndProtocolInfo = (
+	props: IProtocolOverviewPageData & { formatPrice: (value: number | string | null) => string | number | null }
+) => {
+	if (!props.hasKeyMetrics) return null
 	return (
 		<>
 			<div className="flex flex-col gap-2">
-				<h2 className="text-base font-semibold">Protocol Information</h2>
+				<h2 className="font-semibold">Key Metrics</h2>
+				<div className="flex flex-col">
+					{props.tokenCGData?.marketCap?.current ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
+							<span className="font-jetbrains">{formattedNum(props.tokenCGData.marketCap.current, true)}</span>
+						</p>
+					) : null}
+					{props.tokenCGData?.price?.current ? (
+						props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
+							<details className="group">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+									<span className="text-[#545757] dark:text-[#cccccc]">{`${
+										props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+									} Price`}</span>
+									<Icon
+										name="chevron-down"
+										height={16}
+										width={16}
+										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									/>
+									<span className="font-jetbrains ml-auto">{formattedNum(props.tokenCGData.price.current, true)}</span>
+								</summary>
+								<div className="flex flex-col text-xs mb-3">
+									<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
+										<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.ath, true)}</span>
+									</p>
+									<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222224] last:border-none py-1">
+										<span className="text-[#545757] dark:text-[#cccccc]">All Time Low</span>
+										<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.atl, true)}</span>
+									</p>
+								</div>
+							</details>
+						) : (
+							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">{`${
+									props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+								} Price`}</span>
+								<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.current, true)}</span>
+							</p>
+						)
+					) : null}
+					{props.tokenCGData?.fdv?.current ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<Tooltip
+								className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+								content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
+							>
+								Fully Diluted Valuation
+							</Tooltip>
+							<span className="font-jetbrains">{formattedNum(props.tokenCGData.fdv.current, true)}</span>
+						</p>
+					) : null}
+					{props.tokenCGData.volume24h?.total ? (
+						<details className="group">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">{`24h ${
+									props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+								} Volume`}</span>
+								<Icon
+									name="chevron-down"
+									height={16}
+									width={16}
+									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+								/>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.tokenCGData.volume24h.total, true)}</span>
+							</summary>
+							<div className="flex flex-col text-xs mb-3">
+								<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+									<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
+									<span className="font-jetbrains">
+										{props.tokenCGData.volume24h.cex ? formattedNum(props.tokenCGData.volume24h.cex, true) : '-'}
+									</span>
+								</p>
+								<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222224] last:border-none py-1">
+									<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume</span>
+									<span className="flex items-center gap-1">
+										<span className="font-jetbrains">
+											{props.tokenCGData.volume24h.dex ? formattedNum(props.tokenCGData.volume24h.dex, true) : '-'}
+										</span>
+										<span className="text-xs text-[#545757] dark:text-[#cccccc]">
+											({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
+											total)
+										</span>
+									</span>
+								</p>
+							</div>
+						</details>
+					) : null}
+					{props.currentTvlByChain?.staking != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
+							{props.tokenCGData?.marketCap?.current ? (
+								<span className="flex items-center gap-1">
+									<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
+									<span className="text-xs text-[#545757] dark:text-[#cccccc]">
+										({formattedNum((props.currentTvlByChain.staking / props.tokenCGData.marketCap.current) * 100)}% of
+										mcap)
+									</span>
+								</span>
+							) : (
+								<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
+							)}
+						</p>
+					) : null}
+					{props.currentTvlByChain?.borrowed != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">Borrowed</span>
+							<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.borrowed, true)}</span>
+						</p>
+					) : null}
+					{props.tokenLiquidity ? (
+						<details className="group">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+								<Tooltip
+									content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
+									className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+								>
+									{`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
+								</Tooltip>
+								<Icon
+									name="chevron-down"
+									height={16}
+									width={16}
+									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+								/>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
+							</summary>
+							<div className="flex flex-col text-xs mb-3">
+								{props.tokenLiquidity?.pools.map((pool) => (
+									<p
+										key={`${pool[0]}-${pool[1]}-${pool[2]}`}
+										className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+									>
+										<span className="text-[#545757] dark:text-[#cccccc]">{pool[0]}</span>
+										<span className="font-jetbrains">{formattedNum(pool[2], true)}</span>
+									</p>
+								))}
+							</div>
+						</details>
+					) : null}
+					{props.raises?.length ? (
+						<details className="group">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">Total Raised</span>
+								<Icon
+									name="chevron-down"
+									height={16}
+									width={16}
+									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+								/>
+								<span className="font-jetbrains ml-auto">
+									{formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
+								</span>
+							</summary>
+							<div className="flex flex-col text-xs mb-3">
+								{props.raises.map((raise) => (
+									<p
+										className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+										key={`${raise.date}-${raise.amount}-${props.name}`}
+									>
+										<span className="flex flex-wrap justify-between">
+											<span className="text-[#545757] dark:text-[#cccccc]">
+												{dayjs(raise.date * 1000).format('MMM D, YYYY')}
+											</span>
+											<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
+										</span>
+										<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
+											<span>Round: {raise.round}</span>
+											{raise.investors?.length ? <span>Investors: {raise.investors.join(', ')}</span> : null}
+										</span>
+									</p>
+								))}
+							</div>
+						</details>
+					) : null}
+					{props.expenses ? (
+						<details className="group">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">Annual Operational Expenses</span>
+								<Icon
+									name="chevron-down"
+									height={16}
+									width={16}
+									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+								/>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.expenses.total, true)}</span>
+							</summary>
+							<div className="flex flex-col text-xs mb-3">
+								<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+									<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
+									<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
+								</p>
+								{props.expenses.annualUsdCost.map(([category, amount]) => (
+									<p
+										className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+										key={`${props.name}-expenses-${category}-${amount}`}
+									>
+										<span className="flex flex-wrap justify-between">
+											<span className="text-[#545757] dark:text-[#cccccc]">{category}</span>
+											<span className="font-jetbrains">{formattedNum(amount, true)}</span>
+										</span>
+									</p>
+								))}
+								{props.expenses?.sources?.length ? (
+									<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+										<span className="text-[#545757] dark:text-[#cccccc]">Sources</span>
+										{props.expenses.sources?.map((source) => (
+											<a
+												href={source}
+												target="_blank"
+												rel="noopener noreferrer"
+												key={`${props.name}-expenses-source-${source}`}
+												className="hover:underline"
+											>
+												{source}
+											</a>
+										))}
+									</p>
+								) : null}
+								{props.expenses?.notes?.length ? (
+									<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+										<span className="text-[#545757] dark:text-[#cccccc]">Notes</span>
+										<span>{props.expenses.notes?.join(', ') ?? ''}</span>
+									</p>
+								) : null}
+								{props.expenses?.lastUpdate ? (
+									<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+										<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
+										<span>{dayjs(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
+									</p>
+								) : null}
+							</div>
+						</details>
+					) : null}
+				</div>
+			</div>
+			<div className="flex flex-col gap-2">
+				<h2 className="font-semibold">Protocol Information</h2>
 				{props.description ? <p>{props.description}</p> : null}
 				<div className="flex flex-wrap gap-2">
 					{props.website ? (
@@ -236,7 +520,7 @@ const KeyMetricsAndProtocolInfo = (props: IProtocolOverviewPageData) => {
 				</div>
 			</div>
 			<div className="flex flex-col gap-2">
-				<h2 className="text-base font-semibold">Methodology</h2>
+				<h2 className="font-semibold">Methodology</h2>
 				{props.methodologyURL ? (
 					<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 						<span className="font-medium">TVL:</span> <span>{props.methodology ?? ''}</span>
@@ -289,9 +573,9 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-2">
 			<div className="flex items-center justify-between">
-				<h3 className="text-base font-semibold">Latest from DL News</h3>
+				<h3 className="font-semibold">Latest from DL News</h3>
 				<a href="https://www.dlnews.com">
-					<DLNewsLogo width={102} height={22} />
+					<DLNewsLogo width={72} height={18} />
 				</a>
 			</div>
 
@@ -314,7 +598,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 						<p className="text-sm font-medium whitespace-pre-wrap break-keep">{article.headline}</p>
 						<div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
 							<p className="text-xs">{dayjs(article.date).format('MMMM D, YYYY')}</p>
-							<p className="flex items-center justify-between flex-nowrap text-sm font-semibold rounded-md">
+							<p className="flex items-center justify-between flex-nowrap font-semibold rounded-md">
 								<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</p>
 						</div>
@@ -388,34 +672,13 @@ const MethodologyByAdapter = ({
 	)
 }
 
-const cardByType: Record<CardType, (props: IProtocolOverviewPageData) => React.ReactNode> = {
-	treasury: Treasury,
-	fees: Fees,
-	revenue: Revenue,
-	holdersRevenue: HoldersRevenue,
-	incentives: Incentives,
-	earnings: Earnings,
-	unlocks: Unlocks,
-	governance: Governance,
-	yields: Yields,
-	dexVolume: DexVolume,
-	dexAggregatorVolume: DexAggregatorVolume,
-	perpVolume: PerpVolume,
-	perpAggregatorVolume: PerpAggregatorVolume,
-	bridgeAggregatorVolume: BridgeAggregatorVolume,
-	optionsPremiumVolume: OptionsPremiumVolume,
-	optionsNotionalVolume: OptionsNotionalVolume,
-	devActivity: DevActivity,
-	users: Users
-}
-
 function Treasury(props: IProtocolOverviewPageData) {
 	const treasury = props.treasury
 	if (!treasury) return null
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Treasury</h2>
+			<h2 className="font-semibold">Treasury</h2>
 			<div className="flex flex-col">
 				{treasury.majors ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -480,7 +743,7 @@ function Fees(props: IProtocolOverviewPageData) {
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Fees</h2>
+			<h2 className="font-semibold">Fees</h2>
 			<div className="flex flex-col">
 				{fees30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -561,7 +824,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Revenue</h2>
+			<h2 className="font-semibold">Revenue</h2>
 			<div className="flex flex-col">
 				{revenue30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -646,7 +909,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Holders Revenue</h2>
+			<h2 className="font-semibold">Holders Revenue</h2>
 			<div className="flex flex-col">
 				{holdersRevenue30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -710,7 +973,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Incentives</h2>
+			<h2 className="font-semibold">Incentives</h2>
 			<div className="flex flex-col">
 				{incentivesData.emissions30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -792,7 +1055,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Earnings</h2>
+			<h2 className="font-semibold">Earnings</h2>
 			<div className="flex flex-col">
 				{earnings30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -855,7 +1118,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 	if (!unlocks) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Unlocks</h2>
+			<h2 className="font-semibold">Unlocks</h2>
 			<div className="flex flex-col">
 				{unlocks.recent ? (
 					<div className="flex flex-col gap-1">
@@ -889,7 +1152,7 @@ function Governance(props: IProtocolOverviewPageData) {
 	if (!governance) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Governance</h2>
+			<h2 className="font-semibold">Governance</h2>
 			<div className="flex flex-col gap-1">
 				<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last proposal</h3>
 				<p className="flex items-center justify-between gap-4">
@@ -912,7 +1175,7 @@ function Yields(props: IProtocolOverviewPageData) {
 	if (!yields) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Yields</h2>
+			<h2 className="font-semibold">Yields</h2>
 			<div>
 				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 					<span className="text-[#545757] dark:text-[#cccccc]">Pools Tracked</span>
@@ -939,7 +1202,7 @@ function DexVolume(props: IProtocolOverviewPageData) {
 	if (!dexVolume) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">DEX Volume</h2>
+			<h2 className="font-semibold">DEX Volume</h2>
 			<div className="flex flex-col">
 				{dexVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -976,7 +1239,7 @@ function DexAggregatorVolume(props: IProtocolOverviewPageData) {
 	if (!dexAggregatorVolume) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">DEX Volume</h2>
+			<h2 className="font-semibold">DEX Volume</h2>
 			<div className="flex flex-col">
 				{dexAggregatorVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -1013,7 +1276,7 @@ function PerpVolume(props: IProtocolOverviewPageData) {
 	if (!perpVolume) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Perp Volume</h2>
+			<h2 className="font-semibold">Perp Volume</h2>
 			<div className="flex flex-col">
 				{perpVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -1050,7 +1313,7 @@ function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
 	if (!perpAggregatorVolume) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Perp Aggregator Volume</h2>
+			<h2 className="font-semibold">Perp Aggregator Volume</h2>
 			<div className="flex flex-col">
 				{perpAggregatorVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -1087,7 +1350,7 @@ function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
 	if (!bridgeAggregatorVolume) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Bridge Aggregator Volume</h2>
+			<h2 className="font-semibold">Bridge Aggregator Volume</h2>
 			<div className="flex flex-col">
 				{bridgeAggregatorVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -1124,7 +1387,7 @@ function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
 	if (!optionsPremiumVolume) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Options Premium Volume</h2>
+			<h2 className="font-semibold">Options Premium Volume</h2>
 			<div className="flex flex-col">
 				{optionsPremiumVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -1160,7 +1423,7 @@ function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
 	if (!optionsNotionalVolume) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Options Notional Volume</h2>
+			<h2 className="font-semibold">Options Notional Volume</h2>
 			<div className="flex flex-col">
 				{optionsNotionalVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -1197,7 +1460,14 @@ function DevActivity(props: IProtocolOverviewPageData) {
 	if (!devActivity) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Development Activity</h2>
+			<div>
+				<h2 className="font-semibold">Development Activity</h2>
+				{devActivity.updatedAt != null ? (
+					<p className="text-xs text-[#545757] dark:text-[#cccccc]">
+						Updated at {dayjs(devActivity.updatedAt).format('DD/MM/YY')}
+					</p>
+				) : null}
+			</div>
 			<div className="flex flex-col">
 				{devActivity.weeklyCommits != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
@@ -1242,24 +1512,30 @@ function Users(props: IProtocolOverviewPageData) {
 	return (
 		<div>
 			<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-				<h2 className="text-base font-semibold">User Activity</h2>
+				<Tooltip
+					content="This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
+					className="font-semibold border-b border-[#e6e6e6] dark:border-[#222324] border-dashed mr-auto"
+					render={<h2 />}
+				>
+					User Activity
+				</Tooltip>
 				<div className="flex flex-col">
 					{users.activeUsers != null ? (
 						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 							<span className="text-[#545757] dark:text-[#cccccc]">Active Addresses (24h)</span>
-							<span className="font-jetbrains">{users.activeUsers}</span>
+							<span className="font-jetbrains">{formattedNum(users.activeUsers, false)}</span>
 						</p>
 					) : null}
 					{users.newUsers != null ? (
 						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 							<span className="text-[#545757] dark:text-[#cccccc]">New Addresses (24h)</span>
-							<span className="font-jetbrains">{users.newUsers}</span>
+							<span className="font-jetbrains">{formattedNum(users.newUsers, false)}</span>
 						</p>
 					) : null}
 					{users.transactions != null ? (
 						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 							<span className="text-[#545757] dark:text-[#cccccc]">Transactions (24h)</span>
-							<span className="font-jetbrains">{users.transactions}</span>
+							<span className="font-jetbrains">{formattedNum(users.transactions, false)}</span>
 						</p>
 					) : null}
 					{users.gasUsd != null ? (
@@ -1314,50 +1590,55 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 		setColumns(newColumns)
 	}, [cards, numColumns])
 
+	const renderCard = (card: CardType) => {
+		switch (card) {
+			case 'fees':
+				return <Fees {...props} />
+			case 'revenue':
+				return <Revenue {...props} />
+			case 'holdersRevenue':
+				return <HoldersRevenue {...props} />
+			case 'incentives':
+				return <Incentives {...props} />
+			case 'earnings':
+				return <Earnings {...props} />
+			case 'treasury':
+				return <Treasury {...props} />
+			case 'unlocks':
+				return <Unlocks {...props} />
+			case 'governance':
+				return <Governance {...props} />
+			case 'yields':
+				return <Yields {...props} />
+			case 'dexVolume':
+				return <DexVolume {...props} />
+			case 'dexAggregatorVolume':
+				return <DexAggregatorVolume {...props} />
+			case 'perpVolume':
+				return <PerpVolume {...props} />
+			case 'perpAggregatorVolume':
+				return <PerpAggregatorVolume {...props} />
+			case 'bridgeAggregatorVolume':
+				return <BridgeAggregatorVolume {...props} />
+			case 'optionsPremiumVolume':
+				return <OptionsPremiumVolume {...props} />
+			case 'optionsNotionalVolume':
+				return <OptionsNotionalVolume {...props} />
+			case 'devActivity':
+				return <DevActivity {...props} />
+			case 'users':
+				return <Users {...props} />
+			default:
+				return null
+		}
+	}
+
 	return (
 		<div ref={containerRef} className="flex gap-2">
 			{columns.map((column, columnIndex) => (
 				<div key={columnIndex} className="flex flex-col gap-2 flex-1">
 					{column.map((card, cardIndex) => (
-						<div key={`${columnIndex}-${cardIndex}-${card}`}>
-							{card === 'fees' ? (
-								<Fees {...props} />
-							) : card === 'revenue' ? (
-								<Revenue {...props} />
-							) : card === 'holdersRevenue' ? (
-								<HoldersRevenue {...props} />
-							) : card === 'incentives' ? (
-								<Incentives {...props} />
-							) : card === 'earnings' ? (
-								<Earnings {...props} />
-							) : card === 'treasury' ? (
-								<Treasury {...props} />
-							) : card === 'unlocks' ? (
-								<Unlocks {...props} />
-							) : card === 'governance' ? (
-								<Governance {...props} />
-							) : card === 'yields' ? (
-								<Yields {...props} />
-							) : card === 'dexVolume' ? (
-								<DexVolume {...props} />
-							) : card === 'dexAggregatorVolume' ? (
-								<DexAggregatorVolume {...props} />
-							) : card === 'perpVolume' ? (
-								<PerpVolume {...props} />
-							) : card === 'perpAggregatorVolume' ? (
-								<PerpAggregatorVolume {...props} />
-							) : card === 'bridgeAggregatorVolume' ? (
-								<BridgeAggregatorVolume {...props} />
-							) : card === 'optionsPremiumVolume' ? (
-								<OptionsPremiumVolume {...props} />
-							) : card === 'optionsNotionalVolume' ? (
-								<OptionsNotionalVolume {...props} />
-							) : card === 'devActivity' ? (
-								<DevActivity {...props} />
-							) : card === 'users' ? (
-								<Users {...props} />
-							) : null}
-						</div>
+						<div key={`${columnIndex}-${cardIndex}-${card}`}>{renderCard(card)}</div>
 					))}
 				</div>
 			))}
@@ -1369,6 +1650,5 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 // governance
 // token information
 
-// hallmarks & total hacked\
+// hallmarks & total hacked
 // hacks
-// tvl by chain

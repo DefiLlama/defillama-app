@@ -1,5 +1,3 @@
-import { IRaise } from '~/api/types'
-
 export interface IProtocolMetadata {
 	name?: string
 	tvl?: boolean
@@ -111,7 +109,12 @@ interface IAdapterOverview {
 
 export interface IProtocolOverviewPageData {
 	name: string
-	symbol?: string | null
+	token: {
+		symbol: string | null
+		gecko_id: string | null
+		gecko_url: string | null
+		explorer_url: string | null
+	}
 	category?: string | null
 	otherProtocols?: Array<string> | null
 	deprecated?: boolean
@@ -169,6 +172,7 @@ export interface IProtocolOverviewPageData {
 		weeklyDevelopers: number | null
 		monthlyDevelopers: number | null
 		lastCommit: number | null
+		updatedAt: number | null
 	} | null
 	users?: {
 		activeUsers: number | null
@@ -176,8 +180,40 @@ export interface IProtocolOverviewPageData {
 		transactions: number | null
 		gasUsd: number | null
 	} | null
+	raises: Array<IRaise> | null
+	expenses: {
+		headcount: number | null
+		total: number | null
+		annualUsdCost: Array<[string, number]>
+		sources?: Array<string> | null
+		notes?: Array<string> | null
+		lastUpdate?: string | null
+	} | null
+	tokenLiquidity: {
+		pools: Array<[string, string, number]>
+		total: number
+	} | null
+	tokenCGData?: {
+		price: {
+			current: number | null
+			ath: number | null
+			athDate: number | null
+			atl: number | null
+			atlDate: number | null
+		}
+		marketCap: { current: number | null }
+		totalSupply: number | null
+		fdv: { current: number | null }
+		volume24h: {
+			total: number | null
+			cex: number | null
+			dex: number | null
+		}
+		symbol: string | null
+	} | null
 	cards: Array<CardType>
 	isCEX?: boolean
+	hasKeyMetrics?: boolean
 }
 
 export interface IProtocolPageStyles {
@@ -240,4 +276,25 @@ export interface IArticle {
 	date: string
 	href: string
 	imgSrc: string | null
+}
+
+export interface IRaise {
+	round: string
+	amount: number
+	valuation: string
+	source: string
+	date: number
+	defillamaId: string
+	leadInvestors?: Array<string>
+	otherInvestors?: Array<string>
+	investors?: Array<string>
+}
+
+export interface IProtocolExpenses {
+	protocolId: string
+	headcount: number
+	annualUsdCost: Record<string, number>
+	sources?: Array<string> | null
+	notes?: Array<string> | null
+	lastUpdate?: string | null
 }
