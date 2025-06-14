@@ -61,8 +61,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 									) : (
 										<ProtocolsByChainTable
 											key={`${item.id}-${item.colSpan}`}
+											tableId={item.id}
 											chains={item.chains}
 											colSpan={item.colSpan}
+											filters={item.filters}
 										/>
 									)}
 								</div>
@@ -124,8 +126,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											) : (
 												<ProtocolsByChainTable
 													key={`${item.id}-${item.colSpan}`}
+													tableId={item.id}
 													chains={item.chains}
 													colSpan={item.colSpan}
+													filters={item.filters}
 												/>
 											)}
 										</div>

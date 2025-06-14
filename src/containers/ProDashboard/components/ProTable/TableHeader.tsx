@@ -27,7 +27,6 @@ export function TableHeader({
 		if (chains.length <= 3) return `${chains.join(', ')} Protocols`
 		return `${chains.length} Chains Protocols`
 	}, [chains])
-	
 	return (
 		<div className="flex items-center justify-between flex-wrap gap-2 mb-2 pr-28">
 			<h3 className="text-base font-semibold mr-auto">{displayTitle}</h3>
@@ -45,6 +44,7 @@ export function TableHeader({
 					))}
 				</div>
 			)}
+
 
 			<ProTableCSVButton onClick={downloadCSV} smol />
 

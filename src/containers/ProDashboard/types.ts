@@ -42,11 +42,18 @@ export interface ChartConfig {
 	colSpan?: 1 | 2
 }
 
+export interface TableFilters {
+	protocols?: string[]
+	categories?: string[]
+	[key: string]: any // Allow for future filter types
+}
+
 export interface ProtocolsTableConfig {
 	id: string
 	kind: 'table'
 	chains: string[]
 	colSpan?: 1 | 2
+	filters?: TableFilters
 }
 
 export interface Protocol {
