@@ -11,9 +11,12 @@ import {
 	ColumnDef
 } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
-import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
+import { 
+	useGetProtocolsListMultiChain, 
+	useGetProtocolsVolumeByMultiChain, 
+	useGetProtocolsFeesAndRevenueByMultiChain 
+} from '~/api/categories/chains/multiChainClient'
 import { TABLE_CATEGORIES, protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/columns'
@@ -27,11 +30,11 @@ interface CustomColumn {
 }
 
 export function useProTable(chains: string[]) {
-	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain: 'All' })
-	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByChain('All')
-	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByChain('All')
+	const { fullProtocolsList, parentProtocols } = useGetProtocolsListMultiChain(chains)
+	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByMultiChain(chains)
+	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
 
-	const allFormattedProtocols = React.useMemo(() => {
+	const finalProtocolsList = React.useMemo(() => {
 		if (!fullProtocolsList) return []
 
 		return formatProtocolsList({
@@ -42,26 +45,6 @@ export function useProTable(chains: string[]) {
 			feesData: chainProtocolsFees
 		})
 	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees])
-
-	const finalProtocolsList = React.useMemo(() => {
-		if (chains.length === 0 || chains.includes('All')) {
-			return allFormattedProtocols
-		}
-
-		const chainSet = new Set(chains)
-
-		return allFormattedProtocols.filter((protocol) => {
-			if (protocol.chains && Array.isArray(protocol.chains)) {
-				return protocol.chains.some((protocolChain) => chainSet.has(protocolChain))
-			}
-
-			if (protocol.chainTvls && typeof protocol.chainTvls === 'object') {
-				return Object.keys(protocol.chainTvls).some((chain) => chainSet.has(chain))
-			}
-
-			return false
-		})
-	}, [allFormattedProtocols, chains])
 
 	const optionsKey = 'protocolsTableColumns'
 	const customColumnsKey = 'protocolsTableCustomColumns'
