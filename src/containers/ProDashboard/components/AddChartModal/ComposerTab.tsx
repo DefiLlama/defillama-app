@@ -52,25 +52,24 @@ export function ComposerTab({
 	return (
 		<div className="space-y-4">
 			<div>
-				<label className="block mb-2 text-sm font-medium text-[var(--text2)]">Chart Name</label>
+				<label className="block mb-2 text-sm font-medium pro-text2">Chart Name</label>
 				<input
 					type="text"
 					value={composerChartName}
 					onChange={(e) => onComposerChartNameChange(e.target.value)}
 					placeholder="Enter chart name..."
-					className="w-full px-3 py-2 border border-white/20 text-[var(--text1)] placeholder-[var(--text3)] focus:border-[var(--primary1)] focus:outline-none"
-					style={{ backgroundColor: '#070e0f' }}
+					className="w-full px-3 py-2 border pro-border pro-text1 placeholder-pro-text3 focus:border-[var(--primary1)] focus:outline-none pro-bg2"
 				/>
 			</div>
 
 			<div className="flex gap-4 h-96">
-				<div className="flex-[7] border border-white/20 p-4 space-y-4">
+				<div className="flex-[7] border pro-border p-4 space-y-4">
 					<div className="grid grid-cols-2 gap-0">
 						<button
 							className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
 								composerSubType === 'chain'
 									? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
-									: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
+									: 'pro-border pro-hover-bg pro-text2'
 							}`}
 							onClick={() => onComposerSubTypeChange('chain')}
 						>
@@ -80,7 +79,7 @@ export function ComposerTab({
 							className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
 								composerSubType === 'protocol'
 									? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
-									: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
+									: 'pro-border pro-hover-bg pro-text2'
 							}`}
 							onClick={() => onComposerSubTypeChange('protocol')}
 						>
@@ -135,31 +134,30 @@ export function ComposerTab({
 					</button>
 				</div>
 
-				<div className="flex-[3] border border-white/20 p-4">
-					<div className="text-sm font-medium text-[var(--text2)] mb-3">
+				<div className="flex-[3] border pro-border p-4">
+					<div className="text-sm font-medium pro-text2 mb-3">
 						Charts ({composerItems.length})
 					</div>
 					<div className="space-y-2 overflow-y-auto max-h-80 thin-scrollbar">
 						{composerItems.length === 0 ? (
-							<div className="text-xs text-[var(--text3)] text-center py-8">No charts added yet</div>
+							<div className="text-xs pro-text3 text-center py-8">No charts added yet</div>
 						) : (
 							composerItems.map((item) => (
 								<div
 									key={item.id}
-									className="flex items-center justify-between p-2 text-xs border border-white/10"
-									style={{ backgroundColor: '#070e0f' }}
+									className="flex items-center justify-between p-2 text-xs border pro-border pro-bg2"
 								>
 									<div className="flex-1 min-w-0">
-										<div className="font-medium text-[var(--text1)] truncate">
+										<div className="font-medium pro-text1 truncate">
 											{item.protocol || item.chain}
 										</div>
-										<div className="text-[var(--text3)] truncate">
+										<div className="pro-text3 truncate">
 											{CHART_TYPES[item.type]?.title}
 										</div>
 									</div>
 									<button
 										onClick={() => onRemoveFromComposer(item.id)}
-										className="ml-2 p-1 text-[var(--text3)] hover:text-[var(--text1)] hover:bg-[var(--bg2)] border border-white/20 transition-colors duration-200"
+										className="ml-2 p-1 pro-text3 hover:pro-text1 pro-hover-bg border pro-border transition-colors duration-200"
 									>
 										<Icon name="x" height={12} width={12} />
 									</button>

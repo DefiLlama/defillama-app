@@ -23,12 +23,12 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 					className={`px-4 py-3 text-sm font-medium border transition-colors duration-200 ${
 						selectedMainTab === tab.id
 							? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
-							: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
+							: 'pro-border pro-hover-bg pro-text2'
 					}`}
 					onClick={() => !editItem && onTabChange(tab.id)}
 					disabled={!!editItem}
 				>
-					{tab.label} <span className="text-[var(--text3)]">{tab.subtitle}</span>
+					{tab.label} <span className="pro-text3">{tab.subtitle}</span>
 				</button>
 			))}
 		</div>

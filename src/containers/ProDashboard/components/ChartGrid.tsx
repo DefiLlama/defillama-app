@@ -50,7 +50,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 					{chartsWithData.map((item) => (
 						<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
-							<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full relative">
+							<div className="pro-glass h-full relative">
 								<div className={item.kind === 'table' ? 'pr-12' : ''}>
 									{item.kind === 'chart' ? (
 										<ChartCard key={`${item.id}-${item.colSpan}`} chart={item} />
@@ -82,10 +82,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						{chartsWithData.map((item) => (
 							<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
-									<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full relative">
+									<div className="pro-glass h-full relative">
 										<div className="absolute top-1 right-1 z-20 flex gap-1">
 											<button
-												className="p-1.5 text-sm   hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+												className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
 												onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
 												aria-label={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
 												title={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
@@ -98,7 +98,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											</button>
 											{onEditItem && (
 												<button
-													className="p-1.5 text-sm   hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+													className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
 													onClick={() => onEditItem(item)}
 													aria-label="Edit item"
 													title="Edit item"
@@ -107,7 +107,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 												</button>
 											)}
 											<button
-												className="p-1.5 text-sm   hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+												className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
 												onClick={() => handleRemoveItem(item.id)}
 												aria-label="Remove item"
 											>
@@ -135,7 +135,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						))}
 						<div
 							onClick={onAddChartClick}
-							className="flex flex-col items-center justify-center border min-h-[340px] border-dashed border-[var(--form-control-border)] cursor-pointer bg-[var(--bg7)] hover:bg-[var(--bg2)] transition-colors"
+							className="flex flex-col items-center justify-center border min-h-[340px] border-dashed pro-border cursor-pointer pro-bg7 hover:pro-bg2 transition-colors"
 						>
 							<svg
 								width="40"

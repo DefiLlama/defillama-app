@@ -38,7 +38,7 @@ export function TableHeader({
 						<button
 							key={preset}
 							onClick={() => applyPreset(preset)}
-							className="flex items-center gap-1 px-3 py-2 text-sm border border-[var(--divider)] hover:bg-[var(--bg3)] text-[var(--text1)] capitalize transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+							className="flex items-center gap-1 px-3 py-2 text-sm border pro-divider pro-hover-bg pro-text1 capitalize transition-colors pro-bg1"
 						>
 							{preset}
 						</button>
@@ -50,7 +50,7 @@ export function TableHeader({
 
 			<button
 				onClick={() => setShowColumnPanel(!showColumnPanel)}
-				className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--divider)] hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+				className="flex items-center gap-2 px-3 py-2 text-sm border pro-divider pro-hover-bg pro-text1 transition-colors pro-bg1"
 			>
 				<Icon name="settings" height={14} width={14} />
 				Customize Table

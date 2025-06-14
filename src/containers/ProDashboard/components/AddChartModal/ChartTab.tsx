@@ -47,13 +47,13 @@ export function ChartTab({
 
 	return (
 		<div className="flex gap-4 h-96">
-			<div className="flex-1 border border-white/20 p-4 space-y-4">
+			<div className="flex-1 border pro-border p-4 space-y-4">
 				<div className="grid grid-cols-2 gap-0">
 					<button
 						className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
 							selectedChartTab === 'chain'
 								? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
-								: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
+								: 'pro-border pro-hover-bg pro-text2'
 						}`}
 						onClick={() => onChartTabChange('chain')}
 					>
@@ -63,7 +63,7 @@ export function ChartTab({
 						className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
 							selectedChartTab === 'protocol'
 								? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
-								: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
+								: 'pro-border pro-hover-bg pro-text2'
 						}`}
 						onClick={() => onChartTabChange('protocol')}
 					>
@@ -106,10 +106,10 @@ export function ChartTab({
 				)}
 			</div>
 
-			<div className="flex-1 border border-white/20">
-				<div className="text-sm font-medium text-[var(--text2)] mb-3 mt-4 ml-4">Preview</div>
+			<div className="flex-1 border pro-border">
+				<div className="text-sm font-medium pro-text2 mb-3 mt-4 ml-4">Preview</div>
 				{showPreview ? (
-					<div className="h-full bg-[#070e0f]/50 p-2">
+					<div className="h-full pro-bg2 p-2">
 						<ChartPreview
 							data={previewChartData.data}
 							chartType={selectedChartType}
@@ -123,7 +123,7 @@ export function ChartTab({
 						/>
 					</div>
 				) : (
-					<div className="flex items-center justify-center h-full text-[var(--text3)] text-center">
+					<div className="flex items-center justify-center h-full pro-text3 text-center">
 						<div>
 							<Icon name="bar-chart-2" height={36} width={36} className="mb-1 mx-auto" />
 							<div className="text-xs">Select a chart to see preview</div>

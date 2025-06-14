@@ -37,7 +37,7 @@ const ChartRenderer = memo(function ChartRenderer({ chart, data, isLoading, hasE
 
 	if (hasError) {
 		return (
-			<div className="flex flex-col items-center justify-center h-full text-[var(--text3)]">
+			<div className="flex flex-col items-center justify-center h-full pro-text3">
 				<Icon name="alert-triangle" height={24} width={24} className="mb-2 text-[#F2994A]" />
 				<p>Error loading data</p>
 				<button className="mt-2 text-sm text-[var(--primary1)] hover:underline" onClick={() => refetch()}>
@@ -48,7 +48,7 @@ const ChartRenderer = memo(function ChartRenderer({ chart, data, isLoading, hasE
 	}
 
 	if (!data || data.length === 0) {
-		return <div className="flex items-center justify-center h-full text-[var(--text3)]">No data available</div>
+		return <div className="flex items-center justify-center h-full pro-text3">No data available</div>
 	}
 
 	const chartType = CHART_TYPES[chart.type]
@@ -127,7 +127,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 										${
 											chart.grouping === option
 												? 'bg-[var(--primary1)] text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:ring-opacity-50'
-												: 'bg-transparent hover:bg-[var(--bg3)] text-[var(--text2)] focus:outline-none focus:ring-1 focus:ring-[var(--form-control-border)]'
+												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-none focus:ring-1 focus:ring-[var(--form-control-border)]'
 										}`}
 								>
 									{option.charAt(0).toUpperCase() + option.slice(1)}

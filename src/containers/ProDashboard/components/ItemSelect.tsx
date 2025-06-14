@@ -121,7 +121,7 @@ export function ItemSelect({
 
 	return (
 		<div>
-			<label className="block mb-2 text-sm font-medium text-[var(--text2)]">{label}</label>
+			<label className="block mb-2 text-sm font-medium pro-text2">{label}</label>
 			{isLoading ? (
 				<div className="flex items-center justify-center h-10">
 					<LoadingSpinner size="sm" />

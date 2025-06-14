@@ -249,6 +249,79 @@
 	#fees-generated-chart > div > div > svg > g > image {
 		clip-path: inset(0% round 50%);
 	}
+
+	.pro-dashboard {
+		--pro-text1: #0a0a0a;
+		--pro-text2: #2d2d2d;
+		--pro-text3: #4a4a4a;
+
+		--pro-bg1: #ffffff;
+		--pro-bg2: #f3f3f3;
+		--pro-bg3: #e5e5e5;
+		--pro-bg4: #cccccc;
+		--pro-bg7: rgba(255, 255, 255, 0.95);
+
+		--pro-divider: rgba(0, 0, 0, 0.15);
+		--pro-border: rgba(0, 0, 0, 0.12);
+		--pro-glass-border: rgba(0, 0, 0, 0.15);
+	}
+
+	html.dark .pro-dashboard {
+		--pro-text1: var(--text1);
+		--pro-text2: var(--text2);
+		--pro-text3: var(--text3);
+
+		--pro-bg1: #070e0f;
+		--pro-bg2: #0a1011;
+		--pro-bg3: #0d1516;
+		--pro-bg4: #101a1c;
+		--pro-bg7: rgba(7, 14, 15, 0.7);
+
+		--pro-divider: rgba(255, 255, 255, 0.1);
+		--pro-border: rgba(255, 255, 255, 0.2);
+		--pro-glass-border: rgba(255, 255, 255, 0.3);
+	}
+
+	.pro-dashboard .pro-text1 {
+		color: var(--pro-text1);
+	}
+	.pro-dashboard .pro-text2 {
+		color: var(--pro-text2);
+	}
+	.pro-dashboard .pro-text3 {
+		color: var(--pro-text3);
+	}
+
+	.pro-dashboard .pro-bg1 {
+		background-color: var(--pro-bg1);
+	}
+	.pro-dashboard .pro-bg2 {
+		background-color: var(--pro-bg2);
+	}
+	.pro-dashboard .pro-bg3 {
+		background-color: var(--pro-bg3);
+	}
+	.pro-dashboard .pro-bg7 {
+		background-color: var(--pro-bg7);
+	}
+
+	.pro-dashboard .pro-border {
+		border-color: var(--pro-border);
+	}
+	.pro-dashboard .pro-divider {
+		border-color: var(--pro-divider);
+	}
+
+	.pro-dashboard .pro-glass {
+		background-color: var(--pro-bg7);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+		border: 1px solid var(--pro-glass-border);
+	}
+
+	.pro-dashboard .pro-hover-bg:hover {
+		background-color: var(--pro-bg3);
+	}
 }
 
 @layer utilities {

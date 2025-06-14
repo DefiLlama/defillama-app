@@ -69,18 +69,18 @@ export function ColumnManagementPanel({
 	if (!showColumnPanel) return null
 
 	return (
-		<div className="mb-4 p-4 border border-[var(--divider)] bg-[var(--bg6)] dark:bg-[#070e0f]">
+		<div className="mb-4 p-4 border pro-divider pro-bg3">
 			<div className="flex items-center justify-between mb-3">
 				<div className="flex items-center gap-4">
-					<h4 className="text-sm font-medium text-[var(--text1)]">Customize Columns</h4>
+					<h4 className="text-sm font-medium pro-text1">Customize Columns</h4>
 					{/* Tab Navigation */}
-					<div className="flex border border-[var(--divider)] bg-[var(--bg1)] dark:bg-[#070e0f]">
+					<div className="flex border pro-divider pro-bg2">
 						<button
 							onClick={() => setActiveTab('columns')}
 							className={`px-3 py-1 text-xs transition-colors ${
 								activeTab === 'columns'
 									? 'bg-[var(--primary1)] text-white'
-									: 'text-[var(--text2)] hover:bg-[var(--bg3)]'
+									: 'pro-text2 pro-hover-bg'
 							}`}
 						>
 							Standard Columns
@@ -90,7 +90,7 @@ export function ColumnManagementPanel({
 							className={`px-3 py-1 text-xs transition-colors ${
 								activeTab === 'custom'
 									? 'bg-[var(--primary1)] text-white'
-									: 'text-[var(--text2)] hover:bg-[var(--bg3)]'
+									: 'pro-text2 pro-hover-bg'
 							}`}
 						>
 							Custom Columns
@@ -104,13 +104,13 @@ export function ColumnManagementPanel({
 								const allKeys = protocolsByChainTableColumns.map((col) => col.key)
 								addOption(allKeys, true)
 							}}
-							className="px-2 py-1 text-xs border border-[var(--divider)] hover:bg-[var(--bg3)] text-[var(--text2)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+							className="px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
 						>
 							Show All
 						</button>
 						<button
 							onClick={() => addOption(['name', 'category'], true)}
-							className="px-2 py-1 text-xs border border-[var(--divider)] hover:bg-[var(--bg3)] text-[var(--text2)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+							className="px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
 						>
 							Hide All
 						</button>
@@ -126,25 +126,25 @@ export function ColumnManagementPanel({
 							name="search"
 							height={14}
 							width={14}
-							className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text3)]"
+							className="absolute left-3 top-1/2 transform -translate-y-1/2 pro-text3"
 						/>
 						<input
 							type="text"
 							placeholder="Search columns..."
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
-							className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--divider)] text-[var(--text1)] placeholder-[var(--text3)] focus:outline-none focus:border-[var(--primary1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+							className="w-full pl-9 pr-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-none focus:border-[var(--primary1)] transition-colors pro-bg2"
 						/>
 					</div>
 
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 						{/* Active Columns */}
 						<div>
-							<h5 className="text-xs font-medium text-[var(--text2)] mb-2 uppercase tracking-wide flex items-center gap-2">
+							<h5 className="text-xs font-medium pro-text2 mb-2 uppercase tracking-wide flex items-center gap-2">
 								<Icon name="eye" height={12} width={12} />
 								Active Columns ({Object.values(currentColumns).filter(Boolean).length})
 							</h5>
-							<p className="text-xs text-[var(--text3)] mb-3">Click × to hide</p>
+							<p className="text-xs pro-text3 mb-3">Click × to hide</p>
 							<div className="space-y-1 max-h-60 overflow-y-auto thin-scrollbar">
 								{columnOrder
 									.filter((key) => currentColumns[key])
@@ -155,18 +155,18 @@ export function ColumnManagementPanel({
 										return (
 											<div
 												key={columnKey}
-												className="flex items-center justify-between p-2 border border-[var(--divider)] hover:bg-[var(--bg3)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+												className="flex items-center justify-between p-2 border pro-divider pro-hover-bg transition-colors pro-bg2"
 											>
 												<div className="flex items-center gap-2">
 													<Icon name="check" height={12} width={12} className="text-green-500" />
-													<span className="text-xs text-[var(--text1)]">{column.name}</span>
+													<span className="text-xs pro-text1">{column.name}</span>
 													{isCustom && (
 														<span className="text-xs px-1 py-0.5 bg-[var(--primary1)] text-white rounded">Custom</span>
 													)}
 												</div>
 												<button
 													onClick={() => toggleColumnVisibility(columnKey, false)}
-													className="text-[var(--text3)] hover:text-[var(--text1)] transition-colors"
+													className="pro-text3 hover:pro-text1 transition-colors"
 												>
 													<Icon name="x" height={12} width={12} />
 												</button>
@@ -178,16 +178,16 @@ export function ColumnManagementPanel({
 
 						{/* Available Columns - Grouped */}
 						<div>
-							<h5 className="text-xs font-medium text-[var(--text2)] mb-2 uppercase tracking-wide flex items-center gap-2">
+							<h5 className="text-xs font-medium pro-text2 mb-2 uppercase tracking-wide flex items-center gap-2">
 								<Icon name="plus" height={12} width={12} />
 								Available Columns
 							</h5>
-							<p className="text-xs text-[var(--text3)] mb-3">Click to add to table</p>
+							<p className="text-xs pro-text3 mb-3">Click to add to table</p>
 							<div className="space-y-3 max-h-60 overflow-y-auto thin-scrollbar">
 								{/* Custom Columns Group */}
 								{customColumns.length > 0 && (
 									<div>
-										<h6 className="text-xs font-medium text-[var(--text2)] mb-1">Custom Columns</h6>
+										<h6 className="text-xs font-medium pro-text2 mb-1">Custom Columns</h6>
 										<div className="space-y-1">
 											{customColumnsForStandardView
 												.filter((col) => !currentColumns[col.key])
@@ -195,10 +195,10 @@ export function ColumnManagementPanel({
 													<button
 														key={column.key}
 														onClick={() => toggleColumnVisibility(column.key, true)}
-														className="flex items-center gap-2 w-full p-2 text-left border border-[var(--divider)] hover:bg-[var(--bg3)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+														className="flex items-center gap-2 w-full p-2 text-left border pro-divider pro-hover-bg transition-colors pro-bg2"
 													>
-														<Icon name="plus" height={10} width={10} className="text-[var(--text3)]" />
-														<span className="text-xs text-[var(--text1)]">{column.name}</span>
+														<Icon name="plus" height={10} width={10} className="pro-text3" />
+														<span className="text-xs pro-text1">{column.name}</span>
 													</button>
 												))}
 										</div>
@@ -207,7 +207,7 @@ export function ColumnManagementPanel({
 
 								{/* TVL Group */}
 								<div>
-									<h6 className="text-xs font-medium text-[var(--text2)] mb-1">TVL & Market</h6>
+									<h6 className="text-xs font-medium pro-text2 mb-1">TVL & Market</h6>
 									<div className="space-y-1">
 										{filteredColumns
 											.filter(
@@ -219,10 +219,10 @@ export function ColumnManagementPanel({
 												<button
 													key={column.key}
 													onClick={() => toggleColumnVisibility(column.key, true)}
-													className="flex items-center gap-2 w-full p-2 text-left border border-[var(--divider)] hover:bg-[var(--bg3)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+													className="flex items-center gap-2 w-full p-2 text-left border pro-divider pro-hover-bg transition-colors pro-bg2"
 												>
-													<Icon name="plus" height={10} width={10} className="text-[var(--text3)]" />
-													<span className="text-xs text-[var(--text1)]">{column.name}</span>
+													<Icon name="plus" height={10} width={10} className="pro-text3" />
+													<span className="text-xs pro-text1">{column.name}</span>
 												</button>
 											))}
 									</div>
@@ -230,7 +230,7 @@ export function ColumnManagementPanel({
 
 								{/* Fees & Revenue Group */}
 								<div>
-									<h6 className="text-xs font-medium text-[var(--text2)] mb-1">Fees & Revenue</h6>
+									<h6 className="text-xs font-medium pro-text2 mb-1">Fees & Revenue</h6>
 									<div className="space-y-1">
 										{filteredColumns
 											.filter(
@@ -242,10 +242,10 @@ export function ColumnManagementPanel({
 												<button
 													key={column.key}
 													onClick={() => toggleColumnVisibility(column.key, true)}
-													className="flex items-center gap-2 w-full p-2 text-left border border-[var(--divider)] hover:bg-[var(--bg3)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+													className="flex items-center gap-2 w-full p-2 text-left border pro-divider pro-hover-bg transition-colors pro-bg2"
 												>
-													<Icon name="plus" height={10} width={10} className="text-[var(--text3)]" />
-													<span className="text-xs text-[var(--text1)]">{column.name}</span>
+													<Icon name="plus" height={10} width={10} className="pro-text3" />
+													<span className="text-xs pro-text1">{column.name}</span>
 												</button>
 											))}
 									</div>
@@ -253,7 +253,7 @@ export function ColumnManagementPanel({
 
 								{/* Volume Group */}
 								<div>
-									<h6 className="text-xs font-medium text-[var(--text2)] mb-1">Volume & Other</h6>
+									<h6 className="text-xs font-medium pro-text2 mb-1">Volume & Other</h6>
 									<div className="space-y-1">
 										{filteredColumns
 											.filter(
@@ -263,10 +263,10 @@ export function ColumnManagementPanel({
 												<button
 													key={column.key}
 													onClick={() => toggleColumnVisibility(column.key, true)}
-													className="flex items-center gap-2 w-full p-2 text-left border border-[var(--divider)] hover:bg-[var(--bg3)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+													className="flex items-center gap-2 w-full p-2 text-left border pro-divider pro-hover-bg transition-colors pro-bg2"
 												>
-													<Icon name="plus" height={10} width={10} className="text-[var(--text3)]" />
-													<span className="text-xs text-[var(--text1)]">{column.name}</span>
+													<Icon name="plus" height={10} width={10} className="pro-text3" />
+													<span className="text-xs pro-text1">{column.name}</span>
 												</button>
 											))}
 									</div>
@@ -287,8 +287,8 @@ export function ColumnManagementPanel({
 			)}
 
 			{/* Summary */}
-			<div className="mt-4 pt-3 border-t border-[var(--divider)] flex items-center justify-between text-xs">
-				<span className="text-[var(--text3)]">
+			<div className="mt-4 pt-3 border-t pro-divider flex items-center justify-between text-xs">
+				<span className="pro-text3">
 					{activeTab === 'columns' 
 						? `${Object.values(currentColumns).filter(Boolean).length} of ${protocolsByChainTableColumns.length} columns visible`
 						: `${customColumns.length} custom columns`
