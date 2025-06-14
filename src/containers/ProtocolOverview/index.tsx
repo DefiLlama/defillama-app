@@ -5,25 +5,33 @@ import { formattedNum, tokenIconUrl } from '~/utils'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Bookmark } from '~/components/Bookmark'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Flag } from './Flag'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { BasicLink } from '~/components/Link'
 import { DLNewsLogo } from '~/components/News/Logo'
 import dayjs from 'dayjs'
+import { feesOptions, protocolsAndChainsOptions } from '~/components/Filters/options'
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
-	const { tvl, tvlByChain, hasTvl } = useMemo(() => {
+	const { tvl, tvlByChain, hasTvl, toggleOptions } = useMemo(() => {
 		let tvl = 0
 		let hasTvl = false
+		let toggleOptions = []
 
 		const tvlByChain = {}
 
 		for (const chain in props.currentTvlByChain ?? {}) {
-			if (chain.toLowerCase() in extraTvlsEnabled || chain == 'offers') continue
+			if (chain.toLowerCase() in extraTvlsEnabled || chain == 'offers') {
+				const option = protocolsAndChainsOptions.find((e) => e.key === chain)
+				if (option && chain !== 'offers') {
+					toggleOptions.push(option)
+				}
+				continue
+			}
 
 			hasTvl = true
 
@@ -42,12 +50,21 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			tvl += tvlByChain[chain]
 		}
 
+		if (props.bribeRevenue?.totalAllTime != null) {
+			toggleOptions.push(feesOptions.find((f) => f.key === FEES_SETTINGS.BRIBES))
+		}
+
+		if (props.tokenTax?.totalAllTime != null) {
+			toggleOptions.push(feesOptions.find((f) => f.key === FEES_SETTINGS.TOKENTAX))
+		}
+
 		return {
 			tvl,
 			tvlByChain,
-			hasTvl
+			hasTvl,
+			toggleOptions
 		}
-	}, [extraTvlsEnabled, props.currentTvlByChain])
+	}, [extraTvlsEnabled, props])
 
 	const formatPrice = (value?: number | string | null): string | number | null => {
 		if (Number.isNaN(Number(value))) return null
@@ -66,7 +83,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			name={props.name}
 			category={props.category}
 			otherProtocols={props.otherProtocols}
-			toggleOptions={[]}
+			toggleOptions={toggleOptions}
 			metrics={props.metrics}
 			tab="information"
 		>
@@ -387,7 +404,9 @@ const cardByType: Record<CardType, (props: IProtocolOverviewPageData) => React.R
 	perpAggregatorVolume: PerpAggregatorVolume,
 	bridgeAggregatorVolume: BridgeAggregatorVolume,
 	optionsPremiumVolume: OptionsPremiumVolume,
-	optionsNotionalVolume: OptionsNotionalVolume
+	optionsNotionalVolume: OptionsNotionalVolume,
+	devActivity: DevActivity,
+	users: Users
 }
 
 function Treasury(props: IProtocolOverviewPageData) {
@@ -444,6 +463,7 @@ function Fees(props: IProtocolOverviewPageData) {
 	const fees = props.fees
 	const bribeRevenue = props.bribeRevenue
 	const tokenTax = props.tokenTax
+	const feesExists = fees?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
@@ -452,10 +472,11 @@ function Fees(props: IProtocolOverviewPageData) {
 	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
 	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
 
-	const fees24h = fees?.total24h != null ? fees.total24h + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
-	const fees30d = fees?.total30d != null ? fees.total30d + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
-	const feesAllTime =
-		fees?.totalAllTime != null ? fees.totalAllTime + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0) : null
+	const fees24h = feesExists ? (fees?.total24h ?? 0) + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
+	const fees30d = feesExists ? (fees?.total30d ?? 0) + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
+	const feesAllTime = feesExists
+		? (fees?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
+		: null
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
@@ -522,6 +543,8 @@ function Revenue(props: IProtocolOverviewPageData) {
 	const revenue = props.revenue
 	const bribeRevenue = props.bribeRevenue
 	const tokenTax = props.tokenTax
+	const revenueExists =
+		revenue?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
@@ -530,10 +553,11 @@ function Revenue(props: IProtocolOverviewPageData) {
 	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
 	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
 
-	const revenue24h = revenue?.total24h != null ? revenue.total24h + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
-	const revenue30d = revenue?.total30d != null ? revenue.total30d + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
-	const revenueAllTime =
-		revenue?.totalAllTime != null ? revenue.totalAllTime + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0) : null
+	const revenue24h = revenueExists ? (revenue?.total24h ?? 0) + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
+	const revenue30d = revenueExists ? (revenue?.total30d ?? 0) + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
+	const revenueAllTime = revenueExists
+		? (revenue?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
+		: null
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
@@ -600,6 +624,8 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 	const holdersRevenue = props.holdersRevenue
 	const bribeRevenue = props.bribeRevenue
 	const tokenTax = props.tokenTax
+	const holdersRevenueExists =
+		holdersRevenue?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
@@ -608,14 +634,15 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
 	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
 
-	const holdersRevenue24h =
-		holdersRevenue?.total24h != null ? holdersRevenue.total24h + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
-	const holdersRevenue30d =
-		holdersRevenue?.total30d != null ? holdersRevenue.total30d + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
-	const holdersRevenueAllTime =
-		holdersRevenue?.totalAllTime != null
-			? holdersRevenue.totalAllTime + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
-			: null
+	const holdersRevenue24h = holdersRevenueExists
+		? (holdersRevenue?.total24h ?? 0) + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0)
+		: null
+	const holdersRevenue30d = holdersRevenueExists
+		? (holdersRevenue?.total30d ?? 0) + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0)
+		: null
+	const holdersRevenueAllTime = holdersRevenueExists
+		? (holdersRevenue?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
+		: null
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
@@ -1165,6 +1192,88 @@ function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
 	)
 }
 
+function DevActivity(props: IProtocolOverviewPageData) {
+	const devActivity = props.devMetrics
+	if (!devActivity) return null
+	return (
+		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+			<h2 className="text-base font-semibold">Development Activity</h2>
+			<div className="flex flex-col">
+				{devActivity.weeklyCommits != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Weekly commits</span>
+						<span className="font-jetbrains">{devActivity.weeklyCommits}</span>
+					</p>
+				) : null}
+				{devActivity.monthlyCommits != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Monthly commits</span>
+						<span className="font-jetbrains">{devActivity.monthlyCommits}</span>
+					</p>
+				) : null}
+				{devActivity.weeklyDevelopers != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Weekly developers</span>
+						<span className="font-jetbrains">{devActivity.weeklyDevelopers}</span>
+					</p>
+				) : null}
+				{devActivity.monthlyDevelopers != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Monthly developers</span>
+						<span className="font-jetbrains">{devActivity.monthlyDevelopers}</span>
+					</p>
+				) : null}
+				{devActivity.lastCommit != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Last commit</span>
+						<span className="font-jetbrains">{`${dayjs(devActivity.lastCommit).format('DD/MM/YY')} (${dayjs(
+							devActivity.lastCommit
+						).fromNow()})`}</span>
+					</p>
+				) : null}
+			</div>
+		</div>
+	)
+}
+
+function Users(props: IProtocolOverviewPageData) {
+	const users = props.users
+	if (!users) return null
+	return (
+		<div>
+			<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+				<h2 className="text-base font-semibold">User Activity</h2>
+				<div className="flex flex-col">
+					{users.activeUsers != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">Active Addresses (24h)</span>
+							<span className="font-jetbrains">{users.activeUsers}</span>
+						</p>
+					) : null}
+					{users.newUsers != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">New Addresses (24h)</span>
+							<span className="font-jetbrains">{users.newUsers}</span>
+						</p>
+					) : null}
+					{users.transactions != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">Transactions (24h)</span>
+							<span className="font-jetbrains">{users.transactions}</span>
+						</p>
+					) : null}
+					{users.gasUsd != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">Gas Used (24h)</span>
+							<span className="font-jetbrains">{formattedNum(users.gasUsd, true)}</span>
+						</p>
+					) : null}
+				</div>
+			</div>
+		</div>
+	)
+}
+
 interface MasonryLayoutProps {
 	cards: CardType[]
 	props: IProtocolOverviewPageData
@@ -1243,6 +1352,10 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 								<OptionsPremiumVolume {...props} />
 							) : card === 'optionsNotionalVolume' ? (
 								<OptionsNotionalVolume {...props} />
+							) : card === 'devActivity' ? (
+								<DevActivity {...props} />
+							) : card === 'users' ? (
+								<Users {...props} />
 							) : null}
 						</div>
 					))}
@@ -1255,9 +1368,6 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 // unlocks
 // governance
 // token information
-
-// user activity
-// development activity
 
 // hallmarks & total hacked\
 // hacks

@@ -2,7 +2,14 @@ import { darken, transparentize } from 'polished'
 import { slug, tokenIconPaletteUrl } from '~/utils'
 import { oldBlue, primaryColor } from '~/constants/colors'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
-import { HOURLY_PROTOCOL_API, PROTOCOL_API, PROTOCOLS_TREASURY, YIELD_POOLS_API } from '~/constants'
+import {
+	ACTIVE_USERS_API,
+	DEV_METRICS_API,
+	HOURLY_PROTOCOL_API,
+	PROTOCOL_API,
+	PROTOCOLS_TREASURY,
+	YIELD_POOLS_API
+} from '~/constants'
 import {
 	IProtocolMetadata,
 	IProtocolOverviewPageData,
@@ -234,9 +241,18 @@ export const getProtocolOverviewPageData = async ({
 		treasury,
 		yieldsData,
 		articles,
-		incentives
+		incentives,
+		users
 	]: [
-		IUpdatedProtocol,
+		IUpdatedProtocol & {
+			devMetrics?: {
+				weeklyCommits: number | null
+				monthlyCommits: number | null
+				weeklyDevelopers: number | null
+				monthlyDevelopers: number | null
+				lastCommit: number | null
+			}
+		},
 		IProtocolPageStyles,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
@@ -258,9 +274,44 @@ export const getProtocolOverviewPageData = async ({
 		} | null,
 		any,
 		IArticle[],
-		any
+		any,
+		{
+			activeUsers: number | null
+			newUsers: number | null
+			transactions: number | null
+			gasUsd: number | null
+		} | null
 	] = await Promise.all([
-		getProtocol(metadata.name),
+		getProtocol(metadata.name).then(async (data) => {
+			try {
+				const devMetricsProtocolUrl = data.id?.includes('parent')
+					? `${DEV_METRICS_API}/parent/${data?.id?.replace('parent#', '')}.json`
+					: `${DEV_METRICS_API}/${data.id}.json`
+
+				const devActivity = data.github
+					? await fetchWithTimeout(devMetricsProtocolUrl, 3_000)
+							.then((r) => r.json())
+							.catch((e) => {
+								return null
+							})
+					: null
+
+				const devMetrics = devActivity?.report
+					? {
+							weeklyCommits: devActivity?.report?.weekly_contributers.slice(-1)[0]?.cc ?? null,
+							monthlyCommits: devActivity?.report?.monthly_contributers.slice(-1)[0]?.cc ?? null,
+							weeklyDevelopers: devActivity?.report?.weekly_contributers.slice(-1)[0]?.v ?? null,
+							monthlyDevelopers: devActivity?.report?.monthly_contributers.slice(-1)[0]?.v ?? null,
+							lastCommit: devActivity?.last_commit_update_time ?? null
+					  }
+					: null
+
+				return { ...data, devMetrics }
+			} catch (e) {
+				console.log(e)
+				return data
+			}
+		}),
 		getProtocolPageStyles(metadata.name),
 		metadata.fees
 			? getAdapterChainOverview({
@@ -401,6 +452,22 @@ export const getProtocolOverviewPageData = async ({
 							methodology:
 								'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms.'
 						}
+					})
+					.catch(() => null)
+			: null,
+		metadata.activeUsers
+			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
+					.then((res) => res.json())
+					.then((data) => data?.[protocolId] ?? null)
+					.then((data) => {
+						return data?.users?.value || data?.newUsers?.value || data?.txs?.value || data?.gasUsd?.value
+							? {
+									activeUsers: data.users?.value ?? null,
+									newUsers: data.newUsers?.value ?? null,
+									transactions: data.txs?.value ?? null,
+									gasUsd: data.gasUsd?.value ?? null
+							  }
+							: null
 					})
 					.catch(() => null)
 			: null
@@ -592,6 +659,16 @@ export const getProtocolOverviewPageData = async ({
 		cards.push('earnings')
 	}
 
+	if (protocolData.devMetrics) {
+		cards.push('devActivity')
+	}
+
+	if (users) {
+		cards.push('users')
+	}
+
+	console.log({ users })
+
 	return {
 		name: protocolData.name,
 		symbol: protocolData.symbol ?? null,
@@ -637,6 +714,8 @@ export const getProtocolOverviewPageData = async ({
 		yields,
 		articles,
 		incentives,
+		devMetrics: protocolData.devMetrics ?? null,
+		users,
 		cards,
 		isCEX: false
 	}
