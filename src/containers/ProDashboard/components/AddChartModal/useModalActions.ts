@@ -39,11 +39,13 @@ export function useModalActions(
 	)
 
 	const chainOptions = useMemo(
-		() =>
-			chains.map((chain: Chain) => ({
+		() => [
+			{ value: 'All', label: 'All Chains' },
+			...chains.map((chain: Chain) => ({
 				value: chain.name,
 				label: chain.name
-			})),
+			}))
+		],
 		[chains]
 	)
 
