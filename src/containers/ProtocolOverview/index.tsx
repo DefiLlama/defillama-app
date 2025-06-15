@@ -235,248 +235,253 @@ const ProtocolTVL = ({
 const KeyMetricsAndProtocolInfo = (
 	props: IProtocolOverviewPageData & { formatPrice: (value: number | string | null) => string | number | null }
 ) => {
-	if (!props.hasKeyMetrics) return null
 	return (
 		<>
-			<div className="flex flex-col gap-2">
-				<h2 className="font-semibold">Key Metrics</h2>
-				<div className="flex flex-col">
-					{props.tokenCGData?.marketCap?.current ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
-							<span className="font-jetbrains">{formattedNum(props.tokenCGData.marketCap.current, true)}</span>
-						</p>
-					) : null}
-					{props.tokenCGData?.price?.current ? (
-						props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
-							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+			{props.hasKeyMetrics ? (
+				<div className="flex flex-col gap-2">
+					<h2 className="font-semibold">Key Metrics</h2>
+					<div className="flex flex-col">
+						{props.tokenCGData?.marketCap?.current ? (
+							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
+								<span className="font-jetbrains">{formattedNum(props.tokenCGData.marketCap.current, true)}</span>
+							</p>
+						) : null}
+						{props.tokenCGData?.price?.current ? (
+							props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
+								<details className="group">
+									<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+										<span className="text-[#545757] dark:text-[#cccccc]">{`${
+											props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+										} Price`}</span>
+										<Icon
+											name="chevron-down"
+											height={16}
+											width={16}
+											className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+										/>
+										<span className="font-jetbrains ml-auto">
+											{formattedNum(props.tokenCGData.price.current, true)}
+										</span>
+									</summary>
+									<div className="flex flex-col text-xs mb-3">
+										<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+											<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
+											<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.ath, true)}</span>
+										</p>
+										<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222224] last:border-none py-1">
+											<span className="text-[#545757] dark:text-[#cccccc]">All Time Low</span>
+											<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.atl, true)}</span>
+										</p>
+									</div>
+								</details>
+							) : (
+								<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 									<span className="text-[#545757] dark:text-[#cccccc]">{`${
 										props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 									} Price`}</span>
+									<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.current, true)}</span>
+								</p>
+							)
+						) : null}
+						{props.tokenCGData?.fdv?.current ? (
+							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+								<Tooltip
+									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+									content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
+								>
+									Fully Diluted Valuation
+								</Tooltip>
+								<span className="font-jetbrains">{formattedNum(props.tokenCGData.fdv.current, true)}</span>
+							</p>
+						) : null}
+						{props.tokenCGData.volume24h?.total ? (
+							<details className="group">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+									<span className="text-[#545757] dark:text-[#cccccc]">{`24h ${
+										props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+									} Volume`}</span>
 									<Icon
 										name="chevron-down"
 										height={16}
 										width={16}
 										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 									/>
-									<span className="font-jetbrains ml-auto">{formattedNum(props.tokenCGData.price.current, true)}</span>
+									<span className="font-jetbrains ml-auto">
+										{formattedNum(props.tokenCGData.volume24h.total, true)}
+									</span>
 								</summary>
 								<div className="flex flex-col text-xs mb-3">
 									<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
-										<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.ath, true)}</span>
+										<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
+										<span className="font-jetbrains">
+											{props.tokenCGData.volume24h.cex ? formattedNum(props.tokenCGData.volume24h.cex, true) : '-'}
+										</span>
 									</p>
 									<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222224] last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">All Time Low</span>
-										<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.atl, true)}</span>
+										<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume</span>
+										<span className="flex items-center gap-1">
+											<span className="font-jetbrains">
+												{props.tokenCGData.volume24h.dex ? formattedNum(props.tokenCGData.volume24h.dex, true) : '-'}
+											</span>
+											<span className="text-xs text-[#545757] dark:text-[#cccccc]">
+												({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
+												total)
+											</span>
+										</span>
 									</p>
 								</div>
 							</details>
-						) : (
+						) : null}
+						{props.currentTvlByChain?.staking != null ? (
 							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">{`${
-									props.token?.symbol ? `$${props.token.symbol}` : 'Token'
-								} Price`}</span>
-								<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.current, true)}</span>
-							</p>
-						)
-					) : null}
-					{props.tokenCGData?.fdv?.current ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-							<Tooltip
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-								content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
-							>
-								Fully Diluted Valuation
-							</Tooltip>
-							<span className="font-jetbrains">{formattedNum(props.tokenCGData.fdv.current, true)}</span>
-						</p>
-					) : null}
-					{props.tokenCGData.volume24h?.total ? (
-						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">{`24h ${
-									props.token?.symbol ? `$${props.token.symbol}` : 'Token'
-								} Volume`}</span>
-								<Icon
-									name="chevron-down"
-									height={16}
-									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-								/>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.tokenCGData.volume24h.total, true)}</span>
-							</summary>
-							<div className="flex flex-col text-xs mb-3">
-								<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-									<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
-									<span className="font-jetbrains">
-										{props.tokenCGData.volume24h.cex ? formattedNum(props.tokenCGData.volume24h.cex, true) : '-'}
-									</span>
-								</p>
-								<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222224] last:border-none py-1">
-									<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume</span>
+								<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
+								{props.tokenCGData?.marketCap?.current ? (
 									<span className="flex items-center gap-1">
-										<span className="font-jetbrains">
-											{props.tokenCGData.volume24h.dex ? formattedNum(props.tokenCGData.volume24h.dex, true) : '-'}
-										</span>
+										<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
 										<span className="text-xs text-[#545757] dark:text-[#cccccc]">
-											({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
-											total)
+											({formattedNum((props.currentTvlByChain.staking / props.tokenCGData.marketCap.current) * 100)}% of
+											mcap)
 										</span>
 									</span>
-								</p>
-							</div>
-						</details>
-					) : null}
-					{props.currentTvlByChain?.staking != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
-							{props.tokenCGData?.marketCap?.current ? (
-								<span className="flex items-center gap-1">
+								) : (
 									<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
-									<span className="text-xs text-[#545757] dark:text-[#cccccc]">
-										({formattedNum((props.currentTvlByChain.staking / props.tokenCGData.marketCap.current) * 100)}% of
-										mcap)
+								)}
+							</p>
+						) : null}
+						{props.currentTvlByChain?.borrowed != null ? (
+							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">Borrowed</span>
+								<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.borrowed, true)}</span>
+							</p>
+						) : null}
+						{props.tokenLiquidity ? (
+							<details className="group">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+									<Tooltip
+										content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
+										className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+									>
+										{`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
+									</Tooltip>
+									<Icon
+										name="chevron-down"
+										height={16}
+										width={16}
+										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									/>
+									<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
+								</summary>
+								<div className="flex flex-col text-xs mb-3">
+									{props.tokenLiquidity?.pools.map((pool) => (
+										<p
+											key={`${pool[0]}-${pool[1]}-${pool[2]}`}
+											className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+										>
+											<span className="text-[#545757] dark:text-[#cccccc]">{pool[0]}</span>
+											<span className="font-jetbrains">{formattedNum(pool[2], true)}</span>
+										</p>
+									))}
+								</div>
+							</details>
+						) : null}
+						{props.raises?.length ? (
+							<details className="group">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+									<span className="text-[#545757] dark:text-[#cccccc]">Total Raised</span>
+									<Icon
+										name="chevron-down"
+										height={16}
+										width={16}
+										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									/>
+									<span className="font-jetbrains ml-auto">
+										{formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
 									</span>
-								</span>
-							) : (
-								<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
-							)}
-						</p>
-					) : null}
-					{props.currentTvlByChain?.borrowed != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">Borrowed</span>
-							<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.borrowed, true)}</span>
-						</p>
-					) : null}
-					{props.tokenLiquidity ? (
-						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-								<Tooltip
-									content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
-									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-								>
-									{`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
-								</Tooltip>
-								<Icon
-									name="chevron-down"
-									height={16}
-									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-								/>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
-							</summary>
-							<div className="flex flex-col text-xs mb-3">
-								{props.tokenLiquidity?.pools.map((pool) => (
-									<p
-										key={`${pool[0]}-${pool[1]}-${pool[2]}`}
-										className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-									>
-										<span className="text-[#545757] dark:text-[#cccccc]">{pool[0]}</span>
-										<span className="font-jetbrains">{formattedNum(pool[2], true)}</span>
-									</p>
-								))}
-							</div>
-						</details>
-					) : null}
-					{props.raises?.length ? (
-						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">Total Raised</span>
-								<Icon
-									name="chevron-down"
-									height={16}
-									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-								/>
-								<span className="font-jetbrains ml-auto">
-									{formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
-								</span>
-							</summary>
-							<div className="flex flex-col text-xs mb-3">
-								{props.raises.map((raise) => (
-									<p
-										className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-										key={`${raise.date}-${raise.amount}-${props.name}`}
-									>
-										<span className="flex flex-wrap justify-between">
-											<span className="text-[#545757] dark:text-[#cccccc]">
-												{dayjs(raise.date * 1000).format('MMM D, YYYY')}
+								</summary>
+								<div className="flex flex-col text-xs mb-3">
+									{props.raises.map((raise) => (
+										<p
+											className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+											key={`${raise.date}-${raise.amount}-${props.name}`}
+										>
+											<span className="flex flex-wrap justify-between">
+												<span className="text-[#545757] dark:text-[#cccccc]">
+													{dayjs(raise.date * 1000).format('MMM D, YYYY')}
+												</span>
+												<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
 											</span>
-											<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
-										</span>
-										<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
-											<span>Round: {raise.round}</span>
-											{raise.investors?.length ? <span>Investors: {raise.investors.join(', ')}</span> : null}
-										</span>
+											<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
+												<span>Round: {raise.round}</span>
+												{raise.investors?.length ? <span>Investors: {raise.investors.join(', ')}</span> : null}
+											</span>
+										</p>
+									))}
+								</div>
+							</details>
+						) : null}
+						{props.expenses ? (
+							<details className="group">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+									<span className="text-[#545757] dark:text-[#cccccc]">Annual Operational Expenses</span>
+									<Icon
+										name="chevron-down"
+										height={16}
+										width={16}
+										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									/>
+									<span className="font-jetbrains ml-auto">{formattedNum(props.expenses.total, true)}</span>
+								</summary>
+								<div className="flex flex-col text-xs mb-3">
+									<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
+										<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
 									</p>
-								))}
-							</div>
-						</details>
-					) : null}
-					{props.expenses ? (
-						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">Annual Operational Expenses</span>
-								<Icon
-									name="chevron-down"
-									height={16}
-									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-								/>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.expenses.total, true)}</span>
-							</summary>
-							<div className="flex flex-col text-xs mb-3">
-								<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-									<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
-									<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
-								</p>
-								{props.expenses.annualUsdCost.map(([category, amount]) => (
-									<p
-										className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-										key={`${props.name}-expenses-${category}-${amount}`}
-									>
-										<span className="flex flex-wrap justify-between">
-											<span className="text-[#545757] dark:text-[#cccccc]">{category}</span>
-											<span className="font-jetbrains">{formattedNum(amount, true)}</span>
-										</span>
-									</p>
-								))}
-								{props.expenses?.sources?.length ? (
-									<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-										<span className="text-[#545757] dark:text-[#cccccc]">Sources</span>
-										{props.expenses.sources?.map((source) => (
-											<a
-												href={source}
-												target="_blank"
-												rel="noopener noreferrer"
-												key={`${props.name}-expenses-source-${source}`}
-												className="hover:underline"
-											>
-												{source}
-											</a>
-										))}
-									</p>
-								) : null}
-								{props.expenses?.notes?.length ? (
-									<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-										<span className="text-[#545757] dark:text-[#cccccc]">Notes</span>
-										<span>{props.expenses.notes?.join(', ') ?? ''}</span>
-									</p>
-								) : null}
-								{props.expenses?.lastUpdate ? (
-									<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-										<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
-										<span>{dayjs(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
-									</p>
-								) : null}
-							</div>
-						</details>
-					) : null}
+									{props.expenses.annualUsdCost.map(([category, amount]) => (
+										<p
+											className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+											key={`${props.name}-expenses-${category}-${amount}`}
+										>
+											<span className="flex flex-wrap justify-between">
+												<span className="text-[#545757] dark:text-[#cccccc]">{category}</span>
+												<span className="font-jetbrains">{formattedNum(amount, true)}</span>
+											</span>
+										</p>
+									))}
+									{props.expenses?.sources?.length ? (
+										<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+											<span className="text-[#545757] dark:text-[#cccccc]">Sources</span>
+											{props.expenses.sources?.map((source) => (
+												<a
+													href={source}
+													target="_blank"
+													rel="noopener noreferrer"
+													key={`${props.name}-expenses-source-${source}`}
+													className="hover:underline"
+												>
+													{source}
+												</a>
+											))}
+										</p>
+									) : null}
+									{props.expenses?.notes?.length ? (
+										<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+											<span className="text-[#545757] dark:text-[#cccccc]">Notes</span>
+											<span>{props.expenses.notes?.join(', ') ?? ''}</span>
+										</p>
+									) : null}
+									{props.expenses?.lastUpdate ? (
+										<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+											<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
+											<span>{dayjs(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
+										</p>
+									) : null}
+								</div>
+							</details>
+						) : null}
+					</div>
 				</div>
-			</div>
+			) : null}
 			<div className="flex flex-col gap-2">
 				<h2 className="font-semibold">Protocol Information</h2>
 				{props.description ? <p>{props.description}</p> : null}
@@ -568,7 +573,7 @@ const KeyMetricsAndProtocolInfo = (
 }
 
 const Articles = (props: IProtocolOverviewPageData) => {
-	if (!props.articles) return null
+	if (!props.articles?.length) return null
 
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-2">
