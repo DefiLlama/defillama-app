@@ -1,7 +1,7 @@
 import { SEO } from '~/components/SEO'
 import { ProtocolOverviewLayout } from './Layout'
 import { CardType, IProtocolOverviewPageData } from './types'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Bookmark } from '~/components/Bookmark'
@@ -13,6 +13,7 @@ import { BasicLink } from '~/components/Link'
 import { DLNewsLogo } from '~/components/News/Logo'
 import dayjs from 'dayjs'
 import { feesOptions, protocolsAndChainsOptions } from '~/components/Filters/options'
+import { Menu } from '~/components/Menu'
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
@@ -218,7 +219,7 @@ const ProtocolTVL = ({
 					/>
 				</span>
 			</summary>
-			<div className="flex flex-col text-xs my-3 max-h-[50vh] overflow-auto">
+			<div className="flex flex-col my-3 max-h-[50vh] overflow-auto">
 				{tvlByChain.map(([chain, tvl]) => (
 					<p
 						key={`${chain}-${tvl}-${name}`}
@@ -264,7 +265,7 @@ const KeyMetricsAndProtocolInfo = (
 											{formattedNum(props.tokenCGData.price.current, true)}
 										</span>
 									</summary>
-									<div className="flex flex-col text-xs mb-3">
+									<div className="flex flex-col mb-3">
 										<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
 											<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.ath, true)}</span>
@@ -311,7 +312,7 @@ const KeyMetricsAndProtocolInfo = (
 										{formattedNum(props.tokenCGData.volume24h.total, true)}
 									</span>
 								</summary>
-								<div className="flex flex-col text-xs mb-3">
+								<div className="flex flex-col mb-3">
 									<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 										<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
 										<span className="font-jetbrains">
@@ -372,7 +373,7 @@ const KeyMetricsAndProtocolInfo = (
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
 								</summary>
-								<div className="flex flex-col text-xs mb-3">
+								<div className="flex flex-col mb-3">
 									{props.tokenLiquidity?.pools.map((pool) => (
 										<p
 											key={`${pool[0]}-${pool[1]}-${pool[2]}`}
@@ -399,7 +400,7 @@ const KeyMetricsAndProtocolInfo = (
 										{formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
 									</span>
 								</summary>
-								<div className="flex flex-col text-xs mb-3">
+								<div className="flex flex-col mb-3">
 									{props.raises.map((raise) => (
 										<p
 											className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
@@ -432,7 +433,7 @@ const KeyMetricsAndProtocolInfo = (
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.expenses.total, true)}</span>
 								</summary>
-								<div className="flex flex-col text-xs mb-3">
+								<div className="flex flex-col mb-3">
 									<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 										<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
 										<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
@@ -485,6 +486,25 @@ const KeyMetricsAndProtocolInfo = (
 			<div className="flex flex-col gap-2">
 				<h2 className="font-semibold">Protocol Information</h2>
 				{props.description ? <p>{props.description}</p> : null}
+				{props.category ? (
+					<p className="flex items-center gap-1">
+						<span>Category:</span>
+						<BasicLink href={`/protocols/${slug(props.category)}`} className="hover:underline">
+							{props.category}
+						</BasicLink>
+					</p>
+				) : null}
+				{props.audits ? (
+					<p className="flex items-center gap-1">
+						<span>Audits:</span>
+						<Menu
+							name="Yes"
+							options={props.audits.auditLinks}
+							isExternal
+							className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+						/>
+					</p>
+				) : null}
 				<div className="flex flex-wrap gap-2">
 					{props.website ? (
 						<a
@@ -1129,7 +1149,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 					<div className="flex flex-col gap-1">
 						<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last unlock event</h3>
 						<p className="flex items-center justify-between gap-4">
-							<span className="bg-[var(--app-bg)] rounded-md text-xs px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
+							<span className="bg-[var(--app-bg)] rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
 								{unlocks.recent.timestamp}
 							</span>
 							<span className="font-jetbrains">{formattedNum(unlocks.recent.amount)}</span>
@@ -1140,7 +1160,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 					<div className="flex flex-col gap-1">
 						<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Upcoming unlock event</h3>
 						<p className="flex items-center justify-between gap-4">
-							<span className="bg-[var(--app-bg)] rounded-md text-xs px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
+							<span className="bg-[var(--app-bg)] rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
 								{unlocks.upcoming.timestamp}
 							</span>
 							<span className="font-jetbrains">{formattedNum(unlocks.upcoming.amount)}</span>
@@ -1658,6 +1678,5 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 // hallmarks & total hacked
 // hacks
 
-// category
-// audits
 // competitors ???
+// % change tvl, mcap, token price, etc.

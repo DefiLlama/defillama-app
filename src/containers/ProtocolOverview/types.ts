@@ -211,6 +211,10 @@ export interface IProtocolOverviewPageData {
 		}
 		symbol: string | null
 	} | null
+	audits: {
+		total: number
+		auditLinks: Array<string>
+	} | null
 	cards: Array<CardType>
 	isCEX?: boolean
 	hasKeyMetrics?: boolean

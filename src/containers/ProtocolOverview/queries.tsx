@@ -835,6 +835,8 @@ export const getProtocolOverviewPageData = async ({
 				? { pools: tokenLiquidity, total: tokenLiquidity.reduce((acc, curr) => acc + curr[2], 0) }
 				: null,
 		tokenCGData: protocolData.tokenCGData ?? null,
+		audits:
+			+protocolData.audits > 0 ? { total: +protocolData.audits, auditLinks: protocolData.audit_links ?? [] } : null,
 		cards,
 		isCEX: false,
 		hasKeyMetrics
