@@ -285,7 +285,7 @@ const KeyMetricsAndProtocolInfo = (
 					{props.tokenCGData?.fdv?.current ? (
 						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 							<Tooltip
-								className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 								content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
 							>
 								Fully Diluted Valuation
@@ -356,7 +356,7 @@ const KeyMetricsAndProtocolInfo = (
 							<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 								<Tooltip
 									content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
-									className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 								>
 									{`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
 								</Tooltip>
@@ -683,7 +683,7 @@ function Treasury(props: IProtocolOverviewPageData) {
 				{treasury.majors ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<span className="text-[#545757] dark:text-[#cccccc]">
-							<Tooltip content="BTC, ETH" className="border-b border-[#e6e6e6] dark:border-[#222324] border-dashed">
+							<Tooltip content="BTC, ETH" className="underline decoration-dotted">
 								Majors
 							</Tooltip>
 						</span>
@@ -749,7 +749,7 @@ function Fees(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Fees (Annualized)
 						</Tooltip>
@@ -760,7 +760,7 @@ function Fees(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total fees paid by users in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Fees 30d
 						</Tooltip>
@@ -771,7 +771,7 @@ function Fees(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total fees paid by users in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Fees 24h
 						</Tooltip>
@@ -782,7 +782,7 @@ function Fees(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total fees paid by users since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Cumulative Fees
 						</Tooltip>
@@ -830,7 +830,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Revenue (Annualized)
 						</Tooltip>
@@ -841,7 +841,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Revenue 30d
 						</Tooltip>
@@ -852,7 +852,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Revenue 24h
 						</Tooltip>
@@ -863,7 +863,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total revenue earned by the protocol since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Cumulative Revenue
 						</Tooltip>
@@ -915,7 +915,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Holders Revenue (Annualized)
 						</Tooltip>
@@ -926,7 +926,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total revenue that is distributed to protocol's token holders in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Holders Revenue 30d
 						</Tooltip>
@@ -937,7 +937,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total revenue that is distributed to protocol's token holders in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Holders Revenue 24h
 						</Tooltip>
@@ -948,7 +948,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total revenue that is distributed to protocol's token holders since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Cumulative Holders Revenue
 						</Tooltip>
@@ -979,7 +979,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Incentives (Annualized)
 						</Tooltip>
@@ -990,7 +990,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total incentives distributed by the protocol in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Incentives 30d
 						</Tooltip>
@@ -1001,7 +1001,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total incentives distributed by the protocol in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Incentives 24h
 						</Tooltip>
@@ -1012,7 +1012,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total incentives distributed by the protocol since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Cumulative Incentives
 						</Tooltip>
@@ -1061,7 +1061,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Earnings (Annualized)
 						</Tooltip>
@@ -1072,7 +1072,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total earnings (revenue - incentives) of the protocol in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Earnings 30d
 						</Tooltip>
@@ -1083,7 +1083,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total earnings (revenue - incentives) of the protocol in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Earnings 24h
 						</Tooltip>
@@ -1094,7 +1094,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 						<Tooltip
 							content="Total earnings (revenue - incentives) of the protocol since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] border-b border-[#e6e6e6] dark:border-[#2222324] border-dashed"
+							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						>
 							Cumulative Earnings
 						</Tooltip>
@@ -1514,7 +1514,7 @@ function Users(props: IProtocolOverviewPageData) {
 			<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 				<Tooltip
 					content="This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
-					className="font-semibold border-b border-[#e6e6e6] dark:border-[#222324] border-dashed mr-auto"
+					className="font-semibold underline decoration-dotted mr-auto"
 					render={<h2 />}
 				>
 					User Activity
@@ -1652,3 +1652,7 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 
 // hallmarks & total hacked
 // hacks
+
+// category
+// audits
+// competitors ???
