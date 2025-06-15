@@ -18,11 +18,13 @@ interface ItemSelectProps {
 
 const CustomChainOption = ({ innerProps, label, data }) => (
 	<div {...innerProps} style={{ display: 'flex', alignItems: 'center', padding: '8px', cursor: 'pointer' }}>
-		<img
-			src={getItemIconUrl('chain', null, label)}
-			alt={label}
-			style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
-		/>
+		{label === 'All Chains' ? null : (
+			<img
+				src={getItemIconUrl('chain', null, label)}
+				alt={label}
+				style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
+			/>
+		)}
 		{label}
 	</div>
 )

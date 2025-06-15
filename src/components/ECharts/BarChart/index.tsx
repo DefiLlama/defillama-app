@@ -23,7 +23,8 @@ export default function BarChart({
 	tooltipOrderBottomUp,
 	groupBy,
 	hideDataZoom = false,
-	hideDownloadButton = false
+	hideDownloadButton = false,
+	containerClassName
 }: IBarChartProps) {
 	const id = useId()
 
@@ -253,7 +254,11 @@ export default function BarChart({
 					/>
 				)}
 			</div>
-			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
+			<div
+				id={id}
+				className={containerClassName ? containerClassName : 'my-auto min-h-[360px]'}
+				style={height ? { height } : undefined}
+			></div>
 		</div>
 	)
 }

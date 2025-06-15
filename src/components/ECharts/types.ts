@@ -36,6 +36,7 @@ export interface IChartProps {
 	hideOthersInTooltip?: boolean
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
+	containerClassName?: string
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
@@ -65,6 +66,7 @@ export interface ILineAndBarChartProps {
 	expandTo100Percent?: boolean
 	valueSymbol?: string
 	alwaysShowTooltip?: boolean
+	containerClassName?: string
 }
 
 export interface IMultiSeriesChartProps {

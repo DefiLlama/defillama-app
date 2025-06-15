@@ -107,9 +107,9 @@ export function ChartTab({
 			</div>
 
 			<div className="flex-1 border pro-border">
-				<div className="text-sm font-medium pro-text2 mb-3 mt-4 ml-4">Preview</div>
+				<div className="text-sm font-medium pro-text2 mt-4 ml-4">Preview</div>
 				{showPreview ? (
-					<div className="h-full pro-bg2 p-2">
+					<div className="pro-bg2 p-2">
 						<ChartPreview
 							data={previewChartData.data}
 							chartType={selectedChartType}
