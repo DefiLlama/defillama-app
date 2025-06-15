@@ -12,6 +12,8 @@ interface IMultiSeriesChartProps {
 		name: string
 		color: string
 		logo?: string
+		stack?: string
+		areaStyle?: any
 	}>
 	chartOptions?: {
 		[key: string]: {
@@ -69,10 +71,13 @@ export default function MultiSeriesChart({
 					data: serie.data?.map(([timestamp, value]: [number, number]) => [+timestamp * 1e3, value]) || [],
 					...(serie.logo && {
 						legendIcon: 'image://' + serie.logo
+					}),
+					...(serie.stack && {
+						stack: serie.stack
 					})
 				}
 
-				if (serie.type === 'line') {
+				if (serie.type === 'line' && !serie.areaStyle) {
 					serieConfig.areaStyle = {
 						color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 							{
@@ -85,6 +90,8 @@ export default function MultiSeriesChart({
 							}
 						])
 					}
+				} else if (serie.areaStyle !== undefined) {
+					serieConfig.areaStyle = serie.areaStyle
 				}
 
 				return serieConfig
@@ -114,7 +121,7 @@ export default function MultiSeriesChart({
 			}
 		}
 
-		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
 
 		const maxValues = processedSeries.map((s: any) => {
 			const vals = (s.data || []).map((d: any) => (typeof d[1] === 'number' ? d[1] : 0))
@@ -149,7 +156,7 @@ export default function MultiSeriesChart({
 			grid: {
 				left: 12,
 				bottom: 68,
-				top: 12,
+				top: 40,
 				right: 12,
 				containLabel: true
 			},
