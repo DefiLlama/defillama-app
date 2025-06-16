@@ -55,7 +55,7 @@ export interface ProtocolsTableConfig {
 	chains: string[]
 	colSpan?: 1 | 2
 	filters?: TableFilters
-	datasetType?: 'stablecoins' | 'cex'
+	datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings'
 	datasetChain?: string
 }
 

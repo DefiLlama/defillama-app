@@ -16,7 +16,10 @@ interface TableTabProps {
 const tableTypeOptions = [
 	{ value: 'protocols', label: 'Protocols' },
 	{ value: 'cex', label: 'CEX' },
-	{ value: 'stablecoins', label: 'Stablecoins' }
+	{ value: 'stablecoins', label: 'Stablecoins' },
+	{ value: 'revenue', label: 'Revenue' },
+	{ value: 'holders-revenue', label: 'Holders Revenue' },
+	{ value: 'earnings', label: 'Earnings' }
 ]
 
 export function TableTab({
@@ -59,6 +62,16 @@ export function TableTab({
 					onChange={onDatasetChainChange}
 					isLoading={protocolsLoading}
 					placeholder="Select chain..."
+					itemType="chain"
+				/>
+			) : (selectedTableType === 'revenue' || selectedTableType === 'holders-revenue' || selectedTableType === 'earnings') ? (
+				<MultiItemSelect
+					label="Select Chains (optional)"
+					options={chainOptions}
+					selectedValues={selectedChains}
+					onChange={onChainsChange}
+					isLoading={protocolsLoading}
+					placeholder="All chains..."
 					itemType="chain"
 				/>
 			) : null}

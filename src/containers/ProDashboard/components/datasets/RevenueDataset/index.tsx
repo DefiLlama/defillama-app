@@ -13,15 +13,15 @@ import {
 	ColumnDef
 } from '@tanstack/react-table'
 import { TableBody } from '../../ProTable/TableBody'
-import { cexDatasetColumns } from './columns'
+import { revenueDatasetColumns } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
-import { useCexData } from './useCexData'
+import { useRevenueData } from './useRevenueData'
 import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 
-export function CexDataset() {
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'cleanTvl', desc: true }])
+export function RevenueDataset({ chains }: { chains?: string[] }) {
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -30,16 +30,12 @@ export function CexDataset() {
 		pageSize: 10
 	})
 
-	const { data, isLoading, error } = useCexData()
+	const { data, isLoading, error, refetch } = useRevenueData(chains)
 	const windowSize = useWindowSize()
 
-	const filteredData = React.useMemo(() => {
-		return data?.filter((d) => d.cleanTvl > 0) || []
-	}, [data])
-
 	const instance = useReactTable({
-		data: filteredData,
-		columns: cexDatasetColumns as ColumnDef<any>[],
+		data: data || [],
+		columns: revenueDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
 			columnOrder,
@@ -62,45 +58,46 @@ export function CexDataset() {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 		const defaultSizing = {
 			name: 280,
-			cleanTvl: 145,
-			'24hInflows': 120,
-			'7dInflows': 120,
-			'1mInflows': 120,
-			spotVolume: 120,
-			oi: 120,
-			leverage: 100,
-			audit: 120
+			category: 120,
+			total24h: 145,
+			total7d: 120,
+			total30d: 120,
+			change_1d: 100,
+			change_7d: 100,
+			chains: 200
 		}
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
 	}, [windowSize])
 
-	const [exchangeName, setExchangeName] = React.useState('')
+	const [protocolName, setProtocolName] = React.useState('')
 
 	React.useEffect(() => {
 		const columns = instance.getColumn('name')
 
 		const id = setTimeout(() => {
 			if (columns) {
-				columns.setFilterValue(exchangeName)
+				columns.setFilterValue(protocolName)
 			}
 		}, 200)
 
 		return () => clearTimeout(id)
-	}, [exchangeName, instance])
+	}, [protocolName, instance])
 
 	if (isLoading) {
 		return (
 			<div className="w-full p-4 h-full flex flex-col">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-lg font-semibold pro-text1">Centralized Exchanges</h3>
+						<h3 className="text-lg font-semibold pro-text1">
+							{chains && chains.length > 0 ? `${chains.join(', ')} Revenue` : 'Protocol Revenue'}
+						</h3>
 					</div>
 				</div>
 				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="text-sm pro-text2">Loading exchange data...</p>
+					<p className="text-sm pro-text2">Loading revenue data...</p>
 				</div>
 			</div>
 		)
@@ -111,11 +108,13 @@ export function CexDataset() {
 			<div className="w-full p-4 h-full flex flex-col">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-lg font-semibold pro-text1">Centralized Exchanges</h3>
+						<h3 className="text-lg font-semibold pro-text1">
+							{chains && chains.length > 0 ? `${chains.join(', ')} Revenue` : 'Protocol Revenue'}
+						</h3>
 					</div>
 				</div>
 				<div className="flex-1 min-h-[500px] flex items-center justify-center">
-					<div className="text-center pro-text2">Failed to load CEX data</div>
+					<div className="text-center pro-text2">Failed to load revenue data</div>
 				</div>
 			</div>
 		)
@@ -125,36 +124,36 @@ export function CexDataset() {
 		<div className="w-full p-4 h-full flex flex-col">
 			<div className="mb-3">
 				<div className="flex items-center justify-between gap-4">
-					<h3 className="text-lg font-semibold pro-text1">Centralized Exchanges</h3>
+					<h3 className="text-lg font-semibold pro-text1">
+						{chains && chains.length > 0 ? `${chains.join(', ')} Revenue` : 'Protocol Revenue'}
+					</h3>
 					<div className="flex items-center gap-2">
 						<ProTableCSVButton
 							onClick={() => {
 								const rows = instance.getFilteredRowModel().rows
 								const csvData = rows.map((row) => row.original)
 								const headers = [
-									'Exchange',
-									'TVL',
-									'24h Inflows',
-									'7d Inflows',
-									'1m Inflows',
-									'Spot Volume',
-									'Open Interest',
-									'Leverage',
-									'Audit'
+									'Protocol',
+									'Category',
+									'24h Revenue',
+									'7d Revenue',
+									'30d Revenue',
+									'24h Change',
+									'7d Change',
+									'Chains'
 								]
 								const csv = [
 									headers.join(','),
 									...csvData.map((item) =>
 										[
 											item.name,
-											item.cleanTvl,
-											item['24hInflows'],
-											item['7dInflows'],
-											item['1mInflows'],
-											item.spotVolume || '',
-											item.oi || '',
-											item.leverage || '',
-											item.audit || ''
+											item.category,
+											item.total24h,
+											item.total7d,
+											item.total30d,
+											item.change_1d,
+											item.change_7d,
+											item.chains?.join(';') || ''
 										].join(',')
 									)
 								].join('\n')
@@ -163,7 +162,7 @@ export function CexDataset() {
 								const url = URL.createObjectURL(blob)
 								const a = document.createElement('a')
 								a.href = url
-								a.download = `cex-data-${new Date().toISOString().split('T')[0]}.csv`
+								a.download = `revenue-data-${new Date().toISOString().split('T')[0]}.csv`
 								document.body.appendChild(a)
 								a.click()
 								document.body.removeChild(a)
@@ -173,9 +172,9 @@ export function CexDataset() {
 						/>
 						<input
 							type="text"
-							placeholder="Search exchanges..."
-							value={exchangeName}
-							onChange={(e) => setExchangeName(e.target.value)}
+							placeholder="Search protocols..."
+							value={protocolName}
+							onChange={(e) => setProtocolName(e.target.value)}
 							className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1
 								focus:outline-none focus:ring-1 focus:ring-[var(--primary1)]"
 						/>
