@@ -39,7 +39,8 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 		computed.timePeriod
 	)
 
-	const shouldFetchPreviewData = state.selectedMainTab === 'chart' && getCurrentSelectedItem() && state.selectedChartType
+	const shouldFetchPreviewData =
+		state.selectedMainTab === 'chart' && getCurrentSelectedItem() && state.selectedChartType
 	const previewChartData = useChartData(
 		state.selectedChartType,
 		getCurrentItemType(),
@@ -58,7 +59,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 			onClick={onClose}
 		>
 			<div
-				className="pro-bg1 border pro-border p-6 max-w-4xl w-full shadow-xl"
+				className="pro-bg1 border pro-border p-6 max-w-4xl w-full shadow-xl ml-0 lg:ml-[240px]"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<ModalHeader editItem={editItem} onClose={onClose} />
