@@ -172,7 +172,6 @@ export function VirtualTable({
 				{instance.getHeaderGroups().map((headerGroup) => (
 					<div key={headerGroup.id} className="flex relative">
 						{headerGroup.headers.map((header) => {
-							// get header text alignment
 							const meta = header.column.columnDef.meta
 							const value = flexRender(header.column.columnDef.header, header.getContext())
 

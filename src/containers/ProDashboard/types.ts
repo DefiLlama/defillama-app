@@ -51,9 +51,12 @@ export interface TableFilters {
 export interface ProtocolsTableConfig {
 	id: string
 	kind: 'table'
+	tableType: 'protocols' | 'dataset'
 	chains: string[]
 	colSpan?: 1 | 2
 	filters?: TableFilters
+	datasetType?: 'stablecoins' | 'cex'
+	datasetChain?: string
 }
 
 export interface Protocol {

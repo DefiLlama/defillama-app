@@ -5,6 +5,7 @@ import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { ChartCard } from './ChartCard'
 import { TextCard } from './TextCard'
 import { ProtocolsByChainTable } from './ProTable'
+import { StablecoinsDataset, CexDataset } from './datasets'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
@@ -58,6 +59,8 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 										<MultiChartCard key={`${item.id}-${item.colSpan}`} multi={item} />
 									) : item.kind === 'text' ? (
 										<TextCard key={`${item.id}-${item.colSpan}`} text={item} />
+									) : item.kind === 'table' && item.tableType === 'dataset' ? (
+										<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
 									) : (
 										<ProtocolsByChainTable
 											key={`${item.id}-${item.colSpan}`}
@@ -116,13 +119,19 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 												<Icon name="x" height={14} width={14} />
 											</button>
 										</div>
-										<div className={item.kind === 'table' ? 'pr-12' : ''}>
+										<div>
 											{item.kind === 'chart' ? (
 												<ChartCard key={`${item.id}-${item.colSpan}`} chart={item} />
 											) : item.kind === 'multi' ? (
 												<MultiChartCard key={`${item.id}-${item.colSpan}`} multi={item} />
 											) : item.kind === 'text' ? (
 												<TextCard key={`${item.id}-${item.colSpan}`} text={item} />
+											) : item.kind === 'table' && item.tableType === 'dataset' ? (
+												item.datasetType === 'cex' ? (
+													<CexDataset key={`${item.id}-${item.colSpan}`} />
+												) : (
+													<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
+												)
 											) : (
 												<ProtocolsByChainTable
 													key={`${item.id}-${item.colSpan}`}

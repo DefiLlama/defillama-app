@@ -13,7 +13,7 @@ interface ItemSelectProps {
 	onChange: (option: any) => void
 	isLoading: boolean
 	placeholder: string
-	itemType: 'chain' | 'protocol'
+	itemType: 'chain' | 'protocol' | 'text'
 }
 
 const CustomChainOption = ({ innerProps, label, data }) => (
@@ -69,6 +69,12 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 	)
 }
 
+const TextOption = ({ innerProps, label }) => (
+	<div {...innerProps} style={{ padding: '8px', cursor: 'pointer' }}>
+		{label}
+	</div>
+)
+
 function VirtualizedMenuList(props) {
 	const { options, children, maxHeight, getValue } = props
 	const listRef = useRef()
@@ -118,7 +124,11 @@ export function ItemSelect({
 	placeholder,
 	itemType
 }: ItemSelectProps) {
-	const OptionComponent = itemType === 'chain' ? CustomChainOption : CustomProtocolOption
+	const OptionComponent = itemType === 'chain' 
+		? CustomChainOption 
+		: itemType === 'protocol' 
+			? CustomProtocolOption 
+			: TextOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
 	return (

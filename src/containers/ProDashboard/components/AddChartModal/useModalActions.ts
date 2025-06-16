@@ -76,6 +76,10 @@ export function useModalActions(
 		actions.setSelectedChartType('tvl')
 	}
 
+	const handleDatasetChainChange = (option: any) => {
+		actions.setSelectedDatasetChain(option.value)
+	}
+
 	const handleAddToComposer = () => {
 		if (state.composerSubType === 'chain' && state.selectedChain) {
 			const newChart: ChartConfig = {
@@ -164,12 +168,32 @@ export function useModalActions(
 					grouping: chartTypeDetails?.groupable ? 'day' : undefined,
 					geckoId: protocol?.geckoId
 				} as ChartConfig
-			} else if (state.selectedMainTab === 'table' && state.selectedChains.length > 0) {
-				newItem = {
-					...editItem,
-					kind: 'table',
-					chains: state.selectedChains
-				} as ProtocolsTableConfig
+			} else if (state.selectedMainTab === 'table') {
+				if (state.selectedTableType === 'protocols' && state.selectedChains.length > 0) {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'protocols',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'stablecoins' && state.selectedDatasetChain) {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'stablecoins',
+						datasetChain: state.selectedDatasetChain,
+						chains: [state.selectedDatasetChain]
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'cex') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'cex',
+						chains: []
+					} as ProtocolsTableConfig
+				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
 					...editItem,
@@ -191,8 +215,14 @@ export function useModalActions(
 			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'protocol' && state.selectedProtocol) {
 				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
 				handleAddChart(state.selectedProtocol, state.selectedChartType, 'protocol', protocol?.geckoId)
-			} else if (state.selectedMainTab === 'table' && state.selectedChains.length > 0) {
-				handleAddTable(state.selectedChains)
+			} else if (state.selectedMainTab === 'table') {
+				if (state.selectedTableType === 'protocols' && state.selectedChains.length > 0) {
+					handleAddTable(state.selectedChains, 'protocols')
+				} else if (state.selectedTableType === 'cex') {
+					handleAddTable([], 'dataset', 'cex')
+				} else if (state.selectedTableType === 'stablecoins' && state.selectedDatasetChain) {
+					handleAddTable([state.selectedDatasetChain], 'dataset', 'stablecoins', state.selectedDatasetChain)
+				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())
 			}
@@ -210,6 +240,7 @@ export function useModalActions(
 			handleChainChange,
 			handleChainsChange,
 			handleProtocolChange,
+			handleDatasetChainChange,
 			handleAddToComposer,
 			handleRemoveFromComposer,
 			handleMainTabChange,

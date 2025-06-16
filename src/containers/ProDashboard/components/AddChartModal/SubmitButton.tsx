@@ -1,4 +1,4 @@
-import { MainTabType, ChartTabType } from './types'
+import { MainTabType, ChartTabType, CombinedTableType } from './types'
 import { DashboardItemConfig, ChartConfig } from '../../types'
 
 interface SubmitButtonProps {
@@ -11,6 +11,8 @@ interface SubmitButtonProps {
 	composerItems: ChartConfig[]
 	textContent: string
 	chartTypesLoading: boolean
+	selectedTableType?: CombinedTableType
+	selectedDatasetChain?: string | null
 	onSubmit: () => void
 }
 
@@ -24,13 +26,16 @@ export function SubmitButton({
 	composerItems,
 	textContent,
 	chartTypesLoading,
+	selectedTableType = 'protocols',
+	selectedDatasetChain,
 	onSubmit
 }: SubmitButtonProps) {
 	const isDisabled = 
 		chartTypesLoading ||
 		(selectedMainTab === 'chart' && selectedChartTab === 'chain' && !selectedChain) ||
 		(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && !selectedProtocol) ||
-		(selectedMainTab === 'table' && (!selectedChains || selectedChains.length === 0)) ||
+		(selectedMainTab === 'table' && selectedTableType === 'protocols' && (!selectedChains || selectedChains.length === 0)) ||
+		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
 		(selectedMainTab === 'composer' && composerItems.length === 0) ||
 		(selectedMainTab === 'text' && !textContent.trim())
 

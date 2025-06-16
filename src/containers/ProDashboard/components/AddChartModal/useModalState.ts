@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ModalState, MainTabType, ChartTabType } from './types'
+import { ModalState, MainTabType, ChartTabType, CombinedTableType } from './types'
 import { DashboardItemConfig, ChartConfig } from '../../types'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
@@ -14,6 +14,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
 	const [textTitle, setTextTitle] = useState<string>('')
 	const [textContent, setTextContent] = useState<string>('')
+	const [selectedTableType, setSelectedTableType] = useState<CombinedTableType>('protocols')
+	const [selectedDatasetChain, setSelectedDatasetChain] = useState<string | null>(null)
 
 	// Initialize state based on editItem
 	useEffect(() => {
@@ -35,6 +37,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			} else if (editItem.kind === 'table') {
 				setSelectedMainTab('table')
 				setSelectedChains(editItem.chains || [])
+				if (editItem.tableType === 'dataset') {
+					setSelectedTableType(editItem.datasetType || 'stablecoins')
+					setSelectedDatasetChain(editItem.datasetChain || null)
+				} else {
+					setSelectedTableType('protocols')
+				}
 			} else if (editItem.kind === 'text') {
 				setSelectedMainTab('text')
 				setTextTitle(editItem.title || '')
@@ -53,6 +61,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedChartType('tvl')
 			setTextTitle('')
 			setTextContent('')
+			setSelectedTableType('protocols')
+			setSelectedDatasetChain(null)
 		}
 	}, [editItem, isOpen])
 
@@ -65,6 +75,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedChain(null)
 		setSelectedChains([])
 		setSelectedProtocol(null)
+		setSelectedTableType('protocols')
+		setSelectedDatasetChain(null)
 	}
 
 	const state: ModalState = {
@@ -78,7 +90,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedProtocol,
 		selectedChartType,
 		textTitle,
-		textContent
+		textContent,
+		selectedTableType,
+		selectedDatasetChain
 	}
 
 	return {
@@ -94,7 +108,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedProtocol,
 			setSelectedChartType,
 			setTextTitle,
-			setTextContent
+			setTextContent,
+			setSelectedTableType,
+			setSelectedDatasetChain
 		},
 		resetState
 	}
