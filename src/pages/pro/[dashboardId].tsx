@@ -91,7 +91,7 @@ export default function DashboardPage({ dashboardId }: DashboardPageProps) {
 						<div className="text-center space-y-6">
 							<h1 className="text-3xl font-bold pro-text1">Pro Dashboard Access</h1>
 							<p className="text-lg pro-text2">
-								Subscribe to DefiLlama Pro to access this dashboard and unlock advanced features
+								Subscribe to Llama+ to access this dashboard and unlock advanced features
 							</p>
 
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-8 py-4">
