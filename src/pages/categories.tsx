@@ -197,7 +197,7 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
-			<div className="bg-[var(--cards-bg)] min-h-[412px] rounded-md relative">
+			<div className="bg-[var(--cards-bg)] min-h-[412px] rounded-md relative isolate">
 				<h1 className="text-xl font-semibold absolute top-0 left-0 z-10 p-3">Categories</h1>
 				<div className="bg-[var(--cards-bg)] rounded-md relative">
 					<React.Suspense fallback={<></>}>
