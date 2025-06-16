@@ -70,7 +70,7 @@ function ProDashboardContent() {
 		)
 	}
 
-	if (!isAuthenticated) {
+	if (!isAuthenticated && subscription?.status !== 'active') {
 		return <DemoPreview />
 	}
 
@@ -268,8 +268,8 @@ function ProDashboardContent() {
 			)}
 
 			{items.length > 0 && (
-				<ChartGrid 
-					onAddChartClick={() => setShowAddModal(true)} 
+				<ChartGrid
+					onAddChartClick={() => setShowAddModal(true)}
 					onEditItem={(item) => {
 						setEditItem(item)
 						setShowAddModal(true)
@@ -277,12 +277,12 @@ function ProDashboardContent() {
 				/>
 			)}
 
-			<AddChartModal 
-				isOpen={showAddModal} 
+			<AddChartModal
+				isOpen={showAddModal}
 				onClose={() => {
 					setShowAddModal(false)
 					setEditItem(null)
-				}} 
+				}}
 				editItem={editItem}
 			/>
 
