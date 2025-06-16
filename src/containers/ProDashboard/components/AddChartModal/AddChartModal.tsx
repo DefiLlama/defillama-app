@@ -54,11 +54,11 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 
 	return (
 		<div
-			className="fixed inset-0 bg-[var(--app-bg)]/90 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4"
 			onClick={onClose}
 		>
 			<div
-				className="bg-[#070e0f] border border-white/30 p-6 max-w-4xl w-full shadow-xl"
+				className="pro-bg1 border pro-border p-6 max-w-4xl w-full shadow-xl"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<ModalHeader editItem={editItem} onClose={onClose} />
@@ -120,6 +120,10 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							chainOptions={computed.chainOptions}
 							protocolsLoading={computed.protocolsLoading}
 							onChainsChange={actions.handleChainsChange}
+							selectedDatasetChain={state.selectedDatasetChain}
+							onDatasetChainChange={actions.handleDatasetChainChange}
+							selectedTableType={state.selectedTableType}
+							onTableTypeChange={actions.setSelectedTableType}
 						/>
 					)}
 
@@ -142,6 +146,8 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						composerItems={state.composerItems}
 						textContent={state.textContent}
 						chartTypesLoading={chartTypesLoading}
+						selectedTableType={state.selectedTableType}
+						selectedDatasetChain={state.selectedDatasetChain}
 						onSubmit={actions.handleSubmit}
 					/>
 				</div>

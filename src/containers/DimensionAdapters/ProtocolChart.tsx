@@ -362,7 +362,8 @@ const ChartByType = ({
 
 				for (const version of selectedTypes) {
 					chartData[version] = chartData[version] || {}
-					chartData[version][finalDate] = dataByVersion[version] + cumulativeVolumeByVersion[version]
+					chartData[version][finalDate] =
+						(chartData[version][finalDate] || 0) + dataByVersion[version] + cumulativeVolumeByVersion[version]
 
 					if (chartInterval === 'Cumulative') {
 						cumulativeVolumeByVersion[version] += dataByVersion[version] || 0

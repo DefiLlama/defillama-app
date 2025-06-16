@@ -1,0 +1,92 @@
+import { useQuery } from '@tanstack/react-query'
+import { PEGGEDS_API, PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API } from '~/constants'
+import { fetchWithErrorLogging } from '~/utils/async'
+import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
+
+const fetch = fetchWithErrorLogging
+
+export function useStablecoinsData(chain: string) {
+	return useQuery({
+		queryKey: ['stablecoins-overview', chain],
+		queryFn: async () => {
+			// Fetch all required data in parallel
+			const [peggedData, chainData, priceData, rateData] = await Promise.all([
+				fetch(PEGGEDS_API).then(res => res.json()),
+				fetch(`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`).then(res => res.json()),
+				fetch(PEGGEDPRICES_API).then(res => res.json()),
+				fetch(PEGGEDRATES_API).then(res => res.json())
+			])
+
+			const { peggedAssets } = peggedData
+			const breakdown = chainData?.breakdown
+
+			if (!breakdown) {
+				return []
+			}
+
+			// Build chart data by pegged asset
+			let chartDataByPeggedAsset = []
+			let peggedNameToChartDataIndex: any = {}
+			let lastTimestamp = 0
+
+			chartDataByPeggedAsset = peggedAssets.map((elem: any, i: number) => {
+				peggedNameToChartDataIndex[elem.name] = i
+				const charts = breakdown[elem.id] ?? []
+				const formattedCharts = charts
+					.map((chart: any) => ({
+						date: chart.date,
+						mcap: chart.totalCirculatingUSD
+					}))
+					.filter((i: any) => i.mcap !== undefined)
+				
+				if (formattedCharts.length > 0) {
+					lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
+				}
+				
+				return formattedCharts
+			})
+
+			// Normalize chart data to same end date
+			chartDataByPeggedAsset.forEach((chart: any) => {
+				const last = chart[chart.length - 1]
+				if (!last) return
+				
+				let lastDate = Number(last.date)
+				while (lastDate < lastTimestamp) {
+					lastDate += 24 * 3600
+					chart.push({
+						...last,
+						date: lastDate
+					})
+				}
+			})
+
+			// Format the assets data
+			const filteredPeggedAssets = formatPeggedAssetsData({
+				peggedAssets,
+				chartDataByPeggedAsset,
+				priceData,
+				rateData,
+				peggedNameToChartDataIndex,
+				chain: chain === 'All' ? null : chain
+			})
+
+			// Transform to match our table structure
+			return filteredPeggedAssets.map((asset: any) => ({
+				name: asset.name,
+				symbol: asset.symbol,
+				mcap: asset.mcap || 0,
+				price: asset.price || 1,
+				change_1d: asset.change_1d || 0,
+				change_7d: asset.change_7d || 0,
+				change_1m: asset.change_1m || 0,
+				pegDeviation: asset.pegDeviation,
+				chains: asset.chains || [],
+				pegType: asset.pegType,
+				gecko_id: asset.gecko_id
+			}))
+		},
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		refetchInterval: 5 * 60 * 1000 // 5 minutes
+	})
+}

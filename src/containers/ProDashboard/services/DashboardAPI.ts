@@ -88,8 +88,8 @@ class DashboardAPIService {
 		id: string,
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<{ message: string }> {
-		const response = await authorizedFetch(`${DASHBOARDS_API_BASE}/dashboards/${id}`, {
-			method: 'DELETE'
+		const response = await authorizedFetch(`${DASHBOARDS_API_BASE}/dashboards/delete/${id}`, {
+			method: 'POST'
 		})
 
 		return this.handleResponse<{ message: string }>(response)

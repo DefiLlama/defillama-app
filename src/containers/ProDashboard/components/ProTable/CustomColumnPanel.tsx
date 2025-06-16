@@ -356,18 +356,18 @@ export function CustomColumnPanel({
 			style={{ userSelect: 'none' }}
 		>
 			{/* Add New Custom Column */}
-			<div className="p-4 border border-[var(--divider)] bg-[var(--bg1)] dark:bg-[#070e0f]">
-				<h5 className="text-sm font-medium text-[var(--text1)] mb-3">Create Custom Column</h5>
+			<div className="p-4 border pro-divider pro-bg2">
+				<h5 className="text-sm font-medium pro-text1 mb-3">Create Custom Column</h5>
 				
 				<div className="space-y-3">
 					<div>
-						<label className="block text-xs font-medium text-[var(--text2)] mb-1">Column Name</label>
+						<label className="block text-xs font-medium pro-text2 mb-1">Column Name</label>
 						<input
 							type="text"
 							value={newColumnName}
 							onChange={(e) => setNewColumnName(e.target.value)}
 							placeholder="e.g., P/E Ratio, Custom Metric"
-							className="w-full px-3 py-2 text-sm border border-[var(--divider)] text-[var(--text1)] placeholder-[var(--text3)] focus:outline-none focus:border-[var(--primary1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f]"
+							className="w-full px-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-none focus:border-[var(--primary1)] transition-colors pro-bg2"
 							onMouseDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
@@ -375,7 +375,7 @@ export function CustomColumnPanel({
 					</div>
 
 					<div>
-						<label className="block text-xs font-medium text-[var(--text2)] mb-1">Expression</label>
+						<label className="block text-xs font-medium pro-text2 mb-1">Expression</label>
 						<div className="relative">
 							<input
 								ref={inputRef}
@@ -388,12 +388,12 @@ export function CustomColumnPanel({
 									setTimeout(() => setShowAutocomplete(false), 150)
 								}}
 								placeholder="e.g., tvl / mcap, (fees_24h + revenue_24h) * 365, tvl * 0.1"
-								className={`w-full px-3 py-2 text-sm border text-[var(--text1)] placeholder-[var(--text3)] focus:outline-none transition-colors bg-[var(--bg1)] dark:bg-[#070e0f] ${
+								className={`w-full px-3 py-2 text-sm border pro-text1 placeholder:pro-text3 focus:outline-none transition-colors pro-bg2 ${
 									newColumnExpression && !liveValidation.isValid 
 										? 'border-red-500 focus:border-red-500' 
 										: newColumnExpression && liveValidation.isValid
 										? 'border-green-500 focus:border-green-500'
-										: 'border-[var(--divider)] focus:border-[var(--primary1)]'
+										: 'pro-divider focus:border-[var(--primary1)]'
 								}`}
 								onMouseDown={(e) => e.stopPropagation()}
 								onDragStart={(e) => e.preventDefault()}
@@ -403,7 +403,7 @@ export function CustomColumnPanel({
 							{/* Autocomplete dropdown */}
 							{showAutocomplete && filteredSuggestions.length > 0 && (
 								<div 
-									className="absolute z-50 mt-1 bg-[var(--bg1)] dark:bg-[#0a1011] border border-[var(--divider)] rounded shadow-lg max-h-64 overflow-y-auto thin-scrollbar"
+									className="absolute z-50 mt-1 pro-bg2 border pro-divider rounded shadow-lg max-h-64 overflow-y-auto thin-scrollbar"
 									style={{ 
 										width: '320px',
 										minWidth: '280px',
@@ -420,7 +420,7 @@ export function CustomColumnPanel({
 											className={`px-3 py-1.5 cursor-pointer flex items-center gap-2 text-sm ${
 												index === autocompleteIndex 
 													? 'bg-[var(--primary1)] text-white' 
-													: 'hover:bg-[var(--bg3)] text-[var(--text1)]'
+													: 'pro-hover-bg pro-text1'
 											}`}
 											onMouseEnter={() => setAutocompleteIndex(index)}
 										>
@@ -430,11 +430,11 @@ export function CustomColumnPanel({
 												'bg-gray-500'
 											}`} />
 											<code className="font-mono text-sm flex-shrink-0 min-w-0">{suggestion.display}</code>
-											<span className="text-xs text-[var(--text3)] truncate ml-auto">{suggestion.description}</span>
+											<span className="text-xs pro-text3 truncate ml-auto">{suggestion.description}</span>
 										</div>
 									))}
 									{filteredSuggestions.length === 0 && autocompleteFilter && (
-										<div className="px-3 py-2 text-sm text-[var(--text3)]">
+										<div className="px-3 py-2 text-sm pro-text3">
 											No suggestions found for "{autocompleteFilter}"
 										</div>
 									)}
@@ -452,7 +452,7 @@ export function CustomColumnPanel({
 							)}
 						</div>
 						
-						<p className="mt-1 text-xs text-[var(--text3)]">
+						<p className="mt-1 text-xs pro-text3">
 							💡 Start typing to see autocomplete suggestions. Use ↑↓ to navigate, Enter/Tab to select, Esc to close, or Ctrl+Space to open.
 						</p>
 						
@@ -464,7 +464,7 @@ export function CustomColumnPanel({
 									: 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
 							}`}>
 								<div className="flex items-center justify-between">
-									<span className="font-medium text-[var(--text2)]">Live Preview:</span>
+									<span className="font-medium pro-text2">Live Preview:</span>
 									{liveValidation.isValid ? (
 										<span className="font-mono text-green-700 dark:text-green-300">
 											{formatPreviewNumber(liveValidation.result || null)}
@@ -476,7 +476,7 @@ export function CustomColumnPanel({
 									)}
 								</div>
 								{liveValidation.isValid && (
-									<div className="mt-1 text-[var(--text3)] text-xs">
+									<div className="mt-1 pro-text3 text-xs">
 										Using sample data: {Object.entries(sampleData).slice(0, 3).map(([key, value]) => `${key}=${formatPreviewNumber(value)}`).join(', ')}...
 									</div>
 								)}
@@ -485,13 +485,13 @@ export function CustomColumnPanel({
 						
 						{/* Quick Operator Buttons - Compact */}
 						<div className="mt-2 flex flex-wrap gap-1">
-							<span className="text-xs text-[var(--text3)] mr-2">Quick operators:</span>
+							<span className="text-xs pro-text3 mr-2">Quick operators:</span>
 							{['+', '-', '*', '/', '(', ')'].map((operator) => (
 								<button
 									key={operator}
 									type="button"
 									onClick={() => insertOperator(operator)}
-									className="px-2 py-1 text-xs border border-[var(--divider)] hover:bg-[var(--bg3)] text-[var(--text2)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f] font-mono"
+									className="px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 font-mono"
 									onMouseDown={(e) => e.stopPropagation()}
 									onDragStart={(e) => e.preventDefault()}
 									draggable={false}
@@ -519,9 +519,9 @@ export function CustomColumnPanel({
 			</div>
 
 			{/* Available Variables Reference - Compact */}
-			<div className="p-3 border border-[var(--divider)] bg-[var(--bg6)] dark:bg-[#070e0f]">
-				<h5 className="text-sm font-medium text-[var(--text2)] mb-2">Available Variables</h5>
-				<p className="text-xs text-[var(--text3)] mb-2">Click any variable to add it to your expression</p>
+			<div className="p-3 border pro-divider pro-bg3">
+				<h5 className="text-sm font-medium pro-text2 mb-2">Available Variables</h5>
+				<p className="text-xs pro-text3 mb-2">Click any variable to add it to your expression</p>
 				<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1 max-h-32 overflow-y-auto thin-scrollbar">
 					{availableVariables.map((variable) => (
 						<button
@@ -529,7 +529,7 @@ export function CustomColumnPanel({
 							type="button"
 							onClick={() => insertVariable(variable.key)}
 							title={variable.name}
-							className="text-center p-1 text-xs border border-[var(--divider)] hover:bg-[var(--bg3)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f] rounded"
+							className="text-center p-1 text-xs border pro-divider pro-hover-bg transition-colors pro-bg2 rounded"
 							onMouseDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
@@ -538,7 +538,7 @@ export function CustomColumnPanel({
 						</button>
 					))}
 				</div>
-				<div className="mt-2 text-xs text-[var(--text3)]">
+				<div className="mt-2 text-xs pro-text3">
 					Sample values: {Object.entries(sampleData).slice(0, 4).map(([key, value]) => `${key}=${formatPreviewNumber(value)}`).join(', ')}
 				</div>
 			</div>
@@ -546,23 +546,23 @@ export function CustomColumnPanel({
 			{/* Existing Custom Columns - Read Only */}
 			{customColumns.length > 0 && (
 				<div className="space-y-3">
-					<h5 className="text-sm font-medium text-[var(--text2)]">Custom Columns ({customColumns.length})</h5>
+					<h5 className="text-sm font-medium pro-text2">Custom Columns ({customColumns.length})</h5>
 					{customColumns.map((column) => (
 						<div
 							key={column.id}
-							className="p-3 border border-[var(--divider)] bg-[var(--bg6)] dark:bg-[#070e0f]"
+							className="p-3 border pro-divider pro-bg3"
 						>
 							<div className="flex items-center justify-between">
 								<div className="flex-1">
 									<div className="flex items-center gap-2 mb-1">
-										<span className="font-medium text-sm text-[var(--text1)]">{column.name}</span>
+										<span className="font-medium text-sm pro-text1">{column.name}</span>
 										{column.isValid ? (
 											<Icon name="check" height={12} width={12} className="text-green-500" />
 										) : (
 											<Icon name="x" height={12} width={12} className="text-red-500" />
 										)}
 									</div>
-									<div className="text-xs font-mono text-[var(--text2)] bg-[var(--bg1)] dark:bg-[#070e0f] px-2 py-1 border border-[var(--divider)] rounded">
+									<div className="text-xs font-mono pro-text2 pro-bg2 px-2 py-1 border pro-divider rounded">
 										{column.expression}
 									</div>
 									{!column.isValid && column.errorMessage && (
@@ -571,7 +571,7 @@ export function CustomColumnPanel({
 								</div>
 								<button
 									onClick={() => onRemoveCustomColumn(column.id)}
-									className="ml-3 text-[var(--text3)] hover:text-red-500 transition-colors"
+									className="ml-3 pro-text3 hover:text-red-500 transition-colors"
 									title="Delete custom column"
 								>
 									<Icon name="trash-2" height={14} width={14} />
@@ -583,24 +583,24 @@ export function CustomColumnPanel({
 			)}
 
 			{/* Examples */}
-			<div className="p-4 border border-[var(--divider)] bg-[var(--bg6)] dark:bg-[#070e0f]">
-				<h5 className="text-sm font-medium text-[var(--text2)] mb-3">Example Expressions</h5>
+			<div className="p-4 border pro-divider pro-bg3">
+				<h5 className="text-sm font-medium pro-text2 mb-3">Example Expressions</h5>
 				<div className="space-y-2 text-xs">
 					<div>
 						<code className="text-[var(--primary1)] font-mono">tvl / mcap</code>
-						<span className="text-[var(--text3)] ml-2">TVL to Market Cap ratio</span>
+						<span className="pro-text3 ml-2">TVL to Market Cap ratio</span>
 					</div>
 					<div>
 						<code className="text-[var(--primary1)] font-mono">(fees_24h + revenue_24h) * 365</code>
-						<span className="text-[var(--text3)] ml-2">Annualized fees + revenue</span>
+						<span className="pro-text3 ml-2">Annualized fees + revenue</span>
 					</div>
 					<div>
 						<code className="text-[var(--primary1)] font-mono">volume_24h / tvl</code>
-						<span className="text-[var(--text3)] ml-2">Volume to TVL ratio</span>
+						<span className="pro-text3 ml-2">Volume to TVL ratio</span>
 					</div>
 					<div>
 						<code className="text-[var(--primary1)] font-mono">(change_1d + change_7d) / 2</code>
-						<span className="text-[var(--text3)] ml-2">Average price change</span>
+						<span className="pro-text3 ml-2">Average price change</span>
 					</div>
 				</div>
 			</div>

@@ -56,10 +56,15 @@ export async function getStaticPaths() {
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chainChartData }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const { protocolsData, charts, totalValue } = useMemo(() => {
-		const protocolsData = formatDataWithExtraTvls({
+		const dataWithTvs = formatDataWithExtraTvls({
 			data: filteredProtocols,
 			extraTvlsEnabled
 		})
+
+		const protocolsData = dataWithTvs.map(p => ({
+			...p,
+			tvs: p.tvs ?? p.tvl ?? 0
+		}));
 
 		const finalChartData = formatChartTvlsByDay({ data: chainChartData || chartData, extraTvlsEnabled, key: 'TVS' })
 

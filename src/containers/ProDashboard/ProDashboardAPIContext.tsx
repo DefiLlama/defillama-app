@@ -9,7 +9,8 @@ import {
 	ProtocolsTableConfig,
 	MultiChartConfig,
 	TextConfig,
-	Chain
+	Chain,
+	TableFilters
 } from './types'
 import { useChartsData, useProtocolsAndChains } from './queries'
 import { groupData } from './utils'
@@ -38,7 +39,7 @@ interface ProDashboardContextType {
 	setTimePeriod: (period: TimePeriod) => void
 	setDashboardName: (name: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
-	handleAddTable: (chains: string[]) => void
+	handleAddTable: (chains: string[], tableType?: 'protocols' | 'dataset', datasetType?: 'stablecoins' | 'cex', datasetChain?: string) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -46,6 +47,7 @@ interface ProDashboardContextType {
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
 	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month') => void
 	handleColSpanChange: (chartId: string, newColSpan: 1 | 2) => void
+	handleTableFiltersChange: (tableId: string, filters: TableFilters) => void
 	getChainInfo: (chainName: string) => Chain | undefined
 	getProtocolInfo: (protocolId: string) => Protocol | undefined
 	createNewDashboard: () => Promise<void>
@@ -66,7 +68,7 @@ export function ProDashboardAPIProvider({
 	initialDashboardId?: string
 }) {
 	const router = useRouter()
-	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
+	const { isAuthenticated } = useAuthContext()
 	const { data: { protocols = [], chains: rawChains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
 
 	const chains: Chain[] = rawChains
@@ -207,7 +209,6 @@ export function ProDashboardAPIProvider({
 		[navigateToDashboard]
 	)
 
-	// Chart data processing
 	const allChartItems: ChartConfig[] = []
 	items.forEach((item) => {
 		if (item.kind === 'chart') {
@@ -219,47 +220,51 @@ export function ProDashboardAPIProvider({
 
 	const chartQueries = useChartsData(allChartItems, timePeriod)
 
-	const chartsWithData: DashboardItemConfig[] = useMemo(() => items.map((item) => {
-		if (item.kind === 'chart') {
-			const chart = item
-			const idx = allChartItems.findIndex((c) => c.id === chart.id)
-			const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
-			const chartTypeDetails = CHART_TYPES[chart.type]
-			let processedData = query.data || []
-			if (chartTypeDetails?.groupable) {
-				processedData = groupData(query.data, chart.grouping)
-			}
-			return {
-				...chart,
-				data: processedData,
-				isLoading: query.isLoading || false,
-				hasError: query.isError || false,
-				refetch: query.refetch || (() => {})
-			}
-		} else if (item.kind === 'multi') {
-			const processedItems = item.items.map((nestedChart) => {
-				const idx = allChartItems.findIndex((c) => c.id === nestedChart.id)
-				const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
-				const chartTypeDetails = CHART_TYPES[nestedChart.type]
-				let processedData = query.data || []
-				if (chartTypeDetails?.groupable) {
-					processedData = groupData(query.data, nestedChart.grouping)
+	const chartsWithData: DashboardItemConfig[] = useMemo(
+		() =>
+			items.map((item) => {
+				if (item.kind === 'chart') {
+					const chart = item
+					const idx = allChartItems.findIndex((c) => c.id === chart.id)
+					const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
+					const chartTypeDetails = CHART_TYPES[chart.type]
+					let processedData = query.data || []
+					if (chartTypeDetails?.groupable) {
+						processedData = groupData(query.data, chart.grouping)
+					}
+					return {
+						...chart,
+						data: processedData,
+						isLoading: query.isLoading || false,
+						hasError: query.isError || false,
+						refetch: query.refetch || (() => {})
+					}
+				} else if (item.kind === 'multi') {
+					const processedItems = item.items.map((nestedChart) => {
+						const idx = allChartItems.findIndex((c) => c.id === nestedChart.id)
+						const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
+						const chartTypeDetails = CHART_TYPES[nestedChart.type]
+						let processedData = query.data || []
+						if (chartTypeDetails?.groupable) {
+							processedData = groupData(query.data, nestedChart.grouping)
+						}
+						return {
+							...nestedChart,
+							data: processedData,
+							isLoading: query.isLoading || false,
+							hasError: query.isError || false,
+							refetch: query.refetch || (() => {})
+						}
+					})
+					return {
+						...item,
+						items: processedItems
+					}
 				}
-				return {
-					...nestedChart,
-					data: processedData,
-					isLoading: query.isLoading || false,
-					hasError: query.isError || false,
-					refetch: query.refetch || (() => {})
-				}
-			})
-			return {
-				...item,
-				items: processedItems
-			}
-		}
-		return item
-	}), [items, chartQueries, allChartItems])
+				return item
+			}),
+		[items, chartQueries, allChartItems]
+	)
 
 	// Handle adding items
 	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
@@ -299,13 +304,23 @@ export function ProDashboardAPIProvider({
 		})
 	}
 
-	const handleAddTable = (chains: string[]) => {
+	const handleAddTable = (
+		chains: string[], 
+		tableType: 'protocols' | 'dataset' = 'protocols',
+		datasetType?: 'stablecoins' | 'cex',
+		datasetChain?: string
+	) => {
 		const chainIdentifier = chains.length > 1 ? 'multi' : chains[0] || 'table'
 		const newTable: ProtocolsTableConfig = {
 			id: generateItemId('table', chainIdentifier),
 			kind: 'table',
+			tableType,
 			chains,
-			colSpan: 2
+			colSpan: 2,
+			...(tableType === 'dataset' && {
+				datasetType,
+				datasetChain
+			})
 		}
 		setItems((prev) => {
 			const newItems = [...prev, newTable]
@@ -347,54 +362,80 @@ export function ProDashboardAPIProvider({
 
 	const handleEditItem = (itemId: string, newItem: DashboardItemConfig) => {
 		setItems((prev) => {
-			const newItems = prev.map((item) => 
-				item.id === itemId ? newItem : item
-			)
+			const newItems = prev.map((item) => (item.id === itemId ? newItem : item))
 			autoSave(newItems)
 			return newItems
 		})
 	}
 
-	const handleRemoveItem = useCallback((itemId: string) => {
-		setItems((prev) => {
-			const newItems = prev.filter((item) => item.id !== itemId)
-			autoSave(newItems)
-			return newItems
-		})
-	}, [autoSave])
-
-	const handleChartsReordered = useCallback((newCharts: DashboardItemConfig[]) => {
-		setItems(newCharts)
-		autoSave(newCharts)
-	}, [autoSave])
-
-	const handleGroupingChange = useCallback((chartId: string, newGrouping: 'day' | 'week' | 'month') => {
-		setItems((prev) => {
-			const newItems = prev.map((item) => {
-				if (item.id === chartId && item.kind === 'chart') {
-					return { ...item, grouping: newGrouping }
-				} else if (item.kind === 'multi' && item.id === chartId) {
-					return { ...item, grouping: newGrouping }
-				}
-				return item
+	const handleRemoveItem = useCallback(
+		(itemId: string) => {
+			setItems((prev) => {
+				const newItems = prev.filter((item) => item.id !== itemId)
+				autoSave(newItems)
+				return newItems
 			})
-			autoSave(newItems)
-			return newItems
-		})
-	}, [autoSave])
+		},
+		[autoSave]
+	)
 
-	const handleColSpanChange = useCallback((chartId: string, newColSpan: 1 | 2) => {
-		setItems((prev) => {
-			const newItems = prev.map((item) => {
-				if (item.id === chartId) {
-					return { ...item, colSpan: newColSpan }
-				}
-				return item
+	const handleChartsReordered = useCallback(
+		(newCharts: DashboardItemConfig[]) => {
+			setItems(newCharts)
+			autoSave(newCharts)
+		},
+		[autoSave]
+	)
+
+	const handleGroupingChange = useCallback(
+		(chartId: string, newGrouping: 'day' | 'week' | 'month') => {
+			setItems((prev) => {
+				const newItems = prev.map((item) => {
+					if (item.id === chartId && item.kind === 'chart') {
+						return { ...item, grouping: newGrouping }
+					} else if (item.kind === 'multi' && item.id === chartId) {
+						return { ...item, grouping: newGrouping }
+					}
+					return item
+				})
+				autoSave(newItems)
+				return newItems
 			})
-			autoSave(newItems)
-			return newItems
-		})
-	}, [autoSave])
+		},
+		[autoSave]
+	)
+
+	const handleColSpanChange = useCallback(
+		(chartId: string, newColSpan: 1 | 2) => {
+			setItems((prev) => {
+				const newItems = prev.map((item) => {
+					if (item.id === chartId) {
+						return { ...item, colSpan: newColSpan }
+					}
+					return item
+				})
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[autoSave]
+	)
+
+	const handleTableFiltersChange = useCallback(
+		(tableId: string, filters: TableFilters) => {
+			setItems((prev) => {
+				const newItems = prev.map((item) => {
+					if (item.id === tableId && item.kind === 'table') {
+						return { ...item, filters } as ProtocolsTableConfig
+					}
+					return item
+				})
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[autoSave]
+	)
 
 	const getChainInfo = (chainName: string) => {
 		return chains.find((chain) => chain.name === chainName)
@@ -429,6 +470,7 @@ export function ProDashboardAPIProvider({
 		handleChartsReordered,
 		handleGroupingChange,
 		handleColSpanChange,
+		handleTableFiltersChange,
 		getChainInfo,
 		getProtocolInfo,
 		createNewDashboard,

@@ -36,7 +36,7 @@ export function ChartTypeSelector({
 
 	return (
 		<div className="mb-4">
-			<label className="block mb-2 text-sm font-medium text-[var(--text2)]">Chart Type</label>
+			<label className="block mb-2 text-sm font-medium pro-text2">Chart Type</label>
 			{isLoading ? (
 				<div className="flex items-center justify-center h-10">
 					<LoadingSpinner size="sm" />

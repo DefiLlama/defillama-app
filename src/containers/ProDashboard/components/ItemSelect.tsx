@@ -13,16 +13,18 @@ interface ItemSelectProps {
 	onChange: (option: any) => void
 	isLoading: boolean
 	placeholder: string
-	itemType: 'chain' | 'protocol'
+	itemType: 'chain' | 'protocol' | 'text'
 }
 
 const CustomChainOption = ({ innerProps, label, data }) => (
 	<div {...innerProps} style={{ display: 'flex', alignItems: 'center', padding: '8px', cursor: 'pointer' }}>
-		<img
-			src={getItemIconUrl('chain', null, label)}
-			alt={label}
-			style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
-		/>
+		{label === 'All Chains' ? null : (
+			<img
+				src={getItemIconUrl('chain', null, label)}
+				alt={label}
+				style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
+			/>
+		)}
 		{label}
 	</div>
 )
@@ -66,6 +68,12 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 		</div>
 	)
 }
+
+const TextOption = ({ innerProps, label }) => (
+	<div {...innerProps} style={{ padding: '8px', cursor: 'pointer' }}>
+		{label}
+	</div>
+)
 
 function VirtualizedMenuList(props) {
 	const { options, children, maxHeight, getValue } = props
@@ -116,12 +124,16 @@ export function ItemSelect({
 	placeholder,
 	itemType
 }: ItemSelectProps) {
-	const OptionComponent = itemType === 'chain' ? CustomChainOption : CustomProtocolOption
+	const OptionComponent = itemType === 'chain' 
+		? CustomChainOption 
+		: itemType === 'protocol' 
+			? CustomProtocolOption 
+			: TextOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
 	return (
 		<div>
-			<label className="block mb-2 text-sm font-medium text-[var(--text2)]">{label}</label>
+			<label className="block mb-2 text-sm font-medium pro-text2">{label}</label>
 			{isLoading ? (
 				<div className="flex items-center justify-center h-10">
 					<LoadingSpinner size="sm" />

@@ -11,9 +11,12 @@ import {
 	ColumnDef
 } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
-import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
+import {
+	useGetProtocolsListMultiChain,
+	useGetProtocolsVolumeByMultiChain,
+	useGetProtocolsFeesAndRevenueByMultiChain
+} from '~/api/categories/chains/multiChainClient'
 import { TABLE_CATEGORIES, protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/columns'
@@ -26,42 +29,132 @@ interface CustomColumn {
 	errorMessage?: string
 }
 
-export function useProTable(chains: string[]) {
-	const { fullProtocolsList, parentProtocols } = useGetProtocolsList({ chain: 'All' })
-	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByChain('All')
-	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByChain('All')
+import { TableFilters } from '../../types'
+import { getPercentChange } from '~/utils'
+import { Icon } from '~/components/Icon'
 
-	const allFormattedProtocols = React.useMemo(() => {
+// Helper function to recalculate parent protocol metrics based on filtered children
+function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
+	// Initialize aggregated values
+	let tvl = 0
+	let tvlPrevDay = 0
+	let tvlPrevWeek = 0
+	let tvlPrevMonth = 0
+	let mcap = 0
+	let volume_24h = 0
+	let volume_7d = 0
+	let fees_24h = 0
+	let fees_7d = 0
+	let fees_30d = 0
+	let revenue_24h = 0
+	let revenue_7d = 0
+	let revenue_30d = 0
+
+	// Aggregate metrics from filtered children
+	filteredSubRows.forEach((child) => {
+		if (child.tvl) tvl += child.tvl
+		if (child.tvlPrevDay) tvlPrevDay += child.tvlPrevDay
+		if (child.tvlPrevWeek) tvlPrevWeek += child.tvlPrevWeek
+		if (child.tvlPrevMonth) tvlPrevMonth += child.tvlPrevMonth
+		if (child.mcap) mcap += child.mcap
+		if (child.volume_24h) volume_24h += child.volume_24h
+		if (child.volume_7d) volume_7d += child.volume_7d
+		if (child.fees_24h) fees_24h += child.fees_24h
+		if (child.fees_7d) fees_7d += child.fees_7d
+		if (child.fees_30d) fees_30d += child.fees_30d
+		if (child.revenue_24h) revenue_24h += child.revenue_24h
+		if (child.revenue_7d) revenue_7d += child.revenue_7d
+		if (child.revenue_30d) revenue_30d += child.revenue_30d
+	})
+
+	// Calculate percentage changes
+	const change_1d = getPercentChange(tvl, tvlPrevDay)
+	const change_7d = getPercentChange(tvl, tvlPrevWeek)
+	const change_1m = getPercentChange(tvl, tvlPrevMonth)
+
+	// Calculate mcaptvl
+	let mcaptvl = null
+	if (tvl && mcap) {
+		mcaptvl = +(mcap / tvl).toFixed(2)
+	}
+
+	return {
+		...parent,
+		tvl,
+		tvlPrevDay,
+		tvlPrevWeek,
+		tvlPrevMonth,
+		mcap: mcap || parent.mcap, // Keep original mcap if no child has mcap
+		volume_24h,
+		volume_7d,
+		fees_24h,
+		fees_7d,
+		fees_30d,
+		revenue_24h,
+		revenue_7d,
+		revenue_30d,
+		change_1d,
+		change_7d,
+		change_1m,
+		mcaptvl,
+		subRows: filteredSubRows
+	}
+}
+
+export function useProTable(chains: string[], filters?: TableFilters, onFilterClick?: () => void) {
+	const { fullProtocolsList, parentProtocols } = useGetProtocolsListMultiChain(chains)
+	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByMultiChain(chains)
+	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
+
+	const finalProtocolsList = React.useMemo(() => {
 		if (!fullProtocolsList) return []
 
-		return formatProtocolsList({
+		let protocols = formatProtocolsList({
 			extraTvlsEnabled: {},
 			protocols: fullProtocolsList,
 			parentProtocols,
 			volumeData: chainProtocolsVolumes,
 			feesData: chainProtocolsFees
 		})
-	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees])
 
-	const finalProtocolsList = React.useMemo(() => {
-		if (chains.length === 0 || chains.includes('All')) {
-			return allFormattedProtocols
+		// Apply filters
+		if (filters) {
+			// Convert arrays to Sets for O(1) lookup performance
+			const protocolSet = filters.protocols?.length ? new Set(filters.protocols) : null
+			const categorySet = filters.categories?.length ? new Set(filters.categories) : null
+
+			if (protocolSet) {
+				protocols = protocols
+					.map((p) => {
+						// Check if this protocol matches directly
+						if (p.name && protocolSet.has(p.name)) {
+							return p
+						}
+
+						// If this is a parent protocol, filter its subRows
+						const protocolWithSubRows = p as any
+						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
+							const filteredSubRows = protocolWithSubRows.subRows.filter(
+								(child: any) => child.name && protocolSet.has(child.name)
+							)
+
+							// If any child protocols match, return the parent with filtered subRows and recalculated metrics
+							if (filteredSubRows.length > 0) {
+								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
+							}
+						}
+
+						return null
+					})
+					.filter((p) => p !== null)
+			}
+			if (categorySet) {
+				protocols = protocols.filter((p) => categorySet.has(p.category))
+			}
 		}
 
-		const chainSet = new Set(chains)
-
-		return allFormattedProtocols.filter((protocol) => {
-			if (protocol.chains && Array.isArray(protocol.chains)) {
-				return protocol.chains.some((protocolChain) => chainSet.has(protocolChain))
-			}
-
-			if (protocol.chainTvls && typeof protocol.chainTvls === 'object') {
-				return Object.keys(protocol.chainTvls).some((chain) => chainSet.has(chain))
-			}
-
-			return false
-		})
-	}, [allFormattedProtocols, chains])
+		return protocols
+	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees, filters])
 
 	const optionsKey = 'protocolsTableColumns'
 	const customColumnsKey = 'protocolsTableCustomColumns'
@@ -154,9 +247,78 @@ export function useProTable(chains: string[]) {
 			)
 	}, [customColumns])
 
+	// Create custom columns with filter button
+	const columnsWithFilter = React.useMemo(() => {
+		if (!onFilterClick) return { name: null, category: null }
+
+		const originalNameColumn = protocolsByChainColumns.find((col) => col.id === 'name')
+		const originalCategoryColumn = protocolsByChainColumns.find((col) => col.id === 'category')
+
+		const hasActiveFilters = filters && (filters.protocols?.length || filters.categories?.length)
+
+		const filterButton = (
+			<button
+				onClick={(e) => {
+					e.stopPropagation()
+					onFilterClick()
+				}}
+				className={`p-1 rounded hover:bg-[var(--bg3)] transition-colors ${
+					hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : 'text-[var(--text3)]'
+				}`}
+				title="Filter protocols"
+			>
+				<Icon name="settings" height={14} width={14} />
+			</button>
+		)
+
+		const nameColumn = originalNameColumn
+			? {
+					...originalNameColumn,
+					id: 'name',
+					header: () => (
+						<div className="flex items-center gap-2">
+							<span>Name</span>
+							{filterButton}
+						</div>
+					)
+			  }
+			: null
+
+		const categoryColumn = originalCategoryColumn
+			? {
+					...originalCategoryColumn,
+					id: 'category',
+					header: () => (
+						<div className="flex items-center gap-2 justify-end">
+							<span>Category</span>
+							{React.cloneElement(filterButton, { key: 'category-filter' })}
+						</div>
+					)
+			  }
+			: null
+
+		return { name: nameColumn, category: categoryColumn }
+	}, [filters, onFilterClick])
+
 	const allColumns = React.useMemo(() => {
-		return [...protocolsByChainColumns, ...customColumnDefs]
-	}, [customColumnDefs])
+		const baseColumns = [...protocolsByChainColumns]
+
+		if (columnsWithFilter.name) {
+			const nameIndex = baseColumns.findIndex((col) => col.id === 'name')
+			if (nameIndex !== -1) {
+				baseColumns[nameIndex] = columnsWithFilter.name as ColumnDef<IProtocolRow>
+			}
+		}
+
+		if (columnsWithFilter.category) {
+			const categoryIndex = baseColumns.findIndex((col) => col.id === 'category')
+			if (categoryIndex !== -1) {
+				baseColumns[categoryIndex] = columnsWithFilter.category as ColumnDef<IProtocolRow>
+			}
+		}
+
+		return [...baseColumns, ...customColumnDefs]
+	}, [customColumnDefs, columnsWithFilter])
 
 	const table = useReactTable({
 		data: finalProtocolsList,
@@ -338,6 +500,29 @@ export function useProTable(chains: string[]) {
 		window.localStorage.setItem(customColumnsKey, JSON.stringify(updatedColumns))
 	}
 
+	// Extract unique categories from all protocols
+	const categories = React.useMemo(() => {
+		if (!fullProtocolsList) return []
+		const uniqueCategories = new Set<string>()
+		fullProtocolsList.forEach((protocol: any) => {
+			if (protocol.category) {
+				uniqueCategories.add(protocol.category)
+			}
+		})
+		return Array.from(uniqueCategories).sort()
+	}, [fullProtocolsList])
+
+	// Get available protocols for the current chain(s) sorted by TVL
+	const availableProtocols = React.useMemo(() => {
+		if (!fullProtocolsList) return []
+		// Sort protocols by TVL in descending order
+		return [...fullProtocolsList].sort((a, b) => {
+			const aTvl = a.tvl || 0
+			const bTvl = b.tvl || 0
+			return bTvl - aTvl
+		})
+	}, [fullProtocolsList])
+
 	return {
 		table,
 		showColumnPanel,
@@ -354,6 +539,8 @@ export function useProTable(chains: string[]) {
 		customColumns,
 		addCustomColumn,
 		removeCustomColumn,
-		updateCustomColumn
+		updateCustomColumn,
+		categories,
+		availableProtocols
 	}
 }

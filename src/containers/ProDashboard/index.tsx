@@ -75,11 +75,11 @@ function ProDashboardContent() {
 	}
 
 	return (
-		<div className="p-4 md:p-6">
+		<div className="pro-dashboard p-4 md:p-6">
 			<div className="mb-4">
 				<button
 					onClick={() => router.push('/pro')}
-					className="flex items-center gap-2 text-[var(--text2)] hover:text-[var(--text1)] transition-colors"
+					className="flex items-center gap-2 pro-text2 hover:pro-text1 transition-colors"
 				>
 					<Icon name="arrow-left" height={16} width={16} />
 					Back to Dashboards
@@ -94,7 +94,7 @@ function ProDashboardContent() {
 							className={`px-4 py-2 text-sm font-medium border transition-colors duration-200 ${
 								timePeriod === period.value
 									? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
-									: 'border-white/20 hover:bg-[var(--bg3)] text-[var(--text2)]'
+									: 'border-white/20 pro-hover-bg pro-text2'
 							}`}
 							onClick={() => setTimePeriod(period.value)}
 						>
@@ -115,7 +115,7 @@ function ProDashboardContent() {
 									saveDashboardName()
 								}}
 								onKeyDown={handleNameKeyDown}
-								className="text-xl font-semibold text-center bg-transparent border-b-2 border-[var(--primary1)] text-[var(--text1)] focus:outline-none px-3 py-2 min-w-0"
+								className="text-xl font-semibold text-center bg-transparent border-b-2 border-[var(--primary1)] pro-text1 focus:outline-none px-3 py-2 min-w-0"
 								autoFocus
 								placeholder="Dashboard Name"
 							/>
@@ -123,14 +123,14 @@ function ProDashboardContent() {
 					) : (
 						<button
 							onClick={() => !isReadOnly && setIsEditingName(true)}
-							className={`group text-xl font-semibold text-[var(--text1)] px-3 py-2 bg-[var(--bg7)] bg-opacity-30 ${
-								!isReadOnly ? 'hover:bg-[var(--bg3)] hover:border-[var(--form-control-border)]' : ''
+							className={`group text-xl font-semibold pro-text1 px-3 py-2 bg-[var(--bg7)] bg-opacity-30 ${
+								!isReadOnly ? 'pro-hover-bg hover:border-[var(--form-control-border)]' : ''
 							} flex items-center gap-2 transition-colors`}
 							disabled={isReadOnly}
 						>
 							{dashboardName}
-							{!isReadOnly && <Icon name="pencil" height={14} width={14} className="text-[var(--text1)]" />}
-							{isReadOnly && <span className="text-xs text-[var(--text3)] ml-2">(Read-only)</span>}
+							{!isReadOnly && <Icon name="pencil" height={14} width={14} className="pro-text1" />}
+							{isReadOnly && <span className="text-xs pro-text3 ml-2">(Read-only)</span>}
 						</button>
 					)}
 
@@ -138,10 +138,10 @@ function ProDashboardContent() {
 						<div className="relative">
 							<button
 								onClick={() => setShowDashboardMenu(!showDashboardMenu)}
-								className="p-2 bg-[var(--bg7)] bg-opacity-30  hover:bg-[var(--bg3)] hover:border-[var(--form-control-border)] transition-colors"
+								className="p-2 bg-[var(--bg7)] bg-opacity-30  pro-hover-bg hover:border-[var(--form-control-border)] transition-colors"
 								title="Dashboard menu"
 							>
-								<Icon name="chevron-down" height={16} width={16} className="text-[var(--text1)]" />
+								<Icon name="chevron-down" height={16} width={16} className="pro-text1" />
 							</button>
 
 							{showDashboardMenu && (
@@ -155,7 +155,7 @@ function ProDashboardContent() {
 														copyDashboard()
 														setShowDashboardMenu(false)
 													}}
-													className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] flex items-center gap-2"
+													className="w-full text-left px-3 py-2 pro-hover-bg flex items-center gap-2"
 												>
 													<Icon name="copy" height={16} width={16} />
 													Copy Dashboard
@@ -167,7 +167,7 @@ function ProDashboardContent() {
 															saveDashboard()
 															setShowDashboardMenu(false)
 														}}
-														className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] flex items-center gap-2"
+														className="w-full text-left px-3 py-2 pro-hover-bg flex items-center gap-2"
 														disabled={!dashboardId && items.length === 0}
 													>
 														<Icon name="download-cloud" height={16} width={16} />
@@ -180,7 +180,7 @@ function ProDashboardContent() {
 																deleteDashboard(dashboardId)
 																setShowDashboardMenu(false)
 															}}
-															className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] text-red-500 flex items-center gap-2"
+															className="w-full text-left px-3 py-2 pro-hover-bg text-red-500 flex items-center gap-2"
 														>
 															<Icon name="trash-2" height={16} width={16} />
 															Delete Dashboard
@@ -194,7 +194,7 @@ function ProDashboardContent() {
 													createNewDashboard()
 													setShowDashboardMenu(false)
 												}}
-												className="w-full text-left px-3 py-2 hover:bg-[var(--bg3)] flex items-center gap-2"
+												className="w-full text-left px-3 py-2 pro-hover-bg flex items-center gap-2"
 											>
 												<Icon name="plus" height={16} width={16} />
 												New Dashboard
@@ -203,9 +203,9 @@ function ProDashboardContent() {
 											{dashboards.length > 0 && (
 												<>
 													<div className="border-t border-[var(--divider)] my-2" />
-													<div className="text-xs text-[var(--text3)] px-3 py-1">My Dashboards</div>
+													<div className="text-xs pro-text3 px-3 py-1">My Dashboards</div>
 													{isLoadingDashboards ? (
-														<div className="px-3 py-2 text-sm text-[var(--text3)]">Loading...</div>
+														<div className="px-3 py-2 text-sm pro-text3">Loading...</div>
 													) : (
 														<div className="max-h-64 overflow-y-auto thin-scrollbar">
 															{dashboards.map((dashboard) => (
@@ -215,7 +215,7 @@ function ProDashboardContent() {
 																		loadDashboard(dashboard.id)
 																		setShowDashboardMenu(false)
 																	}}
-																	className={`w-full text-left px-3 py-2 hover:bg-[var(--bg3)] text-sm ${
+																	className={`w-full text-left px-3 py-2 pro-hover-bg text-sm ${
 																		dashboard.id === dashboardId ? 'bg-[var(--bg3)]' : ''
 																	}`}
 																>
@@ -225,7 +225,7 @@ function ProDashboardContent() {
 																			<Icon name="check" height={14} width={14} className="text-[var(--primary1)]" />
 																		)}
 																	</div>
-																	<div className="text-xs text-[var(--text3)]">
+																	<div className="text-xs pro-text3">
 																		{new Date(dashboard.updated).toLocaleDateString()}
 																	</div>
 																</button>
@@ -255,7 +255,7 @@ function ProDashboardContent() {
 			</div>
 
 			{!isAuthenticated && (
-				<div className="bg-[var(--bg3)] border border-[var(--divider)] p-3 mb-4 text-sm text-[var(--text2)]">
+				<div className="bg-[var(--bg3)] border border-[var(--divider)] p-3 mb-4 text-sm pro-text2">
 					<Icon name="help-circle" height={16} width={16} className="inline mr-2" />
 					Sign in to save and manage multiple dashboards
 				</div>

@@ -31,6 +31,7 @@ export default function AreaChart({
 	hideDefaultLegend,
 	hideDataZoom = false,
 	hideDownloadButton = false,
+	containerClassName,
 	...props
 }: IChartProps) {
 	const id = useId()
@@ -360,7 +361,11 @@ export default function AreaChart({
 					/>
 				)}
 			</div>
-			<div id={id} className="min-h-[360px] my-auto mx-0" style={height ? { height } : undefined} />
+			<div
+				id={id}
+				className={containerClassName ? containerClassName : 'min-h-[360px] my-auto mx-0'}
+				style={height ? { height } : undefined}
+			/>
 		</div>
 	)
 }

@@ -4,16 +4,27 @@ import { TableHeader } from './TableHeader'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { TableBody } from './TableBody'
 import { TablePagination } from './TablePagination'
-import { memo, useMemo } from 'react'
+import { ProtocolFilterModal } from './ProtocolFilterModal'
+import { memo, useMemo, useState } from 'react'
+import { TableFilters } from '../../types'
+import { useProDashboard } from '../../ProDashboardAPIContext'
 
 export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
+	tableId,
 	chains = ['All'],
-	colSpan = 2
+	colSpan = 2,
+	filters
 }: {
+	tableId: string
 	chains: string[]
 	colSpan?: 1 | 2
+	filters?: TableFilters
 }) {
+	const { handleTableFiltersChange } = useProDashboard()
+	const [showFilterModal, setShowFilterModal] = useState(false)
 	const memoizedChains = useMemo(() => chains, [chains.join(',')])
+	const proDashboardElement = typeof window !== 'undefined' ? document.querySelector('.pro-dashboard') : null
+
 	const {
 		table,
 		showColumnPanel,
@@ -30,8 +41,14 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		customColumns,
 		addCustomColumn,
 		removeCustomColumn,
-		updateCustomColumn
-	} = useProTable(memoizedChains)
+		updateCustomColumn,
+		categories,
+		availableProtocols
+	} = useProTable(memoizedChains, filters, () => setShowFilterModal(true))
+
+	const handleFiltersChange = (newFilters: TableFilters) => {
+		handleTableFiltersChange(tableId, newFilters)
+	}
 
 	return (
 		<div className="w-full p-4 h-full flex flex-col">
@@ -63,6 +80,18 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 			<TableBody table={table} />
 
 			<TablePagination table={table} />
+
+			{proDashboardElement && (
+				<ProtocolFilterModal
+					isOpen={showFilterModal}
+					onClose={() => setShowFilterModal(false)}
+					protocols={availableProtocols}
+					categories={categories}
+					currentFilters={filters || {}}
+					onFiltersChange={handleFiltersChange}
+					portalTarget={proDashboardElement as HTMLElement}
+				/>
+			)}
 		</div>
 	)
 })

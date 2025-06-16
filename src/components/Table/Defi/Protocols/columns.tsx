@@ -659,6 +659,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'TVS',
 		accessorKey: 'tvs',
+		id: 'tvl',
 		cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
 		sortUndefined: 'last',
 		meta: {
