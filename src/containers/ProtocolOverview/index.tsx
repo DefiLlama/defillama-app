@@ -551,69 +551,7 @@ function Fees(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 0) return null
-
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`fees-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function Revenue(props: IProtocolOverviewPageData) {
@@ -673,69 +611,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 0) return null
-
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`fees-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 function HoldersRevenue(props: IProtocolOverviewPageData) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
@@ -800,69 +676,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 0) return null
-
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`fees-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function Incentives(props: IProtocolOverviewPageData) {
@@ -901,69 +715,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 0) return null
-
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`fees-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function Earnings(props: IProtocolOverviewPageData) {
@@ -1032,69 +784,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 0) return null
-
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`fees-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function Unlocks(props: IProtocolOverviewPageData) {
@@ -1196,69 +886,7 @@ function DexVolume(props: IProtocolOverviewPageData) {
 		metrics.push({ name: 'Cumulative DEX Volume', tooltipContent: null, value: props.dexVolume.totalAllTime })
 	}
 
-	if (metrics.length === 0) return null
-
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`dexs-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function DexAggregatorVolume(props: IProtocolOverviewPageData) {
@@ -1280,69 +908,7 @@ function DexAggregatorVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 0) return null
-
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`dex-aggregator-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function PerpVolume(props: IProtocolOverviewPageData) {
@@ -1364,69 +930,7 @@ function PerpVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 0) return null
-
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`dex-aggregator-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
@@ -1456,67 +960,7 @@ function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`dex-aggregator-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
@@ -1546,67 +990,7 @@ function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`dex-aggregator-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
@@ -1636,67 +1020,7 @@ function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`dex-aggregator-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
@@ -1726,67 +1050,7 @@ function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	if (metrics.length === 1) {
-		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{metrics[0].tooltipContent ? (
-					<Tooltip
-						content={metrics[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{metrics[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{metrics.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`dex-aggregator-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
+	return <SmolStats data={metrics} />
 }
 
 function DevActivity(props: IProtocolOverviewPageData) {
@@ -2231,11 +1495,83 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 	)
 }
 
+// TODO flag
+const SmolStats = ({
+	data
+}: {
+	data: Array<{ name: string; tooltipContent?: string | null; value: string | number }>
+}) => {
+	if (data.length === 0) return null
+
+	if (data.length === 1) {
+		return (
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				{data[0].tooltipContent ? (
+					<Tooltip
+						content={data[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{data[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{data[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(data[0].value, true)}</span>
+			</p>
+		)
+	}
+
+	return (
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				{data[0].tooltipContent ? (
+					<Tooltip
+						content={data[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{data[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{data[0].name}</span>
+				)}
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(data[0].value, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{data.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`dex-aggregator-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
+					</p>
+				))}
+			</div>
+		</details>
+	)
+}
+
 // unlocks
 // governance
 
 // hallmarks & total hacked
 // hacks
 
+// report incorrect data
 // competitors ???
 // % change tvl, mcap, token price, etc.
