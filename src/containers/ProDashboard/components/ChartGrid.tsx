@@ -97,7 +97,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						{chartsWithData.map((item) => (
 							<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
-									<div className={`pro-glass h-full relative ${item.kind === 'table' ? 'pt-6' : ''}`}>
+									<div className={`pro-glass h-full relative ${item.kind === 'table' ? 'pt-6' : ''} overflow-hidden`}>
 										<div className="absolute top-1 right-1 z-20 flex gap-1">
 											<button
 												className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
