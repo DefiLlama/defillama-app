@@ -149,10 +149,11 @@ export interface IProtocolOverviewPageData {
 		methodology?: string
 	} | null
 	treasury: {
-		ownTokens: number
-		stablecoins: number
-		majors: number
-		others: number
+		ownTokens: number | null
+		stablecoins: number | null
+		majors: number | null
+		others: number | null
+		total: number | null
 	} | null
 	unlocks: {
 		recent?: { timestamp: number; amount: number }

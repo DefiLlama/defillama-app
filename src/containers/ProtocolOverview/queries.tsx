@@ -10,7 +10,6 @@ import {
 	PROTOCOL_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
-	RAISES_API,
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API
 } from '~/constants'
@@ -23,7 +22,6 @@ import {
 	CardType,
 	IArticlesResponse,
 	IArticle,
-	IRaise,
 	IProtocolExpenses
 } from './types'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
@@ -295,12 +293,7 @@ export const getProtocolOverviewPageData = async ({
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
-		{
-			ownTokens: number
-			stablecoins: number
-			majors: number
-			others: number
-		} | null,
+		IProtocolOverviewPageData['treasury'] | null,
 		any,
 		IArticle[],
 		any,
@@ -460,6 +453,17 @@ export const getProtocolOverviewPageData = async ({
 			? fetchWithErrorLogging(PROTOCOLS_TREASURY)
 					.then((res) => res.json())
 					.then((res) => res.find((item) => item.id === `${protocolId}-treasury`)?.tokenBreakdowns ?? null)
+					.then((res) => {
+						return res
+							? {
+									majors: res.majors ?? null,
+									stablecoins: res.stablecoins ?? null,
+									ownTokens: res.ownTokens ?? null,
+									others: res.others ?? null,
+									total: Object.values(res).reduce((acc: number, curr: number | null) => acc + +(curr ?? 0), 0) ?? null
+							  }
+							: null
+					})
 					.catch(() => null)
 			: Promise.resolve(null),
 		metadata.yields
@@ -537,10 +541,6 @@ export const getProtocolOverviewPageData = async ({
 	])
 
 	const cards: CardType[] = []
-
-	if (treasury) {
-		cards.push('treasury')
-	}
 
 	const feesData = formatAdapterData({
 		data: feesProtocols,

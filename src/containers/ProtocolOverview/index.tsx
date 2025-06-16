@@ -223,7 +223,7 @@ const ProtocolTVL = ({
 				{tvlByChain.map(([chain, tvl]) => (
 					<p
 						key={`${chain}-${tvl}-${name}`}
-						className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222224] last:border-none py-1"
+						className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1"
 					>
 						<span className="text-[#545757] dark:text-[#cccccc]">{chain}</span>
 						<span className="font-jetbrains">{formatPrice(tvl)}</span>
@@ -242,98 +242,19 @@ const KeyMetricsAndProtocolInfo = (
 				<div className="flex flex-col gap-2">
 					<h2 className="font-semibold">Key Metrics</h2>
 					<div className="flex flex-col">
-						{props.tokenCGData?.marketCap?.current ? (
-							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
-								<span className="font-jetbrains">{formattedNum(props.tokenCGData.marketCap.current, true)}</span>
-							</p>
-						) : null}
-						{props.tokenCGData?.price?.current ? (
-							props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
-								<details className="group">
-									<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">{`${
-											props.token?.symbol ? `$${props.token.symbol}` : 'Token'
-										} Price`}</span>
-										<Icon
-											name="chevron-down"
-											height={16}
-											width={16}
-											className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-										/>
-										<span className="font-jetbrains ml-auto">
-											{formattedNum(props.tokenCGData.price.current, true)}
-										</span>
-									</summary>
-									<div className="flex flex-col mb-3">
-										<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-											<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
-											<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.ath, true)}</span>
-										</p>
-										<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222224] last:border-none py-1">
-											<span className="text-[#545757] dark:text-[#cccccc]">All Time Low</span>
-											<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.atl, true)}</span>
-										</p>
-									</div>
-								</details>
-							) : (
-								<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-									<span className="text-[#545757] dark:text-[#cccccc]">{`${
-										props.token?.symbol ? `$${props.token.symbol}` : 'Token'
-									} Price`}</span>
-									<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.current, true)}</span>
-								</p>
-							)
-						) : null}
-						{props.tokenCGData?.fdv?.current ? (
-							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-								<Tooltip
-									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-									content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
-								>
-									Fully Diluted Valuation
-								</Tooltip>
-								<span className="font-jetbrains">{formattedNum(props.tokenCGData.fdv.current, true)}</span>
-							</p>
-						) : null}
-						{props.tokenCGData.volume24h?.total ? (
-							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-									<span className="text-[#545757] dark:text-[#cccccc]">{`24h ${
-										props.token?.symbol ? `$${props.token.symbol}` : 'Token'
-									} Volume`}</span>
-									<Icon
-										name="chevron-down"
-										height={16}
-										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-									/>
-									<span className="font-jetbrains ml-auto">
-										{formattedNum(props.tokenCGData.volume24h.total, true)}
-									</span>
-								</summary>
-								<div className="flex flex-col mb-3">
-									<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
-										<span className="font-jetbrains">
-											{props.tokenCGData.volume24h.cex ? formattedNum(props.tokenCGData.volume24h.cex, true) : '-'}
-										</span>
-									</p>
-									<p className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222224] last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume</span>
-										<span className="flex items-center gap-1">
-											<span className="font-jetbrains">
-												{props.tokenCGData.volume24h.dex ? formattedNum(props.tokenCGData.volume24h.dex, true) : '-'}
-											</span>
-											<span className="text-xs text-[#545757] dark:text-[#cccccc]">
-												({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
-												total)
-											</span>
-										</span>
-									</p>
-								</div>
-							</details>
-						) : null}
+						<Fees {...props} />
+						<Revenue {...props} />
+						<HoldersRevenue {...props} />
+						<Incentives {...props} />
+						<Earnings {...props} />
+						<DexVolume {...props} />
+						<DexAggregatorVolume {...props} />
+						<PerpVolume {...props} />
+						<PerpAggregatorVolume {...props} />
+						<BridgeAggregatorVolume {...props} />
+						<OptionsPremiumVolume {...props} />
+						<OptionsNotionalVolume {...props} />
+						<TokenCGData {...props} />
 						{props.currentTvlByChain?.staking != null ? (
 							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 								<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
@@ -356,130 +277,10 @@ const KeyMetricsAndProtocolInfo = (
 								<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.borrowed, true)}</span>
 							</p>
 						) : null}
-						{props.tokenLiquidity ? (
-							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-									<Tooltip
-										content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
-										className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-									>
-										{`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
-									</Tooltip>
-									<Icon
-										name="chevron-down"
-										height={16}
-										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-									/>
-									<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
-								</summary>
-								<div className="flex flex-col mb-3">
-									{props.tokenLiquidity?.pools.map((pool) => (
-										<p
-											key={`${pool[0]}-${pool[1]}-${pool[2]}`}
-											className="flex items-center justify-between gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-										>
-											<span className="text-[#545757] dark:text-[#cccccc]">{pool[0]}</span>
-											<span className="font-jetbrains">{formattedNum(pool[2], true)}</span>
-										</p>
-									))}
-								</div>
-							</details>
-						) : null}
-						{props.raises?.length ? (
-							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-									<span className="text-[#545757] dark:text-[#cccccc]">Total Raised</span>
-									<Icon
-										name="chevron-down"
-										height={16}
-										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-									/>
-									<span className="font-jetbrains ml-auto">
-										{formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
-									</span>
-								</summary>
-								<div className="flex flex-col mb-3">
-									{props.raises.map((raise) => (
-										<p
-											className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-											key={`${raise.date}-${raise.amount}-${props.name}`}
-										>
-											<span className="flex flex-wrap justify-between">
-												<span className="text-[#545757] dark:text-[#cccccc]">
-													{dayjs(raise.date * 1000).format('MMM D, YYYY')}
-												</span>
-												<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
-											</span>
-											<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
-												<span>Round: {raise.round}</span>
-												{raise.investors?.length ? <span>Investors: {raise.investors.join(', ')}</span> : null}
-											</span>
-										</p>
-									))}
-								</div>
-							</details>
-						) : null}
-						{props.expenses ? (
-							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-									<span className="text-[#545757] dark:text-[#cccccc]">Annual Operational Expenses</span>
-									<Icon
-										name="chevron-down"
-										height={16}
-										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-									/>
-									<span className="font-jetbrains ml-auto">{formattedNum(props.expenses.total, true)}</span>
-								</summary>
-								<div className="flex flex-col mb-3">
-									<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
-										<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
-									</p>
-									{props.expenses.annualUsdCost.map(([category, amount]) => (
-										<p
-											className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-											key={`${props.name}-expenses-${category}-${amount}`}
-										>
-											<span className="flex flex-wrap justify-between">
-												<span className="text-[#545757] dark:text-[#cccccc]">{category}</span>
-												<span className="font-jetbrains">{formattedNum(amount, true)}</span>
-											</span>
-										</p>
-									))}
-									{props.expenses?.sources?.length ? (
-										<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-											<span className="text-[#545757] dark:text-[#cccccc]">Sources</span>
-											{props.expenses.sources?.map((source) => (
-												<a
-													href={source}
-													target="_blank"
-													rel="noopener noreferrer"
-													key={`${props.name}-expenses-source-${source}`}
-													className="hover:underline"
-												>
-													{source}
-												</a>
-											))}
-										</p>
-									) : null}
-									{props.expenses?.notes?.length ? (
-										<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-											<span className="text-[#545757] dark:text-[#cccccc]">Notes</span>
-											<span>{props.expenses.notes?.join(', ') ?? ''}</span>
-										</p>
-									) : null}
-									{props.expenses?.lastUpdate ? (
-										<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-											<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
-											<span>{dayjs(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
-										</p>
-									) : null}
-								</div>
-							</details>
-						) : null}
+						<TokenLiquidity {...props} />
+						<Treasury {...props} />
+						<Raises {...props} />
+						<Expenses {...props} />
 					</div>
 				</div>
 			) : null}
@@ -697,54 +498,6 @@ const MethodologyByAdapter = ({
 	)
 }
 
-function Treasury(props: IProtocolOverviewPageData) {
-	const treasury = props.treasury
-	if (!treasury) return null
-
-	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Treasury</h2>
-			<div className="flex flex-col">
-				{treasury.majors ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">
-							<Tooltip content="BTC, ETH" className="underline decoration-dotted">
-								Majors
-							</Tooltip>
-						</span>
-						<span className="font-jetbrains">{formattedNum(treasury.majors, true)}</span>
-					</p>
-				) : null}
-				{treasury.stablecoins ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Stablecoins</span>
-						<span className="font-jetbrains">{formattedNum(treasury.stablecoins, true)}</span>
-					</p>
-				) : null}
-				{treasury.ownTokens ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Own Tokens</span>
-						<span className="font-jetbrains">{formattedNum(treasury.ownTokens, true)}</span>
-					</p>
-				) : null}
-				{treasury.others ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Others</span>
-						<span className="font-jetbrains">{formattedNum(treasury.others, true)}</span>
-					</p>
-				) : null}
-			</div>
-			<BasicLink
-				href="/treasuries"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Treasury</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
-	)
-}
-
 function Fees(props: IProtocolOverviewPageData) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
@@ -752,6 +505,8 @@ function Fees(props: IProtocolOverviewPageData) {
 	const bribeRevenue = props.bribeRevenue
 	const tokenTax = props.tokenTax
 	const feesExists = fees?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
+
+	if (!feesExists) return null
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
@@ -766,23 +521,62 @@ function Fees(props: IProtocolOverviewPageData) {
 		? (fees?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
 		: null
 
+	// newly listed protocol
+	if (fees30d == null && fees24h != null) {
+		return (
+			<details className="group">
+				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+					<Tooltip
+						content="Total fees paid by users in the last 24 hours, updated daily at 00:00UTC"
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						Fees 24h
+					</Tooltip>
+					<Icon
+						name="chevron-down"
+						height={16}
+						width={16}
+						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					/>
+					<span className="font-jetbrains ml-auto">{formattedNum(fees24h, true)}</span>
+				</summary>
+				<div className="flex flex-col mb-3">
+					{feesAllTime != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+							<Tooltip
+								content="Total fees paid by users since the protocol was launched"
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								Cumulative Fees
+							</Tooltip>
+							<span className="font-jetbrains">{formattedNum(feesAllTime, true)}</span>
+						</p>
+					) : null}
+				</div>
+			</details>
+		)
+	}
+
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Fees</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				<Tooltip
+					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
+					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+				>
+					Fees (Annualized)
+				</Tooltip>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(fees30d * 12.2, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
 				{fees30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<Tooltip
-							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Fees (Annualized)
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(fees30d * 12.2, true)}</span>
-					</p>
-				) : null}
-				{fees30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total fees paid by users in the last 30 days, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -793,7 +587,7 @@ function Fees(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{fees24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total fees paid by users in the last 24 hours, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -804,7 +598,7 @@ function Fees(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{feesAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total fees paid by users since the protocol was launched"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -815,16 +609,10 @@ function Fees(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/fees"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Fees</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
+
 function Revenue(props: IProtocolOverviewPageData) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
@@ -833,6 +621,8 @@ function Revenue(props: IProtocolOverviewPageData) {
 	const tokenTax = props.tokenTax
 	const revenueExists =
 		revenue?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
+
+	if (!revenueExists) return null
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
@@ -847,23 +637,62 @@ function Revenue(props: IProtocolOverviewPageData) {
 		? (revenue?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
 		: null
 
+	// newly listed protocol
+	if (revenue30d == null && revenue24h != null) {
+		return (
+			<details className="group">
+				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+					<Tooltip
+						content="Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC"
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						Revenue 24h
+					</Tooltip>
+					<Icon
+						name="chevron-down"
+						height={16}
+						width={16}
+						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					/>
+					<span className="font-jetbrains ml-auto">{formattedNum(revenue24h, true)}</span>
+				</summary>
+				<div className="flex flex-col mb-3">
+					{revenueAllTime != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+							<Tooltip
+								content="Total revenue earned by the protocol since the protocol was launched"
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								Cumulative Revenue
+							</Tooltip>
+							<span className="font-jetbrains">{formattedNum(revenueAllTime, true)}</span>
+						</p>
+					) : null}
+				</div>
+			</details>
+		)
+	}
+
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Revenue</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				<Tooltip
+					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
+					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+				>
+					Revenue (Annualized)
+				</Tooltip>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(revenue30d * 12.2, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
 				{revenue30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<Tooltip
-							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Revenue (Annualized)
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(revenue30d * 12.2, true)}</span>
-					</p>
-				) : null}
-				{revenue30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -874,7 +703,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{revenue24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -885,7 +714,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{revenueAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total revenue earned by the protocol since the protocol was launched"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -896,14 +725,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/revenue"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Revenue</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 function HoldersRevenue(props: IProtocolOverviewPageData) {
@@ -914,6 +736,8 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 	const tokenTax = props.tokenTax
 	const holdersRevenueExists =
 		holdersRevenue?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
+
+	if (!holdersRevenueExists) return null
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
@@ -932,23 +756,62 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 		? (holdersRevenue?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
 		: null
 
+	// newly listed protocol
+	if (holdersRevenue30d == null && holdersRevenue24h != null) {
+		return (
+			<details className="group">
+				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+					<Tooltip
+						content="Total revenue that is distributed to protocol's token holders in the last 24 hours, updated daily at 00:00UTC"
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						Holders Revenue 24h
+					</Tooltip>
+					<Icon
+						name="chevron-down"
+						height={16}
+						width={16}
+						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					/>
+					<span className="font-jetbrains ml-auto">{formattedNum(holdersRevenue24h, true)}</span>
+				</summary>
+				<div className="flex flex-col mb-3">
+					{holdersRevenueAllTime != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+							<Tooltip
+								content="Total revenue that is distributed to protocol's token holders since the protocol was launched"
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								Cumulative Holders Revenue
+							</Tooltip>
+							<span className="font-jetbrains">{formattedNum(holdersRevenueAllTime, true)}</span>
+						</p>
+					) : null}
+				</div>
+			</details>
+		)
+	}
+
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Holders Revenue</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				<Tooltip
+					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
+					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+				>
+					Holders Revenue (Annualized)
+				</Tooltip>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(holdersRevenue30d * 12.2, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
 				{holdersRevenue30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<Tooltip
-							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Holders Revenue (Annualized)
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(holdersRevenue30d * 12.2, true)}</span>
-					</p>
-				) : null}
-				{holdersRevenue30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total revenue that is distributed to protocol's token holders in the last 30 days, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -959,7 +822,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{holdersRevenue24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total revenue that is distributed to protocol's token holders in the last 24 hours, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -970,7 +833,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{holdersRevenueAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total revenue that is distributed to protocol's token holders since the protocol was launched"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -981,14 +844,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/holders-revenue"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Holders Revenue</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 
@@ -996,23 +852,62 @@ function Incentives(props: IProtocolOverviewPageData) {
 	const incentivesData = props.incentives
 	if (!incentivesData) return null
 
+	// newly listed protocol
+	if (incentivesData.emissions30d == null && incentivesData.emissions24h != null) {
+		return (
+			<details className="group">
+				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+					<Tooltip
+						content="Total incentives distributed by the protocol in the last 24 hours, updated daily at 00:00UTC"
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						Incentives 24h
+					</Tooltip>
+					<Icon
+						name="chevron-down"
+						height={16}
+						width={16}
+						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					/>
+					<span className="font-jetbrains ml-auto">{formattedNum(incentivesData.emissions24h, true)}</span>
+				</summary>
+				<div className="flex flex-col mb-3">
+					{incentivesData.emissionsAllTime != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+							<Tooltip
+								content="Total incentives distributed by the protocol since the protocol was launched"
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								Cumulative Incentives
+							</Tooltip>
+							<span className="font-jetbrains">{formattedNum(incentivesData.emissionsAllTime, true)}</span>
+						</p>
+					) : null}
+				</div>
+			</details>
+		)
+	}
+
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Incentives</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				<Tooltip
+					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
+					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+				>
+					Incentives (Annualized)
+				</Tooltip>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(incentivesData.emissions30d * 12.2, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
 				{incentivesData.emissions30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<Tooltip
-							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Incentives (Annualized)
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(incentivesData.emissions30d * 12.2, true)}</span>
-					</p>
-				) : null}
-				{incentivesData.emissions30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total incentives distributed by the protocol in the last 30 days, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -1023,7 +918,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{incentivesData.emissions24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total incentives distributed by the protocol in the last 24 hours, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -1034,7 +929,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{incentivesData.emissionsAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total incentives distributed by the protocol since the protocol was launched"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -1045,7 +940,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 			</div>
-		</div>
+		</details>
 	)
 }
 
@@ -1078,23 +973,62 @@ function Earnings(props: IProtocolOverviewPageData) {
 			? revenueAllTime - incentivesData.emissionsAllTime
 			: null
 
+	// newly listed protocol
+	if (earnings30d == null && earnings24h != null) {
+		return (
+			<details className="group">
+				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+					<Tooltip
+						content="Total earnings (revenue - incentives) of the protocol in the last 24 hours, updated daily at 00:00UTC"
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						Earnings 24h
+					</Tooltip>
+					<Icon
+						name="chevron-down"
+						height={16}
+						width={16}
+						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					/>
+					<span className="font-jetbrains ml-auto">{formattedNum(earnings24h, true)}</span>
+				</summary>
+				<div className="flex flex-col mb-3">
+					{earningsAllTime != null ? (
+						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+							<Tooltip
+								content="Total earnings (revenue - incentives) of the protocol since the protocol was launched"
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								Cumulative Earnings
+							</Tooltip>
+							<span className="font-jetbrains">{formattedNum(earningsAllTime, true)}</span>
+						</p>
+					) : null}
+				</div>
+			</details>
+		)
+	}
+
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Earnings</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				<Tooltip
+					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
+					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+				>
+					Earnings (Annualized)
+				</Tooltip>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(earnings30d * 12.2, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
 				{earnings30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<Tooltip
-							content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Earnings (Annualized)
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(earnings30d * 12.2, true)}</span>
-					</p>
-				) : null}
-				{earnings30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total earnings (revenue - incentives) of the protocol in the last 30 days, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -1105,7 +1039,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{earnings24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total earnings (revenue - incentives) of the protocol in the last 24 hours, updated daily at 00:00UTC"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -1116,7 +1050,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 				{earningsAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 						<Tooltip
 							content="Total earnings (revenue - incentives) of the protocol since the protocol was launched"
 							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -1127,14 +1061,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/earnings"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Earnings</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 
@@ -1226,36 +1153,38 @@ function DexVolume(props: IProtocolOverviewPageData) {
 	const dexVolume = props.dexVolume
 	if (!dexVolume) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">DEX Volume</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 				{dexVolume.total30d != null ? (
+					<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume 30d</span>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume 24h</span>
+				)}
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">
+					{formattedNum(dexVolume.total30d ?? dexVolume.total24h ?? 0, true)}
+				</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{dexVolume.total24h != null && dexVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 30d</span>
-						<span className="font-jetbrains">{formattedNum(dexVolume.total30d, true)}</span>
-					</p>
-				) : null}
-				{dexVolume.total24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 24h</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume 24h</span>
 						<span className="font-jetbrains">{formattedNum(dexVolume.total24h, true)}</span>
 					</p>
 				) : null}
 				{dexVolume.totalAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Volume</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative DEX Volume</span>
 						<span className="font-jetbrains">{formattedNum(dexVolume.totalAllTime, true)}</span>
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/dexs"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all DEX Volume</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 
@@ -1263,36 +1192,38 @@ function DexAggregatorVolume(props: IProtocolOverviewPageData) {
 	const dexAggregatorVolume = props.dexAggregatorVolume
 	if (!dexAggregatorVolume) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">DEX Volume</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 				{dexAggregatorVolume.total30d != null ? (
+					<span className="text-[#545757] dark:text-[#cccccc]">DEX Aggregator Volume 30d</span>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">DEX Aggregator Volume 24h</span>
+				)}
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">
+					{formattedNum(dexAggregatorVolume.total30d ?? dexAggregatorVolume.total24h ?? 0, true)}
+				</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{dexAggregatorVolume.total24h != null && dexAggregatorVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 30d</span>
-						<span className="font-jetbrains">{formattedNum(dexAggregatorVolume.total30d, true)}</span>
-					</p>
-				) : null}
-				{dexAggregatorVolume.total24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 24h</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">DEX Aggregator Volume 24h</span>
 						<span className="font-jetbrains">{formattedNum(dexAggregatorVolume.total24h, true)}</span>
 					</p>
 				) : null}
 				{dexAggregatorVolume.totalAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Volume</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative DEX Aggregator Volume</span>
 						<span className="font-jetbrains">{formattedNum(dexAggregatorVolume.totalAllTime, true)}</span>
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/dex-aggregators"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all DEX Aggregator Volume</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 
@@ -1300,36 +1231,38 @@ function PerpVolume(props: IProtocolOverviewPageData) {
 	const perpVolume = props.perpVolume
 	if (!perpVolume) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Perp Volume</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 				{perpVolume.total30d != null ? (
+					<span className="text-[#545757] dark:text-[#cccccc]">Perp Volume 30d</span>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">Perp Volume 24h</span>
+				)}
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">
+					{formattedNum(perpVolume.total30d ?? perpVolume.total24h ?? 0, true)}
+				</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{perpVolume.total24h != null && perpVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 30d</span>
-						<span className="font-jetbrains">{formattedNum(perpVolume.total30d, true)}</span>
-					</p>
-				) : null}
-				{perpVolume.total24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 24h</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Perp Volume 24h</span>
 						<span className="font-jetbrains">{formattedNum(perpVolume.total24h, true)}</span>
 					</p>
 				) : null}
 				{perpVolume.totalAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Volume</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Perp Volume</span>
 						<span className="font-jetbrains">{formattedNum(perpVolume.totalAllTime, true)}</span>
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/perps"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Perp Volume</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 
@@ -1337,36 +1270,38 @@ function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
 	const perpAggregatorVolume = props.perpAggregatorVolume
 	if (!perpAggregatorVolume) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Perp Aggregator Volume</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 				{perpAggregatorVolume.total30d != null ? (
+					<span className="text-[#545757] dark:text-[#cccccc]">Perp Aggregator Volume 30d</span>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">Perp Aggregator Volume 24h</span>
+				)}
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">
+					{formattedNum(perpAggregatorVolume.total30d ?? perpAggregatorVolume.total24h ?? 0, true)}
+				</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{perpAggregatorVolume.total24h != null && perpAggregatorVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 30d</span>
-						<span className="font-jetbrains">{formattedNum(perpAggregatorVolume.total30d, true)}</span>
-					</p>
-				) : null}
-				{perpAggregatorVolume.total24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 24h</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Perp Aggregator Volume 24h</span>
 						<span className="font-jetbrains">{formattedNum(perpAggregatorVolume.total24h, true)}</span>
 					</p>
 				) : null}
 				{perpAggregatorVolume.totalAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Volume</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Perp Aggregator Volume</span>
 						<span className="font-jetbrains">{formattedNum(perpAggregatorVolume.totalAllTime, true)}</span>
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/perps-aggregators"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Perp Aggregator Volume</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 
@@ -1374,36 +1309,38 @@ function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
 	const bridgeAggregatorVolume = props.bridgeAggregatorVolume
 	if (!bridgeAggregatorVolume) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Bridge Aggregator Volume</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 				{bridgeAggregatorVolume.total30d != null ? (
+					<span className="text-[#545757] dark:text-[#cccccc]">Bridge Aggregator Volume 30d</span>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">Bridge Aggregator Volume 24h</span>
+				)}
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">
+					{formattedNum(bridgeAggregatorVolume.total30d ?? bridgeAggregatorVolume.total24h ?? 0, true)}
+				</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{bridgeAggregatorVolume.total24h != null && bridgeAggregatorVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 30d</span>
-						<span className="font-jetbrains">{formattedNum(bridgeAggregatorVolume.total30d, true)}</span>
-					</p>
-				) : null}
-				{bridgeAggregatorVolume.total24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 24h</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Bridge Aggregator Volume 24h</span>
 						<span className="font-jetbrains">{formattedNum(bridgeAggregatorVolume.total24h, true)}</span>
 					</p>
 				) : null}
 				{bridgeAggregatorVolume.totalAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Volume</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Bridge Aggregator Volume</span>
 						<span className="font-jetbrains">{formattedNum(bridgeAggregatorVolume.totalAllTime, true)}</span>
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/bridge-aggregators"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Bridge Aggregator Volume</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 
@@ -1411,72 +1348,76 @@ function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
 	const optionsPremiumVolume = props.optionsPremiumVolume
 	if (!optionsPremiumVolume) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Options Premium Volume</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 				{optionsPremiumVolume.total30d != null ? (
+					<span className="text-[#545757] dark:text-[#cccccc]">Options Premium Volume 30d</span>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">Options Premium Volume 24h</span>
+				)}
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">
+					{formattedNum(optionsPremiumVolume.total30d ?? optionsPremiumVolume.total24h ?? 0, true)}
+				</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{optionsPremiumVolume.total24h != null && optionsPremiumVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 30d</span>
-						<span className="font-jetbrains">{formattedNum(optionsPremiumVolume.total30d, true)}</span>
-					</p>
-				) : null}
-				{optionsPremiumVolume.total24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 24h</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Options Premium Volume 24h</span>
 						<span className="font-jetbrains">{formattedNum(optionsPremiumVolume.total24h, true)}</span>
 					</p>
 				) : null}
 				{optionsPremiumVolume.totalAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Volume</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Options Premium Volume</span>
 						<span className="font-jetbrains">{formattedNum(optionsPremiumVolume.totalAllTime, true)}</span>
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/options/premium-volume"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Options Premium Volume</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
 	const optionsNotionalVolume = props.optionsNotionalVolume
 	if (!optionsNotionalVolume) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Options Notional Volume</h2>
-			<div className="flex flex-col">
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
 				{optionsNotionalVolume.total30d != null ? (
+					<span className="text-[#545757] dark:text-[#cccccc]">Options Notional Volume 30d</span>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">Options Notional Volume 24h</span>
+				)}
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">
+					{formattedNum(optionsNotionalVolume.total30d ?? optionsNotionalVolume.total24h ?? 0, true)}
+				</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{optionsNotionalVolume.total24h != null && optionsNotionalVolume.total30d != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 30d</span>
-						<span className="font-jetbrains">{formattedNum(optionsNotionalVolume.total30d, true)}</span>
-					</p>
-				) : null}
-				{optionsNotionalVolume.total24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume 24h</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Options Notional Volume 24h</span>
 						<span className="font-jetbrains">{formattedNum(optionsNotionalVolume.total24h, true)}</span>
 					</p>
 				) : null}
 				{optionsNotionalVolume.totalAllTime != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Volume</span>
+						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Options Notional Volume</span>
 						<span className="font-jetbrains">{formattedNum(optionsNotionalVolume.totalAllTime, true)}</span>
 					</p>
 				) : null}
 			</div>
-			<BasicLink
-				href="/options/notional-volume"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Options Notional Volume</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
+		</details>
 	)
 }
 
@@ -1489,7 +1430,7 @@ function DevActivity(props: IProtocolOverviewPageData) {
 				<h2 className="font-semibold">Development Activity</h2>
 				{devActivity.updatedAt != null ? (
 					<p className="text-xs text-[#545757] dark:text-[#cccccc]">
-						Updated at {dayjs(devActivity.updatedAt).format('DD/MM/YY')}
+						Updated at {dayjs(devActivity.updatedAt).format('MMM D, YYYY')}
 					</p>
 				) : null}
 			</div>
@@ -1575,6 +1516,287 @@ function Users(props: IProtocolOverviewPageData) {
 	)
 }
 
+const Treasury = (props: IProtocolOverviewPageData) => {
+	if (!props.treasury) return null
+	return (
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				<span className="text-[#545757] dark:text-[#cccccc]">Treasury</span>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.total, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{props.treasury.majors ? (
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">
+							<Tooltip content="BTC, ETH" className="underline decoration-dotted">
+								Majors
+							</Tooltip>
+						</span>
+						<span className="font-jetbrains">{formattedNum(props.treasury.majors, true)}</span>
+					</p>
+				) : null}
+				{props.treasury.stablecoins ? (
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Stablecoins</span>
+						<span className="font-jetbrains">{formattedNum(props.treasury.stablecoins, true)}</span>
+					</p>
+				) : null}
+				{props.treasury.ownTokens ? (
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Own Tokens</span>
+						<span className="font-jetbrains">{formattedNum(props.treasury.ownTokens, true)}</span>
+					</p>
+				) : null}
+				{props.treasury.others ? (
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Others</span>
+						<span className="font-jetbrains">{formattedNum(props.treasury.others, true)}</span>
+					</p>
+				) : null}
+			</div>
+		</details>
+	)
+}
+
+const Raises = (props: IProtocolOverviewPageData) => {
+	if (!props.raises) return null
+	return (
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				<span className="text-[#545757] dark:text-[#cccccc]">Total Raised</span>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">
+					{formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
+				</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{props.raises.map((raise) => (
+					<p
+						className="flex flex-col gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1"
+						key={`${raise.date}-${raise.amount}-${props.name}`}
+					>
+						<span className="flex flex-wrap justify-between">
+							<span className="text-[#545757] dark:text-[#cccccc]">
+								{dayjs(raise.date * 1000).format('MMM D, YYYY')}
+							</span>
+							<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
+						</span>
+						<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
+							<span>Round: {raise.round}</span>
+							{raise.investors?.length ? <span>Investors: {raise.investors.join(', ')}</span> : null}
+						</span>
+					</p>
+				))}
+			</div>
+		</details>
+	)
+}
+
+const Expenses = (props: IProtocolOverviewPageData) => {
+	if (!props.expenses) return null
+	return (
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				<span className="text-[#545757] dark:text-[#cccccc]">Annual Operational Expenses</span>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(props.expenses.total, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+					<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
+					<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
+				</p>
+				{props.expenses.annualUsdCost.map(([category, amount]) => (
+					<p
+						className="flex flex-col gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1"
+						key={`${props.name}-expenses-${category}-${amount}`}
+					>
+						<span className="flex flex-wrap justify-between">
+							<span className="text-[#545757] dark:text-[#cccccc]">{category}</span>
+							<span className="font-jetbrains">{formattedNum(amount, true)}</span>
+						</span>
+					</p>
+				))}
+				{props.expenses?.sources?.length ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+						<span className="text-[#545757] dark:text-[#cccccc]">Sources</span>
+						{props.expenses.sources?.map((source) => (
+							<a
+								href={source}
+								target="_blank"
+								rel="noopener noreferrer"
+								key={`${props.name}-expenses-source-${source}`}
+								className="hover:underline"
+							>
+								{source}
+							</a>
+						))}
+					</p>
+				) : null}
+				{props.expenses?.notes?.length ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+						<span className="text-[#545757] dark:text-[#cccccc]">Notes</span>
+						<span>{props.expenses.notes?.join(', ') ?? ''}</span>
+					</p>
+				) : null}
+				{props.expenses?.lastUpdate ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+						<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
+						<span>{dayjs(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
+					</p>
+				) : null}
+			</div>
+		</details>
+	)
+}
+
+const TokenLiquidity = (props: IProtocolOverviewPageData) => {
+	if (!props.tokenLiquidity) return null
+	return (
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				<Tooltip
+					content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
+					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+				>
+					{`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
+				</Tooltip>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{props.tokenLiquidity?.pools.map((pool) => (
+					<p
+						key={`${pool[0]}-${pool[1]}-${pool[2]}`}
+						className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1"
+					>
+						<span className="text-[#545757] dark:text-[#cccccc]">{pool[0]}</span>
+						<span className="font-jetbrains">{formattedNum(pool[2], true)}</span>
+					</p>
+				))}
+			</div>
+		</details>
+	)
+}
+
+const TokenCGData = (props: IProtocolOverviewPageData) => {
+	if (!props.tokenCGData) return null
+	return (
+		<>
+			{' '}
+			{props.tokenCGData?.marketCap?.current ? (
+				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
+					<span className="font-jetbrains">{formattedNum(props.tokenCGData.marketCap.current, true)}</span>
+				</p>
+			) : null}
+			{props.tokenCGData?.price?.current ? (
+				props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
+					<details className="group">
+						<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">{`${
+								props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+							} Price`}</span>
+							<Icon
+								name="chevron-down"
+								height={16}
+								width={16}
+								className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+							/>
+							<span className="font-jetbrains ml-auto">{formattedNum(props.tokenCGData.price.current, true)}</span>
+						</summary>
+						<div className="flex flex-col mb-3">
+							<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
+								<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.ath, true)}</span>
+							</p>
+							<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">All Time Low</span>
+								<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.atl, true)}</span>
+							</p>
+						</div>
+					</details>
+				) : (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">{`${
+							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+						} Price`}</span>
+						<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.current, true)}</span>
+					</p>
+				)
+			) : null}
+			{props.tokenCGData?.fdv?.current ? (
+				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<Tooltip
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+						content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
+					>
+						Fully Diluted Valuation
+					</Tooltip>
+					<span className="font-jetbrains">{formattedNum(props.tokenCGData.fdv.current, true)}</span>
+				</p>
+			) : null}
+			{props.tokenCGData.volume24h?.total ? (
+				<details className="group">
+					<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">{`24h ${
+							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+						} Volume`}</span>
+						<Icon
+							name="chevron-down"
+							height={16}
+							width={16}
+							className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+						/>
+						<span className="font-jetbrains ml-auto">{formattedNum(props.tokenCGData.volume24h.total, true)}</span>
+					</summary>
+					<div className="flex flex-col mb-3">
+						<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
+							<span className="font-jetbrains">
+								{props.tokenCGData.volume24h.cex ? formattedNum(props.tokenCGData.volume24h.cex, true) : '-'}
+							</span>
+						</p>
+						<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume</span>
+							<span className="flex items-center gap-1">
+								<span className="font-jetbrains">
+									{props.tokenCGData.volume24h.dex ? formattedNum(props.tokenCGData.volume24h.dex, true) : '-'}
+								</span>
+								<span className="text-xs text-[#545757] dark:text-[#cccccc]">
+									({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
+									total)
+								</span>
+							</span>
+						</p>
+					</div>
+				</details>
+			) : null}
+		</>
+	)
+}
+
 interface MasonryLayoutProps {
 	cards: CardType[]
 	props: IProtocolOverviewPageData
@@ -1617,38 +1839,8 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 
 	const renderCard = (card: CardType) => {
 		switch (card) {
-			case 'fees':
-				return <Fees {...props} />
-			case 'revenue':
-				return <Revenue {...props} />
-			case 'holdersRevenue':
-				return <HoldersRevenue {...props} />
-			case 'incentives':
-				return <Incentives {...props} />
-			case 'earnings':
-				return <Earnings {...props} />
-			case 'treasury':
-				return <Treasury {...props} />
-			case 'unlocks':
-				return <Unlocks {...props} />
-			case 'governance':
-				return <Governance {...props} />
 			case 'yields':
 				return <Yields {...props} />
-			case 'dexVolume':
-				return <DexVolume {...props} />
-			case 'dexAggregatorVolume':
-				return <DexAggregatorVolume {...props} />
-			case 'perpVolume':
-				return <PerpVolume {...props} />
-			case 'perpAggregatorVolume':
-				return <PerpAggregatorVolume {...props} />
-			case 'bridgeAggregatorVolume':
-				return <BridgeAggregatorVolume {...props} />
-			case 'optionsPremiumVolume':
-				return <OptionsPremiumVolume {...props} />
-			case 'optionsNotionalVolume':
-				return <OptionsNotionalVolume {...props} />
 			case 'devActivity':
 				return <DevActivity {...props} />
 			case 'users':
@@ -1673,7 +1865,6 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 
 // unlocks
 // governance
-// token information
 
 // hallmarks & total hacked
 // hacks
