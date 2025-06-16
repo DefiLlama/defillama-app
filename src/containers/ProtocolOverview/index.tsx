@@ -148,9 +148,6 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:hidden">
 						<KeyMetricsAndProtocolInfo {...props} formatPrice={formatPrice} />
 					</div>
-					<div className="col-span-full">
-						<MasonryLayout cards={props.cards} props={props} />
-					</div>
 				</div>
 			</div>
 		</ProtocolOverviewLayout>
@@ -521,93 +518,99 @@ function Fees(props: IProtocolOverviewPageData) {
 		? (fees?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
 		: null
 
-	// newly listed protocol
-	if (fees30d == null && fees24h != null) {
+	const metrics = []
+
+	if (fees30d != null) {
+		metrics.push({
+			name: 'Fees (Annualized)',
+			tooltipContent:
+				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			value: fees30d * 12.2
+		})
+
+		metrics.push({
+			name: 'Fees 30d',
+			tooltipContent: 'Total fees paid by users in the last 30 days, updated daily at 00:00UTC',
+			value: fees30d
+		})
+	}
+
+	if (fees24h != null) {
+		metrics.push({
+			name: 'Fees 24h',
+			tooltipContent: 'Total fees paid by users in the last 24 hours, updated daily at 00:00UTC',
+			value: fees24h
+		})
+	}
+
+	if (feesAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Fees',
+			tooltipContent: 'Total fees paid by users since the protocol was launched',
+			value: feesAllTime
+		})
+	}
+
+	if (metrics.length === 0) return null
+
+	if (metrics.length === 1) {
 		return (
-			<details className="group">
-				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				{metrics[0].tooltipContent ? (
 					<Tooltip
-						content="Total fees paid by users in the last 24 hours, updated daily at 00:00UTC"
+						content={metrics[0].tooltipContent}
 						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 					>
-						Fees 24h
+						{metrics[0].name}
 					</Tooltip>
-					<Icon
-						name="chevron-down"
-						height={16}
-						width={16}
-						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-					/>
-					<span className="font-jetbrains ml-auto">{formattedNum(fees24h, true)}</span>
-				</summary>
-				<div className="flex flex-col mb-3">
-					{feesAllTime != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-							<Tooltip
-								content="Total fees paid by users since the protocol was launched"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								Cumulative Fees
-							</Tooltip>
-							<span className="font-jetbrains">{formattedNum(feesAllTime, true)}</span>
-						</p>
-					) : null}
-				</div>
-			</details>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
 		)
 	}
 
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				<Tooltip
-					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-				>
-					Fees (Annualized)
-				</Tooltip>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
 				<Icon
 					name="chevron-down"
 					height={16}
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(fees30d * 12.2, true)}</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{fees30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total fees paid by users in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Fees 30d
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(fees30d, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`fees-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{fees24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total fees paid by users in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Fees 24h
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(fees24h, true)}</span>
-					</p>
-				) : null}
-				{feesAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total fees paid by users since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Cumulative Fees
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(feesAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
@@ -637,93 +640,99 @@ function Revenue(props: IProtocolOverviewPageData) {
 		? (revenue?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
 		: null
 
-	// newly listed protocol
-	if (revenue30d == null && revenue24h != null) {
+	const metrics = []
+
+	if (revenue30d != null) {
+		metrics.push({
+			name: 'Revenue (Annualized)',
+			tooltipContent:
+				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			value: revenue30d * 12.2
+		})
+
+		metrics.push({
+			name: 'Revenue 30d',
+			tooltipContent: 'Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC',
+			value: revenue30d
+		})
+	}
+
+	if (revenue24h != null) {
+		metrics.push({
+			name: 'Revenue 24h',
+			tooltipContent: 'Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC',
+			value: revenue24h
+		})
+	}
+
+	if (revenueAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Revenue',
+			tooltipContent: 'Total revenue earned by the protocol since the protocol was launched',
+			value: revenueAllTime
+		})
+	}
+
+	if (metrics.length === 0) return null
+
+	if (metrics.length === 1) {
 		return (
-			<details className="group">
-				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				{metrics[0].tooltipContent ? (
 					<Tooltip
-						content="Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC"
+						content={metrics[0].tooltipContent}
 						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 					>
-						Revenue 24h
+						{metrics[0].name}
 					</Tooltip>
-					<Icon
-						name="chevron-down"
-						height={16}
-						width={16}
-						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-					/>
-					<span className="font-jetbrains ml-auto">{formattedNum(revenue24h, true)}</span>
-				</summary>
-				<div className="flex flex-col mb-3">
-					{revenueAllTime != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-							<Tooltip
-								content="Total revenue earned by the protocol since the protocol was launched"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								Cumulative Revenue
-							</Tooltip>
-							<span className="font-jetbrains">{formattedNum(revenueAllTime, true)}</span>
-						</p>
-					) : null}
-				</div>
-			</details>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
 		)
 	}
 
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				<Tooltip
-					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-				>
-					Revenue (Annualized)
-				</Tooltip>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
 				<Icon
 					name="chevron-down"
 					height={16}
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(revenue30d * 12.2, true)}</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{revenue30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Revenue 30d
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(revenue30d, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`fees-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{revenue24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Revenue 24h
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(revenue24h, true)}</span>
-					</p>
-				) : null}
-				{revenueAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total revenue earned by the protocol since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Cumulative Revenue
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(revenueAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
@@ -756,189 +765,202 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 		? (holdersRevenue?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
 		: null
 
-	// newly listed protocol
-	if (holdersRevenue30d == null && holdersRevenue24h != null) {
+	const metrics = []
+
+	if (holdersRevenue30d != null) {
+		metrics.push({
+			name: 'Holders Revenue (Annualized)',
+			tooltipContent:
+				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			value: holdersRevenue30d * 12.2
+		})
+
+		metrics.push({
+			name: 'Holders Revenue 30d',
+			tooltipContent:
+				"Total revenue that is distributed to protocol's token holders in the last 30 days, updated daily at 00:00UTC",
+			value: holdersRevenue30d
+		})
+	}
+
+	if (holdersRevenue24h != null) {
+		metrics.push({
+			name: 'Holders Revenue 24h',
+			tooltipContent:
+				"Total revenue that is distributed to protocol's token holders in the last 24 hours, updated daily at 00:00UTC",
+			value: holdersRevenue24h
+		})
+	}
+
+	if (holdersRevenueAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Holders Revenue',
+			tooltipContent: "Total revenue that is distributed to protocol's token holders since the protocol was launched",
+			value: holdersRevenueAllTime
+		})
+	}
+
+	if (metrics.length === 0) return null
+
+	if (metrics.length === 1) {
 		return (
-			<details className="group">
-				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				{metrics[0].tooltipContent ? (
 					<Tooltip
-						content="Total revenue that is distributed to protocol's token holders in the last 24 hours, updated daily at 00:00UTC"
+						content={metrics[0].tooltipContent}
 						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 					>
-						Holders Revenue 24h
+						{metrics[0].name}
 					</Tooltip>
-					<Icon
-						name="chevron-down"
-						height={16}
-						width={16}
-						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-					/>
-					<span className="font-jetbrains ml-auto">{formattedNum(holdersRevenue24h, true)}</span>
-				</summary>
-				<div className="flex flex-col mb-3">
-					{holdersRevenueAllTime != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-							<Tooltip
-								content="Total revenue that is distributed to protocol's token holders since the protocol was launched"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								Cumulative Holders Revenue
-							</Tooltip>
-							<span className="font-jetbrains">{formattedNum(holdersRevenueAllTime, true)}</span>
-						</p>
-					) : null}
-				</div>
-			</details>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
 		)
 	}
 
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				<Tooltip
-					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-				>
-					Holders Revenue (Annualized)
-				</Tooltip>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
 				<Icon
 					name="chevron-down"
 					height={16}
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(holdersRevenue30d * 12.2, true)}</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{holdersRevenue30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total revenue that is distributed to protocol's token holders in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Holders Revenue 30d
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(holdersRevenue30d, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`fees-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{holdersRevenue24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total revenue that is distributed to protocol's token holders in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Holders Revenue 24h
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(holdersRevenue24h, true)}</span>
-					</p>
-				) : null}
-				{holdersRevenueAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total revenue that is distributed to protocol's token holders since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Cumulative Holders Revenue
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(holdersRevenueAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
 }
 
 function Incentives(props: IProtocolOverviewPageData) {
-	const incentivesData = props.incentives
-	if (!incentivesData) return null
+	if (!props.incentives) return null
 
-	// newly listed protocol
-	if (incentivesData.emissions30d == null && incentivesData.emissions24h != null) {
+	const metrics = []
+
+	if (props.incentives.emissions30d != null) {
+		metrics.push({
+			name: 'Incentives (Annualized)',
+			tooltipContent:
+				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			value: props.incentives.emissions30d * 12.2
+		})
+
+		metrics.push({
+			name: 'Incentives 30d',
+			tooltipContent: 'Total incentives distributed by the protocol in the last 30 days, updated daily at 00:00UTC',
+			value: props.incentives.emissions30d
+		})
+	}
+
+	if (props.incentives.emissions24h != null) {
+		metrics.push({
+			name: 'Incentives 24h',
+			tooltipContent: 'Total incentives distributed by the protocol in the last 24 hours, updated daily at 00:00UTC',
+			value: props.incentives.emissions24h
+		})
+	}
+
+	if (props.incentives.emissionsAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Incentives',
+			tooltipContent: 'Total incentives distributed by the protocol since the protocol was launched',
+			value: props.incentives.emissionsAllTime
+		})
+	}
+
+	if (metrics.length === 0) return null
+
+	if (metrics.length === 1) {
 		return (
-			<details className="group">
-				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				{metrics[0].tooltipContent ? (
 					<Tooltip
-						content="Total incentives distributed by the protocol in the last 24 hours, updated daily at 00:00UTC"
+						content={metrics[0].tooltipContent}
 						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 					>
-						Incentives 24h
+						{metrics[0].name}
 					</Tooltip>
-					<Icon
-						name="chevron-down"
-						height={16}
-						width={16}
-						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-					/>
-					<span className="font-jetbrains ml-auto">{formattedNum(incentivesData.emissions24h, true)}</span>
-				</summary>
-				<div className="flex flex-col mb-3">
-					{incentivesData.emissionsAllTime != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-							<Tooltip
-								content="Total incentives distributed by the protocol since the protocol was launched"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								Cumulative Incentives
-							</Tooltip>
-							<span className="font-jetbrains">{formattedNum(incentivesData.emissionsAllTime, true)}</span>
-						</p>
-					) : null}
-				</div>
-			</details>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
 		)
 	}
 
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				<Tooltip
-					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-				>
-					Incentives (Annualized)
-				</Tooltip>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
 				<Icon
 					name="chevron-down"
 					height={16}
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(incentivesData.emissions30d * 12.2, true)}</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{incentivesData.emissions30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total incentives distributed by the protocol in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Incentives 30d
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(incentivesData.emissions30d, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`fees-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{incentivesData.emissions24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total incentives distributed by the protocol in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Incentives 24h
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(incentivesData.emissions24h, true)}</span>
-					</p>
-				) : null}
-				{incentivesData.emissionsAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total incentives distributed by the protocol since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Cumulative Incentives
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(incentivesData.emissionsAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
@@ -973,93 +995,103 @@ function Earnings(props: IProtocolOverviewPageData) {
 			? revenueAllTime - incentivesData.emissionsAllTime
 			: null
 
-	// newly listed protocol
-	if (earnings30d == null && earnings24h != null) {
+	if (!incentivesData && !revenue) return null
+
+	const metrics = []
+
+	if (earnings30d != null) {
+		metrics.push({
+			name: 'Earnings (Annualized)',
+			tooltipContent:
+				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			value: earnings30d * 12.2
+		})
+
+		metrics.push({
+			name: 'Earnings 30d',
+			tooltipContent:
+				'Total earnings (revenue - incentives) of the protocol in the last 30 days, updated daily at 00:00UTC',
+			value: earnings30d
+		})
+	}
+
+	if (earnings24h != null) {
+		metrics.push({
+			name: 'Earnings 24h',
+			tooltipContent:
+				'Total earnings (revenue - incentives) of the protocol in the last 24 hours, updated daily at 00:00UTC',
+			value: earnings24h
+		})
+	}
+
+	if (earningsAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Earnings',
+			tooltipContent: 'Total earnings (revenue - incentives) of the protocol since the protocol was launched',
+			value: earningsAllTime
+		})
+	}
+
+	if (metrics.length === 0) return null
+
+	if (metrics.length === 1) {
 		return (
-			<details className="group">
-				<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+				{metrics[0].tooltipContent ? (
 					<Tooltip
-						content="Total earnings (revenue - incentives) of the protocol in the last 24 hours, updated daily at 00:00UTC"
+						content={metrics[0].tooltipContent}
 						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 					>
-						Earnings 24h
+						{metrics[0].name}
 					</Tooltip>
-					<Icon
-						name="chevron-down"
-						height={16}
-						width={16}
-						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-					/>
-					<span className="font-jetbrains ml-auto">{formattedNum(earnings24h, true)}</span>
-				</summary>
-				<div className="flex flex-col mb-3">
-					{earningsAllTime != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-							<Tooltip
-								content="Total earnings (revenue - incentives) of the protocol since the protocol was launched"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								Cumulative Earnings
-							</Tooltip>
-							<span className="font-jetbrains">{formattedNum(earningsAllTime, true)}</span>
-						</p>
-					) : null}
-				</div>
-			</details>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
 		)
 	}
 
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				<Tooltip
-					content="This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it"
-					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-				>
-					Earnings (Annualized)
-				</Tooltip>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
 				<Icon
 					name="chevron-down"
 					height={16}
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(earnings30d * 12.2, true)}</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{earnings30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total earnings (revenue - incentives) of the protocol in the last 30 days, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Earnings 30d
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(earnings30d, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`fees-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{earnings24h != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total earnings (revenue - incentives) of the protocol in the last 24 hours, updated daily at 00:00UTC"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Earnings 24h
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(earnings24h, true)}</span>
-					</p>
-				) : null}
-				{earningsAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-						<Tooltip
-							content="Total earnings (revenue - incentives) of the protocol since the protocol was launched"
-							className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						>
-							Cumulative Earnings
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(earningsAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
@@ -1150,15 +1182,52 @@ function Yields(props: IProtocolOverviewPageData) {
 }
 
 function DexVolume(props: IProtocolOverviewPageData) {
-	const dexVolume = props.dexVolume
-	if (!dexVolume) return null
+	if (!props.dexVolume) return null
+
+	const metrics = []
+
+	if (props.dexVolume.total30d != null) {
+		metrics.push({ name: 'DEX Volume 30d', tooltipContent: null, value: props.dexVolume.total30d })
+	}
+	if (props.dexVolume.total24h != null) {
+		metrics.push({ name: 'DEX Volume 24h', tooltipContent: null, value: props.dexVolume.total24h })
+	}
+	if (props.dexVolume.totalAllTime != null) {
+		metrics.push({ name: 'Cumulative DEX Volume', tooltipContent: null, value: props.dexVolume.totalAllTime })
+	}
+
+	if (metrics.length === 0) return null
+
+	if (metrics.length === 1) {
+		return (
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
+		)
+	}
+
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{dexVolume.total30d != null ? (
-					<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume 30d</span>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
 				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume 24h</span>
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
 				)}
 				<Icon
 					name="chevron-down"
@@ -1166,38 +1235,83 @@ function DexVolume(props: IProtocolOverviewPageData) {
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">
-					{formattedNum(dexVolume.total30d ?? dexVolume.total24h ?? 0, true)}
-				</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{dexVolume.total24h != null && dexVolume.total30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume 24h</span>
-						<span className="font-jetbrains">{formattedNum(dexVolume.total24h, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`dexs-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{dexVolume.totalAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative DEX Volume</span>
-						<span className="font-jetbrains">{formattedNum(dexVolume.totalAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
 }
 
 function DexAggregatorVolume(props: IProtocolOverviewPageData) {
-	const dexAggregatorVolume = props.dexAggregatorVolume
-	if (!dexAggregatorVolume) return null
+	if (!props.dexAggregatorVolume) return null
+
+	const metrics = []
+
+	if (props.dexAggregatorVolume.total30d != null) {
+		metrics.push({ name: 'DEX Aggregator Volume 30d', tooltipContent: null, value: props.dexAggregatorVolume.total30d })
+	}
+	if (props.dexAggregatorVolume.total24h != null) {
+		metrics.push({ name: 'DEX Aggregator Volume 24h', tooltipContent: null, value: props.dexAggregatorVolume.total24h })
+	}
+	if (props.dexAggregatorVolume.totalAllTime != null) {
+		metrics.push({
+			name: 'Cumulative DEX Aggregator Volume',
+			tooltipContent: null,
+			value: props.dexAggregatorVolume.totalAllTime
+		})
+	}
+
+	if (metrics.length === 0) return null
+
+	if (metrics.length === 1) {
+		return (
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
+		)
+	}
+
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{dexAggregatorVolume.total30d != null ? (
-					<span className="text-[#545757] dark:text-[#cccccc]">DEX Aggregator Volume 30d</span>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
 				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">DEX Aggregator Volume 24h</span>
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
 				)}
 				<Icon
 					name="chevron-down"
@@ -1205,38 +1319,83 @@ function DexAggregatorVolume(props: IProtocolOverviewPageData) {
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">
-					{formattedNum(dexAggregatorVolume.total30d ?? dexAggregatorVolume.total24h ?? 0, true)}
-				</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{dexAggregatorVolume.total24h != null && dexAggregatorVolume.total30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">DEX Aggregator Volume 24h</span>
-						<span className="font-jetbrains">{formattedNum(dexAggregatorVolume.total24h, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`dex-aggregator-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{dexAggregatorVolume.totalAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative DEX Aggregator Volume</span>
-						<span className="font-jetbrains">{formattedNum(dexAggregatorVolume.totalAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
 }
 
 function PerpVolume(props: IProtocolOverviewPageData) {
-	const perpVolume = props.perpVolume
-	if (!perpVolume) return null
+	if (!props.perpVolume) return null
+
+	const metrics = []
+
+	if (props.perpVolume.total30d != null) {
+		metrics.push({ name: 'Perp Volume 30d', tooltipContent: null, value: props.perpVolume.total30d })
+	}
+	if (props.perpVolume.total24h != null) {
+		metrics.push({ name: 'Perp Volume 24h', tooltipContent: null, value: props.perpVolume.total24h })
+	}
+	if (props.perpVolume.totalAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Perp Volume',
+			tooltipContent: null,
+			value: props.perpVolume.totalAllTime
+		})
+	}
+
+	if (metrics.length === 0) return null
+
+	if (metrics.length === 1) {
+		return (
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
+		)
+	}
+
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{perpVolume.total30d != null ? (
-					<span className="text-[#545757] dark:text-[#cccccc]">Perp Volume 30d</span>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
 				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">Perp Volume 24h</span>
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
 				)}
 				<Icon
 					name="chevron-down"
@@ -1244,38 +1403,89 @@ function PerpVolume(props: IProtocolOverviewPageData) {
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">
-					{formattedNum(perpVolume.total30d ?? perpVolume.total24h ?? 0, true)}
-				</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{perpVolume.total24h != null && perpVolume.total30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Perp Volume 24h</span>
-						<span className="font-jetbrains">{formattedNum(perpVolume.total24h, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`dex-aggregator-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{perpVolume.totalAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Perp Volume</span>
-						<span className="font-jetbrains">{formattedNum(perpVolume.totalAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
 }
 
 function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
-	const perpAggregatorVolume = props.perpAggregatorVolume
-	if (!perpAggregatorVolume) return null
+	if (!props.perpAggregatorVolume) return null
+
+	const metrics = []
+
+	if (props.perpAggregatorVolume.total30d != null) {
+		metrics.push({
+			name: 'Perp Aggregator Volume 30d',
+			tooltipContent: null,
+			value: props.perpAggregatorVolume.total30d
+		})
+	}
+	if (props.perpAggregatorVolume.total24h != null) {
+		metrics.push({
+			name: 'Perp Aggregator Volume 24h',
+			tooltipContent: null,
+			value: props.perpAggregatorVolume.total24h
+		})
+	}
+	if (props.perpAggregatorVolume.totalAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Perp Aggregator Volume',
+			tooltipContent: null,
+			value: props.perpAggregatorVolume.totalAllTime
+		})
+	}
+
+	if (metrics.length === 1) {
+		return (
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
+		)
+	}
+
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{perpAggregatorVolume.total30d != null ? (
-					<span className="text-[#545757] dark:text-[#cccccc]">Perp Aggregator Volume 30d</span>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
 				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">Perp Aggregator Volume 24h</span>
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
 				)}
 				<Icon
 					name="chevron-down"
@@ -1283,38 +1493,89 @@ function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">
-					{formattedNum(perpAggregatorVolume.total30d ?? perpAggregatorVolume.total24h ?? 0, true)}
-				</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{perpAggregatorVolume.total24h != null && perpAggregatorVolume.total30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Perp Aggregator Volume 24h</span>
-						<span className="font-jetbrains">{formattedNum(perpAggregatorVolume.total24h, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`dex-aggregator-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{perpAggregatorVolume.totalAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Perp Aggregator Volume</span>
-						<span className="font-jetbrains">{formattedNum(perpAggregatorVolume.totalAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
 }
 
 function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
-	const bridgeAggregatorVolume = props.bridgeAggregatorVolume
-	if (!bridgeAggregatorVolume) return null
+	if (!props.bridgeAggregatorVolume) return null
+
+	const metrics = []
+
+	if (props.bridgeAggregatorVolume.total30d != null) {
+		metrics.push({
+			name: 'Bridge Aggregator Volume 30d',
+			tooltipContent: null,
+			value: props.bridgeAggregatorVolume.total30d
+		})
+	}
+	if (props.bridgeAggregatorVolume.total24h != null) {
+		metrics.push({
+			name: 'Bridge Aggregator Volume 24h',
+			tooltipContent: null,
+			value: props.bridgeAggregatorVolume.total24h
+		})
+	}
+	if (props.bridgeAggregatorVolume.totalAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Bridge Aggregator Volume',
+			tooltipContent: null,
+			value: props.bridgeAggregatorVolume.totalAllTime
+		})
+	}
+
+	if (metrics.length === 1) {
+		return (
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
+		)
+	}
+
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{bridgeAggregatorVolume.total30d != null ? (
-					<span className="text-[#545757] dark:text-[#cccccc]">Bridge Aggregator Volume 30d</span>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
 				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">Bridge Aggregator Volume 24h</span>
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
 				)}
 				<Icon
 					name="chevron-down"
@@ -1322,38 +1583,89 @@ function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">
-					{formattedNum(bridgeAggregatorVolume.total30d ?? bridgeAggregatorVolume.total24h ?? 0, true)}
-				</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{bridgeAggregatorVolume.total24h != null && bridgeAggregatorVolume.total30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Bridge Aggregator Volume 24h</span>
-						<span className="font-jetbrains">{formattedNum(bridgeAggregatorVolume.total24h, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`dex-aggregator-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{bridgeAggregatorVolume.totalAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Bridge Aggregator Volume</span>
-						<span className="font-jetbrains">{formattedNum(bridgeAggregatorVolume.totalAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
 }
 
 function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
-	const optionsPremiumVolume = props.optionsPremiumVolume
-	if (!optionsPremiumVolume) return null
+	if (!props.optionsPremiumVolume) return null
+
+	const metrics = []
+
+	if (props.optionsPremiumVolume.total30d != null) {
+		metrics.push({
+			name: 'Options Premium Volume 30d',
+			tooltipContent: null,
+			value: props.optionsPremiumVolume.total30d
+		})
+	}
+	if (props.optionsPremiumVolume.total24h != null) {
+		metrics.push({
+			name: 'Options Premium Volume 24h',
+			tooltipContent: null,
+			value: props.optionsPremiumVolume.total24h
+		})
+	}
+	if (props.optionsPremiumVolume.totalAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Options Premium Volume',
+			tooltipContent: null,
+			value: props.optionsPremiumVolume.totalAllTime
+		})
+	}
+
+	if (metrics.length === 1) {
+		return (
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
+		)
+	}
+
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{optionsPremiumVolume.total30d != null ? (
-					<span className="text-[#545757] dark:text-[#cccccc]">Options Premium Volume 30d</span>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
 				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">Options Premium Volume 24h</span>
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
 				)}
 				<Icon
 					name="chevron-down"
@@ -1361,37 +1673,89 @@ function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">
-					{formattedNum(optionsPremiumVolume.total30d ?? optionsPremiumVolume.total24h ?? 0, true)}
-				</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{optionsPremiumVolume.total24h != null && optionsPremiumVolume.total30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Options Premium Volume 24h</span>
-						<span className="font-jetbrains">{formattedNum(optionsPremiumVolume.total24h, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`dex-aggregator-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{optionsPremiumVolume.totalAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Options Premium Volume</span>
-						<span className="font-jetbrains">{formattedNum(optionsPremiumVolume.totalAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)
 }
+
 function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
-	const optionsNotionalVolume = props.optionsNotionalVolume
-	if (!optionsNotionalVolume) return null
+	if (!props.optionsNotionalVolume) return null
+
+	const metrics = []
+
+	if (props.optionsNotionalVolume.total30d != null) {
+		metrics.push({
+			name: 'Options Notional Volume 30d',
+			tooltipContent: null,
+			value: props.optionsNotionalVolume.total30d
+		})
+	}
+	if (props.optionsNotionalVolume.total24h != null) {
+		metrics.push({
+			name: 'Options Notional Volume 24h',
+			tooltipContent: null,
+			value: props.optionsNotionalVolume.total24h
+		})
+	}
+	if (props.optionsNotionalVolume.totalAllTime != null) {
+		metrics.push({
+			name: 'Cumulative Options Notional Volume',
+			tooltipContent: null,
+			value: props.optionsNotionalVolume.totalAllTime
+		})
+	}
+
+	if (metrics.length === 1) {
+		return (
+			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
+				)}
+				<span className="font-jetbrains">{formattedNum(metrics[0].value, true)}</span>
+			</p>
+		)
+	}
+
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-				{optionsNotionalVolume.total30d != null ? (
-					<span className="text-[#545757] dark:text-[#cccccc]">Options Notional Volume 30d</span>
+				{metrics[0].tooltipContent ? (
+					<Tooltip
+						content={metrics[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{metrics[0].name}
+					</Tooltip>
 				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">Options Notional Volume 24h</span>
+					<span className="text-[#545757] dark:text-[#cccccc]">{metrics[0].name}</span>
 				)}
 				<Icon
 					name="chevron-down"
@@ -1399,23 +1763,27 @@ function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
-				<span className="font-jetbrains ml-auto">
-					{formattedNum(optionsNotionalVolume.total30d ?? optionsNotionalVolume.total24h ?? 0, true)}
-				</span>
+				<span className="font-jetbrains ml-auto">{formattedNum(metrics[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				{optionsNotionalVolume.total24h != null && optionsNotionalVolume.total30d != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Options Notional Volume 24h</span>
-						<span className="font-jetbrains">{formattedNum(optionsNotionalVolume.total24h, true)}</span>
+				{metrics.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`dex-aggregator-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
 					</p>
-				) : null}
-				{optionsNotionalVolume.totalAllTime != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Cumulative Options Notional Volume</span>
-						<span className="font-jetbrains">{formattedNum(optionsNotionalVolume.totalAllTime, true)}</span>
-					</p>
-				) : null}
+				))}
 			</div>
 		</details>
 	)

@@ -540,8 +540,6 @@ export const getProtocolOverviewPageData = async ({
 			: []
 	])
 
-	const cards: CardType[] = []
-
 	const feesData = formatAdapterData({
 		data: feesProtocols,
 		isParentProtocol: protocolData.isParentProtocol,
@@ -649,46 +647,6 @@ export const getProtocolOverviewPageData = async ({
 		otherProtocols: protocolData.otherProtocols
 	})
 
-	if (feesData || bribesData || tokenTaxData) {
-		cards.push('fees')
-	}
-
-	if (revenueData || bribesData || tokenTaxData) {
-		cards.push('revenue')
-	}
-
-	if (holdersRevenueData || bribesData || tokenTaxData) {
-		cards.push('holdersRevenue')
-	}
-
-	if (dexVolumeData) {
-		cards.push('dexVolume')
-	}
-
-	if (dexAggregatorVolumeData) {
-		cards.push('dexAggregatorVolume')
-	}
-
-	if (perpVolumeData) {
-		cards.push('perpVolume')
-	}
-
-	if (perpAggregatorVolumeData) {
-		cards.push('perpAggregatorVolume')
-	}
-
-	if (bridgeAggregatorVolumeData) {
-		cards.push('bridgeAggregatorVolume')
-	}
-
-	if (optionsPremiumVolumeData) {
-		cards.push('optionsPremiumVolume')
-	}
-
-	if (optionsNotionalVolumeData) {
-		cards.push('optionsNotionalVolume')
-	}
-
 	const otherProtocols = protocolData.otherProtocols?.map((p) => slug(p)) ?? []
 	const projectYields = yieldsData?.data?.filter(
 		({ project }) =>
@@ -702,9 +660,6 @@ export const getProtocolOverviewPageData = async ({
 					averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
 			  }
 			: null
-	if (yields) {
-		cards.push('yields')
-	}
 
 	const tokenPools =
 		yieldsData?.data && yieldsConfig ? liquidityInfo?.find((p) => p.id === protocolData.id)?.tokenPools ?? [] : []
@@ -722,30 +677,6 @@ export const getProtocolOverviewPageData = async ({
 				.flat()
 				.sort((a, b) => b[2] - a[2]) as Array<[string, string, number]>)
 		: ([] as Array<[string, string, number]>)
-
-	// if (true) {
-	// 	cards.push('governance')
-	// }
-
-	// if (true) {
-	// 	cards.push('unlocks')
-	// }
-
-	if (incentives) {
-		cards.push('incentives')
-	}
-
-	if (revenueData && incentives) {
-		cards.push('earnings')
-	}
-
-	if (protocolData.devMetrics) {
-		cards.push('devActivity')
-	}
-
-	if (users) {
-		cards.push('users')
-	}
 
 	const raises =
 		protocolData.raises
@@ -837,7 +768,6 @@ export const getProtocolOverviewPageData = async ({
 		tokenCGData: protocolData.tokenCGData ?? null,
 		audits:
 			+protocolData.audits > 0 ? { total: +protocolData.audits, auditLinks: protocolData.audit_links ?? [] } : null,
-		cards,
 		isCEX: false,
 		hasKeyMetrics
 	}
