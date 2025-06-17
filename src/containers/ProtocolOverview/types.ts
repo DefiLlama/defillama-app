@@ -101,7 +101,6 @@ interface IAdapterOverview {
 	total24h: number | null
 	total30d: number | null
 	totalAllTime: number | null
-	methodologyURLs?: Record<string, string>
 	methodology?: string | null
 	methodologyURL?: string | null
 	childMethodologies?: Array<[string, string | null, string | null]>
@@ -227,26 +226,6 @@ export interface IProtocolPageStyles {
 	'--btn-hover-bg': string
 	'--btn-text': string
 }
-
-export type CardType =
-	| 'treasury'
-	| 'fees'
-	| 'revenue'
-	| 'holdersRevenue'
-	| 'incentives'
-	| 'earnings'
-	| 'dexVolume'
-	| 'dexAggregatorVolume'
-	| 'perpVolume'
-	| 'perpAggregatorVolume'
-	| 'bridgeAggregatorVolume'
-	| 'optionsPremiumVolume'
-	| 'optionsNotionalVolume'
-	| 'unlocks'
-	| 'governance'
-	| 'yields'
-	| 'devActivity'
-	| 'users'
 
 interface ICredit {
 	by: string

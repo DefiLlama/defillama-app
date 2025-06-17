@@ -19,7 +19,6 @@ import {
 	IProtocolPageMetrics,
 	IProtocolPageStyles,
 	IUpdatedProtocol,
-	CardType,
 	IArticlesResponse,
 	IArticle,
 	IProtocolExpenses

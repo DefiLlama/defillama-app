@@ -1,6 +1,6 @@
 import { SEO } from '~/components/SEO'
 import { ProtocolOverviewLayout } from './Layout'
-import { CardType, IProtocolOverviewPageData } from './types'
+import { IProtocolOverviewPageData } from './types'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -118,7 +118,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						formatPrice={formatPrice}
 						tvlByChain={tvlByChain}
 					/>
-					<KeyMetricsAndProtocolInfo {...props} formatPrice={formatPrice} />
+					<KeyMetrics {...props} formatPrice={formatPrice} />
 				</div>
 				<div className="grid grid-cols-2 gap-2 col-span-1 xl:col-[2_/_-1]">
 					<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2">
@@ -146,9 +146,10 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						<div className="min-h-[360px]"></div>
 					</div>
 					<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:hidden">
-						<KeyMetricsAndProtocolInfo {...props} formatPrice={formatPrice} />
+						<KeyMetrics {...props} formatPrice={formatPrice} />
 					</div>
 				</div>
+				<AdditionalInfo {...props} />
 			</div>
 		</ProtocolOverviewLayout>
 	)
@@ -230,163 +231,56 @@ const ProtocolTVL = ({
 		</details>
 	)
 }
-const KeyMetricsAndProtocolInfo = (
+const KeyMetrics = (
 	props: IProtocolOverviewPageData & { formatPrice: (value: number | string | null) => string | number | null }
 ) => {
+	if (!props.hasKeyMetrics) return null
+
 	return (
-		<>
-			{props.hasKeyMetrics ? (
-				<div className="flex flex-col gap-2">
-					<h2 className="font-semibold">Key Metrics</h2>
-					<div className="flex flex-col">
-						<Fees {...props} />
-						<Revenue {...props} />
-						<HoldersRevenue {...props} />
-						<Incentives {...props} />
-						<Earnings {...props} />
-						<DexVolume {...props} />
-						<DexAggregatorVolume {...props} />
-						<PerpVolume {...props} />
-						<PerpAggregatorVolume {...props} />
-						<BridgeAggregatorVolume {...props} />
-						<OptionsPremiumVolume {...props} />
-						<OptionsNotionalVolume {...props} />
-						<TokenCGData {...props} />
-						{props.currentTvlByChain?.staking != null ? (
-							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
-								{props.tokenCGData?.marketCap?.current ? (
-									<span className="flex items-center gap-1">
-										<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
-										<span className="text-xs text-[#545757] dark:text-[#cccccc]">
-											({formattedNum((props.currentTvlByChain.staking / props.tokenCGData.marketCap.current) * 100)}% of
-											mcap)
-										</span>
-									</span>
-								) : (
-									<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
-								)}
-							</p>
-						) : null}
-						{props.currentTvlByChain?.borrowed != null ? (
-							<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">Borrowed</span>
-								<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.borrowed, true)}</span>
-							</p>
-						) : null}
-						<TokenLiquidity {...props} />
-						<Treasury {...props} />
-						<Raises {...props} />
-						<Expenses {...props} />
-					</div>
-				</div>
-			) : null}
-			<div className="flex flex-col gap-2">
-				<h2 className="font-semibold">Protocol Information</h2>
-				{props.description ? <p>{props.description}</p> : null}
-				{props.category ? (
-					<p className="flex items-center gap-1">
-						<span>Category:</span>
-						<BasicLink href={`/protocols/${slug(props.category)}`} className="hover:underline">
-							{props.category}
-						</BasicLink>
-					</p>
-				) : null}
-				{props.audits ? (
-					<p className="flex items-center gap-1">
-						<span>Audits:</span>
-						<Menu
-							name="Yes"
-							options={props.audits.auditLinks}
-							isExternal
-							className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-						/>
-					</p>
-				) : null}
-				<div className="flex flex-wrap gap-2">
-					{props.website ? (
-						<a
-							href={props.website}
-							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							<Icon name="earth" className="w-3 h-3" />
-							<span>Website</span>
-						</a>
-					) : null}
-					{props.github?.length
-						? props.github.map((github) => (
-								<a
-									href={`https://github.com/${github}`}
-									className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-									target="_blank"
-									rel="noopener noreferrer"
-									key={`${props.name}-github-${github}`}
-								>
-									<Icon name="github" className="w-3 h-3" />
-									<span>{props.github.length === 1 ? 'GitHub' : github}</span>
-								</a>
-						  ))
-						: null}
-					{props.twitter ? (
-						<a
-							href={`https://twitter.com/${props.twitter}`}
-							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							<Icon name="twitter" className="w-3 h-3" />
-							<span>Twitter</span>
-						</a>
-					) : null}
-				</div>
-			</div>
-			<div className="flex flex-col gap-2">
-				<h2 className="font-semibold">Methodology</h2>
-				{props.methodologyURL ? (
-					<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
-						<span className="font-medium">TVL:</span> <span>{props.methodology ?? ''}</span>
-						{props.methodologyURL ? (
-							<span className="inline-block relative left-1 top-[2px]">
-								<Icon name="external-link" className="w-[14px] h-[14px]" />
-								<span className="sr-only">View code on GitHub</span>
+		<div className="flex flex-col gap-2">
+			<h2 className="font-semibold">Key Metrics</h2>
+			<div className="flex flex-col">
+				<Fees {...props} />
+				<Revenue {...props} />
+				<HoldersRevenue {...props} />
+				<Incentives {...props} />
+				<Earnings {...props} />
+				<DexVolume {...props} />
+				<DexAggregatorVolume {...props} />
+				<PerpVolume {...props} />
+				<PerpAggregatorVolume {...props} />
+				<BridgeAggregatorVolume {...props} />
+				<OptionsPremiumVolume {...props} />
+				<OptionsNotionalVolume {...props} />
+				<TokenCGData {...props} />
+				{props.currentTvlByChain?.staking != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
+						{props.tokenCGData?.marketCap?.current ? (
+							<span className="flex items-center gap-1">
+								<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
+								<span className="text-xs text-[#545757] dark:text-[#cccccc]">
+									({formattedNum((props.currentTvlByChain.staking / props.tokenCGData.marketCap.current) * 100)}% of
+									mcap)
+								</span>
 							</span>
-						) : null}
-					</a>
-				) : props.methodology ? (
-					<p>
-						<span className="font-medium">TVL:</span> <span>{props.methodology ?? ''}</span>
+						) : (
+							<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
+						)}
 					</p>
 				) : null}
-				<MethodologyByAdapter adapter={props.fees} title="Fees" />
-				<MethodologyByAdapter adapter={props.revenue} title="Revenue" />
-				<MethodologyByAdapter adapter={props.holdersRevenue} title="Holders Revenue" />
-				<MethodologyByAdapter adapter={props.bribeRevenue} title="Bribe Revenue" />
-				<MethodologyByAdapter adapter={props.tokenTax} title="Token Tax" />
-				<MethodologyByAdapter adapter={props.dexVolume} title="DEX Volume" />
-				<MethodologyByAdapter adapter={props.dexAggregatorVolume} title="DEX Aggregator Volume" />
-				<MethodologyByAdapter adapter={props.perpVolume} title="Perp Volume" />
-				<MethodologyByAdapter adapter={props.perpAggregatorVolume} title="Perp Aggregator Volume" />
-				<MethodologyByAdapter adapter={props.bridgeAggregatorVolume} title="Bridge Aggregator Volume" />
-				<MethodologyByAdapter adapter={props.optionsPremiumVolume} title="Options Premium Volume" />
-				<MethodologyByAdapter adapter={props.optionsNotionalVolume} title="Options Notional Volume" />
-				{props.incentives?.methodology ? (
-					<>
-						<p>
-							<span className="font-medium">Incentives:</span> <span>{props.incentives.methodology}</span>
-						</p>
-						{props.revenue ? (
-							<p>
-								<span className="font-medium">Earnings:</span>{' '}
-								<span>Revenue of the protocol minus the incentives distributed to users</span>
-							</p>
-						) : null}
-					</>
+				{props.currentTvlByChain?.borrowed != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Borrowed</span>
+						<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.borrowed, true)}</span>
+					</p>
 				) : null}
+				<TokenLiquidity {...props} />
+				<Treasury {...props} />
+				<Raises {...props} />
+				<Expenses {...props} />
 			</div>
-			<Articles {...props} />
-		</>
+		</div>
 	)
 }
 
@@ -394,7 +288,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	if (!props.articles?.length) return null
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-2">
+		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 col-span-1">
 			<div className="flex items-center justify-between">
 				<h3 className="font-semibold">Latest from DL News</h3>
 				<a href="https://www.dlnews.com">
@@ -429,69 +323,6 @@ const Articles = (props: IProtocolOverviewPageData) => {
 				</a>
 			))}
 		</div>
-	)
-}
-const MethodologyByAdapter = ({
-	adapter,
-	title
-}: {
-	adapter: IProtocolOverviewPageData['fees'] | null
-	title: string
-}) => {
-	if (adapter?.childMethodologies?.length) {
-		return (
-			<p>
-				<span className="font-medium">{title}:</span>
-				<br />
-				<span className="flex flex-col gap-1">
-					{adapter.childMethodologies.map((child) =>
-						child[2] ? (
-							<a
-								key={`${title}-${child[0]}-${child[1] ?? ''}-${child[2] ?? ''}`}
-								href={child[2]}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="hover:underline"
-							>
-								<span>{child[0]}:</span> <span>{child[1]}</span>
-								{child[2] ? (
-									<span className="inline-block relative left-1 top-[2px]">
-										<Icon name="external-link" className="w-[14px] h-[14px]" />
-										<span className="sr-only">View code on GitHub</span>
-									</span>
-								) : null}
-							</a>
-						) : (
-							<span key={`${title}-${child[0]}-${child[1] ?? ''}`}>
-								{child[0]}: {child[1]}
-							</span>
-						)
-					)}
-				</span>
-			</p>
-		)
-	}
-
-	return (
-		<>
-			{adapter?.methodology ? (
-				adapter?.methodologyURL ? (
-					<a href={adapter.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
-						<span className="font-medium">{title}:</span> <span>{adapter.methodology}</span>
-						{adapter.methodologyURL ? (
-							<span className="inline-block relative left-1 top-[2px]">
-								<Icon name="external-link" className="w-[14px] h-[14px]" />
-								<span className="sr-only">View code on GitHub</span>
-							</span>
-						) : null}
-					</a>
-				) : (
-					<p>
-						<span className="font-medium">{title}:</span> <span>{adapter.methodology}</span>
-					</p>
-				)
-			) : null}
-		</>
 	)
 }
 
@@ -551,7 +382,7 @@ function Fees(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function Revenue(props: IProtocolOverviewPageData) {
@@ -611,7 +442,7 @@ function Revenue(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 function HoldersRevenue(props: IProtocolOverviewPageData) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
@@ -676,7 +507,7 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function Incentives(props: IProtocolOverviewPageData) {
@@ -715,7 +546,7 @@ function Incentives(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function Earnings(props: IProtocolOverviewPageData) {
@@ -784,91 +615,7 @@ function Earnings(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
-}
-
-function Unlocks(props: IProtocolOverviewPageData) {
-	const unlocks = props.unlocks
-	if (!unlocks) return null
-	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Unlocks</h2>
-			<div className="flex flex-col">
-				{unlocks.recent ? (
-					<div className="flex flex-col gap-1">
-						<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last unlock event</h3>
-						<p className="flex items-center justify-between gap-4">
-							<span className="bg-[var(--app-bg)] rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
-								{unlocks.recent.timestamp}
-							</span>
-							<span className="font-jetbrains">{formattedNum(unlocks.recent.amount)}</span>
-						</p>
-					</div>
-				) : null}
-				{unlocks.upcoming ? (
-					<div className="flex flex-col gap-1">
-						<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Upcoming unlock event</h3>
-						<p className="flex items-center justify-between gap-4">
-							<span className="bg-[var(--app-bg)] rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
-								{unlocks.upcoming.timestamp}
-							</span>
-							<span className="font-jetbrains">{formattedNum(unlocks.upcoming.amount)}</span>
-						</p>
-					</div>
-				) : null}
-			</div>
-		</div>
-	)
-}
-
-function Governance(props: IProtocolOverviewPageData) {
-	const governance = props.governance
-	if (!governance) return null
-	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Governance</h2>
-			<div className="flex flex-col gap-1">
-				<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last proposal</h3>
-				<p className="flex items-center justify-between gap-4">
-					<span>{governance.lastProposal.title}</span>
-					<span
-						className={`bg-[var(--app-bg)] rounded-md text-xs px-2 py-1 border border-[#e6e6e6] dark:border-[#222324] text-[var(--pct-green)] ${
-							governance.lastProposal.status === 'Passed' ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
-						}`}
-					>
-						{governance.lastProposal.status}
-					</span>
-				</p>
-			</div>
-		</div>
-	)
-}
-
-function Yields(props: IProtocolOverviewPageData) {
-	const yields = props.yields
-	if (!yields) return null
-	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Yields</h2>
-			<div>
-				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-					<span className="text-[#545757] dark:text-[#cccccc]">Pools Tracked</span>
-					<span className="font-jetbrains">{yields.noOfPoolsTracked}</span>
-				</p>
-				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-					<span className="text-[#545757] dark:text-[#cccccc]">Average APY</span>
-					<span className="font-jetbrains">{formattedNum(yields.averageAPY, false)}%</span>
-				</p>
-			</div>
-			<BasicLink
-				href="/yields"
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
-			>
-				<span>View all Yields</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
-			</BasicLink>
-		</div>
-	)
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function DexVolume(props: IProtocolOverviewPageData) {
@@ -886,7 +633,7 @@ function DexVolume(props: IProtocolOverviewPageData) {
 		metrics.push({ name: 'Cumulative DEX Volume', tooltipContent: null, value: props.dexVolume.totalAllTime })
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function DexAggregatorVolume(props: IProtocolOverviewPageData) {
@@ -908,7 +655,7 @@ function DexAggregatorVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function PerpVolume(props: IProtocolOverviewPageData) {
@@ -930,7 +677,7 @@ function PerpVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
@@ -960,7 +707,7 @@ function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
@@ -990,7 +737,7 @@ function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
@@ -1020,7 +767,7 @@ function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
@@ -1050,58 +797,7 @@ function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} />
-}
-
-function DevActivity(props: IProtocolOverviewPageData) {
-	const devActivity = props.devMetrics
-	if (!devActivity) return null
-	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<div>
-				<h2 className="font-semibold">Development Activity</h2>
-				{devActivity.updatedAt != null ? (
-					<p className="text-xs text-[#545757] dark:text-[#cccccc]">
-						Updated at {dayjs(devActivity.updatedAt).format('MMM D, YYYY')}
-					</p>
-				) : null}
-			</div>
-			<div className="flex flex-col">
-				{devActivity.weeklyCommits != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Weekly commits</span>
-						<span className="font-jetbrains">{devActivity.weeklyCommits}</span>
-					</p>
-				) : null}
-				{devActivity.monthlyCommits != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Monthly commits</span>
-						<span className="font-jetbrains">{devActivity.monthlyCommits}</span>
-					</p>
-				) : null}
-				{devActivity.weeklyDevelopers != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Weekly developers</span>
-						<span className="font-jetbrains">{devActivity.weeklyDevelopers}</span>
-					</p>
-				) : null}
-				{devActivity.monthlyDevelopers != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Monthly developers</span>
-						<span className="font-jetbrains">{devActivity.monthlyDevelopers}</span>
-					</p>
-				) : null}
-				{devActivity.lastCommit != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Last commit</span>
-						<span className="font-jetbrains">{`${dayjs(devActivity.lastCommit).format('DD/MM/YY')} (${dayjs(
-							devActivity.lastCommit
-						).fromNow()})`}</span>
-					</p>
-				) : null}
-			</div>
-		</div>
-	)
+	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
 }
 
 function Users(props: IProtocolOverviewPageData) {
@@ -1429,83 +1125,24 @@ const TokenCGData = (props: IProtocolOverviewPageData) => {
 	)
 }
 
-interface MasonryLayoutProps {
-	cards: CardType[]
-	props: IProtocolOverviewPageData
-}
-
-const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
-	const containerRef = useRef<HTMLDivElement>(null)
-	const [columns, setColumns] = useState<CardType[][]>([])
-	const [numColumns, setNumColumns] = useState(1)
-
-	useEffect(() => {
-		const calculateColumns = () => {
-			if (!containerRef.current) return
-
-			const containerWidth = containerRef.current.offsetWidth
-			const cardWidth = 360 // Approximate card width
-			const gap = 8
-
-			// Calculate how many columns can fit
-			const calculatedColumns = Math.max(1, Math.floor((containerWidth + gap) / (cardWidth + gap)))
-			setNumColumns(calculatedColumns)
-		}
-
-		calculateColumns()
-		window.addEventListener('resize', calculateColumns)
-		return () => window.removeEventListener('resize', calculateColumns)
-	}, [])
-
-	useEffect(() => {
-		// Distribute cards into columns (left to right)
-		const newColumns: CardType[][] = Array.from({ length: numColumns }, () => [])
-
-		cards.forEach((card, index) => {
-			const columnIndex = index % numColumns
-			newColumns[columnIndex].push(card)
-		})
-
-		setColumns(newColumns)
-	}, [cards, numColumns])
-
-	const renderCard = (card: CardType) => {
-		switch (card) {
-			case 'yields':
-				return <Yields {...props} />
-			case 'devActivity':
-				return <DevActivity {...props} />
-			case 'users':
-				return <Users {...props} />
-			default:
-				return null
-		}
-	}
-
-	return (
-		<div ref={containerRef} className="flex gap-2">
-			{columns.map((column, columnIndex) => (
-				<div key={columnIndex} className="flex flex-col gap-2 flex-1">
-					{column.map((card, cardIndex) => (
-						<div key={`${columnIndex}-${cardIndex}-${card}`}>{renderCard(card)}</div>
-					))}
-				</div>
-			))}
-		</div>
-	)
-}
-
-// TODO flag
 const SmolStats = ({
-	data
+	data,
+	protocolName,
+	category
 }: {
-	data: Array<{ name: string; tooltipContent?: string | null; value: string | number }>
+	data: Array<{
+		name: string
+		tooltipContent?: string | null
+		value: string | number
+	}>
+	protocolName: string
+	category: string
 }) => {
 	if (data.length === 0) return null
 
 	if (data.length === 1) {
 		return (
-			<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+			<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 				{data[0].tooltipContent ? (
 					<Tooltip
 						content={data[0].tooltipContent}
@@ -1516,7 +1153,13 @@ const SmolStats = ({
 				) : (
 					<span className="text-[#545757] dark:text-[#cccccc]">{data[0].name}</span>
 				)}
-				<span className="font-jetbrains">{formattedNum(data[0].value, true)}</span>
+				<Flag
+					protocol={protocolName}
+					dataType={data[0].name}
+					isLending={category === 'Lending'}
+					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(data[0].value, true)}</span>
 			</p>
 		)
 	}
@@ -1540,12 +1183,18 @@ const SmolStats = ({
 					width={16}
 					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
 				/>
+				<Flag
+					protocol={protocolName}
+					dataType={data[0].name}
+					isLending={category === 'Lending'}
+					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+				/>
 				<span className="font-jetbrains ml-auto">{formattedNum(data[0].value, true)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
 				{data.slice(1).map((metric) => (
 					<p
-						className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						className="flex flex-wrap justify-stat gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
 						key={`dex-aggregator-${metric.name}`}
 					>
 						{metric.tooltipContent ? (
@@ -1558,11 +1207,367 @@ const SmolStats = ({
 						) : (
 							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
 						)}
-						<span className="font-jetbrains">{formattedNum(metric.value, true)}</span>
+						<Flag
+							protocol={protocolName}
+							dataType={metric.name}
+							isLending={category === 'Lending'}
+							className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+						/>
+						<span className="font-jetbrains ml-auto">{formattedNum(metric.value, true)}</span>
 					</p>
 				))}
 			</div>
 		</details>
+	)
+}
+
+const AdditionalInfo = (props: IProtocolOverviewPageData) => {
+	const cardsToStackOnLeft =
+		(props.fees?.childMethodologies?.length ? 1 : 0) +
+		(props.revenue?.childMethodologies?.length ? 1 : 0) +
+		(props.holdersRevenue?.childMethodologies?.length ? 1 : 0)
+
+	if (cardsToStackOnLeft === 3) {
+		// example pancakeswap has lots of child methodologies, so we stack them on the left
+		return (
+			<div className="col-span-full grid grid-cols-1 xl:grid-cols-2 gap-2">
+				<div className="flex flex-col gap-2 col-span-1">
+					<ProtocolInfo {...props} />
+					<Articles {...props} />
+					<Yields {...props} />
+					<DevActivity {...props} />
+					<Users {...props} />
+				</div>
+				<Methodology {...props} />
+				{/* <Unlocks {...props} />
+		<Governance {...props} /> */}
+			</div>
+		)
+	}
+
+	return (
+		<div className="col-span-full grid grid-cols-1 xl:grid-cols-2 gap-2">
+			<ProtocolInfo {...props} />
+			<Articles {...props} />
+			<Methodology {...props} />
+			<Yields {...props} />
+			{/* <Unlocks {...props} />
+			<Governance {...props} /> */}
+			<DevActivity {...props} />
+			<Users {...props} />
+		</div>
+	)
+}
+
+const ProtocolInfo = (props: IProtocolOverviewPageData) => {
+	return (
+		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
+			<h2 className="font-semibold">Protocol Information</h2>
+			{props.description ? <p>{props.description}</p> : null}
+			{props.category ? (
+				<p className="flex items-center gap-1">
+					<span>Category:</span>
+					<BasicLink href={`/protocols/${slug(props.category)}`} className="hover:underline">
+						{props.category}
+					</BasicLink>
+				</p>
+			) : null}
+			{props.audits ? (
+				<p className="flex items-center gap-1">
+					<span>Audits:</span>
+					<Menu
+						name="Yes"
+						options={props.audits.auditLinks}
+						isExternal
+						className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+					/>
+				</p>
+			) : null}
+			<div className="flex flex-wrap gap-2">
+				{props.website ? (
+					<a
+						href={props.website}
+						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<Icon name="earth" className="w-3 h-3" />
+						<span>Website</span>
+					</a>
+				) : null}
+				{props.github?.length
+					? props.github.map((github) => (
+							<a
+								href={`https://github.com/${github}`}
+								className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								target="_blank"
+								rel="noopener noreferrer"
+								key={`${props.name}-github-${github}`}
+							>
+								<Icon name="github" className="w-3 h-3" />
+								<span>{props.github.length === 1 ? 'GitHub' : github}</span>
+							</a>
+					  ))
+					: null}
+				{props.twitter ? (
+					<a
+						href={`https://twitter.com/${props.twitter}`}
+						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<Icon name="twitter" className="w-3 h-3" />
+						<span>Twitter</span>
+					</a>
+				) : null}
+			</div>
+		</div>
+	)
+}
+const Methodology = (props: IProtocolOverviewPageData) => {
+	return (
+		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
+			<h2 className="font-semibold">Methodology</h2>
+			{props.methodologyURL ? (
+				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
+					<span className="font-medium">TVL:</span> <span>{props.methodology ?? ''}</span>
+					{props.methodologyURL ? (
+						<span className="inline-block relative left-1 top-[2px]">
+							<Icon name="external-link" className="w-[14px] h-[14px]" />
+							<span className="sr-only">View code on GitHub</span>
+						</span>
+					) : null}
+				</a>
+			) : props.methodology ? (
+				<p>
+					<span className="font-medium">TVL:</span> <span>{props.methodology ?? ''}</span>
+				</p>
+			) : null}
+			<MethodologyByAdapter adapter={props.fees} title="Fees" />
+			<MethodologyByAdapter adapter={props.revenue} title="Revenue" />
+			<MethodologyByAdapter adapter={props.holdersRevenue} title="Holders Revenue" />
+			<MethodologyByAdapter adapter={props.bribeRevenue} title="Bribe Revenue" />
+			<MethodologyByAdapter adapter={props.tokenTax} title="Token Tax" />
+			<MethodologyByAdapter adapter={props.dexVolume} title="DEX Volume" />
+			<MethodologyByAdapter adapter={props.dexAggregatorVolume} title="DEX Aggregator Volume" />
+			<MethodologyByAdapter adapter={props.perpVolume} title="Perp Volume" />
+			<MethodologyByAdapter adapter={props.perpAggregatorVolume} title="Perp Aggregator Volume" />
+			<MethodologyByAdapter adapter={props.bridgeAggregatorVolume} title="Bridge Aggregator Volume" />
+			<MethodologyByAdapter adapter={props.optionsPremiumVolume} title="Options Premium Volume" />
+			<MethodologyByAdapter adapter={props.optionsNotionalVolume} title="Options Notional Volume" />
+			{props.incentives?.methodology ? (
+				<>
+					<p>
+						<span className="font-medium">Incentives:</span> <span>{props.incentives.methodology}</span>
+					</p>
+					{props.revenue ? (
+						<p>
+							<span className="font-medium">Earnings:</span>{' '}
+							<span>Revenue of the protocol minus the incentives distributed to users</span>
+						</p>
+					) : null}
+				</>
+			) : null}
+		</div>
+	)
+}
+
+const MethodologyByAdapter = ({
+	adapter,
+	title
+}: {
+	adapter: IProtocolOverviewPageData['fees'] | null
+	title: string
+}) => {
+	if (adapter?.childMethodologies?.length) {
+		return (
+			<p>
+				<span className="font-medium">{title}:</span>
+				<br />
+				<span className="flex flex-col gap-1">
+					{adapter.childMethodologies.map((child) =>
+						child[2] ? (
+							<a
+								key={`${title}-${child[0]}-${child[1] ?? ''}-${child[2] ?? ''}`}
+								href={child[2]}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="hover:underline"
+							>
+								<span>{child[0]}:</span> <span>{child[1]}</span>
+								{child[2] ? (
+									<span className="inline-block relative left-1 top-[2px]">
+										<Icon name="external-link" className="w-[14px] h-[14px]" />
+										<span className="sr-only">View code on GitHub</span>
+									</span>
+								) : null}
+							</a>
+						) : (
+							<span key={`${title}-${child[0]}-${child[1] ?? ''}`}>
+								{child[0]}: {child[1]}
+							</span>
+						)
+					)}
+				</span>
+			</p>
+		)
+	}
+
+	return (
+		<>
+			{adapter?.methodology ? (
+				adapter?.methodologyURL ? (
+					<a href={adapter.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
+						<span className="font-medium">{title}:</span> <span>{adapter.methodology}</span>
+						{adapter.methodologyURL ? (
+							<span className="inline-block relative left-1 top-[2px]">
+								<Icon name="external-link" className="w-[14px] h-[14px]" />
+								<span className="sr-only">View code on GitHub</span>
+							</span>
+						) : null}
+					</a>
+				) : (
+					<p>
+						<span className="font-medium">{title}:</span> <span>{adapter.methodology}</span>
+					</p>
+				)
+			) : null}
+		</>
+	)
+}
+
+function Unlocks(props: IProtocolOverviewPageData) {
+	const unlocks = props.unlocks
+	if (!unlocks) return null
+	return (
+		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+			<h2 className="font-semibold">Unlocks</h2>
+			<div className="flex flex-col">
+				{unlocks.recent ? (
+					<div className="flex flex-col gap-1">
+						<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last unlock event</h3>
+						<p className="flex items-center justify-between gap-4">
+							<span className="bg-[var(--app-bg)] rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
+								{unlocks.recent.timestamp}
+							</span>
+							<span className="font-jetbrains">{formattedNum(unlocks.recent.amount)}</span>
+						</p>
+					</div>
+				) : null}
+				{unlocks.upcoming ? (
+					<div className="flex flex-col gap-1">
+						<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Upcoming unlock event</h3>
+						<p className="flex items-center justify-between gap-4">
+							<span className="bg-[var(--app-bg)] rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
+								{unlocks.upcoming.timestamp}
+							</span>
+							<span className="font-jetbrains">{formattedNum(unlocks.upcoming.amount)}</span>
+						</p>
+					</div>
+				) : null}
+			</div>
+		</div>
+	)
+}
+
+function Governance(props: IProtocolOverviewPageData) {
+	const governance = props.governance
+	if (!governance) return null
+	return (
+		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+			<h2 className="font-semibold">Governance</h2>
+			<div className="flex flex-col gap-1">
+				<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last proposal</h3>
+				<p className="flex items-center justify-between gap-4">
+					<span>{governance.lastProposal.title}</span>
+					<span
+						className={`bg-[var(--app-bg)] rounded-md text-xs px-2 py-1 border border-[#e6e6e6] dark:border-[#222324] text-[var(--pct-green)] ${
+							governance.lastProposal.status === 'Passed' ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+						}`}
+					>
+						{governance.lastProposal.status}
+					</span>
+				</p>
+			</div>
+		</div>
+	)
+}
+
+function Yields(props: IProtocolOverviewPageData) {
+	const yields = props.yields
+	if (!yields) return null
+	return (
+		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+			<h2 className="font-semibold">Yields</h2>
+			<div>
+				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<span className="text-[#545757] dark:text-[#cccccc]">Pools Tracked</span>
+					<span className="font-jetbrains">{yields.noOfPoolsTracked}</span>
+				</p>
+				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<span className="text-[#545757] dark:text-[#cccccc]">Average APY</span>
+					<span className="font-jetbrains">{formattedNum(yields.averageAPY, false)}%</span>
+				</p>
+			</div>
+			<BasicLink
+				href="/yields"
+				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
+			>
+				<span>View all Yields</span>
+				<Icon name="arrow-right" className="w-4 h-4" />
+			</BasicLink>
+		</div>
+	)
+}
+
+function DevActivity(props: IProtocolOverviewPageData) {
+	const devActivity = props.devMetrics
+	if (!devActivity) return null
+	return (
+		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+			<div>
+				<h2 className="font-semibold">Development Activity</h2>
+				{devActivity.updatedAt != null ? (
+					<p className="text-xs text-[#545757] dark:text-[#cccccc]">
+						Updated at {dayjs(devActivity.updatedAt).format('MMM D, YYYY')}
+					</p>
+				) : null}
+			</div>
+			<div className="flex flex-col">
+				{devActivity.weeklyCommits != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Weekly commits</span>
+						<span className="font-jetbrains">{devActivity.weeklyCommits}</span>
+					</p>
+				) : null}
+				{devActivity.monthlyCommits != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Monthly commits</span>
+						<span className="font-jetbrains">{devActivity.monthlyCommits}</span>
+					</p>
+				) : null}
+				{devActivity.weeklyDevelopers != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Weekly developers</span>
+						<span className="font-jetbrains">{devActivity.weeklyDevelopers}</span>
+					</p>
+				) : null}
+				{devActivity.monthlyDevelopers != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Monthly developers</span>
+						<span className="font-jetbrains">{devActivity.monthlyDevelopers}</span>
+					</p>
+				) : null}
+				{devActivity.lastCommit != null ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">Last commit</span>
+						<span className="font-jetbrains">{`${dayjs(devActivity.lastCommit).format('DD/MM/YY')} (${dayjs(
+							devActivity.lastCommit
+						).fromNow()})`}</span>
+					</p>
+				) : null}
+			</div>
+		</div>
 	)
 }
 
