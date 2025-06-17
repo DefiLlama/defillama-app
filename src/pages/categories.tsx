@@ -403,12 +403,18 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 						</button>
 					) : null}
 					<span className="flex-shrink-0">{index + 1}</span>{' '}
-					<BasicLink
-						href={`/protocols/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string}
-					</BasicLink>
+					{row.depth > 0 ? (
+						<span className="text-sm font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+							{getValue() as string}
+						</span>
+					) : (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
+							{getValue() as string}
+						</BasicLink>
+					)}
 				</span>
 			)
 		},
