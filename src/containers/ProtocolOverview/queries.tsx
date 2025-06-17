@@ -5,9 +5,11 @@ import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
 	DEV_METRICS_API,
+	HACKS_API,
 	HOURLY_PROTOCOL_API,
 	LIQUIDITY_API,
 	PROTOCOL_API,
+	PROTOCOLS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
 	YIELD_CONFIG_API,
@@ -21,7 +23,8 @@ import {
 	IUpdatedProtocol,
 	IArticlesResponse,
 	IArticle,
-	IProtocolExpenses
+	IProtocolExpenses,
+	IHack
 } from './types'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 import { cg_volume_cexs } from '~/pages/cexs'
@@ -248,7 +251,9 @@ export const getProtocolOverviewPageData = async ({
 		users,
 		expenses,
 		yieldsConfig,
-		liquidityInfo
+		liquidityInfo,
+		liteProtocolsData,
+		hacksData
 	]: [
 		IUpdatedProtocol & {
 			tokenCGData?: {
@@ -304,7 +309,9 @@ export const getProtocolOverviewPageData = async ({
 		} | null,
 		IProtocolExpenses,
 		any,
-		any
+		any,
+		any,
+		Array<IHack>
 	] = await Promise.all([
 		getProtocol(metadata.name).then(async (data) => {
 			try {
@@ -536,7 +543,13 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => {
 						return []
 					})
-			: []
+			: [],
+		fetchWithErrorLogging(PROTOCOLS_API)
+			.then((res) => res.json())
+			.catch(() => ({ protocols: [] })),
+		fetchWithErrorLogging(HACKS_API)
+			.then((res) => res.json())
+			.catch(() => ({ hacks: [] }))
 	])
 
 	const feesData = formatAdapterData({
@@ -694,6 +707,46 @@ export const getProtocolOverviewPageData = async ({
 			? true
 			: false
 
+	const similarProtocols =
+		liteProtocolsData && protocolData.category
+			? liteProtocolsData.protocols
+					.filter((p) => {
+						if (p.category) {
+							return (
+								p.category.toLowerCase() === protocolData.category.toLowerCase() &&
+								p.name.toLowerCase() !== protocolData.name?.toLowerCase() &&
+								p.chains.some((c) => protocolData.chains.includes(c))
+							)
+						} else return false
+					})
+					.map((p) => {
+						let commonChains = 0
+
+						protocolData?.chains?.forEach((chain) => {
+							if (p.chains.includes(chain)) {
+								commonChains += 1
+							}
+						})
+
+						return { name: p.name, tvl: p.tvl, commonChains }
+					})
+					.sort((a, b) => b.tvl - a.tvl)
+			: []
+
+	const similarProtocolsSet = new Set<string>()
+
+	const protocolsWithCommonChains = [...similarProtocols].sort((a, b) => b.commonChains - a.commonChains).slice(0, 5)
+
+	// first 5 are the protocols that are on same chain + same category
+	protocolsWithCommonChains.forEach((p) => similarProtocolsSet.add(p.name))
+
+	// last 5 are the protocols in same category
+	similarProtocols.forEach((p) => {
+		if (similarProtocolsSet.size < 10) {
+			similarProtocolsSet.add(p.name)
+		}
+	})
+
 	return {
 		name: protocolData.name,
 		category: protocolData.category ?? null,
@@ -766,9 +819,22 @@ export const getProtocolOverviewPageData = async ({
 				: null,
 		tokenCGData: protocolData.tokenCGData ?? null,
 		audits:
-			+protocolData.audits > 0 ? { total: +protocolData.audits, auditLinks: protocolData.audit_links ?? [] } : null,
+			+protocolData.audits > 0
+				? {
+						total: +protocolData.audits,
+						auditLinks: protocolData.audit_links ?? [],
+						note: protocolData.audit_note ?? null
+				  }
+				: null,
 		isCEX: false,
-		hasKeyMetrics
+		hasKeyMetrics,
+		similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
+			similarProtocols.find((p) => p.name === protocolName)
+		),
+		hacks:
+			(protocolData.id
+				? hacksData?.filter((hack) => +hack.defillamaId === +protocolData.id)?.sort((a, b) => a.date - b.date)
+				: null) ?? null
 	}
 }
 

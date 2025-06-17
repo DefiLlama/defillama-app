@@ -67,7 +67,7 @@ export function Flag({
 					<Icon name="flag" height={14} width={14} />
 				</Tooltip>
 			) : (
-				<button className="text-left mt-auto pt-6 underline" onClick={dialogStore.toggle}>
+				<button className="text-left mt-auto pt-4 underline" onClick={dialogStore.toggle}>
 					Report incorrect data
 				</button>
 			)}

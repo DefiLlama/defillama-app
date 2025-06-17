@@ -214,9 +214,27 @@ export interface IProtocolOverviewPageData {
 	audits: {
 		total: number
 		auditLinks: Array<string>
+		note: string | null
 	} | null
 	isCEX?: boolean
 	hasKeyMetrics?: boolean
+	similarProtocols?: Array<{ name: string; tvl: number }>
+	hacks: Array<IHack>
+}
+
+export interface IHack {
+	date: number
+	name: string
+	classification: string
+	technique: string
+	amount: number
+	chain: Array<string>
+	bridgeHack: boolean
+	targetType: string
+	source: string
+	returnedFunds: number | null
+	defillamaId: number
+	language: string | null
 }
 
 export interface IProtocolPageStyles {
