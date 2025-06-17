@@ -15,7 +15,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 	const isYieldApp = useYieldApp()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
+	const isAccountLoading = loaders?.userLoading || (isAuthenticated && isSubscriptionLoading)
 
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 

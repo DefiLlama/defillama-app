@@ -193,6 +193,30 @@ export function useModalActions(
 						datasetType: 'cex',
 						chains: []
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'revenue') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'revenue',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'holders-revenue') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'holders-revenue',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'earnings') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'earnings',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
@@ -222,6 +246,12 @@ export function useModalActions(
 					handleAddTable([], 'dataset', 'cex')
 				} else if (state.selectedTableType === 'stablecoins' && state.selectedDatasetChain) {
 					handleAddTable([state.selectedDatasetChain], 'dataset', 'stablecoins', state.selectedDatasetChain)
+				} else if (state.selectedTableType === 'revenue') {
+					handleAddTable(state.selectedChains, 'dataset', 'revenue')
+				} else if (state.selectedTableType === 'holders-revenue') {
+					handleAddTable(state.selectedChains, 'dataset', 'holders-revenue')
+				} else if (state.selectedTableType === 'earnings') {
+					handleAddTable(state.selectedChains, 'dataset', 'earnings')
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())

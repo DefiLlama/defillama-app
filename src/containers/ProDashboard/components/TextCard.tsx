@@ -11,13 +11,11 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 		<div className="p-4 h-full flex flex-col">
 			{text.title && (
 				<div className="mb-3 flex-shrink-0 pr-28">
-					<h2 className="text-lg font-semibold pro-text1">
-						{text.title}
-					</h2>
+					<h2 className="text-lg font-semibold pro-text1">{text.title}</h2>
 				</div>
 			)}
 
-			<div className="overflow-y-auto thin-scrollbar" style={{ height: '300px', flexGrow: 1 }}>
+			<div className="overflow-y-auto thin-scrollbar h-[300px] flex-1">
 				<div className="prose prose-invert prose-sm max-w-none pro-text1">
 					<ReactMarkdown
 						components={{
@@ -29,14 +27,10 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 							ol: ({ children }) => <ol className="list-decimal list-inside mb-2 pro-text2">{children}</ol>,
 							li: ({ children }) => <li className="mb-1">{children}</li>,
 							code: ({ children }) => (
-								<code className="bg-[var(--bg3)] px-1 py-0.5 rounded text-xs font-mono pro-text1">
-									{children}
-								</code>
+								<code className="bg-[var(--bg3)] px-1 py-0.5 rounded text-xs font-mono pro-text1">{children}</code>
 							),
 							pre: ({ children }) => (
-								<pre className="bg-[var(--bg3)] p-3 rounded mb-2 overflow-x-auto thin-scrollbar">
-									{children}
-								</pre>
+								<pre className="bg-[var(--bg3)] p-3 rounded mb-2 overflow-x-auto thin-scrollbar">{children}</pre>
 							),
 							blockquote: ({ children }) => (
 								<blockquote className="border-l-4 border-[var(--primary1)] pl-4 italic pro-text3 mb-2">
@@ -44,7 +38,12 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 								</blockquote>
 							),
 							a: ({ children, href }) => (
-								<a href={href} className="text-[var(--primary1)] hover:underline" target="_blank" rel="noopener noreferrer">
+								<a
+									href={href}
+									className="text-[var(--primary1)] hover:underline"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
 									{children}
 								</a>
 							),

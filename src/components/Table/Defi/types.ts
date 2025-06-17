@@ -7,17 +7,6 @@ export interface IForksRow {
 	ftot: number
 }
 
-export interface ICategoryRow {
-	name: string
-	protocols: number
-	tvl: number
-	description: string
-	change_1d: number
-	change_7d: number
-	change_1m: number
-	revenue: number
-}
-
 export interface IChain {
 	name: string
 	protocols: number

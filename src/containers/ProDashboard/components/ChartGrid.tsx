@@ -5,7 +5,7 @@ import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { ChartCard } from './ChartCard'
 import { TextCard } from './TextCard'
 import { ProtocolsByChainTable } from './ProTable'
-import { StablecoinsDataset, CexDataset } from './datasets'
+import { StablecoinsDataset, CexDataset, RevenueDataset, HoldersRevenueDataset, EarningsDataset } from './datasets'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
@@ -60,7 +60,17 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 									) : item.kind === 'text' ? (
 										<TextCard key={`${item.id}-${item.colSpan}`} text={item} />
 									) : item.kind === 'table' && item.tableType === 'dataset' ? (
-										<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
+										item.datasetType === 'cex' ? (
+											<CexDataset key={`${item.id}-${item.colSpan}`} />
+										) : item.datasetType === 'revenue' ? (
+											<RevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
+										) : item.datasetType === 'holders-revenue' ? (
+											<HoldersRevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
+										) : item.datasetType === 'earnings' ? (
+											<EarningsDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
+										) : (
+											<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
+										)
 									) : (
 										<ProtocolsByChainTable
 											key={`${item.id}-${item.colSpan}`}
@@ -87,7 +97,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						{chartsWithData.map((item) => (
 							<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
-									<div className="pro-glass h-full relative">
+									<div className={`pro-glass h-full relative ${item.kind === 'table' ? 'pt-6' : ''} overflow-hidden`}>
 										<div className="absolute top-1 right-1 z-20 flex gap-1">
 											<button
 												className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
@@ -129,6 +139,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											) : item.kind === 'table' && item.tableType === 'dataset' ? (
 												item.datasetType === 'cex' ? (
 													<CexDataset key={`${item.id}-${item.colSpan}`} />
+												) : item.datasetType === 'revenue' ? (
+													<RevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
+												) : item.datasetType === 'holders-revenue' ? (
+													<HoldersRevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
+												) : item.datasetType === 'earnings' ? (
+													<EarningsDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
 												) : (
 													<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
 												)

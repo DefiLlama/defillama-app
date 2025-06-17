@@ -1,84 +1,201 @@
 import dynamic from 'next/dynamic'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getRevenuesByCategories } from '~/api/categories/adaptors'
-import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
-import type { IChartProps } from '~/components/ECharts/types'
+import type { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { BasicLink } from '~/components/Link'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { categoriesColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
+import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import Layout from '~/layout'
-import { getPercentChange } from '~/utils'
+import { formattedNum, formattedPercent, getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
+import { ColumnDef } from '@tanstack/react-table'
+import { Icon } from '~/components/Icon'
+import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
+import { fetchWithErrorLogging } from '~/utils/async'
+import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { protocolsAndChainsOptions } from '~/components/Filters/options'
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
+	ssr: false,
+	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
+}) as React.FC<ILineAndBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('categories', async () => {
-	const protocols = await getProtocolsRaw()
-	const aggregatedRevenuesByCat = await getRevenuesByCategories()
-	const chartAndColorsData = await getCategoriesPageData()
+	const [{ protocols }, revenueData, { chart, categories: protocolsByCategory }] = await Promise.all([
+		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
+		getAdapterChainOverview({
+			adapterType: 'fees',
+			chain: 'All',
+			dataType: 'dailyRevenue',
+			excludeTotalDataChart: true,
+			excludeTotalDataChartBreakdown: true
+		}),
+		fetchWithErrorLogging(CATEGORY_API).then((r) => r.json())
+	])
 
-	let categories = {}
+	const categories = {}
+	const tagsByCategory = {}
+	const revenueByProtocol = {}
+	revenueData.protocols.forEach((p) => {
+		revenueByProtocol[p.defillamaId] = p.total24h || 0
+	})
 
-	protocols.protocols.forEach((p) => {
+	protocols.forEach((p) => {
 		const cat = p.category
+
+		const tvl = p.tvl ?? 0
+		const tvlPrevDay = p.tvlPrevDay ?? 0
+		const tvlPrevWeek = p.tvlPrevWeek ?? 0
+		const tvlPrevMonth = p.tvlPrevMonth ?? 0
+
+		const extraTvls = {}
+
+		for (const extra of DEFI_SETTINGS_KEYS) {
+			if (!['doublecounted', 'liquidstaking'].includes(extra) && p.chainTvls[extra]) {
+				extraTvls[extra] = p.chainTvls[extra]
+			}
+		}
+
 		if (!categories[cat]) {
-			categories[cat] = { protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
+			categories[cat] = {
+				name: cat,
+				protocols: 0,
+				tvl: 0,
+				tvlPrevDay: 0,
+				tvlPrevWeek: 0,
+				tvlPrevMonth: 0,
+				revenue: 0,
+				extraTvls: Object.fromEntries(
+					DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+				)
+			}
 		}
-		categories[cat].protocols++
-		categories[cat].tvl += p.tvl
-		categories[cat].tvlPrevDay += p.tvlPrevDay ?? 0
-		categories[cat].tvlPrevWeek += p.tvlPrevWeek ?? 0
-		categories[cat].tvlPrevMonth += p.tvlPrevMonth ?? 0
-	})
 
-	Object.entries(aggregatedRevenuesByCat).forEach(([category, revenue]) => {
-		if (!categories[category]) {
-			categories[category] = { protocols: 0, tvl: 0, revenue: 0 }
-		}
-		categories[category].revenue = revenue
-	})
+		if (p.tags) {
+			if (!tagsByCategory[cat]) {
+				tagsByCategory[cat] = []
+			}
 
-	const allCategories = new Set([...Object.keys(categories), ...Object.keys(aggregatedRevenuesByCat)])
-
-	allCategories.forEach((cat) => {
-		if (!categories[cat]) {
-			categories[cat] = { protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
-		}
-	})
-
-	const formattedCategories = Object.entries(categories)
-		.filter((c) => c[0] !== 'Chain')
-		.map(
-			([name, details]: [
-				string,
-				{
-					tvl: number
-					tvlPrevDay: number
-					tvlPrevWeek: number
-					tvlPrevMonth: number
-					revenue: number
-					protocols: number
+			p.tags.forEach((t) => {
+				if (!tagsByCategory[cat][t]) {
+					tagsByCategory[cat][t] = {
+						name: t,
+						protocols: 0,
+						tvl: 0,
+						tvlPrevDay: 0,
+						tvlPrevWeek: 0,
+						tvlPrevMonth: 0,
+						revenue: 0,
+						extraTvls: Object.fromEntries(
+							DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+						)
+					}
 				}
-			]) => ({
-				name,
-				protocols: details.protocols > 0 ? details.protocols : '',
-				tvl: details.tvl,
-				change_1d: getPercentChange(details.tvl, details.tvlPrevDay),
-				change_7d: getPercentChange(details.tvl, details.tvlPrevWeek),
-				change_1m: getPercentChange(details.tvl, details.tvlPrevMonth),
-				revenue: details.revenue,
-				description: descriptions[name] || ''
+				tagsByCategory[cat][t].protocols++
+				tagsByCategory[cat][t].tvl += tvl
+				tagsByCategory[cat][t].tvlPrevDay += tvlPrevDay
+				tagsByCategory[cat][t].tvlPrevWeek += tvlPrevWeek
+				tagsByCategory[cat][t].tvlPrevMonth += tvlPrevMonth
+				tagsByCategory[cat][t].revenue += revenueByProtocol[p.defillamaId] ?? 0
+
+				for (const extra in extraTvls) {
+					tagsByCategory[cat][t].extraTvls[extra].tvl += extraTvls[extra].tvl
+					tagsByCategory[cat][t].extraTvls[extra].tvlPrevDay += extraTvls[extra].tvlPrevDay
+					tagsByCategory[cat][t].extraTvls[extra].tvlPrevWeek += extraTvls[extra].tvlPrevWeek
+					tagsByCategory[cat][t].extraTvls[extra].tvlPrevMonth += extraTvls[extra].tvlPrevMonth
+				}
 			})
-		)
+		}
+
+		categories[cat].protocols++
+		categories[cat].tvl += tvl
+		categories[cat].tvlPrevDay += tvlPrevDay
+		categories[cat].tvlPrevWeek += tvlPrevWeek
+		categories[cat].tvlPrevMonth += tvlPrevMonth
+		categories[cat].revenue += revenueByProtocol[p.defillamaId] ?? 0
+
+		for (const extra in extraTvls) {
+			categories[cat].extraTvls[extra].tvl += extraTvls[extra].tvl
+			categories[cat].extraTvls[extra].tvlPrevDay += extraTvls[extra].tvlPrevDay
+			categories[cat].extraTvls[extra].tvlPrevWeek += extraTvls[extra].tvlPrevWeek
+			categories[cat].extraTvls[extra].tvlPrevMonth += extraTvls[extra].tvlPrevMonth
+		}
+	})
+
+	for (const cat in protocolsByCategory) {
+		if (!categories[cat]) {
+			categories[cat] = { name: cat, protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
+		}
+	}
+
+	const finalCategories = []
+
+	for (const cat in protocolsByCategory) {
+		const subRows = []
+		for (const tag in tagsByCategory[cat]) {
+			subRows.push({
+				...tagsByCategory[cat][tag],
+				change_1d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevDay),
+				change_7d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevWeek),
+				change_1m: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevMonth),
+				description: descriptions[tag] || ''
+			})
+		}
+		finalCategories.push({
+			...categories[cat],
+			change_1d: getPercentChange(categories[cat].tvl, categories[cat].tvlPrevDay),
+			change_7d: getPercentChange(categories[cat].tvl, categories[cat].tvlPrevWeek),
+			change_1m: getPercentChange(categories[cat].tvl, categories[cat].tvlPrevMonth),
+			description: descriptions[cat] || '',
+			...(subRows.length > 0 ? { subRows } : {})
+		})
+	}
+
+	const chartData = {}
+	const extraTvlCharts = {}
+	const totalCategories = Object.keys(protocolsByCategory).length
+	const allColors = getNDistinctColors(totalCategories + 1)
+	const categoryColors = Object.fromEntries(Object.keys(protocolsByCategory).map((_, i) => [_, allColors[i]]))
+
+	for (const date in chart) {
+		for (const cat in protocolsByCategory) {
+			if (!chartData[cat]) {
+				chartData[cat] = {
+					name: cat,
+					data: [],
+					type: 'line',
+					stack: cat,
+					color: categoryColors[cat]
+				}
+			}
+			chartData[cat].data.push([+date * 1e3, chart[date]?.[cat]?.tvl ?? null])
+			for (const extra of DEFI_SETTINGS_KEYS) {
+				if (['doublecounted', 'liquidstaking'].includes(extra)) {
+					continue
+				}
+
+				if (!extraTvlCharts[cat]) {
+					extraTvlCharts[cat] = {}
+				}
+				if (!extraTvlCharts[cat][extra]) {
+					extraTvlCharts[cat][extra] = {}
+				}
+				if (!extraTvlCharts[cat][extra][+date * 1e3]) {
+					extraTvlCharts[cat][extra][+date * 1e3] = 0
+				}
+				extraTvlCharts[cat][extra][+date * 1e3] += chart[date]?.[cat]?.[extra] ?? 0
+			}
+		}
+	}
 
 	return {
 		props: {
-			categories: formattedCategories.sort((a, b) => b.tvl - a.tvl),
-			...chartAndColorsData
+			categories: Object.keys(protocolsByCategory),
+			tableData: finalCategories.sort((a, b) => b.tvl - a.tvl),
+			chartData,
+			extraTvlCharts
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -191,26 +308,150 @@ export const descriptions = {
 	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights'
 }
 
-export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
-	const { chainsWithExtraTvlsByDay: categoriesWithExtraTvlsByDay } = useCalcGroupExtraTvlsByDay(chartData)
+const tvlOptions = protocolsAndChainsOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
+
+export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
+	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
+	const clearAll = () => {
+		setSelectedCategories([])
+	}
+	const toggleAll = () => {
+		setSelectedCategories(categories)
+	}
+	const selectOnlyOne = (category: string) => {
+		setSelectedCategories([category])
+	}
+	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+
+	const charts = React.useMemo(() => {
+		if (!Object.values(extaTvlsEnabled).some((e) => e === true)) {
+			if (selectedCategories.length === categories.length) {
+				return chartData
+			}
+
+			const charts = {}
+			for (const cat in chartData) {
+				if (selectedCategories.includes(cat)) {
+					charts[cat] = chartData[cat]
+				}
+			}
+
+			return charts
+		}
+
+		const enabledTvls = Object.entries(extaTvlsEnabled)
+			.filter((e) => e[1] === true)
+			.map((e) => e[0])
+
+		const charts = {}
+
+		for (const cat in chartData) {
+			if (selectedCategories.includes(cat)) {
+				const data = chartData[cat].data.map(([date, val], index) => {
+					const extraTvls = enabledTvls.map((e) => extraTvlCharts?.[cat]?.[e]?.[date] ?? 0)
+					return [date, val + extraTvls.reduce((a, b) => a + b, 0)]
+				})
+
+				charts[cat] = {
+					...chartData[cat],
+					data
+				}
+			}
+		}
+
+		return charts
+	}, [chartData, selectedCategories, categories, extraTvlCharts, extaTvlsEnabled])
+
+	const finalCategoriesList = React.useMemo(() => {
+		const enabledTvls = Object.entries(extaTvlsEnabled)
+			.filter((e) => e[1] === true)
+			.map((e) => e[0])
+
+		if (enabledTvls.length === 0) {
+			return tableData
+		}
+
+		const finalList = []
+
+		for (const cat of tableData) {
+			const subRows = []
+			for (const subRow of cat.subRows ?? []) {
+				let tvl = subRow.tvl
+				let tvlPrevDay = subRow.tvlPrevDay
+				let tvlPrevWeek = subRow.tvlPrevWeek
+				let tvlPrevMonth = subRow.tvlPrevMonth
+
+				for (const extra of enabledTvls) {
+					if (subRow.extraTvls[extra]) {
+						tvl += subRow.extraTvls[extra].tvl
+						tvlPrevDay += subRow.extraTvls[extra].tvlPrevDay
+						tvlPrevWeek += subRow.extraTvls[extra].tvlPrevWeek
+						tvlPrevMonth += subRow.extraTvls[extra].tvlPrevMonth
+					}
+				}
+
+				subRows.push({
+					...subRow,
+					tvl,
+					tvlPrevDay,
+					tvlPrevWeek,
+					tvlPrevMonth,
+					change_1d: getPercentChange(tvl, tvlPrevDay),
+					change_7d: getPercentChange(tvl, tvlPrevWeek),
+					change_1m: getPercentChange(tvl, tvlPrevMonth)
+				})
+			}
+
+			let tvl = cat.tvl
+			let tvlPrevDay = cat.tvlPrevDay
+			let tvlPrevWeek = cat.tvlPrevWeek
+			let tvlPrevMonth = cat.tvlPrevMonth
+
+			for (const extra of enabledTvls) {
+				if (cat.extraTvls[extra]) {
+					tvl += cat.extraTvls[extra].tvl
+					tvlPrevDay += cat.extraTvls[extra].tvlPrevDay
+					tvlPrevWeek += cat.extraTvls[extra].tvlPrevWeek
+					tvlPrevMonth += cat.extraTvls[extra].tvlPrevMonth
+				}
+			}
+
+			finalList.push({
+				...cat,
+				tvl,
+				tvlPrevDay,
+				tvlPrevWeek,
+				tvlPrevMonth,
+				change_1d: getPercentChange(tvl, tvlPrevDay),
+				change_7d: getPercentChange(tvl, tvlPrevWeek),
+				change_1m: getPercentChange(tvl, tvlPrevMonth),
+				...(subRows.length > 0 ? { subRows } : {})
+			})
+		}
+
+		return finalList
+	}, [tableData, extaTvlsEnabled])
 
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
-			<div className="bg-[var(--cards-bg)] min-h-[412px] rounded-md relative isolate">
-				<h1 className="text-xl font-semibold absolute top-0 left-0 z-10 p-3">Categories</h1>
+			<ProtocolsChainsSearch options={tvlOptions} />
+			<div className="bg-[var(--cards-bg)] rounded-md">
+				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
+					<h1 className="text-xl font-semibold mr-auto">Categories</h1>
+					<SelectWithCombobox
+						allValues={categories}
+						selectedValues={selectedCategories}
+						setSelectedValues={setSelectedCategories}
+						label="Categories"
+						clearAll={clearAll}
+						toggleAll={toggleAll}
+						selectOnlyOne={selectOnlyOne}
+						labelType="smol"
+					/>
+				</div>
 				<div className="bg-[var(--cards-bg)] rounded-md relative">
 					<React.Suspense fallback={<></>}>
-						<AreaChart
-							chartData={categoriesWithExtraTvlsByDay}
-							stacks={uniqueCategories}
-							stackColors={categoryColors}
-							hideDefaultLegend
-							valueSymbol="$"
-							title=""
-							customLegendName="Category"
-							customLegendOptions={uniqueCategories}
-						/>
+						<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
 					</React.Suspense>
 				</div>
 			</div>
@@ -221,12 +462,143 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 				}
 			>
 				<TableWithSearch
-					data={categories}
+					data={finalCategoriesList}
 					columns={categoriesColumn}
 					columnToSearch={'name'}
 					placeholder={'Search category...'}
+					defaultSorting={[{ id: 'tvl', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>
 	)
 }
+
+interface ICategoryRow {
+	name: string
+	protocols: number
+	tvl: number
+	description: string
+	change_1d: number
+	change_7d: number
+	change_1m: number
+	revenue: number
+}
+
+const categoriesColumn: ColumnDef<ICategoryRow>[] = [
+	{
+		header: 'Category',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
+					{row.subRows?.length > 0 ? (
+						<button
+							className="absolute -left-1"
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? (
+								<>
+									<Icon name="chevron-down" height={16} width={16} />
+									<span className="sr-only">View child protocols</span>
+								</>
+							) : (
+								<>
+									<Icon name="chevron-right" height={16} width={16} />
+									<span className="sr-only">Hide child protocols</span>
+								</>
+							)}
+						</button>
+					) : null}
+					<span className="flex-shrink-0">{index + 1}</span>{' '}
+					{row.depth > 0 ? (
+						<span className="text-sm font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+							{getValue() as string}
+						</span>
+					) : (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
+							{getValue() as string}
+						</BasicLink>
+					)}
+				</span>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Protocols',
+		accessorKey: 'protocols',
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Combined TVL',
+		accessorKey: 'tvl',
+		accessorFn: (row) => row.tvl ?? undefined,
+		cell: ({ getValue }) => {
+			const value = getValue() as number | null
+			return value != null ? formattedNum(value, true) : null
+		},
+		meta: {
+			align: 'end'
+		},
+		sortUndefined: 'last',
+		size: 135
+	},
+	{
+		header: '1d Change',
+		accessorKey: 'change_1d',
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 110,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Change',
+		accessorKey: 'change_7d',
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 110,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '1m Change',
+		accessorKey: 'change_1m',
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 110,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Combined 24h Revenue',
+		accessorKey: 'revenue',
+		accessorFn: (row) => row.revenue ?? undefined,
+		cell: ({ getValue }) => {
+			const value = getValue() as number | null
+			return value != null ? formattedNum(value, true) : null
+		},
+		meta: {
+			align: 'end'
+		},
+		sortUndefined: 'last',
+		size: 200
+	},
+	{
+		header: 'Description',
+		accessorKey: 'description',
+		enableSorting: false,
+		size: 1600
+	}
+]

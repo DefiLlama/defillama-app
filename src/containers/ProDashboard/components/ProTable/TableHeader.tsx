@@ -28,7 +28,7 @@ export function TableHeader({
 		return `${chains.length} Chains Protocols`
 	}, [chains])
 	return (
-		<div className="flex items-center justify-between flex-wrap gap-2 mb-2 pr-28">
+		<div className="flex items-center justify-between flex-wrap gap-2 mb-2">
 			<h3 className="text-base font-semibold mr-auto">{displayTitle}</h3>
 
 			{colSpan === 2 && (
@@ -37,7 +37,7 @@ export function TableHeader({
 						<button
 							key={preset}
 							onClick={() => applyPreset(preset)}
-							className="flex items-center gap-1 px-3 py-2 text-sm border pro-divider pro-hover-bg pro-text1 capitalize transition-colors pro-bg1"
+							className="flex items-center gap-1 px-3 py-1.5 text-sm border pro-border pro-hover-bg pro-text1 capitalize transition-colors pro-bg1"
 						>
 							{preset}
 						</button>
@@ -45,12 +45,11 @@ export function TableHeader({
 				</div>
 			)}
 
-
 			<ProTableCSVButton onClick={downloadCSV} smol />
 
 			<button
 				onClick={() => setShowColumnPanel(!showColumnPanel)}
-				className="flex items-center gap-2 px-3 py-2 text-sm border pro-divider pro-hover-bg pro-text1 transition-colors pro-bg1"
+				className="flex items-center gap-2 px-3 py-1.5 text-sm border pro-border pro-hover-bg pro-text1 transition-colors pro-bg1"
 			>
 				<Icon name="settings" height={14} width={14} />
 				Customize Table

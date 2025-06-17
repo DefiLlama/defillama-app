@@ -110,16 +110,16 @@ export function BridgesOverviewByChain({
 	}, [chainVolumeData])
 
 	const downloadCsv = () => {
-		const currentBridges = activeTab === 'bridges' ? filteredBridges : messagingProtocols
-		const currentBridgeNames = currentBridges.map((bridge) => bridge.displayName)
+		const allBridges = [...(filteredBridges || []), ...(messagingProtocols || [])]
+		const allBridgeNames = allBridges.map((bridge) => bridge.displayName)
 
-		const filteredBridgeNames = currentBridgeNames.filter((bridgeName) => {
+		const filteredBridgeNames = allBridgeNames.filter((bridgeName) => {
 			const chartDataIndex = bridgeNameToChartDataIndex[bridgeName]
 			const charts = chartDataByBridge[chartDataIndex]
 			return charts && charts.length
 		})
 
-		const fileName = activeTab === 'bridges' ? 'bridge-volumes.csv' : 'messaging-protocols-volumes.csv'
+		const fileName = 'bridge-and-messaging-volumes.csv'
 		const rows = [['Timestamp', 'Date', ...filteredBridgeNames, 'Total']]
 		let stackedDatasetObject = {} as any
 		filteredBridgeNames.map((bridgeName) => {

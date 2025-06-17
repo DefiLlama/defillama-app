@@ -19,6 +19,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { useStablecoinsData } from './useStablecoinsData'
 import { TagGroup } from '~/components/TagGroup'
+import { ProTableCSVButton } from '../../ProTable/CsvButton'
 
 interface StablecoinsDatasetProps {
 	chain: string
@@ -124,6 +125,48 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 			<div className="mb-3">
 				<div className="flex items-center justify-between gap-4">
 					<h3 className="text-lg font-semibold pro-text1">{chain} Stablecoins</h3>
+					<div className="flex items-center gap-2">
+						<ProTableCSVButton
+							onClick={() => {
+								const rows = instance.getFilteredRowModel().rows
+								const csvData = rows.map((row) => row.original)
+								const headers = ['Stablecoin', 'Market Cap', '24h Change', '7d Change', '1m Change', 'Price', 'Chains']
+								const csv = [
+									headers.join(','),
+									...csvData.map((item) =>
+										[
+											item.name,
+											item.mcap,
+											item.change_1d,
+											item.change_7d,
+											item.change_1m,
+											item.price,
+											item.chains?.join(';') || ''
+										].join(',')
+									)
+								].join('\n')
+
+								const blob = new Blob([csv], { type: 'text/csv' })
+								const url = URL.createObjectURL(blob)
+								const a = document.createElement('a')
+								a.href = url
+								a.download = `stablecoins-${chain}-${new Date().toISOString().split('T')[0]}.csv`
+								document.body.appendChild(a)
+								a.click()
+								document.body.removeChild(a)
+								URL.revokeObjectURL(url)
+							}}
+							smol
+						/>
+						<input
+							type="text"
+							placeholder="Search stablecoins..."
+							value={projectName}
+							onChange={(e) => setProjectName(e.target.value)}
+							className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1
+								focus:outline-none focus:ring-1 focus:ring-[var(--primary1)]"
+						/>
+					</div>
 				</div>
 			</div>
 			<TableBody table={instance} />
