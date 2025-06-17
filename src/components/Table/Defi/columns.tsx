@@ -25,7 +25,6 @@ import type {
 	AirdropRow,
 	CategoryPerformanceRow,
 	CoinPerformanceRow,
-	ICategoryRow,
 	IEmission,
 	IETFRow,
 	IForksRow,
@@ -93,99 +92,6 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 	}
 ]
 
-export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
-	{
-		header: 'Category',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>{' '}
-					<BasicLink
-						href={`/protocols/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string}
-					</BasicLink>
-				</span>
-			)
-		},
-		size: 200
-	},
-	{
-		header: 'Protocols',
-		accessorKey: 'protocols',
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Combined TVL',
-		accessorKey: 'tvl',
-		accessorFn: (row) => row.tvl ?? undefined,
-		cell: ({ getValue }) => {
-			const value = getValue() as number | null
-			return value && value > 0 ? <>{'$' + formattedNum(value)}</> : <></>
-		},
-		meta: {
-			align: 'end'
-		},
-		sortUndefined: 'last',
-		size: 135
-	},
-	{
-		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 110,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '7d Change',
-		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 110,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '1m Change',
-		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 110,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Combined 24h Revenue',
-		accessorKey: 'revenue',
-		accessorFn: (row) => row.revenue ?? undefined,
-		cell: ({ getValue }) => {
-			const value = getValue() as number | null
-			return value && value > 0 ? <>{'$' + formattedNum(value)}</> : <></>
-		},
-		meta: {
-			align: 'end'
-		},
-		sortUndefined: 'last',
-		size: 200
-	},
-	{
-		header: 'Description',
-		accessorKey: 'description',
-		enableSorting: false,
-		size: 1600
-	}
-]
-
 const formatRaise = (n) => {
 	if (n >= 1e3) {
 		return `${n / 1e3}b`
@@ -193,7 +99,20 @@ const formatRaise = (n) => {
 	return `${n}m`
 }
 
-export const raisesColumns: ColumnDef<ICategoryRow>[] = [
+interface IRaiseRow {
+	name: string
+	date: string
+	amount: number
+	round: string
+	description: string
+	leadInvestors: string[]
+	otherInvestors: string[]
+	source: string
+	valuation: number
+	chains: string[]
+}
+
+export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -679,7 +598,14 @@ export const activeInvestorsColumns: ColumnDef<{
 	}
 ]
 
-export const hacksColumns: ColumnDef<ICategoryRow>[] = [
+interface IHacksRow {
+	name: string
+	date: string
+	amount: number
+	chains: string[]
+}
+
+export const hacksColumns: ColumnDef<IHacksRow>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
