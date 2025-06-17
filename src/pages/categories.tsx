@@ -44,8 +44,33 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 	protocols.forEach((p) => {
 		const cat = p.category
+
+		const tvl = (p.tvl ?? 0) - (p.chainTvls?.doublecounted?.tvl ?? 0)
+		const tvlPrevDay = (p.tvlPrevDay ?? 0) - (p.chainTvls?.doublecounted?.tvlPrevDay ?? 0)
+		const tvlPrevWeek = (p.tvlPrevWeek ?? 0) - (p.chainTvls?.doublecounted?.tvlPrevWeek ?? 0)
+		const tvlPrevMonth = (p.tvlPrevMonth ?? 0) - (p.chainTvls?.doublecounted?.tvlPrevMonth ?? 0)
+
+		const extraTvls = {}
+
+		for (const extra of DEFI_SETTINGS_KEYS) {
+			if (p.chainTvls[extra]) {
+				extraTvls[extra] = p.chainTvls[extra]
+			}
+		}
+
 		if (!categories[cat]) {
-			categories[cat] = { name: cat, protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
+			categories[cat] = {
+				name: cat,
+				protocols: 0,
+				tvl: 0,
+				tvlPrevDay: 0,
+				tvlPrevWeek: 0,
+				tvlPrevMonth: 0,
+				revenue: 0,
+				extraTvls: Object.fromEntries(
+					DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+				)
+			}
 		}
 
 		if (p.tags) {
@@ -62,24 +87,41 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 						tvlPrevDay: 0,
 						tvlPrevWeek: 0,
 						tvlPrevMonth: 0,
-						revenue: 0
+						revenue: 0,
+						extraTvls: Object.fromEntries(
+							DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+						)
 					}
 				}
 				tagsByCategory[cat][t].protocols++
-				tagsByCategory[cat][t].tvl += p.tvl ?? 0
-				tagsByCategory[cat][t].tvlPrevDay += p.tvlPrevDay ?? 0
-				tagsByCategory[cat][t].tvlPrevWeek += p.tvlPrevWeek ?? 0
-				tagsByCategory[cat][t].tvlPrevMonth += p.tvlPrevMonth ?? 0
+				tagsByCategory[cat][t].tvl += tvl
+				tagsByCategory[cat][t].tvlPrevDay += tvlPrevDay
+				tagsByCategory[cat][t].tvlPrevWeek += tvlPrevWeek
+				tagsByCategory[cat][t].tvlPrevMonth += tvlPrevMonth
 				tagsByCategory[cat][t].revenue += revenueByProtocol[p.defillamaId] ?? 0
+
+				for (const extra in extraTvls) {
+					tagsByCategory[cat][t].extraTvls[extra].tvl += extraTvls[extra].tvl
+					tagsByCategory[cat][t].extraTvls[extra].tvlPrevDay += extraTvls[extra].tvlPrevDay
+					tagsByCategory[cat][t].extraTvls[extra].tvlPrevWeek += extraTvls[extra].tvlPrevWeek
+					tagsByCategory[cat][t].extraTvls[extra].tvlPrevMonth += extraTvls[extra].tvlPrevMonth
+				}
 			})
 		}
 
 		categories[cat].protocols++
-		categories[cat].tvl += p.tvl ?? 0
-		categories[cat].tvlPrevDay += p.tvlPrevDay ?? 0
-		categories[cat].tvlPrevWeek += p.tvlPrevWeek ?? 0
-		categories[cat].tvlPrevMonth += p.tvlPrevMonth ?? 0
+		categories[cat].tvl += tvl
+		categories[cat].tvlPrevDay += tvlPrevDay
+		categories[cat].tvlPrevWeek += tvlPrevWeek
+		categories[cat].tvlPrevMonth += tvlPrevMonth
 		categories[cat].revenue += revenueByProtocol[p.defillamaId] ?? 0
+
+		for (const extra in extraTvls) {
+			categories[cat].extraTvls[extra].tvl += extraTvls[extra].tvl
+			categories[cat].extraTvls[extra].tvlPrevDay += extraTvls[extra].tvlPrevDay
+			categories[cat].extraTvls[extra].tvlPrevWeek += extraTvls[extra].tvlPrevWeek
+			categories[cat].extraTvls[extra].tvlPrevMonth += extraTvls[extra].tvlPrevMonth
+		}
 	})
 
 	for (const cat in protocolsByCategory) {
@@ -90,28 +132,22 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 	const finalCategories = []
 
-	for (const cat in categories) {
+	for (const cat in protocolsByCategory) {
 		const subRows = []
 		for (const tag in tagsByCategory[cat]) {
 			subRows.push({
-				name: tag,
-				protocols: tagsByCategory[cat][tag].protocols,
-				tvl: tagsByCategory[cat][tag].tvl,
+				...tagsByCategory[cat][tag],
 				change_1d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevDay),
 				change_7d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevWeek),
 				change_1m: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevMonth),
-				revenue: tagsByCategory[cat][tag].revenue,
 				description: descriptions[tag] || ''
 			})
 		}
 		finalCategories.push({
-			name: cat,
-			protocols: categories[cat].protocols,
-			tvl: categories[cat].tvl,
+			...categories[cat],
 			change_1d: getPercentChange(categories[cat].tvl, categories[cat].tvlPrevDay),
 			change_7d: getPercentChange(categories[cat].tvl, categories[cat].tvlPrevWeek),
 			change_1m: getPercentChange(categories[cat].tvl, categories[cat].tvlPrevMonth),
-			revenue: categories[cat].revenue,
 			description: descriptions[cat] || '',
 			...(subRows.length > 0 ? { subRows } : {})
 		})
@@ -322,6 +358,76 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		return charts
 	}, [chartData, selectedCategories, categories, extraTvlCharts, extaTvlsEnabled])
 
+	const finalCategoriesList = React.useMemo(() => {
+		const enabledTvls = Object.entries(extaTvlsEnabled)
+			.filter((e) => e[1] === true)
+			.map((e) => e[0])
+
+		if (enabledTvls.length === 0) {
+			return tableData
+		}
+
+		const finalList = []
+
+		for (const cat of tableData) {
+			const subRows = []
+			for (const subRow of cat.subRows ?? []) {
+				let tvl = subRow.tvl
+				let tvlPrevDay = subRow.tvlPrevDay
+				let tvlPrevWeek = subRow.tvlPrevWeek
+				let tvlPrevMonth = subRow.tvlPrevMonth
+
+				for (const extra of enabledTvls) {
+					if (subRow.extraTvls[extra]) {
+						tvl += subRow.extraTvls[extra].tvl
+						tvlPrevDay += subRow.extraTvls[extra].tvlPrevDay
+						tvlPrevWeek += subRow.extraTvls[extra].tvlPrevWeek
+						tvlPrevMonth += subRow.extraTvls[extra].tvlPrevMonth
+					}
+				}
+
+				subRows.push({
+					...subRow,
+					tvl,
+					tvlPrevDay,
+					tvlPrevWeek,
+					tvlPrevMonth,
+					change_1d: getPercentChange(tvl, tvlPrevDay),
+					change_7d: getPercentChange(tvl, tvlPrevWeek),
+					change_1m: getPercentChange(tvl, tvlPrevMonth)
+				})
+			}
+
+			let tvl = cat.tvl
+			let tvlPrevDay = cat.tvlPrevDay
+			let tvlPrevWeek = cat.tvlPrevWeek
+			let tvlPrevMonth = cat.tvlPrevMonth
+
+			for (const extra of enabledTvls) {
+				if (cat.extraTvls[extra]) {
+					tvl += cat.extraTvls[extra].tvl
+					tvlPrevDay += cat.extraTvls[extra].tvlPrevDay
+					tvlPrevWeek += cat.extraTvls[extra].tvlPrevWeek
+					tvlPrevMonth += cat.extraTvls[extra].tvlPrevMonth
+				}
+			}
+
+			finalList.push({
+				...cat,
+				tvl,
+				tvlPrevDay,
+				tvlPrevWeek,
+				tvlPrevMonth,
+				change_1d: getPercentChange(tvl, tvlPrevDay),
+				change_7d: getPercentChange(tvl, tvlPrevWeek),
+				change_1m: getPercentChange(tvl, tvlPrevMonth),
+				...(subRows.length > 0 ? { subRows } : {})
+			})
+		}
+
+		return finalList
+	}, [tableData, extaTvlsEnabled])
+
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch options={tvlOptions} />
@@ -336,6 +442,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 						clearAll={clearAll}
 						toggleAll={toggleAll}
 						selectOnlyOne={selectOnlyOne}
+						labelType="smol"
 					/>
 				</div>
 				<div className="bg-[var(--cards-bg)] rounded-md relative">
@@ -351,10 +458,11 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 				}
 			>
 				<TableWithSearch
-					data={tableData}
+					data={finalCategoriesList}
 					columns={categoriesColumn}
 					columnToSearch={'name'}
 					placeholder={'Search category...'}
+					defaultSorting={[{ id: 'tvl', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>
