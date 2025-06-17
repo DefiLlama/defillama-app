@@ -24,10 +24,11 @@ export function TableWithSearch({
 	header = null,
 	renderSubComponent = null,
 	columnSizes = null,
-	columnOrders = null
+	columnOrders = null,
+	defaultSorting = null
 }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [sorting, setSorting] = React.useState<SortingState>(defaultSorting ?? [])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])

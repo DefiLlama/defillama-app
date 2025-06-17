@@ -45,15 +45,15 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	protocols.forEach((p) => {
 		const cat = p.category
 
-		const tvl = (p.tvl ?? 0) - (p.chainTvls?.doublecounted?.tvl ?? 0)
-		const tvlPrevDay = (p.tvlPrevDay ?? 0) - (p.chainTvls?.doublecounted?.tvlPrevDay ?? 0)
-		const tvlPrevWeek = (p.tvlPrevWeek ?? 0) - (p.chainTvls?.doublecounted?.tvlPrevWeek ?? 0)
-		const tvlPrevMonth = (p.tvlPrevMonth ?? 0) - (p.chainTvls?.doublecounted?.tvlPrevMonth ?? 0)
+		const tvl = p.tvl ?? 0
+		const tvlPrevDay = p.tvlPrevDay ?? 0
+		const tvlPrevWeek = p.tvlPrevWeek ?? 0
+		const tvlPrevMonth = p.tvlPrevMonth ?? 0
 
 		const extraTvls = {}
 
 		for (const extra of DEFI_SETTINGS_KEYS) {
-			if (p.chainTvls[extra]) {
+			if (!['doublecounted', 'liquidstaking'].includes(extra) && p.chainTvls[extra]) {
 				extraTvls[extra] = p.chainTvls[extra]
 			}
 		}
@@ -172,6 +172,10 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			}
 			chartData[cat].data.push([+date * 1e3, chart[date]?.[cat]?.tvl ?? null])
 			for (const extra of DEFI_SETTINGS_KEYS) {
+				if (['doublecounted', 'liquidstaking'].includes(extra)) {
+					continue
+				}
+
 				if (!extraTvlCharts[cat]) {
 					extraTvlCharts[cat] = {}
 				}
@@ -304,7 +308,7 @@ export const descriptions = {
 	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights'
 }
 
-const tvlOptions = protocolsAndChainsOptions.filter((e) => e.key !== 'liquidstaking')
+const tvlOptions = protocolsAndChainsOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
 
 export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
