@@ -14,6 +14,10 @@ interface SubmitButtonProps {
 	selectedTableType?: CombinedTableType
 	selectedDatasetChain?: string | null
 	onSubmit: () => void
+	selectedTab?: 'charts' | 'script'
+	script?: string
+	composerChartName?: string
+	onAddLlamaScriptChart?: (chart: { id: string; name: string; llamascript: string }) => void
 }
 
 export function SubmitButton({
@@ -28,33 +32,58 @@ export function SubmitButton({
 	chartTypesLoading,
 	selectedTableType = 'protocols',
 	selectedDatasetChain,
-	onSubmit
+	onSubmit,
+	selectedTab = 'charts',
+	script = '',
+	composerChartName = '',
+	onAddLlamaScriptChart
 }: SubmitButtonProps) {
-	const isDisabled = 
+	const isComposerScriptValid = selectedTab === 'script' && script.trim() && composerChartName.trim()
+	const isComposerChartsValid = selectedTab === 'charts' && composerItems.length > 0
+
+	const isDisabled =
 		chartTypesLoading ||
 		(selectedMainTab === 'chart' && selectedChartTab === 'chain' && !selectedChain) ||
 		(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && !selectedProtocol) ||
-		(selectedMainTab === 'table' && selectedTableType === 'protocols' && (!selectedChains || selectedChains.length === 0)) ||
+		(selectedMainTab === 'table' &&
+			selectedTableType === 'protocols' &&
+			(!selectedChains || selectedChains.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
-		(selectedMainTab === 'composer' && composerItems.length === 0) ||
+		(selectedMainTab === 'composer' && !(isComposerChartsValid || isComposerScriptValid)) ||
 		(selectedMainTab === 'text' && !textContent.trim())
 
 	const getButtonText = () => {
 		if (editItem) return 'Save Changes'
-		
+
 		switch (selectedMainTab) {
-			case 'table': return 'Add Table'
-			case 'composer': return 'Add Multi-Chart'
-			case 'text': return 'Add Text'
-			default: return 'Add Chart'
+			case 'table':
+				return 'Add Table'
+			case 'composer':
+				if (selectedTab === 'script') return 'Add Script Chart'
+				return 'Add Multi-Chart'
+			case 'text':
+				return 'Add Text'
+			default:
+				return 'Add Chart'
 		}
+	}
+
+	const handleClick = () => {
+		if (!editItem && selectedMainTab === 'composer') {
+			if (selectedTab === 'script' && isComposerScriptValid && onAddLlamaScriptChart) {
+				const id = `llamascript-${Date.now()}`
+				onAddLlamaScriptChart({ id, name: composerChartName || 'LlamaScript Chart', llamascript: script })
+				return
+			}
+		}
+		onSubmit()
 	}
 
 	return (
 		<div className="flex justify-end mt-7">
 			<button
 				className="px-6 py-3 bg-[var(--primary1)] text-white font-medium hover:bg-[var(--primary1-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-				onClick={onSubmit}
+				onClick={handleClick}
 				disabled={isDisabled}
 			>
 				{getButtonText()}

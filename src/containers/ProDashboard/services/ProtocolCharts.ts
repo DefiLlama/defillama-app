@@ -17,7 +17,6 @@ interface ProtocolApiResponse {
 }
 
 export default class ProtocolCharts {
-
 	static async tvl(protocolId: string): Promise<[number, number][]> {
 		if (!protocolId) {
 			return []
@@ -52,7 +51,12 @@ export default class ProtocolCharts {
 		if (!protocol) return []
 		const url = getAPIUrlSummary(type, protocol, dataType)
 		const response = await fetch(url)
-		const data = await response.json()
+		let data
+		try {
+			data = await response.json()
+		} catch (e) {
+			return []
+		}
 		console.log(data)
 		return convertToNumberFormat(data.totalDataChart ?? [])
 	}

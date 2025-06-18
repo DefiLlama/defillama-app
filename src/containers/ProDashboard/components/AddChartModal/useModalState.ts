@@ -8,6 +8,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [composerItems, setComposerItems] = useState<ChartConfig[]>([])
 	const [composerSubType, setComposerSubType] = useState<ChartTabType>('chain')
 	const [composerChartName, setComposerChartName] = useState<string>('')
+	const [composerScript, setComposerScript] = useState<string>('')
 	const [selectedChain, setSelectedChain] = useState<string | null>(null)
 	const [selectedChains, setSelectedChains] = useState<string[]>([])
 	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
@@ -20,7 +21,16 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	// Initialize state based on editItem
 	useEffect(() => {
 		if (editItem) {
-			if (editItem.kind === 'chart') {
+			if (editItem.kind === 'chart' && editItem.type === 'llamascript') {
+				setSelectedMainTab('composer')
+				setComposerChartName(editItem.name || '')
+				setComposerScript(editItem.llamascript || '')
+				setComposerItems([])
+				setComposerSubType('chain')
+				setSelectedChain(null)
+				setSelectedProtocol(null)
+				setSelectedChartType('llamascript')
+			} else if (editItem.kind === 'chart') {
 				setSelectedMainTab('chart')
 				setSelectedChartTab(editItem.protocol ? 'protocol' : 'chain')
 				setSelectedChain(editItem.chain || null)
@@ -55,6 +65,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setComposerItems([])
 			setComposerSubType('chain')
 			setComposerChartName('')
+			setComposerScript('')
 			setSelectedChain(null)
 			setSelectedChains([])
 			setSelectedProtocol(null)
@@ -69,6 +80,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const resetState = () => {
 		setComposerItems([])
 		setComposerChartName('')
+		setComposerScript('')
 		setTextTitle('')
 		setTextContent('')
 		setSelectedChartType('tvl')
@@ -85,6 +97,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		composerItems,
 		composerSubType,
 		composerChartName,
+		composerScript,
 		selectedChain,
 		selectedChains,
 		selectedProtocol,
@@ -103,6 +116,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setComposerItems,
 			setComposerSubType,
 			setComposerChartName,
+			setComposerScript,
 			setSelectedChain,
 			setSelectedChains,
 			setSelectedProtocol,

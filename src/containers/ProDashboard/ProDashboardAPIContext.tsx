@@ -39,7 +39,12 @@ interface ProDashboardContextType {
 	setTimePeriod: (period: TimePeriod) => void
 	setDashboardName: (name: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
-	handleAddTable: (chains: string[], tableType?: 'protocols' | 'dataset', datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings', datasetChain?: string) => void
+	handleAddTable: (
+		chains: string[],
+		tableType?: 'protocols' | 'dataset',
+		datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings',
+		datasetChain?: string
+	) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -56,6 +61,7 @@ interface ProDashboardContextType {
 	saveDashboard: () => Promise<void>
 	saveDashboardName: () => Promise<void>
 	copyDashboard: () => Promise<void>
+	setItems: React.Dispatch<React.SetStateAction<DashboardItemConfig[]>>
 }
 
 const ProDashboardContext = createContext<ProDashboardContextType | undefined>(undefined)
@@ -305,7 +311,7 @@ export function ProDashboardAPIProvider({
 	}
 
 	const handleAddTable = (
-		chains: string[], 
+		chains: string[],
 		tableType: 'protocols' | 'dataset' = 'protocols',
 		datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings',
 		datasetChain?: string
@@ -478,7 +484,8 @@ export function ProDashboardAPIProvider({
 		deleteDashboard: deleteDashboardWithConfirmation,
 		saveDashboard,
 		saveDashboardName,
-		copyDashboard
+		copyDashboard,
+		setItems
 	}
 
 	return <ProDashboardContext.Provider value={value}>{children}</ProDashboardContext.Provider>
