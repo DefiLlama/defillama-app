@@ -1,5 +1,11 @@
 import { darken, transparentize } from 'polished'
-import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug, tokenIconPaletteUrl } from '~/utils'
+import {
+	capitalizeFirstLetter,
+	getNDistinctColors,
+	getProtocolTokenUrlOnExplorer,
+	slug,
+	tokenIconPaletteUrl
+} from '~/utils'
 import { oldBlue, primaryColor } from '~/constants/colors'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import {
@@ -28,6 +34,11 @@ import {
 } from './types'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 import { cg_volume_cexs } from '~/pages/cexs'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import metadata from '~/utils/metadata'
+import { ProtocolChartsLabels } from './Chart/constants'
+const { chainMetadata } = metadata
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
@@ -180,47 +191,6 @@ export const getProtocolMetrics = ({
 		inflows: inflowsExist
 	}
 }
-
-const chartTypes = [
-	'TVL',
-	'Mcap',
-	'Token Price',
-	'FDV',
-	'Fees',
-	'Revenue',
-	'Holders Revenue',
-	'DEX Volume',
-	'Perps Volume',
-	'Unlocks',
-	'Active Addresses',
-	'New Addresses',
-	'Transactions',
-	'Gas Used',
-	'Staking',
-	'Borrowed',
-	'Median APY',
-	'USD Inflows',
-	'Total Proposals',
-	'Successful Proposals',
-	'Max Votes',
-	'Treasury',
-	'Bridge Deposits',
-	'Bridge Withdrawals',
-	'Token Volume',
-	'Token Liquidity',
-	'Tweets',
-	'Developers',
-	'Contributers',
-	'Devs Commits',
-	'Contributers Commits',
-	'NFT Volume',
-	'Options Premium Volume',
-	'Options Notional Volume',
-	'Perps Aggregators Volume',
-	'Bridge Aggregators Volume',
-	'DEX Aggregators Volume',
-	'Incentives'
-]
 
 export const getProtocolOverviewPageData = async ({
 	protocolId,
@@ -754,10 +724,105 @@ export const getProtocolOverviewPageData = async ({
 					?.sort((a, b) => a.date - b.date)
 			: null) ?? null
 
+	const tvlChart = {}
+	const extraTvlCharts = Object.fromEntries(DEFI_SETTINGS_KEYS.map((key) => [key, {}]))
+	for (const chain in protocolData.chainTvls ?? {}) {
+		if (!protocolData.chainTvls[chain].tvl?.length) continue
+		if (chain.includes('-') || chain === 'offers') continue
+		if (DEFI_SETTINGS_KEYS.includes(chain)) {
+			for (const item of protocolData.chainTvls[chain].tvl) {
+				extraTvlCharts[chain][+item.date * 1e3] =
+					(extraTvlCharts[chain][+item.date * 1e3] ?? 0) + item.totalLiquidityUSD
+			}
+		} else {
+			for (const item of protocolData.chainTvls[chain].tvl) {
+				tvlChart[+item.date * 1e3] = (tvlChart[+item.date * 1e3] ?? 0) + item.totalLiquidityUSD
+			}
+		}
+	}
+
+	const tvlChartData: Array<[number, number]> = []
+	for (const date in tvlChart) {
+		tvlChartData.push([+date, tvlChart[date]])
+	}
+
+	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
+
+	if (protocolData.chains && protocolData.chains.length > 0) {
+		chartDenominations.push({ symbol: 'USD', geckoId: null })
+
+		const cmetadata = chainMetadata?.[slug(protocolData.chains[0])]
+
+		if (cmetadata && chainCoingeckoIdsForGasNotMcap[cmetadata.name]) {
+			chartDenominations.push({
+				symbol: chainCoingeckoIdsForGasNotMcap[cmetadata.name].symbol,
+				geckoId: chainCoingeckoIdsForGasNotMcap[cmetadata.name].geckoId
+			})
+		} else if (cmetadata?.gecko_id) {
+			chartDenominations.push({ symbol: cmetadata.tokenSymbol, geckoId: cmetadata.gecko_id })
+		} else {
+			chartDenominations.push({ symbol: 'ETH', geckoId: chainMetadata?.['ethereum']?.gecko_id })
+		}
+	}
+
+	const availableCharts: ProtocolChartsLabels[] = []
+
+	if (metadata.tvl) {
+		availableCharts.push('TVL')
+	}
+
+	if (feesData) {
+		availableCharts.push('Fees')
+	}
+
+	if (revenueData) {
+		availableCharts.push('Revenue')
+	}
+
+	if (holdersRevenueData) {
+		availableCharts.push('Holders Revenue')
+	}
+
+	if (dexVolumeData) {
+		availableCharts.push('DEX Volume')
+	}
+
+	if (perpVolumeData) {
+		availableCharts.push('Perp Volume')
+	}
+
+	if (optionsPremiumVolumeData) {
+		availableCharts.push('Options Premium Volume')
+	}
+
+	if (optionsNotionalVolumeData) {
+		availableCharts.push('Options Notional Volume')
+	}
+
+	if (dexAggregatorVolumeData) {
+		availableCharts.push('DEX Aggregator Volume')
+	}
+
+	if (perpAggregatorVolumeData) {
+		availableCharts.push('Perp Aggregator Volume')
+	}
+
+	if (bridgeAggregatorVolumeData) {
+		availableCharts.push('Bridge Aggregator Volume')
+	}
+
+	const allColors = getNDistinctColors(availableCharts.length, pageStyles?.['--primary-color'] ?? oldBlue)
+	console.log(availableCharts.length, allColors, pageStyles?.['--primary-color'])
+	const chartColors = {}
+	availableCharts.forEach((chart, index) => {
+		chartColors[chart] = index === 0 ? pageStyles?.['--primary-color'] ?? oldBlue : allColors[index]
+	})
+
 	return {
 		id: String(protocolData.id),
 		name: protocolData.name,
 		category: protocolData.category ?? null,
+		tags: protocolData.tags ?? null,
 		otherProtocols: protocolData.otherProtocols ?? null,
 		deprecated: protocolData.deprecated ?? false,
 		chains: protocolData.chains ?? [],
@@ -837,7 +902,12 @@ export const getProtocolOverviewPageData = async ({
 		isCEX: false,
 		hasKeyMetrics,
 		competitors: Array.from(competitorsSet).map((protocolName) => competitors.find((p) => p.name === protocolName)),
-		hacks
+		hacks,
+		chartDenominations,
+		availableCharts,
+		chartColors,
+		tvlChartData,
+		extraTvlCharts
 	}
 }
 

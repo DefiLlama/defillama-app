@@ -2,6 +2,7 @@ export const BAR_CHARTS = [
 	'DEXs Volume',
 	'DEX Volume',
 	'Perps Volume',
+	'Perp Volume',
 	'Fees',
 	'Revenue',
 	'Holders Revenue',
@@ -24,10 +25,13 @@ export const BAR_CHARTS = [
 	'Contributers Commits',
 	'NFT Volume',
 	'DEX Aggregators Volume',
+	'DEX Aggregator Volume',
 	'Options Premium Volume',
 	'Options Notional Volume',
 	'Perps Aggregators Volume',
-	'Bridge Aggregators Volume'
+	'Perp Aggregator Volume',
+	'Bridge Aggregators Volume',
+	'Bridge Aggregator Volume'
 ]
 
 export const DISABLED_CUMULATIVE_CHARTS = ['Developers', 'Contributers', 'Devs Commits', 'Contributers Commits']

@@ -350,17 +350,50 @@ export function getNDistinctColors(n, colorToAvoid) {
 	// Use prime number for better distribution
 	const step = 0.618033988749895 // golden ratio
 
+	// Function to calculate color distance in HSL space
+	const getColorDistance = (hsl1, hsl2) => {
+		// Calculate hue difference (accounting for circular nature)
+		let hueDiff = Math.abs(hsl1.h - hsl2.h)
+		if (hueDiff > 180) hueDiff = 360 - hueDiff
+
+		// Normalize differences
+		const hueDistance = hueDiff / 180 // 0-1
+		const satDistance = Math.abs(hsl1.s - hsl2.s) / 100 // 0-1
+		const lightDistance = Math.abs(hsl1.l - hsl2.l) / 100 // 0-1
+
+		// Weighted distance (hue is most important for distinction)
+		return hueDistance * 0.7 + satDistance * 0.2 + lightDistance * 0.1
+	}
+
 	for (let i = 0; i < n; i++) {
-		// Vary saturation slightly for better distinction while keeping colors rich
-		const saturation = 85 + (i % 3) * 5
-		// Vary lightness slightly for better distinction while keeping colors dark
-		const lightness = 35 + (i % 2) * 10
+		let attempts = 0
+		let color
+		let colorHsl
 
-		let color = hslToHex(hue * 360, saturation, lightness)
+		do {
+			// Vary saturation for better distinction while keeping colors rich
+			const saturation = 70 + (i % 4) * 8
+			// Keep colors dark (lightness 20-40)
+			const lightness = 25 + (i % 3) * 8
 
-		// If the generated color is too close to colorToAvoid, adjust the hue further
-		if (colorToAvoid === color) {
-			hue = (hue + 0.3) % 1 // Add 108 degrees to hue
+			color = hslToHex(hue * 360, saturation, lightness)
+			colorHsl = hexToHSL(color)
+
+			// Check if color is too similar to colorToAvoid
+			const isTooSimilar = colorToAvoidHsl && getColorDistance(colorHsl, colorToAvoidHsl) < 0.3
+
+			if (!isTooSimilar) break
+
+			// If too similar, try different hue
+			hue = (hue + 0.2) % 1
+			attempts++
+		} while (attempts < 10) // Prevent infinite loop
+
+		// If we still can't find a distinct color, force a very different hue
+		if (attempts >= 10) {
+			hue = (hue + 0.5) % 1 // Jump to opposite side of color wheel
+			const saturation = 70 + (i % 4) * 8
+			const lightness = 25 + (i % 3) * 8
 			color = hslToHex(hue * 360, saturation, lightness)
 		}
 

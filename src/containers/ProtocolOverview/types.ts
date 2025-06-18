@@ -1,3 +1,6 @@
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { ProtocolChartsLabels } from './Chart/constants'
+
 export interface IProtocolMetadata {
 	name?: string
 	tvl?: boolean
@@ -66,6 +69,7 @@ export interface IUpdatedProtocol {
 	gecko_id: string | null
 	cmcId: string | null
 	category: string
+	tags?: Array<string> | null
 	chains: Array<string>
 	module: string
 	treasury?: string | null
@@ -80,9 +84,9 @@ export interface IUpdatedProtocol {
 	chainTvls?: Record<
 		string,
 		{
-			tvl: Array<{ date: number; totalLiquidityUSD: number }>
-			tokens: Array<{ date: number; tokens: Record<string, number> }>
-			tokensInUsd: Array<{ date: number; tokens: Record<string, number> }>
+			tvl?: Array<{ date: number; totalLiquidityUSD: number }> | null
+			tokens?: Array<{ date: number; tokens: Record<string, number> }> | null
+			tokensInUsd?: Array<{ date: number; tokens: Record<string, number> }> | null
 		}
 	>
 	currentChainTvls?: Record<string, number>
@@ -107,6 +111,8 @@ interface IAdapterOverview {
 }
 
 export interface IProtocolOverviewPageData {
+	tvlChartData: Array<[number, number]>
+	extraTvlCharts: Record<string, Record<number, number>>
 	id: string
 	name: string
 	token: {
@@ -116,6 +122,7 @@ export interface IProtocolOverviewPageData {
 		explorer_url: string | null
 	}
 	category?: string | null
+	tags?: Array<string> | null
 	otherProtocols?: Array<string> | null
 	deprecated?: boolean
 	chains: Array<string> | null
@@ -221,6 +228,9 @@ export interface IProtocolOverviewPageData {
 	hasKeyMetrics?: boolean
 	competitors?: Array<{ name: string; tvl: number }>
 	hacks: Array<IHack>
+	chartDenominations: Array<{ symbol: string; geckoId?: string | null }>
+	chartColors: Record<string, string>
+	availableCharts: ProtocolChartsLabels[]
 }
 
 export interface IHack {

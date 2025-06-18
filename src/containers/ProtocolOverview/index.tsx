@@ -14,6 +14,7 @@ import { DLNewsLogo } from '~/components/News/Logo'
 import dayjs from 'dayjs'
 import { feesOptions, protocolsAndChainsOptions } from '~/components/Filters/options'
 import { Menu } from '~/components/Menu'
+import { ProtocolChart2 } from './Chart/ProtocolChartNew'
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
@@ -143,7 +144,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								tvlByChain={tvlByChain}
 							/>
 						</div>
-						<div className="min-h-[360px]"></div>
+						<ProtocolChart2 {...props} />
 					</div>
 					<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:hidden">
 						<KeyMetrics {...props} formatPrice={formatPrice} />
@@ -1336,6 +1337,8 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 					</BasicLink>
 				</p>
 			) : null}
+			{props.tags?.length ? <p className="flex items-center gap-1">Sub Category: {props.tags.join(', ')}</p> : null}
+
 			{props.audits ? (
 				<>
 					<p className="flex items-center gap-1">
