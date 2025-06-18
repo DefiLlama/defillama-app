@@ -23,7 +23,14 @@ export const chainOverviewChartColors = {
 	tokenVolume: '#ff008c',
 	appRevenue: '#A020F0',
 	appFees: '#FF4500',
-	chainIncentives: '#FF9800'
+	addresses: '#FF9800',
+	txs: '#2d4a8c',
+	stables: '#8c2d4a',
+	inflows: '#4a8c2d',
+	chainIncentives: '#8c4a2d',
+	chainTokenPrice: '#2d8c4a',
+	chainTokenMcap: '#4a2d8c',
+	chainTokenVolume: '#8c2d8c'
 } as const
 
 export const chainOverviewChartSwitchColors = Object.fromEntries(

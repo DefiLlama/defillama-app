@@ -8,7 +8,7 @@ export interface AddChartModalProps {
 
 export type MainTabType = 'chart' | 'composer' | 'table' | 'text'
 export type ChartTabType = 'chain' | 'protocol'
-export type CombinedTableType = 'protocols' | 'cex' | 'stablecoins' | 'revenue' | 'holders-revenue' | 'earnings'
+export type CombinedTableType = 'protocols' | 'cex' | 'stablecoins' | 'revenue' | 'holders-revenue' | 'earnings' | 'token-usage'
 
 export interface ModalState {
 	selectedMainTab: MainTabType
@@ -24,6 +24,8 @@ export interface ModalState {
 	textContent: string
 	selectedTableType: CombinedTableType
 	selectedDatasetChain: string | null
+	selectedTokens: string[]
+	includeCex: boolean
 }
 
 export interface ModalActions {
@@ -40,10 +42,13 @@ export interface ModalActions {
 	setTextContent: (content: string) => void
 	setSelectedTableType: (type: CombinedTableType) => void
 	setSelectedDatasetChain: (chain: string | null) => void
+	setSelectedTokens: (tokens: string[]) => void
+	setIncludeCex: (include: boolean) => void
 	handleChainChange: (option: any) => void
 	handleChainsChange: (options: any[]) => void // New handler for multi-chain selection
 	handleProtocolChange: (option: any) => void
 	handleDatasetChainChange: (option: any) => void
+	handleTokensChange: (options: any) => void
 	handleAddToComposer: () => void
 	handleRemoveFromComposer: (id: string) => void
 	handleMainTabChange: (tab: MainTabType) => void

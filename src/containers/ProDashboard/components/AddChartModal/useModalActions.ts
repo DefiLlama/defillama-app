@@ -66,7 +66,7 @@ export function useModalActions(
 	}
 
 	const handleChainsChange = (options: any[]) => {
-		const selectedValues = options ? options.map(option => option.value) : []
+		const selectedValues = options ? options.map((option) => option.value) : []
 		actions.setSelectedChains(selectedValues)
 	}
 
@@ -78,6 +78,13 @@ export function useModalActions(
 
 	const handleDatasetChainChange = (option: any) => {
 		actions.setSelectedDatasetChain(option.value)
+	}
+
+	const handleTokensChange = (options: any) => {
+		const symbols = options ? options.map((opt: any) => opt.value) : []
+		if (symbols.length <= 4) {
+			actions.setSelectedTokens(symbols)
+		}
 	}
 
 	const handleAddToComposer = () => {
@@ -217,6 +224,16 @@ export function useModalActions(
 						datasetType: 'earnings',
 						chains: state.selectedChains
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'token-usage') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'token-usage',
+						chains: [],
+						tokenSymbols: state.selectedTokens,
+						includeCex: state.includeCex
+					} as ProtocolsTableConfig
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
@@ -252,6 +269,8 @@ export function useModalActions(
 					handleAddTable(state.selectedChains, 'dataset', 'holders-revenue')
 				} else if (state.selectedTableType === 'earnings') {
 					handleAddTable(state.selectedChains, 'dataset', 'earnings')
+				} else if (state.selectedTableType === 'token-usage' && state.selectedTokens.length > 0) {
+					handleAddTable([], 'dataset', 'token-usage', undefined, state.selectedTokens, state.includeCex)
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())
@@ -271,6 +290,7 @@ export function useModalActions(
 			handleChainsChange,
 			handleProtocolChange,
 			handleDatasetChainChange,
+			handleTokensChange,
 			handleAddToComposer,
 			handleRemoveFromComposer,
 			handleMainTabChange,
