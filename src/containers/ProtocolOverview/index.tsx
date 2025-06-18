@@ -1581,7 +1581,9 @@ function Yields(props: IProtocolOverviewPageData) {
 				</p>
 			</div>
 			<BasicLink
-				href="/yields"
+				href={`/yields?project=${
+					props.otherProtocols ? props.otherProtocols.slice(1).join('&project=') : slug(props.name)
+				}`}
 				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
 			>
 				<span>View all Yields</span>
