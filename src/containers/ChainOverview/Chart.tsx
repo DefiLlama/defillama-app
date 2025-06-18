@@ -727,6 +727,14 @@ export function ChainChart({
 				},
 				{
 					...yAxis,
+					id: 'App Fees',
+					axisLabel: {
+						...yAxis.axisLabel,
+						color: () => (isCompare ? '#fff' : chainOverviewChartColors.appFees)
+					}
+				},
+				{
+					...yAxis,
 					id: 'Price',
 					axisLabel: {
 						...yAxis.axisLabel,
