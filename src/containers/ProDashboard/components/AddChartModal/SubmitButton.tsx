@@ -13,6 +13,7 @@ interface SubmitButtonProps {
 	chartTypesLoading: boolean
 	selectedTableType?: CombinedTableType
 	selectedDatasetChain?: string | null
+	selectedTokens?: string[]
 	onSubmit: () => void
 }
 
@@ -28,6 +29,7 @@ export function SubmitButton({
 	chartTypesLoading,
 	selectedTableType = 'protocols',
 	selectedDatasetChain,
+	selectedTokens = [],
 	onSubmit
 }: SubmitButtonProps) {
 	const isDisabled = 
@@ -36,6 +38,7 @@ export function SubmitButton({
 		(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && !selectedProtocol) ||
 		(selectedMainTab === 'table' && selectedTableType === 'protocols' && (!selectedChains || selectedChains.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
+		(selectedMainTab === 'table' && selectedTableType === 'token-usage' && (!selectedTokens || selectedTokens.length === 0)) ||
 		(selectedMainTab === 'composer' && composerItems.length === 0) ||
 		(selectedMainTab === 'text' && !textContent.trim())
 

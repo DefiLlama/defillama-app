@@ -39,7 +39,7 @@ interface ProDashboardContextType {
 	setTimePeriod: (period: TimePeriod) => void
 	setDashboardName: (name: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
-	handleAddTable: (chains: string[], tableType?: 'protocols' | 'dataset', datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings', datasetChain?: string) => void
+	handleAddTable: (chains: string[], tableType?: 'protocols' | 'dataset', datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings' | 'token-usage', datasetChain?: string, tokenSymbol?: string | string[], includeCex?: boolean) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -307,8 +307,10 @@ export function ProDashboardAPIProvider({
 	const handleAddTable = (
 		chains: string[], 
 		tableType: 'protocols' | 'dataset' = 'protocols',
-		datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings',
-		datasetChain?: string
+		datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings' | 'token-usage',
+		datasetChain?: string,
+		tokenSymbol?: string | string[],
+		includeCex?: boolean
 	) => {
 		const chainIdentifier = chains.length > 1 ? 'multi' : chains[0] || 'table'
 		const newTable: ProtocolsTableConfig = {
@@ -319,7 +321,11 @@ export function ProDashboardAPIProvider({
 			colSpan: 2,
 			...(tableType === 'dataset' && {
 				datasetType,
-				datasetChain
+				datasetChain,
+				...(datasetType === 'token-usage' && {
+					tokenSymbols: Array.isArray(tokenSymbol) ? tokenSymbol : tokenSymbol ? [tokenSymbol] : [],
+					includeCex
+				})
 			})
 		}
 		setItems((prev) => {

@@ -125,6 +125,10 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onDatasetChainChange={actions.handleDatasetChainChange}
 							selectedTableType={state.selectedTableType}
 							onTableTypeChange={actions.setSelectedTableType}
+							selectedTokens={state.selectedTokens}
+							onTokensChange={actions.handleTokensChange}
+							includeCex={state.includeCex}
+							onIncludeCexChange={actions.setIncludeCex}
 						/>
 					)}
 
@@ -149,6 +153,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						chartTypesLoading={chartTypesLoading}
 						selectedTableType={state.selectedTableType}
 						selectedDatasetChain={state.selectedDatasetChain}
+						selectedTokens={state.selectedTokens}
 						onSubmit={actions.handleSubmit}
 					/>
 				</div>
