@@ -67,6 +67,7 @@ export interface ILineAndBarChartProps {
 	valueSymbol?: string
 	alwaysShowTooltip?: boolean
 	containerClassName?: string
+	solidChartAreaStyle?: boolean
 }
 
 export interface IMultiSeriesChartProps {

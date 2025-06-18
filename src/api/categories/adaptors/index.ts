@@ -1029,49 +1029,6 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 	)
 }
 
-interface Protocol {
-	category: string | null
-	total24h?: number
-}
-
-type RevenuesResponse = {
-	protocols: Protocol[]
-}
-
-type AggregatedRevenues = Record<string, number>
-
-export const getRevenuesByCategories = async (): Promise<AggregatedRevenues> => {
-	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees/all?dataType=dailyRevenue&excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
-
-	const revenues: RevenuesResponse | null = await fetchWithErrorLogging(apiUrl)
-		.then((res) => {
-			if (res.status === 200) {
-				return res.json()
-			} else {
-				return null
-			}
-		})
-		.catch((err) => {
-			console.log('Error at ', apiUrl, err)
-			return null
-		})
-
-	return revenues.protocols.reduce((acc: AggregatedRevenues, protocol: Protocol) => {
-		const { category, total24h } = protocol
-		// Filter to ignore negative or abnormally high values
-		if (!category || !total24h || total24h < 0 || total24h > 10e9) {
-			return acc
-		}
-
-		if (!acc[category]) {
-			acc[category] = 0
-		}
-
-		acc[category] += Number(total24h)
-		return acc
-	}, {})
-}
-
 export const getDexVolumeByChain = async ({
 	chain,
 	excludeTotalDataChart,

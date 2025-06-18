@@ -92,7 +92,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 	let itemName: string = ''
 	let itemIconUrl: string | undefined = undefined
 	let itemInfo: Chain | Protocol | undefined
-
+	console.log('chart', chart)
 	if (chart.protocol) {
 		itemInfo = getProtocolInfo(chart.protocol)
 		itemName = itemInfo?.name || chart.protocol
@@ -170,13 +170,14 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 		<div className="p-4 h-full flex flex-col">
 			<div className="flex justify-between items-center mb-2 pr-28">
 				<div className="flex items-center gap-2">
-					{itemIconUrl ? (
-						<img src={itemIconUrl} alt={itemName} className="w-6 h-6 rounded-full" />
-					) : (
-						<div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600">
-							{itemName?.charAt(0)?.toUpperCase()}
-						</div>
-					)}
+					{chart.chain !== 'All' &&
+						(itemIconUrl ? (
+							<img src={itemIconUrl} alt={itemName} className="w-6 h-6 rounded-full" />
+						) : (
+							<div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600">
+								{itemName?.charAt(0)?.toUpperCase()}
+							</div>
+						))}
 					<h2 className="text-lg font-semibold">
 						{itemName} {chartTypeDetails.title}
 					</h2>

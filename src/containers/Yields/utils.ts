@@ -58,7 +58,7 @@ export function toFilterPool({
 							if (token === 'all_bitcoins') {
 								return tokensInPool.some((x) => x.includes('btc'))
 							} else if (token === 'all_usd_stables') {
-								return tokensInPool.some((x) => x.includes('usd'))
+								return curr.stablecoin || tokensInPool.some((x) => x.includes('usd'))
 							} else if (tokensInPool.some((x) => x.includes(token.toLowerCase()))) {
 								return true
 							} else if (token === 'eth') {

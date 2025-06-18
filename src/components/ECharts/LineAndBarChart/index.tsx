@@ -12,7 +12,8 @@ export default function LineAndBarChart({
 	expandTo100Percent,
 	valueSymbol,
 	groupBy,
-	alwaysShowTooltip
+	alwaysShowTooltip,
+	solidChartAreaStyle = false
 }: ILineAndBarChartProps) {
 	const id = useId()
 
@@ -46,6 +47,11 @@ export default function LineAndBarChart({
 				},
 				areaStyle: expandTo100Percent
 					? {}
+					: solidChartAreaStyle
+					? {
+							color: charts[stack].color ?? (isThemeDark ? '#000000' : '#ffffff'),
+							opacity: 0.7
+					  }
 					: {
 							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 								{
