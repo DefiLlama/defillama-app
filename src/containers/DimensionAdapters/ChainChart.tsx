@@ -5,7 +5,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download, toNiceCsvDate, slug, lastDayOfWeek, firstDayOfMonth, getNDistinctColors } from '~/utils'
 import { getAdapterChainOverview } from './queries'
-import { ADAPTER_TYPES } from './constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 import { useMutation } from '@tanstack/react-query'
 import { oldBlue } from '~/constants/colors'
 import { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
@@ -25,7 +25,7 @@ const downloadBreakdownChart = async ({
 	chain
 }: {
 	adapterType: string
-	dataType?: string
+	dataType?: `${ADAPTER_DATA_TYPES}`
 	chain: string
 }) => {
 	const data = await getAdapterChainOverview({

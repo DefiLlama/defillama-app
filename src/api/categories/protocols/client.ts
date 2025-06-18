@@ -45,7 +45,9 @@ export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
 		queryFn: protocolName
 			? () =>
 					getProtocol(protocolName)
-						.then((protocolData) => buildProtocolAddlChartsData({ protocolData, extraTvlsEnabled }))
+						.then((protocolData) =>
+							buildProtocolAddlChartsData({ protocolData: protocolData as any, extraTvlsEnabled })
+						)
 						.catch(() => null)
 			: () => null,
 		staleTime: 60 * 60 * 1000,
