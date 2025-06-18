@@ -544,7 +544,7 @@ export async function getLSDPageData() {
 	const lsdProtocols = protocols
 		.filter((p) => p.category === 'Liquid Staking' && p.chains.includes('Ethereum'))
 		.map((p) => p.name)
-		.filter((p) => !['StakeHound', 'Genius', 'SharedStake'].includes(p))
+		.filter((p) => !['StakeHound', 'Genius', 'SharedStake', 'VaultLayer'].includes(p))
 		.concat('Crypto.com Staked ETH')
 
 	// get historical data
