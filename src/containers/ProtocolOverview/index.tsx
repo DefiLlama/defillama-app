@@ -1659,6 +1659,12 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 								<span>{dayjs(hack.date * 1e3).format('MMM D, YYYY')}</span>
 							</p>
 						) : null}
+						{props.id.startsWith('parent#') ? (
+							<p>
+								<span>Protocol: </span>
+								<span>{hack.name}</span>
+							</p>
+						) : null}
 						{hack.amount ? (
 							<p>
 								<span>Amount: </span>
@@ -1706,12 +1712,12 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 }
 
 const Competitors = (props: IProtocolOverviewPageData) => {
-	if (!props.similarProtocols?.length) return null
+	if (!props.competitors?.length) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<h2 className="font-semibold">Competitors</h2>
 			<div className="flex items-center gap-4 flex-wrap">
-				{props.similarProtocols.map((similarProtocol) => (
+				{props.competitors.map((similarProtocol) => (
 					<a
 						href={`/protocol/${slug(similarProtocol.name)}`}
 						key={`${props.name}-competitors-${similarProtocol.name}`}

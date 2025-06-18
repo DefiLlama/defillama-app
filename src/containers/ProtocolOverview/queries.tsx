@@ -707,7 +707,7 @@ export const getProtocolOverviewPageData = async ({
 			? true
 			: false
 
-	const similarProtocols =
+	const competitors =
 		liteProtocolsData && protocolData.category
 			? liteProtocolsData.protocols
 					.filter((p) => {
@@ -733,21 +733,29 @@ export const getProtocolOverviewPageData = async ({
 					.sort((a, b) => b.tvl - a.tvl)
 			: []
 
-	const similarProtocolsSet = new Set<string>()
+	const competitorsSet = new Set<string>()
 
-	const protocolsWithCommonChains = [...similarProtocols].sort((a, b) => b.commonChains - a.commonChains).slice(0, 5)
+	const protocolsWithCommonChains = [...competitors].sort((a, b) => b.commonChains - a.commonChains).slice(0, 5)
 
 	// first 5 are the protocols that are on same chain + same category
-	protocolsWithCommonChains.forEach((p) => similarProtocolsSet.add(p.name))
+	protocolsWithCommonChains.forEach((p) => competitorsSet.add(p.name))
 
 	// last 5 are the protocols in same category
-	similarProtocols.forEach((p) => {
-		if (similarProtocolsSet.size < 10) {
-			similarProtocolsSet.add(p.name)
+	competitors.forEach((p) => {
+		if (competitorsSet.size < 10) {
+			competitorsSet.add(p.name)
 		}
 	})
 
+	const hacks =
+		(protocolData.id
+			? hacksData
+					?.filter((hack) => [String(hack.defillamaId), String(hack.parentProtocolId)].includes(String(protocolId)))
+					?.sort((a, b) => a.date - b.date)
+			: null) ?? null
+
 	return {
+		id: String(protocolData.id),
 		name: protocolData.name,
 		category: protocolData.category ?? null,
 		otherProtocols: protocolData.otherProtocols ?? null,
@@ -828,13 +836,8 @@ export const getProtocolOverviewPageData = async ({
 				: null,
 		isCEX: false,
 		hasKeyMetrics,
-		similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
-			similarProtocols.find((p) => p.name === protocolName)
-		),
-		hacks:
-			(protocolData.id
-				? hacksData?.filter((hack) => +hack.defillamaId === +protocolData.id)?.sort((a, b) => a.date - b.date)
-				: null) ?? null
+		competitors: Array.from(competitorsSet).map((protocolName) => competitors.find((p) => p.name === protocolName)),
+		hacks
 	}
 }
 

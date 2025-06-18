@@ -107,6 +107,7 @@ interface IAdapterOverview {
 }
 
 export interface IProtocolOverviewPageData {
+	id: string
 	name: string
 	token: {
 		symbol: string | null
@@ -218,7 +219,7 @@ export interface IProtocolOverviewPageData {
 	} | null
 	isCEX?: boolean
 	hasKeyMetrics?: boolean
-	similarProtocols?: Array<{ name: string; tvl: number }>
+	competitors?: Array<{ name: string; tvl: number }>
 	hacks: Array<IHack>
 }
 
@@ -234,6 +235,7 @@ export interface IHack {
 	source: string
 	returnedFunds: number | null
 	defillamaId: number
+	parentProtocolId: string
 	language: string | null
 }
 
