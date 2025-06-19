@@ -1,11 +1,5 @@
 import { darken, transparentize } from 'polished'
-import {
-	capitalizeFirstLetter,
-	getNDistinctColors,
-	getProtocolTokenUrlOnExplorer,
-	slug,
-	tokenIconPaletteUrl
-} from '~/utils'
+import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug, tokenIconPaletteUrl } from '~/utils'
 import { oldBlue, primaryColor } from '~/constants/colors'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import {
@@ -15,6 +9,9 @@ import {
 	HOURLY_PROTOCOL_API,
 	LIQUIDITY_API,
 	PROTOCOL_API,
+	PROTOCOL_GOVERNANCE_COMPOUND_API,
+	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
+	PROTOCOL_GOVERNANCE_TALLY_API,
 	PROTOCOLS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
@@ -37,7 +34,7 @@ import { cg_volume_cexs } from '~/pages/cexs'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import metadata from '~/utils/metadata'
-import { ProtocolChartsLabels } from './Chart/constants'
+import { allColors, ProtocolChartsLabels } from './Chart/constants'
 const { chainMetadata } = metadata
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
@@ -202,7 +199,6 @@ export const getProtocolOverviewPageData = async ({
 }): Promise<IProtocolOverviewPageData> => {
 	const [
 		protocolData,
-		pageStyles,
 		feesProtocols,
 		revenueProtocols,
 		holdersRevenueProtocols,
@@ -255,7 +251,6 @@ export const getProtocolOverviewPageData = async ({
 				updatedAt: number | null
 			}
 		},
-		IProtocolPageStyles,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
@@ -323,7 +318,6 @@ export const getProtocolOverviewPageData = async ({
 				return data
 			}
 		}),
-		getProtocolPageStyles(metadata.name),
 		metadata.fees
 			? getAdapterChainOverview({
 					adapterType: 'fees',
@@ -848,10 +842,26 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Borrowed')
 	}
 
-	const allColors = getNDistinctColors(availableCharts.length, pageStyles?.['--primary-color'] ?? oldBlue)
+	if (yields) {
+		availableCharts.push('Median APY')
+	}
+
+	if (protocolData.governanceID) {
+		availableCharts.push('Total Proposals')
+		availableCharts.push('Successful Proposals')
+		availableCharts.push('Max Votes')
+	}
+
+	if (protocolData.devMetrics) {
+		availableCharts.push('Developers')
+		availableCharts.push('Devs Commits')
+		availableCharts.push('Contributers')
+		availableCharts.push('Contributers Commits')
+	}
+
 	const chartColors = {}
 	availableCharts.forEach((chart, index) => {
-		chartColors[chart] = index === 0 ? pageStyles?.['--primary-color'] ?? oldBlue : allColors[index]
+		chartColors[chart] = allColors[index]
 	})
 
 	const hallmarks = {}
@@ -897,7 +907,7 @@ export const getProtocolOverviewPageData = async ({
 			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
 			explorer_url: getProtocolTokenUrlOnExplorer(protocolData.address)
 		},
-		pageStyles,
+		pageStyles: defaultPageStyles as any,
 		metrics: getProtocolMetrics({ protocolData, metadata }),
 		fees: feesData,
 		revenue: revenueData,
@@ -956,7 +966,8 @@ export const getProtocolOverviewPageData = async ({
 		tvlChartData,
 		extraTvlCharts,
 		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string]),
-		geckoId: protocolData.gecko_id ?? null
+		geckoId: protocolData.gecko_id ?? null,
+		governanceApis: governanceApis(protocolData.governanceID) ?? null
 	}
 }
 
@@ -1119,3 +1130,16 @@ export function getTokenCGData(tokenCGData: any) {
 		symbol: tokenInfo?.['symbol'] ? tokenInfo.symbol.toUpperCase() : null
 	}
 }
+
+const governanceApis = (governanceID) =>
+	(
+		governanceID?.map((gid) =>
+			gid.startsWith('snapshot:')
+				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|' |')/g, '/')}.json`
+				: gid.startsWith('compound:')
+				? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|' |')/g, '/')}.json`
+				: gid.startsWith('tally:')
+				? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|' |')/g, '/')}.json`
+				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|' |')/g, '/')}.json`
+		) ?? []
+	).map((g) => g.toLowerCase())

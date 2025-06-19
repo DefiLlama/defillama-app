@@ -6,9 +6,14 @@ import dynamic from 'next/dynamic'
 import { ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
-import { firstDayOfMonth, lastDayOfWeek, slug } from '~/utils'
+import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
 import { CACHE_SERVER, TOKEN_LIQUIDITY_API } from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
+import {
+	useFetchProtocolDevMetrics,
+	useFetchProtocolGovernanceData,
+	useFetchProtocolMedianAPY
+} from '~/api/categories/protocols/client'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
@@ -103,7 +108,8 @@ export const useFetchAndFormatChartData = ({
 	metrics,
 	toggledMetrics,
 	chartDenominations,
-	groupBy
+	groupBy,
+	governanceApis
 }: IProtocolOverviewPageData & {
 	toggledMetrics: Record<string, string>
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
@@ -403,6 +409,30 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.unlocks === 'true' && metrics.unlocks && isRouterReady ? true : false
 	})
 
+	const { data: medianAPYData = null, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
+		isRouterReady && toggledMetrics.medianApy === 'true' && metrics.yields && !protocolId.startsWith('parent#')
+			? slug(name)
+			: null
+	)
+
+	const { data: governanceData = null, isLoading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
+		isRouterReady && toggledMetrics.governance === 'true' && governanceApis && governanceApis.length > 0
+			? governanceApis
+			: null
+	)
+
+	const { data: devMetricsData = null, isLoading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
+		isRouterReady &&
+			[
+				toggledMetrics.devMetrics,
+				toggledMetrics.contributersMetrics,
+				toggledMetrics.contributersCommits,
+				toggledMetrics.devCommits
+			].some((v) => v === 'true')
+			? protocolId
+			: null
+	)
+
 	const showNonUsdDenomination =
 		toggledMetrics.denomination &&
 		toggledMetrics.denomination !== 'USD' &&
@@ -472,7 +502,16 @@ export const useFetchAndFormatChartData = ({
 			loadingCharts.push('Bridge Aggregator Volume')
 		}
 		if (fetchingUnlocksAndIncentives) {
-			loadingCharts.push('Unlocks, Incentives')
+			loadingCharts.push('Emissions')
+		}
+		if (fetchingMedianAPY) {
+			loadingCharts.push('Median APY')
+		}
+		if (fetchingGovernanceData) {
+			loadingCharts.push('Governance')
+		}
+		if (fetchingDevMetrics) {
+			loadingCharts.push('Dev Metrics')
 		}
 
 		if (loadingCharts.length > 0) {
@@ -686,6 +725,93 @@ export const useFetchAndFormatChartData = ({
 			charts['Borrowed'] = formatLineChart({ data: chartData, groupBy, dateInMs: true })
 		}
 
+		if (medianAPYData) {
+			charts['Median APY'] = formatLineChart({
+				data: medianAPYData.map((item) => [+item.date * 1e3, item.medianAPY]),
+				groupBy,
+				dateInMs: true
+			})
+		}
+
+		if (governanceData) {
+			const totalProposals = {}
+			const successfulProposals = {}
+			const maxVotes = {}
+			for (const gItem of governanceData) {
+				for (const item of gItem.activity ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+					totalProposals[date] = (totalProposals[date] ?? 0) + (item['Total'] || 0)
+					successfulProposals[date] = (successfulProposals[date] ?? 0) + (item['Successful'] || 0)
+				}
+				for (const item of gItem.maxVotes ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+					maxVotes[date] = (maxVotes[date] ?? 0) + (item['Max Votes'] || 0)
+				}
+			}
+			const finalTotalProposals = []
+			const finalSuccessfulProposals = []
+			const finalMaxVotes = []
+			for (const date in totalProposals) {
+				finalTotalProposals.push([+date * 1e3, totalProposals[date]])
+			}
+			for (const date in successfulProposals) {
+				finalSuccessfulProposals.push([+date * 1e3, successfulProposals[date]])
+			}
+			for (const date in maxVotes) {
+				finalMaxVotes.push([+date * 1e3, maxVotes[date]])
+			}
+			charts['Total Proposals'] = finalTotalProposals
+			charts['Successful Proposals'] = finalSuccessfulProposals
+			charts['Max Votes'] = finalMaxVotes
+		}
+
+		if (devMetricsData && (toggledMetrics.devMetrics === 'true' || toggledMetrics.devCommits === 'true')) {
+			const developers = []
+			const commits = []
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
+
+			for (const { k, v, cc } of devMetricsData.report?.[metricKey] ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(new Date(k).getTime()) / 1000)
+
+				developers.push([+date * 1e3, v])
+				commits.push([+date * 1e3, cc])
+			}
+
+			if (toggledMetrics.devMetrics === 'true') {
+				charts['Developers'] = developers
+			}
+
+			if (toggledMetrics.devCommits === 'true') {
+				charts['Devs Commits'] = commits
+			}
+		}
+
+		if (
+			devMetricsData &&
+			(toggledMetrics.contributersMetrics === 'true' || toggledMetrics.contributersCommits === 'true')
+		) {
+			const contributers = []
+			const commits = []
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_contributers' : 'weekly_contributers'
+
+			for (const { k, v, cc } of devMetricsData.report?.[metricKey] ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(new Date(k).getTime()) / 1000)
+
+				contributers.push([+date * 1e3, v])
+				commits.push([+date * 1e3, cc])
+			}
+
+			if (toggledMetrics.contributersMetrics === 'true') {
+				charts['Contributers'] = contributers
+			}
+
+			if (toggledMetrics.contributersCommits === 'true') {
+				charts['Contributers Commits'] = commits
+			}
+		}
+
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
 	}, [
 		toggledMetrics,
@@ -722,6 +848,12 @@ export const useFetchAndFormatChartData = ({
 		bridgeAggregatorsVolumeData,
 		fetchingUnlocksAndIncentives,
 		unlocksAndIncentivesData,
+		fetchingMedianAPY,
+		medianAPYData,
+		fetchingGovernanceData,
+		governanceData,
+		fetchingDevMetrics,
+		devMetricsData,
 		groupBy
 	])
 
