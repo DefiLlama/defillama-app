@@ -741,6 +741,19 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
+	for (const type in extraTvlCharts) {
+		let hasKeys = false
+
+		for (const key in extraTvlCharts[type]) {
+			hasKeys = true
+			break
+		}
+
+		if (!hasKeys) {
+			delete extraTvlCharts[type]
+		}
+	}
+
 	const tvlChartData: Array<[string, number]> = []
 	for (const date in tvlChart) {
 		tvlChartData.push([date, tvlChart[date]])
@@ -825,6 +838,14 @@ export const getProtocolOverviewPageData = async ({
 
 	if (incentives) {
 		availableCharts.push('Incentives')
+	}
+
+	if (protocolData.currentChainTvls?.staking != null) {
+		availableCharts.push('Staking')
+	}
+
+	if (protocolData.currentChainTvls?.borrowed != null) {
+		availableCharts.push('Borrowed')
 	}
 
 	const allColors = getNDistinctColors(availableCharts.length, pageStyles?.['--primary-color'] ?? oldBlue)

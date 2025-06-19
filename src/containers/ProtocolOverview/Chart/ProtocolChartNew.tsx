@@ -86,6 +86,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 					valueSymbol={valueSymbol}
 					groupBy={groupBy}
 					hallmarks={props.hallmarks}
+					unlockTokenSymbol={props.token.symbol}
 				/>
 			)}
 		</div>
@@ -667,6 +668,22 @@ export const useFetchAndFormatChartData = ({
 
 		if (unlocksAndIncentivesData?.unlockUsdChart) {
 			charts['Incentives'] = formatBarChart({ data: unlocksAndIncentivesData.unlockUsdChart, groupBy })
+		}
+
+		if (extraTvlCharts?.staking && toggledMetrics.staking === 'true') {
+			const chartData = []
+			for (const date in extraTvlCharts.staking) {
+				chartData.push([+date * 1e3, extraTvlCharts.staking[date]])
+			}
+			charts['Staking'] = formatLineChart({ data: chartData, groupBy, dateInMs: true })
+		}
+
+		if (extraTvlCharts?.borrowed && toggledMetrics.borrowed === 'true') {
+			const chartData = []
+			for (const date in extraTvlCharts.borrowed) {
+				chartData.push([+date * 1e3, extraTvlCharts.borrowed[date]])
+			}
+			charts['Borrowed'] = formatLineChart({ data: chartData, groupBy, dateInMs: true })
 		}
 
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
