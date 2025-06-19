@@ -35,6 +35,8 @@ interface ChartPreviewProps {
 	itemName?: string
 	customColor?: string
 	multiSeries?: MultiPlotSeries[]
+	interpreterOutput?: any
+	highlights?: any
 }
 
 export function ChartPreview({
@@ -44,7 +46,9 @@ export function ChartPreview({
 	hasError,
 	itemName,
 	customColor,
-	multiSeries
+	multiSeries,
+	interpreterOutput,
+	highlights
 }: ChartPreviewProps) {
 	if (isLoading) {
 		return (
@@ -83,7 +87,17 @@ export function ChartPreview({
 				data: s.data
 			}
 		})
-		return <MultiSeriesChart series={series} valueSymbol="$" height="320px" hideDataZoom hideDownloadButton title="" />
+		return (
+			<MultiSeriesChart
+				series={series}
+				valueSymbol="$"
+				height="320px"
+				hideDataZoom
+				hideDownloadButton
+				title=""
+				highlights={highlights}
+			/>
+		)
 	}
 
 	if (!data || !chartType || data.length === 0) {

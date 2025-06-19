@@ -19,8 +19,9 @@ Prism.languages.llamascript = {
 		greedy: true
 	},
 	number: /\b\d+(\.\d+)?\b/,
-	keyword: /\b(plot|AND|OR|NOT|protocol|chain|token)\b/i,
-	function: /\b(ma|ema|diff|pctchange|if|volume|fees|revenue|tvl|mcap|price|medianApy|abs)\b/i,
+	keyword: /\b(plot|AND|OR|NOT|protocol|chain|token|vline|hline)\b/i,
+	function:
+		/\b(ma|ema|diff|pctchange|if|volume|fees|revenue|tvl|mcap|price|medianApy|abs|min|max|sum|mean|median|stddev|zscore|cumsum|lag|rolling|resample|normalize|clip|returns|drawdown)\b/i,
 	constant: /\b(null|true|false)\b/i,
 	operator: /==|!=|>=|<=|/,
 	punctuation: /[(),.\[\]]/,
@@ -338,7 +339,7 @@ export function ComposerTab({
 											}
 										})
 										return multiSeries.length > 0 ? (
-											<ChartPreview multiSeries={multiSeries} />
+											<ChartPreview multiSeries={multiSeries} highlights={interpreterOutput.highlights} />
 										) : (
 											<div className="text-xs text-gray-400">
 												No previewable data from script. Check your script for errors.

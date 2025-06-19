@@ -152,6 +152,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 				}
 			})
 		}
+		const highlights = output && output.highlights ? output.highlights : undefined
 		return (
 			<div className="p-4 h-full flex flex-col">
 				<div className="flex justify-between items-center mb-2 pr-28">
@@ -160,7 +161,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 					</div>
 				</div>
 				<div style={{ height: '300px', flexGrow: 1 }}>
-					<ChartPreview multiSeries={multiSeries} />
+					<ChartPreview multiSeries={multiSeries} highlights={highlights} />
 				</div>
 			</div>
 		)

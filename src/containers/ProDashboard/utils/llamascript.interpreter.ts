@@ -272,7 +272,15 @@ async function evaluateExpression(exprNode: any, context: LlamaScriptContext): P
 
 		if (funcName === 'ma' || funcName === 'ema') {
 			const series = args[0]
-			const window = args[1] || args[0]?.window || 14
+			let window = args[1] || args[0]?.window || 14
+			if (
+				Array.isArray(window) &&
+				window.length === 1 &&
+				Array.isArray(window[0]) &&
+				typeof window[0][1] === 'number'
+			) {
+				window = window[0][1]
+			}
 			if (!Array.isArray(series)) {
 				context.errors.push(`${funcName.toUpperCase()} expects a series as first argument`)
 				return undefined
@@ -348,6 +356,251 @@ async function evaluateExpression(exprNode: any, context: LlamaScriptContext): P
 			} else {
 				return [[Math.floor(Date.now() / 1000), condition ? thenVal : elseVal]]
 			}
+		}
+		if (funcName === 'drawdown') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('drawdown() expects a series')
+				return undefined
+			}
+			let peak = -Infinity
+			return series.map(([t, v]) => {
+				peak = Math.max(peak, v)
+				return [t, v - peak]
+			})
+		}
+		if (funcName === 'returns') {
+			const series = args[0]
+			const type = args[1] || 'simple'
+			if (!Array.isArray(series)) {
+				context.errors.push('returns() expects a series')
+				return undefined
+			}
+			if (type === 'log') {
+				return series.map(([t, v], i, arr) => [t, i === 0 ? null : Math.log(v / (arr[i - 1][1] || 1))])
+			} else {
+				return series.map(([t, v], i, arr) => [t, i === 0 ? null : (v - arr[i - 1][1]) / (arr[i - 1][1] || 1)])
+			}
+		}
+		if (funcName === 'clip') {
+			const series = args[0]
+			let min = args[1]
+			let max = args[2]
+			if (Array.isArray(min) && min.length === 1 && Array.isArray(min[0]) && typeof min[0][1] === 'number') {
+				min = min[0][1]
+			}
+			if (Array.isArray(max) && max.length === 1 && Array.isArray(max[0]) && typeof max[0][1] === 'number') {
+				max = max[0][1]
+			}
+			if (!Array.isArray(series)) {
+				context.errors.push('clip() expects a series')
+				return undefined
+			}
+			return series.map(([t, v]) => [t, Math.max(min, Math.min(max, v))])
+		}
+		if (funcName === 'normalize') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('normalize() expects a series')
+				return undefined
+			}
+			const values = series.map(([, v]) => v)
+			const min = Math.min(...values)
+			const max = Math.max(...values)
+			return series.map(([t, v]) => [t, (v - min) / (max - min || 1)])
+		}
+		if (funcName === 'hline') {
+			let value = args[0]
+			if (
+				Array.isArray(value) &&
+				value.length === 1 &&
+				Array.isArray(value[0]) &&
+				value[0].length === 2 &&
+				typeof value[0][1] === 'number'
+			) {
+				value = value[0][1]
+			}
+			const label = args.length > 1 ? args[1] : ''
+			context.highlights.push({ type: 'hline', value, label })
+			return null
+		}
+		if (funcName === 'vline') {
+			let timestamp = args[0]
+			if (
+				Array.isArray(timestamp) &&
+				timestamp.length === 1 &&
+				Array.isArray(timestamp[0]) &&
+				timestamp[0].length === 2 &&
+				typeof timestamp[0][0] === 'number'
+			) {
+				timestamp = timestamp[0][0]
+			}
+			const label = args.length > 1 ? args[1] : ''
+			context.highlights.push({ type: 'vline', timestamp, label })
+			return null
+		}
+		if (funcName === 'resample') {
+			const series = args[0]
+			let interval = args[1] || 86400
+			if (
+				Array.isArray(interval) &&
+				interval.length === 1 &&
+				Array.isArray(interval[0]) &&
+				typeof interval[0][1] === 'number'
+			) {
+				interval = interval[0][1]
+			}
+			if (!Array.isArray(series)) {
+				context.errors.push('resample() expects a series')
+				return undefined
+			}
+			const resampled: [number, number][] = []
+			let bucketStart = null
+			let bucket: [number, number][] = []
+			for (const [t, v] of series) {
+				if (bucketStart === null) bucketStart = t - (t % interval)
+				if (t >= bucketStart + interval) {
+					const avg = bucket.reduce((sum, [, val]) => sum + val, 0) / (bucket.length || 1)
+					resampled.push([bucketStart, avg])
+					bucketStart += interval
+					bucket = []
+				}
+				bucket.push([t, v])
+			}
+			if (bucket.length) {
+				const avg = bucket.reduce((sum, [, val]) => sum + val, 0) / (bucket.length || 1)
+				resampled.push([bucketStart, avg])
+			}
+			return resampled
+		}
+		if (funcName === 'rolling') {
+			const series = args[0]
+			let window = args[1] || 14
+			const func = args[2] || 'mean'
+			if (
+				Array.isArray(window) &&
+				window.length === 1 &&
+				Array.isArray(window[0]) &&
+				typeof window[0][1] === 'number'
+			) {
+				window = window[0][1]
+			}
+			if (!Array.isArray(series)) {
+				context.errors.push('rolling() expects a series')
+				return undefined
+			}
+			return series.map((_, i, arr) => {
+				if (i < window - 1) return [arr[i][0], null]
+				const slice = arr.slice(i - window + 1, i + 1).map(([, v]) => v)
+				if (func === 'mean') {
+					const mean = slice.reduce((sum, v) => sum + v, 0) / window
+					return [arr[i][0], mean]
+				}
+				if (func === 'sum') {
+					const sum = slice.reduce((sum, v) => sum + v, 0)
+					return [arr[i][0], sum]
+				}
+				if (func === 'stddev') {
+					const mean = slice.reduce((sum, v) => sum + v, 0) / window
+					const variance = slice.reduce((sum, v) => sum + (v - mean) ** 2, 0) / window
+					return [arr[i][0], Math.sqrt(variance)]
+				}
+				return [arr[i][0], null]
+			})
+		}
+		if (funcName === 'lag') {
+			const series = args[0]
+			let n = args[1] || 1
+			if (Array.isArray(n) && n.length === 1 && Array.isArray(n[0]) && typeof n[0][1] === 'number') {
+				n = n[0][1]
+			}
+			if (!Array.isArray(series)) {
+				context.errors.push('lag() expects a series')
+				return undefined
+			}
+			return series.map(([t, v], i, arr) => [t, i < n ? null : arr[i - n][1]])
+		}
+		if (funcName === 'cumsum') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('cumsum() expects a series')
+				return undefined
+			}
+			let sum = 0
+			return series.map(([t, v]) => {
+				sum += v
+				return [t, sum]
+			})
+		}
+		if (funcName === 'zscore') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('zscore() expects a series')
+				return undefined
+			}
+			const values = series.map(([, v]) => v)
+			const mean = values.reduce((sum, v) => sum + v, 0) / values.length
+			const std = Math.sqrt(values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length)
+			return series.map(([t, v]) => [t, (v - mean) / (std || 1)])
+		}
+		if (funcName === 'stddev') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('stddev() expects a series')
+				return undefined
+			}
+			const values = series.map(([, v]) => v)
+			const mean = values.reduce((sum, v) => sum + v, 0) / values.length
+			const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length
+			return [[series[series.length - 1][0], Math.sqrt(variance)]]
+		}
+		if (funcName === 'median') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('median() expects a series')
+				return undefined
+			}
+			const values = series.map(([, v]) => v).sort((a, b) => a - b)
+			const mid = Math.floor(values.length / 2)
+			const median = values.length % 2 !== 0 ? values[mid] : (values[mid - 1] + values[mid]) / 2
+			return [[series[series.length - 1][0], median]]
+		}
+		if (funcName === 'mean') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('mean() expects a series')
+				return undefined
+			}
+			const values = series.map(([, v]) => v)
+			const mean = values.reduce((sum, v) => sum + v, 0) / values.length
+			return [[series[series.length - 1][0], mean]]
+		}
+		if (funcName === 'sum') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('sum() expects a series')
+				return undefined
+			}
+			const sum = series.map(([, v]) => v).reduce((a, b) => a + b, 0)
+			return [[series[series.length - 1][0], sum]]
+		}
+		if (funcName === 'max') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('max() expects a series')
+				return undefined
+			}
+			const max = Math.max(...series.map(([, v]) => v))
+			return [[series[series.length - 1][0], max]]
+		}
+		if (funcName === 'min') {
+			const series = args[0]
+			if (!Array.isArray(series)) {
+				context.errors.push('min() expects a series')
+				return undefined
+			}
+			const min = Math.min(...series.map(([, v]) => v))
+			return [[series[series.length - 1][0], min]]
 		}
 	}
 
@@ -604,6 +857,7 @@ export async function interpretLlamaScriptCST(cst: CstNode): Promise<LlamaScript
 													dashed,
 													group
 												})
+												continue
 											}
 										}
 									}
@@ -611,12 +865,34 @@ export async function interpretLlamaScriptCST(cst: CstNode): Promise<LlamaScript
 							}
 						}
 					}
+					await evaluateExpression(node, context)
 				} else {
 					context.errors.push(`Unsupported statement type: ${node.name}`)
 				}
 			} catch (err: any) {
 				context.errors.push(`Interpreter error: ${err?.message || err}`)
 			}
+		}
+	}
+
+	const colorPalette = [
+		'#1f77b4',
+		'#ff7f0e',
+		'#2ca02c',
+		'#d62728',
+		'#9467bd',
+		'#8c564b',
+		'#e377c2',
+		'#7f7f7f',
+		'#bcbd22',
+		'#17becf'
+	]
+	let colorIdx = 0
+	for (let i = 0; i < context.plots.length; i++) {
+		const plot = context.plots[i]
+		if (!plot.color) {
+			plot.color = colorPalette[colorIdx % colorPalette.length]
+			colorIdx++
 		}
 	}
 
