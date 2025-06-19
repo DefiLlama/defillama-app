@@ -7,16 +7,16 @@ import { ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
-import { CACHE_SERVER, NFT_MARKETPLACES_VOLUME_API, TOKEN_LIQUIDITY_API } from '~/constants'
+import { CACHE_SERVER, NFT_MARKETPLACES_VOLUME_API, PROTOCOL_TREASURY_API, TOKEN_LIQUIDITY_API } from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
 	useFetchProtocolDevMetrics,
-	useFetchProtocolGasUsed,
 	useFetchProtocolGovernanceData,
 	useFetchProtocolMedianAPY,
 	useFetchProtocolNewUsers,
-	useFetchProtocolTransactions
+	useFetchProtocolTransactions,
+	useFetchProtocolTreasury
 } from '~/api/categories/protocols/client'
 import { fetchWithTimeout } from '~/utils/async'
 
@@ -414,26 +414,48 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.unlocks === 'true' && metrics.unlocks && isRouterReady ? true : false
 	})
 
-	const { data: activeAddressesData, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
-		isRouterReady && toggledMetrics.activeAddresses === 'true' && metrics.activeUsers ? protocolId : null
-	)
-	const { data: newAddressesData, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
-		isRouterReady && toggledMetrics.newAddresses === 'true' && metrics.activeUsers ? protocolId : null
-	)
-	const { data: transactionsData, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
-		isRouterReady && toggledMetrics.transactions === 'true' && metrics.activeUsers ? protocolId : null
-	)
-	// const { data: gasData, isLoading: fetchingGasUsed } = useFetchProtocolGasUsed(
-	// 	isRouterReady && toggledMetrics.gasUsed === 'true' && metrics.activeUsers ? protocolId : null
-	// )
-
-	console.log({ activeAddressesData, newAddressesData, transactionsData })
+	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery({
+		queryKey: ['treasury', name],
+		queryFn: () =>
+			fetch(`${PROTOCOL_TREASURY_API}/${slug(name)}`)
+				.then((res) => res.json())
+				.then((data) => {
+					const store = {}
+					for (const chain in data.chainTvls) {
+						if (chain.includes('-')) continue
+						for (const item of data.chainTvls[chain].tvl ?? []) {
+							store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
+						}
+					}
+					const finalChart = []
+					for (const date in store) {
+						finalChart.push([+date * 1e3, store[date]])
+					}
+					return finalChart
+				}),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: metrics.treasury && toggledMetrics.treasury === 'true' && isRouterReady ? true : false
+	})
 
 	const { data: medianAPYData = null, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
 		isRouterReady && toggledMetrics.medianApy === 'true' && metrics.yields && !protocolId.startsWith('parent#')
 			? slug(name)
 			: null
 	)
+
+	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
+		isRouterReady && toggledMetrics.activeAddresses === 'true' && metrics.activeUsers ? protocolId : null
+	)
+	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
+		isRouterReady && toggledMetrics.newAddresses === 'true' && metrics.activeUsers ? protocolId : null
+	)
+	const { data: transactionsData = null, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
+		isRouterReady && toggledMetrics.transactions === 'true' && metrics.activeUsers ? protocolId : null
+	)
+	// const { data: gasData, isLoading: fetchingGasUsed } = useFetchProtocolGasUsed(
+	// 	isRouterReady && toggledMetrics.gasUsed === 'true' && metrics.activeUsers ? protocolId : null
+	// )
 
 	const { data: governanceData = null, isLoading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
 		isRouterReady && toggledMetrics.governance === 'true' && governanceApis && governanceApis.length > 0
@@ -542,6 +564,9 @@ export const useFetchAndFormatChartData = ({
 		}
 		if (fetchingUnlocksAndIncentives) {
 			loadingCharts.push('Emissions')
+		}
+		if (fetchingTreasury) {
+			loadingCharts.push('Treasury')
 		}
 		if (fetchingMedianAPY) {
 			loadingCharts.push('Median APY')
@@ -891,6 +916,15 @@ export const useFetchAndFormatChartData = ({
 				groupBy
 			})
 		}
+
+		if (treasuryData && toggledMetrics.treasury === 'true') {
+			charts['Treasury'] = formatLineChart({
+				data: treasuryData,
+				groupBy,
+				dateInMs: true
+			})
+		}
+
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
 	}, [
 		toggledMetrics,
@@ -927,20 +961,22 @@ export const useFetchAndFormatChartData = ({
 		bridgeAggregatorsVolumeData,
 		fetchingUnlocksAndIncentives,
 		unlocksAndIncentivesData,
+		fetchingTreasury,
+		treasuryData,
 		fetchingMedianAPY,
 		medianAPYData,
-		fetchingGovernanceData,
-		governanceData,
-		fetchingDevMetrics,
-		devMetricsData,
-		fetchingNftVolume,
-		nftVolumeData,
 		fetchingActiveAddresses,
 		activeAddressesData,
 		fetchingNewAddresses,
 		newAddressesData,
 		fetchingTransactions,
 		transactionsData,
+		fetchingGovernanceData,
+		governanceData,
+		fetchingDevMetrics,
+		devMetricsData,
+		fetchingNftVolume,
+		nftVolumeData,
 		groupBy
 	])
 
@@ -1013,3 +1049,5 @@ const formatLineChart = ({
 	}
 	return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
 }
+
+// disabled: tweets, gas used
