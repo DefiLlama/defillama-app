@@ -119,6 +119,18 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			align: 'end'
 		}
 	},
+	{
+		id: 'chains',
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		meta: {
+			align: 'end',
+			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
+		},
+		size: 200
+	},
 	columnHelper.group({
 		id: 'tvl',
 		header: 'TVL',

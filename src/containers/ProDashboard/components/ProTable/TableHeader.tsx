@@ -6,6 +6,7 @@ interface TableHeaderProps {
 	chains: string[]
 	columnPresets: Record<string, string[]>
 	applyPreset: (presetName: string) => void
+	activePreset: string | null
 	showColumnPanel: boolean
 	setShowColumnPanel: (show: boolean) => void
 	downloadCSV: () => void
@@ -16,6 +17,7 @@ export function TableHeader({
 	chains,
 	columnPresets,
 	applyPreset,
+	activePreset,
 	showColumnPanel,
 	setShowColumnPanel,
 	downloadCSV,
@@ -37,7 +39,11 @@ export function TableHeader({
 						<button
 							key={preset}
 							onClick={() => applyPreset(preset)}
-							className="flex items-center gap-1 px-3 py-1.5 text-sm border pro-border pro-hover-bg pro-text1 capitalize transition-colors pro-bg1"
+							className={`flex items-center gap-1 px-3 py-1.5 text-sm border capitalize transition-colors ${
+								activePreset === preset
+									? 'bg-[var(--primary1)] text-white border-[var(--primary1)]'
+									: 'pro-border pro-hover-bg pro-text1 pro-bg1'
+							}`}
 						>
 							{preset}
 						</button>

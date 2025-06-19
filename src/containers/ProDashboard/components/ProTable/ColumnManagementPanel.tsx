@@ -52,6 +52,8 @@ interface ColumnManagementPanelProps {
 	columnOrder: string[]
 	addOption: (options: string[], setLocalStorage?: boolean) => void
 	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
+	moveColumnUp?: (columnKey: string) => void
+	moveColumnDown?: (columnKey: string) => void
 	customColumns?: CustomColumn[]
 	onAddCustomColumn?: (column: CustomColumn) => void
 	onRemoveCustomColumn?: (columnId: string) => void
@@ -67,6 +69,8 @@ export function ColumnManagementPanel({
 	columnOrder,
 	addOption,
 	toggleColumnVisibility,
+	moveColumnUp,
+	moveColumnDown,
 	customColumns = [],
 	onAddCustomColumn,
 	onRemoveCustomColumn,
@@ -94,12 +98,27 @@ export function ColumnManagementPanel({
 	}, [customColumnsForStandardView])
 
 	// Helper component for column buttons
-	const ColumnButton = ({ column, isActive, isCustom }: { column: any; isActive: boolean; isCustom?: boolean }) => {
+	const ColumnButton = ({
+		column,
+		isActive,
+		isCustom,
+		index
+	}: {
+		column: any
+		isActive: boolean
+		isCustom?: boolean
+		index?: number
+	}) => {
 		const description = isCustom
 			? customColumns.find((c) => c.id === column.key)?.expression || 'Custom column'
 			: metricDescriptions[column.key] || ''
 
 		if (isActive) {
+			const visibleColumnsInOrder = columnOrder.filter((key) => currentColumns[key])
+			const actualIndex = visibleColumnsInOrder.indexOf(column.key)
+			const isFirst = actualIndex === 0
+			const isLast = actualIndex === visibleColumnsInOrder.length - 1
+
 			return (
 				<Tooltip key={column.key} content={description} className="w-full">
 					<div className="flex items-center justify-between p-2 border pro-divider pro-hover-bg transition-colors pro-bg2 w-full">
@@ -108,12 +127,32 @@ export function ColumnManagementPanel({
 							<span className="text-xs pro-text1">{column.name}</span>
 							{isCustom && <span className="text-xs px-1 py-0.5 bg-[var(--primary1)] text-white rounded">Custom</span>}
 						</div>
-						<button
-							onClick={() => toggleColumnVisibility(column.key, false)}
-							className="pro-text3 hover:pro-text1 transition-colors"
-						>
-							<Icon name="x" height={12} width={12} />
-						</button>
+						<div className="flex items-center gap-1">
+							{moveColumnUp && !isFirst && (
+								<button
+									onClick={() => moveColumnUp(column.key)}
+									className="pro-text3 hover:pro-text1 transition-colors p-1"
+									title="Move up"
+								>
+									<Icon name="chevron-up" height={10} width={10} />
+								</button>
+							)}
+							{moveColumnDown && !isLast && (
+								<button
+									onClick={() => moveColumnDown(column.key)}
+									className="pro-text3 hover:pro-text1 transition-colors p-1"
+									title="Move down"
+								>
+									<Icon name="chevron-down" height={10} width={10} />
+								</button>
+							)}
+							<button
+								onClick={() => toggleColumnVisibility(column.key, false)}
+								className="pro-text3 hover:pro-text1 transition-colors p-1"
+							>
+								<Icon name="x" height={12} width={12} />
+							</button>
+						</div>
 					</div>
 				</Tooltip>
 			)
@@ -233,15 +272,17 @@ export function ColumnManagementPanel({
 								<Icon name="eye" height={12} width={12} />
 								Active Columns ({Object.values(currentColumns).filter(Boolean).length})
 							</h5>
-							<p className="text-xs pro-text3 mb-3">Click × to hide</p>
+							<p className="text-xs pro-text3 mb-3">Use arrows to reorder • Click × to hide</p>
 							<div className="space-y-1 max-h-60 overflow-y-auto thin-scrollbar">
 								{columnOrder
 									.filter((key) => currentColumns[key])
-									.map((columnKey) => {
+									.map((columnKey, index) => {
 										const column = allColumnsForDisplay.find((col) => col.key === columnKey)
 										if (!column) return null
 										const isCustom = customColumns.some((customCol) => customCol.id === columnKey)
-										return <ColumnButton key={columnKey} column={column} isActive={true} isCustom={isCustom} />
+										return (
+											<ColumnButton key={columnKey} column={column} isActive={true} isCustom={isCustom} index={index} />
+										)
 									})}
 							</div>
 						</div>
