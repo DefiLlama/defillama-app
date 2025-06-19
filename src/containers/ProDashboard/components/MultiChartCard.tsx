@@ -44,11 +44,13 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				value
 			])
 
+			const itemIdentifier = cfg.protocol || cfg.chain || 'unknown'
+
 			return {
 				name: `${name} ${meta?.title || cfg.type}`,
 				type: (meta?.chartType === 'bar' ? 'bar' : 'line') as 'bar' | 'line',
 				data,
-				color: generateChartColor(i, `${name}_${cfg.type}`, meta?.color || '#8884d8')
+				color: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
 			}
 		})
 
