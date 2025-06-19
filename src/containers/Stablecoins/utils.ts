@@ -1,5 +1,5 @@
 import { keepNeededProperties } from '~/api/shared'
-import { formattedNum, getPercentChange } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
 
 export const getPrevStablecoinTotalFromChart = (chart, daysBefore, issuanceType, pegType = '') => {
 	if (!chart) return null
@@ -222,7 +222,7 @@ export const formatPeggedAssetsData = ({
 
 	if (chain) {
 		filteredPeggedAssets = filteredPeggedAssets.filter(({ chains = [] }) =>
-			chains.map((c) => c.toLowerCase()).includes(chain.toLowerCase())
+			chains.map((c) => slug(c)).includes(slug(chain))
 		)
 	}
 
