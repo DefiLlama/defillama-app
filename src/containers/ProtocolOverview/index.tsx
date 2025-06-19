@@ -236,7 +236,6 @@ const KeyMetrics = (
 	props: IProtocolOverviewPageData & { formatPrice: (value: number | string | null) => string | number | null }
 ) => {
 	if (!props.hasKeyMetrics) return null
-
 	return (
 		<div className="flex flex-col flex-1 gap-2">
 			<h2 className="font-semibold">Key Metrics</h2>
@@ -1739,5 +1738,6 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 // unlocks
 // governance
 // newly listed protocol data
+// tvl is false for olympus dao (test opensea page when fixed)
 
 // % change tvl, mcap, token price, etc.

@@ -845,6 +845,22 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Borrowed')
 	}
 
+	let inflowsExist = false
+	for (const chain in protocolData.chainTvls) {
+		if (protocolData.chainTvls[chain].tokensInUsd?.length) {
+			inflowsExist = true
+			break
+		}
+	}
+
+	if (inflowsExist) {
+		availableCharts.push('USD Inflows')
+	}
+
+	if (treasury) {
+		availableCharts.push('Treasury')
+	}
+
 	if (metadata.activeUsers) {
 		availableCharts.push('Active Addresses')
 		availableCharts.push('New Addresses')
@@ -860,10 +876,6 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Total Proposals')
 		availableCharts.push('Successful Proposals')
 		availableCharts.push('Max Votes')
-	}
-
-	if (treasury) {
-		availableCharts.push('Treasury')
 	}
 
 	if (protocolData.devMetrics) {
@@ -947,7 +959,7 @@ export const getProtocolOverviewPageData = async ({
 		incentives,
 		devMetrics: protocolData.devMetrics ?? null,
 		users,
-		raises,
+		raises: raises?.length ? raises : null,
 		expenses: expenses
 			? {
 					headcount: expenses.headcount ?? null,

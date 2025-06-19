@@ -7,7 +7,13 @@ import { ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
-import { CACHE_SERVER, NFT_MARKETPLACES_VOLUME_API, PROTOCOL_TREASURY_API, TOKEN_LIQUIDITY_API } from '~/constants'
+import {
+	CACHE_SERVER,
+	NFT_MARKETPLACES_VOLUME_API,
+	PROTOCOL_API,
+	PROTOCOL_TREASURY_API,
+	TOKEN_LIQUIDITY_API
+} from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
@@ -15,8 +21,7 @@ import {
 	useFetchProtocolGovernanceData,
 	useFetchProtocolMedianAPY,
 	useFetchProtocolNewUsers,
-	useFetchProtocolTransactions,
-	useFetchProtocolTreasury
+	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
 import { fetchWithTimeout } from '~/utils/async'
 
@@ -438,6 +443,29 @@ export const useFetchAndFormatChartData = ({
 		enabled: metrics.treasury && toggledMetrics.treasury === 'true' && isRouterReady ? true : false
 	})
 
+	const { data: usdInflowsData = null, isLoading: fetchingUsdInflows } = useQuery({
+		queryKey: ['usdInflows', name],
+		queryFn: () =>
+			fetch(`https://api.llama.fi/protocol/${slug(name)}`)
+				.then((res) => res.json())
+				.then((data) => {
+					const store = {}
+					for (const item of data.tokensInUsd) {
+						for (const token in item.tokens) {
+							store[item.date] = (store[item.date] ?? 0) + (item.tokens?.[token] ?? 0)
+						}
+					}
+					const finalChart = []
+					for (const date in store) {
+						finalChart.push([+date * 1e3, store[date]])
+					}
+					return finalChart
+				}),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: metrics.tvl && toggledMetrics.usdInflows === 'true' && isRouterReady ? true : false
+	})
+
 	const { data: medianAPYData = null, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
 		isRouterReady && toggledMetrics.medianApy === 'true' && metrics.yields && !protocolId.startsWith('parent#')
 			? slug(name)
@@ -567,6 +595,9 @@ export const useFetchAndFormatChartData = ({
 		}
 		if (fetchingTreasury) {
 			loadingCharts.push('Treasury')
+		}
+		if (fetchingUsdInflows) {
+			loadingCharts.push('USD Inflows')
 		}
 		if (fetchingMedianAPY) {
 			loadingCharts.push('Median APY')
@@ -925,6 +956,14 @@ export const useFetchAndFormatChartData = ({
 			})
 		}
 
+		if (usdInflowsData && toggledMetrics.usdInflows === 'true') {
+			charts['USD Inflows'] = formatBarChart({
+				data: usdInflowsData,
+				groupBy,
+				dateInMs: true
+			})
+		}
+
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
 	}, [
 		toggledMetrics,
@@ -963,6 +1002,8 @@ export const useFetchAndFormatChartData = ({
 		unlocksAndIncentivesData,
 		fetchingTreasury,
 		treasuryData,
+		fetchingUsdInflows,
+		usdInflowsData,
 		fetchingMedianAPY,
 		medianAPYData,
 		fetchingActiveAddresses,
