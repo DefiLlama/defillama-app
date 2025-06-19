@@ -69,10 +69,15 @@ const PROPERTY_MAPPINGS = {
 		price: (id: string) => ProtocolCharts.tokenPrice('', id),
 		volume: (id: string) => ProtocolCharts.tokenVolume('', id),
 		marketCap: (id: string) => ProtocolCharts.tokenMcap('', id)
+	},
+	'protocol+chain': {
+		tvl: async (protocolChain: { protocolId: string; chainId: string }) => {
+			const { protocolId, chainId } = protocolChain
+			return ProtocolCharts.tvl(protocolId, chainId)
+		}
 	}
 } as const
 
-// Utility to resolve a value, throwing if it's an entity (protocol/chain/token) used as a value
 function resolveValue(val: any, context: LlamaScriptContext, varName?: string): any {
 	if (
 		val &&
@@ -83,11 +88,12 @@ function resolveValue(val: any, context: LlamaScriptContext, varName?: string): 
 		typeof val !== 'number' &&
 		typeof val !== 'string'
 	) {
-		context.errors.push(
-			`Variable${
-				varName ? ` '${varName}'` : ''
-			} is a ${val.__llamaType.toUpperCase()} entity but no data property (e.g. .tvl, .volume) was selected. Please select a property.`
-		)
+		const errorMsg = `Variable${
+			varName ? ` '${varName}'` : ''
+		} is a ${val.__llamaType.toUpperCase()} entity but no data property (e.g. .tvl, .volume) was selected. Please select a property.`
+		if (!context.errors.includes(errorMsg)) {
+			context.errors.push(errorMsg)
+		}
 		return undefined
 	}
 	return val
@@ -134,15 +140,25 @@ async function evaluateProperty(base: any, prop: string, context: LlamaScriptCon
 	if (base && base.__llamaType) {
 		const typeMapping = PROPERTY_MAPPINGS[base.__llamaType as keyof typeof PROPERTY_MAPPINGS]
 		if (typeMapping && prop in typeMapping) {
-			const cacheKey = `${base.id}-${prop}`
+			const cacheKey =
+				base.__llamaType === 'protocol+chain' ? `${base.protocolId}-${base.chainId}-${prop}` : `${base.id}-${prop}`
 			if (context.cache[cacheKey] !== undefined) {
 				return context.cache[cacheKey]
 			}
-			const result = await typeMapping[prop as keyof typeof typeMapping](base.id)
+			let result
+			if (base.__llamaType === 'protocol+chain') {
+				result = await (typeMapping[prop] as any)(base)
+			} else {
+				result = await (typeMapping[prop] as any)(base.id)
+			}
 			context.cache[cacheKey] = result
 			return result
 		} else {
-			context.errors.push(`Property ${prop} not found on ${base.__llamaType.toUpperCase()}(${base.id})`)
+			context.errors.push(
+				`Property ${prop} not found on ${base.__llamaType.toUpperCase()}(${
+					base.id || base.protocolId + ',' + base.chainId
+				})`
+			)
 			return undefined
 		}
 	}
@@ -235,6 +251,10 @@ async function evaluateExpression(exprNode: any, context: LlamaScriptContext): P
 		}
 		if (funcName === 'protocol') {
 			const protocolId = args[0]
+			const chainId = args[1]
+			if (typeof protocolId === 'string' && typeof chainId === 'string') {
+				return { __llamaType: 'protocol+chain', protocolId, chainId }
+			}
 			if (typeof protocolId === 'string') {
 				return { __llamaType: 'protocol', id: protocolId }
 			}
@@ -521,9 +541,35 @@ export async function interpretLlamaScriptCST(cst: CstNode): Promise<LlamaScript
 													}
 												}
 												if (evalArgs.length > 0 && Array.isArray(evalArgs[0]) && evalArgs[0].length === 0) {
-													context.errors.push(
-														'The data series for the plot is empty or unavailable. Please check your data source.'
-													)
+													let exprDesc = undefined
+													const arg0 = args[0]
+													if (arg0 && arg0.children) {
+														if (
+															arg0.children.Identifier &&
+															arg0.children.Identifier[0] &&
+															arg0.children.Identifier[0].image
+														) {
+															exprDesc = arg0.children.Identifier[0].image
+														} else if (
+															arg0.children.StringLiteral &&
+															arg0.children.StringLiteral[0] &&
+															arg0.children.StringLiteral[0].image
+														) {
+															exprDesc = arg0.children.StringLiteral[0].image
+														} else if (
+															arg0.children.LParen &&
+															arg0.children.Identifier &&
+															arg0.children.Identifier[0]
+														) {
+															exprDesc = arg0.children.Identifier[0].image + '()'
+														}
+													}
+													const errorMsg = exprDesc
+														? `The data series for the plot is empty or unavailable for: ${exprDesc}. Please check your data source.`
+														: 'The data series for the plot is empty or unavailable. Please check your data source.'
+													if (!context.errors.includes(errorMsg)) {
+														context.errors.push(errorMsg)
+													}
 													continue
 												}
 												let label = undefined
