@@ -6,8 +6,9 @@ import dynamic from 'next/dynamic'
 import { ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
-import { firstDayOfMonth, lastDayOfWeek } from '~/utils'
+import { firstDayOfMonth, lastDayOfWeek, slug } from '~/utils'
 import { CACHE_SERVER, TOKEN_LIQUIDITY_API } from '~/constants'
+import { getProtocolEmissons } from '~/api/categories/protocols'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
@@ -347,7 +348,7 @@ export const useFetchAndFormatChartData = ({
 			enabled: toggledMetrics.optionsNotionalVolume === 'true' && metrics.options && isRouterReady ? true : false
 		})
 
-	const { data: aggregatorsVolumeData = null, isLoading: fetchingDEXAggregatorVolume } = useQuery<IAdapterSummary>({
+	const { data: dexAggregatorsVolumeData = null, isLoading: fetchingDexAggregatorVolume } = useQuery<IAdapterSummary>({
 		queryKey: ['dexAggregatorVolume'],
 		queryFn: () =>
 			getAdapterProtocolSummary({
@@ -392,6 +393,14 @@ export const useFetchAndFormatChartData = ({
 			enabled:
 				toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators && isRouterReady ? true : false
 		})
+
+	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
+		queryKey: ['unlocks', name],
+		queryFn: () => getProtocolEmissons(slug(name)),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: toggledMetrics.unlocks === 'true' && metrics.unlocks && isRouterReady ? true : false
+	})
 
 	const showNonUsdDenomination =
 		toggledMetrics.denomination &&
@@ -452,7 +461,7 @@ export const useFetchAndFormatChartData = ({
 		if (fetchingOptionsNotionalVolume) {
 			loadingCharts.push('Options Notional Volume')
 		}
-		if (fetchingDEXAggregatorVolume) {
+		if (fetchingDexAggregatorVolume) {
 			loadingCharts.push('DEX Aggregator Volume')
 		}
 		if (fetchingPerpAggregatorVolume) {
@@ -460,6 +469,9 @@ export const useFetchAndFormatChartData = ({
 		}
 		if (fetchingBridgeAggregatorVolume) {
 			loadingCharts.push('Bridge Aggregator Volume')
+		}
+		if (fetchingUnlocksAndIncentives) {
+			loadingCharts.push('Unlocks, Incentives')
 		}
 
 		if (loadingCharts.length > 0) {
@@ -617,8 +629,8 @@ export const useFetchAndFormatChartData = ({
 			charts['Options Notional Volume'] = formatBarChart({ data: optionsNotionalVolumeData.totalDataChart, groupBy })
 		}
 
-		if (aggregatorsVolumeData) {
-			charts['DEX Aggregator Volume'] = formatBarChart({ data: aggregatorsVolumeData.totalDataChart, groupBy })
+		if (dexAggregatorsVolumeData) {
+			charts['DEX Aggregator Volume'] = formatBarChart({ data: dexAggregatorsVolumeData.totalDataChart, groupBy })
 		}
 
 		if (perpsAggregatorsVolumeData) {
@@ -632,37 +644,67 @@ export const useFetchAndFormatChartData = ({
 			})
 		}
 
+		if (unlocksAndIncentivesData?.chartData?.documented.length > 0) {
+			const isWeekly = groupBy === 'weekly'
+			const isMonthly = groupBy === 'monthly'
+			const store = {}
+			for (const { date, ...rest } of unlocksAndIncentivesData.chartData.documented) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1000) : isMonthly ? firstDayOfMonth(+date * 1000) : date
+				let total = 0
+				for (const label in rest) {
+					total += rest[label]
+				}
+				store[dateKey] = (store[dateKey] ?? 0) + total
+			}
+
+			const finalChart = []
+			for (const date in store) {
+				finalChart.push([+date * 1e3, store[date]])
+			}
+
+			charts['Unlocks'] = finalChart
+		}
+
+		if (unlocksAndIncentivesData?.unlockUsdChart) {
+			charts['Incentives'] = formatBarChart({ data: unlocksAndIncentivesData.unlockUsdChart, groupBy })
+		}
+
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
 	}, [
 		toggledMetrics,
 		tvlChart,
-		feesData,
-		revenueData,
-		holdersRevenueData,
-		bribesData,
-		tokenTaxesData,
-		dexVolumeData,
-		perpsVolumeData,
-		optionsPremiumVolumeData,
-		optionsNotionalVolumeData,
-		aggregatorsVolumeData,
-		perpsAggregatorsVolumeData,
-		bridgeAggregatorsVolumeData,
-		fetchingFees,
-		fetchingRevenue,
-		fetchingHoldersRevenue,
-		fetchingBribes,
-		fetchingTokenTaxes,
-		fetchingDexVolume,
-		fetchingPerpVolume,
-		fetchingOptionsPremiumVolume,
-		fetchingOptionsNotionalVolume,
-		fetchingDEXAggregatorVolume,
-		fetchingPerpAggregatorVolume,
-		fetchingBridgeAggregatorVolume,
 		fetchingProtocolTokenData,
+		protocolTokenData,
 		fetchingTokenTotalSupply,
+		tokenTotalSupply,
 		fetchingTokenLiquidity,
+		tokenLiquidityData,
+		fetchingFees,
+		feesData,
+		fetchingRevenue,
+		revenueData,
+		fetchingHoldersRevenue,
+		holdersRevenueData,
+		fetchingBribes,
+		bribesData,
+		fetchingTokenTaxes,
+		tokenTaxesData,
+		fetchingDexVolume,
+		dexVolumeData,
+		fetchingPerpVolume,
+		perpsVolumeData,
+		fetchingOptionsPremiumVolume,
+		optionsPremiumVolumeData,
+		fetchingOptionsNotionalVolume,
+		optionsNotionalVolumeData,
+		fetchingDexAggregatorVolume,
+		dexAggregatorsVolumeData,
+		fetchingPerpAggregatorVolume,
+		perpsAggregatorsVolumeData,
+		fetchingBridgeAggregatorVolume,
+		bridgeAggregatorsVolumeData,
+		fetchingUnlocksAndIncentives,
+		unlocksAndIncentivesData,
 		groupBy
 	])
 

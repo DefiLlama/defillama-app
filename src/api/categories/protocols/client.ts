@@ -20,6 +20,7 @@ import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Gove
 import { buildProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useQuery } from '@tanstack/react-query'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
+import { slug } from '~/utils'
 
 export const useFetchProtocolsList = () => {
 	return useQuery({
@@ -299,16 +300,17 @@ export const useGetProtocolsList = ({ chain }) => {
 
 export const useGetProtocolEmissions = (protocol?: string | null) => {
 	return useQuery({
-		queryKey: [`unlocksData/${protocol}`],
-		queryFn: protocol ? () => getProtocolEmissons(protocol) : () => null,
+		queryKey: ['emissions', protocol],
+		queryFn: () => getProtocolEmissons(slug(protocol)),
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocol
 	})
 }
 
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
 	return useQuery({
-		queryKey: [`twitterData/${twitter}`],
+		queryKey: ['twitterData', twitter],
 		queryFn: twitter
 			? () =>
 					fetchApi(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((res) =>
@@ -316,7 +318,8 @@ export const useFetchProtocolTwitter = (twitter?: string | null) => {
 					)
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!twitter
 	})
 }
 

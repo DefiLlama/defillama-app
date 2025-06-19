@@ -819,6 +819,14 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Bridge Aggregator Volume')
 	}
 
+	if (metadata.emissions) {
+		availableCharts.push('Unlocks')
+	}
+
+	if (incentives) {
+		availableCharts.push('Incentives')
+	}
+
 	const allColors = getNDistinctColors(availableCharts.length, pageStyles?.['--primary-color'] ?? oldBlue)
 	const chartColors = {}
 	availableCharts.forEach((chart, index) => {

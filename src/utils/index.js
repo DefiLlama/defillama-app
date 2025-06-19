@@ -390,10 +390,11 @@ export function getNDistinctColors(n, colorToAvoid) {
 		let colorHsl
 
 		do {
+			// Use larger modulo values to prevent repetition patterns
 			// Vary saturation for better distinction while keeping colors rich
-			const saturation = 70 + (i % 4) * 8
-			// Keep colors dark (lightness 20-40)
-			const lightness = 25 + (i % 3) * 8
+			const saturation = 65 + (i % 7) * 5 // 7 different saturation values: 65, 70, 75, 80, 85, 90, 95
+			// Keep colors dark (lightness 20-45)
+			const lightness = 20 + (i % 6) * 5 // 6 different lightness values: 20, 25, 30, 35, 40, 45
 
 			color = hslToHex(hue * 360, saturation, lightness)
 			colorHsl = hexToHSL(color)
@@ -411,8 +412,8 @@ export function getNDistinctColors(n, colorToAvoid) {
 		// If we still can't find a distinct color, force a very different hue
 		if (attempts >= 10) {
 			hue = (hue + 0.5) % 1 // Jump to opposite side of color wheel
-			const saturation = 70 + (i % 4) * 8
-			const lightness = 25 + (i % 3) * 8
+			const saturation = 65 + (i % 7) * 5
+			const lightness = 20 + (i % 6) * 5
 			color = hslToHex(hue * 360, saturation, lightness)
 		}
 
@@ -435,8 +436,8 @@ export function getNDistinctColors(n, colorToAvoid) {
 				while (!replacementFound && attempts < 20) {
 					// Use a different hue strategy for replacement
 					const replacementHue = Math.random() * 360 // Random hue
-					const saturation = 70 + (attempts % 4) * 8
-					const lightness = 25 + (attempts % 3) * 8
+					const saturation = 65 + (attempts % 7) * 5
+					const lightness = 20 + (attempts % 6) * 5
 
 					const replacementColor = hslToHex(replacementHue, saturation, lightness)
 					const replacementHsl = hexToHSL(replacementColor)
