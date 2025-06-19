@@ -135,7 +135,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 				name: `${props.chainTokenInfo?.token_symbol} Volume`,
 				isVisible: props.chainTokenInfo?.token_symbol ? true : false
 			}
-		]
+		].filter((o) => o.isVisible)
 
 		const hasAtleasOneBarChart = chartOptions.reduce((acc, curr) => {
 			if (curr.isVisible && BAR_CHARTS.includes(curr.name) && router.query[curr.id] === 'true') {
@@ -760,30 +760,28 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 					<div className="flex items-center flex-wrap gap-2 mr-auto">
-						{chartOptions
-							.filter((o) => o.isVisible)
-							.map(({ id, name }) => (
-								<Switch
-									key={id + 'chart-option'}
-									label={name}
-									value={id}
-									onChange={() => {
-										updateRoute(
-											id,
-											id === 'tvl'
-												? router.query[id] !== 'false'
-													? 'false'
-													: 'true'
-												: router.query[id] === 'true'
+						{chartOptions.map(({ id, name }) => (
+							<Switch
+								key={id + 'chart-option'}
+								label={name}
+								value={id}
+								onChange={() => {
+									updateRoute(
+										id,
+										id === 'tvl'
+											? router.query[id] !== 'false'
 												? 'false'
-												: 'true',
-											router
-										)
-									}}
-									checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
-									switchColors={chainOverviewChartSwitchColors[id]}
-								/>
-							))}
+												: 'true'
+											: router.query[id] === 'true'
+											? 'false'
+											: 'true',
+										router
+									)
+								}}
+								checked={id === 'tvl' ? router.query[id] !== 'false' : router.query[id] === 'true'}
+								switchColors={chainOverviewChartSwitchColors[id]}
+							/>
+						))}
 					</div>
 
 					{DENOMINATIONS.length > 1 ? (

@@ -337,7 +337,7 @@ export const buildProtocolAddlChartsData = ({
 	return {}
 }
 
-export const formatRaise = (raise: IRaise) => {
+export const formatRaise = (raise: Omit<IRaise, 'defillamaId'>) => {
 	let text = ''
 
 	if (raise.round) {
@@ -379,7 +379,7 @@ export const useFetchProtocolAddlChartsData = (protocolName) => {
 			addlProtocolData ? true : false,
 			JSON.stringify(extraTvlsEnabled)
 		],
-		queryFn: () => buildProtocolAddlChartsData({ protocolData: addlProtocolData, extraTvlsEnabled }),
+		queryFn: () => buildProtocolAddlChartsData({ protocolData: addlProtocolData as any, extraTvlsEnabled }),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000
 	})

@@ -13,6 +13,7 @@ interface SubmitButtonProps {
 	chartTypesLoading: boolean
 	selectedTableType?: CombinedTableType
 	selectedDatasetChain?: string | null
+	selectedTokens?: string[]
 	onSubmit: () => void
 	selectedTab?: 'charts' | 'script'
 	script?: string
@@ -36,7 +37,8 @@ export function SubmitButton({
 	selectedTab = 'charts',
 	script = '',
 	composerChartName = '',
-	onAddLlamaScriptChart
+	onAddLlamaScriptChart,
+	selectedTokens = []
 }: SubmitButtonProps) {
 	const isComposerScriptValid = selectedTab === 'script' && script.trim() && composerChartName.trim()
 	const isComposerChartsValid = selectedTab === 'charts' && composerItems.length > 0
@@ -49,6 +51,9 @@ export function SubmitButton({
 			selectedTableType === 'protocols' &&
 			(!selectedChains || selectedChains.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
+		(selectedMainTab === 'table' &&
+			selectedTableType === 'token-usage' &&
+			(!selectedTokens || selectedTokens.length === 0)) ||
 		(selectedMainTab === 'composer' && !(isComposerChartsValid || isComposerScriptValid)) ||
 		(selectedMainTab === 'text' && !textContent.trim())
 

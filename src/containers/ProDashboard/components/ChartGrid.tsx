@@ -5,7 +5,7 @@ import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { ChartCard } from './ChartCard'
 import { TextCard } from './TextCard'
 import { ProtocolsByChainTable } from './ProTable'
-import { StablecoinsDataset, CexDataset, RevenueDataset, HoldersRevenueDataset, EarningsDataset } from './datasets'
+import { StablecoinsDataset, CexDataset, RevenueDataset, HoldersRevenueDataset, EarningsDataset, TokenUsageDataset } from './datasets'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
@@ -20,7 +20,7 @@ interface ChartGridProps {
 }
 
 export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
-	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, isReadOnly } = useProDashboard()
+	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem, isReadOnly } = useProDashboard()
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -68,6 +68,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											<HoldersRevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
 										) : item.datasetType === 'earnings' ? (
 											<EarningsDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
+										) : item.datasetType === 'token-usage' ? (
+											<TokenUsageDataset 
+												key={`${item.id}-${item.colSpan}`} 
+												config={item}
+												onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} 
+											/>
 										) : (
 											<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
 										)
@@ -145,6 +151,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 													<HoldersRevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
 												) : item.datasetType === 'earnings' ? (
 													<EarningsDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
+												) : item.datasetType === 'token-usage' ? (
+													<TokenUsageDataset 
+														key={`${item.id}-${item.colSpan}`} 
+														config={item}
+														onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} 
+													/>
 												) : (
 													<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
 												)

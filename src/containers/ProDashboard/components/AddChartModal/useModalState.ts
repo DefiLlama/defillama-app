@@ -17,6 +17,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [textContent, setTextContent] = useState<string>('')
 	const [selectedTableType, setSelectedTableType] = useState<CombinedTableType>('protocols')
 	const [selectedDatasetChain, setSelectedDatasetChain] = useState<string | null>(null)
+	const [selectedTokens, setSelectedTokens] = useState<string[]>([])
+	const [includeCex, setIncludeCex] = useState<boolean>(false)
 
 	// Initialize state based on editItem
 	useEffect(() => {
@@ -50,6 +52,10 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				if (editItem.tableType === 'dataset') {
 					setSelectedTableType(editItem.datasetType || 'stablecoins')
 					setSelectedDatasetChain(editItem.datasetChain || null)
+					if (editItem.datasetType === 'token-usage') {
+						setSelectedTokens(editItem.tokenSymbols || [])
+						setIncludeCex(editItem.includeCex || false)
+					}
 				} else {
 					setSelectedTableType('protocols')
 				}
@@ -74,6 +80,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setTextContent('')
 			setSelectedTableType('protocols')
 			setSelectedDatasetChain(null)
+			setSelectedTokens([])
+			setIncludeCex(false)
 		}
 	}, [editItem, isOpen])
 
@@ -89,6 +97,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedProtocol(null)
 		setSelectedTableType('protocols')
 		setSelectedDatasetChain(null)
+		setSelectedTokens([])
+		setIncludeCex(false)
 	}
 
 	const state: ModalState = {
@@ -105,7 +115,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		textTitle,
 		textContent,
 		selectedTableType,
-		selectedDatasetChain
+		selectedDatasetChain,
+		selectedTokens,
+		includeCex
 	}
 
 	return {
@@ -124,7 +136,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setTextTitle,
 			setTextContent,
 			setSelectedTableType,
-			setSelectedDatasetChain
+			setSelectedDatasetChain,
+			setSelectedTokens,
+			setIncludeCex
 		},
 		resetState
 	}
