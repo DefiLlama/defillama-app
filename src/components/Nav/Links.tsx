@@ -274,6 +274,12 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Icon name="pie-chart" height={16} width={16} />
 	},
+	'Pro Dashboard': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Icon name="database" height={16} width={16} />,
+		newTag: true
+	},
 	'CEX Transparency': {
 		main: [],
 		...defaultToolsAndFooterLinks,
@@ -364,5 +370,6 @@ export const linksWithNoSubMenu = [
 	{ name: 'ETH Liquid Staking', url: '/lst' },
 	{ name: 'ETFs', url: '/etfs' },
 	{ name: 'Pro API', url: '/pro-api' },
-	{ name: 'Narrative Tracker', url: '/narrative-tracker' }
+	{ name: 'Narrative Tracker', url: '/narrative-tracker' },
+	{ name: 'Pro Dashboard', url: '/pro' }
 ]

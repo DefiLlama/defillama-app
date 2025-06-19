@@ -16,7 +16,6 @@ const exclude = [
 	'NeoBurger',
 	'MochiFi',
 	'StakeHound',
-	'Mento',
 	'Lightning Network',
 	'Secret Bridge',
 	'Karura Swap',
