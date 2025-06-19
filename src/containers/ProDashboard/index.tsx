@@ -6,7 +6,7 @@ import { ChartGrid } from './components/ChartGrid'
 import { EmptyState } from './components/EmptyState'
 import { DemoPreview } from './components/DemoPreview'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { LoadingSpinner } from './components/LoadingSpinner'
+import { ProDashboardLoader } from './components/ProDashboardLoader'
 import { useProDashboard, TimePeriod } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -60,14 +60,6 @@ function ProDashboardContent() {
 			setIsEditingName(false)
 			saveDashboardName()
 		}
-	}
-
-	if (isSubLoading || isLoadingDashboard) {
-		return (
-			<div className="flex justify-center items-center h-[40vh]">
-				<LoadingSpinner />
-			</div>
-		)
 	}
 
 	if (!isAuthenticated && subscription?.status !== 'active') {
@@ -258,12 +250,6 @@ function ProDashboardContent() {
 				<div className="bg-[var(--bg3)] border border-[var(--divider)] p-3 mb-4 text-sm pro-text2">
 					<Icon name="help-circle" height={16} width={16} className="inline mr-2" />
 					Sign in to save and manage multiple dashboards
-				</div>
-			)}
-
-			{protocolsLoading && items.length === 0 && (
-				<div className="flex items-center justify-center h-40">
-					<LoadingSpinner />
 				</div>
 			)}
 

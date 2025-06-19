@@ -8,7 +8,7 @@ import { DemoPreview } from '~/containers/ProDashboard/components/DemoPreview'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { LoadingSpinner } from '~/containers/ProDashboard/components/LoadingSpinner'
+import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 
 export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 	return {
@@ -19,8 +19,8 @@ export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 
 function ProPageContent() {
 	const router = useRouter()
-	const { subscription, isLoading: isSubLoading } = useSubscribe()
-	const { isAuthenticated } = useAuthContext()
+	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const { isAuthenticated, loaders } = useAuthContext()
 	const { dashboards, isLoadingDashboards, createNewDashboard, deleteDashboard } = useProDashboard()
 
 	const handleSelectDashboard = (dashboardId: string) => {
@@ -31,12 +31,12 @@ function ProPageContent() {
 		await deleteDashboard(dashboardId)
 	}
 
-	if (isSubLoading) {
+	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
+
+	if (isAccountLoading) {
 		return (
 			<Layout title="DefiLlama - Pro Dashboard">
-				<div className="flex justify-center items-center h-[40vh]">
-					<LoadingSpinner />
-				</div>
+				<ProDashboardLoader />
 			</Layout>
 		)
 	}
