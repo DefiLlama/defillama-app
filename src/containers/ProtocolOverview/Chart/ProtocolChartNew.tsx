@@ -10,9 +10,13 @@ import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/util
 import { CACHE_SERVER, NFT_MARKETPLACES_VOLUME_API, TOKEN_LIQUIDITY_API } from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
+	useFetchProtocolActiveUsers,
 	useFetchProtocolDevMetrics,
+	useFetchProtocolGasUsed,
 	useFetchProtocolGovernanceData,
-	useFetchProtocolMedianAPY
+	useFetchProtocolMedianAPY,
+	useFetchProtocolNewUsers,
+	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
 import { fetchWithTimeout } from '~/utils/async'
 
@@ -410,6 +414,21 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.unlocks === 'true' && metrics.unlocks && isRouterReady ? true : false
 	})
 
+	const { data: activeAddressesData, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
+		isRouterReady && toggledMetrics.activeAddresses === 'true' && metrics.activeUsers ? protocolId : null
+	)
+	const { data: newAddressesData, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
+		isRouterReady && toggledMetrics.newAddresses === 'true' && metrics.activeUsers ? protocolId : null
+	)
+	const { data: transactionsData, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
+		isRouterReady && toggledMetrics.transactions === 'true' && metrics.activeUsers ? protocolId : null
+	)
+	// const { data: gasData, isLoading: fetchingGasUsed } = useFetchProtocolGasUsed(
+	// 	isRouterReady && toggledMetrics.gasUsed === 'true' && metrics.activeUsers ? protocolId : null
+	// )
+
+	console.log({ activeAddressesData, newAddressesData, transactionsData })
+
 	const { data: medianAPYData = null, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
 		isRouterReady && toggledMetrics.medianApy === 'true' && metrics.yields && !protocolId.startsWith('parent#')
 			? slug(name)
@@ -535,6 +554,15 @@ export const useFetchAndFormatChartData = ({
 		}
 		if (fetchingNftVolume) {
 			loadingCharts.push('NFT Volume')
+		}
+		if (fetchingActiveAddresses) {
+			loadingCharts.push('Active Addresses')
+		}
+		if (fetchingNewAddresses) {
+			loadingCharts.push('New Addresses')
+		}
+		if (fetchingTransactions) {
+			loadingCharts.push('Transactions')
 		}
 
 		if (loadingCharts.length > 0) {
@@ -843,6 +871,26 @@ export const useFetchAndFormatChartData = ({
 			})
 		}
 
+		if (activeAddressesData && toggledMetrics.activeAddresses === 'true') {
+			charts['Active Addresses'] = formatLineChart({
+				data: activeAddressesData,
+				groupBy
+			})
+		}
+
+		if (newAddressesData && toggledMetrics.newAddresses === 'true') {
+			charts['New Addresses'] = formatLineChart({
+				data: newAddressesData,
+				groupBy
+			})
+		}
+
+		if (transactionsData && toggledMetrics.transactions === 'true') {
+			charts['Transactions'] = formatLineChart({
+				data: transactionsData,
+				groupBy
+			})
+		}
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
 	}, [
 		toggledMetrics,
@@ -887,6 +935,12 @@ export const useFetchAndFormatChartData = ({
 		devMetricsData,
 		fetchingNftVolume,
 		nftVolumeData,
+		fetchingActiveAddresses,
+		activeAddressesData,
+		fetchingNewAddresses,
+		newAddressesData,
+		fetchingTransactions,
+		transactionsData,
 		groupBy
 	])
 

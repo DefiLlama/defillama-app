@@ -186,7 +186,8 @@ export const getProtocolMetrics = ({
 		nfts: metadata.nfts ? true : false,
 		dev: protocolData.github ? true : false,
 		inflows: inflowsExist,
-		liquidity: metadata.liquidity ? true : false
+		liquidity: metadata.liquidity ? true : false,
+		activeUsers: metadata.activeUsers ? true : false
 	}
 }
 
@@ -844,6 +845,13 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Borrowed')
 	}
 
+	if (metadata.activeUsers) {
+		availableCharts.push('Active Addresses')
+		availableCharts.push('New Addresses')
+		availableCharts.push('Transactions')
+		// availableCharts.push('Gas Used')
+	}
+
 	if (yields) {
 		availableCharts.push('Median APY')
 	}
@@ -852,6 +860,10 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Total Proposals')
 		availableCharts.push('Successful Proposals')
 		availableCharts.push('Max Votes')
+	}
+
+	if (treasury) {
+		availableCharts.push('Treasury')
 	}
 
 	if (protocolData.devMetrics) {

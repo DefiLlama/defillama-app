@@ -52,6 +52,7 @@ export interface IProtocolPageMetrics {
 	dev: boolean
 	inflows: boolean
 	liquidity: boolean
+	activeUsers: boolean
 }
 
 export interface IUpdatedProtocol {
