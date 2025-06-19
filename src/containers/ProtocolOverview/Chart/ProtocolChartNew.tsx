@@ -63,7 +63,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 		} as any
 	}, [router, props.metrics])
 
-	const { finalCharts, stacks, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
+	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
 		...props,
 		toggledMetrics,
 		groupBy
@@ -118,12 +118,18 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (extraTvls.length > 0) {
-			return tvlChartData.map(([date, value]) => {
-				return [
-					+date * 1e3,
-					value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts?.[curr]?.[date] ?? 0), 0)
-				] as [number, number]
-			})
+			const store = {}
+			const isWeekly = groupBy === 'weekly'
+			const isMonthly = groupBy === 'monthly'
+			for (const [date, value] of tvlChartData) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				store[dateKey] = value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts?.[curr]?.[dateKey] ?? 0), 0)
+			}
+			const finalChart = []
+			for (const date in store) {
+				finalChart.push([+date * 1e3, store[date]])
+			}
+			return finalChart
 		}
 
 		return formatLineChart(tvlChartData, groupBy)
@@ -582,9 +588,10 @@ export const useFetchAndFormatChartData = ({
 			charts['Bridge Aggregator Volume'] = formatBarChart(bridgeAggregatorsVolumeData.totalDataChart, groupBy)
 		}
 
-		return { finalCharts: charts, stacks: Object.keys(charts), valueSymbol, loadingCharts: '' }
+		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
 	}, [
 		toggledMetrics,
+		tvlChart,
 		feesData,
 		revenueData,
 		holdersRevenueData,

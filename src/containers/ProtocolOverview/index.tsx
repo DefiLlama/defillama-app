@@ -1738,7 +1738,6 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 
 // unlocks
 // governance
-
-// hallmarks & total hacked
+// newly listed protocol data
 
 // % change tvl, mcap, token price, etc.
