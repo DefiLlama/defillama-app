@@ -1,11 +1,12 @@
 import { useRouter } from 'next/router'
 import { IProtocolOverviewPageData } from '../types'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
+import { firstDayOfMonth, lastDayOfWeek } from '~/utils'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
@@ -15,6 +16,7 @@ const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
+	const [groupBy, setGroupBy] = useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
 
 	const toggledMetrics = useMemo(() => {
 		const toggled = {
@@ -63,7 +65,8 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 
 	const { finalCharts, stacks, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
 		...props,
-		toggledMetrics
+		toggledMetrics,
+		groupBy
 	})
 
 	return (
@@ -91,8 +94,12 @@ export const useFetchAndFormatChartData = ({
 	extraTvlCharts,
 	metrics,
 	toggledMetrics,
-	chartDenominations
-}: IProtocolOverviewPageData & { toggledMetrics: Record<string, string> }) => {
+	chartDenominations,
+	groupBy
+}: IProtocolOverviewPageData & {
+	toggledMetrics: Record<string, string>
+	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+}) => {
 	const router = useRouter()
 	const isRouterReady = router.isReady
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
@@ -129,7 +136,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -147,7 +154,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -165,7 +172,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -195,7 +202,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -230,7 +237,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -252,7 +259,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -269,7 +276,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -287,7 +294,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -305,7 +312,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -322,7 +329,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -339,7 +346,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -362,7 +369,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-						}).then((data) => data.totalDataChart.map(([date, value]) => [+date * 1e3, value]))
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -438,115 +445,98 @@ export const useFetchAndFormatChartData = ({
 			charts.TVL = tvlChart
 		}
 
-		// some protocols do not have revenue chart at all, but they have bribes and token taxes
-		// so dates might be missing if you only iterate over revenue chart
-		// example: revenueData?.map(([date, value]) => [date, value + (bribesData?.[date] ?? 0)) will return empty chart
-		if (bribesData || tokenTaxesData) {
-			const feesStore = {}
-			const revenueStore = {}
-			const holdersRevenueStore = {}
+		const feesStore = {}
+		const revenueStore = {}
+		const holdersRevenueStore = {}
 
-			if (feesData) {
-				feesData.forEach(([date, value]) => {
-					feesStore[date] = (feesStore[date] ?? 0) + value
-				})
+		if (feesData) {
+			for (const [date, value] of feesData) {
+				feesStore[date] = (feesStore[date] ?? 0) + value
 			}
+		}
 
-			if (revenueData) {
-				revenueData.forEach(([date, value]) => {
-					revenueStore[date] = (revenueStore[date] ?? 0) + value
-				})
+		if (revenueData) {
+			for (const [date, value] of feesData) {
+				revenueStore[date] = (revenueStore[date] ?? 0) + value
 			}
+		}
 
-			if (holdersRevenueData) {
-				holdersRevenueData.forEach(([date, value]) => {
-					holdersRevenueStore[date] = (holdersRevenueStore[date] ?? 0) + value
-				})
+		if (holdersRevenueData) {
+			for (const [date, value] of holdersRevenueData) {
+				holdersRevenueStore[date] = (holdersRevenueStore[date] ?? 0) + value
 			}
+		}
 
-			if (bribesData) {
-				bribesData.forEach(([date, value]) => {
-					feesStore[date] = (feesStore[date] ?? 0) + value
-					revenueStore[date] = (revenueStore[date] ?? 0) + value
-					holdersRevenueStore[date] = (holdersRevenueStore[date] ?? 0) + value
-				})
+		if (bribesData) {
+			for (const [date, value] of bribesData) {
+				feesStore[date] = (feesStore[date] ?? 0) + value
+				revenueStore[date] = (revenueStore[date] ?? 0) + value
+				holdersRevenueStore[date] = (holdersRevenueStore[date] ?? 0) + value
 			}
+		}
 
-			if (tokenTaxesData) {
-				tokenTaxesData.forEach(([date, value]) => {
-					feesStore[date] = (feesStore[date] ?? 0) + value
-					revenueStore[date] = (revenueStore[date] ?? 0) + value
-					holdersRevenueStore[date] = (holdersRevenueStore[date] ?? 0) + value
-				})
+		if (tokenTaxesData) {
+			for (const [date, value] of tokenTaxesData) {
+				feesStore[date] = (feesStore[date] ?? 0) + value
+				revenueStore[date] = (revenueStore[date] ?? 0) + value
+				holdersRevenueStore[date] = (holdersRevenueStore[date] ?? 0) + value
 			}
+		}
 
-			const finalFeesChart = []
-			const finalRevenueChart = []
-			const finalHoldersRevenueChart = []
+		const finalFeesChart = []
+		const finalRevenueChart = []
+		const finalHoldersRevenueChart = []
 
-			for (const date in feesStore) {
-				finalFeesChart.push([+date, feesStore[date]])
-			}
+		for (const date in feesStore) {
+			finalFeesChart.push([+date * 1e3, feesStore[date]])
+		}
 
-			for (const date in revenueStore) {
-				finalRevenueChart.push([+date, revenueStore[date]])
-			}
+		for (const date in revenueStore) {
+			finalRevenueChart.push([+date * 1e3, revenueStore[date]])
+		}
 
-			for (const date in holdersRevenueStore) {
-				finalHoldersRevenueChart.push([+date, holdersRevenueStore[date]])
-			}
+		for (const date in holdersRevenueStore) {
+			finalHoldersRevenueChart.push([+date * 1e3, holdersRevenueStore[date]])
+		}
 
-			if (finalFeesChart.length > 0) {
-				charts.Fees = finalFeesChart
-			}
+		if (finalFeesChart.length > 0) {
+			charts.Fees = finalFeesChart
+		}
 
-			if (finalRevenueChart.length > 0) {
-				charts.Revenue = finalRevenueChart
-			}
+		if (finalRevenueChart.length > 0) {
+			charts.Revenue = finalRevenueChart
+		}
 
-			if (finalHoldersRevenueChart.length > 0) {
-				charts['Holders Revenue'] = finalHoldersRevenueChart
-			}
-		} else {
-			if (feesData) {
-				charts.Fees = feesData
-			}
-
-			if (revenueData) {
-				charts.Revenue = revenueData
-			}
-
-			if (holdersRevenueData) {
-				charts['Holders Revenue'] = holdersRevenueData
-			}
+		if (finalHoldersRevenueChart.length > 0) {
+			charts['Holders Revenue'] = finalHoldersRevenueChart
 		}
 
 		if (dexVolumeData) {
-			charts['DEX Volume'] = dexVolumeData
+			charts['DEX Volume'] = formatVolumeChart(dexVolumeData, groupBy)
 		}
 
 		if (perpsVolumeData) {
-			charts['Perp Volume'] = perpsVolumeData
+			charts['Perp Volume'] = formatVolumeChart(perpsVolumeData, groupBy)
 		}
 
 		if (optionsPremiumVolumeData) {
-			charts['Options Premium Volume'] = optionsPremiumVolumeData
+			charts['Options Premium Volume'] = formatVolumeChart(optionsPremiumVolumeData, groupBy)
 		}
 
 		if (optionsNotionalVolumeData) {
-			charts['Options Notional Volume'] = optionsNotionalVolumeData
+			charts['Options Notional Volume'] = formatVolumeChart(optionsNotionalVolumeData, groupBy)
 		}
 
 		if (aggregatorsVolumeData) {
-			charts['DEX Aggregator Volume'] = aggregatorsVolumeData
+			charts['DEX Aggregator Volume'] = formatVolumeChart(aggregatorsVolumeData, groupBy)
 		}
 
 		if (perpsAggregatorsVolumeData) {
-			charts['Perp Aggregator Volume'] = perpsAggregatorsVolumeData
+			charts['Perp Aggregator Volume'] = formatVolumeChart(perpsAggregatorsVolumeData, groupBy)
 		}
 
 		if (bridgeAggregatorsVolumeData) {
-			charts['Bridge Aggregator Volume'] = bridgeAggregatorsVolumeData
+			charts['Bridge Aggregator Volume'] = formatVolumeChart(bridgeAggregatorsVolumeData, groupBy)
 		}
 
 		return { finalCharts: charts, stacks: Object.keys(charts), valueSymbol, loadingCharts: '' }
@@ -579,4 +569,27 @@ export const useFetchAndFormatChartData = ({
 	])
 
 	return chartData
+}
+
+const formatVolumeChart = (data: Array<[number, number]>, groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative') => {
+	if (groupBy === 'daily') {
+		return data.map(([date, value]) => [+date * 1e3, value])
+	}
+	const store = {}
+	let total = 0
+	const isWeekly = groupBy === 'weekly'
+	const isMonthly = groupBy === 'monthly'
+	const isCumulative = groupBy === 'cumulative'
+	for (const [date, value] of data) {
+		const dateKey = isWeekly ? lastDayOfWeek(date) : isMonthly ? firstDayOfMonth(date) : date
+		store[dateKey] = (store[dateKey] ?? 0) + value + total
+		if (isCumulative) {
+			total += value
+		}
+	}
+	const finalChart = []
+	for (const date in store) {
+		finalChart.push([+date * 1e3, store[date]])
+	}
+	return finalChart
 }

@@ -812,7 +812,6 @@ export const getProtocolOverviewPageData = async ({
 	}
 
 	const allColors = getNDistinctColors(availableCharts.length, pageStyles?.['--primary-color'] ?? oldBlue)
-	console.log(availableCharts.length, allColors, pageStyles?.['--primary-color'])
 	const chartColors = {}
 	availableCharts.forEach((chart, index) => {
 		chartColors[chart] = index === 0 ? pageStyles?.['--primary-color'] ?? oldBlue : allColors[index]

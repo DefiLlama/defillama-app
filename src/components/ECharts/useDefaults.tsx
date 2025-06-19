@@ -15,7 +15,6 @@ import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neu
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { toK } from '~/utils'
 import { useMemo } from 'react'
-import { lastDayOfMonth } from './utils'
 
 const CHART_SYMBOLS = {
 	'Active Users': '',
@@ -447,4 +446,10 @@ function getStartAndEndDayOfTheWeek(value: number) {
 	return `${past.getUTCDate().toString().padStart(2, '0')}${pastMonth !== currentMonth ? ` ${pastMonth}` : ''}${
 		pastYear !== currentYear ? ` ${pastYear}` : ''
 	} - ${current.getUTCDate().toString().padStart(2, '0')} ${currentMonth} ${currentYear}`
+}
+
+function lastDayOfMonth(dateString) {
+	let date = new Date(dateString)
+
+	return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
 }
