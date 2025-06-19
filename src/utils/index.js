@@ -365,6 +365,25 @@ export function getNDistinctColors(n, colorToAvoid) {
 		return hueDistance * 0.7 + satDistance * 0.2 + lightDistance * 0.1
 	}
 
+	// Function to check if a color is too similar to any existing colors
+	const isTooSimilarToAny = (colorHsl, existingColors) => {
+		// Check against colorToAvoid
+		if (colorToAvoidHsl && getColorDistance(colorHsl, colorToAvoidHsl) < 0.3) {
+			return true
+		}
+
+		// Check against all existing colors
+		for (const existingColor of existingColors) {
+			const existingHsl = hexToHSL(existingColor)
+			if (getColorDistance(colorHsl, existingHsl) < 0.3) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	// First pass: Generate n distinct colors
 	for (let i = 0; i < n; i++) {
 		let attempts = 0
 		let color
@@ -379,8 +398,8 @@ export function getNDistinctColors(n, colorToAvoid) {
 			color = hslToHex(hue * 360, saturation, lightness)
 			colorHsl = hexToHSL(color)
 
-			// Check if color is too similar to colorToAvoid
-			const isTooSimilar = colorToAvoidHsl && getColorDistance(colorHsl, colorToAvoidHsl) < 0.3
+			// Check if color is too similar to colorToAvoid or existing colors
+			const isTooSimilar = isTooSimilarToAny(colorHsl, colors)
 
 			if (!isTooSimilar) break
 
@@ -400,6 +419,46 @@ export function getNDistinctColors(n, colorToAvoid) {
 		colors.push(color)
 		hue += step
 		hue %= 1 // Keep in [0,1] range
+	}
+
+	// Second pass: Replace any colors that are still too similar to colorToAvoid
+	if (colorToAvoidHsl) {
+		for (let i = 0; i < colors.length; i++) {
+			const currentColorHsl = hexToHSL(colors[i])
+
+			// Check if current color is too similar to colorToAvoid
+			if (getColorDistance(currentColorHsl, colorToAvoidHsl) < 0.3) {
+				let replacementFound = false
+				let attempts = 0
+
+				// Try to find a replacement color
+				while (!replacementFound && attempts < 20) {
+					// Use a different hue strategy for replacement
+					const replacementHue = Math.random() * 360 // Random hue
+					const saturation = 70 + (attempts % 4) * 8
+					const lightness = 25 + (attempts % 3) * 8
+
+					const replacementColor = hslToHex(replacementHue, saturation, lightness)
+					const replacementHsl = hexToHSL(replacementColor)
+
+					// Check if replacement is distinct from colorToAvoid and all other colors
+					if (!isTooSimilarToAny(replacementHsl, colors)) {
+						colors[i] = replacementColor
+						replacementFound = true
+					}
+
+					attempts++
+				}
+
+				// If no replacement found, force a very different color
+				if (!replacementFound) {
+					const forcedHue = (colorToAvoidHsl.h + 180) % 360 // Opposite hue
+					const saturation = 80
+					const lightness = 30
+					colors[i] = hslToHex(forcedHue, saturation, lightness)
+				}
+			}
+		}
 	}
 
 	return colors

@@ -271,3 +271,10 @@ export interface IProtocolDevActivity {
 }
 
 export type NftVolumeData = Array<{ date: string; volume: number }>
+
+// date in ms
+export interface IDenominationPriceHistory {
+	prices: Array<[number, number]>
+	mcaps: Array<[number, number]>
+	volumes: Array<[number, number]>
+}

@@ -233,19 +233,27 @@ export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | n
 	})
 }
 
+// date in ms
+interface IDenominationPriceHistory {
+	prices: Array<[number, number]>
+	mcaps: Array<[number, number]>
+	volumes: Array<[number, number]>
+}
+
 export const useDenominationPriceHistory = (geckoId?: string) => {
 	let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
 
-	const { data, isLoading, error } = useQuery({
+	return useQuery<IDenominationPriceHistory>({
 		queryKey: ['denom-price-history', url],
-		queryFn: url ? () => fetchApi(url).then((r) => r.data) : () => null,
+		queryFn: url
+			? () =>
+					fetchApi(url)
+						.then((r) => r.data)
+						.then((data) => (data.prices.length > 0 ? data : { prices: [], mcaps: [], volumes: [] }))
+			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0
 	})
-
-	const res = data && data?.prices?.length > 0 ? data : { prices: [], mcaps: [], volumes: [] }
-
-	return { data: res, error, isLoading }
 }
 
 export const useGetTokenPrice = (geckoId?: string) => {

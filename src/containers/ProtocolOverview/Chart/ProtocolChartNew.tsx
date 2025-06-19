@@ -4,9 +4,12 @@ import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/L
 import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { ProtocolChartsLabels } from './constants'
-import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
+import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
 import { firstDayOfMonth, lastDayOfWeek } from '~/utils'
+import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
+import { CACHE_SERVER } from '~/constants'
+import { IDenominationPriceHistory } from '~/api/types'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
@@ -92,6 +95,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 
 export const useFetchAndFormatChartData = ({
 	name,
+	geckoId,
 	currentTvlByChain,
 	tvlChartData,
 	extraTvlCharts,
@@ -107,6 +111,51 @@ export const useFetchAndFormatChartData = ({
 	const isRouterReady = router.isReady
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
+
+	// fetch denomination on protocol chains
+	// date in ms
+	const { data: denominationPriceHistory, isLoading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
+		isRouterReady && toggledMetrics.denomination
+			? chartDenominations.find((d) => d.symbol === toggledMetrics.denomination)?.geckoId
+			: null
+	)
+
+	//  protocol mcap data
+	// date in ms
+	const { data: protocolTokenData, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory>({
+		queryKey: [
+			`tokenData-${
+				isRouterReady &&
+				(toggledMetrics.mcap === 'true' ||
+					toggledMetrics.tokenPrice === 'true' ||
+					toggledMetrics.tokenVolume === 'true') &&
+				geckoId
+					? geckoId
+					: null
+			}`
+		],
+		queryFn:
+			isRouterReady &&
+			(toggledMetrics.mcap === 'true' ||
+				toggledMetrics.tokenPrice === 'true' ||
+				toggledMetrics.tokenVolume === 'true') &&
+			geckoId
+				? () =>
+						fetch(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`)
+							.then((r) => r.json())
+							.then((res) => (res.data.prices.length > 0 ? res.data : { prices: [], mcaps: [], volumes: [] }))
+				: () => null,
+		staleTime: 60 * 60 * 1000
+	})
+
+	const { data: fdvData = null, isLoading: fetchingFdv } = useQuery({
+		queryKey: [`fdv-${geckoId && toggledMetrics.fdv === 'true' && isRouterReady ? geckoId : null}`],
+		queryFn:
+			geckoId && toggledMetrics.fdv === 'true' && isRouterReady
+				? () => fetch(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.json())
+				: () => null,
+		staleTime: 60 * 60 * 1000
+	})
 
 	const tvlChart = useMemo(() => {
 		const extraTvls = []
@@ -129,13 +178,13 @@ export const useFetchAndFormatChartData = ({
 			for (const date in store) {
 				finalChart.push([+date * 1e3, store[date]])
 			}
-			return finalChart
+			return finalChart as Array<[number, number]>
 		}
 
 		return formatLineChart(tvlChartData, groupBy)
 	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy])
 
-	const { data: feesData = null, isLoading: fetchingFees } = useQuery({
+	const { data: feesData = null, isLoading: fetchingFees } = useQuery<IAdapterSummary>({
 		queryKey: ['fees', name, toggledMetrics.fees, metrics.fees, isRouterReady],
 		queryFn:
 			isRouterReady && toggledMetrics.fees === 'true' && metrics.fees
@@ -152,7 +201,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.fees === 'true' && metrics.fees
 	})
 
-	const { data: revenueData = null, isLoading: fetchingRevenue } = useQuery({
+	const { data: revenueData = null, isLoading: fetchingRevenue } = useQuery<IAdapterSummary>({
 		queryKey: ['revenue', name, toggledMetrics.revenue, metrics.fees, isRouterReady],
 		queryFn:
 			isRouterReady && toggledMetrics.revenue === 'true' && metrics.revenue
@@ -170,7 +219,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.revenue === 'true' && metrics.revenue
 	})
 
-	const { data: holdersRevenueData = null, isLoading: fetchingHoldersRevenue } = useQuery({
+	const { data: holdersRevenueData = null, isLoading: fetchingHoldersRevenue } = useQuery<IAdapterSummary>({
 		queryKey: ['holders-revenue', name, toggledMetrics.holdersRevenue, metrics.fees, metrics.revenue, isRouterReady],
 		queryFn:
 			isRouterReady && toggledMetrics.holdersRevenue === 'true' && (metrics.fees || metrics.revenue)
@@ -188,7 +237,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.holdersRevenue === 'true' && (metrics.fees || metrics.revenue)
 	})
 
-	const { data: bribesData = null, isLoading: fetchingBribes } = useQuery({
+	const { data: bribesData = null, isLoading: fetchingBribes } = useQuery<IAdapterSummary>({
 		queryKey: [
 			'bribes',
 			name,
@@ -223,7 +272,7 @@ export const useFetchAndFormatChartData = ({
 			metrics.bribes
 	})
 
-	const { data: tokenTaxesData = null, isLoading: fetchingTokenTaxes } = useQuery({
+	const { data: tokenTaxesData = null, isLoading: fetchingTokenTaxes } = useQuery<IAdapterSummary>({
 		queryKey: [
 			'token-taxes',
 			name,
@@ -258,7 +307,7 @@ export const useFetchAndFormatChartData = ({
 			metrics.tokenTax
 	})
 
-	const { data: dexVolumeData = null, isLoading: fetchingDexVolume } = useQuery({
+	const { data: dexVolumeData = null, isLoading: fetchingDexVolume } = useQuery<IAdapterSummary>({
 		queryKey: ['dex', name, toggledMetrics.dexVolume, metrics.dexs, isRouterReady],
 		queryFn:
 			isRouterReady && toggledMetrics.dexVolume === 'true' && metrics.dexs
@@ -275,7 +324,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.dexVolume === 'true' && metrics.dexs
 	})
 
-	const { data: perpsVolumeData = null, isLoading: fetchingPerpVolume } = useQuery({
+	const { data: perpsVolumeData = null, isLoading: fetchingPerpVolume } = useQuery<IAdapterSummary>({
 		queryKey: ['perp', name, toggledMetrics.perpVolume, metrics.perps, isRouterReady],
 		queryFn:
 			isRouterReady && toggledMetrics.perpVolume === 'true' && metrics.perps
@@ -292,7 +341,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.perpVolume === 'true' && metrics.perps
 	})
 
-	const { data: optionsPremiumVolumeData = null, isLoading: fetchingOptionsPremiumVolume } = useQuery({
+	const { data: optionsPremiumVolumeData = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<IAdapterSummary>({
 		queryKey: ['options-premium', name, toggledMetrics.optionsPremiumVolume, metrics.options, isRouterReady],
 		queryFn:
 			isRouterReady && toggledMetrics.optionsPremiumVolume === 'true' && metrics.options
@@ -310,25 +359,26 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.optionsPremiumVolume === 'true' && metrics.options
 	})
 
-	const { data: optionsNotionalVolumeData = null, isLoading: fetchingOptionsNotionalVolume } = useQuery({
-		queryKey: ['options-notional', name, toggledMetrics.optionsNotionalVolume, metrics.options, isRouterReady],
-		queryFn:
-			isRouterReady && toggledMetrics.optionsNotionalVolume === 'true' && metrics.options
-				? () =>
-						getAdapterProtocolSummary({
-							adapterType: 'options',
-							dataType: 'dailyNotionalVolume',
-							protocol: name,
-							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true
-						})
-				: () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: toggledMetrics.optionsNotionalVolume === 'true' && metrics.options
-	})
+	const { data: optionsNotionalVolumeData = null, isLoading: fetchingOptionsNotionalVolume } =
+		useQuery<IAdapterSummary>({
+			queryKey: ['options-notional', name, toggledMetrics.optionsNotionalVolume, metrics.options, isRouterReady],
+			queryFn:
+				isRouterReady && toggledMetrics.optionsNotionalVolume === 'true' && metrics.options
+					? () =>
+							getAdapterProtocolSummary({
+								adapterType: 'options',
+								dataType: 'dailyNotionalVolume',
+								protocol: name,
+								excludeTotalDataChart: false,
+								excludeTotalDataChartBreakdown: true
+							})
+					: () => null,
+			staleTime: 60 * 60 * 1000,
+			retry: 0,
+			enabled: toggledMetrics.optionsNotionalVolume === 'true' && metrics.options
+		})
 
-	const { data: aggregatorsVolumeData = null, isLoading: fetchingDEXAggregatorVolume } = useQuery({
+	const { data: aggregatorsVolumeData = null, isLoading: fetchingDEXAggregatorVolume } = useQuery<IAdapterSummary>({
 		queryKey: ['dex-aggregator', name, toggledMetrics.dexAggregatorVolume, metrics.dexAggregators, isRouterReady],
 		queryFn:
 			isRouterReady && toggledMetrics.dexAggregatorVolume === 'true' && metrics.dexAggregators
@@ -345,53 +395,53 @@ export const useFetchAndFormatChartData = ({
 		enabled: toggledMetrics.dexAggregatorVolume === 'true' && metrics.dexAggregators
 	})
 
-	const { data: perpsAggregatorsVolumeData = null, isLoading: fetchingPerpAggregatorVolume } = useQuery({
-		queryKey: ['perp-aggregator', name, toggledMetrics.perpAggregatorVolume, metrics.perpsAggregators, isRouterReady],
-		queryFn:
-			isRouterReady && toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators
-				? () =>
-						getAdapterProtocolSummary({
-							adapterType: 'derivatives-aggregator',
-							protocol: name,
-							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true
-						})
-				: () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators
-	})
+	const { data: perpsAggregatorsVolumeData = null, isLoading: fetchingPerpAggregatorVolume } =
+		useQuery<IAdapterSummary>({
+			queryKey: ['perp-aggregator', name, toggledMetrics.perpAggregatorVolume, metrics.perpsAggregators, isRouterReady],
+			queryFn:
+				isRouterReady && toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators
+					? () =>
+							getAdapterProtocolSummary({
+								adapterType: 'derivatives-aggregator',
+								protocol: name,
+								excludeTotalDataChart: false,
+								excludeTotalDataChartBreakdown: true
+							})
+					: () => null,
+			staleTime: 60 * 60 * 1000,
+			retry: 0,
+			enabled: toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators
+		})
 
-	const { data: bridgeAggregatorsVolumeData = null, isLoading: fetchingBridgeAggregatorVolume } = useQuery({
-		queryKey: [
-			'bridge-aggregator',
-			name,
-			toggledMetrics.bridgeAggregatorVolume,
-			metrics.bridgeAggregators,
-			isRouterReady
-		],
-		queryFn:
-			isRouterReady && toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators
-				? () =>
-						getAdapterProtocolSummary({
-							adapterType: 'bridge-aggregators',
-							protocol: name,
-							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true
-						})
-				: () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators
-	})
-
-	const denominationHistory = {} as any
+	const { data: bridgeAggregatorsVolumeData = null, isLoading: fetchingBridgeAggregatorVolume } =
+		useQuery<IAdapterSummary>({
+			queryKey: [
+				'bridge-aggregator',
+				name,
+				toggledMetrics.bridgeAggregatorVolume,
+				metrics.bridgeAggregators,
+				isRouterReady
+			],
+			queryFn:
+				isRouterReady && toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators
+					? () =>
+							getAdapterProtocolSummary({
+								adapterType: 'bridge-aggregators',
+								protocol: name,
+								excludeTotalDataChart: false,
+								excludeTotalDataChartBreakdown: true
+							})
+					: () => null,
+			staleTime: 60 * 60 * 1000,
+			retry: 0,
+			enabled: toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators
+		})
 
 	const showNonUsdDenomination =
 		toggledMetrics.denomination &&
 		toggledMetrics.denomination !== 'USD' &&
 		chartDenominations.find((d) => d.symbol === toggledMetrics.denomination) &&
-		denominationHistory?.prices?.length > 0
+		denominationPriceHistory?.prices?.length > 0
 			? true
 			: false
 
@@ -401,6 +451,10 @@ export const useFetchAndFormatChartData = ({
 
 	const chartData = useMemo(() => {
 		const loadingCharts = []
+
+		if (fetchingProtocolTokenData) {
+			loadingCharts.push('Mcap, Token price, Token volume')
+		}
 
 		if (fetchingFees) {
 			loadingCharts.push('Fees')
@@ -452,6 +506,18 @@ export const useFetchAndFormatChartData = ({
 
 		if (toggledMetrics.tvl === 'true') {
 			charts.TVL = tvlChart
+		}
+
+		if (protocolTokenData) {
+			if (toggledMetrics.mcap === 'true') {
+				charts.Mcap = protocolTokenData.mcaps
+			}
+			if (toggledMetrics.tokenPrice === 'true') {
+				charts['Token Price'] = protocolTokenData.prices
+			}
+			if (toggledMetrics.tokenVolume === 'true') {
+				charts['Token Volume'] = protocolTokenData.volumes
+			}
 		}
 
 		const feesStore = {}
@@ -616,13 +682,17 @@ export const useFetchAndFormatChartData = ({
 		fetchingDEXAggregatorVolume,
 		fetchingPerpAggregatorVolume,
 		fetchingBridgeAggregatorVolume,
+		fetchingProtocolTokenData,
 		groupBy
 	])
 
 	return chartData
 }
 
-const formatBarChart = (data: Array<[string, number]>, groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative') => {
+const formatBarChart = (
+	data: Array<[string | number, number]>,
+	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+): Array<[number, number]> => {
 	if (['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
 		const store = {}
 		let total = 0
@@ -646,7 +716,10 @@ const formatBarChart = (data: Array<[string, number]>, groupBy: 'daily' | 'weekl
 	return data.map(([date, value]) => [+date * 1e3, value])
 }
 
-const formatLineChart = (data: Array<[string, number]>, groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative') => {
+const formatLineChart = (
+	data: Array<[string | number, number]>,
+	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+): Array<[number, number]> => {
 	if (['weekly', 'monthly'].includes(groupBy)) {
 		const store = {}
 		const isWeekly = groupBy === 'weekly'
@@ -662,5 +735,5 @@ const formatLineChart = (data: Array<[string, number]>, groupBy: 'daily' | 'week
 		}
 		return finalChart
 	}
-	return data.map(([date, value]) => [+date * 1e3, value]) as Array<[number, number]>
+	return data.map(([date, value]) => [+date * 1e3, value])
 }

@@ -770,6 +770,12 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('TVL')
 	}
 
+	if (protocolData.gecko_id) {
+		availableCharts.push('Mcap')
+		availableCharts.push('Token Price')
+		availableCharts.push('Token Volume')
+	}
+
 	if (feesData) {
 		availableCharts.push('Fees')
 	}
@@ -917,7 +923,8 @@ export const getProtocolOverviewPageData = async ({
 		chartColors,
 		tvlChartData,
 		extraTvlCharts,
-		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string])
+		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string]),
+		geckoId: protocolData.gecko_id ?? null
 	}
 }
 
