@@ -816,6 +816,17 @@ export const getProtocolOverviewPageData = async ({
 		chartColors[chart] = index === 0 ? pageStyles?.['--primary-color'] ?? oldBlue : allColors[index]
 	})
 
+	const hallmarks = {}
+	for (const hack of hacks ?? []) {
+		hallmarks[hack.date] = `Hack: ${hack.classification ?? ''}`
+	}
+	for (const mark of protocolData.hallmarks ?? []) {
+		if (hallmarks[mark[0]]) {
+			continue
+		}
+		hallmarks[mark[0]] = mark[1]
+	}
+
 	return {
 		id: String(protocolData.id),
 		name: protocolData.name,
@@ -905,7 +916,8 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts,
 		chartColors,
 		tvlChartData,
-		extraTvlCharts
+		extraTvlCharts,
+		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string])
 	}
 }
 

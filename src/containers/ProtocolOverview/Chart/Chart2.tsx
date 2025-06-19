@@ -2,7 +2,6 @@ import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { formattedNum } from '~/utils'
-import { useRouter } from 'next/router'
 import { ProtocolChartsLabels, BAR_CHARTS, yAxisByChart, DISABLED_CUMULATIVE_CHARTS } from './constants'
 
 const customOffsets = {
@@ -100,14 +99,14 @@ export default function ProtocolLineBarChart({
 			}
 		})
 
-		if (series.length > 0 && hallmarks) {
+		if (series.length > 0 && hallmarks?.length > 0) {
 			series[0] = {
 				...series[0],
 				markLine: {
 					data: hallmarks.map(([date, event], index) => [
 						{
 							name: event,
-							xAxis: +date * 1e3,
+							xAxis: date,
 							yAxis: 0,
 							label: {
 								color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -118,7 +117,7 @@ export default function ProtocolLineBarChart({
 						},
 						{
 							name: 'end',
-							xAxis: +date * 1e3,
+							xAxis: date,
 							yAxis: 'max',
 							y: Math.max(hallmarks.length * 20 - index * 20, 20)
 						}

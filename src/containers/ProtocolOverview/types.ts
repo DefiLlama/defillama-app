@@ -231,6 +231,7 @@ export interface IProtocolOverviewPageData {
 	chartDenominations: Array<{ symbol: string; geckoId?: string | null }>
 	chartColors: Record<string, string>
 	availableCharts: ProtocolChartsLabels[]
+	hallmarks: Array<[number, string]>
 }
 
 export interface IHack {

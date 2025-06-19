@@ -83,6 +83,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 					isThemeDark={isThemeDark}
 					valueSymbol={valueSymbol}
 					groupBy={groupBy}
+					hallmarks={props.hallmarks}
 				/>
 			)}
 		</div>

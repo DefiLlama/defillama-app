@@ -255,7 +255,7 @@ const KeyMetrics = (
 				<OptionsNotionalVolume {...props} />
 				<TokenCGData {...props} />
 				{props.currentTvlByChain?.staking != null ? (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
 						<Flag
 							protocol={props.name}
@@ -277,7 +277,7 @@ const KeyMetrics = (
 					</p>
 				) : null}
 				{props.currentTvlByChain?.borrowed != null ? (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Borrowed</span>
 						<Flag
 							protocol={props.name}
@@ -302,7 +302,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	if (!props.articles?.length) return null
 
 	return (
-		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 col-span-1">
+		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
 			<div className="flex items-center justify-between">
 				<h3 className="font-semibold">Latest from DL News</h3>
 				<a href="https://www.dlnews.com">
@@ -829,25 +829,25 @@ function Users(props: IProtocolOverviewPageData) {
 				</Tooltip>
 				<div className="flex flex-col">
 					{users.activeUsers != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 							<span className="text-[#545757] dark:text-[#cccccc]">Active Addresses (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.activeUsers, false)}</span>
 						</p>
 					) : null}
 					{users.newUsers != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 							<span className="text-[#545757] dark:text-[#cccccc]">New Addresses (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.newUsers, false)}</span>
 						</p>
 					) : null}
 					{users.transactions != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 							<span className="text-[#545757] dark:text-[#cccccc]">Transactions (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.transactions, false)}</span>
 						</p>
 					) : null}
 					{users.gasUsd != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 							<span className="text-[#545757] dark:text-[#cccccc]">Gas Used (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.gasUsd, true)}</span>
 						</p>
@@ -1071,7 +1071,7 @@ const TokenCGData = (props: IProtocolOverviewPageData) => {
 	return (
 		<>
 			{props.tokenCGData?.marketCap?.current ? (
-				<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 					<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
 					<Flag
 						protocol={props.name}
@@ -1115,7 +1115,7 @@ const TokenCGData = (props: IProtocolOverviewPageData) => {
 						</div>
 					</details>
 				) : (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">{`${
 							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 						} Price`}</span>
@@ -1130,7 +1130,7 @@ const TokenCGData = (props: IProtocolOverviewPageData) => {
 				)
 			) : null}
 			{props.tokenCGData?.fdv?.current ? (
-				<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 					<Tooltip
 						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
@@ -1574,11 +1574,11 @@ function Yields(props: IProtocolOverviewPageData) {
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<h2 className="font-semibold">Yields</h2>
 			<div>
-				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 					<span className="text-[#545757] dark:text-[#cccccc]">Pools Tracked</span>
 					<span className="font-jetbrains">{yields.noOfPoolsTracked}</span>
 				</p>
-				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 					<span className="text-[#545757] dark:text-[#cccccc]">Average APY</span>
 					<span className="font-jetbrains">{formattedNum(yields.averageAPY, false)}%</span>
 				</p>
@@ -1611,31 +1611,31 @@ function DevActivity(props: IProtocolOverviewPageData) {
 			</div>
 			<div className="flex flex-col">
 				{devActivity.weeklyCommits != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Weekly commits</span>
 						<span className="font-jetbrains">{devActivity.weeklyCommits}</span>
 					</p>
 				) : null}
 				{devActivity.monthlyCommits != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Monthly commits</span>
 						<span className="font-jetbrains">{devActivity.monthlyCommits}</span>
 					</p>
 				) : null}
 				{devActivity.weeklyDevelopers != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Weekly developers</span>
 						<span className="font-jetbrains">{devActivity.weeklyDevelopers}</span>
 					</p>
 				) : null}
 				{devActivity.monthlyDevelopers != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Monthly developers</span>
 						<span className="font-jetbrains">{devActivity.monthlyDevelopers}</span>
 					</p>
 				) : null}
 				{devActivity.lastCommit != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Last commit</span>
 						<span className="font-jetbrains">{`${dayjs(devActivity.lastCommit).format('DD/MM/YY')} (${dayjs(
 							devActivity.lastCommit
@@ -1652,11 +1652,11 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<h2 className="font-semibold">Hacks</h2>
-			<div className="flex items-center gap-4 flex-wrap">
+			<div className="flex flex-col">
 				{props.hacks.map((hack) => (
 					<div
 						key={`${props.name}-hack-${hack.date}`}
-						className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0"
+						className="flex flex-col gap-1 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-2 first:pt-0 last:pb-0"
 					>
 						{hack.date ? (
 							<p>
