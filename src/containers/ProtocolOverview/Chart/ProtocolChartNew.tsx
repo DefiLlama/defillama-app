@@ -7,13 +7,7 @@ import { ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
-import {
-	CACHE_SERVER,
-	NFT_MARKETPLACES_VOLUME_API,
-	PROTOCOL_API,
-	PROTOCOL_TREASURY_API,
-	TOKEN_LIQUIDITY_API
-} from '~/constants'
+import { CACHE_SERVER, NFT_MARKETPLACES_VOLUME_API, PROTOCOL_TREASURY_API, TOKEN_LIQUIDITY_API } from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
@@ -1091,4 +1085,4 @@ const formatLineChart = ({
 	return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
 }
 
-// disabled: tweets, gas used
+// disabled: tweets, gas used, bridge inflows
