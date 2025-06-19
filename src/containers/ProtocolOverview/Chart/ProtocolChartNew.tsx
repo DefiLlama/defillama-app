@@ -7,13 +7,14 @@ import { ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
-import { CACHE_SERVER, TOKEN_LIQUIDITY_API } from '~/constants'
+import { CACHE_SERVER, NFT_MARKETPLACES_VOLUME_API, TOKEN_LIQUIDITY_API } from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolDevMetrics,
 	useFetchProtocolGovernanceData,
 	useFetchProtocolMedianAPY
 } from '~/api/categories/protocols/client'
+import { fetchWithTimeout } from '~/utils/async'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
@@ -433,6 +434,25 @@ export const useFetchAndFormatChartData = ({
 			: null
 	)
 
+	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery({
+		queryKey: ['nftVolume', name],
+		queryFn: () =>
+			fetchWithTimeout(NFT_MARKETPLACES_VOLUME_API, 10_000)
+				.then((r) => r.json())
+				.then((r) => {
+					const chartByDate = r
+						.filter((r) => slug(r.exchangeName) === slug(name))
+						.map(({ day, sumUsd }) => {
+							return [new Date(day).getTime(), sumUsd]
+						})
+					return chartByDate
+				})
+				.catch(() => []),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady ? true : false
+	})
+
 	const showNonUsdDenomination =
 		toggledMetrics.denomination &&
 		toggledMetrics.denomination !== 'USD' &&
@@ -513,6 +533,9 @@ export const useFetchAndFormatChartData = ({
 		if (fetchingDevMetrics) {
 			loadingCharts.push('Dev Metrics')
 		}
+		if (fetchingNftVolume) {
+			loadingCharts.push('NFT Volume')
+		}
 
 		if (loadingCharts.length > 0) {
 			return { finalCharts: [], stacks: [], valueSymbol, loadingCharts: loadingCharts.join(', ').toLowerCase() }
@@ -520,7 +543,7 @@ export const useFetchAndFormatChartData = ({
 
 		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number]> } = {}
 
-		if (toggledMetrics.tvl === 'true') {
+		if (tvlChart?.length > 0 && toggledMetrics.tvl === 'true') {
 			charts.TVL = tvlChart
 		}
 
@@ -812,6 +835,14 @@ export const useFetchAndFormatChartData = ({
 			}
 		}
 
+		if (nftVolumeData && toggledMetrics.nftVolume === 'true') {
+			charts['NFT Volume'] = formatBarChart({
+				data: nftVolumeData,
+				groupBy,
+				dateInMs: true
+			})
+		}
+
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
 	}, [
 		toggledMetrics,
@@ -854,6 +885,8 @@ export const useFetchAndFormatChartData = ({
 		governanceData,
 		fetchingDevMetrics,
 		devMetricsData,
+		fetchingNftVolume,
+		nftVolumeData,
 		groupBy
 	])
 

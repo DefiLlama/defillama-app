@@ -721,16 +721,18 @@ export const getProtocolOverviewPageData = async ({
 
 	const tvlChart = {}
 	const extraTvlCharts = Object.fromEntries(DEFI_SETTINGS_KEYS.map((key) => [key, {}]))
-	for (const chain in protocolData.chainTvls ?? {}) {
-		if (!protocolData.chainTvls[chain].tvl?.length) continue
-		if (chain.includes('-') || chain === 'offers') continue
-		if (DEFI_SETTINGS_KEYS.includes(chain)) {
-			for (const item of protocolData.chainTvls[chain].tvl) {
-				extraTvlCharts[chain][item.date] = (extraTvlCharts[chain][item.date] ?? 0) + item.totalLiquidityUSD
-			}
-		} else {
-			for (const item of protocolData.chainTvls[chain].tvl) {
-				tvlChart[item.date] = (tvlChart[item.date] ?? 0) + item.totalLiquidityUSD
+	if (metadata.tvl) {
+		for (const chain in protocolData.chainTvls ?? {}) {
+			if (!protocolData.chainTvls[chain].tvl?.length) continue
+			if (chain.includes('-') || chain === 'offers') continue
+			if (DEFI_SETTINGS_KEYS.includes(chain)) {
+				for (const item of protocolData.chainTvls[chain].tvl) {
+					extraTvlCharts[chain][item.date] = (extraTvlCharts[chain][item.date] ?? 0) + item.totalLiquidityUSD
+				}
+			} else {
+				for (const item of protocolData.chainTvls[chain].tvl) {
+					tvlChart[item.date] = (tvlChart[item.date] ?? 0) + item.totalLiquidityUSD
+				}
 			}
 		}
 	}
@@ -859,6 +861,10 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Contributers Commits')
 	}
 
+	if (metadata.nfts) {
+		availableCharts.push('NFT Volume')
+	}
+
 	const chartColors = {}
 	availableCharts.forEach((chart, index) => {
 		chartColors[chart] = allColors[index]
@@ -883,7 +889,7 @@ export const getProtocolOverviewPageData = async ({
 		otherProtocols: protocolData.otherProtocols ?? null,
 		deprecated: protocolData.deprecated ?? false,
 		chains: protocolData.chains ?? [],
-		currentTvlByChain: protocolData.currentChainTvls ?? {},
+		currentTvlByChain: metadata.tvl ? protocolData.currentChainTvls ?? {} : {},
 		description: protocolData.description ?? '',
 		website: protocolData.referralUrl ?? protocolData.url ?? null,
 		twitter: protocolData.twitter ?? null,
