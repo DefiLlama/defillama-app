@@ -82,6 +82,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 					color={props.pageStyles['--primary-color']}
 					isThemeDark={isThemeDark}
 					valueSymbol={valueSymbol}
+					groupBy={groupBy}
 				/>
 			)}
 		</div>
@@ -90,6 +91,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 
 export const useFetchAndFormatChartData = ({
 	name,
+	currentTvlByChain,
 	tvlChartData,
 	extraTvlCharts,
 	metrics,
@@ -109,22 +111,22 @@ export const useFetchAndFormatChartData = ({
 		const extraTvls = []
 
 		for (const extra in tvlSettings) {
-			if (tvlSettings[extra] && extraTvlCharts?.[extra]) {
+			if (tvlSettings[extra] && currentTvlByChain?.[extra] != null) {
 				extraTvls.push(extra)
 			}
 		}
 
 		if (extraTvls.length > 0) {
 			return tvlChartData.map(([date, value]) => {
-				return [date, value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts?.[curr]?.[date] ?? 0), 0)] as [
-					number,
-					number
-				]
+				return [
+					+date * 1e3,
+					value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts?.[curr]?.[date] ?? 0), 0)
+				] as [number, number]
 			})
 		}
 
-		return tvlChartData
-	}, [tvlChartData, extraTvlCharts, tvlSettings])
+		return formatLineChart(tvlChartData, groupBy)
+	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy])
 
 	const { data: feesData = null, isLoading: fetchingFees } = useQuery({
 		queryKey: ['fees', name, toggledMetrics.fees, metrics.fees, isRouterReady],
@@ -146,7 +148,7 @@ export const useFetchAndFormatChartData = ({
 	const { data: revenueData = null, isLoading: fetchingRevenue } = useQuery({
 		queryKey: ['revenue', name, toggledMetrics.revenue, metrics.fees, isRouterReady],
 		queryFn:
-			isRouterReady && toggledMetrics.revenue === 'true' && metrics.fees
+			isRouterReady && toggledMetrics.revenue === 'true' && metrics.revenue
 				? () =>
 						getAdapterProtocolSummary({
 							adapterType: 'fees',
@@ -158,13 +160,13 @@ export const useFetchAndFormatChartData = ({
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.revenue === 'true' && metrics.fees
+		enabled: toggledMetrics.revenue === 'true' && metrics.revenue
 	})
 
 	const { data: holdersRevenueData = null, isLoading: fetchingHoldersRevenue } = useQuery({
-		queryKey: ['holders-revenue', name, toggledMetrics.holdersRevenue, metrics.fees, isRouterReady],
+		queryKey: ['holders-revenue', name, toggledMetrics.holdersRevenue, metrics.fees, metrics.revenue, isRouterReady],
 		queryFn:
-			isRouterReady && toggledMetrics.holdersRevenue === 'true' && metrics.revenue
+			isRouterReady && toggledMetrics.holdersRevenue === 'true' && (metrics.fees || metrics.revenue)
 				? () =>
 						getAdapterProtocolSummary({
 							adapterType: 'fees',
@@ -176,7 +178,7 @@ export const useFetchAndFormatChartData = ({
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.holdersRevenue === 'true' && metrics.revenue
+		enabled: toggledMetrics.holdersRevenue === 'true' && (metrics.fees || metrics.revenue)
 	})
 
 	const { data: bribesData = null, isLoading: fetchingBribes } = useQuery({
@@ -448,38 +450,78 @@ export const useFetchAndFormatChartData = ({
 		const feesStore = {}
 		const revenueStore = {}
 		const holdersRevenueStore = {}
+		const isWeekly = groupBy === 'weekly'
+		const isMonthly = groupBy === 'monthly'
+		const isCumulative = groupBy === 'cumulative'
 
 		if (feesData) {
-			for (const [date, value] of feesData) {
-				feesStore[date] = (feesStore[date] ?? 0) + value
+			let total = 0
+			for (const [date, value] of feesData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				feesStore[dateKey] = (feesStore[dateKey] ?? 0) + value + total
+				if (isCumulative) {
+					total += value
+				}
 			}
 		}
 
 		if (revenueData) {
-			for (const [date, value] of feesData) {
-				revenueStore[date] = (revenueStore[date] ?? 0) + value
+			let total = 0
+			for (const [date, value] of revenueData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + value + total
+				if (isCumulative) {
+					total += value
+				}
 			}
 		}
 
 		if (holdersRevenueData) {
-			for (const [date, value] of holdersRevenueData) {
-				holdersRevenueStore[date] = (holdersRevenueStore[date] ?? 0) + value
+			let total = 0
+			for (const [date, value] of holdersRevenueData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + value + total
+				if (isCumulative) {
+					total += value
+				}
 			}
 		}
 
 		if (bribesData) {
-			for (const [date, value] of bribesData) {
-				feesStore[date] = (feesStore[date] ?? 0) + value
-				revenueStore[date] = (revenueStore[date] ?? 0) + value
-				holdersRevenueStore[date] = (holdersRevenueStore[date] ?? 0) + value
+			let total = 0
+			for (const [date, value] of bribesData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				if (feesData) {
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + value + total
+				}
+				if (revenueData) {
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + value + total
+				}
+				if (holdersRevenueData) {
+					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + value + total
+				}
+				if (isCumulative) {
+					total += value
+				}
 			}
 		}
 
 		if (tokenTaxesData) {
-			for (const [date, value] of tokenTaxesData) {
-				feesStore[date] = (feesStore[date] ?? 0) + value
-				revenueStore[date] = (revenueStore[date] ?? 0) + value
-				holdersRevenueStore[date] = (holdersRevenueStore[date] ?? 0) + value
+			let total = 0
+			for (const [date, value] of tokenTaxesData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				if (feesData) {
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + value + total
+				}
+				if (revenueData) {
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + value + total
+				}
+				if (holdersRevenueData) {
+					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + value + total
+				}
+				if (isCumulative) {
+					total += value
+				}
 			}
 		}
 
@@ -512,31 +554,31 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (dexVolumeData) {
-			charts['DEX Volume'] = formatVolumeChart(dexVolumeData, groupBy)
+			charts['DEX Volume'] = formatBarChart(dexVolumeData.totalDataChart, groupBy)
 		}
 
 		if (perpsVolumeData) {
-			charts['Perp Volume'] = formatVolumeChart(perpsVolumeData, groupBy)
+			charts['Perp Volume'] = formatBarChart(perpsVolumeData.totalDataChart, groupBy)
 		}
 
 		if (optionsPremiumVolumeData) {
-			charts['Options Premium Volume'] = formatVolumeChart(optionsPremiumVolumeData, groupBy)
+			charts['Options Premium Volume'] = formatBarChart(optionsPremiumVolumeData.totalDataChart, groupBy)
 		}
 
 		if (optionsNotionalVolumeData) {
-			charts['Options Notional Volume'] = formatVolumeChart(optionsNotionalVolumeData, groupBy)
+			charts['Options Notional Volume'] = formatBarChart(optionsNotionalVolumeData.totalDataChart, groupBy)
 		}
 
 		if (aggregatorsVolumeData) {
-			charts['DEX Aggregator Volume'] = formatVolumeChart(aggregatorsVolumeData, groupBy)
+			charts['DEX Aggregator Volume'] = formatBarChart(aggregatorsVolumeData.totalDataChart, groupBy)
 		}
 
 		if (perpsAggregatorsVolumeData) {
-			charts['Perp Aggregator Volume'] = formatVolumeChart(perpsAggregatorsVolumeData, groupBy)
+			charts['Perp Aggregator Volume'] = formatBarChart(perpsAggregatorsVolumeData.totalDataChart, groupBy)
 		}
 
 		if (bridgeAggregatorsVolumeData) {
-			charts['Bridge Aggregator Volume'] = formatVolumeChart(bridgeAggregatorsVolumeData, groupBy)
+			charts['Bridge Aggregator Volume'] = formatBarChart(bridgeAggregatorsVolumeData.totalDataChart, groupBy)
 		}
 
 		return { finalCharts: charts, stacks: Object.keys(charts), valueSymbol, loadingCharts: '' }
@@ -565,31 +607,52 @@ export const useFetchAndFormatChartData = ({
 		fetchingOptionsNotionalVolume,
 		fetchingDEXAggregatorVolume,
 		fetchingPerpAggregatorVolume,
-		fetchingBridgeAggregatorVolume
+		fetchingBridgeAggregatorVolume,
+		groupBy
 	])
 
 	return chartData
 }
 
-const formatVolumeChart = (data: Array<[number, number]>, groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative') => {
-	if (groupBy === 'daily') {
-		return data.map(([date, value]) => [+date * 1e3, value])
-	}
-	const store = {}
-	let total = 0
-	const isWeekly = groupBy === 'weekly'
-	const isMonthly = groupBy === 'monthly'
-	const isCumulative = groupBy === 'cumulative'
-	for (const [date, value] of data) {
-		const dateKey = isWeekly ? lastDayOfWeek(date) : isMonthly ? firstDayOfMonth(date) : date
-		store[dateKey] = (store[dateKey] ?? 0) + value + total
-		if (isCumulative) {
-			total += value
+const formatBarChart = (data: Array<[string, number]>, groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative') => {
+	if (['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
+		const store = {}
+		let total = 0
+		const isWeekly = groupBy === 'weekly'
+		const isMonthly = groupBy === 'monthly'
+		const isCumulative = groupBy === 'cumulative'
+		for (const [date, value] of data) {
+			const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+			// sum up values as it is bar chart
+			store[dateKey] = (store[dateKey] ?? 0) + value + total
+			if (isCumulative) {
+				total += value
+			}
 		}
+		const finalChart = []
+		for (const date in store) {
+			finalChart.push([+date * 1e3, store[date]])
+		}
+		return finalChart
 	}
-	const finalChart = []
-	for (const date in store) {
-		finalChart.push([+date * 1e3, store[date]])
+	return data.map(([date, value]) => [+date * 1e3, value])
+}
+
+const formatLineChart = (data: Array<[string, number]>, groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative') => {
+	if (['weekly', 'monthly'].includes(groupBy)) {
+		const store = {}
+		const isWeekly = groupBy === 'weekly'
+		const isMonthly = groupBy === 'monthly'
+		for (const [date, value] of data) {
+			const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+			// do not sum up values, just use the last value for each date
+			store[dateKey] = value
+		}
+		const finalChart = []
+		for (const date in store) {
+			finalChart.push([+date * 1e3, store[date]])
+		}
+		return finalChart
 	}
-	return finalChart
+	return data.map(([date, value]) => [+date * 1e3, value]) as Array<[number, number]>
 }

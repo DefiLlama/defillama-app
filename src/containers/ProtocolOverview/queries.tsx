@@ -731,19 +731,18 @@ export const getProtocolOverviewPageData = async ({
 		if (chain.includes('-') || chain === 'offers') continue
 		if (DEFI_SETTINGS_KEYS.includes(chain)) {
 			for (const item of protocolData.chainTvls[chain].tvl) {
-				extraTvlCharts[chain][+item.date * 1e3] =
-					(extraTvlCharts[chain][+item.date * 1e3] ?? 0) + item.totalLiquidityUSD
+				extraTvlCharts[chain][item.date] = (extraTvlCharts[chain][item.date] ?? 0) + item.totalLiquidityUSD
 			}
 		} else {
 			for (const item of protocolData.chainTvls[chain].tvl) {
-				tvlChart[+item.date * 1e3] = (tvlChart[+item.date * 1e3] ?? 0) + item.totalLiquidityUSD
+				tvlChart[item.date] = (tvlChart[item.date] ?? 0) + item.totalLiquidityUSD
 			}
 		}
 	}
 
-	const tvlChartData: Array<[number, number]> = []
+	const tvlChartData: Array<[string, number]> = []
 	for (const date in tvlChart) {
-		tvlChartData.push([+date, tvlChart[date]])
+		tvlChartData.push([date, tvlChart[date]])
 	}
 
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []

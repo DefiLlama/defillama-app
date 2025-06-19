@@ -111,8 +111,8 @@ interface IAdapterOverview {
 }
 
 export interface IProtocolOverviewPageData {
-	tvlChartData: Array<[number, number]>
-	extraTvlCharts: Record<string, Record<number, number>>
+	tvlChartData: Array<[string, number]>
+	extraTvlCharts: Record<string, Record<string, number>>
 	id: string
 	name: string
 	token: {

@@ -507,11 +507,12 @@ export function nearestUtcZeroHour(dateString) {
 		: Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
 }
 
+// TODO params & return value should be in seconds
 export function firstDayOfMonth(dateString) {
 	const date = new Date(dateString)
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 }
-
+// TODO params & return value should be in seconds
 export function lastDayOfWeek(dateString) {
 	const date = new Date(dateString)
 	const weekDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay()

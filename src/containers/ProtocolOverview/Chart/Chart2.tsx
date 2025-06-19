@@ -22,12 +22,11 @@ export default function ProtocolLineBarChart({
 	height,
 	unlockTokenSymbol = '',
 	isThemeDark,
+	groupBy,
 	...props
 }) {
 	const id = useId()
-	const router = useRouter()
-	const { groupBy } = router.query
-	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
+	const isCumulative = groupBy === 'cumulative'
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -228,13 +227,25 @@ export default function ProtocolLineBarChart({
 
 			if (type === 'Fees') {
 				finalYAxis.push({
-					...options
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chartColors['Fees']
+						}
+					}
 				})
 			}
 
 			if (type === 'DEX Volume') {
 				finalYAxis.push({
-					...options
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chartColors['DEX Volume']
+						}
+					}
 				})
 			}
 
