@@ -1,4 +1,3 @@
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { ProtocolChartsLabels } from './Chart/constants'
 
 export interface IProtocolMetadata {
@@ -52,6 +51,7 @@ export interface IProtocolPageMetrics {
 	nfts: boolean
 	dev: boolean
 	inflows: boolean
+	liquidity: boolean
 }
 
 export interface IUpdatedProtocol {
@@ -312,4 +312,11 @@ export interface IProtocolExpenses {
 	sources?: Array<string> | null
 	notes?: Array<string> | null
 	lastUpdate?: string | null
+}
+
+// date in the chart is in ms
+export interface IDenominationPriceHistory {
+	prices: Array<[number, number]>
+	mcaps: Array<[number, number]>
+	volumes: Array<[number, number]>
 }

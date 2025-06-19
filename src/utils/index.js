@@ -199,7 +199,7 @@ export function tokenIconUrl(name) {
 		.join('')
 		.split("'")
 		.join('')
-		.split('’')
+		.split('')
 		.join('')}?w=48&h=48`
 }
 
@@ -217,7 +217,7 @@ export function tokenIconPaletteUrl(name) {
 		.join('')
 		.split("'")
 		.join('')
-		.split('’')
+		.split('')
 		.join('')}`
 }
 

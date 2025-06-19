@@ -188,7 +188,8 @@ export const getProtocolMetrics = ({
 		governance: protocolData.governanceID ? true : false,
 		nfts: metadata.nfts ? true : false,
 		dev: protocolData.github ? true : false,
-		inflows: inflowsExist
+		inflows: inflowsExist,
+		liquidity: metadata.liquidity ? true : false
 	}
 }
 
@@ -774,6 +775,8 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Mcap')
 		availableCharts.push('Token Price')
 		availableCharts.push('Token Volume')
+		availableCharts.push('Token Liquidity')
+		availableCharts.push('FDV')
 	}
 
 	if (feesData) {

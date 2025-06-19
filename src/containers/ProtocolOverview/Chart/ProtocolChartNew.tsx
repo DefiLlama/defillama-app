@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { IProtocolOverviewPageData } from '../types'
+import { IDenominationPriceHistory, IProtocolOverviewPageData } from '../types'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
@@ -8,8 +8,7 @@ import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/Dimensi
 import { useQuery } from '@tanstack/react-query'
 import { firstDayOfMonth, lastDayOfWeek } from '~/utils'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
-import { CACHE_SERVER } from '~/constants'
-import { IDenominationPriceHistory } from '~/api/types'
+import { CACHE_SERVER, TOKEN_LIQUIDITY_API } from '~/constants'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
@@ -95,6 +94,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 
 export const useFetchAndFormatChartData = ({
 	name,
+	id: protocolId,
 	geckoId,
 	currentTvlByChain,
 	tvlChartData,
@@ -112,23 +112,23 @@ export const useFetchAndFormatChartData = ({
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
 
-	// fetch denomination on protocol chains
-	// date in ms
-	const { data: denominationPriceHistory, isLoading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
-		isRouterReady && toggledMetrics.denomination
-			? chartDenominations.find((d) => d.symbol === toggledMetrics.denomination)?.geckoId
-			: null
-	)
+	// date in the chart is in ms
+	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } =
+		useDenominationPriceHistory(
+			isRouterReady && toggledMetrics.denomination
+				? chartDenominations.find((d) => d.symbol === toggledMetrics.denomination)?.geckoId
+				: null
+		)
 
-	//  protocol mcap data
-	// date in ms
-	const { data: protocolTokenData, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory>({
+	// date in the chart is in ms
+	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory>({
 		queryKey: [
 			`tokenData-${
 				isRouterReady &&
 				(toggledMetrics.mcap === 'true' ||
 					toggledMetrics.tokenPrice === 'true' ||
-					toggledMetrics.tokenVolume === 'true') &&
+					toggledMetrics.tokenVolume === 'true' ||
+					toggledMetrics.fdv === 'true') &&
 				geckoId
 					? geckoId
 					: null
@@ -138,23 +138,45 @@ export const useFetchAndFormatChartData = ({
 			isRouterReady &&
 			(toggledMetrics.mcap === 'true' ||
 				toggledMetrics.tokenPrice === 'true' ||
-				toggledMetrics.tokenVolume === 'true') &&
+				toggledMetrics.tokenVolume === 'true' ||
+				toggledMetrics.fdv === 'true') &&
 			geckoId
 				? () =>
 						fetch(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`)
 							.then((r) => r.json())
 							.then((res) => (res.data.prices.length > 0 ? res.data : { prices: [], mcaps: [], volumes: [] }))
 				: () => null,
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		retry: 0
 	})
 
-	const { data: fdvData = null, isLoading: fetchingFdv } = useQuery({
-		queryKey: [`fdv-${geckoId && toggledMetrics.fdv === 'true' && isRouterReady ? geckoId : null}`],
+	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery({
+		queryKey: [`tokenSupply-${geckoId && toggledMetrics.fdv === 'true' && isRouterReady ? geckoId : null}`],
 		queryFn:
 			geckoId && toggledMetrics.fdv === 'true' && isRouterReady
-				? () => fetch(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.json())
+				? () =>
+						fetch(`${CACHE_SERVER}/supply/${geckoId}`)
+							.then((res) => res.json())
+							.then((res) => res.data?.['total_supply'])
 				: () => null,
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		retry: 0
+	})
+
+	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery({
+		queryKey: [
+			'tokenLiquidity',
+			isRouterReady && metrics.liquidity && toggledMetrics.tokenLiquidity === 'true' ? protocolId : null
+		],
+		queryFn:
+			isRouterReady && metrics.liquidity && toggledMetrics.tokenLiquidity === 'true'
+				? () =>
+						fetch(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`)
+							.then((res) => res.json())
+							.catch((err) => null)
+				: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0
 	})
 
 	const tvlChart = useMemo(() => {
@@ -181,7 +203,7 @@ export const useFetchAndFormatChartData = ({
 			return finalChart as Array<[number, number]>
 		}
 
-		return formatLineChart(tvlChartData, groupBy)
+		return formatLineChart({ data: tvlChartData, groupBy })
 	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy])
 
 	const { data: feesData = null, isLoading: fetchingFees } = useQuery<IAdapterSummary>({
@@ -456,6 +478,14 @@ export const useFetchAndFormatChartData = ({
 			loadingCharts.push('Mcap, Token price, Token volume')
 		}
 
+		if (fetchingTokenTotalSupply) {
+			loadingCharts.push('Token Supply')
+		}
+
+		if (fetchingTokenLiquidity) {
+			loadingCharts.push('Token Liquidity')
+		}
+
 		if (fetchingFees) {
 			loadingCharts.push('Fees')
 		}
@@ -510,14 +540,25 @@ export const useFetchAndFormatChartData = ({
 
 		if (protocolTokenData) {
 			if (toggledMetrics.mcap === 'true') {
-				charts.Mcap = protocolTokenData.mcaps
+				charts.Mcap = formatLineChart({ data: protocolTokenData.mcaps, groupBy, dateInMs: true })
 			}
 			if (toggledMetrics.tokenPrice === 'true') {
-				charts['Token Price'] = protocolTokenData.prices
+				charts['Token Price'] = formatLineChart({ data: protocolTokenData.prices, groupBy, dateInMs: true })
 			}
 			if (toggledMetrics.tokenVolume === 'true') {
-				charts['Token Volume'] = protocolTokenData.volumes
+				charts['Token Volume'] = formatLineChart({ data: protocolTokenData.volumes, groupBy, dateInMs: true })
 			}
+			if (toggledMetrics.fdv === 'true') {
+				charts['FDV'] = formatLineChart({
+					data: protocolTokenData.prices.map(([date, price]) => [date, price * tokenTotalSupply]),
+					groupBy,
+					dateInMs: true
+				})
+			}
+		}
+
+		if (tokenLiquidityData) {
+			charts['Token Liquidity'] = formatLineChart({ data: tokenLiquidityData, groupBy })
 		}
 
 		const feesStore = {}
@@ -627,31 +668,34 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (dexVolumeData) {
-			charts['DEX Volume'] = formatBarChart(dexVolumeData.totalDataChart, groupBy)
+			charts['DEX Volume'] = formatBarChart({ data: dexVolumeData.totalDataChart, groupBy })
 		}
 
 		if (perpsVolumeData) {
-			charts['Perp Volume'] = formatBarChart(perpsVolumeData.totalDataChart, groupBy)
+			charts['Perp Volume'] = formatBarChart({ data: perpsVolumeData.totalDataChart, groupBy })
 		}
 
 		if (optionsPremiumVolumeData) {
-			charts['Options Premium Volume'] = formatBarChart(optionsPremiumVolumeData.totalDataChart, groupBy)
+			charts['Options Premium Volume'] = formatBarChart({ data: optionsPremiumVolumeData.totalDataChart, groupBy })
 		}
 
 		if (optionsNotionalVolumeData) {
-			charts['Options Notional Volume'] = formatBarChart(optionsNotionalVolumeData.totalDataChart, groupBy)
+			charts['Options Notional Volume'] = formatBarChart({ data: optionsNotionalVolumeData.totalDataChart, groupBy })
 		}
 
 		if (aggregatorsVolumeData) {
-			charts['DEX Aggregator Volume'] = formatBarChart(aggregatorsVolumeData.totalDataChart, groupBy)
+			charts['DEX Aggregator Volume'] = formatBarChart({ data: aggregatorsVolumeData.totalDataChart, groupBy })
 		}
 
 		if (perpsAggregatorsVolumeData) {
-			charts['Perp Aggregator Volume'] = formatBarChart(perpsAggregatorsVolumeData.totalDataChart, groupBy)
+			charts['Perp Aggregator Volume'] = formatBarChart({ data: perpsAggregatorsVolumeData.totalDataChart, groupBy })
 		}
 
 		if (bridgeAggregatorsVolumeData) {
-			charts['Bridge Aggregator Volume'] = formatBarChart(bridgeAggregatorsVolumeData.totalDataChart, groupBy)
+			charts['Bridge Aggregator Volume'] = formatBarChart({
+				data: bridgeAggregatorsVolumeData.totalDataChart,
+				groupBy
+			})
 		}
 
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
@@ -683,16 +727,23 @@ export const useFetchAndFormatChartData = ({
 		fetchingPerpAggregatorVolume,
 		fetchingBridgeAggregatorVolume,
 		fetchingProtocolTokenData,
+		fetchingTokenTotalSupply,
+		fetchingTokenLiquidity,
 		groupBy
 	])
 
 	return chartData
 }
 
-const formatBarChart = (
-	data: Array<[string | number, number]>,
+const formatBarChart = ({
+	data,
+	groupBy,
+	dateInMs = false
+}: {
+	data: Array<[string | number, number]>
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
-): Array<[number, number]> => {
+	dateInMs?: boolean
+}): Array<[number, number]> => {
 	if (['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
 		const store = {}
 		let total = 0
@@ -700,7 +751,11 @@ const formatBarChart = (
 		const isMonthly = groupBy === 'monthly'
 		const isCumulative = groupBy === 'cumulative'
 		for (const [date, value] of data) {
-			const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+			const dateKey = isWeekly
+				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
+				: isMonthly
+				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
+				: date
 			// sum up values as it is bar chart
 			store[dateKey] = (store[dateKey] ?? 0) + value + total
 			if (isCumulative) {
@@ -713,19 +768,28 @@ const formatBarChart = (
 		}
 		return finalChart
 	}
-	return data.map(([date, value]) => [+date * 1e3, value])
+	return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
 }
 
-const formatLineChart = (
-	data: Array<[string | number, number]>,
+const formatLineChart = ({
+	data,
+	groupBy,
+	dateInMs = false
+}: {
+	data: Array<[string | number, number]>
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
-): Array<[number, number]> => {
+	dateInMs?: boolean
+}): Array<[number, number]> => {
 	if (['weekly', 'monthly'].includes(groupBy)) {
 		const store = {}
 		const isWeekly = groupBy === 'weekly'
 		const isMonthly = groupBy === 'monthly'
 		for (const [date, value] of data) {
-			const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+			const dateKey = isWeekly
+				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
+				: isMonthly
+				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
+				: date
 			// do not sum up values, just use the last value for each date
 			store[dateKey] = value
 		}
@@ -735,5 +799,5 @@ const formatLineChart = (
 		}
 		return finalChart
 	}
-	return data.map(([date, value]) => [+date * 1e3, value])
+	return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
 }

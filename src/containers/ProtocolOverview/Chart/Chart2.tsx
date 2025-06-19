@@ -54,7 +54,7 @@ export default function ProtocolLineBarChart({
 		) as Record<ProtocolChartsLabels, number | undefined>
 
 		const series = stacks.map((stack, index) => {
-			const stackColor = index === 0 ? color || chartColors[stack] : chartColors[stack]
+			const stackColor = chartColors[stack]
 
 			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
 			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
