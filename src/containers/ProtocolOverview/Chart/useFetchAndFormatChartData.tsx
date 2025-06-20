@@ -1321,7 +1321,7 @@ export function useFetchAndFormatChartData({
 		contributersCommits,
 		treasuryData,
 		showNonUsdDenomination,
-		denominationHistory.prices,
+		denominationHistory,
 		mcap,
 		tokenPrice,
 		fdv,

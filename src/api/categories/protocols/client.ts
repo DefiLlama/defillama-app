@@ -273,7 +273,7 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 					fetchApi(url)
 						.then((r) => r.data)
 						.then((data) => (data.prices.length > 0 ? data : { prices: [], mcaps: [], volumes: [] }))
-			: () => null,
+			: () => ({ prices: [], mcaps: [], volumes: [] }),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
