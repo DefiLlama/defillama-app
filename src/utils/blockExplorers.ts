@@ -166,3 +166,17 @@ export const getBlockExplorer = (address: string = '') => {
 		explorers
 	} //rebuild again
 }
+
+export const getProtocolTokenUrlOnExplorer = (address: string = '') => {
+	if (!address || typeof address !== 'string' || address === '') return null
+
+	const newAddress = !address.includes(':') ? `ethereum:${address}` : address
+	const [chain, chainAddress] = newAddress.split(':')
+	const explorer = blockExplorers[chain]
+
+	if (explorer && explorer[0]?.length === 2) {
+		return `${explorer[0][0]}${chainAddress}`
+	}
+
+	return null
+}

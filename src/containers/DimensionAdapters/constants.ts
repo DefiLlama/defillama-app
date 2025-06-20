@@ -8,6 +8,17 @@ export enum ADAPTER_TYPES {
 	BRIDGE_AGGREGATORS = 'bridge-aggregators'
 }
 
+export enum ADAPTER_DATA_TYPES {
+	REVENUE = 'dailyRevenue',
+	HOLDERS_REVENUE = 'dailyHoldersRevenue',
+	BRIBES_REVENUE = 'dailyBribesRevenue',
+	TOKEN_TAXES = 'dailyTokenTaxes',
+	NOTIONAL_VOLUME = 'dailyNotionalVolume',
+	PREMIUM_VOLUME = 'dailyPremiumVolume',
+	APP_FEES = 'dailyAppFees',
+	APP_REVENUE = 'dailyAppRevenue'
+}
+
 export const VOLUME_TYPE_ADAPTERS = [
 	'dexs',
 	'derivatives',

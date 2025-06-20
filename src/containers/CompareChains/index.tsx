@@ -37,7 +37,7 @@ const CustomOption = ({ innerProps, label, data }) => (
 
 export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
 	const data = await fetch(`https://defillama.com/api/cache/chain/${chain}`).then((r) => r.json())
-	console.log(data)
+
 	const {
 		chart,
 		extraTvlCharts,

@@ -199,7 +199,7 @@ export function tokenIconUrl(name) {
 		.join('')
 		.split("'")
 		.join('')
-		.split('’')
+		.split('')
 		.join('')}?w=48&h=48`
 }
 
@@ -217,7 +217,7 @@ export function tokenIconPaletteUrl(name) {
 		.join('')
 		.split("'")
 		.join('')
-		.split('’')
+		.split('')
 		.join('')}`
 }
 
@@ -350,23 +350,116 @@ export function getNDistinctColors(n, colorToAvoid) {
 	// Use prime number for better distribution
 	const step = 0.618033988749895 // golden ratio
 
+	// Function to calculate color distance in HSL space
+	const getColorDistance = (hsl1, hsl2) => {
+		// Calculate hue difference (accounting for circular nature)
+		let hueDiff = Math.abs(hsl1.h - hsl2.h)
+		if (hueDiff > 180) hueDiff = 360 - hueDiff
+
+		// Normalize differences
+		const hueDistance = hueDiff / 180 // 0-1
+		const satDistance = Math.abs(hsl1.s - hsl2.s) / 100 // 0-1
+		const lightDistance = Math.abs(hsl1.l - hsl2.l) / 100 // 0-1
+
+		// Weighted distance (hue is most important for distinction)
+		return hueDistance * 0.7 + satDistance * 0.2 + lightDistance * 0.1
+	}
+
+	// Function to check if a color is too similar to any existing colors
+	const isTooSimilarToAny = (colorHsl, existingColors) => {
+		// Check against colorToAvoid
+		if (colorToAvoidHsl && getColorDistance(colorHsl, colorToAvoidHsl) < 0.3) {
+			return true
+		}
+
+		// Check against all existing colors
+		for (const existingColor of existingColors) {
+			const existingHsl = hexToHSL(existingColor)
+			if (getColorDistance(colorHsl, existingHsl) < 0.3) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	// First pass: Generate n distinct colors
 	for (let i = 0; i < n; i++) {
-		// Vary saturation slightly for better distinction while keeping colors rich
-		const saturation = 85 + (i % 3) * 5
-		// Vary lightness slightly for better distinction while keeping colors dark
-		const lightness = 35 + (i % 2) * 10
+		let attempts = 0
+		let color
+		let colorHsl
 
-		let color = hslToHex(hue * 360, saturation, lightness)
+		do {
+			// Use larger modulo values to prevent repetition patterns
+			// Vary saturation for better distinction while keeping colors rich
+			const saturation = 65 + (i % 7) * 5 // 7 different saturation values: 65, 70, 75, 80, 85, 90, 95
+			// Keep colors dark (lightness 20-45)
+			const lightness = 20 + (i % 6) * 5 // 6 different lightness values: 20, 25, 30, 35, 40, 45
 
-		// If the generated color is too close to colorToAvoid, adjust the hue further
-		if (colorToAvoid === color) {
-			hue = (hue + 0.3) % 1 // Add 108 degrees to hue
+			color = hslToHex(hue * 360, saturation, lightness)
+			colorHsl = hexToHSL(color)
+
+			// Check if color is too similar to colorToAvoid or existing colors
+			const isTooSimilar = isTooSimilarToAny(colorHsl, colors)
+
+			if (!isTooSimilar) break
+
+			// If too similar, try different hue
+			hue = (hue + 0.2) % 1
+			attempts++
+		} while (attempts < 10) // Prevent infinite loop
+
+		// If we still can't find a distinct color, force a very different hue
+		if (attempts >= 10) {
+			hue = (hue + 0.5) % 1 // Jump to opposite side of color wheel
+			const saturation = 65 + (i % 7) * 5
+			const lightness = 20 + (i % 6) * 5
 			color = hslToHex(hue * 360, saturation, lightness)
 		}
 
 		colors.push(color)
 		hue += step
 		hue %= 1 // Keep in [0,1] range
+	}
+
+	// Second pass: Replace any colors that are still too similar to colorToAvoid
+	if (colorToAvoidHsl) {
+		for (let i = 0; i < colors.length; i++) {
+			const currentColorHsl = hexToHSL(colors[i])
+
+			// Check if current color is too similar to colorToAvoid
+			if (getColorDistance(currentColorHsl, colorToAvoidHsl) < 0.3) {
+				let replacementFound = false
+				let attempts = 0
+
+				// Try to find a replacement color
+				while (!replacementFound && attempts < 20) {
+					// Use a different hue strategy for replacement
+					const replacementHue = Math.random() * 360 // Random hue
+					const saturation = 65 + (attempts % 7) * 5
+					const lightness = 20 + (attempts % 6) * 5
+
+					const replacementColor = hslToHex(replacementHue, saturation, lightness)
+					const replacementHsl = hexToHSL(replacementColor)
+
+					// Check if replacement is distinct from colorToAvoid and all other colors
+					if (!isTooSimilarToAny(replacementHsl, colors)) {
+						colors[i] = replacementColor
+						replacementFound = true
+					}
+
+					attempts++
+				}
+
+				// If no replacement found, force a very different color
+				if (!replacementFound) {
+					const forcedHue = (colorToAvoidHsl.h + 180) % 360 // Opposite hue
+					const saturation = 80
+					const lightness = 30
+					colors[i] = hslToHex(forcedHue, saturation, lightness)
+				}
+			}
+		}
 	}
 
 	return colors
@@ -474,11 +567,12 @@ export function nearestUtcZeroHour(dateString) {
 		: Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
 }
 
+// TODO params & return value should be in seconds
 export function firstDayOfMonth(dateString) {
 	const date = new Date(dateString)
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 }
-
+// TODO params & return value should be in seconds
 export function lastDayOfWeek(dateString) {
 	const date = new Date(dateString)
 	const weekDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay()

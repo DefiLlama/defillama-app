@@ -1,8 +1,8 @@
 import dayjs from 'dayjs'
 import { transparentize } from 'polished'
-import { IArticle } from '~/api/categories/news'
 import { Icon } from '~/components/Icon'
 import { primaryColor } from '~/constants/colors'
+import { IArticle } from '~/containers/ProtocolOverview/types'
 
 interface INewsCardProps extends IArticle {
 	color: string

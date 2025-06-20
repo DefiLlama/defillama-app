@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	}
 
 	const protocolRes = await getProtocol(protocol as string)
-	const protocolData = await getProtocolData(protocol as string, protocolRes, true, metadata)
+	const protocolData = await getProtocolData(protocol as string, protocolRes as any, true, metadata)
 	const response = { protocol: protocolData }
 
 	await setObjectCache(cacheKey, response)

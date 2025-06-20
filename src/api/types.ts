@@ -1,12 +1,5 @@
+import { IRaise } from '~/containers/ProtocolOverview/types'
 import { IJSON } from './categories/adaptors/types'
-
-export interface IRaise {
-	round: string
-	amount: number
-	valuation: string
-	source: string
-	date: number
-}
 
 export interface Protocol {
 	id: string
