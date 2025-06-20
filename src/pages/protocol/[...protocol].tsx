@@ -27,8 +27,6 @@ export const getStaticProps = withPerformanceLogging(
 			metadata: metadata[1]
 		})
 
-		console.log(data)
-
 		if (!data) {
 			return { notFound: true, props: null }
 		}
