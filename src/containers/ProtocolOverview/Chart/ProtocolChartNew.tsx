@@ -122,7 +122,11 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end">
 				{props.availableCharts.length > 0 ? (
 					<Ariakit.DialogProvider store={metricsDialogStore}>
-						<Ariakit.DialogDisclosure className="flex flex-shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border border-[#e6e6e6] dark:border-[#222324]">
+						<Ariakit.DialogDisclosure
+							className={`flex flex-shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border border-[#e6e6e6] dark:border-[#222324] ${
+								toggledCharts.length === 0 ? 'mr-auto' : ''
+							}`}
+						>
 							<span>Add Metrics</span>
 							<Icon name="plus" className="h-[14px] w-[14px]" />
 						</Ariakit.DialogDisclosure>
@@ -179,9 +183,17 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							value={tchart}
 							checked={true}
 							onChange={() => {
-								router.push(updateQueryParamInUrl(router.asPath, protocolCharts[tchart], null), undefined, {
-									shallow: true
-								})
+								router.push(
+									updateQueryParamInUrl(
+										router.asPath,
+										protocolCharts[tchart],
+										['TVL', 'Events'].includes(tchart) ? 'false' : null
+									),
+									undefined,
+									{
+										shallow: true
+									}
+								)
 							}}
 							className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
 						/>

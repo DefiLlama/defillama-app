@@ -34,6 +34,11 @@ export const getStaticProps = withPerformanceLogging('recent', async () => {
 
 export default function Protocols(props) {
 	return (
-		<RecentProtocols title="TVL Rankings - DefiLlama" name="Recent" header="Recently Listed Protocols" {...props} />
+		<RecentProtocols
+			title="Recently Listed Protocols - DefiLlama"
+			name="Recent"
+			header="Recently Listed Protocols"
+			{...props}
+		/>
 	)
 }

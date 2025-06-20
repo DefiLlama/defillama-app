@@ -765,7 +765,7 @@ export const getProtocolOverviewPageData = async ({
 			chains.push([chain, protocolData.currentChainTvls[chain]])
 		}
 	}
-	const firstChain = chains.sort((a, b) => b[1] - a[1])[0][0]
+	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 	if (firstChain) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
@@ -916,7 +916,7 @@ export const getProtocolOverviewPageData = async ({
 
 	return {
 		id: String(protocolData.id),
-		name: protocolData.name,
+		name: protocolData.name ?? metadata.displayName ?? null,
 		category: protocolData.category ?? null,
 		tags: protocolData.tags ?? null,
 		otherProtocols: protocolData.otherProtocols ?? null,

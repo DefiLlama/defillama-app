@@ -1735,5 +1735,5 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 // unlocks
 // governance
 // newly listed protocol data
-
+// all stats denominated in another currency
 // % change tvl, mcap, token price, etc.
