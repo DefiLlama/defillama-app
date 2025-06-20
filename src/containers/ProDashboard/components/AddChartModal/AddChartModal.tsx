@@ -55,11 +55,11 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 
 	return (
 		<div
-			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex justify-center items-end md:items-center z-50"
 			onClick={onClose}
 		>
 			<div
-				className="pro-bg1 border pro-border p-6 max-w-4xl w-full shadow-xl ml-0 lg:ml-[240px]"
+				className="pro-bg1 border pro-border p-4 md:p-6 w-full md:max-w-2xl lg:max-w-4xl shadow-xl md:ml-0 lg:ml-[240px] max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<ModalHeader editItem={editItem} onClose={onClose} />
@@ -70,7 +70,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 					onTabChange={actions.handleMainTabChange}
 				/>
 
-				<div className="space-y-5">
+				<div className="space-y-3 md:space-y-5 overflow-y-auto flex-1 -mx-4 px-4 md:mx-0 md:px-0">
 					{state.selectedMainTab === 'chart' && (
 						<ChartTab
 							selectedChartTab={state.selectedChartTab}

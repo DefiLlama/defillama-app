@@ -35,8 +35,8 @@ export function ChartTypeSelector({
 	)
 
 	return (
-		<div className="mb-4">
-			<label className="block mb-2 text-sm font-medium pro-text2">Chart Type</label>
+		<div className="mb-3 md:mb-4">
+			<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">Chart Type</label>
 			{isLoading ? (
 				<div className="flex items-center justify-center h-10">
 					<LoadingSpinner size="sm" />
@@ -47,8 +47,10 @@ export function ChartTypeSelector({
 					value={selectedOption}
 					onChange={(option: any) => onChange(option.value)}
 					placeholder="Select chart type..."
-					className="w-full"
+					className="w-full text-sm md:text-base"
 					styles={reactSelectStyles}
+					menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+					menuPosition="fixed"
 				/>
 			)}
 		</div>
