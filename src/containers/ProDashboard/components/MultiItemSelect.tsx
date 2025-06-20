@@ -13,7 +13,8 @@ interface MultiItemSelectProps {
 	onChange: (options: any[]) => void
 	isLoading: boolean
 	placeholder: string
-	itemType: 'chain' | 'protocol'
+	itemType: 'chain' | 'protocol' | 'token'
+	onInputChange?: (value: string) => void
 }
 
 const CustomChainOption = ({ innerProps, label, data }) => (
@@ -69,6 +70,24 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 	)
 }
 
+const CustomTokenOption = ({ innerProps, label, data }) => (
+	<div {...innerProps} className="flex items-center gap-2 p-2 cursor-pointer">
+		{data.logo ? (
+			<img 
+				src={data.logo} 
+				alt="" 
+				className="w-5 h-5 rounded-full" 
+				onError={(e) => {
+					e.currentTarget.style.display = 'none'
+				}}
+			/>
+		) : (
+			<div className="w-5 h-5 rounded-full bg-[var(--bg3)]" />
+		)}
+		<span>{label}</span>
+	</div>
+)
+
 function VirtualizedMenuList(props) {
 	const { options, children, maxHeight, getValue } = props
 	const listRef = useRef()
@@ -116,9 +135,14 @@ export function MultiItemSelect({
 	onChange,
 	isLoading,
 	placeholder,
-	itemType
+	itemType,
+	onInputChange
 }: MultiItemSelectProps) {
-	const OptionComponent = itemType === 'chain' ? CustomChainOption : CustomProtocolOption
+	const OptionComponent = itemType === 'chain' 
+		? CustomChainOption 
+		: itemType === 'protocol' 
+			? CustomProtocolOption 
+			: CustomTokenOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
 	const selectedOptions = useMemo(() => {
@@ -139,12 +163,15 @@ export function MultiItemSelect({
 					options={options}
 					value={selectedOptions}
 					onChange={onChange}
+					onInputChange={onInputChange}
 					components={{ Option: OptionComponent, MenuList: VirtualizedMenuList }}
 					placeholder={placeholder}
 					className="w-full"
 					filterOption={filterOption}
 					styles={reactSelectStyles}
 					closeMenuOnSelect={false}
+					menuPosition="fixed"
+					isClearable
 				/>
 			)}
 		</div>

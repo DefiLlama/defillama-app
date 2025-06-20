@@ -165,6 +165,7 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 	const [searchTerm, setSearchTerm] = React.useState('')
 	const [columnOrder, setColumnOrder] = React.useState<string[]>([])
 	const [customColumns, setCustomColumns] = React.useState<CustomColumn[]>([])
+	const [selectedPreset, setSelectedPreset] = React.useState<string | null>(null)
 
 	// Load custom columns from localStorage on mount
 	React.useEffect(() => {
@@ -375,14 +376,13 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 	])
 
 	React.useEffect(() => {
-		if (filterState === TABLE_CATEGORIES.TVL) {
-			const newOptions = protocolsByChainTableColumns
-				.filter(
-					(column) => column.category === TABLE_CATEGORIES.TVL || column.key === 'name' || column.key === 'category'
-				)
-				.map((op) => op.key)
-			addOption(newOptions, false)
+		if (table && columnOrder.length > 0) {
+			table.setColumnOrder(columnOrder)
 		}
+	}, [table, columnOrder])
+
+	React.useEffect(() => {
+		applyPreset('essential')
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
@@ -395,18 +395,34 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 		table.setColumnVisibility(ops)
 	}
 
-	const columnPresets = {
-		essential: ['name', 'category', 'tvl', 'change_1d', 'change_7d'],
-		fees: ['name', 'category', 'tvl', 'fees_24h', 'fees_7d', 'revenue_24h', 'revenue_7d'],
-		volume: ['name', 'category', 'tvl', 'volume_24h', 'volume_7d', 'volumeChange_7d'],
-		advanced: ['name', 'category', 'tvl', 'change_1d', 'fees_24h', 'revenue_24h', 'volume_24h', 'mcaptvl', 'pf', 'ps']
-	}
+	const columnPresets = React.useMemo(
+		() => ({
+			essential: ['name', 'category', 'chains', 'tvl', 'change_1d', 'change_7d'],
+			fees: ['name', 'category', 'chains', 'tvl', 'fees_24h', 'fees_7d', 'revenue_24h', 'revenue_7d'],
+			volume: ['name', 'category', 'chains', 'tvl', 'volume_24h', 'volume_7d', 'volumeChange_7d'],
+			advanced: [
+				'name',
+				'category',
+				'chains',
+				'tvl',
+				'change_1d',
+				'fees_24h',
+				'revenue_24h',
+				'volume_24h',
+				'mcaptvl',
+				'pf',
+				'ps'
+			]
+		}),
+		[]
+	)
 
 	const applyPreset = (presetName: string) => {
 		const preset = columnPresets[presetName]
 		if (preset) {
 			addOption(preset, true)
 			setShowColumnPanel(false)
+			setSelectedPreset(presetName)
 		}
 	}
 
@@ -432,6 +448,41 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 		)
 
 		addOption(newOptions, true)
+		setSelectedPreset(null)
+
+		if (isVisible) {
+			setColumnOrder((prev) => [...prev, columnKey])
+		} else {
+			setColumnOrder((prev) => prev.filter((id) => id !== columnKey))
+		}
+	}
+
+	const moveColumnUp = (columnKey: string) => {
+		setColumnOrder((prev) => {
+			const index = prev.indexOf(columnKey)
+			if (index <= 0) return prev
+
+			const newOrder = [...prev]
+			const temp = newOrder[index]
+			newOrder[index] = newOrder[index - 1]
+			newOrder[index - 1] = temp
+			return newOrder
+		})
+	}
+
+	const moveColumnDown = (columnKey: string) => {
+		setColumnOrder((prev) => {
+			const index = prev.indexOf(columnKey)
+			if (index === -1 || index >= prev.length - 1) return prev
+
+			if (index + 1 >= prev.length) return prev
+
+			const newOrder = [...prev]
+			const temp = newOrder[index]
+			newOrder[index] = newOrder[index + 1]
+			newOrder[index + 1] = temp
+			return newOrder
+		})
 	}
 
 	const downloadCSV = () => {
@@ -533,8 +584,11 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 		columnOrder,
 		addOption,
 		toggleColumnVisibility,
+		moveColumnUp,
+		moveColumnDown,
 		columnPresets,
 		applyPreset,
+		activePreset: selectedPreset,
 		downloadCSV,
 		customColumns,
 		addCustomColumn,

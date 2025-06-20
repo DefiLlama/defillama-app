@@ -49,6 +49,7 @@ export enum TABLE_PERIODS {
 export const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
+	{ name: 'Chains', key: 'chains' },
 	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
 	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'TVL 7d change', key: 'change_7d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.SEVEN_DAYS },
@@ -113,6 +114,7 @@ export const protocolsByChainTableColumns = [
 export const defaultColumns = JSON.stringify({
 	name: true,
 	category: true,
+	chains: false,
 	tvl: true,
 	change_1d: true,
 	change_7d: true,

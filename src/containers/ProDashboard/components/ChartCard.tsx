@@ -2,7 +2,7 @@ import { Icon } from '~/components/Icon'
 import dynamic from 'next/dynamic'
 import { ChartConfig, CHART_TYPES, Chain, Protocol } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
-import { getItemIconUrl } from '../utils'
+import { getItemIconUrl, generateChartColor } from '../utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { memo } from 'react'
 
@@ -24,9 +24,17 @@ interface ChartRendererProps {
 	isLoading: boolean
 	hasError: boolean
 	refetch: () => void
+	color: string
 }
 
-const ChartRenderer = memo(function ChartRenderer({ chart, data, isLoading, hasError, refetch }: ChartRendererProps) {
+const ChartRenderer = memo(function ChartRenderer({
+	chart,
+	data,
+	isLoading,
+	hasError,
+	refetch,
+	color
+}: ChartRendererProps) {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center h-full">
@@ -54,27 +62,9 @@ const ChartRenderer = memo(function ChartRenderer({ chart, data, isLoading, hasE
 	const chartType = CHART_TYPES[chart.type]
 
 	if (chartType.chartType === 'bar') {
-		return (
-			<BarChart
-				chartData={data}
-				valueSymbol="$"
-				height="300px"
-				color={chartType.color}
-				hideDataZoom
-				hideDownloadButton
-			/>
-		)
+		return <BarChart chartData={data} valueSymbol="$" height="300px" color={color} hideDataZoom hideDownloadButton />
 	} else {
-		return (
-			<AreaChart
-				chartData={data}
-				valueSymbol="$"
-				color={chartType.color}
-				height="300px"
-				hideDataZoom
-				hideDownloadButton
-			/>
-		)
+		return <AreaChart chartData={data} valueSymbol="$" color={color} height="300px" hideDataZoom hideDownloadButton />
 	}
 })
 
@@ -89,16 +79,21 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 	let itemName: string = ''
 	let itemIconUrl: string | undefined = undefined
 	let itemInfo: Chain | Protocol | undefined
+	let itemIdentifier: string = ''
 	console.log('chart', chart)
 	if (chart.protocol) {
 		itemInfo = getProtocolInfo(chart.protocol)
 		itemName = itemInfo?.name || chart.protocol
 		itemIconUrl = getItemIconUrl('protocol', itemInfo, chart.protocol)
+		itemIdentifier = chart.protocol
 	} else if (chart.chain) {
 		itemInfo = getChainInfo(chart.chain)
 		itemName = chart.chain
 		itemIconUrl = getItemIconUrl('chain', itemInfo, chart.chain)
+		itemIdentifier = chart.chain
 	}
+
+	const chartColor = generateChartColor(itemIdentifier, chartTypeDetails.color)
 
 	return (
 		<div className="p-4 h-full flex flex-col">
@@ -140,7 +135,14 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 			</div>
 
 			<div style={{ height: '300px', flexGrow: 1 }}>
-				<ChartRenderer chart={chart} data={data} isLoading={isLoading} hasError={hasError} refetch={refetch} />
+				<ChartRenderer
+					chart={chart}
+					data={data}
+					isLoading={isLoading}
+					hasError={hasError}
+					refetch={refetch}
+					color={chartColor}
+				/>
 			</div>
 		</div>
 	)
