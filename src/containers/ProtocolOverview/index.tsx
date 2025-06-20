@@ -19,9 +19,8 @@ import { ProtocolChart2 } from './Chart/ProtocolChartNew'
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
-	const { tvl, tvlByChain, hasTvl, toggleOptions } = useMemo(() => {
+	const { tvl, tvlByChain, toggleOptions } = useMemo(() => {
 		let tvl = 0
-		let hasTvl = false
 		let toggleOptions = []
 
 		const tvlByChain = {}
@@ -34,8 +33,6 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				}
 				continue
 			}
-
-			hasTvl = true
 
 			const [chainName, extraTvlKey] = chain.split('-')
 
@@ -65,7 +62,6 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			tvlByChain: Object.entries(tvlByChain).sort(
 				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
 			) as [string, number][],
-			hasTvl,
 			toggleOptions
 		}
 	}, [extraTvlsEnabled, props])
@@ -111,7 +107,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						<Bookmark readableProtocolName={props.name} />
 					</h1>
 					<ProtocolTVL
-						hasTvl={hasTvl}
+						hasTvl={props.metrics.tvl}
 						tvl={tvl}
 						isCEX={props.isCEX}
 						name={props.name}
@@ -135,7 +131,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								<Bookmark readableProtocolName={props.name} />
 							</h1>
 							<ProtocolTVL
-								hasTvl={hasTvl}
+								hasTvl={props.metrics.tvl}
 								tvl={tvl}
 								isCEX={props.isCEX}
 								name={props.name}
@@ -219,6 +215,7 @@ const ProtocolTVL = ({
 				</span>
 			</summary>
 			<div className="flex flex-col my-3 max-h-[50vh] overflow-auto">
+				<h2 className="font-semibold">TVL by Chain</h2>
 				{tvlByChain.map(([chain, tvl]) => (
 					<p
 						key={`${chain}-${tvl}-${name}`}
@@ -1398,6 +1395,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 	)
 }
 const Methodology = (props: IProtocolOverviewPageData) => {
+	console.log(props.methodology)
 	return (
 		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
 			<h2 className="font-semibold">Methodology</h2>
@@ -1738,6 +1736,5 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 // unlocks
 // governance
 // newly listed protocol data
-// tvl is false for olympus dao (test opensea page when fixed)
 
 // % change tvl, mcap, token price, etc.

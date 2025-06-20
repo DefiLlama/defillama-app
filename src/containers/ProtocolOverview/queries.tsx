@@ -160,6 +160,7 @@ export const getProtocolMetrics = ({
 		for (const chain in protocolData.chainTvls ?? {}) {
 			if (protocolData.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
 				inflowsExist = true
+				break
 			}
 		}
 	}

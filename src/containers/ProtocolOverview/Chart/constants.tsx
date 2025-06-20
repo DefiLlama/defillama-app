@@ -1,3 +1,5 @@
+import { oldBlue } from '~/constants/colors'
+
 export const protocolCharts = {
 	TVL: 'tvl',
 	Mcap: 'mcap',
@@ -125,7 +127,7 @@ export const DISABLED_CUMULATIVE_CHARTS: ProtocolChartsLabels[] = [
 ]
 
 export const allColors = [
-	'#1f77b4',
+	oldBlue,
 	'#aec7e8',
 	'#ff7f0e',
 	'#ffbb78',
