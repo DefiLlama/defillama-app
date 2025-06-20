@@ -587,10 +587,6 @@ export function CustomColumnPanel({
 				<h5 className="text-sm font-medium pro-text2 mb-3">Example Expressions</h5>
 				<div className="space-y-2 text-xs">
 					<div>
-						<code className="text-[var(--primary1)] font-mono">tvl / mcap</code>
-						<span className="pro-text3 ml-2">TVL to Market Cap ratio</span>
-					</div>
-					<div>
 						<code className="text-[var(--primary1)] font-mono">(fees_24h + revenue_24h) * 365</code>
 						<span className="pro-text3 ml-2">Annualized fees + revenue</span>
 					</div>

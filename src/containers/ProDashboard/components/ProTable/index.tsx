@@ -35,8 +35,11 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		columnOrder,
 		addOption,
 		toggleColumnVisibility,
+		moveColumnUp,
+		moveColumnDown,
 		columnPresets,
 		applyPreset,
+		activePreset,
 		downloadCSV,
 		customColumns,
 		addCustomColumn,
@@ -51,11 +54,12 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	}
 
 	return (
-		<div className="w-full p-4 h-full flex flex-col">
+		<div className="w-full p-2 sm:p-4 h-full flex flex-col overflow-hidden">
 			<TableHeader
 				chains={chains}
 				columnPresets={columnPresets}
 				applyPreset={applyPreset}
+				activePreset={activePreset}
 				showColumnPanel={showColumnPanel}
 				setShowColumnPanel={setShowColumnPanel}
 				downloadCSV={downloadCSV}
@@ -71,13 +75,15 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 				columnOrder={columnOrder}
 				addOption={addOption}
 				toggleColumnVisibility={toggleColumnVisibility}
+				moveColumnUp={moveColumnUp}
+				moveColumnDown={moveColumnDown}
 				customColumns={customColumns}
 				onAddCustomColumn={addCustomColumn}
 				onRemoveCustomColumn={removeCustomColumn}
 				onUpdateCustomColumn={updateCustomColumn}
 			/>
 
-			<TableBody table={table} />
+			<TableBody table={table} moveColumnUp={moveColumnUp} moveColumnDown={moveColumnDown} />
 
 			<TablePagination table={table} />
 

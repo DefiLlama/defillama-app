@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import {
 	getCoreRowModel,
 	getSortedRowModel,
@@ -18,6 +18,7 @@ import { getColumns } from './columns'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { useTokenSearch } from './useTokenSearch'
 import { reactSelectStyles } from '../../../utils/reactSelectStyles'
+import { components } from 'react-select'
 
 interface TokenOption {
 	value: string
@@ -52,6 +53,29 @@ const TokenOptionComponent = ({ innerProps, label, data }: any) => (
 		<span>{label}</span>
 	</div>
 )
+
+const CustomValueContainer = ({ children, ...props }: any) => {
+	const { getValue } = props
+	const values = getValue()
+
+	if (!values || values.length === 0) {
+		return <components.ValueContainer {...props}>{children}</components.ValueContainer>
+	}
+
+	const shouldShowCount = values.length > 1
+
+	return (
+		<components.ValueContainer {...props}>
+			{shouldShowCount ? (
+				<div className="flex items-center gap-2">
+					<span className="text-sm font-medium">{values.length} tokens selected</span>
+				</div>
+			) : (
+				children
+			)}
+		</components.ValueContainer>
+	)
+}
 
 export default function TokenUsageDataset({ config, onConfigChange }: TokenUsageDatasetProps) {
 	const [search, setSearch] = useState('')
@@ -214,11 +238,11 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			<div className="w-full p-4 h-full flex flex-col">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-lg font-semibold pro-text1">Token Usage Comparison</h3>
+						<h3 className="text-base md:text-lg font-semibold pro-text1">Token Usage Comparison</h3>
 					</div>
 				</div>
-				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4">
-					<h3 className="text-xl font-medium pro-text1">Select Tokens to Compare</h3>
+				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4 px-4">
+					<h3 className="text-lg md:text-xl font-medium pro-text1 text-center">Select Tokens to Compare</h3>
 					<div className="w-full max-w-md">
 						<ReactSelect
 							placeholder="Search tokens..."
@@ -230,9 +254,31 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							isClearable
 							isMulti
 							components={{
-								Option: TokenOptionComponent
+								Option: TokenOptionComponent,
+								ValueContainer: CustomValueContainer
 							}}
-							styles={reactSelectStyles}
+							styles={{
+								...reactSelectStyles,
+								control: (provided) => ({
+									...reactSelectStyles.control(provided, {
+										minHeight: '38px',
+										height: '38px'
+									})
+								}),
+								valueContainer: (provided) => ({
+									...provided,
+									height: '36px',
+									padding: '0 8px'
+								}),
+								input: (provided) => ({
+									...provided,
+									margin: '0',
+									padding: '0'
+								})
+							}}
+							menuPortalTarget={
+								typeof document !== 'undefined' ? document.querySelector('.pro-dashboard-container') : null
+							}
 						/>
 					</div>
 					<p className="text-sm text-[var(--text3)] mt-2">Select up to 4 tokens for comparison (max 4)</p>
@@ -246,7 +292,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			<div className="w-full p-4 h-full flex flex-col">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-lg font-semibold pro-text1">
+						<h3 className="text-base md:text-lg font-semibold pro-text1">
 							{tokenSymbols.length > 0 ? `Token Usage Comparison` : 'Token Usage'}
 						</h3>
 					</div>
@@ -264,7 +310,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			<div className="w-full p-4 h-full flex flex-col">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-lg font-semibold pro-text1">Token Usage Comparison</h3>
+						<h3 className="text-base md:text-lg font-semibold pro-text1">Token Usage Comparison</h3>
 					</div>
 				</div>
 				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4">
@@ -284,7 +330,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		<div className="w-full p-4 h-full flex flex-col">
 			<div className="mb-3">
 				<div className="flex items-center justify-between gap-4">
-					<h3 className="text-lg font-semibold pro-text1">
+					<h3 className="text-base md:text-lg font-semibold pro-text1 truncate">
 						Token Usage {tokenSymbols.length > 0 ? `- ${tokenSymbols.map((s) => s.toUpperCase()).join(', ')}` : ''}
 					</h3>
 				</div>
@@ -413,14 +459,14 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			)}
 
 			<div className="mb-3">
-				<div className="flex items-center justify-between gap-4">
-					<h3 className="text-lg font-semibold pro-text1">
+				<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+					<h3 className="text-base md:text-lg font-semibold pro-text1 truncate">
 						{tokenSymbols.length === 1
-							? `${tokenSymbols[0].toUpperCase()} Usage in Protocols`
+							? `${tokenSymbols[0].toUpperCase()} Usage`
 							: `Comparing ${tokenSymbols.map((t) => t.toUpperCase()).join(', ')}`}
 					</h3>
-					<div className="flex items-center gap-3">
-						<div className="w-96">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+						<div className="w-full sm:w-64 lg:w-96 order-2 sm:order-1">
 							<ReactSelect
 								placeholder="Add or remove tokens (max 4)..."
 								value={tokenSymbols.map((symbol) => ({ label: symbol.toUpperCase(), value: symbol }))}
@@ -431,47 +477,71 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								isClearable
 								isMulti
 								components={{
-									Option: TokenOptionComponent
+									Option: TokenOptionComponent,
+									ValueContainer: CustomValueContainer
 								}}
-								styles={reactSelectStyles}
+								styles={{
+									...reactSelectStyles,
+									control: (provided) => ({
+										...reactSelectStyles.control(provided, {
+											minHeight: '38px',
+											height: '38px'
+										})
+									}),
+									valueContainer: (provided) => ({
+										...provided,
+										height: '36px',
+										padding: '0 8px'
+									}),
+									input: (provided) => ({
+										...provided,
+										margin: '0',
+										padding: '0'
+									})
+								}}
 							/>
 						</div>
-						<div
-							className="flex items-center gap-2 px-3 py-1.5 border border-[var(--divider)] hover:border-[var(--text3)] transition-colors cursor-pointer"
-							onClick={handleIncludeCexChange}
-						>
-							<div className="relative w-4 h-4">
-								<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
-								<div
-									className={`w-4 h-4 border-2 transition-all ${
-										includeCex
-											? 'bg-[var(--primary1)] border-[var(--primary1)]'
-											: 'bg-transparent border-[var(--text3)]'
-									}`}
-								>
-									{includeCex && (
-										<svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-											<path
-												fillRule="evenodd"
-												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-												clipRule="evenodd"
-											/>
-										</svg>
-									)}
+						<div className="flex items-center gap-2 sm:gap-3 order-1 sm:order-2">
+							<div
+								className="flex items-center gap-2 px-2 sm:px-3 h-[38px] border border-[var(--divider)] hover:border-[var(--text3)] transition-colors cursor-pointer text-sm"
+								onClick={handleIncludeCexChange}
+							>
+								<div className="relative w-4 h-4">
+									<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
+									<div
+										className={`w-4 h-4 border-2 transition-all ${
+											includeCex
+												? 'bg-[var(--primary1)] border-[var(--primary1)]'
+												: 'bg-transparent border-[var(--text3)]'
+										}`}
+									>
+										{includeCex && (
+											<svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+												<path
+													fillRule="evenodd"
+													d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+													clipRule="evenodd"
+												/>
+											</svg>
+										)}
+									</div>
 								</div>
+								<span className="text-xs sm:text-sm font-medium pro-text1 whitespace-nowrap">Include CEXs</span>
 							</div>
-							<span className="text-sm font-medium pro-text1">Include CEXs</span>
+							<ProTableCSVButton
+								onClick={downloadCSV}
+								customClassName="flex items-center gap-2 px-3 h-[38px] text-sm border pro-border hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f] disabled:opacity-50 disabled:cursor-not-allowed"
+							/>
 						</div>
-						<ProTableCSVButton onClick={downloadCSV} />
 					</div>
 				</div>
-				<div className="flex items-center gap-4 mt-3">
+				<div className="flex items-center gap-2 sm:gap-4 mt-3">
 					<input
 						placeholder="Search protocols..."
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1 rounded
-              focus:outline-none focus:ring-1 focus:ring-[var(--primary1)]"
+						className="px-2 sm:px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1 rounded
+              focus:outline-none focus:ring-1 focus:ring-[var(--primary1)] w-full sm:w-auto max-w-xs"
 					/>
 				</div>
 			</div>

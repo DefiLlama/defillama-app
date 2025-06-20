@@ -124,16 +124,13 @@ export function ItemSelect({
 	placeholder,
 	itemType
 }: ItemSelectProps) {
-	const OptionComponent = itemType === 'chain' 
-		? CustomChainOption 
-		: itemType === 'protocol' 
-			? CustomProtocolOption 
-			: TextOption
+	const OptionComponent =
+		itemType === 'chain' ? CustomChainOption : itemType === 'protocol' ? CustomProtocolOption : TextOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
 	return (
 		<div>
-			<label className="block mb-2 text-sm font-medium pro-text2">{label}</label>
+			<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">{label}</label>
 			{isLoading ? (
 				<div className="flex items-center justify-center h-10">
 					<LoadingSpinner size="sm" />
@@ -145,9 +142,10 @@ export function ItemSelect({
 					onChange={onChange}
 					components={{ Option: OptionComponent, MenuList: VirtualizedMenuList }}
 					placeholder={placeholder}
-					className="w-full"
+					className="w-full text-sm md:text-base"
 					filterOption={filterOption}
 					styles={reactSelectStyles}
+					menuPosition="fixed"
 				/>
 			)}
 		</div>

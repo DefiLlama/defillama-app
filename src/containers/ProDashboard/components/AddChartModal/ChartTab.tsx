@@ -46,8 +46,8 @@ export function ChartTab({
 	const chainChartTypes = getChainChartTypes()
 
 	return (
-		<div className="flex gap-4 h-96">
-			<div className="flex-1 border pro-border p-4 space-y-4">
+		<div className="flex flex-col lg:flex-row gap-4 lg:h-96">
+			<div className="flex-1 border pro-border p-3 md:p-4 space-y-3 md:space-y-4">
 				<div className="grid grid-cols-2 gap-0">
 					<button
 						className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
@@ -106,10 +106,10 @@ export function ChartTab({
 				)}
 			</div>
 
-			<div className="flex-1 border pro-border">
-				<div className="text-sm font-medium pro-text2 mt-4 ml-4">Preview</div>
+			<div className="flex-1 border pro-border min-h-[200px] lg:min-h-0">
+				<div className="text-sm font-medium pro-text2 mt-3 ml-3 md:mt-4 md:ml-4">Preview</div>
 				{showPreview ? (
-					<div className="pro-bg2 p-2">
+					<div className="pro-bg2 p-2 h-[calc(100%-2rem)]">
 						<ChartPreview
 							data={previewChartData.data}
 							chartType={selectedChartType}
@@ -123,7 +123,7 @@ export function ChartTab({
 						/>
 					</div>
 				) : (
-					<div className="flex items-center justify-center h-full pro-text3 text-center">
+					<div className="flex items-center justify-center h-full min-h-[150px] pro-text3 text-center">
 						<div>
 							<Icon name="bar-chart-2" height={36} width={36} className="mb-1 mx-auto" />
 							<div className="text-xs">Select a chart to see preview</div>

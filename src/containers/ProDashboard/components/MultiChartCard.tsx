@@ -44,11 +44,13 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				value
 			])
 
+			const itemIdentifier = cfg.protocol || cfg.chain || 'unknown'
+
 			return {
 				name: `${name} ${meta?.title || cfg.type}`,
 				type: (meta?.chartType === 'bar' ? 'bar' : 'line') as 'bar' | 'line',
 				data,
-				color: generateChartColor(i, `${name}_${cfg.type}`, meta?.color || '#8884d8')
+				color: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
 			}
 		})
 
@@ -213,7 +215,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 											valueFormatter: (value: number) => value.toFixed(2) + '%'
 										},
 										grid: {
-											top: 80,
+											top: series.length > 5 ? 120 : 80,
 											bottom: 68,
 											left: 12,
 											right: 12,
@@ -221,7 +223,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 										},
 										legend: {
 											top: 10,
-											type: 'scroll'
+											type: 'scroll',
+											pageButtonPosition: 'end',
+											height: series.length > 5 ? 80 : 40
 										}
 								  }
 								: {
@@ -229,8 +233,31 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 											max: undefined,
 											min: undefined,
 											axisLabel: {
-												formatter: '{value}'
+												formatter: (value: number) => {
+													const absValue = Math.abs(value);
+													if (absValue >= 1e9) {
+														return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+													} else if (absValue >= 1e6) {
+														return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+													} else if (absValue >= 1e3) {
+														return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+													}
+													return value.toString();
+												}
 											}
+										},
+										grid: {
+											top: series.length > 5 ? 120 : 80,
+											bottom: 68,
+											left: 12,
+											right: 12,
+											containLabel: true
+										},
+										legend: {
+											top: 10,
+											type: 'scroll',
+											pageButtonPosition: 'end',
+											height: series.length > 5 ? 80 : 40
 										}
 								  }
 						}

@@ -127,15 +127,15 @@ export function ComposerTab({
 	}
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-3 md:space-y-4">
 			<div>
-				<label className="block mb-2 text-sm font-medium pro-text2">Chart Name</label>
+				<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">Chart Name</label>
 				<input
 					type="text"
 					value={composerChartName}
 					onChange={(e) => onComposerChartNameChange(e.target.value)}
 					placeholder="Enter chart name..."
-					className="w-full px-3 py-2 border pro-border pro-text1 placeholder-pro-text3 focus:border-[var(--primary1)] focus:outline-none pro-bg2"
+					className="w-full px-3 py-2 border pro-border pro-text1 placeholder-pro-text3 focus:border-[var(--primary1)] focus:outline-none pro-bg2 text-sm md:text-base"
 				/>
 			</div>
 
@@ -163,8 +163,8 @@ export function ComposerTab({
 			</div>
 
 			{selectedTab === 'charts' && (
-				<div className="flex gap-4 h-96">
-					<div className="flex-[7] border pro-border p-4 space-y-4">
+				<div className="flex flex-col lg:flex-row gap-4 lg:h-96">
+					<div className="flex-1 lg:flex-[7] border pro-border p-3 md:p-4 space-y-3 md:space-y-4">
 						<div className="grid grid-cols-2 gap-0">
 							<button
 								className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
@@ -223,7 +223,7 @@ export function ComposerTab({
 						)}
 
 						<button
-							className="w-full px-4 py-3 bg-[var(--primary1)] text-white text-sm font-medium hover:bg-[var(--primary1-hover)] disabled:opacity-50 border border-[var(--primary1)] transition-colors duration-200"
+							className="w-full px-3 py-2.5 md:px-4 md:py-3 bg-[var(--primary1)] text-white text-sm font-medium hover:bg-[var(--primary1-hover)] disabled:opacity-50 border border-[var(--primary1)] transition-colors duration-200"
 							onClick={onAddToComposer}
 							disabled={
 								(composerSubType === 'chain' && !selectedChain) ||
@@ -235,11 +235,11 @@ export function ComposerTab({
 						</button>
 					</div>
 
-					<div className="flex-[3] border pro-border p-4">
-						<div className="text-sm font-medium pro-text2 mb-3">Charts ({composerItems.length})</div>
-						<div className="space-y-2 overflow-y-auto max-h-80 thin-scrollbar">
+					<div className="flex-1 lg:flex-[3] border pro-border p-3 md:p-4 min-h-[200px] lg:min-h-0">
+						<div className="text-sm font-medium pro-text2 mb-2 md:mb-3">Charts ({composerItems.length})</div>
+						<div className="space-y-2 overflow-y-auto max-h-60 lg:max-h-80 thin-scrollbar">
 							{composerItems.length === 0 ? (
-								<div className="text-xs pro-text3 text-center py-8">No charts added yet</div>
+								<div className="text-xs pro-text3 text-center py-6 md:py-8">No charts added yet</div>
 							) : (
 								composerItems.map((item) => (
 									<div
@@ -252,9 +252,9 @@ export function ComposerTab({
 										</div>
 										<button
 											onClick={() => onRemoveFromComposer(item.id)}
-											className="ml-2 p-1 pro-text3 hover:pro-text1 pro-hover-bg border pro-border transition-colors duration-200"
+											className="ml-2 p-1.5 md:p-1 pro-text3 hover:pro-text1 pro-hover-bg border pro-border transition-colors duration-200"
 										>
-											<Icon name="x" height={12} width={12} />
+											<Icon name="x" height={14} width={14} className="md:w-3 md:h-3" />
 										</button>
 									</div>
 								))
