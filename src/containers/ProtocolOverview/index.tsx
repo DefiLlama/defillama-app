@@ -1395,7 +1395,6 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 	)
 }
 const Methodology = (props: IProtocolOverviewPageData) => {
-	console.log(props.methodology)
 	return (
 		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
 			<h2 className="font-semibold">Methodology</h2>
