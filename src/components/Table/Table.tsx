@@ -20,7 +20,7 @@ interface ITableProps {
 
 declare module '@tanstack/table-core' {
 	interface ColumnMeta<TData extends RowData, TValue> {
-		align?: 'start' | 'end'
+		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
 	}
 }
@@ -186,12 +186,13 @@ export function VirtualTable({
 								<div
 									key={header.id}
 									data-chainpage={isChainPage}
+									data-align={meta?.align ?? 'start'}
 									style={{
 										gridColumn: `span ${header.colSpan}`
 									}}
-									className={`p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r last:border-r-0 border-[var(--divider)] first:sticky first:left-0 first:z-[1] ${
+									className={`p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r last:border-r-0 border-[var(--divider)] first:sticky first:left-0 first:z-[1] justify-start data-[align=center]:justify-center data-[align=end]:justify-end ${
 										compact
-											? 'flex items-center px-5 h-[64px] first:pl-3 last:not(:first-child):pr-3 lg:last:not(:first-child):justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
+											? 'flex items-center px-5 h-[64px] border-t-black/10 dark:border-t-white/10 border-r-transparent'
 											: ''
 									}`}
 								>
@@ -266,10 +267,18 @@ export function VirtualTable({
 											data-chainpage={isChainPage}
 											className={`p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r border-[var(--divider)] first:sticky first:left-0 first:z-[1] ${
 												compact
-													? 'flex items-center px-5 first:pl-3 last:not(:first-child):pr-3 lg:last:not(:first-child):justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
+													? 'flex items-center px-5 border-t-black/10 dark:border-t-white/10 border-r-transparent'
 													: ''
 											}`}
-											style={{ textAlign }}
+											style={
+												compact
+													? {
+															textAlign,
+															justifyContent:
+																textAlign === 'center' ? 'center' : textAlign === 'end' ? 'flex-end' : 'flex-start'
+													  }
+													: { textAlign }
+											}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</div>
