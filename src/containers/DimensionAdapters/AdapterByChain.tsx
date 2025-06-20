@@ -27,6 +27,7 @@ import { useRouter } from 'next/router'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
 import { AdapterByChainChart } from './ChainChart'
+import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<
@@ -486,18 +487,18 @@ const columnOrders = Object.entries({
 	640: ['name', 'category', 'definition', 'total24h', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const chartKeys: Record<IProps['type'], string> = {
+const chartKeys: Record<IProps['type'], typeof protocolCharts[keyof typeof protocolCharts]> = {
 	Fees: 'fees',
 	Revenue: 'revenue',
 	'Holders Revenue': 'holdersRevenue',
 	'Options Premium Volume': 'optionsPremiumVolume',
 	'Options Notional Volume': 'optionsNotionalVolume',
 	'DEX Volume': 'dexVolume',
-	'Perp Volume': 'perpsVolume',
-	'Bridge Aggregator Volume': 'bridgeAggregators',
-	'Perp Aggregator Volume': 'perpsAggregators',
-	'DEX Aggregator Volume': 'dexAggregators',
-	Earnings: 'earnings'
+	'Perp Volume': 'perpVolume',
+	'Bridge Aggregator Volume': 'bridgeAggregatorVolume',
+	'Perp Aggregator Volume': 'perpAggregatorVolume',
+	'DEX Aggregator Volume': 'dexAggregatorVolume',
+	Earnings: 'incentives'
 }
 
 const getColumnsOptions = (type) =>

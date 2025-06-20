@@ -235,7 +235,7 @@ const KeyMetrics = (
 	if (!props.hasKeyMetrics) return null
 	return (
 		<div className="flex flex-col flex-1 gap-2">
-			<h2 className="text-base font-semibold">Key Metrics</h2>
+			<h2 className="text-base xl:text-sm font-semibold">Key Metrics</h2>
 			<div className="flex flex-col">
 				<Fees {...props} />
 				<Revenue {...props} />
