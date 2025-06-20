@@ -932,8 +932,8 @@ export const getProtocolOverviewPageData = async ({
 				: protocolData.github
 			: null,
 		methodology:
-			protocolData.methodology ??
-			(metadata.tvl && protocolData.module && protocolData.module !== 'dummy.js'
+			protocolData.methodology ||
+			(metadata.tvl && protocolData.module !== 'dummy.js'
 				? 'Total value of all coins held in the smart contracts of the protocol'
 				: null),
 		methodologyURL:
