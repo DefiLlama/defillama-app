@@ -34,8 +34,8 @@ export const protocolCharts = {
 	Transactions: 'transactions',
 	'Gas Used': 'gasUsed',
 	Tweets: 'tweets',
-	Developers: 'developers',
-	Contributers: 'contributers',
+	Developers: 'devsMetrics',
+	Contributers: 'contributersMetrics',
 	'Devs Commits': 'devsCommits',
 	'Contributers Commits': 'contributersCommits',
 	'NFT Volume': 'nftVolume'

@@ -46,13 +46,23 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
+interface IToggledMetrics extends Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'> {
+	events: 'true' | 'false'
+	denomination: string | null
+}
+
 export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
 
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy } = useMemo(() => {
+		const chartsByStaus = {}
+		for (const pchart in protocolCharts) {
+			const chartKey = protocolCharts[pchart]
+			chartsByStaus[chartKey] = router.query[chartKey] === 'true' ? 'true' : 'false'
+		}
 		const toggled = {
-			...router.query,
+			...chartsByStaus,
 			...((!props.metrics.tvl
 				? props.metrics.dexs
 					? { dexVolume: router.query.dexVolume === 'false' ? 'false' : 'true' }
@@ -85,16 +95,18 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 					: props.metrics.treasury
 					? { treasury: router.query.treasury === 'false' ? 'false' : 'true' }
 					: {}
-				: {}) as Record<string, string>)
-		}
+				: {}) as Record<string, 'true' | 'false'>)
+		} as Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'>
 
 		const toggledMetrics = {
 			...toggled,
 			tvl: router.query.tvl === 'false' ? 'false' : 'true',
-			events: router.query.events === 'false' ? 'false' : 'true'
-		}
+			events: router.query.events === 'false' ? 'false' : 'true',
+			denomination: typeof router.query.denomination === 'string' ? router.query.denomination : null
+		} as IToggledMetrics
 
 		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
+
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
 		return {
@@ -106,8 +118,8 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 					? (router.query.groupBy as any)
 					: 'daily'
 				: 'daily'
-		} as any
-	}, [router, props])
+		}
+	}, [router, props, protocolCharts])
 
 	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
 		...props,
@@ -119,14 +131,10 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end">
+			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-start">
 				{props.availableCharts.length > 0 ? (
 					<Ariakit.DialogProvider store={metricsDialogStore}>
-						<Ariakit.DialogDisclosure
-							className={`flex flex-shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border border-[#e6e6e6] dark:border-[#222324] ${
-								toggledCharts.length === 0 ? 'mr-auto' : ''
-							}`}
-						>
+						<Ariakit.DialogDisclosure className="flex flex-shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border border-[#e6e6e6] dark:border-[#222324]">
 							<span>Add Metrics</span>
 							<Icon name="plus" className="h-[14px] w-[14px]" />
 						</Ariakit.DialogDisclosure>
@@ -138,9 +146,21 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 										key={`add-metric-${chart}`}
 										onClick={() => {
 											router
-												.push(updateQueryParamInUrl(router.asPath, protocolCharts[chart], 'true'), undefined, {
-													shallow: true
-												})
+												.push(
+													updateQueryParamInUrl(
+														router.asPath,
+														protocolCharts[chart],
+														toggledMetrics[protocolCharts[chart]] === 'true'
+															? chart === 'TVL'
+																? 'false'
+																: null
+															: 'true'
+													),
+													undefined,
+													{
+														shallow: true
+													}
+												)
 												.then(() => {
 													metricsDialogStore.toggle()
 												})
@@ -156,6 +176,36 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 										)}
 									</button>
 								))}
+								{props.hallmarks.length > 0 ? (
+									<button
+										onClick={() => {
+											router
+												.push(
+													updateQueryParamInUrl(
+														router.asPath,
+														'events',
+														toggledMetrics.events === 'true' ? 'false' : 'true'
+													),
+													undefined,
+													{
+														shallow: true
+													}
+												)
+												.then(() => {
+													metricsDialogStore.toggle()
+												})
+										}}
+										data-active={toggledMetrics.events === 'true'}
+										className="flex items-center gap-1 border border-[var(--old-blue)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] rounded-full px-2 py-1 data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+									>
+										<span>Events</span>
+										{toggledMetrics.events === 'true' ? (
+											<Icon name="x" className="h-[14px] w-[14px]" />
+										) : (
+											<Icon name="plus" className="h-[14px] w-[14px]" />
+										)}
+									</button>
+								) : null}
 							</div>
 							{/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
 								{props.availableCharts.map((chart) => (
@@ -177,7 +227,10 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 					</Ariakit.DialogProvider>
 				) : null}
 				{toggledCharts.map((tchart) => (
-					<label className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto">
+					<label
+						className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto"
+						key={`add-or-remove-metric-${tchart}`}
+					>
 						<input
 							type="checkbox"
 							value={tchart}
@@ -208,76 +261,80 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 						</span>
 					</label>
 				))}
-				{props.chartDenominations?.length ? (
-					<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
-						{props.chartDenominations.map((denom) => (
-							<button
-								key={`denomination-${denom.symbol}`}
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--old-blue)]"
-								data-active={
-									toggledMetrics.denomination === denom.symbol ||
-									(denom.symbol === 'USD' && !toggledMetrics.denomination)
-								}
+				<div className="ml-auto flex flex-wrap justify-end gap-1">
+					{props.chartDenominations?.length ? (
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+							{props.chartDenominations.map((denom) => (
+								<button
+									key={`denomination-${denom.symbol}`}
+									className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--old-blue)]"
+									data-active={
+										toggledMetrics.denomination === denom.symbol ||
+										(denom.symbol === 'USD' && !toggledMetrics.denomination)
+									}
+									onClick={() => {
+										router.push(
+											updateQueryParamInUrl(router.asPath, 'denomination', denom.symbol === 'USD' ? '' : denom.symbol),
+											undefined,
+											{ shallow: true }
+										)
+									}}
+								>
+									{denom.symbol}
+								</button>
+							))}
+						</div>
+					) : null}
+					{hasAtleasOneBarChart ? (
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+							<Tooltip
+								content="Daily"
+								render={<button />}
+								className="flex-shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								data-active={groupBy === 'daily' || !groupBy}
 								onClick={() => {
-									router.push(
-										updateQueryParamInUrl(router.asPath, 'denomination', denom.symbol === 'USD' ? '' : denom.symbol),
-										undefined,
-										{ shallow: true }
-									)
+									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'daily'), undefined, { shallow: true })
 								}}
 							>
-								{denom.symbol}
+								D
+							</Tooltip>
+							<Tooltip
+								content="Weekly"
+								render={<button />}
+								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								data-active={groupBy === 'weekly'}
+								onClick={() => {
+									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'weekly'), undefined, { shallow: true })
+								}}
+							>
+								W
+							</Tooltip>
+							<Tooltip
+								content="Monthly"
+								render={<button />}
+								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								data-active={groupBy === 'monthly'}
+								onClick={() => {
+									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'monthly'), undefined, { shallow: true })
+								}}
+							>
+								M
+							</Tooltip>
+							<button
+								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								data-active={groupBy === 'cumulative'}
+								onClick={() => {
+									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'cumulative'), undefined, {
+										shallow: true
+									})
+								}}
+							>
+								Cumulative
 							</button>
-						))}
-					</div>
-				) : null}
-				{hasAtleasOneBarChart ? (
-					<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
-						<Tooltip
-							content="Daily"
-							render={<button />}
-							className="flex-shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
-							data-active={groupBy === 'daily' || !groupBy}
-							onClick={() => {
-								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'daily'), undefined, { shallow: true })
-							}}
-						>
-							D
-						</Tooltip>
-						<Tooltip
-							content="Weekly"
-							render={<button />}
-							className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
-							data-active={groupBy === 'weekly'}
-							onClick={() => {
-								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'weekly'), undefined, { shallow: true })
-							}}
-						>
-							W
-						</Tooltip>
-						<Tooltip
-							content="Monthly"
-							render={<button />}
-							className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
-							data-active={groupBy === 'monthly'}
-							onClick={() => {
-								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'monthly'), undefined, { shallow: true })
-							}}
-						>
-							M
-						</Tooltip>
-						<button
-							className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
-							data-active={groupBy === 'cumulative'}
-							onClick={() => {
-								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'cumulative'), undefined, { shallow: true })
-							}}
-						>
-							Cumulative
-						</button>
-					</div>
-				) : null}
-				<EmbedChart />
+						</div>
+					) : null}
+					<EmbedChart />
+				</div>
 			</div>
 			<div className="flex flex-col min-h-[360px]">
 				{loadingCharts ? (
@@ -292,7 +349,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 						isThemeDark={isThemeDark}
 						valueSymbol={valueSymbol}
 						groupBy={groupBy}
-						hallmarks={props.hallmarks}
+						hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
 						unlockTokenSymbol={props.token.symbol}
 					/>
 				)}
@@ -314,7 +371,7 @@ export const useFetchAndFormatChartData = ({
 	chartDenominations,
 	governanceApis
 }: IProtocolOverviewPageData & {
-	toggledMetrics: Record<string, string>
+	toggledMetrics: IToggledMetrics
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 }) => {
 	const router = useRouter()
@@ -729,7 +786,12 @@ export const useFetchAndFormatChartData = ({
 	// )
 
 	const { data: governanceData = null, isLoading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
-		isRouterReady && toggledMetrics.governance === 'true' && governanceApis && governanceApis.length > 0
+		isRouterReady &&
+			[toggledMetrics.totalProposals, toggledMetrics.successfulProposals, toggledMetrics.maxVotes].some(
+				(v) => v === 'true'
+			) &&
+			governanceApis &&
+			governanceApis.length > 0
 			? governanceApis
 			: null
 	)
@@ -737,10 +799,10 @@ export const useFetchAndFormatChartData = ({
 	const { data: devMetricsData = null, isLoading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
 		isRouterReady &&
 			[
-				toggledMetrics.devMetrics,
+				toggledMetrics.devsMetrics,
+				toggledMetrics.devsCommits,
 				toggledMetrics.contributersMetrics,
-				toggledMetrics.contributersCommits,
-				toggledMetrics.devCommits
+				toggledMetrics.contributersCommits
 			].some((v) => v === 'true')
 			? protocolId
 			: null
@@ -1191,7 +1253,7 @@ export const useFetchAndFormatChartData = ({
 			charts['Max Votes'] = finalMaxVotes
 		}
 
-		if (devMetricsData && (toggledMetrics.devMetrics === 'true' || toggledMetrics.devCommits === 'true')) {
+		if (devMetricsData && (toggledMetrics.devsMetrics === 'true' || toggledMetrics.devsCommits === 'true')) {
 			const developers = []
 			const commits = []
 
@@ -1204,11 +1266,11 @@ export const useFetchAndFormatChartData = ({
 				commits.push([+date * 1e3, cc])
 			}
 
-			if (toggledMetrics.devMetrics === 'true') {
+			if (toggledMetrics.devsMetrics === 'true') {
 				charts['Developers'] = developers
 			}
 
-			if (toggledMetrics.devCommits === 'true') {
+			if (toggledMetrics.devsCommits === 'true') {
 				charts['Devs Commits'] = commits
 			}
 		}

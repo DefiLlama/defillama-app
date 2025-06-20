@@ -355,7 +355,6 @@ export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
 			? `${DEV_METRICS_API}/parent/${protocol?.replace('parent#', '')}.json`
 			: `${DEV_METRICS_API}/${protocol}.json`
 		: null
-
 	const isEnabled = !!url
 	return useQuery({
 		queryKey: ['dev-metrics', url, isEnabled],
