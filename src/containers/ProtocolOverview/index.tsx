@@ -235,7 +235,7 @@ const KeyMetrics = (
 	if (!props.hasKeyMetrics) return null
 	return (
 		<div className="flex flex-col flex-1 gap-2">
-			<h2 className="font-semibold">Key Metrics</h2>
+			<h2 className="text-base font-semibold">Key Metrics</h2>
 			<div className="flex flex-col">
 				<Fees {...props} />
 				<Revenue {...props} />
@@ -1323,7 +1323,7 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
-			<h2 className="font-semibold">Protocol Information</h2>
+			<h2 className="text-base font-semibold">Protocol Information</h2>
 			{props.description ? <p>{props.description}</p> : null}
 			{props.category ? (
 				<p className="flex items-center gap-1">
@@ -1397,7 +1397,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 const Methodology = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
-			<h2 className="font-semibold">Methodology</h2>
+			<h2 className="text-base font-semibold">Methodology</h2>
 			{props.methodologyURL ? (
 				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 					<span className="font-medium">TVL:</span> <span>{props.methodology ?? ''}</span>
@@ -1511,7 +1511,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 	if (!unlocks) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Unlocks</h2>
+			<h2 className="text-base font-semibold">Unlocks</h2>
 			<div className="flex flex-col">
 				{unlocks.recent ? (
 					<div className="flex flex-col gap-1">
@@ -1545,7 +1545,7 @@ function Governance(props: IProtocolOverviewPageData) {
 	if (!governance) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Governance</h2>
+			<h2 className="text-base font-semibold">Governance</h2>
 			<div className="flex flex-col gap-1">
 				<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last proposal</h3>
 				<p className="flex items-center justify-between gap-4">
@@ -1568,7 +1568,7 @@ function Yields(props: IProtocolOverviewPageData) {
 	if (!yields) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Yields</h2>
+			<h2 className="text-base font-semibold">Yields</h2>
 			<div>
 				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 					<span className="text-[#545757] dark:text-[#cccccc]">Pools Tracked</span>
@@ -1598,7 +1598,7 @@ function DevActivity(props: IProtocolOverviewPageData) {
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<div>
-				<h2 className="font-semibold">Development Activity</h2>
+				<h2 className="text-base font-semibold">Development Activity</h2>
 				{devActivity.updatedAt != null ? (
 					<p className="text-xs text-[#545757] dark:text-[#cccccc]">
 						Updated at {dayjs(devActivity.updatedAt).format('MMM D, YYYY')}
@@ -1647,7 +1647,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 	if (!props.hacks?.length) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Hacks</h2>
+			<h2 className="text-base font-semibold">Hacks</h2>
 			<div className="flex flex-col">
 				{props.hacks.map((hack) => (
 					<div
@@ -1716,7 +1716,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 	if (!props.competitors?.length) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="font-semibold">Competitors</h2>
+			<h2 className="text-base font-semibold">Competitors</h2>
 			<div className="flex items-center gap-4 flex-wrap">
 				{props.competitors.map((similarProtocol) => (
 					<a

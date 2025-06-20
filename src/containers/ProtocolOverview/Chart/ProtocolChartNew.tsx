@@ -139,7 +139,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							<Icon name="plus" className="h-[14px] w-[14px]" />
 						</Ariakit.DialogDisclosure>
 						<Ariakit.Dialog className="dialog gap-3 sm:w-full max-sm:drawer" unmountOnHide>
-							<Ariakit.DialogHeading className="text-2xl font-bold">Add Metrics to chart</Ariakit.DialogHeading>
+							<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 							<div className="flex flex-wrap gap-2">
 								{props.availableCharts.map((chart) => (
 									<button
