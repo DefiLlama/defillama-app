@@ -757,12 +757,20 @@ export const getProtocolOverviewPageData = async ({
 		tvlChartData.push([date, tvlChart[date]])
 	}
 
+	const chains = []
+	for (const chain in protocolData.currentChainTvls ?? {}) {
+		if (chain.includes('-') || chain === 'offers') continue
+		if (DEFI_SETTINGS_KEYS.includes(chain)) continue
+		if (protocolData.currentChainTvls[chain] != null) {
+			chains.push([chain, protocolData.currentChainTvls[chain]])
+		}
+	}
+	const firstChain = chains.sort((a, b) => b[1] - a[1])[0][0]
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
-
-	if (protocolData.chains && protocolData.chains.length > 0) {
+	if (firstChain) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
 
-		const cmetadata = chainMetadata?.[slug(protocolData.chains[0])]
+		const cmetadata = chainMetadata?.[slug(firstChain)]
 
 		if (cmetadata && chainCoingeckoIdsForGasNotMcap[cmetadata.name]) {
 			chartDenominations.push({

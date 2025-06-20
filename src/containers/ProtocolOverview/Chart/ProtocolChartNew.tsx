@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router'
 import { IDenominationPriceHistory, IProtocolOverviewPageData } from '../types'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { ProtocolChartsLabels } from './constants'
+import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
 import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
@@ -18,18 +18,37 @@ import {
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
 import { fetchWithTimeout } from '~/utils/async'
+import { EmbedChart } from '~/components/EmbedChart'
+import { Tooltip } from '~/components/Tooltip'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
 	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
 }) as React.FC<any>
 
+// Utility function to update any query parameter in URL
+const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: string): string => {
+	if (typeof document === 'undefined') return `${currentUrl}?${queryKey}=${newValue}`
+	const url = new URL(currentUrl, window.location.origin)
+
+	// If value is falsy or empty, remove the parameter
+	if (!newValue || newValue === '') {
+		url.searchParams.delete(queryKey)
+	} else {
+		// Replace or add the parameter
+		url.searchParams.set(queryKey, newValue)
+	}
+
+	return url.pathname + url.search
+}
+
+const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
+
 export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
-	const [groupBy, setGroupBy] = useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
 
-	const toggledMetrics = useMemo(() => {
+	const { toggledMetrics, hasAtleasOneBarChart, chartsToShow } = useMemo(() => {
 		const toggled = {
 			...router.query,
 			...((!props.metrics.tvl
@@ -67,37 +86,123 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 				: {}) as Record<string, string>)
 		}
 
-		return {
+		const toggledMetrics = {
 			...toggled,
 			tvl: router.query.tvl === 'false' ? 'false' : 'true',
-			events: router.query.events === 'false' ? 'false' : 'true'
+			events: router.query.events === 'false' ? 'false' : 'true',
+			groupBy:
+				typeof router.query.groupBy === 'string' && groupByOptions.includes(router.query.groupBy as any)
+					? (router.query.groupBy as any)
+					: 'daily'
+		}
+
+		const chartsToShow = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]])
+
+		return {
+			toggledMetrics,
+			chartsToShow,
+			hasAtleasOneBarChart: chartsToShow.some((chart) => BAR_CHARTS.includes(chart))
 		} as any
-	}, [router, props.metrics])
+	}, [router, props])
 
 	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
 		...props,
 		toggledMetrics,
-		groupBy
+		groupBy: toggledMetrics.groupBy
 	})
 
 	return (
-		<div className="flex flex-col min-h-[360px]">
-			{loadingCharts ? (
-				<p className="text-center text-xs my-auto min-h-[360px] flex flex-col items-center justify-center">
-					fetching {loadingCharts}...
-				</p>
-			) : (
-				<ProtocolLineBarChart
-					chartData={finalCharts}
-					chartColors={props.chartColors}
-					color={props.pageStyles['--primary-color']}
-					isThemeDark={isThemeDark}
-					valueSymbol={valueSymbol}
-					groupBy={groupBy}
-					hallmarks={props.hallmarks}
-					unlockTokenSymbol={props.token.symbol}
-				/>
-			)}
+		<div className="flex flex-col gap-3">
+			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end">
+				{props.chartDenominations?.length ? (
+					<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+						{props.chartDenominations.map((denom) => (
+							<button
+								key={`denomination-${denom.symbol}`}
+								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--old-blue)]"
+								data-active={
+									toggledMetrics.denomination === denom.symbol ||
+									(denom.symbol === 'USD' && !toggledMetrics.denomination)
+								}
+								onClick={() => {
+									router.push(
+										updateQueryParamInUrl(router.asPath, 'denomination', denom.symbol === 'USD' ? '' : denom.symbol),
+										undefined,
+										{ shallow: true }
+									)
+								}}
+							>
+								{denom.symbol}
+							</button>
+						))}
+					</div>
+				) : null}
+				{hasAtleasOneBarChart ? (
+					<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+						<Tooltip
+							content="Daily"
+							render={<button />}
+							className="flex-shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+							data-active={toggledMetrics.groupBy === 'daily' || !toggledMetrics.groupBy}
+							onClick={() => {
+								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'daily'), undefined, { shallow: true })
+							}}
+						>
+							D
+						</Tooltip>
+						<Tooltip
+							content="Weekly"
+							render={<button />}
+							className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+							data-active={toggledMetrics.groupBy === 'weekly'}
+							onClick={() => {
+								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'weekly'), undefined, { shallow: true })
+							}}
+						>
+							W
+						</Tooltip>
+						<Tooltip
+							content="Monthly"
+							render={<button />}
+							className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+							data-active={toggledMetrics.groupBy === 'monthly'}
+							onClick={() => {
+								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'monthly'), undefined, { shallow: true })
+							}}
+						>
+							M
+						</Tooltip>
+						<button
+							className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+							data-active={toggledMetrics.groupBy === 'cumulative'}
+							onClick={() => {
+								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'cumulative'), undefined, { shallow: true })
+							}}
+						>
+							Cumulative
+						</button>
+					</div>
+				) : null}
+				<EmbedChart />
+			</div>
+			<div className="flex flex-col min-h-[360px]">
+				{loadingCharts ? (
+					<p className="text-center text-xs my-auto min-h-[360px] flex flex-col items-center justify-center">
+						fetching {loadingCharts}...
+					</p>
+				) : (
+					<ProtocolLineBarChart
+						chartData={finalCharts}
+						chartColors={props.chartColors}
+						color={props.pageStyles['--primary-color']}
+						isThemeDark={isThemeDark}
+						valueSymbol={valueSymbol}
+						groupBy={toggledMetrics.groupBy}
+						hallmarks={props.hallmarks}
+						unlockTokenSymbol={props.token.symbol}
+					/>
+				)}
+			</div>
 		</div>
 	)
 }
@@ -111,8 +216,8 @@ export const useFetchAndFormatChartData = ({
 	extraTvlCharts,
 	metrics,
 	toggledMetrics,
-	chartDenominations,
 	groupBy,
+	chartDenominations,
 	governanceApis
 }: IProtocolOverviewPageData & {
 	toggledMetrics: Record<string, string>
@@ -128,17 +233,27 @@ export const useFetchAndFormatChartData = ({
 			? chartDenominations.find((d) => d.symbol === toggledMetrics.denomination)?.geckoId
 			: null
 	// date in the chart is in ms
-	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } =
-		useQuery<IDenominationPriceHistory>({
-			queryKey: ['priceHistory', denominationGeckoId],
-			queryFn: () =>
-				fetch(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`)
-					.then((r) => r.json())
-					.then((res) => (res.data.prices.length > 0 ? res.data : { prices: [], mcaps: [], volumes: [] })),
-			staleTime: 60 * 60 * 1000,
-			retry: 0,
-			enabled: denominationGeckoId ? true : false
-		})
+	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<
+		Record<string, number>
+	>({
+		queryKey: ['priceHistory', denominationGeckoId],
+		queryFn: () =>
+			fetch(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`)
+				.then((r) => r.json())
+				.then((res) => {
+					if (!res.data?.prices?.length) return null
+
+					const store = {}
+					for (const [date, value] of res.data.prices) {
+						store[date] = value
+					}
+
+					return store
+				}),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: denominationGeckoId ? true : false
+	})
 
 	// date in the chart is in ms
 	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory>({
@@ -206,8 +321,8 @@ export const useFetchAndFormatChartData = ({
 			return finalChart as Array<[number, number]>
 		}
 
-		return formatLineChart({ data: tvlChartData, groupBy })
-	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy])
+		return formatLineChart({ data: tvlChartData, groupBy, denominationPriceHistory })
+	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory])
 
 	const { data: feesData = null, isLoading: fetchingFees } = useQuery<IAdapterSummary>({
 		queryKey: ['fees', name],
@@ -520,7 +635,7 @@ export const useFetchAndFormatChartData = ({
 		toggledMetrics.denomination &&
 		toggledMetrics.denomination !== 'USD' &&
 		chartDenominations.find((d) => d.symbol === toggledMetrics.denomination) &&
-		denominationPriceHistory?.prices?.length > 0
+		denominationPriceHistory
 			? true
 			: false
 
@@ -530,6 +645,10 @@ export const useFetchAndFormatChartData = ({
 
 	const chartData = useMemo(() => {
 		const loadingCharts = []
+
+		if (fetchingDenominationPriceHistory) {
+			loadingCharts.push('Denomination Price History')
+		}
 
 		if (fetchingProtocolTokenData) {
 			loadingCharts.push('Mcap, Token price, Token volume')
@@ -627,25 +746,41 @@ export const useFetchAndFormatChartData = ({
 
 		if (protocolTokenData) {
 			if (toggledMetrics.mcap === 'true') {
-				charts.Mcap = formatLineChart({ data: protocolTokenData.mcaps, groupBy, dateInMs: true })
+				charts.Mcap = formatLineChart({
+					data: protocolTokenData.mcaps,
+					groupBy,
+					dateInMs: true,
+					denominationPriceHistory
+				})
 			}
 			if (toggledMetrics.tokenPrice === 'true') {
-				charts['Token Price'] = formatLineChart({ data: protocolTokenData.prices, groupBy, dateInMs: true })
+				charts['Token Price'] = formatLineChart({
+					data: protocolTokenData.prices,
+					groupBy,
+					dateInMs: true,
+					denominationPriceHistory
+				})
 			}
 			if (toggledMetrics.tokenVolume === 'true') {
-				charts['Token Volume'] = formatLineChart({ data: protocolTokenData.volumes, groupBy, dateInMs: true })
+				charts['Token Volume'] = formatLineChart({
+					data: protocolTokenData.volumes,
+					groupBy,
+					dateInMs: true,
+					denominationPriceHistory
+				})
 			}
 			if (toggledMetrics.fdv === 'true') {
 				charts['FDV'] = formatLineChart({
 					data: protocolTokenData.prices.map(([date, price]) => [date, price * tokenTotalSupply]),
 					groupBy,
-					dateInMs: true
+					dateInMs: true,
+					denominationPriceHistory
 				})
 			}
 		}
 
 		if (tokenLiquidityData) {
-			charts['Token Liquidity'] = formatLineChart({ data: tokenLiquidityData, groupBy })
+			charts['Token Liquidity'] = formatLineChart({ data: tokenLiquidityData, groupBy, denominationPriceHistory })
 		}
 
 		const feesStore = {}
@@ -659,9 +794,14 @@ export const useFetchAndFormatChartData = ({
 			let total = 0
 			for (const [date, value] of feesData.totalDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
-				feesStore[dateKey] = (feesStore[dateKey] ?? 0) + value + total
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+				feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
 				if (isCumulative) {
-					total += value
+					total += finalValue
 				}
 			}
 		}
@@ -670,9 +810,14 @@ export const useFetchAndFormatChartData = ({
 			let total = 0
 			for (const [date, value] of revenueData.totalDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
-				revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + value + total
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+				revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
 				if (isCumulative) {
-					total += value
+					total += finalValue
 				}
 			}
 		}
@@ -681,9 +826,14 @@ export const useFetchAndFormatChartData = ({
 			let total = 0
 			for (const [date, value] of holdersRevenueData.totalDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
-				holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + value + total
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+				holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
 				if (isCumulative) {
-					total += value
+					total += finalValue
 				}
 			}
 		}
@@ -692,17 +842,23 @@ export const useFetchAndFormatChartData = ({
 			let total = 0
 			for (const [date, value] of bribesData.totalDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+
 				if (feesData) {
-					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + value + total
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
 				}
 				if (revenueData) {
-					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + value + total
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
 				}
 				if (holdersRevenueData) {
-					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + value + total
+					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
 				}
 				if (isCumulative) {
-					total += value
+					total += finalValue
 				}
 			}
 		}
@@ -711,17 +867,23 @@ export const useFetchAndFormatChartData = ({
 			let total = 0
 			for (const [date, value] of tokenTaxesData.totalDataChart) {
 				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+
 				if (feesData) {
-					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + value + total
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
 				}
 				if (revenueData) {
-					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + value + total
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
 				}
 				if (holdersRevenueData) {
-					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + value + total
+					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
 				}
 				if (isCumulative) {
-					total += value
+					total += finalValue
 				}
 			}
 		}
@@ -755,33 +917,54 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (dexVolumeData) {
-			charts['DEX Volume'] = formatBarChart({ data: dexVolumeData.totalDataChart, groupBy })
+			charts['DEX Volume'] = formatBarChart({ data: dexVolumeData.totalDataChart, groupBy, denominationPriceHistory })
 		}
 
 		if (perpsVolumeData) {
-			charts['Perp Volume'] = formatBarChart({ data: perpsVolumeData.totalDataChart, groupBy })
+			charts['Perp Volume'] = formatBarChart({
+				data: perpsVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
 		}
 
 		if (optionsPremiumVolumeData) {
-			charts['Options Premium Volume'] = formatBarChart({ data: optionsPremiumVolumeData.totalDataChart, groupBy })
+			charts['Options Premium Volume'] = formatBarChart({
+				data: optionsPremiumVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
 		}
 
 		if (optionsNotionalVolumeData) {
-			charts['Options Notional Volume'] = formatBarChart({ data: optionsNotionalVolumeData.totalDataChart, groupBy })
+			charts['Options Notional Volume'] = formatBarChart({
+				data: optionsNotionalVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
 		}
 
 		if (dexAggregatorsVolumeData) {
-			charts['DEX Aggregator Volume'] = formatBarChart({ data: dexAggregatorsVolumeData.totalDataChart, groupBy })
+			charts['DEX Aggregator Volume'] = formatBarChart({
+				data: dexAggregatorsVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
 		}
 
 		if (perpsAggregatorsVolumeData) {
-			charts['Perp Aggregator Volume'] = formatBarChart({ data: perpsAggregatorsVolumeData.totalDataChart, groupBy })
+			charts['Perp Aggregator Volume'] = formatBarChart({
+				data: perpsAggregatorsVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
 		}
 
 		if (bridgeAggregatorsVolumeData) {
 			charts['Bridge Aggregator Volume'] = formatBarChart({
 				data: bridgeAggregatorsVolumeData.totalDataChart,
-				groupBy
+				groupBy,
+				denominationPriceHistory
 			})
 		}
 
@@ -807,7 +990,11 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (unlocksAndIncentivesData?.unlockUsdChart) {
-			charts['Incentives'] = formatBarChart({ data: unlocksAndIncentivesData.unlockUsdChart, groupBy })
+			charts['Incentives'] = formatBarChart({
+				data: unlocksAndIncentivesData.unlockUsdChart,
+				groupBy,
+				denominationPriceHistory
+			})
 		}
 
 		if (extraTvlCharts?.staking && toggledMetrics.staking === 'true') {
@@ -815,7 +1002,7 @@ export const useFetchAndFormatChartData = ({
 			for (const date in extraTvlCharts.staking) {
 				chartData.push([+date * 1e3, extraTvlCharts.staking[date]])
 			}
-			charts['Staking'] = formatLineChart({ data: chartData, groupBy, dateInMs: true })
+			charts['Staking'] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
 		}
 
 		if (extraTvlCharts?.borrowed && toggledMetrics.borrowed === 'true') {
@@ -823,14 +1010,15 @@ export const useFetchAndFormatChartData = ({
 			for (const date in extraTvlCharts.borrowed) {
 				chartData.push([+date * 1e3, extraTvlCharts.borrowed[date]])
 			}
-			charts['Borrowed'] = formatLineChart({ data: chartData, groupBy, dateInMs: true })
+			charts['Borrowed'] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
 		}
 
 		if (medianAPYData) {
 			charts['Median APY'] = formatLineChart({
 				data: medianAPYData.map((item) => [+item.date * 1e3, item.medianAPY]),
 				groupBy,
-				dateInMs: true
+				dateInMs: true,
+				denominationPriceHistory: null
 			})
 		}
 
@@ -917,28 +1105,32 @@ export const useFetchAndFormatChartData = ({
 			charts['NFT Volume'] = formatBarChart({
 				data: nftVolumeData,
 				groupBy,
-				dateInMs: true
+				dateInMs: true,
+				denominationPriceHistory
 			})
 		}
 
 		if (activeAddressesData && toggledMetrics.activeAddresses === 'true') {
 			charts['Active Addresses'] = formatLineChart({
 				data: activeAddressesData,
-				groupBy
+				groupBy,
+				denominationPriceHistory: null
 			})
 		}
 
 		if (newAddressesData && toggledMetrics.newAddresses === 'true') {
 			charts['New Addresses'] = formatLineChart({
 				data: newAddressesData,
-				groupBy
+				groupBy,
+				denominationPriceHistory: null
 			})
 		}
 
 		if (transactionsData && toggledMetrics.transactions === 'true') {
 			charts['Transactions'] = formatLineChart({
 				data: transactionsData,
-				groupBy
+				groupBy,
+				denominationPriceHistory: null
 			})
 		}
 
@@ -946,7 +1138,8 @@ export const useFetchAndFormatChartData = ({
 			charts['Treasury'] = formatLineChart({
 				data: treasuryData,
 				groupBy,
-				dateInMs: true
+				dateInMs: true,
+				denominationPriceHistory
 			})
 		}
 
@@ -954,7 +1147,8 @@ export const useFetchAndFormatChartData = ({
 			charts['USD Inflows'] = formatBarChart({
 				data: usdInflowsData,
 				groupBy,
-				dateInMs: true
+				dateInMs: true,
+				denominationPriceHistory
 			})
 		}
 
@@ -962,6 +1156,8 @@ export const useFetchAndFormatChartData = ({
 	}, [
 		toggledMetrics,
 		tvlChart,
+		fetchingDenominationPriceHistory,
+		denominationPriceHistory,
 		fetchingProtocolTokenData,
 		protocolTokenData,
 		fetchingTokenTotalSupply,
@@ -1021,11 +1217,14 @@ export const useFetchAndFormatChartData = ({
 const formatBarChart = ({
 	data,
 	groupBy,
-	dateInMs = false
+	dateInMs = false,
+	denominationPriceHistory
 }: {
 	data: Array<[string | number, number]>
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 	dateInMs?: boolean
+	hasNoPrice?: boolean
+	denominationPriceHistory: Record<string, number> | null
 }): Array<[number, number]> => {
 	if (['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
 		const store = {}
@@ -1040,9 +1239,17 @@ const formatBarChart = ({
 				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
 				: date
 			// sum up values as it is bar chart
-			store[dateKey] = (store[dateKey] ?? 0) + value + total
-			if (isCumulative) {
-				total += value
+			if (denominationPriceHistory) {
+				const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+				store[dateKey] = (store[dateKey] ?? 0) + (price ? value / price : 0) + total
+				if (isCumulative && price) {
+					total += value / price
+				}
+			} else {
+				store[dateKey] = (store[dateKey] ?? 0) + value + total
+				if (isCumulative) {
+					total += value
+				}
 			}
 		}
 		const finalChart = []
@@ -1051,17 +1258,26 @@ const formatBarChart = ({
 		}
 		return finalChart
 	}
-	return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
+	if (denominationPriceHistory) {
+		return data.map(([date, value]) => {
+			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
+		})
+	} else {
+		return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
+	}
 }
 
 const formatLineChart = ({
 	data,
 	groupBy,
-	dateInMs = false
+	dateInMs = false,
+	denominationPriceHistory
 }: {
 	data: Array<[string | number, number]>
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 	dateInMs?: boolean
+	denominationPriceHistory: Record<string, number> | null
 }): Array<[number, number]> => {
 	if (['weekly', 'monthly'].includes(groupBy)) {
 		const store = {}
@@ -1074,7 +1290,12 @@ const formatLineChart = ({
 				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
 				: date
 			// do not sum up values, just use the last value for each date
-			store[dateKey] = value
+			const finalValue = denominationPriceHistory
+				? denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+					? value / denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+					: 0
+				: value
+			store[dateKey] = finalValue
 		}
 		const finalChart = []
 		for (const date in store) {
@@ -1082,7 +1303,15 @@ const formatLineChart = ({
 		}
 		return finalChart
 	}
-	return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
+	if (denominationPriceHistory) {
+		return data.map(([date, value]) => {
+			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
+		})
+	} else {
+		return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
+	}
 }
 
 // disabled: tweets, gas used, bridge inflows
+// use nearestUtcZeroHour for all dates
