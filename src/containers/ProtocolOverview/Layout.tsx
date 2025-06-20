@@ -102,7 +102,7 @@ export function ProtocolOverviewLayout({
 				<div className="w-full flex overflow-x-auto text-xs font-medium">
 					{otherProtocols?.length > 1 && (
 						<Ariakit.MenuProvider>
-							<Ariakit.MenuButton className="mr-4 flex flex-shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] border border-[#e6e6e6] dark:border-[#222324]">
+							<Ariakit.MenuButton className="mr-4 flex flex-shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border border-[#e6e6e6] dark:border-[#222324]">
 								<TokenLogo logo={tokenIconUrl(name)} size={16} />
 								<span className="whitespace-nowrap">{name === otherProtocols[0] ? 'Combined View' : 'Split View'}</span>
 								<Ariakit.MenuButtonArrow />

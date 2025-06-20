@@ -21,6 +21,7 @@ import { fetchWithTimeout } from '~/utils/async'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
+import * as Ariakit from '@ariakit/react'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
@@ -49,7 +50,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
 
-	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts } = useMemo(() => {
+	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy } = useMemo(() => {
 		const toggled = {
 			...router.query,
 			...((!props.metrics.tvl
@@ -90,31 +91,87 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 		const toggledMetrics = {
 			...toggled,
 			tvl: router.query.tvl === 'false' ? 'false' : 'true',
-			events: router.query.events === 'false' ? 'false' : 'true',
-			groupBy:
-				typeof router.query.groupBy === 'string' && groupByOptions.includes(router.query.groupBy as any)
-					? (router.query.groupBy as any)
-					: 'daily'
+			events: router.query.events === 'false' ? 'false' : 'true'
 		}
 
 		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
+		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
 		return {
 			toggledMetrics,
 			toggledCharts,
-			hasAtleasOneBarChart: toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
+			hasAtleasOneBarChart,
+			groupBy: hasAtleasOneBarChart
+				? typeof router.query.groupBy === 'string' && groupByOptions.includes(router.query.groupBy as any)
+					? (router.query.groupBy as any)
+					: 'daily'
+				: 'daily'
 		} as any
 	}, [router, props])
 
 	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
 		...props,
 		toggledMetrics,
-		groupBy: toggledMetrics.groupBy
+		groupBy: groupBy
 	})
+
+	const metricsDialogStore = Ariakit.useDialogStore()
 
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end">
+				{props.availableCharts.length > 0 ? (
+					<Ariakit.DialogProvider store={metricsDialogStore}>
+						<Ariakit.DialogDisclosure className="flex flex-shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border border-[#e6e6e6] dark:border-[#222324]">
+							<span>Add Metrics</span>
+							<Icon name="plus" className="h-[14px] w-[14px]" />
+						</Ariakit.DialogDisclosure>
+						<Ariakit.Dialog className="dialog gap-3 sm:w-full max-sm:drawer" unmountOnHide>
+							<Ariakit.DialogHeading className="text-2xl font-bold">Add Metrics to chart</Ariakit.DialogHeading>
+							<div className="flex flex-wrap gap-2">
+								{props.availableCharts.map((chart) => (
+									<button
+										key={`add-metric-${chart}`}
+										onClick={() => {
+											router
+												.push(updateQueryParamInUrl(router.asPath, protocolCharts[chart], 'true'), undefined, {
+													shallow: true
+												})
+												.then(() => {
+													metricsDialogStore.toggle()
+												})
+										}}
+										data-active={toggledMetrics[protocolCharts[chart]] === 'true'}
+										className="flex items-center gap-1 border border-[var(--old-blue)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] rounded-full px-2 py-1 data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+									>
+										<span>{chart}</span>
+										{toggledMetrics[protocolCharts[chart]] === 'true' ? (
+											<Icon name="x" className="h-[14px] w-[14px]" />
+										) : (
+											<Icon name="plus" className="h-[14px] w-[14px]" />
+										)}
+									</button>
+								))}
+							</div>
+							{/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
+								{props.availableCharts.map((chart) => (
+									<button
+										key={`add-metric-${chart}`}
+										onClick={() => {
+											router.push(updateQueryParamInUrl(router.asPath, protocolCharts[chart], 'true'), undefined, {
+												shallow: true
+											})
+										}}
+										className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									>
+										<span>{chart}</span>
+										<span className="text-[#666] dark:text-[#919296] text-start"></span>
+									</button>
+								))}
+							</div> */}
+						</Ariakit.Dialog>
+					</Ariakit.DialogProvider>
+				) : null}
 				{toggledCharts.map((tchart) => (
 					<label className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto">
 						<input
@@ -122,13 +179,18 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							value={tchart}
 							checked={true}
 							onChange={() => {
-								router.push(updateQueryParamInUrl(router.asPath, protocolCharts[tchart], 'false'), undefined, {
+								router.push(updateQueryParamInUrl(router.asPath, protocolCharts[tchart], null), undefined, {
 									shallow: true
 								})
 							}}
 							className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
 						/>
-						<span className="flex items-center gap-1 border-2 border-[var(--old-blue)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] rounded-full px-2 py-1">
+						<span
+							className="text-xs flex items-center gap-1 border-2 border-[var(--old-blue)] rounded-full px-2 py-1"
+							style={{
+								borderColor: props.chartColors[tchart]
+							}}
+						>
 							<span>{tchart}</span>
 							<Icon name="x" className="h-[14px] w-[14px]" />
 						</span>
@@ -163,7 +225,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							content="Daily"
 							render={<button />}
 							className="flex-shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
-							data-active={toggledMetrics.groupBy === 'daily' || !toggledMetrics.groupBy}
+							data-active={groupBy === 'daily' || !groupBy}
 							onClick={() => {
 								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'daily'), undefined, { shallow: true })
 							}}
@@ -174,7 +236,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							content="Weekly"
 							render={<button />}
 							className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
-							data-active={toggledMetrics.groupBy === 'weekly'}
+							data-active={groupBy === 'weekly'}
 							onClick={() => {
 								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'weekly'), undefined, { shallow: true })
 							}}
@@ -185,7 +247,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							content="Monthly"
 							render={<button />}
 							className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
-							data-active={toggledMetrics.groupBy === 'monthly'}
+							data-active={groupBy === 'monthly'}
 							onClick={() => {
 								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'monthly'), undefined, { shallow: true })
 							}}
@@ -194,7 +256,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 						</Tooltip>
 						<button
 							className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
-							data-active={toggledMetrics.groupBy === 'cumulative'}
+							data-active={groupBy === 'cumulative'}
 							onClick={() => {
 								router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'cumulative'), undefined, { shallow: true })
 							}}
@@ -217,7 +279,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 						color={props.pageStyles['--primary-color']}
 						isThemeDark={isThemeDark}
 						valueSymbol={valueSymbol}
-						groupBy={toggledMetrics.groupBy}
+						groupBy={groupBy}
 						hallmarks={props.hallmarks}
 						unlockTokenSymbol={props.token.symbol}
 					/>
