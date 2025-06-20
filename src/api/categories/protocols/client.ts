@@ -32,19 +32,21 @@ export const useFetchProtocolsList = () => {
 }
 
 export const useFetchProtocol = (protocolName) => {
+	const isEnabled = !!protocolName
 	return useQuery({
-		queryKey: ['updated-protocols-data', protocolName],
+		queryKey: ['updated-protocols-data', protocolName, isEnabled],
 		queryFn: () => getProtocol(protocolName),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000,
-		enabled: !!protocolName
+		enabled: isEnabled
 	})
 }
 
 export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
+	const isEnabled = !!protocolName
 	return useQuery({
-		queryKey: [`updatedProtocolsDataWithInflows/${protocolName}/${JSON.stringify(extraTvlsEnabled)}`],
-		queryFn: protocolName
+		queryKey: ['updatedProtocolsDataWithInflows', protocolName, JSON.stringify(extraTvlsEnabled), isEnabled],
+		queryFn: isEnabled
 			? () =>
 					getProtocol(protocolName)
 						.then((protocolData) =>
@@ -54,14 +56,15 @@ export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocolName
+		enabled: isEnabled
 	})
 }
 
 export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
+	const isEnabled = !!protocolName
 	return useQuery({
-		queryKey: [`treasury/${protocolName}/${includeTreasury}`],
-		queryFn: protocolName
+		queryKey: ['treasury', protocolName, includeTreasury, isEnabled],
+		queryFn: isEnabled
 			? () =>
 					fetch(`${PROTOCOL_TREASURY_API}/${protocolName}`)
 						.then((res) => res.json())
@@ -73,14 +76,15 @@ export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocolName
+		enabled: isEnabled
 	})
 }
 
 export const useFetchProtocolActiveUsers = (protocolId: number | string | null) => {
+	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: [`activeUsers/${protocolId}`],
-		queryFn: protocolId
+		queryKey: ['activeUsers', protocolId, isEnabled],
+		queryFn: isEnabled
 			? () =>
 					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
@@ -91,13 +95,14 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocolId
+		enabled: isEnabled
 	})
 }
 export const useFetchProtocolNewUsers = (protocolId: number | string | null) => {
+	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: [`newUsers/${protocolId}`],
-		queryFn: protocolId
+		queryKey: ['newUsers', protocolId, isEnabled],
+		queryFn: isEnabled
 			? () =>
 					fetch(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
@@ -108,7 +113,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocolId
+		enabled: isEnabled
 	})
 }
 
@@ -154,19 +159,21 @@ const getProtocolUsers = async (protocolId: number | string) => {
 }
 
 export const useFetchProtocolUsers = (protocolId: number | string | null) => {
+	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: [`users/${protocolId}`],
-		queryFn: protocolId ? () => getProtocolUsers(protocolId) : () => null,
+		queryKey: ['protocolUsers', protocolId, isEnabled],
+		queryFn: isEnabled ? () => getProtocolUsers(protocolId) : () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocolId
+		enabled: isEnabled
 	})
 }
 
 export const useFetchProtocolTransactions = (protocolId: number | string | null) => {
+	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: [`protocolTransactionsApi/${protocolId}`],
-		queryFn: protocolId
+		queryKey: ['protocolTransactions', protocolId, isEnabled],
+		queryFn: isEnabled
 			? () =>
 					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
@@ -177,14 +184,15 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocolId
+		enabled: isEnabled
 	})
 }
 
 export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
+	const isEnabled = !!protocolId
 	return useQuery({
-		queryKey: [`protocolGasUsed/${protocolId}`],
-		queryFn: protocolId
+		queryKey: ['protocolGasUsed', protocolId, isEnabled],
+		queryFn: isEnabled
 			? () =>
 					fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
@@ -195,13 +203,14 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocolId
+		enabled: isEnabled
 	})
 }
 export const useFetchProtocolTokenLiquidity = (token: string | null) => {
+	const isEnabled = !!token
 	return useQuery({
-		queryKey: [`tokenLiquidity/${token}`],
-		queryFn: token
+		queryKey: ['tokenLiquidity', token, isEnabled],
+		queryFn: isEnabled
 			? () =>
 					fetch(`${TOKEN_LIQUIDITY_API}/${token.replaceAll('#', '$')}`)
 						.then((res) => res.json())
@@ -210,13 +219,14 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!token
+		enabled: isEnabled
 	})
 }
 export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
+	const isEnabled = !!protocolName
 	return useQuery({
-		queryKey: [`medianApy/${protocolName}`],
-		queryFn: protocolName
+		queryKey: ['medianApy', protocolName, isEnabled],
+		queryFn: isEnabled
 			? () =>
 					fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
 						.then((res) => res.json())
@@ -231,17 +241,18 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocolName
+		enabled: isEnabled
 	})
 }
 
 export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | null) => {
+	const isEnabled = !!governanceApis && governanceApis.length > 0
 	return useQuery({
-		queryKey: ['protocol-governance', JSON.stringify(governanceApis)],
-		queryFn: () => fetchAndFormatGovernanceData(governanceApis),
+		queryKey: ['protocol-governance', JSON.stringify(governanceApis), isEnabled],
+		queryFn: isEnabled ? () => fetchAndFormatGovernanceData(governanceApis) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!governanceApis
+		enabled: isEnabled
 	})
 }
 
@@ -254,10 +265,10 @@ interface IDenominationPriceHistory {
 
 export const useDenominationPriceHistory = (geckoId?: string) => {
 	let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
-
+	const isEnabled = !!url
 	return useQuery<IDenominationPriceHistory>({
-		queryKey: ['denom-price-history', url],
-		queryFn: url
+		queryKey: ['denom-price-history', url, isEnabled],
+		queryFn: isEnabled
 			? () =>
 					fetchApi(url)
 						.then((r) => r.data)
@@ -265,19 +276,19 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!url
+		enabled: isEnabled
 	})
 }
 
 export const useGetTokenPrice = (geckoId?: string) => {
 	let url = geckoId ? `https://coins.llama.fi/prices/current/coingecko:${geckoId}` : null
-
+	const isEnabled = !!url
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['gecko-token-price', url],
-		queryFn: () => fetchApi(url),
+		queryKey: ['gecko-token-price', url, isEnabled],
+		queryFn: isEnabled ? () => fetchApi(url) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!url
+		enabled: isEnabled
 	})
 
 	return { data: data?.coins?.[`coingecko:${geckoId}`], error, isLoading }
@@ -312,19 +323,21 @@ export const useGetProtocolsList = ({ chain }) => {
 }
 
 export const useGetProtocolEmissions = (protocol?: string | null) => {
+	const isEnabled = !!protocol
 	return useQuery({
-		queryKey: ['emissions', protocol],
-		queryFn: () => getProtocolEmissons(slug(protocol)),
+		queryKey: ['emissions', protocol, isEnabled],
+		queryFn: isEnabled ? () => getProtocolEmissons(slug(protocol)) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocol
+		enabled: isEnabled
 	})
 }
 
 export const useFetchProtocolTwitter = (twitter?: string | null) => {
+	const isEnabled = !!twitter
 	return useQuery({
-		queryKey: ['twitterData', twitter],
-		queryFn: twitter
+		queryKey: ['twitterData', twitter, isEnabled],
+		queryFn: isEnabled
 			? () =>
 					fetchApi(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((res) =>
 						res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
@@ -332,7 +345,7 @@ export const useFetchProtocolTwitter = (twitter?: string | null) => {
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!twitter
+		enabled: isEnabled
 	})
 }
 
@@ -343,19 +356,21 @@ export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
 			: `${DEV_METRICS_API}/${protocol}.json`
 		: null
 
+	const isEnabled = !!url
 	return useQuery({
-		queryKey: ['dev-metrics', url],
-		queryFn: () => fetchApi(url).catch((err) => null),
+		queryKey: ['dev-metrics', url, isEnabled],
+		queryFn: isEnabled ? () => fetchApi(url).catch((err) => null) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!protocol
+		enabled: isEnabled
 	})
 }
 
 export const useGeckoId = (addressData: string | null) => {
 	const [chain, address] = addressData?.split(':') ?? [null, null]
+	const isEnabled = !!addressData
 	const { data, error, isLoading } = useQuery({
-		queryKey: [`geckoId/${addressData}`],
+		queryKey: ['geckoId', addressData, isEnabled],
 		queryFn:
 			address && address !== '-'
 				? chain === 'coingecko'
@@ -364,7 +379,7 @@ export const useGeckoId = (addressData: string | null) => {
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!addressData
+		enabled: isEnabled
 	})
 
 	return { data: data?.id ?? null, isLoading, error }
@@ -372,11 +387,12 @@ export const useGeckoId = (addressData: string | null) => {
 
 export const usePriceChart = (geckoId?: string) => {
 	const url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
+	const isEnabled = !!url
 	return useQuery({
-		queryKey: ['price-chart', url],
-		queryFn: () => fetchApi(url).catch((err) => null),
+		queryKey: ['price-chart', url, isEnabled],
+		queryFn: isEnabled ? () => fetchApi(url).catch((err) => null) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: !!url
+		enabled: isEnabled
 	})
 }

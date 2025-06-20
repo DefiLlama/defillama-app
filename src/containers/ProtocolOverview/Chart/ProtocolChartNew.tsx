@@ -20,6 +20,7 @@ import {
 import { fetchWithTimeout } from '~/utils/async'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Tooltip } from '~/components/Tooltip'
+import { Icon } from '~/components/Icon'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
@@ -48,7 +49,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
 
-	const { toggledMetrics, hasAtleasOneBarChart, chartsToShow } = useMemo(() => {
+	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts } = useMemo(() => {
 		const toggled = {
 			...router.query,
 			...((!props.metrics.tvl
@@ -96,12 +97,12 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 					: 'daily'
 		}
 
-		const chartsToShow = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]])
+		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
 
 		return {
 			toggledMetrics,
-			chartsToShow,
-			hasAtleasOneBarChart: chartsToShow.some((chart) => BAR_CHARTS.includes(chart))
+			toggledCharts,
+			hasAtleasOneBarChart: toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 		} as any
 	}, [router, props])
 
@@ -114,6 +115,25 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end">
+				{toggledCharts.map((tchart) => (
+					<label className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto">
+						<input
+							type="checkbox"
+							value={tchart}
+							checked={true}
+							onChange={() => {
+								router.push(updateQueryParamInUrl(router.asPath, protocolCharts[tchart], 'false'), undefined, {
+									shallow: true
+								})
+							}}
+							className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
+						/>
+						<span className="flex items-center gap-1 border-2 border-[var(--old-blue)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] rounded-full px-2 py-1">
+							<span>{tchart}</span>
+							<Icon name="x" className="h-[14px] w-[14px]" />
+						</span>
+					</label>
+				))}
 				{props.chartDenominations?.length ? (
 					<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
 						{props.chartDenominations.map((denom) => (
@@ -324,255 +344,295 @@ export const useFetchAndFormatChartData = ({
 		return formatLineChart({ data: tvlChartData, groupBy, denominationPriceHistory })
 	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory])
 
+	const isFeesEnabled = toggledMetrics.fees === 'true' && metrics.fees && isRouterReady ? true : false
 	const { data: feesData = null, isLoading: fetchingFees } = useQuery<IAdapterSummary>({
-		queryKey: ['fees', name],
+		queryKey: ['fees', name, isFeesEnabled],
 		queryFn: () =>
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				protocol: name,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
+			isFeesEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.fees === 'true' && metrics.fees && isRouterReady ? true : false
+		enabled: isFeesEnabled
 	})
 
+	const isRevenueEnabled = toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady ? true : false
 	const { data: revenueData = null, isLoading: fetchingRevenue } = useQuery<IAdapterSummary>({
-		queryKey: ['revenue', name],
+		queryKey: ['revenue', name, isRevenueEnabled],
 		queryFn: () =>
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				dataType: 'dailyRevenue',
-				protocol: name,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
+			isRevenueEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						dataType: 'dailyRevenue',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady ? true : false
+		enabled: isRevenueEnabled
 	})
 
+	const isHoldersRevenueEnabled =
+		toggledMetrics.holdersRevenue === 'true' && (metrics.fees || metrics.revenue) && isRouterReady ? true : false
 	const { data: holdersRevenueData = null, isLoading: fetchingHoldersRevenue } = useQuery<IAdapterSummary>({
-		queryKey: ['holders-revenue', name],
+		queryKey: ['holders-revenue', name, isHoldersRevenueEnabled],
 		queryFn: () =>
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				dataType: 'dailyHoldersRevenue',
-				protocol: name,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
+			isHoldersRevenueEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						dataType: 'dailyHoldersRevenue',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled:
-			toggledMetrics.holdersRevenue === 'true' && (metrics.fees || metrics.revenue) && isRouterReady ? true : false
+		enabled: isHoldersRevenueEnabled
 	})
 
+	const isBribesEnabled =
+		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
+		feesSettings?.bribes &&
+		metrics.bribes &&
+		isRouterReady
+			? true
+			: false
 	const { data: bribesData = null, isLoading: fetchingBribes } = useQuery<IAdapterSummary>({
-		queryKey: ['bribes', name],
+		queryKey: ['bribes', name, isBribesEnabled],
 		queryFn: () =>
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				dataType: 'dailyBribesRevenue',
-				protocol: name,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
+			isBribesEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						dataType: 'dailyBribesRevenue',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled:
-			(toggledMetrics.fees === 'true' ||
-				toggledMetrics.revenue === 'true' ||
-				toggledMetrics.holdersRevenue === 'true') &&
-			feesSettings?.bribes &&
-			metrics.bribes &&
-			isRouterReady
-				? true
-				: false
+		enabled: isBribesEnabled
 	})
 
+	const isTokenTaxesEnabled =
+		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
+		feesSettings?.tokentax &&
+		metrics.tokenTax &&
+		isRouterReady
 	const { data: tokenTaxesData = null, isLoading: fetchingTokenTaxes } = useQuery<IAdapterSummary>({
-		queryKey: ['token-taxes', name],
+		queryKey: ['token-taxes', name, isTokenTaxesEnabled],
 		queryFn: () =>
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				dataType: 'dailyTokenTaxes',
-				protocol: name,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
+			isTokenTaxesEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						dataType: 'dailyTokenTaxes',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled:
-			(toggledMetrics.fees === 'true' ||
-				toggledMetrics.revenue === 'true' ||
-				toggledMetrics.holdersRevenue === 'true') &&
-			feesSettings?.tokentax &&
-			metrics.tokenTax &&
-			isRouterReady
-				? true
-				: false
+		enabled: isTokenTaxesEnabled
 	})
 
+	const isDexVolumeEnabled = toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady ? true : false
 	const { data: dexVolumeData = null, isLoading: fetchingDexVolume } = useQuery<IAdapterSummary>({
-		queryKey: ['dexVolume', name],
+		queryKey: ['dexVolume', name, isDexVolumeEnabled],
 		queryFn: () =>
-			getAdapterProtocolSummary({
-				adapterType: 'dexs',
-				protocol: name,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
+			isDexVolumeEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'dexs',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady ? true : false
+		enabled: isDexVolumeEnabled
 	})
 
+	const isPerpsVolumeEnabled = toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady ? true : false
 	const { data: perpsVolumeData = null, isLoading: fetchingPerpVolume } = useQuery<IAdapterSummary>({
-		queryKey: ['perpVolume', name],
+		queryKey: ['perpVolume', name, isPerpsVolumeEnabled],
 		queryFn: () =>
-			getAdapterProtocolSummary({
-				adapterType: 'derivatives',
-				protocol: name,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
+			isPerpsVolumeEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'derivatives',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady ? true : false
+		enabled: isPerpsVolumeEnabled
 	})
 
+	const isOptionsPremiumVolumeEnabled =
+		toggledMetrics.optionsPremiumVolume === 'true' && metrics.options && isRouterReady ? true : false
 	const { data: optionsPremiumVolumeData = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<IAdapterSummary>({
-		queryKey: ['optionsPremiumVolume', name],
+		queryKey: ['optionsPremiumVolume', name, isOptionsPremiumVolumeEnabled],
 		queryFn: () =>
-			getAdapterProtocolSummary({
-				adapterType: 'options',
-				dataType: 'dailyPremiumVolume',
-				protocol: name,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
+			isOptionsPremiumVolumeEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'options',
+						dataType: 'dailyPremiumVolume',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.optionsPremiumVolume === 'true' && metrics.options && isRouterReady ? true : false
+		enabled: isOptionsPremiumVolumeEnabled
 	})
 
+	const isOptionsNotionalVolumeEnabled =
+		toggledMetrics.optionsNotionalVolume === 'true' && metrics.options && isRouterReady ? true : false
 	const { data: optionsNotionalVolumeData = null, isLoading: fetchingOptionsNotionalVolume } =
 		useQuery<IAdapterSummary>({
-			queryKey: ['optionsNotionalVolume', name],
+			queryKey: ['optionsNotionalVolume', name, isOptionsNotionalVolumeEnabled],
 			queryFn: () =>
-				getAdapterProtocolSummary({
-					adapterType: 'options',
-					dataType: 'dailyNotionalVolume',
-					protocol: name,
-					excludeTotalDataChart: false,
-					excludeTotalDataChartBreakdown: true
-				}),
+				isOptionsNotionalVolumeEnabled
+					? getAdapterProtocolSummary({
+							adapterType: 'options',
+							dataType: 'dailyNotionalVolume',
+							protocol: name,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+					  })
+					: Promise.resolve(null),
 			staleTime: 60 * 60 * 1000,
 			retry: 0,
-			enabled: toggledMetrics.optionsNotionalVolume === 'true' && metrics.options && isRouterReady ? true : false
+			enabled: isOptionsNotionalVolumeEnabled
 		})
 
+	const isDexAggregatorsVolumeEnabled =
+		toggledMetrics.dexAggregatorVolume === 'true' && metrics.dexAggregators && isRouterReady ? true : false
 	const { data: dexAggregatorsVolumeData = null, isLoading: fetchingDexAggregatorVolume } = useQuery<IAdapterSummary>({
-		queryKey: ['dexAggregatorVolume'],
+		queryKey: ['dexAggregatorVolume', name, isDexAggregatorsVolumeEnabled],
 		queryFn: () =>
-			getAdapterProtocolSummary({
-				adapterType: 'aggregators',
-				protocol: name,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
+			isDexAggregatorsVolumeEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'aggregators',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.dexAggregatorVolume === 'true' && metrics.dexAggregators && isRouterReady ? true : false
+		enabled: isDexAggregatorsVolumeEnabled
 	})
 
+	const isPerpsAggregatorsVolumeEnabled =
+		toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators && isRouterReady ? true : false
 	const { data: perpsAggregatorsVolumeData = null, isLoading: fetchingPerpAggregatorVolume } =
 		useQuery<IAdapterSummary>({
-			queryKey: ['perpAggregatorVolume', name],
+			queryKey: ['perpAggregatorVolume', name, isPerpsAggregatorsVolumeEnabled],
 			queryFn: () =>
-				getAdapterProtocolSummary({
-					adapterType: 'derivatives-aggregator',
-					protocol: name,
-					excludeTotalDataChart: false,
-					excludeTotalDataChartBreakdown: true
-				}),
+				isPerpsAggregatorsVolumeEnabled
+					? getAdapterProtocolSummary({
+							adapterType: 'derivatives-aggregator',
+							protocol: name,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+					  })
+					: Promise.resolve(null),
 			staleTime: 60 * 60 * 1000,
 			retry: 0,
-			enabled:
-				toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators && isRouterReady ? true : false
+			enabled: isPerpsAggregatorsVolumeEnabled
 		})
 
+	const isBridgeAggregatorsVolumeEnabled =
+		toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators && isRouterReady ? true : false
 	const { data: bridgeAggregatorsVolumeData = null, isLoading: fetchingBridgeAggregatorVolume } =
 		useQuery<IAdapterSummary>({
-			queryKey: ['bridgeAggregatorVolume', name],
+			queryKey: ['bridgeAggregatorVolume', name, isBridgeAggregatorsVolumeEnabled],
 			queryFn: () =>
-				getAdapterProtocolSummary({
-					adapterType: 'bridge-aggregators',
-					protocol: name,
-					excludeTotalDataChart: false,
-					excludeTotalDataChartBreakdown: true
-				}),
+				isBridgeAggregatorsVolumeEnabled
+					? getAdapterProtocolSummary({
+							adapterType: 'bridge-aggregators',
+							protocol: name,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+					  })
+					: Promise.resolve(null),
 			staleTime: 60 * 60 * 1000,
 			retry: 0,
-			enabled:
-				toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators && isRouterReady ? true : false
+			enabled: isBridgeAggregatorsVolumeEnabled
 		})
 
+	const isUnlocksEnabled = toggledMetrics.unlocks === 'true' && metrics.unlocks && isRouterReady ? true : false
 	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
-		queryKey: ['unlocks', name],
-		queryFn: () => getProtocolEmissons(slug(name)),
+		queryKey: ['unlocks', name, isUnlocksEnabled],
+		queryFn: () => (isUnlocksEnabled ? getProtocolEmissons(slug(name)) : Promise.resolve(null)),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.unlocks === 'true' && metrics.unlocks && isRouterReady ? true : false
+		enabled: isUnlocksEnabled
 	})
 
+	const isTreasuryEnabled = toggledMetrics.treasury === 'true' && metrics.treasury && isRouterReady ? true : false
 	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery({
-		queryKey: ['treasury', name],
+		queryKey: ['treasury', name, isTreasuryEnabled],
 		queryFn: () =>
-			fetch(`${PROTOCOL_TREASURY_API}/${slug(name)}`)
-				.then((res) => res.json())
-				.then((data) => {
-					const store = {}
-					for (const chain in data.chainTvls) {
-						if (chain.includes('-')) continue
-						for (const item of data.chainTvls[chain].tvl ?? []) {
-							store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
-						}
-					}
-					const finalChart = []
-					for (const date in store) {
-						finalChart.push([+date * 1e3, store[date]])
-					}
-					return finalChart
-				}),
+			isTreasuryEnabled
+				? fetch(`${PROTOCOL_TREASURY_API}/${slug(name)}`)
+						.then((res) => res.json())
+						.then((data) => {
+							const store = {}
+							for (const chain in data.chainTvls) {
+								if (chain.includes('-')) continue
+								for (const item of data.chainTvls[chain].tvl ?? []) {
+									store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
+								}
+							}
+							const finalChart = []
+							for (const date in store) {
+								finalChart.push([+date * 1e3, store[date]])
+							}
+							return finalChart
+						})
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: metrics.treasury && toggledMetrics.treasury === 'true' && isRouterReady ? true : false
+		enabled: isTreasuryEnabled
 	})
 
+	const isUsdInflowsEnabled = toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady ? true : false
 	const { data: usdInflowsData = null, isLoading: fetchingUsdInflows } = useQuery({
-		queryKey: ['usdInflows', name],
+		queryKey: ['usdInflows', name, isUsdInflowsEnabled],
 		queryFn: () =>
-			fetch(`https://api.llama.fi/protocol/${slug(name)}`)
-				.then((res) => res.json())
-				.then((data) => {
-					const store = {}
-					for (const item of data.tokensInUsd) {
-						for (const token in item.tokens) {
-							store[item.date] = (store[item.date] ?? 0) + (item.tokens?.[token] ?? 0)
-						}
-					}
-					const finalChart = []
-					for (const date in store) {
-						finalChart.push([+date * 1e3, store[date]])
-					}
-					return finalChart
-				}),
+			isUsdInflowsEnabled
+				? fetch(`https://api.llama.fi/protocol/${slug(name)}`)
+						.then((res) => res.json())
+						.then((data) => {
+							const store = {}
+							for (const item of data.tokensInUsd) {
+								for (const token in item.tokens) {
+									store[item.date] = (store[item.date] ?? 0) + (item.tokens?.[token] ?? 0)
+								}
+							}
+							const finalChart = []
+							for (const date in store) {
+								finalChart.push([+date * 1e3, store[date]])
+							}
+							return finalChart
+						})
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: metrics.tvl && toggledMetrics.usdInflows === 'true' && isRouterReady ? true : false
+		enabled: isUsdInflowsEnabled
 	})
 
 	const { data: medianAPYData = null, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
@@ -612,23 +672,26 @@ export const useFetchAndFormatChartData = ({
 			: null
 	)
 
+	const isNftVolumeEnabled = toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady ? true : false
 	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery({
-		queryKey: ['nftVolume', name],
+		queryKey: ['nftVolume', name, isNftVolumeEnabled],
 		queryFn: () =>
-			fetchWithTimeout(NFT_MARKETPLACES_VOLUME_API, 10_000)
-				.then((r) => r.json())
-				.then((r) => {
-					const chartByDate = r
-						.filter((r) => slug(r.exchangeName) === slug(name))
-						.map(({ day, sumUsd }) => {
-							return [new Date(day).getTime(), sumUsd]
+			isNftVolumeEnabled
+				? fetchWithTimeout(NFT_MARKETPLACES_VOLUME_API, 10_000)
+						.then((r) => r.json())
+						.then((r) => {
+							const chartByDate = r
+								.filter((r) => slug(r.exchangeName) === slug(name))
+								.map(({ day, sumUsd }) => {
+									return [new Date(day).getTime(), sumUsd]
+								})
+							return chartByDate
 						})
-					return chartByDate
-				})
-				.catch(() => []),
+						.catch(() => [])
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
-		enabled: toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady ? true : false
+		enabled: isNftVolumeEnabled
 	})
 
 	const showNonUsdDenomination =
@@ -1315,3 +1378,4 @@ const formatLineChart = ({
 
 // disabled: tweets, gas used, bridge inflows
 // use nearestUtcZeroHour for all dates
+// check if all charts need to have same time range
