@@ -36,7 +36,8 @@ export const useFetchProtocol = (protocolName) => {
 		queryKey: ['updated-protocols-data', protocolName],
 		queryFn: () => getProtocol(protocolName),
 		staleTime: 60 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000
+		refetchInterval: 10 * 60 * 1000,
+		enabled: !!protocolName
 	})
 }
 
@@ -52,7 +53,8 @@ export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
 						.catch(() => null)
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocolName
 	})
 }
 
@@ -70,7 +72,8 @@ export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
 						})
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocolName
 	})
 }
 
@@ -87,7 +90,8 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 						.catch((err) => [])
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocolId
 	})
 }
 export const useFetchProtocolNewUsers = (protocolId: number | string | null) => {
@@ -103,7 +107,8 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 						.catch((err) => [])
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocolId
 	})
 }
 
@@ -153,7 +158,8 @@ export const useFetchProtocolUsers = (protocolId: number | string | null) => {
 		queryKey: [`users/${protocolId}`],
 		queryFn: protocolId ? () => getProtocolUsers(protocolId) : () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocolId
 	})
 }
 
@@ -170,7 +176,8 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 						.catch((err) => [])
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocolId
 	})
 }
 
@@ -187,7 +194,8 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 						.catch((err) => [])
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocolId
 	})
 }
 export const useFetchProtocolTokenLiquidity = (token: string | null) => {
@@ -201,7 +209,8 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 						.catch((err) => null)
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!token
 	})
 }
 export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
@@ -221,7 +230,8 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 						})
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocolName
 	})
 }
 
@@ -230,7 +240,8 @@ export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | n
 		queryKey: ['protocol-governance', JSON.stringify(governanceApis)],
 		queryFn: () => fetchAndFormatGovernanceData(governanceApis),
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!governanceApis
 	})
 }
 
@@ -253,7 +264,8 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 						.then((data) => (data.prices.length > 0 ? data : { prices: [], mcaps: [], volumes: [] }))
 			: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!url
 	})
 }
 
@@ -264,7 +276,8 @@ export const useGetTokenPrice = (geckoId?: string) => {
 		queryKey: ['gecko-token-price', url],
 		queryFn: () => fetchApi(url),
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!url
 	})
 
 	return { data: data?.coins?.[`coingecko:${geckoId}`], error, isLoading }
@@ -334,7 +347,8 @@ export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
 		queryKey: ['dev-metrics', url],
 		queryFn: () => fetchApi(url).catch((err) => null),
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!protocol
 	})
 }
 
@@ -349,7 +363,8 @@ export const useGeckoId = (addressData: string | null) => {
 					: () => fetchApi(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`)
 				: () => null,
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!addressData
 	})
 
 	return { data: data?.id ?? null, isLoading, error }
@@ -361,6 +376,7 @@ export const usePriceChart = (geckoId?: string) => {
 		queryKey: ['price-chart', url],
 		queryFn: () => fetchApi(url).catch((err) => null),
 		staleTime: 60 * 60 * 1000,
-		retry: 0
+		retry: 0,
+		enabled: !!url
 	})
 }
