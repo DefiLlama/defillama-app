@@ -54,7 +54,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	}
 
 	return (
-		<div className="w-full p-4 h-full flex flex-col">
+		<div className="w-full p-2 sm:p-4 h-full flex flex-col overflow-hidden">
 			<TableHeader
 				chains={chains}
 				columnPresets={columnPresets}
