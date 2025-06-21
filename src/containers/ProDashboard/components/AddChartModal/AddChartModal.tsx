@@ -1,4 +1,5 @@
-import { useAvailableChartTypes, useChartData } from '../../queries'
+import { useAvailableChartTypes } from '../../queries'
+import { useMultipleChartData } from '../../hooks/useMultipleChartData'
 import { ModalHeader } from './ModalHeader'
 import { TabNavigation } from './TabNavigation'
 import { ChartTab } from './ChartTab'
@@ -40,16 +41,17 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 	)
 
 	const shouldFetchPreviewData =
-		state.selectedMainTab === 'chart' && getCurrentSelectedItem() && state.selectedChartType
-	const previewChartData = useChartData(
-		state.selectedChartType,
+		state.selectedMainTab === 'chart' && getCurrentSelectedItem() && state.selectedChartTypes.length > 0
+	
+	const previewChartData = useMultipleChartData(
+		shouldFetchPreviewData ? state.selectedChartTypes : [],
 		getCurrentItemType(),
 		getCurrentSelectedItem() || '',
 		computed.selectedProtocolData?.geckoId,
 		computed.timePeriod
 	)
 
-	const showPreview = shouldFetchPreviewData && availableChartTypes.includes(state.selectedChartType)
+	const showPreview = shouldFetchPreviewData && state.selectedChartTypes.some(type => availableChartTypes.includes(type))
 
 	if (!isOpen) return null
 
@@ -76,7 +78,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							selectedChartTab={state.selectedChartTab}
 							selectedChain={state.selectedChain}
 							selectedProtocol={state.selectedProtocol}
-							selectedChartType={state.selectedChartType}
+							selectedChartTypes={state.selectedChartTypes}
 							selectedProtocolData={computed.selectedProtocolData}
 							chainOptions={computed.chainOptions}
 							protocolOptions={computed.protocolOptions}
@@ -88,7 +90,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onChartTabChange={actions.handleChartTabChange}
 							onChainChange={actions.handleChainChange}
 							onProtocolChange={actions.handleProtocolChange}
-							onChartTypeChange={actions.setSelectedChartType}
+							onChartTypesChange={actions.setSelectedChartTypes}
 						/>
 					)}
 
@@ -148,6 +150,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						selectedChain={state.selectedChain}
 						selectedChains={state.selectedChains}
 						selectedProtocol={state.selectedProtocol}
+						selectedChartTypes={state.selectedChartTypes}
 						composerItems={state.composerItems}
 						textContent={state.textContent}
 						chartTypesLoading={chartTypesLoading}

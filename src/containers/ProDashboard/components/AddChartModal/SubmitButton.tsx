@@ -8,6 +8,7 @@ interface SubmitButtonProps {
 	selectedChain: string | null
 	selectedChains: string[]
 	selectedProtocol: string | null
+	selectedChartTypes?: string[]
 	composerItems: ChartConfig[]
 	textContent: string
 	chartTypesLoading: boolean
@@ -24,6 +25,7 @@ export function SubmitButton({
 	selectedChain,
 	selectedChains = [],
 	selectedProtocol,
+	selectedChartTypes = [],
 	composerItems,
 	textContent,
 	chartTypesLoading,
@@ -34,8 +36,8 @@ export function SubmitButton({
 }: SubmitButtonProps) {
 	const isDisabled = 
 		chartTypesLoading ||
-		(selectedMainTab === 'chart' && selectedChartTab === 'chain' && !selectedChain) ||
-		(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && !selectedProtocol) ||
+		(selectedMainTab === 'chart' && selectedChartTab === 'chain' && (!selectedChain || selectedChartTypes.length === 0)) ||
+		(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && (!selectedProtocol || selectedChartTypes.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'protocols' && (!selectedChains || selectedChains.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
 		(selectedMainTab === 'table' && selectedTableType === 'token-usage' && (!selectedTokens || selectedTokens.length === 0)) ||
@@ -49,6 +51,11 @@ export function SubmitButton({
 			case 'table': return 'Add Table'
 			case 'composer': return 'Add Multi-Chart'
 			case 'text': return 'Add Text'
+			case 'chart':
+				if (selectedChartTypes.length > 1) {
+					return `Add ${selectedChartTypes.length} Charts`
+				}
+				return 'Add Chart'
 			default: return 'Add Chart'
 		}
 	}

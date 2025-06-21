@@ -20,6 +20,7 @@ export interface ModalState {
 	selectedChains: string[]
 	selectedProtocol: string | null
 	selectedChartType: string
+	selectedChartTypes: string[]
 	textTitle: string
 	textContent: string
 	selectedTableType: CombinedTableType
@@ -38,6 +39,7 @@ export interface ModalActions {
 	setSelectedChains: (chains: string[]) => void // New action for multi-chain selection
 	setSelectedProtocol: (protocol: string | null) => void
 	setSelectedChartType: (type: string) => void
+	setSelectedChartTypes: (types: string[]) => void
 	setTextTitle: (title: string) => void
 	setTextContent: (content: string) => void
 	setSelectedTableType: (type: CombinedTableType) => void
