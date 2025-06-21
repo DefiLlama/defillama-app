@@ -83,18 +83,12 @@ function Container({
 
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	React.useEffect(() => {
-		setCompareProtocols([])
-	}, [chain, category])
+	const addOrRemoveCompare = (protocol) => {
+		setCompareProtocols((prev) =>
+			prev.indexOf(protocol) === -1 ? [...prev, protocol] : prev.filter((p) => p !== protocol)
+		)
+	}
 
-	const addOrRemoveCompare = React.useCallback(
-		(protocol) => {
-			setCompareProtocols((prev) =>
-				prev.indexOf(protocol) === -1 ? [...prev, protocol] : prev.filter((p) => p !== protocol)
-			)
-		},
-		[compareProtocols, setCompareProtocols, category, chain]
-	)
 	const protocolTotals = React.useMemo(() => {
 		const data = formatProtocolsList({
 			extraTvlsEnabled,
@@ -109,7 +103,7 @@ function Container({
 			compare: addOrRemoveCompare,
 			isCompared: compareProtocols.includes(p.name)
 		}))
-	}, [extraTvlsEnabled, protocols, parentProtocols, category, chain, compareProtocols])
+	}, [extraTvlsEnabled, protocols, parentProtocols, compareProtocols, fees, volumes])
 
 	const { tvl, dominance, topToken, percentChange, totals } = React.useMemo(() => {
 		const tvlVal = protocolTotals?.reduce((acc, protocol) => (acc += protocol.tvl ?? 0), 0)
@@ -153,7 +147,6 @@ function Container({
 			),
 		[totals, category]
 	)
-	const routeName = category ? (chain === 'All' ? 'All Chains' : chain) : 'All Protocols'
 
 	const datasets = React.useMemo(() => {
 		return [{ globalChart: categoryChart }]
@@ -301,7 +294,7 @@ function Container({
 							/>
 						) : null}
 					</div>
-					<div className="bg-[var(--cards-bg)] rounded-md col-span-2">
+					<div className="bg-[var(--cards-bg)] min-h-[360px] rounded-md col-span-2">
 						{router.isReady && categoryChart ? <ChainChart datasets={datasets} title="" isThemeDark={isDark} /> : null}
 					</div>
 				</div>

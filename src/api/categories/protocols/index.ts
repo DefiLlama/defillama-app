@@ -31,6 +31,8 @@ import { getFeesAndRevenueProtocolsByChain } from '~/api/categories/adaptors'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { getDexVolumeByChain } from '../adaptors'
 import { sluggify } from '~/utils/cache-client'
+import metadata from '~/utils/metadata'
+const { chainMetadata } = metadata
 
 export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
@@ -486,11 +488,12 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 	})
 
 	let categoryChart = null
-	if (chain) {
+	const chainId = chain ? chainMetadata[slug(chain)]?.id : 'all'
+	if (chainId) {
 		try {
-			categoryChart = (
-				await fetchWithErrorLogging(`${CHART_API}/categories/${normalizedCategory}`).then((r) => r.json())
-			)[chain?.toLowerCase()]
+			categoryChart =
+				(await fetchWithErrorLogging(`${CHART_API}/categories/${normalizedCategory}`).then((r) => r.json()))[chainId] ??
+				null
 		} catch (e) {
 			categoryChart = null
 		}
@@ -498,7 +501,7 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		const res = await fetchWithErrorLogging(`${CATEGORY_API}`).then((r) => r.json())
 
 		categoryChart = Object.entries(res.chart)
-			.map(([date, value]) => [date, value[category]?.tvl])
+			.map(([date, value]) => [date, value[category]?.tvl ?? null])
 			.filter(([_, val]) => !!val)
 	}
 
