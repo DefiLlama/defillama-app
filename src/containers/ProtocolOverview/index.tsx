@@ -15,6 +15,8 @@ import dayjs from 'dayjs'
 import { feesOptions, protocolsAndChainsOptions } from '~/components/Filters/options'
 import { Menu } from '~/components/Menu'
 import { ProtocolChart2 } from './Chart/ProtocolChartNew'
+import { useGetTokenPrice } from '~/api/categories/protocols/client'
+import { useRouter } from 'next/router'
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
@@ -66,12 +68,21 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 		}
 	}, [extraTvlsEnabled, props])
 
+	const router = useRouter()
+	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId)
+
 	const formatPrice = (value?: number | string | null): string | number | null => {
 		if (Number.isNaN(Number(value))) return null
 
-		// if (!fetchingChainPrice && chainPrice?.price && denomination && denomination !== 'USD') {
-		// 	return formattedNum(Number(value) / chainPrice.price, false) + ` ${chainPrice.symbol}`
-		// }
+		if (
+			!fetchingChainPrice &&
+			chainPrice?.price &&
+			typeof router.query.denomination === 'string' &&
+			props.chartDenominations?.[1]?.symbol &&
+			props.chartDenominations[1].symbol === router.query.denomination
+		) {
+			return formattedNum(Number(value) / chainPrice.price, false) + ` ${chainPrice.symbol}`
+		}
 
 		return formattedNum(value, true)
 	}
@@ -231,27 +242,30 @@ const ProtocolTVL = ({
 		</details>
 	)
 }
-const KeyMetrics = (
-	props: IProtocolOverviewPageData & { formatPrice: (value: number | string | null) => string | number | null }
-) => {
+
+interface IKeyMetricsProps extends IProtocolOverviewPageData {
+	formatPrice: (value: number | string | null) => string | number | null
+}
+
+const KeyMetrics = (props: IKeyMetricsProps) => {
 	if (!props.hasKeyMetrics) return null
 	return (
 		<div className="flex flex-col flex-1 gap-2">
 			<h2 className="text-base xl:text-sm font-semibold">Key Metrics</h2>
 			<div className="flex flex-col">
-				<Fees {...props} />
-				<Revenue {...props} />
-				<HoldersRevenue {...props} />
-				<Incentives {...props} />
-				<Earnings {...props} />
-				<DexVolume {...props} />
-				<DexAggregatorVolume {...props} />
-				<PerpVolume {...props} />
-				<PerpAggregatorVolume {...props} />
-				<BridgeAggregatorVolume {...props} />
-				<OptionsPremiumVolume {...props} />
-				<OptionsNotionalVolume {...props} />
-				<TokenCGData {...props} />
+				<Fees formatPrice={props.formatPrice} {...props} />
+				<Revenue formatPrice={props.formatPrice} {...props} />
+				<HoldersRevenue formatPrice={props.formatPrice} {...props} />
+				<Incentives formatPrice={props.formatPrice} {...props} />
+				<Earnings formatPrice={props.formatPrice} {...props} />
+				<DexVolume formatPrice={props.formatPrice} {...props} />
+				<DexAggregatorVolume formatPrice={props.formatPrice} {...props} />
+				<PerpVolume formatPrice={props.formatPrice} {...props} />
+				<PerpAggregatorVolume formatPrice={props.formatPrice} {...props} />
+				<BridgeAggregatorVolume formatPrice={props.formatPrice} {...props} />
+				<OptionsPremiumVolume formatPrice={props.formatPrice} {...props} />
+				<OptionsNotionalVolume formatPrice={props.formatPrice} {...props} />
+				<TokenCGData formatPrice={props.formatPrice} {...props} />
 				{props.currentTvlByChain?.staking != null ? (
 					<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
@@ -263,14 +277,14 @@ const KeyMetrics = (
 						/>
 						{props.tokenCGData?.marketCap?.current ? (
 							<span className="flex items-center gap-1">
-								<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
+								<span className="font-jetbrains">{props.formatPrice(props.currentTvlByChain.staking)}</span>
 								<span className="text-xs text-[#545757] dark:text-[#cccccc]">
 									({formattedNum((props.currentTvlByChain.staking / props.tokenCGData.marketCap.current) * 100)}% of
 									mcap)
 								</span>
 							</span>
 						) : (
-							<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.staking, true)}</span>
+							<span className="font-jetbrains">{props.formatPrice(props.currentTvlByChain.staking)}</span>
 						)}
 					</p>
 				) : null}
@@ -283,7 +297,7 @@ const KeyMetrics = (
 							isLending={props.category === 'Lending'}
 							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 						/>
-						<span className="font-jetbrains">{formattedNum(props.currentTvlByChain.borrowed, true)}</span>
+						<span className="font-jetbrains">{props.formatPrice(props.currentTvlByChain.borrowed)}</span>
 					</p>
 				) : null}
 				<TokenLiquidity {...props} />
@@ -338,7 +352,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	)
 }
 
-function Fees(props: IProtocolOverviewPageData) {
+function Fees(props: IKeyMetricsProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const fees = props.fees
@@ -394,10 +408,17 @@ function Fees(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function Revenue(props: IProtocolOverviewPageData) {
+function Revenue(props: IKeyMetricsProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const revenue = props.revenue
@@ -454,9 +475,16 @@ function Revenue(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
-function HoldersRevenue(props: IProtocolOverviewPageData) {
+function HoldersRevenue(props: IKeyMetricsProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const holdersRevenue = props.holdersRevenue
@@ -519,10 +547,17 @@ function HoldersRevenue(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function Incentives(props: IProtocolOverviewPageData) {
+function Incentives(props: IKeyMetricsProps) {
 	if (!props.incentives) return null
 
 	const metrics = []
@@ -558,10 +593,17 @@ function Incentives(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function Earnings(props: IProtocolOverviewPageData) {
+function Earnings(props: IKeyMetricsProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const revenue = props.revenue
@@ -627,10 +669,17 @@ function Earnings(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function DexVolume(props: IProtocolOverviewPageData) {
+function DexVolume(props: IKeyMetricsProps) {
 	if (!props.dexVolume) return null
 
 	const metrics = []
@@ -645,10 +694,17 @@ function DexVolume(props: IProtocolOverviewPageData) {
 		metrics.push({ name: 'Cumulative DEX Volume', tooltipContent: null, value: props.dexVolume.totalAllTime })
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function DexAggregatorVolume(props: IProtocolOverviewPageData) {
+function DexAggregatorVolume(props: IKeyMetricsProps) {
 	if (!props.dexAggregatorVolume) return null
 
 	const metrics = []
@@ -667,10 +723,17 @@ function DexAggregatorVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function PerpVolume(props: IProtocolOverviewPageData) {
+function PerpVolume(props: IKeyMetricsProps) {
 	if (!props.perpVolume) return null
 
 	const metrics = []
@@ -689,10 +752,17 @@ function PerpVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
+function PerpAggregatorVolume(props: IKeyMetricsProps) {
 	if (!props.perpAggregatorVolume) return null
 
 	const metrics = []
@@ -719,10 +789,17 @@ function PerpAggregatorVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
+function BridgeAggregatorVolume(props: IKeyMetricsProps) {
 	if (!props.bridgeAggregatorVolume) return null
 
 	const metrics = []
@@ -749,10 +826,17 @@ function BridgeAggregatorVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
+function OptionsPremiumVolume(props: IKeyMetricsProps) {
 	if (!props.optionsPremiumVolume) return null
 
 	const metrics = []
@@ -779,10 +863,17 @@ function OptionsPremiumVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
 }
 
-function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
+function OptionsNotionalVolume(props: IKeyMetricsProps) {
 	if (!props.optionsNotionalVolume) return null
 
 	const metrics = []
@@ -809,7 +900,341 @@ function OptionsNotionalVolume(props: IProtocolOverviewPageData) {
 		})
 	}
 
-	return <SmolStats data={metrics} protocolName={props.name} category={props.category ?? ''} />
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
+}
+
+const Expenses = (props: IKeyMetricsProps) => {
+	if (!props.expenses) return null
+	return (
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+				<span className="text-[#545757] dark:text-[#cccccc]">Annual Operational Expenses</span>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<Flag
+					protocol={props.name}
+					dataType="Expenses"
+					isLending={props.category === 'Lending'}
+					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+				/>
+				<span className="font-jetbrains ml-auto">{props.formatPrice(props.expenses.total)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+					<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
+					<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
+				</p>
+				{props.expenses.annualUsdCost.map(([category, amount]) => (
+					<p
+						className="flex flex-col gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1"
+						key={`${props.name}-expenses-${category}-${amount}`}
+					>
+						<span className="flex flex-wrap justify-between">
+							<span className="text-[#545757] dark:text-[#cccccc]">{category}</span>
+							<span className="font-jetbrains">{props.formatPrice(amount)}</span>
+						</span>
+					</p>
+				))}
+				{props.expenses?.sources?.length ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+						<span className="text-[#545757] dark:text-[#cccccc]">Sources</span>
+						{props.expenses.sources?.map((source) => (
+							<a
+								href={source}
+								target="_blank"
+								rel="noopener noreferrer"
+								key={`${props.name}-expenses-source-${source}`}
+								className="hover:underline"
+							>
+								{source}
+							</a>
+						))}
+					</p>
+				) : null}
+				{props.expenses?.notes?.length ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+						<span className="text-[#545757] dark:text-[#cccccc]">Notes</span>
+						<span>{props.expenses.notes?.join(', ') ?? ''}</span>
+					</p>
+				) : null}
+				{props.expenses?.lastUpdate ? (
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+						<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
+						<span>{dayjs(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
+					</p>
+				) : null}
+			</div>
+		</details>
+	)
+}
+
+const TokenLiquidity = (props: IKeyMetricsProps) => {
+	if (!props.tokenLiquidity) return null
+	return (
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+				<Tooltip
+					content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
+					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+				>
+					{`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
+				</Tooltip>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<Flag
+					protocol={props.name}
+					dataType="Token Liquidity"
+					isLending={props.category === 'Lending'}
+					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+				/>
+				<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{props.tokenLiquidity?.pools.map((pool) => (
+					<p
+						key={`${pool[0]}-${pool[1]}-${pool[2]}`}
+						className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1"
+					>
+						<span className="text-[#545757] dark:text-[#cccccc]">{pool[0]}</span>
+						<span className="font-jetbrains">{props.formatPrice(pool[2])}</span>
+					</p>
+				))}
+			</div>
+		</details>
+	)
+}
+
+const TokenCGData = (props: IKeyMetricsProps) => {
+	if (!props.tokenCGData) return null
+	return (
+		<>
+			{props.tokenCGData?.marketCap?.current ? (
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
+					<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
+					<Flag
+						protocol={props.name}
+						dataType="Market Cap"
+						isLending={props.category === 'Lending'}
+						className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+					/>
+					<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.marketCap.current)}</span>
+				</p>
+			) : null}
+			{props.tokenCGData?.price?.current ? (
+				props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
+					<details className="group">
+						<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">{`${
+								props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+							} Price`}</span>
+							<Icon
+								name="chevron-down"
+								height={16}
+								width={16}
+								className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+							/>
+							<Flag
+								protocol={props.name}
+								dataType="Token Price"
+								isLending={props.category === 'Lending'}
+								className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+							/>
+							<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.price.current)}</span>
+						</summary>
+						<div className="flex flex-col mb-3">
+							<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
+								<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.price.ath)}</span>
+							</p>
+							<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
+								<span className="text-[#545757] dark:text-[#cccccc]">All Time Low</span>
+								<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.price.atl)}</span>
+							</p>
+						</div>
+					</details>
+				) : (
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
+						<span className="text-[#545757] dark:text-[#cccccc]">{`${
+							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+						} Price`}</span>
+						<Flag
+							protocol={props.name}
+							dataType="Token Price"
+							isLending={props.category === 'Lending'}
+							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+						/>
+						<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.price.current)}</span>
+					</p>
+				)
+			) : null}
+			{props.tokenCGData?.fdv?.current ? (
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
+					<Tooltip
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+						content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
+					>
+						Fully Diluted Valuation
+					</Tooltip>
+					<Flag
+						protocol={props.name}
+						dataType="FDV"
+						isLending={props.category === 'Lending'}
+						className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+					/>
+					<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.fdv.current)}</span>
+				</p>
+			) : null}
+			{props.tokenCGData.volume24h?.total ? (
+				<details className="group">
+					<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+						<span className="text-[#545757] dark:text-[#cccccc]">{`24h ${
+							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
+						} Volume`}</span>
+						<Icon
+							name="chevron-down"
+							height={16}
+							width={16}
+							className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+						/>
+						<Flag
+							protocol={props.name}
+							dataType="Token Volume"
+							isLending={props.category === 'Lending'}
+							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+						/>
+						<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.volume24h.total)}</span>
+					</summary>
+					<div className="flex flex-col mb-3">
+						<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
+							<span className="font-jetbrains">
+								{props.tokenCGData.volume24h.cex ? props.formatPrice(props.tokenCGData.volume24h.cex) : '-'}
+							</span>
+						</p>
+						<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
+							<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume</span>
+							<span className="flex items-center gap-1">
+								<span className="font-jetbrains">
+									{props.tokenCGData.volume24h.dex ? props.formatPrice(props.tokenCGData.volume24h.dex) : '-'}
+								</span>
+								<span className="text-xs text-[#545757] dark:text-[#cccccc]">
+									({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
+									total)
+								</span>
+							</span>
+						</p>
+					</div>
+				</details>
+			) : null}
+		</>
+	)
+}
+
+const SmolStats = ({
+	data,
+	protocolName,
+	category,
+	formatPrice
+}: {
+	data: Array<{
+		name: string
+		tooltipContent?: string | null
+		value: string | number
+	}>
+	protocolName: string
+	category: string
+	formatPrice: (value: number | string | null) => string | number | null
+}) => {
+	if (data.length === 0) return null
+
+	if (data.length === 1) {
+		return (
+			<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+				{data[0].tooltipContent ? (
+					<Tooltip
+						content={data[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{data[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{data[0].name}</span>
+				)}
+				<Flag
+					protocol={protocolName}
+					dataType={data[0].name}
+					isLending={category === 'Lending'}
+					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+				/>
+				<span className="font-jetbrains ml-auto">{formatPrice(data[0].value)}</span>
+			</p>
+		)
+	}
+
+	return (
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+				{data[0].tooltipContent ? (
+					<Tooltip
+						content={data[0].tooltipContent}
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					>
+						{data[0].name}
+					</Tooltip>
+				) : (
+					<span className="text-[#545757] dark:text-[#cccccc]">{data[0].name}</span>
+				)}
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+				/>
+				<Flag
+					protocol={protocolName}
+					dataType={data[0].name.split(' ').slice(0, -1).join(' ')}
+					isLending={category === 'Lending'}
+					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+				/>
+				<span className="font-jetbrains ml-auto">{formatPrice(data[0].value)}</span>
+			</summary>
+			<div className="flex flex-col mb-3">
+				{data.slice(1).map((metric) => (
+					<p
+						className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
+						key={`dex-aggregator-${metric.name}`}
+					>
+						{metric.tooltipContent ? (
+							<Tooltip
+								content={metric.tooltipContent}
+								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+							>
+								{metric.name}
+							</Tooltip>
+						) : (
+							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						)}
+						<span className="font-jetbrains ml-auto">{formatPrice(metric.value)}</span>
+					</p>
+				))}
+			</div>
+		</details>
+	)
 }
 
 function Users(props: IProtocolOverviewPageData) {
@@ -948,331 +1373,6 @@ const Raises = (props: IProtocolOverviewPageData) => {
 							<span>Round: {raise.round}</span>
 							{raise.investors?.length ? <span>Investors: {raise.investors.join(', ')}</span> : null}
 						</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
-}
-
-const Expenses = (props: IProtocolOverviewPageData) => {
-	if (!props.expenses) return null
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
-				<span className="text-[#545757] dark:text-[#cccccc]">Annual Operational Expenses</span>
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<Flag
-					protocol={props.name}
-					dataType="Expenses"
-					isLending={props.category === 'Lending'}
-					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(props.expenses.total, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-					<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
-					<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
-				</p>
-				{props.expenses.annualUsdCost.map(([category, amount]) => (
-					<p
-						className="flex flex-col gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1"
-						key={`${props.name}-expenses-${category}-${amount}`}
-					>
-						<span className="flex flex-wrap justify-between">
-							<span className="text-[#545757] dark:text-[#cccccc]">{category}</span>
-							<span className="font-jetbrains">{formattedNum(amount, true)}</span>
-						</span>
-					</p>
-				))}
-				{props.expenses?.sources?.length ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-						<span className="text-[#545757] dark:text-[#cccccc]">Sources</span>
-						{props.expenses.sources?.map((source) => (
-							<a
-								href={source}
-								target="_blank"
-								rel="noopener noreferrer"
-								key={`${props.name}-expenses-source-${source}`}
-								className="hover:underline"
-							>
-								{source}
-							</a>
-						))}
-					</p>
-				) : null}
-				{props.expenses?.notes?.length ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-						<span className="text-[#545757] dark:text-[#cccccc]">Notes</span>
-						<span>{props.expenses.notes?.join(', ') ?? ''}</span>
-					</p>
-				) : null}
-				{props.expenses?.lastUpdate ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-						<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
-						<span>{dayjs(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
-					</p>
-				) : null}
-			</div>
-		</details>
-	)
-}
-
-const TokenLiquidity = (props: IProtocolOverviewPageData) => {
-	if (!props.tokenLiquidity) return null
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
-				<Tooltip
-					content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
-					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-				>
-					{`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
-				</Tooltip>
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<Flag
-					protocol={props.name}
-					dataType="Token Liquidity"
-					isLending={props.category === 'Lending'}
-					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{props.tokenLiquidity?.pools.map((pool) => (
-					<p
-						key={`${pool[0]}-${pool[1]}-${pool[2]}`}
-						className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1"
-					>
-						<span className="text-[#545757] dark:text-[#cccccc]">{pool[0]}</span>
-						<span className="font-jetbrains">{formattedNum(pool[2], true)}</span>
-					</p>
-				))}
-			</div>
-		</details>
-	)
-}
-
-const TokenCGData = (props: IProtocolOverviewPageData) => {
-	if (!props.tokenCGData) return null
-	return (
-		<>
-			{props.tokenCGData?.marketCap?.current ? (
-				<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
-					<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
-					<Flag
-						protocol={props.name}
-						dataType="Market Cap"
-						isLending={props.category === 'Lending'}
-						className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-					/>
-					<span className="font-jetbrains">{formattedNum(props.tokenCGData.marketCap.current, true)}</span>
-				</p>
-			) : null}
-			{props.tokenCGData?.price?.current ? (
-				props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
-					<details className="group">
-						<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">{`${
-								props.token?.symbol ? `$${props.token.symbol}` : 'Token'
-							} Price`}</span>
-							<Icon
-								name="chevron-down"
-								height={16}
-								width={16}
-								className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-							/>
-							<Flag
-								protocol={props.name}
-								dataType="Token Price"
-								isLending={props.category === 'Lending'}
-								className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-							/>
-							<span className="font-jetbrains ml-auto">{formattedNum(props.tokenCGData.price.current, true)}</span>
-						</summary>
-						<div className="flex flex-col mb-3">
-							<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
-								<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.ath, true)}</span>
-							</p>
-							<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">All Time Low</span>
-								<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.atl, true)}</span>
-							</p>
-						</div>
-					</details>
-				) : (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
-						<span className="text-[#545757] dark:text-[#cccccc]">{`${
-							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
-						} Price`}</span>
-						<Flag
-							protocol={props.name}
-							dataType="Token Price"
-							isLending={props.category === 'Lending'}
-							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-						/>
-						<span className="font-jetbrains">{formattedNum(props.tokenCGData.price.current, true)}</span>
-					</p>
-				)
-			) : null}
-			{props.tokenCGData?.fdv?.current ? (
-				<p className="group flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
-					<Tooltip
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
-					>
-						Fully Diluted Valuation
-					</Tooltip>
-					<Flag
-						protocol={props.name}
-						dataType="FDV"
-						isLending={props.category === 'Lending'}
-						className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-					/>
-					<span className="font-jetbrains">{formattedNum(props.tokenCGData.fdv.current, true)}</span>
-				</p>
-			) : null}
-			{props.tokenCGData.volume24h?.total ? (
-				<details className="group">
-					<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">{`24h ${
-							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
-						} Volume`}</span>
-						<Icon
-							name="chevron-down"
-							height={16}
-							width={16}
-							className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-						/>
-						<Flag
-							protocol={props.name}
-							dataType="Token Volume"
-							isLending={props.category === 'Lending'}
-							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-						/>
-						<span className="font-jetbrains ml-auto">{formattedNum(props.tokenCGData.volume24h.total, true)}</span>
-					</summary>
-					<div className="flex flex-col mb-3">
-						<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
-							<span className="font-jetbrains">
-								{props.tokenCGData.volume24h.cex ? formattedNum(props.tokenCGData.volume24h.cex, true) : '-'}
-							</span>
-						</p>
-						<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume</span>
-							<span className="flex items-center gap-1">
-								<span className="font-jetbrains">
-									{props.tokenCGData.volume24h.dex ? formattedNum(props.tokenCGData.volume24h.dex, true) : '-'}
-								</span>
-								<span className="text-xs text-[#545757] dark:text-[#cccccc]">
-									({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
-									total)
-								</span>
-							</span>
-						</p>
-					</div>
-				</details>
-			) : null}
-		</>
-	)
-}
-
-const SmolStats = ({
-	data,
-	protocolName,
-	category
-}: {
-	data: Array<{
-		name: string
-		tooltipContent?: string | null
-		value: string | number
-	}>
-	protocolName: string
-	category: string
-}) => {
-	if (data.length === 0) return null
-
-	if (data.length === 1) {
-		return (
-			<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-				{data[0].tooltipContent ? (
-					<Tooltip
-						content={data[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{data[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{data[0].name}</span>
-				)}
-				<Flag
-					protocol={protocolName}
-					dataType={data[0].name}
-					isLending={category === 'Lending'}
-					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(data[0].value, true)}</span>
-			</p>
-		)
-	}
-
-	return (
-		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
-				{data[0].tooltipContent ? (
-					<Tooltip
-						content={data[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
-						{data[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{data[0].name}</span>
-				)}
-				<Icon
-					name="chevron-down"
-					height={16}
-					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
-				/>
-				<Flag
-					protocol={protocolName}
-					dataType={data[0].name.split(' ').slice(0, -1).join(' ')}
-					isLending={category === 'Lending'}
-					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-				/>
-				<span className="font-jetbrains ml-auto">{formattedNum(data[0].value, true)}</span>
-			</summary>
-			<div className="flex flex-col mb-3">
-				{data.slice(1).map((metric) => (
-					<p
-						className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`dex-aggregator-${metric.name}`}
-					>
-						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
-								{metric.name}
-							</Tooltip>
-						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
-						)}
-						<span className="font-jetbrains ml-auto">{formattedNum(metric.value, true)}</span>
 					</p>
 				))}
 			</div>

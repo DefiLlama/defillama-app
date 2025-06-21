@@ -784,7 +784,6 @@ export const getProtocolOverviewPageData = async ({
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
 
 		const cmetadata = chainMetadata?.[slug(firstChain)]
-
 		if (cmetadata && chainCoingeckoIdsForGasNotMcap[cmetadata.name]) {
 			chartDenominations.push({
 				symbol: chainCoingeckoIdsForGasNotMcap[cmetadata.name].symbol,
