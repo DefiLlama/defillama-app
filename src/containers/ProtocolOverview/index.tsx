@@ -142,9 +142,11 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						</div>
 						<ProtocolChart2 {...props} />
 					</div>
-					<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:hidden">
-						<KeyMetrics {...props} formatPrice={formatPrice} />
-					</div>
+					{props.hasKeyMetrics ? (
+						<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:hidden">
+							<KeyMetrics {...props} formatPrice={formatPrice} />
+						</div>
+					) : null}
 				</div>
 				<AdditionalInfo {...props} />
 			</div>

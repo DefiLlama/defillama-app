@@ -670,7 +670,20 @@ export const getProtocolOverviewPageData = async ({
 		protocolData.currentChainTvls?.borrowed != null ||
 		raises?.length ||
 		expenses ||
-		tokenLiquidity?.length
+		tokenLiquidity?.length ||
+		feesData?.totalAllTime ||
+		revenueData?.totalAllTime ||
+		holdersRevenueData?.totalAllTime ||
+		dexVolumeData?.totalAllTime ||
+		perpVolumeData?.totalAllTime ||
+		dexAggregatorVolumeData?.totalAllTime ||
+		perpAggregatorVolumeData?.totalAllTime ||
+		bridgeAggregatorVolumeData?.totalAllTime ||
+		optionsPremiumVolumeData?.totalAllTime ||
+		optionsNotionalVolumeData?.totalAllTime ||
+		bribesData?.totalAllTime ||
+		tokenTaxData?.totalAllTime ||
+		protocolData.tokenCGData
 			? true
 			: false
 
