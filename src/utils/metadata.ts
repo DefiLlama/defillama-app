@@ -26,6 +26,7 @@ interface IChainMetadata {
 	gecko_id?: string
 	tokenSymbol?: string
 	github?: boolean
+	id: string
 }
 
 interface IProtocolMetadata {
