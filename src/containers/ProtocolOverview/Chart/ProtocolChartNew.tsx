@@ -119,7 +119,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 					: 'daily'
 				: 'daily'
 		}
-	}, [router, props, protocolCharts])
+	}, [router, props])
 
 	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
 		...props,
@@ -473,7 +473,7 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		return formatLineChart({ data: tvlChartData, groupBy, denominationPriceHistory })
-	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory])
+	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory, currentTvlByChain])
 
 	const isFeesEnabled = toggledMetrics.fees === 'true' && metrics.fees && isRouterReady ? true : false
 	const { data: feesData = null, isLoading: fetchingFees } = useQuery<IAdapterSummary>({
@@ -1407,7 +1407,9 @@ export const useFetchAndFormatChartData = ({
 		devMetricsData,
 		fetchingNftVolume,
 		nftVolumeData,
-		groupBy
+		groupBy,
+		extraTvlCharts,
+		valueSymbol
 	])
 
 	return chartData
