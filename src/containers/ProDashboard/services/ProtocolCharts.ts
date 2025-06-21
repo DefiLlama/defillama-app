@@ -17,8 +17,7 @@ interface ProtocolApiResponse {
 }
 
 export default class ProtocolCharts {
-
-	static async tvl(protocolId: string): Promise<[number, number][]> {
+	static async tvl(protocolId: string, chainId?: string): Promise<[number, number][]> {
 		if (!protocolId) {
 			return []
 		}
@@ -29,6 +28,13 @@ export default class ProtocolCharts {
 				return []
 			}
 			const data: ProtocolApiResponse = await response.json()
+
+			if (chainId) {
+				const chainKey = Object.keys(data.chainTvls).find((k) => k.toLowerCase() === chainId.toLowerCase())
+				if (!chainKey) return []
+				const tvlArr = data.chainTvls[chainKey]?.tvl || []
+				return tvlArr.map((item: any) => [item.date, item.totalLiquidityUSD])
+			}
 
 			const dailyAggregatedTvl: Record<number, number> = {}
 
@@ -52,7 +58,12 @@ export default class ProtocolCharts {
 		if (!protocol) return []
 		const url = getAPIUrlSummary(type, protocol, dataType)
 		const response = await fetch(url)
-		const data = await response.json()
+		let data
+		try {
+			data = await response.json()
+		} catch (e) {
+			return []
+		}
 		console.log(data)
 		return convertToNumberFormat(data.totalDataChart ?? [])
 	}

@@ -33,6 +33,8 @@ export interface ChartConfig {
 	chain: string
 	protocol?: string
 	type: string
+	llamascript?: string
+	name?: string
 	data?: [string, number][]
 	isLoading?: boolean
 	hasError?: boolean

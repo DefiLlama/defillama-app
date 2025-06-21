@@ -27,6 +27,7 @@ interface IMultiSeriesChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	title?: string
+	highlights?: any
 }
 
 export default function MultiSeriesChart({
@@ -38,7 +39,8 @@ export default function MultiSeriesChart({
 	groupBy,
 	hideDataZoom = false,
 	hideDownloadButton = false,
-	alwaysShowTooltip
+	alwaysShowTooltip,
+	highlights
 }: IMultiSeriesChartProps) {
 	const id = useId()
 
@@ -94,10 +96,45 @@ export default function MultiSeriesChart({
 					serieConfig.areaStyle = serie.areaStyle
 				}
 
+				if (Array.isArray(highlights)) {
+					const markLineData = []
+					const markAreaData = []
+					highlights.forEach((hl) => {
+						if (hl.type === 'vline') {
+							markLineData.push({
+								name: hl.label,
+								xAxis: hl.timestamp * 1000,
+								label: { formatter: hl.label }
+							})
+						} else if (hl.type === 'hline') {
+							markLineData.push({
+								name: hl.label,
+								yAxis: hl.value,
+								label: { formatter: hl.label }
+							})
+						} else if (hl.type === 'highlight_range') {
+							markAreaData.push([
+								{
+									xAxis: hl.start * 1000,
+									itemStyle: { opacity: 0.15 },
+									label: { show: !!hl.label, formatter: hl.label }
+								},
+								{ xAxis: hl.end * 1000 }
+							])
+						}
+					})
+					if (markLineData.length > 0) {
+						serieConfig.markLine = { data: markLineData }
+					}
+					if (markAreaData.length > 0) {
+						serieConfig.markArea = { data: markAreaData }
+					}
+				}
+
 				return serieConfig
 			}) || []
 		)
-	}, [series, isThemeDark])
+	}, [series, isThemeDark, highlights])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 

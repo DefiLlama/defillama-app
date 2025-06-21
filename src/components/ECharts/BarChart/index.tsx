@@ -24,8 +24,9 @@ export default function BarChart({
 	groupBy,
 	hideDataZoom = false,
 	hideDownloadButton = false,
-	containerClassName
-}: IBarChartProps) {
+	containerClassName,
+	highlights
+}: IBarChartProps & { highlights?: any[] }) {
 	const id = useId()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions ? [...customLegendOptions] : [])
@@ -63,6 +64,31 @@ export default function BarChart({
 				: 'daily'
 	})
 
+	const markLineData = []
+	const markAreaData = []
+	if (Array.isArray(highlights)) {
+		highlights.forEach((hl) => {
+			if (hl.type === 'vline') {
+				markLineData.push({
+					name: hl.label,
+					xAxis: hl.timestamp * 1000,
+					label: { formatter: hl.label }
+				})
+			} else if (hl.type === 'hline') {
+				markLineData.push({
+					name: hl.label,
+					yAxis: hl.value,
+					label: { formatter: hl.label }
+				})
+			} else if (hl.type === 'highlight_range') {
+				markAreaData.push([
+					{ xAxis: hl.start * 1000, itemStyle: { opacity: 0.15 }, label: { show: !!hl.label, formatter: hl.label } },
+					{ xAxis: hl.end * 1000 }
+				])
+			}
+		})
+	}
+
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
 
@@ -78,7 +104,13 @@ export default function BarChart({
 				itemStyle: {
 					color: chartColor
 				},
-				data: []
+				data: [],
+				...(markLineData.length > 0 && {
+					markLine: { data: markLineData }
+				}),
+				...(markAreaData.length > 0 && {
+					markArea: { data: markAreaData }
+				})
 			}
 
 			for (const [date, value] of chartData ?? []) {
@@ -109,7 +141,13 @@ export default function BarChart({
 								color: chartColor
 						  }
 						: undefined,
-					data: []
+					data: [],
+					...(markLineData.length > 0 && {
+						markLine: { data: markLineData }
+					}),
+					...(markAreaData.length > 0 && {
+						markArea: { data: markAreaData }
+					})
 				}
 			}
 
@@ -121,7 +159,7 @@ export default function BarChart({
 
 			return Object.values(series).map((s: any) => (s.data.length === 0 ? { ...s, large: false } : s))
 		}
-	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
+	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks, highlights])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 

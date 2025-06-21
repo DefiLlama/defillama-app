@@ -16,6 +16,7 @@ export interface ModalState {
 	composerItems: ChartConfig[]
 	composerSubType: ChartTabType
 	composerChartName: string
+	composerScript: string
 	selectedChain: string | null
 	selectedChains: string[]
 	selectedProtocol: string | null
@@ -34,8 +35,9 @@ export interface ModalActions {
 	setComposerItems: React.Dispatch<React.SetStateAction<ChartConfig[]>>
 	setComposerSubType: (type: ChartTabType) => void
 	setComposerChartName: (name: string) => void
+	setComposerScript: (script: string) => void
 	setSelectedChain: (chain: string | null) => void
-	setSelectedChains: (chains: string[]) => void // New action for multi-chain selection
+	setSelectedChains: (chains: string[]) => void
 	setSelectedProtocol: (protocol: string | null) => void
 	setSelectedChartType: (type: string) => void
 	setTextTitle: (title: string) => void
@@ -45,7 +47,7 @@ export interface ModalActions {
 	setSelectedTokens: (tokens: string[]) => void
 	setIncludeCex: (include: boolean) => void
 	handleChainChange: (option: any) => void
-	handleChainsChange: (options: any[]) => void // New handler for multi-chain selection
+	handleChainsChange: (options: any[]) => void
 	handleProtocolChange: (option: any) => void
 	handleDatasetChainChange: (option: any) => void
 	handleTokensChange: (options: any) => void

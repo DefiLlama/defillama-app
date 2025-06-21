@@ -17,6 +17,7 @@ export default function AreaChart({
 	title,
 	color,
 	hallmarks,
+	highlights,
 	customLegendName,
 	customLegendOptions,
 	tooltipSort = true,
@@ -33,7 +34,7 @@ export default function AreaChart({
 	hideDownloadButton = false,
 	containerClassName,
 	...props
-}: IChartProps) {
+}: IChartProps & { highlights?: any[] }) {
 	const id = useId()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
@@ -53,6 +54,31 @@ export default function AreaChart({
 		hideOthersInTooltip,
 		tooltipValuesRelative
 	})
+
+	const markLineData = []
+	const markAreaData = []
+	if (Array.isArray(highlights)) {
+		highlights.forEach((hl) => {
+			if (hl.type === 'vline') {
+				markLineData.push({
+					name: hl.label,
+					xAxis: hl.timestamp * 1000,
+					label: { formatter: hl.label }
+				})
+			} else if (hl.type === 'hline') {
+				markLineData.push({
+					name: hl.label,
+					yAxis: hl.value,
+					label: { formatter: hl.label }
+				})
+			} else if (hl.type === 'highlight_range') {
+				markAreaData.push([
+					{ xAxis: hl.start * 1000, itemStyle: { opacity: 0.15 }, label: { show: !!hl.label, formatter: hl.label } },
+					{ xAxis: hl.end * 1000 }
+				])
+			}
+		})
+	}
 
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
@@ -105,6 +131,12 @@ export default function AreaChart({
 							}
 						])
 					}
+				}),
+				...(markLineData.length > 0 && {
+					markLine: { ...(hallmarks ? {} : {}), data: markLineData }
+				}),
+				...(markAreaData.length > 0 && {
+					markArea: { data: markAreaData }
 				})
 			}
 
@@ -173,6 +205,12 @@ export default function AreaChart({
 								}
 							])
 						}
+					}),
+					...(markLineData.length > 0 && {
+						markLine: { ...(hallmarks ? {} : {}), data: markLineData }
+					}),
+					...(markAreaData.length > 0 && {
+						markArea: { data: markAreaData }
 					})
 				}
 				index++
@@ -207,6 +245,7 @@ export default function AreaChart({
 		color,
 		customLegendName,
 		hallmarks,
+		highlights,
 		isThemeDark,
 		legendOptions,
 		stackColors,
