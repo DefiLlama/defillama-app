@@ -472,7 +472,12 @@ export const useFetchAndFormatChartData = ({
 			}
 			const finalChart = []
 			for (const date in store) {
-				finalChart.push([+date * 1e3, store[date]])
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? store[date] / denominationPriceHistory[String(+date * 1e3)]
+						: null
+					: store[date]
+				finalChart.push([+date * 1e3, finalValue])
 			}
 			return finalChart as Array<[number, number]>
 		}
@@ -1499,7 +1504,7 @@ const formatLineChart = ({
 			const finalValue = denominationPriceHistory
 				? denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
 					? value / denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-					: 0
+					: null
 				: value
 			store[dateKey] = finalValue
 		}
