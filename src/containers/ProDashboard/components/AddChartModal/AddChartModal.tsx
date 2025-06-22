@@ -42,7 +42,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 
 	const shouldFetchPreviewData =
 		state.selectedMainTab === 'chart' && getCurrentSelectedItem() && state.selectedChartTypes.length > 0
-	
+
 	const previewChartData = useMultipleChartData(
 		shouldFetchPreviewData ? state.selectedChartTypes : [],
 		getCurrentItemType(),
@@ -51,13 +51,14 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 		computed.timePeriod
 	)
 
-	const showPreview = shouldFetchPreviewData && state.selectedChartTypes.some(type => availableChartTypes.includes(type))
+	const showPreview =
+		shouldFetchPreviewData && state.selectedChartTypes.some((type) => availableChartTypes.includes(type))
 
 	if (!isOpen) return null
 
 	return (
 		<div
-			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex justify-center items-end md:items-center z-50"
+			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex justify-center items-end md:items-center z-50 add-chart-modal"
 			onClick={onClose}
 		>
 			<div
