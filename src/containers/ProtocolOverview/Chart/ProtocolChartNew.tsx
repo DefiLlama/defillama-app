@@ -55,54 +55,59 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
 
+	const queryParamsString = useMemo(() => {
+		return JSON.stringify(router.query ?? {})
+	}, [router.query])
+
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy } = useMemo(() => {
+		const queryParams = JSON.parse(queryParamsString)
 		const chartsByStaus = {}
 		for (const pchart in protocolCharts) {
 			const chartKey = protocolCharts[pchart]
-			chartsByStaus[chartKey] = router.query[chartKey] === 'true' ? 'true' : 'false'
+			chartsByStaus[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
 		}
 		const toggled = {
 			...chartsByStaus,
 			...((!props.metrics.tvl
 				? props.metrics.dexs
-					? { dexVolume: router.query.dexVolume === 'false' ? 'false' : 'true' }
+					? { dexVolume: queryParams.dexVolume === 'false' ? 'false' : 'true' }
 					: props.metrics.perps
-					? { perpVolume: router.query.perpVolume === 'false' ? 'false' : 'true' }
+					? { perpVolume: queryParams.perpVolume === 'false' ? 'false' : 'true' }
 					: props.metrics.options
 					? {
-							optionsPremiumVolume: router.query.optionsPremiumVolume === 'false' ? 'false' : 'true',
-							optionsNotionalVolume: router.query.optionsNotionalVolume === 'false' ? 'false' : 'true'
+							optionsPremiumVolume: queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true',
+							optionsNotionalVolume: queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
 					  }
 					: props.metrics.dexAggregators
-					? { dexAggregatorVolume: router.query.dexAggregatorVolume === 'false' ? 'false' : 'true' }
+					? { dexAggregatorVolume: queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true' }
 					: props.metrics.bridgeAggregators
-					? { bridgeAggregatorVolume: router.query.bridgeAggregatorVolume === 'false' ? 'false' : 'true' }
+					? { bridgeAggregatorVolume: queryParams.bridgeAggregatorVolume === 'false' ? 'false' : 'true' }
 					: props.metrics.perpsAggregators
-					? { perpAggregatorVolume: router.query.perpAggregatorVolume === 'false' ? 'false' : 'true' }
+					? { perpAggregatorVolume: queryParams.perpAggregatorVolume === 'false' ? 'false' : 'true' }
 					: props.metrics.bridge
-					? { bridgeVolume: router.query.bridgeVolume === 'false' ? 'false' : 'true' }
+					? { bridgeVolume: queryParams.bridgeVolume === 'false' ? 'false' : 'true' }
 					: props.metrics.fees
 					? {
-							fees: router.query.fees === 'false' ? 'false' : 'true'
+							fees: queryParams.fees === 'false' ? 'false' : 'true'
 					  }
 					: props.metrics.revenue
 					? {
-							revenue: router.query.revenue === 'false' ? 'false' : 'true',
-							holdersRevenue: router.query.holdersRevenue === 'false' ? 'false' : 'true'
+							revenue: queryParams.revenue === 'false' ? 'false' : 'true',
+							holdersRevenue: queryParams.holdersRevenue === 'false' ? 'false' : 'true'
 					  }
 					: props.metrics.unlocks
-					? { unlocks: router.query.unlocks === 'false' ? 'false' : 'true' }
+					? { unlocks: queryParams.unlocks === 'false' ? 'false' : 'true' }
 					: props.metrics.treasury
-					? { treasury: router.query.treasury === 'false' ? 'false' : 'true' }
+					? { treasury: queryParams.treasury === 'false' ? 'false' : 'true' }
 					: {}
 				: {}) as Record<string, 'true' | 'false'>)
 		} as Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'>
 
 		const toggledMetrics = {
 			...toggled,
-			tvl: router.query.tvl === 'false' ? 'false' : 'true',
-			events: router.query.events === 'false' ? 'false' : 'true',
-			denomination: typeof router.query.denomination === 'string' ? router.query.denomination : null
+			tvl: queryParams.tvl === 'false' ? 'false' : 'true',
+			events: queryParams.events === 'false' ? 'false' : 'true',
+			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
 		} as IToggledMetrics
 
 		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
@@ -114,12 +119,12 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 			toggledCharts,
 			hasAtleasOneBarChart,
 			groupBy: hasAtleasOneBarChart
-				? typeof router.query.groupBy === 'string' && groupByOptions.includes(router.query.groupBy as any)
-					? (router.query.groupBy as any)
+				? typeof queryParams.groupBy === 'string' && groupByOptions.includes(queryParams.groupBy as any)
+					? (queryParams.groupBy as any)
 					: 'daily'
 				: 'daily'
 		}
-	}, [router, props])
+	}, [queryParamsString, props.availableCharts, props.metrics])
 
 	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
 		...props,
