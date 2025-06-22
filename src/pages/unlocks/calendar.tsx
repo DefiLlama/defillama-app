@@ -2,7 +2,7 @@ import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissionsWithHistory } from '~/api/categories/protocols'
 import * as React from 'react'
 import Layout from '~/layout'
-import { useWatchlist } from '~/contexts/LocalStorage'
+import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
 import { Icon } from '~/components/Icon'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -197,7 +197,7 @@ export default function UnlocksCalendar({
 }) {
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
 	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
-	const { savedProtocols } = useWatchlist()
+	const { savedProtocols } = useWatchlistManager('defi')
 
 	const unlocksData = React.useMemo(() => {
 		let filteredData = initialUnlocksData
@@ -209,7 +209,7 @@ export default function UnlocksCalendar({
 				let filteredEvents = dailyData.events
 
 				if (showOnlyWatchlist) {
-					filteredEvents = filteredEvents.filter((event) => savedProtocols[slug(event.protocol)])
+					filteredEvents = filteredEvents.filter((event) => savedProtocols.has(event.protocol))
 				}
 
 				if (showOnlyInsider) {

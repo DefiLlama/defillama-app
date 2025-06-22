@@ -1,7 +1,6 @@
 import { IOverviewProps } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
 import { removedCategories } from '~/constants'
-import { ISettings } from '~/contexts/types'
 import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 import { IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
@@ -23,7 +22,7 @@ interface IFormattedDataWithExtraTvlProps {
 	defaultSortingColumn?: string
 	dir?: string
 	applyLqAndDc?: boolean
-	extraTvlsEnabled: ISettings
+	extraTvlsEnabled: Record<string, boolean>
 	chainAssets?: IChainAssets
 }
 
@@ -169,7 +168,7 @@ export function formatDataWithExtraTvls({
 interface IGroupTvlsByDay {
 	chains: Readonly<Array<TCompressedChain>>
 	tvlTypes: any
-	extraTvlsEnabled: ISettings
+	extraTvlsEnabled: Record<string, boolean>
 }
 
 interface IChainTvl {
@@ -252,7 +251,7 @@ export const formatProtocolsList = ({
 }: {
 	protocols: IFormattedProtocol[]
 	parentProtocols: IParentProtocol[]
-	extraTvlsEnabled: ISettings
+	extraTvlsEnabled: Record<string, boolean>
 	volumeData?: IOverviewProps['protocols']
 	feesData?: IOverviewProps['protocols']
 	noSubrows?: boolean
@@ -388,7 +387,7 @@ export const formatProtocolsList2 = ({
 	maxTvl
 }: {
 	protocols: IProtocol[]
-	extraTvlsEnabled: ISettings
+	extraTvlsEnabled: Record<string, boolean>
 	minTvl: number | null
 	maxTvl: number | null
 }): IProtocol[] => {

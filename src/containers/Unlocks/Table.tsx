@@ -26,7 +26,7 @@ interface IUnlocksTableProps {
 	setShowOnlyWatchlist: (value: boolean) => void
 	projectName: string
 	setProjectName: (value: string) => void
-	savedProtocols: { [key: string]: boolean }
+	savedProtocols: Set<string>
 	minUnlockValue?: number | null
 	maxUnlockValue?: number | null
 }
@@ -208,7 +208,7 @@ export const UnlocksTable = ({
 				}
 
 				if (shouldInclude && showOnlyWatchlist) {
-					if (!savedProtocols[slug(protocol.name)]) {
+					if (!savedProtocols.has(protocol.name)) {
 						shouldInclude = false
 					}
 				}
@@ -265,7 +265,6 @@ export const UnlocksTable = ({
 		savedProtocols,
 		showOnlyWatchlist,
 		selectedUnlockTypes,
-		UNLOCK_TYPES.length,
 		minUnlockValue,
 		maxUnlockValue,
 		minPerc,

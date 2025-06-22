@@ -20,7 +20,6 @@ import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdapto
 
 import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
-import { ISettings } from '~/contexts/types'
 import metadataCache from '~/utils/metadata'
 import { getCexVolume } from '~/containers/DimensionAdapters/queries'
 import { ILiteProtocol } from '~/containers/ChainOverview/types'
@@ -447,7 +446,7 @@ export const groupProtocolsByParent = ({
 	parentProtocols: Array<IParentProtocol>
 	protocols: IOverviewProps['protocols']
 	type: IOverviewProps['type']
-	enabledSettings: ISettings
+	enabledSettings: Record<string, boolean>
 	total24h?: number
 }) => {
 	const parentProtocolsMap = parentProtocols?.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {}) ?? {}
