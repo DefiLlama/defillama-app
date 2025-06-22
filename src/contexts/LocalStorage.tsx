@@ -1,11 +1,8 @@
 /* eslint-disable no-unused-vars*/
-import { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useSyncExternalStore } from 'react'
+import { useMemo, useEffect, useSyncExternalStore } from 'react'
 // import { trackGoal } from 'fathom-client'
 import { slug } from '~/utils'
 import { useIsClient } from '~/hooks'
-import { useRouter } from 'next/router'
-import { IWatchlist } from './types'
-import { useUserConfig } from '~/hooks/useUserConfig'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
@@ -65,7 +62,8 @@ const DEPEGGED = 'DEPEGGED'
 // WATCHLISTS
 const DEFI_WATCHLIST = 'DEFI_WATCHLIST'
 const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
-const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
+const DEFI_SELECTED_PORTFOLIO = 'DEFI_SELECTED_PORTFOLIO'
+const YIELDS_SELECTED_PORTFOLIO = 'YIELDS_SELECTED_PORTFOLIO'
 export const DEFAULT_PORTFOLIO_NAME = 'main'
 
 // YIELDS SAVED FILTERS
@@ -173,159 +171,6 @@ export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
 export const BRIDGES_SETTINGS_KEYS = Object.values(BRIDGES_SETTINGS)
-
-const UPDATABLE_KEYS = [
-	DEFI_WATCHLIST,
-	YIELDS_WATCHLIST,
-	SELECTED_PORTFOLIO,
-	YIELDS_SAVED_FILTERS,
-	CUSTOM_COLUMNS,
-	PRO_DASHBOARD_ITEMS
-]
-
-const UPDATE_KEY = 'UPDATE_KEY'
-const UPDATE_KEY_OPTIONALLY_PERSIST = 'UPDATE_KEY_OPTIONALLY_PERSIST'
-
-const LocalStorageContext = createContext(null)
-
-export function useLocalStorageContext() {
-	return useContext(LocalStorageContext)
-}
-
-function reducer(state, { type, payload }) {
-	switch (type) {
-		case UPDATE_KEY: {
-			const { key, value } = payload
-			if (!UPDATABLE_KEYS.some((k) => k === key)) {
-				throw Error(`Unexpected key in LocalStorageContext reducer: '${key}'.`)
-			} else {
-				return {
-					...state,
-					[key]: value
-				}
-			}
-		}
-		case UPDATE_KEY_OPTIONALLY_PERSIST: {
-			const { key, value, persist } = payload
-			if (!UPDATABLE_KEYS.some((k) => k === key)) {
-				throw Error(`Unexpected key in LocalStorageContext reducer: '${key}'.`)
-			} else {
-				return {
-					...state,
-					[key]: { value: value, persist }
-				}
-			}
-		}
-		default: {
-			throw Error(`Unexpected action type in LocalStorageContext reducer: '${type}'.`)
-		}
-	}
-}
-
-function init() {
-	const defaultLocalStorage = {
-		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
-		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
-		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME,
-		[YIELDS_SAVED_FILTERS]: {},
-		[CUSTOM_COLUMNS]: [],
-		[PRO_DASHBOARD_ITEMS]: []
-	}
-
-	try {
-		const parsed = JSON.parse(window.localStorage.getItem(DEFILLAMA))
-		if (!parsed) {
-			return defaultLocalStorage
-		} else {
-			return { ...defaultLocalStorage, ...parsed }
-		}
-	} catch {
-		return defaultLocalStorage
-	}
-}
-
-export default function Provider({ children }) {
-	const [state, dispatch] = useReducer(reducer, undefined, init)
-	const { userConfig, saveUserConfig, isLoadingConfig } = useUserConfig()
-
-	useEffect(() => {
-		if (userConfig && Object.keys(userConfig).length > 0 && !isLoadingConfig) {
-			const currentLocalStorage = init()
-			const mergedConfig = { ...currentLocalStorage, ...userConfig }
-			window.localStorage.setItem(DEFILLAMA, JSON.stringify(mergedConfig))
-		}
-	}, [userConfig])
-
-	const updateKey = useCallback((key, value) => {
-		dispatch({ type: UPDATE_KEY, payload: { key, value } })
-		const newState = reducer(state, { type: UPDATE_KEY, payload: { key, value } })
-		saveUserConfig(newState)
-	}, [])
-
-	const updateKeyOptionallyPersist = useCallback((key, value, persist: boolean = false) => {
-		dispatch({ type: UPDATE_KEY_OPTIONALLY_PERSIST, payload: { key, value, persist } })
-		const newState = reducer(state, { type: UPDATE_KEY_OPTIONALLY_PERSIST, payload: { key, value, persist } })
-		saveUserConfig(newState)
-	}, [])
-
-	// Change format from save addresses to save protocol names, so backwards compatible
-	const savedDefiProtocols: IWatchlist = state[DEFI_WATCHLIST]
-	const savedYieldsProtocols: IWatchlist = state[YIELDS_WATCHLIST]
-
-	let newSavedDefiProtocols = savedDefiProtocols
-	let newSavedYieldsProtocols = savedYieldsProtocols
-
-	if (!newSavedDefiProtocols?.main) {
-		const oldAddresses = Object.entries(savedDefiProtocols)
-			.map(([, value]) => (value?.protocol ? [slug(value?.protocol), value?.protocol] : []))
-			.filter((validPairs) => validPairs.length)
-
-		newSavedDefiProtocols = oldAddresses.length ? { main: Object.fromEntries(oldAddresses) } : { main: {} }
-	}
-
-	if (!newSavedYieldsProtocols?.main) {
-		const oldAddresses = Object.entries(savedYieldsProtocols)
-			.map(([, value]) => (value?.protocol ? [slug(value?.protocol), value?.protocol] : []))
-			.filter((validPairs) => validPairs.length)
-
-		newSavedYieldsProtocols = oldAddresses.length ? { main: Object.fromEntries(oldAddresses) } : { main: {} }
-	}
-
-	const values = useMemo(
-		() => [
-			{ ...state, [DEFI_WATCHLIST]: newSavedDefiProtocols, [YIELDS_WATCHLIST]: newSavedYieldsProtocols },
-			{ updateKey, updateKeyOptionallyPersist }
-		],
-		[state, updateKey, updateKeyOptionallyPersist, newSavedDefiProtocols, newSavedYieldsProtocols]
-	)
-
-	return <LocalStorageContext.Provider value={values}>{children}</LocalStorageContext.Provider>
-}
-
-export function Updater() {
-	const [state] = useLocalStorageContext()
-
-	useEffect(() => {
-		// const toPersist = Object.entries(state).reduce((acc, [key, value]) => {
-		// 	const persist = (value as { value: unknown; persist?: boolean })?.persist
-		// 	// Optionally persisted values are object type with a value and persist key
-		// 	// Local storage is only updated if persist is true
-		// 	if (typeof value === 'object' && 'value' in value && persist === true) {
-		// 		acc[key] = (value as any).value
-
-		// 		// If the value is a boolean, it is persisted
-		// 	} else if (typeof value === 'boolean') {
-		// 		acc[key] = value
-		// 	}
-
-		// 	return acc
-		// }, {})
-
-		window.localStorage.setItem(DEFILLAMA, JSON.stringify(state))
-	})
-
-	return null
-}
 
 export function subscribeToLocalStorage(callback: () => void) {
 	window.addEventListener('storage', callback)
@@ -477,116 +322,126 @@ export function useManageAppSettings(): [Record<string, boolean>, (keys: Record<
 
 // YIELDS SAVED FILTERS HOOK
 export function useYieldFilters() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const savedFilters = state?.[YIELDS_SAVED_FILTERS] ?? {}
+	const store = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
+	)
 
-	function saveFilter(name: string, filters: any) {
-		const newFilters = {
-			...savedFilters,
-			[name]: filters
-		}
-		updateKey(YIELDS_SAVED_FILTERS, newFilters)
-	}
-
-	function deleteFilter(name: string) {
-		const newFilters = { ...savedFilters }
-		delete newFilters[name]
-		updateKey(YIELDS_SAVED_FILTERS, newFilters)
-	}
+	const savedFilters = useMemo(() => JSON.parse(store)?.[YIELDS_SAVED_FILTERS] ?? {}, [store])
 
 	return {
 		savedFilters,
-		saveFilter,
-		deleteFilter
+		saveFilter: (name: string, filters: Record<string, string | number | boolean>) => {
+			localStorage.setItem(
+				DEFILLAMA,
+				JSON.stringify({ ...JSON.parse(store), [YIELDS_SAVED_FILTERS]: { ...savedFilters, [name]: filters } })
+			)
+			window.dispatchEvent(new Event('storage'))
+		},
+		deleteFilter: (name: string) => {
+			const newFilters = { ...savedFilters }
+			delete newFilters[name]
+			localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [YIELDS_SAVED_FILTERS]: newFilters }))
+			window.dispatchEvent(new Event('storage'))
+		}
 	}
 }
 
-// DEFI AND YIELDS WATCHLIST
-export function useWatchlist() {
-	const router = useRouter()
-	const WATCHLIST = router.pathname.startsWith('/yields') ? YIELDS_WATCHLIST : DEFI_WATCHLIST
+export function useWatchlistManager(type: 'defi' | 'yields') {
+	const store = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
+	)
 
-	const [state, { updateKey }] = useLocalStorageContext()
+	return useMemo(() => {
+		const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : YIELDS_WATCHLIST
+		const selectedPortfolioKey = type === 'defi' ? DEFI_SELECTED_PORTFOLIO : YIELDS_SELECTED_PORTFOLIO
+		const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
 
-	const selectedPortfolio = state?.[SELECTED_PORTFOLIO] ?? DEFAULT_PORTFOLIO_NAME
-	const savedProtocols = state?.[WATCHLIST]?.[selectedPortfolio] ?? {}
-	const watchlistPortfolios = Object.keys(state?.[WATCHLIST] ?? {})
+		const portfolios = Object.keys(watchlist)
 
-	function addPortfolio() {
-		const newPortfolio = window.prompt('New Portfolio name')
+		const selectedPortfolio = JSON.parse(store)?.[selectedPortfolioKey] ?? DEFAULT_PORTFOLIO_NAME
 
-		if (newPortfolio) {
-			const newList = state?.[WATCHLIST]
-			newList[newPortfolio.substring(0, 100)] = {}
-			updateKey(WATCHLIST, newList)
+		return {
+			portfolios,
+			selectedPortfolio,
+			savedProtocols: new Set(Object.values(watchlist[selectedPortfolio] ?? {})) as Set<string>,
+			addPortfolio: (name: string) => {
+				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const newWatchlist = { ...watchlist, [name]: {} }
+				localStorage.setItem(
+					DEFILLAMA,
+					JSON.stringify({ ...JSON.parse(store), [watchlistKey]: newWatchlist, [selectedPortfolioKey]: name })
+				)
+				window.dispatchEvent(new Event('storage'))
+			},
+			removePortfolio: (name: string) => {
+				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const newWatchlist = { ...watchlist }
+				delete newWatchlist[name]
+				localStorage.setItem(
+					DEFILLAMA,
+					JSON.stringify({
+						...JSON.parse(store),
+						[watchlistKey]: newWatchlist,
+						[selectedPortfolioKey]: DEFAULT_PORTFOLIO_NAME
+					})
+				)
+				window.dispatchEvent(new Event('storage'))
+			},
+			setSelectedPortfolio: (name: string) => {
+				localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [selectedPortfolioKey]: name }))
+				window.dispatchEvent(new Event('storage'))
+			},
+			addProtocol: (name: string) => {
+				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const newWatchlist = {
+					...watchlist,
+					[selectedPortfolio]: { ...watchlist[selectedPortfolio], [slug(name)]: name }
+				}
+				localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [watchlistKey]: newWatchlist }))
+				window.dispatchEvent(new Event('storage'))
+			},
+			removeProtocol: (name: string) => {
+				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const newWatchlist = { ...watchlist, [selectedPortfolio]: { ...watchlist[selectedPortfolio] } }
+				delete newWatchlist[selectedPortfolio][slug(name)]
+				localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [watchlistKey]: newWatchlist }))
+				window.dispatchEvent(new Event('storage'))
+			}
 		}
-	}
-
-	function removePortfolio(portfolio) {
-		const confirmed = window.confirm(`Do you really want to delete "${selectedPortfolio}"?`)
-
-		if (confirmed) {
-			setSelectedPortfolio(DEFAULT_PORTFOLIO_NAME)
-
-			const newList = state?.[WATCHLIST]
-			delete newList?.[portfolio]
-			updateKey(WATCHLIST, newList)
-		}
-	}
-
-	function addProtocol(readableProtocolName) {
-		let newList = state?.[WATCHLIST]
-		const standardProtocol: any = slug(readableProtocolName)
-		newList[selectedPortfolio] = {
-			...(newList[selectedPortfolio] || {}),
-			[standardProtocol]: readableProtocolName
-		}
-		// trackGoal('VQ0TO7CU', standardProtocol)
-		updateKey(WATCHLIST, newList)
-	}
-
-	function removeProtocol(protocol) {
-		let newList = state?.[WATCHLIST]
-		const standardProtocol: any = slug(protocol)
-		delete newList?.[selectedPortfolio]?.[standardProtocol]
-		// trackGoal('6SL0NZYJ', standardProtocol)
-		updateKey(WATCHLIST, newList)
-	}
-
-	function setSelectedPortfolio(name) {
-		updateKey(SELECTED_PORTFOLIO, name)
-	}
-
-	return {
-		savedProtocols,
-		addProtocol,
-		removeProtocol,
-		addPortfolio,
-		removePortfolio,
-		portfolios: watchlistPortfolios,
-		selectedPortfolio,
-		setSelectedPortfolio
-	}
+	}, [store, type])
 }
 
 export function useCustomColumns() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const customColumns = state?.[CUSTOM_COLUMNS] ?? []
+	const store = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
+	)
+
+	const customColumns = useMemo(() => JSON.parse(store)?.[CUSTOM_COLUMNS] ?? [], [store])
 
 	function setCustomColumns(cols) {
-		updateKey(CUSTOM_COLUMNS, cols)
+		localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [CUSTOM_COLUMNS]: cols }))
+		window.dispatchEvent(new Event('storage'))
 	}
 
 	function addCustomColumn(col) {
 		setCustomColumns([...customColumns, col])
+		window.dispatchEvent(new Event('storage'))
 	}
 
 	function editCustomColumn(index, col) {
 		setCustomColumns(customColumns.map((c, i) => (i === index ? col : c)))
+		window.dispatchEvent(new Event('storage'))
 	}
 
 	function deleteCustomColumn(index) {
 		setCustomColumns(customColumns.filter((_, i) => i !== index))
+		window.dispatchEvent(new Event('storage'))
 	}
 
 	return {

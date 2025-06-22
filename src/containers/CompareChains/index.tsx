@@ -5,7 +5,6 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
-import { ISettings } from '~/contexts/types'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { PROTOCOLS_API } from '~/constants'
@@ -35,7 +34,7 @@ const CustomOption = ({ innerProps, label, data }) => (
 	</div>
 )
 
-export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) => {
+export const getChainData = async (chain: string, extraTvlsEnabled: Record<string, boolean>) => {
 	const data = await fetch(`https://defillama.com/api/cache/chain/${chain}`).then((r) => r.json())
 
 	const {
@@ -117,7 +116,13 @@ export const getChainData = async (chain: string, extraTvlsEnabled: ISettings) =
 	}
 }
 
-export const useCompare = ({ chains = [], extraTvlsEnabled }: { chains?: string[]; extraTvlsEnabled: ISettings }) => {
+export const useCompare = ({
+	chains = [],
+	extraTvlsEnabled
+}: {
+	chains?: string[]
+	extraTvlsEnabled: Record<string, boolean>
+}) => {
 	const data = useQueries({
 		queries: chains.map((chain) => ({
 			queryKey: ['compare', JSON.stringify(chain), JSON.stringify(extraTvlsEnabled)],

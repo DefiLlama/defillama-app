@@ -3,7 +3,6 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl } from '~/api/types'
 import type { IRaise } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import type { ISettings } from '~/contexts/types'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
 	const tvlDictionary: { [data: number]: { [chain: string]: number } } = {}
@@ -290,7 +289,7 @@ export const buildProtocolAddlChartsData = ({
 	extraTvlsEnabled
 }: {
 	protocolData: { name: string; chainTvls?: IChainTvl; misrepresentedTokens?: boolean }
-	extraTvlsEnabled: ISettings
+	extraTvlsEnabled: Record<string, boolean>
 }) => {
 	if (protocolData) {
 		let tokensInUsdExsists = false
