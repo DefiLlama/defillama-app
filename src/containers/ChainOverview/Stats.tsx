@@ -10,7 +10,6 @@ import { RowWithSubRows } from '~/containers/ProtocolOverview/RowWithSubRows'
 import { formatRaise, formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { Fragment, memo, useMemo } from 'react'
 import { Switch } from '~/components/Switch'
-import { BAR_CHARTS } from '~/containers/ProtocolOverview/Chart/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { EmbedChart } from '~/components/EmbedChart'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -56,49 +55,58 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 			{
 				id: 'dexs',
 				name: 'DEXs Volume',
-				isVisible: props.dexs?.total24h != null ? true : false
+				isVisible: props.dexs?.total24h != null ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'chainFees',
 				name: 'Chain Fees',
-				isVisible: props.chainFees?.total24h != null ? true : false
+				isVisible: props.chainFees?.total24h != null ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'chainRevenue',
 				name: 'Chain Revenue',
-				isVisible: props.chainRevenue?.total24h != null ? true : false
+				isVisible: props.chainRevenue?.total24h != null ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'chainIncentives',
 				name: 'Token Incentives',
-				isVisible: props.chainIncentives?.emissions24h != null ? true : false
+				isVisible: props.chainIncentives?.emissions24h != null ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'appRevenue',
 				name: 'App Revenue',
-				isVisible: props.appRevenue?.total24h != null ? true : false
+				isVisible: props.appRevenue?.total24h != null ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'appFees',
 				name: 'App Fees',
-				isVisible: props.appFees?.total24h != null ? true : false
+				isVisible: props.appFees?.total24h != null ? true : false,
+				type: 'bar'
 			},
-			{ id: 'perps', name: 'Perps Volume', isVisible: props.perps?.total24h != null ? true : false },
-			{ id: 'chainAssets', name: 'Bridged TVL', isVisible: props.chainAssets != null ? true : false },
+			{ id: 'perps', name: 'Perps Volume', isVisible: props.perps?.total24h != null ? true : false, type: 'bar' },
+			{ id: 'chainAssets', name: 'Bridged TVL', isVisible: props.chainAssets != null ? true : false, type: 'bar' },
 			{
 				id: 'addresses',
 				name: 'Addresses',
-				isVisible: props.users.activeUsers != null ? true : false
+				isVisible: props.users.activeUsers != null ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'txs',
 				name: 'Transactions',
-				isVisible: props.users.transactions != null ? true : false
+				isVisible: props.users.transactions != null ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'raises',
 				name: 'Raises',
-				isVisible: props.metadata.name === 'All'
+				isVisible: props.metadata.name === 'All',
+				type: 'bar'
 			},
 			{
 				id: 'stables',
@@ -108,17 +116,20 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 			{
 				id: 'inflows',
 				name: 'Inflows',
-				isVisible: props.inflows?.netInflows != null ? true : false
+				isVisible: props.inflows?.netInflows != null ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'developers',
 				name: 'Core Developers',
-				isVisible: props.devMetrics ? true : false
+				isVisible: props.devMetrics ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'devsCommits',
 				name: 'Commits',
-				isVisible: props.devMetrics ? true : false
+				isVisible: props.devMetrics ? true : false,
+				type: 'bar'
 			},
 			{
 				id: 'chainTokenPrice',
@@ -133,12 +144,13 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 			{
 				id: 'chainTokenVolume',
 				name: `${props.chainTokenInfo?.token_symbol} Volume`,
-				isVisible: props.chainTokenInfo?.token_symbol ? true : false
+				isVisible: props.chainTokenInfo?.token_symbol ? true : false,
+				type: 'bar'
 			}
 		].filter((o) => o.isVisible)
 
 		const hasAtleasOneBarChart = chartOptions.reduce((acc, curr) => {
-			if (curr.isVisible && BAR_CHARTS.includes(curr.name) && router.query[curr.id] === 'true') {
+			if (curr.isVisible && curr.type === 'bar' && router.query[curr.id] === 'true') {
 				acc = true
 			}
 

@@ -1,4 +1,4 @@
-import { ProtocolChartsLabels } from './Chart/constants'
+import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
 
 export interface IProtocolMetadata {
 	name?: string
@@ -321,4 +321,9 @@ export interface IDenominationPriceHistory {
 	prices: Array<[number, number]>
 	mcaps: Array<[number, number]>
 	volumes: Array<[number, number]>
+}
+
+export interface IToggledMetrics extends Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'> {
+	events: 'true' | 'false'
+	denomination: string | null
 }

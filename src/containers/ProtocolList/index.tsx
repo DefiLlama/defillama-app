@@ -16,10 +16,8 @@ import { ButtonDark } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { fuseProtocolData } from '~/api/categories/protocols'
 import { PROTOCOL_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
-import { formatProtocolsTvlChartData } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 import { LocalLoader } from '~/components/LocalLoader'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
@@ -344,14 +342,27 @@ const useProtocols = (protocols: string[], chain?: string) => {
 		try {
 			const formattedData =
 				data?.map((x) => {
-					const { historicalChainTvls } = fuseProtocolData(x)
+					const store = {}
+					for (const xchain in x.chainTvls ?? {}) {
+						if (chain && chain !== xchain) continue
+						if (xchain.includes('-') || xchain === 'offers') continue
+						if (xchain in extraTvlEnabled && !extraTvlEnabled[xchain]) continue
+
+						for (const { date, totalLiquidityUSD } of x.chainTvls[xchain].tvl) {
+							const dateKey = date
+							if (!store[dateKey]) {
+								store[dateKey] = 0
+							}
+							store[dateKey] += totalLiquidityUSD
+						}
+					}
+					const finalChartData = []
+					for (const date in store) {
+						finalChartData.push([date, store[date]])
+					}
 					return {
 						chain: x.name,
-						globalChart: formatProtocolsTvlChartData({
-							historicalChainTvls:
-								chain && chain !== 'All' ? { [chain]: historicalChainTvls[chain] || {} } : historicalChainTvls,
-							extraTvlEnabled
-						}).filter((x) => +x[0] % 86400 === 0)
+						globalChart: finalChartData
 					}
 				}) ?? []
 
@@ -360,7 +371,7 @@ const useProtocols = (protocols: string[], chain?: string) => {
 			console.error(e)
 			return []
 		}
-	}, [data, extraTvlEnabled])
+	}, [data, extraTvlEnabled, chain])
 
 	return { data, isLoading, chartData }
 }

@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { IDenominationPriceHistory, IProtocolOverviewPageData } from '../types'
+import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
@@ -45,11 +45,6 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 }
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-
-interface IToggledMetrics extends Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'> {
-	events: 'true' | 'false'
-	denomination: string | null
-}
 
 export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	const router = useRouter()
@@ -126,10 +121,15 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 		}
 	}, [queryParamsString, props.availableCharts, props.metrics])
 
+	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+	const [feesSettings] = useLocalStorageSettingsManager('fees')
+
 	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
 		...props,
 		toggledMetrics,
-		groupBy: groupBy
+		groupBy: groupBy,
+		tvlSettings,
+		feesSettings
 	})
 
 	const metricsDialogStore = Ariakit.useDialogStore()
@@ -374,15 +374,17 @@ export const useFetchAndFormatChartData = ({
 	toggledMetrics,
 	groupBy,
 	chartDenominations,
-	governanceApis
+	governanceApis,
+	tvlSettings,
+	feesSettings
 }: IProtocolOverviewPageData & {
 	toggledMetrics: IToggledMetrics
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	tvlSettings: Record<string, boolean>
+	feesSettings: Record<string, boolean>
 }) => {
 	const router = useRouter()
 	const isRouterReady = router.isReady
-	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
-	const [feesSettings] = useLocalStorageSettingsManager('fees')
 
 	const denominationGeckoId =
 		isRouterReady && toggledMetrics.denomination
