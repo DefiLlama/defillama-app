@@ -166,7 +166,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 						</div>
 					) : (
 						<BasicLink
-							href="/subscription"
+							href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
 							className="-ml-[6px] rounded-lg flex items-center justify-center gap-2 bg-[#5C5CF9]/10 hover:bg-[#5C5CF9]/20 text-[#5C5CF9] p-1 text-sm font-medium transition-colors duration-200"
 						>
 							<Icon name="users" className="w-4 h-4" />

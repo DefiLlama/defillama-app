@@ -82,7 +82,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 					<h1 className="text-3xl font-bold pro-text1">Sign In Required</h1>
 					<p className="text-lg pro-text2">Please sign in to view this dashboard</p>
 					<button
-						onClick={() => router.push('/subscription')}
+						onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
 						className="px-6 py-3 bg-[var(--primary1)] hover:bg-[var(--primary1-hover)] text-white font-medium transition-colors rounded-md"
 					>
 						Sign In
@@ -128,7 +128,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 
 						<div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
 							<button
-								onClick={() => router.push('/subscription')}
+								onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
 								className="px-8 py-3 bg-[var(--primary1)] hover:bg-[var(--primary1-hover)] text-white font-medium transition-colors inline-flex items-center gap-2 rounded-md"
 							>
 								<Icon name="arrow-right" height={16} width={16} />

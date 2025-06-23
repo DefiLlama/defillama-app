@@ -7,12 +7,14 @@ import { BasicLink } from '../Link'
 interface SubscribePlusCardProps {
 	context?: 'modal' | 'page' | 'account'
 	active?: boolean
+	returnUrl?: string
 }
 
 export function SubscribePlusCard({
 	context = 'page',
 	active = false,
-	onCancelSubscription
+	onCancelSubscription,
+	returnUrl
 }: SubscribePlusCardProps & { onCancelSubscription?: () => void }) {
 	const [isDarkMode] = useDarkModeManager()
 	const isModal = context === 'modal'
@@ -116,7 +118,7 @@ export function SubscribePlusCard({
 						)}
 						{isModal && (
 							<BasicLink
-								href="/subscription"
+								href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
 								className="w-full mt-3 px-4 py-2 bg-[#5C5CF9] hover:bg-[#4A4AF0] text-white rounded-lg transition-colors text-center font-medium block"
 							>
 								Go to Subscription Page
