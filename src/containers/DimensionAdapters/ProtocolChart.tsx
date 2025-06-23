@@ -10,8 +10,6 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { oldBlue } from '~/constants/colors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useQuery } from '@tanstack/react-query'
-import metadata from '~/utils/metadata'
-const { chainMetadata } = metadata
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
@@ -395,14 +393,12 @@ const ChartByType = ({
 				}
 
 				for (const chain of selectedTypes) {
-					const sChain = slug(chain)
-					const chainName = chainMetadata[sChain]?.id || chain
 					chartData[chain] = chartData[chain] || {}
 					chartData[chain][finalDate] =
-						(chartData[chain][finalDate] || 0) + (dataByChain[chainName] || 0) + cumulativeVolumeByChain[chain]
+						(chartData[chain][finalDate] || 0) + (dataByChain[chain] || 0) + cumulativeVolumeByChain[chain]
 
 					if (chartInterval === 'Cumulative') {
-						cumulativeVolumeByChain[chain] += dataByChain[chainName] || 0
+						cumulativeVolumeByChain[chain] += dataByChain[chain] || 0
 					}
 				}
 			}
