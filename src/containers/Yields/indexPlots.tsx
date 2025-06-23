@@ -33,10 +33,16 @@ export const PlotsPage = ({ pools, chainList, projectList, categoryList, median,
 		includeTokens,
 		excludeTokens,
 		exactTokens,
-		selectedCategories
+		selectedCategories,
+		pairTokens
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	const poolsData = React.useMemo(() => {
+		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
+		const include_tokens = includeTokens.map((token) => token.toLowerCase())
+		const exclude_tokens = excludeTokens.map((token) => token.toLowerCase())
+		const exact_tokens = exactTokens.map((token) => token.toLowerCase())
+
 		return pools.reduce((acc, curr) => {
 			const toFilter = toFilterPool({
 				curr,
@@ -44,14 +50,15 @@ export const PlotsPage = ({ pools, chainList, projectList, categoryList, median,
 				selectedProjects,
 				selectedChains,
 				selectedAttributes,
-				includeTokens,
-				excludeTokens,
-				exactTokens,
+				includeTokens: include_tokens,
+				excludeTokens: exclude_tokens,
+				exactTokens: exact_tokens,
 				selectedCategories,
 				minTvl,
 				maxTvl,
 				minApy,
-				maxApy
+				maxApy,
+				pairTokens: pair_tokens
 			})
 
 			if (toFilter) {
@@ -71,7 +78,8 @@ export const PlotsPage = ({ pools, chainList, projectList, categoryList, median,
 		excludeTokens,
 		exactTokens,
 		selectedCategories,
-		pathname
+		pathname,
+		pairTokens
 	])
 
 	return (

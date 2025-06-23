@@ -17,8 +17,18 @@ export const useFormatYieldQueryParams = ({
 	farmProtocols
 }: IFormatYieldQueryParams) => {
 	const router = useRouter()
-	const { project, lendingProtocol, farmProtocol, chain, token, excludeToken, exactToken, attribute, category } =
-		router.query
+	const {
+		project,
+		lendingProtocol,
+		farmProtocol,
+		chain,
+		token,
+		excludeToken,
+		exactToken,
+		attribute,
+		category,
+		token_pair
+	} = router.query
 
 	return React.useMemo(() => {
 		let selectedProjects = [],
@@ -29,7 +39,8 @@ export const useFormatYieldQueryParams = ({
 			exactTokens = [],
 			selectedCategories = [],
 			selectedLendingProtocols = [],
-			selectedFarmProtocols = []
+			selectedFarmProtocols = [],
+			pairTokens = []
 
 		if (projectList) {
 			if (project) {
@@ -114,6 +125,14 @@ export const useFormatYieldQueryParams = ({
 			}
 		}
 
+		if (token_pair) {
+			if (typeof token_pair === 'string') {
+				pairTokens = [token_pair]
+			} else {
+				pairTokens = [...token_pair]
+			}
+		}
+
 		return {
 			selectedProjects,
 			selectedChains,
@@ -123,7 +142,8 @@ export const useFormatYieldQueryParams = ({
 			exactTokens,
 			selectedCategories,
 			selectedLendingProtocols,
-			selectedFarmProtocols
+			selectedFarmProtocols,
+			pairTokens
 		}
 	}, [
 		attribute,
@@ -139,6 +159,7 @@ export const useFormatYieldQueryParams = ({
 		lendingProtocols,
 		farmProtocols,
 		lendingProtocol,
-		farmProtocol
+		farmProtocol,
+		token_pair
 	])
 }

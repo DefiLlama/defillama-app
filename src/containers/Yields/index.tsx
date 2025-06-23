@@ -20,7 +20,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		includeTokens,
 		excludeTokens,
 		exactTokens,
-		selectedCategories
+		selectedCategories,
+		pairTokens
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	React.useEffect(() => {
@@ -41,9 +42,16 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		excludeTokens,
 		exactTokens,
 		selectedCategories,
-		pools
+		pools,
+		pairTokens
 	])
+
 	const poolsData = React.useMemo(() => {
+		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
+		const include_tokens = includeTokens.map((token) => token.toLowerCase())
+		const exclude_tokens = excludeTokens.map((token) => token.toLowerCase())
+		const exact_tokens = exactTokens.map((token) => token.toLowerCase())
+
 		return pools.reduce((acc, curr) => {
 			const toFilter = toFilterPool({
 				curr,
@@ -51,14 +59,15 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				selectedProjects,
 				selectedChains,
 				selectedAttributes,
-				includeTokens,
-				excludeTokens,
-				exactTokens,
+				includeTokens: include_tokens,
+				excludeTokens: exclude_tokens,
+				exactTokens: exact_tokens,
 				selectedCategories,
 				minTvl,
 				maxTvl,
 				minApy,
-				maxApy
+				maxApy,
+				pairTokens: pair_tokens
 			})
 
 			if (toFilter) {
@@ -115,7 +124,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		includeTokens,
 		excludeTokens,
 		exactTokens,
-		pathname
+		pathname,
+		pairTokens
 	])
 	const downloadCSV = React.useCallback(() => {
 		const headers = [

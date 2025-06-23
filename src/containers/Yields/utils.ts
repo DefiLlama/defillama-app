@@ -15,7 +15,8 @@ export function toFilterPool({
 	minTvl,
 	maxTvl,
 	minApy,
-	maxApy
+	maxApy,
+	pairTokens
 }) {
 	let toFilter = true
 
@@ -49,39 +50,44 @@ export function toFilterPool({
 		.split('-')
 		.map((x) => x.toLowerCase().trim().replace('₮0', 't').replace('₮', 't'))
 
-	if (exactTokens.length === 0) {
+	if (pairTokens.length > 0) {
+		let atLeastOnePairToken = false
+		for (const pairToken of pairTokens) {
+			const pt = pairToken.split('-')
+			if (tokensInPool.length === pt.length && pt.every((token) => tokensInPool.includes(token))) {
+				atLeastOnePairToken = true
+				break
+			}
+		}
+
+		toFilter = toFilter && atLeastOnePairToken
+	} else if (exactTokens.length === 0) {
 		const includeToken =
 			includeTokens.length > 0 && includeTokens[0] !== 'All'
-				? includeTokens
-						.map((t) => t.toLowerCase())
-						.find((token) => {
-							if (token === 'all_bitcoins') {
-								return tokensInPool.some((x) => x.includes('btc'))
-							} else if (token === 'all_usd_stables') {
-								return curr.stablecoin || tokensInPool.some((x) => x.includes('usd'))
-							} else if (tokensInPool.some((x) => x.includes(token.toLowerCase()))) {
-								return true
-							} else if (token === 'eth') {
-								return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
-							} else return false
-						})
+				? includeTokens.find((token) => {
+						if (token === 'all_bitcoins') {
+							return tokensInPool.some((x) => x.includes('btc'))
+						} else if (token === 'all_usd_stables') {
+							return curr.stablecoin || tokensInPool.some((x) => x.includes('usd'))
+						} else if (tokensInPool.some((x) => x.includes(token))) {
+							return true
+						} else if (token === 'eth') {
+							return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
+						} else return false
+				  })
 				: true
 
-		const excludeToken = !excludeTokens
-			.map((t) => t.toLowerCase())
-			.find((token) => tokensInPool.includes(token.toLowerCase()))
+		const excludeToken = !excludeTokens.find((token) => tokensInPool.includes(token))
 
 		toFilter = toFilter && selectedChains.includes(curr.chain) && includeToken && excludeToken
 	} else {
-		const exactToken = exactTokens
-			.map((t) => t.toLowerCase())
-			.find((token) => {
-				if (tokensInPool.some((x) => x === token.toLowerCase())) {
-					return true
-				} else if (token === 'eth') {
-					return tokensInPool.find((x) => x.includes('weth') && x === token)
-				} else return false
-			})
+		const exactToken = exactTokens.find((token) => {
+			if (tokensInPool.some((x) => x === token)) {
+				return true
+			} else if (token === 'eth') {
+				return tokensInPool.find((x) => x.includes('weth') && x === token)
+			} else return false
+		})
 
 		toFilter = toFilter && selectedChains.includes(curr.chain) && exactToken
 	}
