@@ -265,91 +265,95 @@ export function ComposerTab({
 			)}
 
 			{selectedTab === 'script' && (
-				<div>
-					<label className="block mb-2 text-sm font-medium pro-text2">LlamaScript Editor</label>
-					<div style={{ maxHeight: 350, overflowY: 'auto' }} className="mb-2 rounded border border-[var(--primary1)]">
-						<Editor
-							value={effectiveScript}
-							onValueChange={handleScriptChange}
-							highlight={(code) => Prism.highlight(code, Prism.languages.llamascript, 'llamascript')}
-							padding={12}
-							style={{
-								fontFamily: 'JetBrains Mono, monospace',
-								fontSize: 14,
-								minHeight: 200,
-								background: 'var(--pro-bg2, #1a1a1a)',
-								color: 'var(--pro-text1, #fff)',
-								borderRadius: 6,
-								border: 'none'
-							}}
-							placeholder="Write your LlamaScript here..."
-							onKeyDown={handleEditorKeyDown}
-						/>
+				<div className="flex flex-col lg:flex-row gap-4 lg:h-[400px]">
+					<div className="flex-1 border pro-border p-3 md:p-4 rounded flex flex-col min-w-0">
+						<label className="block mb-2 text-sm font-medium pro-text2">LlamaScript Editor</label>
+						<div style={{ maxHeight: 220, overflowY: 'auto' }} className="mb-2 rounded border border-[var(--primary1)]">
+							<Editor
+								value={effectiveScript}
+								onValueChange={handleScriptChange}
+								highlight={(code) => Prism.highlight(code, Prism.languages.llamascript, 'llamascript')}
+								padding={12}
+								style={{
+									fontFamily: 'JetBrains Mono, monospace',
+									fontSize: 14,
+									minHeight: 120,
+									background: 'var(--pro-bg2, #1a1a1a)',
+									color: 'var(--pro-text1, #fff)',
+									borderRadius: 6,
+									border: 'none'
+								}}
+								placeholder="Write your LlamaScript here..."
+								onKeyDown={handleEditorKeyDown}
+							/>
+						</div>
+						<button
+							className="mt-2 px-4 py-2 bg-[var(--primary1)] text-white text-sm font-medium hover:bg-[var(--primary1-hover)] border border-[var(--primary1)] rounded transition-colors duration-200 disabled:opacity-50"
+							onClick={handleRunScript}
+							disabled={isRunning}
+						>
+							{isRunning ? 'Running...' : 'Preview (Shift+Enter)'}
+						</button>
+						{parseErrors.length > 0 && (
+							<div className="mt-2 text-xs text-red-500">
+								{parseErrors.map((err, i) => (
+									<div key={i}>{err.message}</div>
+								))}
+							</div>
+						)}
+						{interpreterOutput === 'loading' && (
+							<div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
+								<LoadingSpinner size="sm" />
+								Evaluating script...
+							</div>
+						)}
+						{interpreterOutput && interpreterOutput.errors && interpreterOutput.errors.length > 0 && (
+							<div className="mt-2 text-xs text-yellow-400">
+								{interpreterOutput.errors.map((err: string, i: number) => (
+									<div key={i}>{err}</div>
+								))}
+							</div>
+						)}
 					</div>
-					<button
-						className="mt-2 px-4 py-2 bg-[var(--primary1)] text-white text-sm font-medium hover:bg-[var(--primary1-hover)] border border-[var(--primary1)] rounded transition-colors duration-200 disabled:opacity-50"
-						onClick={handleRunScript}
-						disabled={isRunning}
-					>
-						{isRunning ? 'Running...' : 'Preview (Shift+Enter)'}
-					</button>
-					{parseErrors.length > 0 && (
-						<div className="mt-2 text-xs text-red-500">
-							{parseErrors.map((err, i) => (
-								<div key={i}>{err.message}</div>
-							))}
-						</div>
-					)}
-					{interpreterOutput === 'loading' && (
-						<div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
-							<LoadingSpinner size="sm" />
-							Evaluating script...
-						</div>
-					)}
-					{interpreterOutput && interpreterOutput.errors && interpreterOutput.errors.length > 0 && (
-						<div className="mt-2 text-xs text-yellow-400">
-							{interpreterOutput.errors.map((err: string, i: number) => (
-								<div key={i}>{err}</div>
-							))}
-						</div>
-					)}
-					{interpreterOutput && (
-						<>
-							{interpreterOutput.plots && interpreterOutput.plots.length > 0 && (
-								<div className="mt-6">
-									<div className="font-bold mb-2">Chart Preview</div>
-									{(() => {
-										const multiSeries = interpreterOutput.plots.map((plot: any, i: number) => {
-											let arg = plot.evalArgs && plot.evalArgs[0]
-											if (arg && typeof arg === 'object' && !Array.isArray(arg) && Object.keys(arg).length === 1) {
-												arg = arg[Object.keys(arg)[0]]
-											}
-											let data: [number, number][] | undefined = undefined
-											if (Array.isArray(arg) && arg.length > 0 && Array.isArray(arg[0])) {
-												data = arg as [number, number][]
-											} else if (typeof arg === 'number') {
-												const now = Math.floor(Date.now() / 1000)
-												data = Array.from({ length: 30 }, (_, j) => [now - (29 - j) * 86400, arg])
-											}
-											return {
-												data: data || [],
-												chartType: plot.chartType || 'area',
-												name: plot.label || (typeof arg === 'object' && arg?.name ? arg.name : `Series ${i + 1}`),
-												color: plot.color
-											}
-										})
-										return multiSeries.length > 0 ? (
-											<ChartPreview multiSeries={multiSeries} highlights={interpreterOutput.highlights} />
-										) : (
-											<div className="text-xs text-gray-400">
-												No previewable data from script. Check your script for errors.
-											</div>
-										)
-									})()}
+					<div className="flex-1 border pro-border p-3 md:p-4 rounded min-w-0 flex flex-col">
+						<div className="font-bold mb-2">Chart Preview</div>
+						<div className="flex-1 min-h-[200px] max-h-[340px] overflow-y-auto">
+							{interpreterOutput && interpreterOutput.plots && interpreterOutput.plots.length > 0 ? (
+								(() => {
+									const multiSeries = interpreterOutput.plots.map((plot: any, i: number) => {
+										let arg = plot.evalArgs && plot.evalArgs[0]
+										if (arg && typeof arg === 'object' && !Array.isArray(arg) && Object.keys(arg).length === 1) {
+											arg = arg[Object.keys(arg)[0]]
+										}
+										let data: [number, number][] | undefined = undefined
+										if (Array.isArray(arg) && arg.length > 0 && Array.isArray(arg[0])) {
+											data = arg as [number, number][]
+										} else if (typeof arg === 'number') {
+											const now = Math.floor(Date.now() / 1000)
+											data = Array.from({ length: 30 }, (_, j) => [now - (29 - j) * 86400, arg])
+										}
+										return {
+											data: data || [],
+											chartType: plot.chartType || 'area',
+											name: plot.label || (typeof arg === 'object' && arg?.name ? arg.name : `Series ${i + 1}`),
+											color: plot.color
+										}
+									})
+									return multiSeries.length > 0 ? (
+										<ChartPreview multiSeries={multiSeries} highlights={interpreterOutput.highlights} />
+									) : (
+										<div className="text-xs text-gray-400">
+											No previewable data from script. Check your script for errors.
+										</div>
+									)
+								})()
+							) : (
+								<div className="text-xs text-gray-400 flex items-center h-full">
+									No previewable data from script. Check your script for errors.
 								</div>
 							)}
-						</>
-					)}
+						</div>
+					</div>
 				</div>
 			)}
 		</div>
