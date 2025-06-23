@@ -45,7 +45,7 @@ function SavedFilters({ currentFilters }) {
 	}
 
 	return (
-		<div className="flex items-center gap-2">
+		<div className="flex items-center gap-2 ml-auto">
 			<button
 				onClick={handleSave}
 				className="flex items-center gap-1 justify-center py-2 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
@@ -122,22 +122,18 @@ export function YieldFiltersV2({
 
 	return (
 		<div className="bg-[var(--cards-bg)] rounded-md">
-			<div className="relative flex items-center justify-between flex-wrap p-3">
-				<div className="flex items-center gap-2">
-					<h1 className="font-semibold">{header}</h1>
-					{trackingStats ? <p>{trackingStats}</p> : null}
-				</div>
+			<div className="flex items-center flex-wrap gap-2 p-3">
+				<h1 className="font-semibold">{header}</h1>
+				{trackingStats ? <p>{trackingStats}</p> : null}
 				<SavedFilters currentFilters={query} />
 			</div>
 			<div className="flex flex-col gap-4 p-3 rounded-b-md">
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}
-
 				{tokens && (showSearchOnMobile || !isSmall) ? (
 					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
 				) : null}
-
 				<div className="flex flex-wrap gap-2 min-h-9 *:flex-1 sm:hidden">
 					{isSmall && isClient ? (
 						<React.Suspense fallback={<></>}>

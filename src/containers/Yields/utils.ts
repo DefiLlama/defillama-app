@@ -383,11 +383,24 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 		// remove poolMeta from symbol string
 		const farmSymbol = p.symbol.replace(/ *\([^)]*\) */g, '')
 		return (
-			tokensToInclude?.some((t) => farmSymbol.includes(t)) &&
-			!tokensToExclude?.some((t) => farmSymbol.includes(t)) &&
+			tokensToInclude?.some((t) =>
+				t === 'ALL_USD_STABLES'
+					? p.stablecoin
+					: t === 'ALL_BITCOINS'
+					? farmSymbol.includes('BTC')
+					: farmSymbol.includes(t)
+			) &&
+			!tokensToExclude?.some((t) =>
+				t === 'ALL_USD_STABLES'
+					? p.stablecoin
+					: t === 'ALL_BITCOINS'
+					? farmSymbol.includes('BTC')
+					: farmSymbol.includes(t)
+			) &&
 			p.apy > 0
 		)
 	})
+
 	// filter FR data to positive funding rates only (longs pay shorts -> open short position and earn FR)
 	const perpsData = perps.filter(
 		(p) => tokensToInclude?.some((t) => t.includes(p.symbol)) && p.fundingRate > 0 && p.baseAsset !== 'T'
