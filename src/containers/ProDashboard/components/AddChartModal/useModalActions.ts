@@ -64,6 +64,7 @@ export function useModalActions(
 		actions.setSelectedChain(option.value)
 		actions.setSelectedProtocol(null)
 		actions.setSelectedChartType('tvl')
+		actions.setSelectedChartTypes([])
 	}
 
 	const handleChainsChange = (options: any[]) => {
@@ -75,6 +76,7 @@ export function useModalActions(
 		actions.setSelectedProtocol(option.value)
 		actions.setSelectedChain(null)
 		actions.setSelectedChartType('tvl')
+		actions.setSelectedChartTypes([])
 	}
 
 	const handleDatasetChainChange = (option: any) => {
@@ -114,6 +116,7 @@ export function useModalActions(
 		actions.setSelectedChain(null)
 		actions.setSelectedProtocol(null)
 		actions.setSelectedChartType('tvl')
+		actions.setSelectedChartTypes([])
 	}
 
 	const handleRemoveFromComposer = (id: string) => {
@@ -125,6 +128,7 @@ export function useModalActions(
 		actions.setSelectedChain(null)
 		actions.setSelectedProtocol(null)
 		actions.setSelectedChartType('tvl')
+		actions.setSelectedChartTypes([])
 	}
 
 	const handleChartTabChange = (tab: ChartTabType) => {
@@ -132,6 +136,7 @@ export function useModalActions(
 		actions.setSelectedChain(null)
 		actions.setSelectedProtocol(null)
 		actions.setSelectedChartType('tvl')
+		actions.setSelectedChartTypes([])
 	}
 
 	const handleComposerSubTypeChange = (type: ChartTabType) => {
@@ -139,6 +144,7 @@ export function useModalActions(
 		actions.setSelectedChain(null)
 		actions.setSelectedProtocol(null)
 		actions.setSelectedChartType('tvl')
+		actions.setSelectedChartTypes([])
 	}
 
 	const handleSubmit = () => {
@@ -262,10 +268,26 @@ export function useModalActions(
 			if (state.selectedMainTab === 'composer' && state.composerItems.length > 0) {
 				handleAddMultiChart(state.composerItems, state.composerChartName.trim() || undefined)
 			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'chain' && state.selectedChain) {
-				handleAddChart(state.selectedChain, state.selectedChartType, 'chain')
+				// Handle multiple selected charts
+				if (state.selectedChartTypes.length > 0) {
+					state.selectedChartTypes.forEach(chartType => {
+						handleAddChart(state.selectedChain, chartType, 'chain')
+					})
+				} else if (state.selectedChartType) {
+					// Fallback to single chart for backward compatibility
+					handleAddChart(state.selectedChain, state.selectedChartType, 'chain')
+				}
 			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'protocol' && state.selectedProtocol) {
 				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
-				handleAddChart(state.selectedProtocol, state.selectedChartType, 'protocol', protocol?.geckoId)
+				// Handle multiple selected charts
+				if (state.selectedChartTypes.length > 0) {
+					state.selectedChartTypes.forEach(chartType => {
+						handleAddChart(state.selectedProtocol, chartType, 'protocol', protocol?.geckoId)
+					})
+				} else if (state.selectedChartType) {
+					// Fallback to single chart for backward compatibility
+					handleAddChart(state.selectedProtocol, state.selectedChartType, 'protocol', protocol?.geckoId)
+				}
 			} else if (state.selectedMainTab === 'table') {
 				if (state.selectedTableType === 'protocols' && state.selectedChains.length > 0) {
 					handleAddTable(state.selectedChains, 'protocols')

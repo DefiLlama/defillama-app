@@ -17,6 +17,7 @@ export interface IChainMetadata {
 	gecko_id?: string
 	tokenSymbol?: string
 	github?: boolean
+	id: string
 }
 
 export interface IChainOverviewData {

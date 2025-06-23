@@ -1,4 +1,4 @@
-import ProtocolContainer from '~/containers/ProtocolOverview'
+import ProtocolContainer from '~/containers/ProtocolOverview/index-old'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
 import { isCpusHot } from '~/utils/cache-client'
@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging(
 		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
 
 		const protocolData = await getProtocol(protocol)
-		const data = await getProtocolData(protocol, protocolData, isHot, metadata)
+		const data = await getProtocolData(protocol, protocolData as any, isHot, metadata)
 		return data
 	}
 )

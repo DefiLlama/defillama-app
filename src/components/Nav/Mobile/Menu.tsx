@@ -140,7 +140,7 @@ export function Menu() {
 							</button>
 						</div>
 					) : (
-						<BasicLink href="/subscription" className="rounded-md p-3">
+						<BasicLink href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`} className="rounded-md p-3">
 							Sign In / Subscribe
 						</BasicLink>
 					)}

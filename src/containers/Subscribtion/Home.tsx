@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { AccountInfo } from './AccountInfo'
@@ -8,8 +9,9 @@ import { AccountStatus } from './components/AccountStatus'
 import { EmailChangeModal } from './components/EmailChangeModal'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
+import { ReturnModal } from './components/ReturnModal'
 
-export function SubscribeHome() {
+export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 	const { isAuthenticated, loaders, user, changeEmail, addEmail } = useAuthContext()
 	const { subscription, isSubscriptionFetching } = useSubscribe()
 	const [showEmailForm, setShowEmailForm] = useState(false)
@@ -27,6 +29,9 @@ export function SubscribeHome() {
 	}
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
+	const router = useRouter()
+	const [showReturnModal, setShowReturnModal] = useState(false)
+	const [hasShownModal, setHasShownModal] = useState(false)
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
 	const [activePriceCard, setActivePriceCard] = useState(0)
@@ -71,6 +76,17 @@ export function SubscribeHome() {
 	useEffect(() => {
 		setIsClient(true)
 	}, [])
+
+	useEffect(() => {
+		if (isAuthenticated && returnUrl && !hasShownModal && !loaders.userLoading) {
+			setShowReturnModal(true)
+			setHasShownModal(true)
+		}
+	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading])
+
+	useEffect(() => {
+		setHasShownModal(false)
+	}, [returnUrl])
 
 	if (
 		loaders &&
@@ -204,6 +220,9 @@ export function SubscribeHome() {
 					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-[28px] object-contain" />
 				</div>
 			</div>
+			{returnUrl && (
+				<ReturnModal isOpen={showReturnModal} onClose={() => setShowReturnModal(false)} returnUrl={returnUrl} />
+			)}
 		</>
 	)
 }

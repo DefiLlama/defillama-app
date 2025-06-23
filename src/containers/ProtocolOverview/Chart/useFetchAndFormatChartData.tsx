@@ -173,7 +173,7 @@ export function useFetchAndFormatChartData({
 		isRouterReady && metrics.treasury && treasury === 'true' ? protocol : null,
 		true
 	)
-	const { data: unlocksData, isLoading: fetchingEmissions } = useGetProtocolEmissions(
+	const { data: unlocksData = null, isLoading: fetchingEmissions } = useGetProtocolEmissions(
 		isRouterReady && metrics.unlocks && unlocks === 'true' ? protocol : null
 	)
 	const { data: bridgeVolumeData, isLoading: fetchingBridgeVolume } = useFetchBridgeVolumeOnAllChains(
@@ -1321,7 +1321,7 @@ export function useFetchAndFormatChartData({
 		contributersCommits,
 		treasuryData,
 		showNonUsdDenomination,
-		denominationHistory.prices,
+		denominationHistory,
 		mcap,
 		tokenPrice,
 		fdv,

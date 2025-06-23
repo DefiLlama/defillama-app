@@ -16,10 +16,8 @@ import { ButtonDark } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { fuseProtocolData } from '~/api/categories/protocols'
 import { PROTOCOL_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
-import { formatProtocolsTvlChartData } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 import { LocalLoader } from '~/components/LocalLoader'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
@@ -83,18 +81,12 @@ function Container({
 
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	React.useEffect(() => {
-		setCompareProtocols([])
-	}, [chain, category])
+	const addOrRemoveCompare = (protocol) => {
+		setCompareProtocols((prev) =>
+			prev.indexOf(protocol) === -1 ? [...prev, protocol] : prev.filter((p) => p !== protocol)
+		)
+	}
 
-	const addOrRemoveCompare = React.useCallback(
-		(protocol) => {
-			setCompareProtocols((prev) =>
-				prev.indexOf(protocol) === -1 ? [...prev, protocol] : prev.filter((p) => p !== protocol)
-			)
-		},
-		[compareProtocols, setCompareProtocols, category, chain]
-	)
 	const protocolTotals = React.useMemo(() => {
 		const data = formatProtocolsList({
 			extraTvlsEnabled,
@@ -109,7 +101,7 @@ function Container({
 			compare: addOrRemoveCompare,
 			isCompared: compareProtocols.includes(p.name)
 		}))
-	}, [extraTvlsEnabled, protocols, parentProtocols, category, chain, compareProtocols])
+	}, [extraTvlsEnabled, protocols, parentProtocols, compareProtocols, fees, volumes])
 
 	const { tvl, dominance, topToken, percentChange, totals } = React.useMemo(() => {
 		const tvlVal = protocolTotals?.reduce((acc, protocol) => (acc += protocol.tvl ?? 0), 0)
@@ -153,7 +145,6 @@ function Container({
 			),
 		[totals, category]
 	)
-	const routeName = category ? (chain === 'All' ? 'All Chains' : chain) : 'All Protocols'
 
 	const datasets = React.useMemo(() => {
 		return [{ globalChart: categoryChart }]
@@ -301,7 +292,7 @@ function Container({
 							/>
 						) : null}
 					</div>
-					<div className="bg-[var(--cards-bg)] rounded-md col-span-2">
+					<div className="bg-[var(--cards-bg)] min-h-[360px] rounded-md col-span-2">
 						{router.isReady && categoryChart ? <ChainChart datasets={datasets} title="" isThemeDark={isDark} /> : null}
 					</div>
 				</div>
@@ -351,14 +342,27 @@ const useProtocols = (protocols: string[], chain?: string) => {
 		try {
 			const formattedData =
 				data?.map((x) => {
-					const { historicalChainTvls } = fuseProtocolData(x)
+					const store = {}
+					for (const xchain in x.chainTvls ?? {}) {
+						if (chain && chain !== xchain) continue
+						if (xchain.includes('-') || xchain === 'offers') continue
+						if (xchain in extraTvlEnabled && !extraTvlEnabled[xchain]) continue
+
+						for (const { date, totalLiquidityUSD } of x.chainTvls[xchain].tvl) {
+							const dateKey = date
+							if (!store[dateKey]) {
+								store[dateKey] = 0
+							}
+							store[dateKey] += totalLiquidityUSD
+						}
+					}
+					const finalChartData = []
+					for (const date in store) {
+						finalChartData.push([date, store[date]])
+					}
 					return {
 						chain: x.name,
-						globalChart: formatProtocolsTvlChartData({
-							historicalChainTvls:
-								chain && chain !== 'All' ? { [chain]: historicalChainTvls[chain] || {} } : historicalChainTvls,
-							extraTvlEnabled
-						}).filter((x) => +x[0] % 86400 === 0)
+						globalChart: finalChartData
 					}
 				}) ?? []
 
@@ -367,7 +371,7 @@ const useProtocols = (protocols: string[], chain?: string) => {
 			console.error(e)
 			return []
 		}
-	}, [data, extraTvlEnabled])
+	}, [data, extraTvlEnabled, chain])
 
 	return { data, isLoading, chartData }
 }

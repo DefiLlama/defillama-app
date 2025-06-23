@@ -8,7 +8,7 @@ import {
 } from '~/constants'
 import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
-import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
+import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE, ADAPTER_DATA_TYPES } from './constants'
 import metadataCache from '~/utils/metadata'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
 
@@ -101,10 +101,11 @@ export interface IAdapterSummary {
 	latestFetchIsOk: boolean
 	slug: string
 	protocolType?: string | null
-	total24h: number | null
-	total48hto24h: number | null
-	total7d: number | null
-	totalAllTime: number | null
+	total24h?: number | null
+	total48hto24h?: number | null
+	total7d?: number | null
+	total30d?: number | null
+	totalAllTime?: number | null
 	totalDataChartBreakdown: Array<[number, Record<string, Record<string, number>>]>
 	totalDataChart: Array<[number, number]>
 	linkedProtocols?: string[]
@@ -147,7 +148,7 @@ export async function getAdapterChainOverview({
 	chain: string
 	excludeTotalDataChart: boolean
 	excludeTotalDataChartBreakdown: boolean
-	dataType?: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
 		let url = `${DIMENISIONS_OVERVIEW_API}/${
@@ -283,7 +284,7 @@ export async function getAdapterProtocolSummary({
 	protocol: string
 	excludeTotalDataChart: boolean
 	excludeTotalDataChartBreakdown: boolean
-	dataType?: string
+	dataType?: `${ADAPTER_DATA_TYPES}`
 }) {
 	let url = `${DIMENISIONS_SUMMARY_BASE_API}/${
 		adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
@@ -503,7 +504,7 @@ export const getAdapterByChainPageData = async ({
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	chain: string
-	dataType?: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	route: string
 }) => {
 	const [data, protocolsData, bribesData, tokenTaxesData]: [
@@ -813,7 +814,7 @@ export const getChainsByAdapterPageData = async ({
 	route
 }: {
 	adapterType: `${ADAPTER_TYPES}`
-	dataType?: string
+	dataType?: `${ADAPTER_DATA_TYPES}`
 	route: string
 }): Promise<IChainsByAdapterPageData> => {
 	try {

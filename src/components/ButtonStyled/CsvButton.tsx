@@ -1,5 +1,5 @@
-import { ReactNode, useState, useEffect } from 'react'
-import dynamic from 'next/dynamic'
+import { ReactNode, useState } from 'react'
+import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -28,6 +28,7 @@ export const CSVDownloadButton = ({
 	const isLoading = loaders.userLoading || isSubscriptionLoading || loading
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const isClient = useIsClient()
+	const router = useRouter()
 
 	return (
 		<>
@@ -71,7 +72,7 @@ export const CSVDownloadButton = ({
 			</button>
 			{isClient && (
 				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-					<SubscribePlusCard context="modal" />
+					<SubscribePlusCard context="modal" returnUrl={router.asPath} />
 				</SubscribeModal>
 			)}
 		</>

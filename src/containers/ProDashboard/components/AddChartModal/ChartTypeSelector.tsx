@@ -19,20 +19,30 @@ export function ChartTypeSelector({
 	isLoading,
 	onChange
 }: ChartTypeSelectorProps) {
-	const chartTypeOptions = useMemo(() => 
-		chartTypes
-			.filter((key) => availableChartTypes.includes(key))
-			.map((key) => ({
-				value: key,
-				label: CHART_TYPES[key]?.title
-			})),
+	const chartTypeOptions = useMemo(
+		() =>
+			chartTypes
+				.filter((key) => availableChartTypes.includes(key))
+				.map((key) => ({
+					value: key,
+					label: CHART_TYPES[key]?.title
+				})),
 		[chartTypes, availableChartTypes]
 	)
 
-	const selectedOption = useMemo(() => 
-		chartTypeOptions.find((option) => option.value === selectedChartType),
+	const selectedOption = useMemo(
+		() => chartTypeOptions.find((option) => option.value === selectedChartType),
 		[chartTypeOptions, selectedChartType]
 	)
+
+	function MenuList(props: any) {
+		const { children, maxHeight } = props
+		return (
+			<div className="thin-scrollbar" style={{ maxHeight, overflowY: 'auto' }}>
+				{children}
+			</div>
+		)
+	}
 
 	return (
 		<div className="mb-3 md:mb-4">
@@ -49,8 +59,8 @@ export function ChartTypeSelector({
 					placeholder="Select chart type..."
 					className="w-full text-sm md:text-base"
 					styles={reactSelectStyles}
-					menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
-					menuPosition="fixed"
+					components={{ MenuList }}
+					menuPortalTarget={typeof document !== 'undefined' ? document.querySelector('.add-chart-modal') : null}
 				/>
 			)}
 		</div>

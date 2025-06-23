@@ -1,15 +1,23 @@
 import { useRouter } from 'next/router'
 import { useEffect, useMemo } from 'react'
-import { useFetchProtocolInfows } from '~/api/categories/protocols/client'
-import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
-import { ProtocolChartOnly } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
-import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
-import { getProtocol } from '~/containers/ProtocolOverview/queries'
+import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { slug } from '~/utils'
+import { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
+import { maxAgeForNext } from '~/api'
+import dynamic from 'next/dynamic'
+import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChartNew'
+import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
 const { protocolMetadata } = metadata
+
+const ProtocolLineBarChart = dynamic(() => import('~/containers/ProtocolOverview/Chart/Chart2'), {
+	ssr: false,
+	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
+}) as React.FC<any>
+
+const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export const getStaticProps = withPerformanceLogging(
 	'chart/protocol/[...protocol]',
@@ -19,17 +27,22 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const normalizedName = slug(protocol)
-		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
+		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)
 
 		if (!metadata) {
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const data = await getProtocolOverviewPageData({
+			protocolId: metadata[0],
+			metadata: metadata[1]
+		})
 
-		const data = await getProtocolData(protocol, protocolData, true, metadata)
-		data.props.noContext = true
-		return data
+		if (!data) {
+			return { notFound: true, props: null }
+		}
+
+		return { props: data, revalidate: maxAgeForNext([22]) }
 	}
 )
 
@@ -37,127 +50,93 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function ProtocolChart({
-	protocolData,
-	protocol,
-	users,
-	governanceApis,
-	chartDenominations = [],
-	twitterHandle,
-	nftVolumeData,
-	chartColors
-}) {
+export default function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 
-	const {
-		denomination,
-		groupBy,
-		tvl,
-		mcap,
-		tokenPrice,
-		fdv,
-		volume,
-		perpsVolume,
-		fees,
-		revenue,
-		holdersRevenue,
-		incentives,
-		unlocks,
-		activeAddresses,
-		newAddresses,
-		events,
-		transactions,
-		gasUsed,
-		staking,
-		borrowed,
-		medianApy,
-		governance,
-		treasury,
-		bridgeVolume,
-		tokenVolume,
-		tokenLiquidity,
-		usdInflows: usdInflowsParam,
-		twitter,
-		devMetrics,
-		contributersMetrics,
-		contributersCommits,
-		devCommits,
-		nftVolume,
-		aggregators,
-		optionsPremiumVolume,
-		optionsNotionalVolume,
-		perpsAggregators,
-		bridgeAggregators
-	} = router.query
+	const queryParamsString = useMemo(() => {
+		return JSON.stringify(router.query ?? {})
+	}, [router.query])
 
-	const extraTvlsEnabled = {}
+	const { toggledMetrics, groupBy, tvlSettings, feesSettings } = useMemo(() => {
+		const queryParams = JSON.parse(queryParamsString)
+		const chartsByStaus = {}
+		for (const pchart in protocolCharts) {
+			const chartKey = protocolCharts[pchart]
+			chartsByStaus[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
+		}
+		const toggled = {
+			...chartsByStaus,
+			...((!props.metrics.tvl
+				? props.metrics.dexs
+					? { dexVolume: queryParams.dexVolume === 'false' ? 'false' : 'true' }
+					: props.metrics.perps
+					? { perpVolume: queryParams.perpVolume === 'false' ? 'false' : 'true' }
+					: props.metrics.options
+					? {
+							optionsPremiumVolume: queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true',
+							optionsNotionalVolume: queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
+					  }
+					: props.metrics.dexAggregators
+					? { dexAggregatorVolume: queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true' }
+					: props.metrics.bridgeAggregators
+					? { bridgeAggregatorVolume: queryParams.bridgeAggregatorVolume === 'false' ? 'false' : 'true' }
+					: props.metrics.perpsAggregators
+					? { perpAggregatorVolume: queryParams.perpAggregatorVolume === 'false' ? 'false' : 'true' }
+					: props.metrics.bridge
+					? { bridgeVolume: queryParams.bridgeVolume === 'false' ? 'false' : 'true' }
+					: props.metrics.fees
+					? {
+							fees: queryParams.fees === 'false' ? 'false' : 'true'
+					  }
+					: props.metrics.revenue
+					? {
+							revenue: queryParams.revenue === 'false' ? 'false' : 'true',
+							holdersRevenue: queryParams.holdersRevenue === 'false' ? 'false' : 'true'
+					  }
+					: props.metrics.unlocks
+					? { unlocks: queryParams.unlocks === 'false' ? 'false' : 'true' }
+					: props.metrics.treasury
+					? { treasury: queryParams.treasury === 'false' ? 'false' : 'true' }
+					: {}
+				: {}) as Record<string, 'true' | 'false'>)
+		} as Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'>
 
-	for (const setting in DEFI_SETTINGS) {
-		extraTvlsEnabled[DEFI_SETTINGS[setting]] = router.query[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
-	}
+		const toggledMetrics = {
+			...toggled,
+			tvl: queryParams.tvl === 'false' ? 'false' : 'true',
+			events: queryParams.events === 'false' ? 'false' : 'true',
+			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
+		} as IToggledMetrics
 
-	const { data, isLoading: loading } = useFetchProtocolInfows(
-		usdInflowsParam === 'true' ? protocol : null,
-		extraTvlsEnabled
-	)
-	const { usdInflows } = data || {}
+		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
 
-	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
-		useFetchAndFormatChartData({
-			isRouterReady: router.isReady,
-			denomination,
-			groupBy,
-			tvl,
-			mcap,
-			tokenPrice,
-			fdv,
-			volume,
-			perpsVolume,
-			fees,
-			revenue,
-			holdersRevenue,
-			incentives,
-			unlocks,
-			activeAddresses,
-			newAddresses,
-			events,
-			transactions,
-			gasUsed,
-			staking,
-			borrowed,
-			medianApy,
-			usdInflows: usdInflowsParam,
-			governance,
-			treasury,
-			bridgeVolume,
-			tokenVolume,
-			tokenLiquidity,
-			protocol,
-			chartDenominations,
-			geckoId: protocolData.gecko_id,
-			metrics: protocolData.metrics,
-			activeUsersId: users ? protocolData.id : null,
-			governanceApis,
-			protocolId: protocolData.id,
-			historicalChainTvls: protocolData.historicalChainTvls,
-			extraTvlEnabled: extraTvlsEnabled,
-			isHourlyChart: protocolData.isHourlyChart,
-			usdInflowsData: usdInflowsParam === 'true' && !loading && usdInflows?.length > 0 ? usdInflows : null,
-			twitter,
-			twitterHandle,
-			devMetrics,
-			contributersMetrics,
-			contributersCommits,
-			devCommits,
-			nftVolume,
-			nftVolumeData,
-			aggregators,
-			optionsPremiumVolume,
-			optionsNotionalVolume,
-			perpsAggregators,
-			bridgeAggregators,
-			incentivesData: null
-		})
+		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
+
+		const tvlSettings = {}
+
+		for (const setting in DEFI_SETTINGS) {
+			tvlSettings[DEFI_SETTINGS[setting]] = queryParams[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
+		}
+
+		const feesSettings = {}
+		for (const setting in FEES_SETTINGS) {
+			feesSettings[FEES_SETTINGS[setting]] = queryParams[`include_${FEES_SETTINGS[setting]}_in_fees`]
+		}
+
+		return {
+			toggledMetrics,
+			toggledCharts,
+			hasAtleasOneBarChart,
+			groupBy: hasAtleasOneBarChart
+				? typeof queryParams.groupBy === 'string' && groupByOptions.includes(queryParams.groupBy as any)
+					? (queryParams.groupBy as any)
+					: 'daily'
+				: 'daily',
+			tvlSettings,
+			feesSettings
+		}
+	}, [queryParamsString, props.availableCharts, props.metrics])
+
 	const isThemeDark = router.query.theme === 'dark' ? true : false
 
 	useEffect(() => {
@@ -173,29 +152,32 @@ export default function ProtocolChart({
 		}
 	}, [isThemeDark])
 
-	const finalChartColors = useMemo(() => {
-		if (!chartsUnique.includes('TVL')) {
-			return { ...chartColors, [chartsUnique[0]]: '#335cd7' }
-		}
-		return { ...chartColors, TVL: '#335cd7' }
-	}, [chartColors, chartsUnique])
+	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
+		...props,
+		toggledMetrics,
+		groupBy: groupBy,
+		tvlSettings,
+		feesSettings
+	})
 
 	return (
-		<ProtocolChartOnly
-			isRouterReady={router.isReady}
-			isLoading={isLoading}
-			fetchingTypes={fetchingTypes}
-			chartData={chartData}
-			color={'#335cd7'}
-			valueSymbol={valueSymbol}
-			chartsUnique={chartsUnique}
-			events={events}
-			hallmarks={events === 'true' ? protocolData.hallmarks : null}
-			chartColors={finalChartColors}
-			bobo={false}
-			unlockTokenSymbol={unlockTokenSymbol}
-			isThemeDark={isThemeDark}
-			groupBy={groupBy}
-		/>
+		<div className="flex flex-col min-h-[360px]">
+			{loadingCharts ? (
+				<p className="text-center text-xs my-auto min-h-[360px] flex flex-col items-center justify-center">
+					fetching {loadingCharts}...
+				</p>
+			) : (
+				<ProtocolLineBarChart
+					chartData={finalCharts}
+					chartColors={props.chartColors}
+					color={props.pageStyles['--primary-color']}
+					isThemeDark={isThemeDark}
+					valueSymbol={valueSymbol}
+					groupBy={groupBy}
+					hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
+					unlockTokenSymbol={props.token.symbol}
+				/>
+			)}
+		</div>
 	)
 }

@@ -20,7 +20,7 @@ interface ITableProps {
 
 declare module '@tanstack/table-core' {
 	interface ColumnMeta<TData extends RowData, TValue> {
-		align?: 'start' | 'end'
+		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
 	}
 }
@@ -95,13 +95,14 @@ export function VirtualTable({
 	const virtualItems = rowVirtualizer.getVirtualItems()
 	const isChainPage =
 		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
-	let minTableWidth = 0
 
-	for (const headerGroup of instance.getHeaderGroups()) {
-		for (const header of headerGroup.headers) {
-			minTableWidth += header.getSize() ?? 0
-		}
-	}
+	// Calculate grid template columns based on column sizes
+	const gridTemplateColumns =
+		instance
+			.getHeaderGroups()
+			.at(-1)
+			?.headers.map((header) => `minmax(${header.getSize() ?? 100}px, 1fr)`)
+			.join(' ') || '1fr'
 
 	const tableHeaderRef = React.useRef<HTMLDivElement>(null)
 
@@ -124,13 +125,12 @@ export function VirtualTable({
 				tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
 
 				tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
-			} else {
+			} else if (tableHeaderRef.current) {
 				tableHeaderRef.current.style.position = 'relative'
 				tableHeaderRef.current.style['overflow-x'] = 'initial'
 				tableHeaderDuplicate.style.height = '0px'
 			}
 		}
-
 		window.addEventListener('scroll', onScroll)
 
 		return () => window.removeEventListener('scroll', onScroll)
@@ -139,10 +139,12 @@ export function VirtualTable({
 	React.useEffect(() => {
 		const tableWrapperEl = document.getElementById('table-wrapper')
 
+		if (!tableWrapperEl) return
+
 		const onScroll = () => {
-			if (!skipVirtualization && tableHeaderRef.current) {
+			if (!skipVirtualization && tableHeaderRef.current && tableWrapperEl) {
 				tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
-			} else {
+			} else if (tableHeaderRef.current) {
 				tableHeaderRef.current.scrollLeft = 0
 			}
 		}
@@ -165,12 +167,17 @@ export function VirtualTable({
 				style={{
 					display: 'flex',
 					flexDirection: 'column',
-					zIndex: 10,
-					...(skipVirtualization ? { minWidth: `${minTableWidth}px` } : {})
+					zIndex: 10
 				}}
 			>
 				{instance.getHeaderGroups().map((headerGroup) => (
-					<div key={headerGroup.id} className="flex relative">
+					<div
+						key={headerGroup.id}
+						style={{
+							display: 'grid',
+							gridTemplateColumns
+						}}
+					>
 						{headerGroup.headers.map((header) => {
 							const meta = header.column.columnDef.meta
 							const value = flexRender(header.column.columnDef.header, header.getContext())
@@ -179,10 +186,13 @@ export function VirtualTable({
 								<div
 									key={header.id}
 									data-chainpage={isChainPage}
-									style={{ minWidth: `${header.getSize() ?? 100}px` }}
-									className={`flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r last:border-r-0 border-[var(--divider)] first:sticky first:left-0 first:z-[1] ${
+									data-align={meta?.align ?? 'start'}
+									style={{
+										gridColumn: `span ${header.colSpan}`
+									}}
+									className={`p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r last:border-r-0 border-[var(--divider)] first:sticky first:left-0 first:z-[1] justify-start data-[align=center]:justify-center data-[align=end]:justify-end ${
 										compact
-											? 'flex items-center px-5 h-[64px] first:pl-3 last:not(:first-child):pr-3 lg:last:not(:first-child):justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
+											? 'flex items-center px-5 h-[64px] border-t-black/10 dark:border-t-white/10 border-r-transparent'
 											: ''
 									}`}
 								>
@@ -215,12 +225,11 @@ export function VirtualTable({
 			<div
 				style={
 					skipVirtualization
-						? { minWidth: `${minTableWidth}px` }
+						? undefined
 						: {
 								height: `${rowVirtualizer.getTotalSize()}px`,
 								width: '100%',
-								position: 'relative',
-								...(instance.getHeaderGroups().length === 1 ? { minWidth: `${minTableWidth}px` } : {})
+								position: 'relative'
 						  }
 				}
 			>
@@ -228,7 +237,8 @@ export function VirtualTable({
 					const rowTorender = skipVirtualization ? row : rows[row.index]
 					const trStyle: React.CSSProperties = skipVirtualization
 						? {
-								display: 'flex',
+								display: 'grid',
+								gridTemplateColumns,
 								position: 'relative'
 						  }
 						: {
@@ -238,7 +248,8 @@ export function VirtualTable({
 								width: '100%',
 								height: `${row.size}px`,
 								opacity: rowTorender.original.disabled ? 0.3 : 1,
-								display: 'flex',
+								display: 'grid',
+								gridTemplateColumns,
 								transform: `translateY(${row.start - rowVirtualizer.options.scrollMargin}px)`
 						  }
 
@@ -254,12 +265,20 @@ export function VirtualTable({
 											key={cell.id}
 											data-ligther={stripedBg && i % 2 === 0}
 											data-chainpage={isChainPage}
-											className={`flex-1 flex-shrink-0 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r border-[var(--divider)] first:sticky first:left-0 first:z-[1] ${
+											className={`p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-t border-r border-[var(--divider)] first:sticky first:left-0 first:z-[1] ${
 												compact
-													? 'flex items-center px-5 first:pl-3 last:not(:first-child):pr-3 lg:last:not(:first-child):justify-end border-t-black/10 dark:border-t-white/10 border-r-transparent'
+													? 'flex items-center px-5 border-t-black/10 dark:border-t-white/10 border-r-transparent'
 													: ''
 											}`}
-											style={{ minWidth: `${cell.column.getSize() ?? 100}px`, textAlign }}
+											style={
+												compact
+													? {
+															textAlign,
+															justifyContent:
+																textAlign === 'center' ? 'center' : textAlign === 'end' ? 'flex-end' : 'flex-start'
+													  }
+													: { textAlign }
+											}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</div>

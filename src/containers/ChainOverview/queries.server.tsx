@@ -43,7 +43,7 @@ import { getAllProtocolEmissions, getETFData, getProtocolEmissons } from '~/api/
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
 	const metadata: IChainMetadata =
 		chain === 'All'
-			? { name: 'All', stablecoins: true, fees: true, dexs: true, derivatives: true }
+			? { name: 'All', stablecoins: true, fees: true, dexs: true, derivatives: true, id: 'all' }
 			: metadataCache.chainMetadata[slug(chain)]
 
 	if (!metadata) return null

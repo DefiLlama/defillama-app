@@ -1,6 +1,5 @@
 import dynamic from 'next/dynamic'
 import { useFetchProtocolTreasury } from '~/api/categories/protocols/client'
-import { formatProtocolsTvlChartData } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { buildProtocolAddlChartsData } from './utils'
@@ -27,42 +26,53 @@ export function Treasury({ protocolName }) {
 export const TreasuryChart = ({ protocolName }: { protocolName: string }) => {
 	const [includeTreasury, setIncludeTreasury] = useState(true)
 	const { data, isLoading } = useFetchProtocolTreasury(protocolName, includeTreasury)
-	const { tokenBreakdown, tokenBreakdownUSD, tokensUnique } = useMemo(() => {
-		return buildProtocolAddlChartsData({
+
+	const { tokenBreakdown, tokenBreakdownUSD, tokensUnique, top10Tokens, historicalTreasury } = useMemo(() => {
+		const tokens = Object.entries(data?.chainTvls ?? {})
+			.filter((chain) => !chain[0].endsWith('-OwnTokens'))
+			.reduce((acc, curr: [string, { tokensInUsd: Array<{ date: number; tokens: { [token: string]: number } }> }]) => {
+				if (curr[1].tokensInUsd?.length > 0) {
+					const tokens = curr[1].tokensInUsd.slice(-1)[0].tokens
+
+					for (const token in tokens) {
+						acc = [...acc, { name: token, value: tokens[token] }]
+					}
+				}
+
+				return acc
+			}, [])
+			.sort((a, b) => b.value - a.value)
+
+		const top10Tokens = tokens.slice(0, 11)
+
+		if (tokens.length > 10) {
+			top10Tokens.push({ name: 'Others', value: tokens.slice(11).reduce((acc, curr) => (acc += curr.value), 0) })
+		}
+		const { tokenBreakdown, tokenBreakdownUSD, tokensUnique } = buildProtocolAddlChartsData({
 			protocolData: data,
 			extraTvlsEnabled: {}
 		})
+
+		const historicalTreasury = {}
+		for (const chain in data?.chainTvls ?? {}) {
+			if (chain.includes('-')) continue
+
+			for (const { date, totalLiquidityUSD } of data.chainTvls[chain].tvl) {
+				historicalTreasury[date] = (historicalTreasury[date] || 0) + totalLiquidityUSD
+			}
+		}
+
+		const finalHistoricalTreasury = []
+		for (const date in historicalTreasury) {
+			finalHistoricalTreasury.push([date, historicalTreasury[date]])
+		}
+
+		return { tokenBreakdown, tokenBreakdownUSD, tokensUnique, top10Tokens, historicalTreasury: finalHistoricalTreasury }
 	}, [data])
 
 	if (isLoading) {
 		return <p className="my-[180px] text-center">Loading...</p>
 	}
-
-	const tokens = Object.entries(data?.chainTvls ?? {})
-		.filter((chain) => !chain[0].endsWith('-OwnTokens'))
-		.reduce((acc, curr: [string, { tokensInUsd: Array<{ date: number; tokens: { [token: string]: number } }> }]) => {
-			if (curr[1].tokensInUsd?.length > 0) {
-				const tokens = curr[1].tokensInUsd.slice(-1)[0].tokens
-
-				for (const token in tokens) {
-					acc = [...acc, { name: token, value: tokens[token] }]
-				}
-			}
-
-			return acc
-		}, [])
-		.sort((a, b) => b.value - a.value)
-
-	const top10Tokens = tokens.slice(0, 11)
-
-	if (tokens.length > 10) {
-		top10Tokens.push({ name: 'Others', value: tokens.slice(11).reduce((acc, curr) => (acc += curr.value), 0) })
-	}
-
-	const historicalTreasury = formatProtocolsTvlChartData({
-		historicalChainTvls: data?.chainTvls ?? {},
-		extraTvlEnabled: {}
-	})
 
 	return (
 		<>

@@ -603,7 +603,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 }
 
 export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
-	const { data, isLoading } = useGetProtocolEmissions(slug(protocolName))
+	const { data = null, isLoading } = useGetProtocolEmissions(slug(protocolName))
 
 	if (isLoading) {
 		return <p className="my-[180px] text-center">Loading...</p>
@@ -613,5 +613,5 @@ export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
 		return <p className="my-[180px] text-center"></p>
 	}
 
-	return <ChartContainer data={data} />
+	return <ChartContainer data={data as any} />
 }

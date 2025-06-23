@@ -13,6 +13,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [selectedChains, setSelectedChains] = useState<string[]>([])
 	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
+	const [selectedChartTypes, setSelectedChartTypes] = useState<string[]>([])
 	const [textTitle, setTextTitle] = useState<string>('')
 	const [textContent, setTextContent] = useState<string>('')
 	const [selectedTableType, setSelectedTableType] = useState<CombinedTableType>('protocols')
@@ -38,6 +39,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setSelectedChain(editItem.chain || null)
 				setSelectedProtocol(editItem.protocol || null)
 				setSelectedChartType(editItem.type)
+				setSelectedChartTypes([editItem.type])
 			} else if (editItem.kind === 'multi') {
 				setSelectedMainTab('composer')
 				setComposerItems(editItem.items)
@@ -76,6 +78,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedChains([])
 			setSelectedProtocol(null)
 			setSelectedChartType('tvl')
+			setSelectedChartTypes([])
 			setTextTitle('')
 			setTextContent('')
 			setSelectedTableType('protocols')
@@ -92,6 +95,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setTextTitle('')
 		setTextContent('')
 		setSelectedChartType('tvl')
+		setSelectedChartTypes([])
 		setSelectedChain(null)
 		setSelectedChains([])
 		setSelectedProtocol(null)
@@ -112,6 +116,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedChains,
 		selectedProtocol,
 		selectedChartType,
+		selectedChartTypes,
 		textTitle,
 		textContent,
 		selectedTableType,
@@ -133,6 +138,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedChains,
 			setSelectedProtocol,
 			setSelectedChartType,
+			setSelectedChartTypes,
 			setTextTitle,
 			setTextContent,
 			setSelectedTableType,

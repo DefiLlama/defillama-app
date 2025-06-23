@@ -5,6 +5,7 @@ import { useAccount, useSignMessage } from 'wagmi'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/LocalLoader'
+import { BasicLink } from '~/components/Link'
 
 export const SignIn = ({ text, className }: { text?: string; className?: string }) => {
 	const dialogState = Ariakit.useDialogStore()
@@ -323,6 +324,28 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 							/>
 							{confirmPasswordError && <p className="text-xs text-red-500 mt-1">{confirmPasswordError}</p>}
 						</div>
+
+						<label className="flex items-center gap-2">
+							<input type="checkbox" className="w-4 h-4" required />
+							<span className="text-sm text-[#b4b7bc]">
+								I agree to the{' '}
+								<BasicLink
+									href="/terms"
+									target="_blank"
+									className="text-[#5C5CF9] hover:text-[#7C7CFF] transition-colors font-medium"
+								>
+									Terms of Service
+								</BasicLink>{' '}
+								and{' '}
+								<BasicLink
+									href="/subscription/privacy-policy"
+									target="_blank"
+									className="text-[#5C5CF9] hover:text-[#7C7CFF] transition-colors font-medium"
+								>
+									Privacy Policy
+								</BasicLink>
+							</span>
+						</label>
 
 						<button
 							className="w-full py-3 mt-1 rounded-lg bg-gradient-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"

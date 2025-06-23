@@ -5,11 +5,10 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { formattedNum, toK } from '~/utils'
+import { formattedNum, firstDayOfMonth, lastDayOfWeek, toK } from '~/utils'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
-import { groupDataByDays } from '~/containers/ProtocolOverview/Chart/useFetchAndFormatChartData'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -48,7 +47,37 @@ const PageView = ({
 	const [tab, setTab] = React.useState('breakdown')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('weekly')
 
-	const inflowsData = groupDataByDays(inflowsChartData, groupBy, tokens, true)
+	const inflowsData = React.useMemo(() => {
+		const store = {}
+
+		const isWeekly = groupBy === 'weekly'
+		const isMonthly = groupBy === 'monthly'
+		const isCumulative = groupBy === 'cumulative'
+		const totalByToken = {}
+		for (const date in inflowsChartData) {
+			for (const token in inflowsChartData[date]) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				if (!store[dateKey]) {
+					store[dateKey] = {}
+				}
+				store[dateKey][token] =
+					(store[dateKey][token] || 0) + inflowsChartData[date][token] + (totalByToken[token] || 0)
+
+				if (isCumulative) {
+					totalByToken[token] = (totalByToken[token] || 0) + inflowsChartData[date][token]
+				}
+			}
+		}
+		const finalData = []
+
+		for (const date in store) {
+			const dateStore = store[date]
+			dateStore.date = date
+			finalData.push(dateStore)
+		}
+
+		return finalData
+	}, [inflowsChartData, groupBy])
 
 	return (
 		<>
@@ -129,16 +158,29 @@ const PageView = ({
 									</button>
 								</div>
 
-								<BarChart
-									chartData={inflowsData}
-									hideDefaultLegend
-									customLegendName="Protocol"
-									customLegendOptions={tokens}
-									stacks={barChartStacks}
-									stackColors={lsdColors}
-									valueSymbol="ETH"
-									title=""
-								/>
+								{groupBy === 'cumulative' ? (
+									<AreaChart
+										chartData={inflowsData}
+										stacks={tokens}
+										stackColors={lsdColors}
+										customLegendName="LST"
+										customLegendOptions={tokens}
+										hideDefaultLegend
+										valueSymbol="ETH"
+										title=""
+									/>
+								) : (
+									<BarChart
+										chartData={inflowsData}
+										hideDefaultLegend
+										customLegendName="Protocol"
+										customLegendOptions={tokens}
+										stacks={barChartStacks}
+										stackColors={lsdColors}
+										valueSymbol="ETH"
+										title=""
+									/>
+								)}
 							</div>
 						)}
 					</div>
@@ -194,7 +236,9 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	// Fetch ETH price from API
 	const fetchEthPrice = async () => {
 		try {
-			const response = await fetch('https://coins.llama.fi/prices/current/ethereum:0x0000000000000000000000000000000000000000')
+			const response = await fetch(
+				'https://coins.llama.fi/prices/current/ethereum:0x0000000000000000000000000000000000000000'
+			)
 			const data = await response.json()
 			return data.coins['ethereum:0x0000000000000000000000000000000000000000'].price
 		} catch (error) {
@@ -317,7 +361,9 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 				const calculatedEth = ethInUsd / ethPrice
 				const diff = Math.abs(calculatedEth - eth) / eth
 				if (diff > PRICE_DIFF_THRESHOLD) {
-					console.log(`Correcting ${protocol.name} stakedEth from ${eth} to ${calculatedEth} (${diff * 100}% difference)`)
+					console.log(
+						`Correcting ${protocol.name} stakedEth from ${eth} to ${calculatedEth} (${diff * 100}% difference)`
+					)
 					correctedEth = calculatedEth
 				}
 			}

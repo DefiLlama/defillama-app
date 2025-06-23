@@ -393,14 +393,12 @@ const ChartByType = ({
 				}
 
 				for (const chain of selectedTypes) {
-					const sChain = slug(chain)
-
 					chartData[chain] = chartData[chain] || {}
 					chartData[chain][finalDate] =
-						(chartData[chain][finalDate] || 0) + (dataByChain[sChain] || 0) + cumulativeVolumeByChain[chain]
+						(chartData[chain][finalDate] || 0) + (dataByChain[chain] || 0) + cumulativeVolumeByChain[chain]
 
 					if (chartInterval === 'Cumulative') {
-						cumulativeVolumeByChain[chain] += dataByChain[sChain] || 0
+						cumulativeVolumeByChain[chain] += dataByChain[chain] || 0
 					}
 				}
 			}

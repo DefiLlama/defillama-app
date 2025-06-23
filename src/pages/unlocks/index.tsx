@@ -10,7 +10,7 @@ import { TopUnlocks } from '~/components/Unlocks/TopUnlocks'
 import { PastUnlockPriceImpact } from '~/components/Unlocks/PastUnlockPriceImpact'
 import { formattedNum } from '~/utils'
 import { UpcomingUnlockVolumeChart } from '~/components/Charts/UpcomingUnlockVolumeChart'
-import { useWatchlist } from '~/contexts/LocalStorage'
+import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { useRouter } from 'next/router'
 import { Metrics } from '~/components/Metrics'
 
@@ -70,7 +70,7 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 export default function Protocols({ data, unlockStats }) {
 	const [projectName, setProjectName] = React.useState('')
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
-	const { savedProtocols } = useWatchlist()
+	const { savedProtocols } = useWatchlistManager('defi')
 	const router = useRouter()
 
 	const { minUnlockValue, maxUnlockValue } = router.query

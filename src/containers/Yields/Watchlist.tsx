@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Menu } from '~/components/Menu'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { useIsClient } from '~/hooks'
-import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
+import { DEFAULT_PORTFOLIO_NAME, useWatchlistManager } from '~/contexts/LocalStorage'
 import { Switch } from '~/components/Switch'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
@@ -27,14 +27,12 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 
 	const isClient = useIsClient()
 
-	const { addPortfolio, removePortfolio, savedProtocols, portfolios, selectedPortfolio, setSelectedPortfolio } =
-		useWatchlist()
-
-	const savedProtocolsInWatchlist = Object.values(savedProtocols)
+	const { portfolios, selectedPortfolio, savedProtocols, addPortfolio, removePortfolio, setSelectedPortfolio } =
+		useWatchlistManager('yields')
 
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {
-			const list = protocolsDict.filter((p) => savedProtocolsInWatchlist.includes(p.pool))
+			const list = protocolsDict.filter((p) => savedProtocols.has(p.pool))
 			return list.map((t) => ({
 				pool: t.symbol,
 				configID: t.pool,
@@ -72,7 +70,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				lsdTokenOnly: t.lsdTokenOnly
 			}))
 		} else return []
-	}, [isClient, savedProtocolsInWatchlist, protocolsDict])
+	}, [isClient, savedProtocols, protocolsDict])
 
 	return (
 		<>
@@ -88,11 +86,18 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						onItemClick={(value) => setSelectedPortfolio(value)}
 						className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium"
 					/>
-					<button onClick={addPortfolio}>
+					<button
+						onClick={() => {
+							const newPortfolio = prompt('Enter a name for the new portfolio')
+							if (newPortfolio) {
+								addPortfolio(newPortfolio)
+							}
+						}}
+					>
 						<Icon name="folder-plus" height={24} width={24} />
 					</button>
 					{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
-						<button onClick={removePortfolio}>
+						<button onClick={() => removePortfolio(selectedPortfolio)}>
 							<Icon name="trash-2" height={24} width={24} />
 						</button>
 					)}

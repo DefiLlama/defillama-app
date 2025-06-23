@@ -127,6 +127,17 @@ function ProDashboardContent() {
 							</button>
 						)}
 
+						{isAuthenticated && isReadOnly && (
+							<button
+								onClick={() => copyDashboard()}
+								className="flex items-center gap-2 px-3 py-2 border border-[var(--primary1)] text-[var(--primary1)] hover:bg-[var(--primary1)] hover:text-white transition-colors"
+								title="Copy Dashboard"
+							>
+								<Icon name="copy" height={16} width={16} />
+								<span className="hidden sm:inline">Copy Dashboard</span>
+							</button>
+						)}
+
 						{isAuthenticated && (
 							<div className="relative">
 								<button

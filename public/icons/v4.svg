@@ -115,5 +115,9 @@
   <path d="M8.5 4.66663V8.66663" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M6.5 6.66663H10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </symbol>
+<symbol id="earth" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/><path d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"/><path d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/><circle cx="12" cy="12" r="10"/></symbol>
+<symbol id="twitter" viewBox="0 0 12 12" fill="none">
+  <path d="M6.95136 5.23471L10.6741 1.00256H9.79192L6.55948 4.67727L3.97773 1.00256H1L4.9041 6.55938L1 10.9974H1.88222L5.29576 7.11681L8.02227 10.9974H11L6.95114 5.23471H6.95136ZM5.74304 6.60833L5.34748 6.055L2.20009 1.65207H3.55512L6.0951 5.20538L6.49067 5.75871L9.79233 10.3775H8.4373L5.74304 6.60855V6.60833Z" fill="currentColor"/>
+</symbol>
 </defs>
 </svg>

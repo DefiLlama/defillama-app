@@ -27,6 +27,7 @@ import { useRouter } from 'next/router'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
 import { AdapterByChainChart } from './ChainChart'
+import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<
@@ -486,18 +487,18 @@ const columnOrders = Object.entries({
 	640: ['name', 'category', 'definition', 'total24h', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const chartKeys: Record<IProps['type'], string> = {
+const chartKeys: Record<IProps['type'], typeof protocolCharts[keyof typeof protocolCharts]> = {
 	Fees: 'fees',
 	Revenue: 'revenue',
 	'Holders Revenue': 'holdersRevenue',
 	'Options Premium Volume': 'optionsPremiumVolume',
 	'Options Notional Volume': 'optionsNotionalVolume',
 	'DEX Volume': 'dexVolume',
-	'Perp Volume': 'perpsVolume',
-	'Bridge Aggregator Volume': 'bridgeAggregators',
-	'Perp Aggregator Volume': 'perpsAggregators',
-	'DEX Aggregator Volume': 'dexAggregators',
-	Earnings: 'earnings'
+	'Perp Volume': 'perpVolume',
+	'Bridge Aggregator Volume': 'bridgeAggregatorVolume',
+	'Perp Aggregator Volume': 'perpAggregatorVolume',
+	'DEX Aggregator Volume': 'dexAggregatorVolume',
+	Earnings: 'incentives'
 }
 
 const getColumnsOptions = (type) =>
@@ -658,6 +659,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText:
 						'Total fees paid by users when using the protocol in the last 24 hours, updated daily at 00:00 UTC'
 				},
@@ -670,7 +672,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText: 'Total fees paid by users when using the protocol in the last 30 days'
 				},
 				size: 128
@@ -717,6 +719,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText: 'Revenue earned by the protocol in the last 24 hours, updated daily at 00:00 UTC'
 				},
 				size: 128
@@ -728,7 +731,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
 				},
 				size: 128
@@ -775,6 +778,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText:
 						'Revenue earned by token holders of the protocol in the last 24 hours, updated daily at 00:00 UTC'
 				},
@@ -787,7 +791,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText: 'Revenue earned by token holders of the protocol in the last 30 days'
 				},
 				size: 180
@@ -802,6 +806,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText:
 						'Sum of value paid buying and selling options on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
 				},
@@ -814,7 +819,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText: 'Sum of value paid buying and selling options on the options exchange in the last 30 days'
 				},
 				size: 180
@@ -829,6 +834,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText:
 						'Sum of the notional value of all options that have been traded on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
 				},
@@ -841,7 +847,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText:
 						'Sum of the notional value of all options that have been traded on the options exchange in the last 30 days'
 				},
@@ -857,6 +863,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText: 'Volume of all spot swaps on the dex in the last 24 hours, updated daily at 00:00 UTC'
 				},
 				size: 152
@@ -868,7 +875,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText: 'Volume of all spot swaps on the dex in the last 30 days'
 				},
 				size: 152
@@ -883,6 +890,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText:
 						'Notional volume of all trades on the perp exchange, including leverage in the last 24 hours, updated daily at 00:00 UTC'
 				},
@@ -895,7 +903,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage in the last 30 days'
 				},
 				size: 160
@@ -915,6 +923,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText:
 						'Notional volume of all trades on the perp aggregator, including leverage in the last 24 hours, updated daily at 00:00 UTC'
 				},
@@ -932,7 +941,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText:
 						'Notional volume of all trades on the perp aggregator, including leverage in the last 30 days'
 				},
@@ -953,6 +962,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText:
 						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 24 hours, updated daily at 00:00 UTC'
 				},
@@ -970,7 +980,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText:
 						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 30 days'
 				},
@@ -991,6 +1001,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText:
 						'Volume of spot token swaps on the DEX aggregator in the last 24 hours, updated daily at 00:00 UTC'
 				},
@@ -1008,7 +1019,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 30 days'
 				},
 				size: 160
@@ -1041,6 +1052,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
+					align: 'center',
 					headerHelperText:
 						'Earnings (Revenue - Incentives) earned by the protocol in the last 24 hours' +
 						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
@@ -1054,7 +1066,7 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
-					align: 'end',
+					align: 'center',
 					headerHelperText:
 						'Earnings (Revenue - Incentives) earned by the protocol in the last 30 days' +
 						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')

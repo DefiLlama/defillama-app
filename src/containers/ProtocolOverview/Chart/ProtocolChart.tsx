@@ -331,7 +331,6 @@ const ProtocolChart = React.memo(function ProtocolChart({
 	}, [
 		metrics,
 		historicalChainTvls,
-		governanceApis,
 		isHourlyChart,
 		geckoId,
 		activeUsersId,

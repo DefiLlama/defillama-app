@@ -13,14 +13,20 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	tableId,
 	chains = ['All'],
 	colSpan = 2,
-	filters
+	filters,
+	columnOrder,
+	columnVisibility,
+	customColumns
 }: {
 	tableId: string
 	chains: string[]
 	colSpan?: 1 | 2
 	filters?: TableFilters
+	columnOrder?: string[]
+	columnVisibility?: Record<string, boolean>
+	customColumns?: any[]
 }) {
-	const { handleTableFiltersChange } = useProDashboard()
+	const { handleTableFiltersChange, handleTableColumnsChange } = useProDashboard()
 	const [showFilterModal, setShowFilterModal] = useState(false)
 	const memoizedChains = useMemo(() => chains, [chains.join(',')])
 	const proDashboardElement = typeof window !== 'undefined' ? document.querySelector('.pro-dashboard') : null
@@ -32,7 +38,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		searchTerm,
 		setSearchTerm,
 		currentColumns,
-		columnOrder,
+		columnOrder: currentColumnOrder,
 		addOption,
 		toggleColumnVisibility,
 		moveColumnUp,
@@ -41,13 +47,25 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		applyPreset,
 		activePreset,
 		downloadCSV,
-		customColumns,
+		customColumns: currentCustomColumns,
 		addCustomColumn,
 		removeCustomColumn,
 		updateCustomColumn,
 		categories,
 		availableProtocols
-	} = useProTable(memoizedChains, filters, () => setShowFilterModal(true))
+	} = useProTable(
+		memoizedChains, 
+		filters, 
+		() => setShowFilterModal(true),
+		{
+			initialColumnOrder: columnOrder,
+			initialColumnVisibility: columnVisibility,
+			initialCustomColumns: customColumns,
+			onColumnsChange: (newColumnOrder, newColumnVisibility, newCustomColumns) => {
+				handleTableColumnsChange(tableId, newColumnOrder, newColumnVisibility, newCustomColumns)
+			}
+		}
+	)
 
 	const handleFiltersChange = (newFilters: TableFilters) => {
 		handleTableFiltersChange(tableId, newFilters)
@@ -72,12 +90,12 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 				searchTerm={searchTerm}
 				setSearchTerm={setSearchTerm}
 				currentColumns={currentColumns}
-				columnOrder={columnOrder}
+				columnOrder={currentColumnOrder}
 				addOption={addOption}
 				toggleColumnVisibility={toggleColumnVisibility}
 				moveColumnUp={moveColumnUp}
 				moveColumnDown={moveColumnDown}
-				customColumns={customColumns}
+				customColumns={currentCustomColumns}
 				onAddCustomColumn={addCustomColumn}
 				onRemoveCustomColumn={removeCustomColumn}
 				onUpdateCustomColumn={updateCustomColumn}

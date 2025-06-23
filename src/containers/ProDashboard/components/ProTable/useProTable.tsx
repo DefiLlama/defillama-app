@@ -17,7 +17,7 @@ import {
 	useGetProtocolsVolumeByMultiChain,
 	useGetProtocolsFeesAndRevenueByMultiChain
 } from '~/api/categories/chains/multiChainClient'
-import { TABLE_CATEGORIES, protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
+import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/columns'
 
@@ -101,7 +101,23 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	}
 }
 
-export function useProTable(chains: string[], filters?: TableFilters, onFilterClick?: () => void) {
+interface UseProTableOptions {
+	initialColumnOrder?: string[]
+	initialColumnVisibility?: Record<string, boolean>
+	initialCustomColumns?: CustomColumn[]
+	onColumnsChange?: (
+		columnOrder: string[],
+		columnVisibility: Record<string, boolean>,
+		customColumns: CustomColumn[]
+	) => void
+}
+
+export function useProTable(
+	chains: string[],
+	filters?: TableFilters,
+	onFilterClick?: () => void,
+	options?: UseProTableOptions
+) {
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsListMultiChain(chains)
 	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByMultiChain(chains)
 	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
@@ -156,29 +172,14 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 		return protocols
 	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees, filters])
 
-	const optionsKey = 'protocolsTableColumns'
-	const customColumnsKey = 'protocolsTableCustomColumns'
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const [filterState, setFilterState] = React.useState(TABLE_CATEGORIES.TVL)
 	const [showColumnPanel, setShowColumnPanel] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState('')
-	const [columnOrder, setColumnOrder] = React.useState<string[]>([])
-	const [customColumns, setCustomColumns] = React.useState<CustomColumn[]>([])
+	const [columnOrder, setColumnOrder] = React.useState<string[]>(options?.initialColumnOrder || [])
+	const [customColumns, setCustomColumns] = React.useState<CustomColumn[]>(options?.initialCustomColumns || [])
 	const [selectedPreset, setSelectedPreset] = React.useState<string | null>(null)
-
-	// Load custom columns from localStorage on mount
-	React.useEffect(() => {
-		const savedCustomColumns = window.localStorage.getItem(customColumnsKey)
-		if (savedCustomColumns) {
-			try {
-				const parsed = JSON.parse(savedCustomColumns) as CustomColumn[]
-				setCustomColumns(parsed)
-			} catch (error) {
-				console.error('Failed to parse saved custom columns:', error)
-			}
-		}
-	}, [customColumnsKey])
+	const [columnVisibility, setColumnVisibility] = React.useState(options?.initialColumnVisibility || {})
 
 	// Create custom column definitions
 	const customColumnDefs = React.useMemo(() => {
@@ -326,7 +327,8 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 		columns: allColumns,
 		state: {
 			sorting,
-			expanded
+			expanded,
+			columnVisibility
 		},
 		sortingFns: {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => {
@@ -351,6 +353,7 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 		onSortingChange: setSorting,
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
+		onColumnVisibilityChange: setColumnVisibility,
 		getSubRows: (row: IProtocolRow) => row.subRows,
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
@@ -381,18 +384,39 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 		}
 	}, [table, columnOrder])
 
+	const prevColumnOrderRef = React.useRef<string[]>()
+	const prevColumnVisibilityRef = React.useRef<Record<string, boolean>>()
+	const prevCustomColumnsRef = React.useRef<CustomColumn[]>()
+
 	React.useEffect(() => {
-		applyPreset('essential')
+		if (options?.onColumnsChange) {
+			const columnOrderChanged = JSON.stringify(prevColumnOrderRef.current) !== JSON.stringify(columnOrder)
+			const columnVisibilityChanged =
+				JSON.stringify(prevColumnVisibilityRef.current) !== JSON.stringify(columnVisibility)
+			const customColumnsChanged = JSON.stringify(prevCustomColumnsRef.current) !== JSON.stringify(customColumns)
+
+			if (columnOrderChanged || columnVisibilityChanged || customColumnsChanged) {
+				prevColumnOrderRef.current = columnOrder
+				prevColumnVisibilityRef.current = columnVisibility
+				prevCustomColumnsRef.current = customColumns
+				options.onColumnsChange(columnOrder, columnVisibility, customColumns)
+			}
+		}
+	}, [columnOrder, columnVisibility, customColumns, options])
+
+	React.useEffect(() => {
+		if (!options?.initialColumnVisibility) {
+			applyPreset('essential')
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const addOption = (newOptions: string[], setLocalStorage = true) => {
+	const addOption = (newOptions: string[]) => {
 		if (!table) return
 		const ops = Object.fromEntries(
 			table.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
 		)
-		if (setLocalStorage) window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		table.setColumnVisibility(ops)
+		setColumnVisibility(ops)
 	}
 
 	const columnPresets = React.useMemo(
@@ -420,9 +444,11 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 	const applyPreset = (presetName: string) => {
 		const preset = columnPresets[presetName]
 		if (preset) {
-			addOption(preset, true)
+			addOption(preset)
 			setShowColumnPanel(false)
 			setSelectedPreset(presetName)
+
+			setColumnOrder(preset)
 		}
 	}
 
@@ -447,7 +473,7 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 			key === columnKey ? isVisible : currentColumns[key]
 		)
 
-		addOption(newOptions, true)
+		addOption(newOptions)
 		setSelectedPreset(null)
 
 		if (isVisible) {
@@ -531,24 +557,23 @@ export function useProTable(chains: string[], filters?: TableFilters, onFilterCl
 	const addCustomColumn = (column: CustomColumn) => {
 		const updatedColumns = [...customColumns, column]
 		setCustomColumns(updatedColumns)
-		window.localStorage.setItem(customColumnsKey, JSON.stringify(updatedColumns))
 	}
 
 	const removeCustomColumn = (columnId: string) => {
 		const updatedColumns = customColumns.filter((col) => col.id !== columnId)
 		setCustomColumns(updatedColumns)
-		window.localStorage.setItem(customColumnsKey, JSON.stringify(updatedColumns))
 
 		// Also remove from visible columns if it's currently shown
-		const newVisibility = { ...table.getState().columnVisibility }
-		delete newVisibility[columnId]
-		table.setColumnVisibility(newVisibility)
+		setColumnVisibility((prev) => {
+			const newVisibility = { ...prev }
+			delete newVisibility[columnId]
+			return newVisibility
+		})
 	}
 
 	const updateCustomColumn = (columnId: string, updates: Partial<CustomColumn>) => {
 		const updatedColumns = customColumns.map((col) => (col.id === columnId ? { ...col, ...updates } : col))
 		setCustomColumns(updatedColumns)
-		window.localStorage.setItem(customColumnsKey, JSON.stringify(updatedColumns))
 	}
 
 	// Extract unique categories from all protocols

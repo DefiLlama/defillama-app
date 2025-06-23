@@ -8,7 +8,8 @@ import { Icon } from '~/components/Icon'
 export function EmbedChart({ color }: { color?: string }) {
 	const router = useRouter()
 
-	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+	const [feesSettings] = useLocalStorageSettingsManager('fees')
 	const [isDarkTheme] = useDarkModeManager()
 
 	let path = router.asPath === '/' ? '/chain/All' : router.asPath.split('#')[0].split('?')[0]
@@ -19,18 +20,28 @@ export function EmbedChart({ color }: { color?: string }) {
 
 	if (!path.includes('?')) {
 		path += '?'
+	} else {
+		path += '&'
 	}
 
 	const extras = []
-	for (const option in extraTvlsEnabled) {
-		if (extraTvlsEnabled[option]) {
+	for (const option in tvlSettings) {
+		if (tvlSettings[option]) {
 			extras.push(`include_${option}_in_tvl=true`)
+		}
+	}
+
+	for (const option in feesSettings) {
+		if (feesSettings[option]) {
+			extras.push(`include_${option}_in_fees=true`)
 		}
 	}
 
 	extras.push(isDarkTheme ? 'theme=dark' : 'theme=light')
 
-	const url = `<iframe width="640px" height="360px" src="https://defillama.com/chart${path}" title="DefiLlama" frameborder="0"></iframe>`
+	const url = `<iframe width="640px" height="360px" src="https://defillama.com/chart${path}${extras.join(
+		'&'
+	)}" title="DefiLlama" frameborder="0"></iframe>`
 
 	return (
 		<Ariakit.PopoverProvider>
