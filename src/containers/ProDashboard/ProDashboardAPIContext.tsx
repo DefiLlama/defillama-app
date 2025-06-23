@@ -55,6 +55,12 @@ interface ProDashboardContextType {
 	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month') => void
 	handleColSpanChange: (chartId: string, newColSpan: 1 | 2) => void
 	handleTableFiltersChange: (tableId: string, filters: TableFilters) => void
+	handleTableColumnsChange: (
+		tableId: string,
+		columnOrder?: string[],
+		columnVisibility?: Record<string, boolean>,
+		customColumns?: any[]
+	) => void
 	getChainInfo: (chainName: string) => Chain | undefined
 	getProtocolInfo: (protocolId: string) => Protocol | undefined
 	createNewDashboard: () => Promise<void>
@@ -450,6 +456,27 @@ export function ProDashboardAPIProvider({
 		[autoSave]
 	)
 
+	const handleTableColumnsChange = useCallback(
+		(tableId: string, columnOrder?: string[], columnVisibility?: Record<string, boolean>, customColumns?: any[]) => {
+			setItems((prev) => {
+				const newItems = prev.map((item) => {
+					if (item.id === tableId && item.kind === 'table') {
+						return {
+							...item,
+							columnOrder,
+							columnVisibility,
+							customColumns
+						} as ProtocolsTableConfig
+					}
+					return item
+				})
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[autoSave]
+	)
+
 	const getChainInfo = (chainName: string) => {
 		return chains.find((chain) => chain.name === chainName)
 	}
@@ -484,6 +511,7 @@ export function ProDashboardAPIProvider({
 		handleGroupingChange,
 		handleColSpanChange,
 		handleTableFiltersChange,
+		handleTableColumnsChange,
 		getChainInfo,
 		getProtocolInfo,
 		createNewDashboard,

@@ -55,6 +55,15 @@ export interface ProtocolsTableConfig {
 	chains: string[]
 	colSpan?: 1 | 2
 	filters?: TableFilters
+	columnOrder?: string[]
+	columnVisibility?: Record<string, boolean>
+	customColumns?: Array<{
+		id: string
+		name: string
+		expression: string
+		isValid: boolean
+		errorMessage?: string
+	}>
 	datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings' | 'token-usage'
 	datasetChain?: string
 	tokenSymbols?: string[]

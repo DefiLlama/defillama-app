@@ -84,6 +84,9 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											chains={item.chains}
 											colSpan={item.colSpan}
 											filters={item.filters}
+											columnOrder={item.columnOrder}
+											columnVisibility={item.columnVisibility}
+											customColumns={item.customColumns}
 										/>
 									)}
 								</div>
@@ -167,6 +170,9 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 													chains={item.chains}
 													colSpan={item.colSpan}
 													filters={item.filters}
+													columnOrder={item.columnOrder}
+													columnVisibility={item.columnVisibility}
+													customColumns={item.customColumns}
 												/>
 											)}
 										</div>
