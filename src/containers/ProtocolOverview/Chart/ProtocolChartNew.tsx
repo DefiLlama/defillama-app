@@ -1,12 +1,12 @@
 import { useRouter } from 'next/router'
 import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
-import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
+import { download, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug, toNiceCsvDate } from '~/utils'
 import { CACHE_SERVER, NFT_MARKETPLACES_VOLUME_API, PROTOCOL_TREASURY_API, TOKEN_LIQUIDITY_API } from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
@@ -22,6 +22,7 @@ import { EmbedChart } from '~/components/EmbedChart'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
 	ssr: false,
@@ -45,6 +46,30 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 }
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
+
+function downloadChart(data: Record<string, Array<[string | number, number]>>, filename: string) {
+	let rows = []
+	const charts = []
+	const dateStore = {}
+	for (const chartName in data) {
+		charts.push(chartName)
+		for (const [date, value] of data[chartName]) {
+			if (!dateStore[date]) {
+				dateStore[date] = {}
+			}
+			dateStore[date][chartName] = value
+		}
+	}
+	rows.push(['Timestamp', 'Date', ...charts])
+	for (const date in dateStore) {
+		const values = []
+		for (const chartName in data) {
+			values.push(dateStore[date]?.[chartName] ?? '')
+		}
+		rows.push([date, toNiceCsvDate(+date / 1000), ...values])
+	}
+	download(filename, rows.map((r) => r.join(',')).join('\n'))
+}
 
 export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	const router = useRouter()
@@ -134,6 +159,8 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
+	const [isDownloading, setIsDownloading] = useState(false)
+
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-start">
@@ -212,22 +239,6 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 									</button>
 								) : null}
 							</div>
-							{/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
-								{props.availableCharts.map((chart) => (
-									<button
-										key={`add-metric-${chart}`}
-										onClick={() => {
-											router.push(updateQueryParamInUrl(router.asPath, protocolCharts[chart], 'true'), undefined, {
-												shallow: true
-											})
-										}}
-										className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
-									>
-										<span>{chart}</span>
-										<span className="text-[#666] dark:text-[#919296] text-start"></span>
-									</button>
-								))}
-							</div> */}
 						</Ariakit.Dialog>
 					</Ariakit.DialogProvider>
 				) : null}
@@ -339,6 +350,17 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					<EmbedChart />
+					<CSVDownloadButton
+						onClick={() => {
+							try {
+								downloadChart(finalCharts, `${props.name}.csv`)
+							} catch (error) {
+								console.error('Error generating CSV:', error)
+							}
+						}}
+						smol
+						className="h-[30px] !bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+					/>
 				</div>
 			</div>
 			<div className="flex flex-col min-h-[360px]">
@@ -946,7 +968,12 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (loadingCharts.length > 0) {
-			return { finalCharts: [], stacks: [], valueSymbol, loadingCharts: loadingCharts.join(', ').toLowerCase() }
+			return {
+				finalCharts: {} as Record<string, Array<[string | number, number]>>,
+				stacks: [],
+				valueSymbol,
+				loadingCharts: loadingCharts.join(', ').toLowerCase()
+			}
 		}
 
 		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number]> } = {}
@@ -1208,7 +1235,7 @@ export const useFetchAndFormatChartData = ({
 			})
 		}
 
-		if (extraTvlCharts?.staking && toggledMetrics.staking === 'true') {
+		if (extraTvlCharts?.staking && toggledMetrics.staking_tvl === 'true') {
 			const chartData = []
 			for (const date in extraTvlCharts.staking) {
 				chartData.push([+date * 1e3, extraTvlCharts.staking[date]])
@@ -1216,7 +1243,7 @@ export const useFetchAndFormatChartData = ({
 			charts['Staking'] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
 		}
 
-		if (extraTvlCharts?.borrowed && toggledMetrics.borrowed === 'true') {
+		if (extraTvlCharts?.borrowed && toggledMetrics.borrowed_tvl === 'true') {
 			const chartData = []
 			for (const date in extraTvlCharts.borrowed) {
 				chartData.push([+date * 1e3, extraTvlCharts.borrowed[date]])
