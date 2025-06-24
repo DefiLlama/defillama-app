@@ -150,23 +150,25 @@ export function ProtocolOverviewLayout({
 							Information
 						</BasicLink>
 					)}
-					{isCEX ? (
-						<BasicLink
-							href={`/cex/assets/${slug(name)}`}
-							data-active={tab === 'assets'}
-							className="flex-shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-[var(--form-control-border)] data-[active=true]:border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-						>
-							Assets
-						</BasicLink>
-					) : (
-						<BasicLink
-							href={`/protocol/tvl/${slug(name)}`}
-							data-active={tab === 'tvl'}
-							className="flex-shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-[var(--form-control-border)] data-[active=true]:border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
-						>
-							TVL
-						</BasicLink>
-					)}
+					{metrics.tvlTab ? (
+						isCEX ? (
+							<BasicLink
+								href={`/cex/assets/${slug(name)}`}
+								data-active={tab === 'assets'}
+								className="flex-shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-[var(--form-control-border)] data-[active=true]:border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+							>
+								Assets
+							</BasicLink>
+						) : (
+							<BasicLink
+								href={`/protocol/tvl/${slug(name)}`}
+								data-active={tab === 'tvl'}
+								className="flex-shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-[var(--form-control-border)] data-[active=true]:border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+							>
+								TVL
+							</BasicLink>
+						)
+					) : null}
 					{metrics.stablecoins && (
 						<BasicLink
 							href={`/protocol/stablecoins/${slug(name)}`}

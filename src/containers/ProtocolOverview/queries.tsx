@@ -156,17 +156,35 @@ export const getProtocolMetrics = ({
 	metadata: IProtocolMetadata
 }): IProtocolPageMetrics => {
 	let inflowsExist = false
+	let multipleChains = false
 	if (!protocolData.misrepresentedTokens) {
 		for (const chain in protocolData.chainTvls ?? {}) {
-			if (protocolData.chainTvls[chain].tokensInUsd?.length > 0 && !inflowsExist) {
+			if (protocolData.chainTvls[chain].tokensInUsd?.length > 0) {
 				inflowsExist = true
 				break
 			}
 		}
 	}
 
+	let chainsWithTvl = 0
+	for (const chain in protocolData.chainTvls ?? {}) {
+		if (chain.includes('-') || chain === 'offers' || DEFI_SETTINGS_KEYS.includes(chain)) {
+			continue
+		}
+		if (protocolData.chainTvls[chain].tvl?.length > 0) {
+			chainsWithTvl++
+		}
+		if (chainsWithTvl > 1) {
+			multipleChains = true
+			break
+		}
+	}
+
+	const tvlTab = inflowsExist || multipleChains
+
 	return {
 		tvl: metadata.tvl ? true : false,
+		tvlTab,
 		dexs: metadata.dexs ? true : false,
 		perps: metadata.perps ? true : false,
 		options: metadata.options ? true : false,

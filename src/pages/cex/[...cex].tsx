@@ -80,7 +80,7 @@ export const getStaticProps = withPerformanceLogging(
 						? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 						: null
 				},
-				metrics: { tvl: true },
+				metrics: { tvl: true, tvlTab: true },
 				pageStyles
 			},
 			revalidate: !protocolRes ? 0 : maxAgeForNext([22])
