@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download, toNiceCsvDate, slug } from '~/utils'
 
 interface IMultiSeriesChartProps {
 	series?: Array<{
@@ -14,6 +12,7 @@ interface IMultiSeriesChartProps {
 		logo?: string
 		stack?: string
 		areaStyle?: any
+		metricType?: string
 	}>
 	chartOptions?: {
 		[key: string]: {
@@ -69,6 +68,7 @@ export default function MultiSeriesChart({
 						color: serie.color
 					},
 					data: serie.data?.map(([timestamp, value]: [number, number]) => [+timestamp * 1e3, value]) || [],
+					metricType: serie.metricType,
 					...(serie.logo && {
 						legendIcon: 'image://' + serie.logo
 					}),
@@ -123,38 +123,39 @@ export default function MultiSeriesChart({
 
 		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
 
-		const maxValues = processedSeries.map((s: any) => {
-			const vals = (s.data || []).map((d: any) => (typeof d[1] === 'number' ? d[1] : 0))
-			return vals.length ? Math.max(...vals) : 0
-		})
-		const overallMax = maxValues.length ? Math.max(...maxValues) : 0
-		const minMax = maxValues.length ? Math.min(...maxValues.filter((v) => v > 0)) : 0
-		const ratioThreshold = 100
-		const needSecondaryAxis = minMax > 0 && overallMax > 0 && overallMax / minMax > ratioThreshold
+		const metricTypes = new Set(processedSeries.map((s: any) => s.metricType).filter(Boolean))
+		const uniqueMetricTypes = Array.from(metricTypes)
+
+		const needMultipleAxes = uniqueMetricTypes.length > 1
 
 		let finalYAxis: any = yAxis
 		let seriesWithHallmarks = processedSeries
 
-		if (needSecondaryAxis) {
-			finalYAxis = [
-				{ ...yAxis, position: 'left' },
-				{ ...yAxis, position: 'right' }
-			]
-
-			seriesWithHallmarks = seriesWithHallmarks.map((s: any, idx: number) => ({
-				...s,
-				yAxisIndex: idx < maxValues.length && maxValues[idx] < overallMax / ratioThreshold ? 1 : 0
+		if (needMultipleAxes) {
+			finalYAxis = uniqueMetricTypes.slice(0, 3).map((_, index) => ({
+				...yAxis,
+				position: index === 0 ? 'left' : index === 1 ? 'right' : 'left',
+				offset: index === 2 ? 60 : 0
 			}))
+
+			seriesWithHallmarks = seriesWithHallmarks.map((s: any) => {
+				const axisIndex = uniqueMetricTypes.indexOf(s.metricType)
+				return {
+					...s,
+					yAxisIndex: Math.min(axisIndex, 2)
+				}
+			})
 		}
 
-		const legendRightPadding = needSecondaryAxis ? 40 : legend.right
+		const legendRightPadding = needMultipleAxes ? 40 : legend.right
+		const gridLeftPadding = uniqueMetricTypes.length > 2 ? 72 : 12
 
 		chartInstance.setOption({
 			graphic,
 			tooltip,
 			title: titleDefaults,
 			grid: {
-				left: 12,
+				left: gridLeftPadding,
 				bottom: 68,
 				top: 40,
 				right: 12,

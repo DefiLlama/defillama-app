@@ -50,7 +50,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				name: `${name} ${meta?.title || cfg.type}`,
 				type: (meta?.chartType === 'bar' ? 'bar' : 'line') as 'bar' | 'line',
 				data,
-				color: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
+				color: generateChartColor(itemIdentifier, meta?.color || '#8884d8'),
+				metricType: cfg.type
 			}
 		})
 
@@ -132,6 +133,11 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const isAllLoading = loadingItems.length === multi.items.length
 	const hasPartialFailures = failedItems.length > 0 && validItems.length > 0
 
+	const uniqueMetricTypes = new Set(validItems.map((item) => item.type))
+	const hasMultipleMetrics = uniqueMetricTypes.size > 1
+
+	console.log({ uniqueMetricTypes, hasMultipleMetrics })
+
 	return (
 		<div className="p-4 h-full min-h-[340px] flex flex-col">
 			<div className="flex items-center justify-between mb-2 pr-28">
@@ -146,7 +152,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						</div>
 					)}
 				</div>
-				{hasAnyData && (
+				{hasAnyData && !hasMultipleMetrics && (
 					<button
 						onClick={() => setShowPercentage(!showPercentage)}
 						className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
@@ -234,15 +240,15 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 											min: undefined,
 											axisLabel: {
 												formatter: (value: number) => {
-													const absValue = Math.abs(value);
+													const absValue = Math.abs(value)
 													if (absValue >= 1e9) {
-														return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+														return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
 													} else if (absValue >= 1e6) {
-														return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+														return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
 													} else if (absValue >= 1e3) {
-														return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+														return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
 													}
-													return value.toString();
+													return value.toString()
 												}
 											}
 										},

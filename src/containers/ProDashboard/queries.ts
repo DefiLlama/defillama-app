@@ -156,6 +156,14 @@ const chainChartHandlers: Record<string, (item: string, timePeriod?: TimePeriod)
 	gasUsed: (item, timePeriod) => async () => {
 		const data = await ChainCharts.gasUsed(item)
 		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	stablecoins: (item, timePeriod) => async () => {
+		const data = await ChainCharts.stablecoins(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	stablecoinInflows: (item, timePeriod) => async () => {
+		const data = await ChainCharts.stablecoinInflows(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
 	}
 }
 

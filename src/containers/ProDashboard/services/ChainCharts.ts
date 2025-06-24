@@ -4,7 +4,8 @@ import {
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOL_NEW_USERS_API,
-	PROTOCOL_GAS_USED_API
+	PROTOCOL_GAS_USED_API,
+	PEGGEDCHART_API
 } from '~/constants'
 import { convertToNumberFormat } from '../utils'
 
@@ -26,7 +27,10 @@ const CHART_METADATA = {
 	activeUsers: { type: 'userMetrics', api: PROTOCOL_ACTIVE_USERS_API },
 	newUsers: { type: 'userMetrics', api: PROTOCOL_NEW_USERS_API },
 	txs: { type: 'userMetrics', api: PROTOCOL_TRANSACTIONS_API },
-	gasUsed: { type: 'userMetrics', api: PROTOCOL_GAS_USED_API }
+	gasUsed: { type: 'userMetrics', api: PROTOCOL_GAS_USED_API },
+
+	stablecoins: { type: 'stablecoins' },
+	stablecoinInflows: { type: 'stablecoins', dataType: 'inflows' }
 }
 
 export default class ChainCharts {
@@ -57,6 +61,45 @@ export default class ChainCharts {
 		return res
 	}
 
+	private static async stablecoinsData(chain: string, dataType?: string): Promise<[number, number][]> {
+		if (!chain) return []
+		console.log({ chain, dataType })
+		const response = await fetch(`${PEGGEDCHART_API}/${chain}`)
+		const data = await response.json()
+
+		if (!data.aggregated || !Array.isArray(data.aggregated)) return []
+
+		if (dataType === 'inflows') {
+			return this.calculateInflows(data.aggregated)
+		}
+
+		const formattedData: [number, number][] = data.aggregated.map((item: any) => [
+			parseInt(item.date, 10),
+			item.totalCirculatingUSD?.peggedUSD || 0
+		])
+
+		return formattedData
+	}
+
+	private static calculateInflows(aggregatedData: any[]): [number, number][] {
+		if (aggregatedData.length < 2) return []
+
+		const inflowsData: [number, number][] = []
+
+		for (let i = 1; i < aggregatedData.length; i++) {
+			const currentDay = aggregatedData[i]
+			const prevDay = aggregatedData[i - 1]
+
+			const currentMcap = currentDay.totalCirculatingUSD?.peggedUSD || 0
+			const prevMcap = prevDay.totalCirculatingUSD?.peggedUSD || 0
+			const inflow = currentMcap - prevMcap
+
+			inflowsData.push([parseInt(currentDay.date, 10), inflow])
+		}
+		console.log({ inflowsData })
+		return inflowsData
+	}
+
 	static async getData(chartType: string, chain: string): Promise<[number, number][]> {
 		const metadata = CHART_METADATA[chartType]
 
@@ -72,6 +115,8 @@ export default class ChainCharts {
 				return this.dimensionsData(chain, metadata.endpoint, metadata.dataType)
 			case 'userMetrics':
 				return this.userMetrics(chain, metadata.api)
+			case 'stablecoins':
+				return this.stablecoinsData(chain, metadata.dataType)
 			default:
 				console.error(`Unknown metadata type: ${metadata.type}`)
 				return []
@@ -126,5 +171,11 @@ export default class ChainCharts {
 	}
 	static async gasUsed(chain: string): Promise<[number, number][]> {
 		return this.getData('gasUsed', chain)
+	}
+	static async stablecoins(chain: string): Promise<[number, number][]> {
+		return this.getData('stablecoins', chain)
+	}
+	static async stablecoinInflows(chain: string): Promise<[number, number][]> {
+		return this.getData('stablecoinInflows', chain)
 	}
 }
