@@ -123,7 +123,10 @@ export async function getProtocolsByCategory({
 
 					const extraKey = pchain.split('-')[1]
 
-					if (extraKey && !DEFI_SETTINGS_KEYS.includes(extraKey)) {
+					if (
+						extraKey &&
+						(!DEFI_SETTINGS_KEYS.includes(extraKey) || !['doublecounted', 'liquidstaking'].includes(extraKey))
+					) {
 						continue
 					}
 
@@ -136,7 +139,12 @@ export async function getProtocolsByCategory({
 				}
 			} else {
 				for (const pchain in protocol.chainTvls) {
-					if (pchain.includes('-') || pchain === 'offers' || protocol.chainTvls[pchain].tvl == null) {
+					if (
+						pchain.includes('-') ||
+						pchain === 'offers' ||
+						protocol.chainTvls[pchain].tvl == null ||
+						['doublecounted', 'liquidstaking'].includes(pchain)
+					) {
 						continue
 					}
 

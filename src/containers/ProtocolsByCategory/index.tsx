@@ -1,4 +1,4 @@
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useMemo } from 'react'
 import { IProtocolByCategoryPageData } from './types'
 import { ColumnDef } from '@tanstack/react-table'
@@ -13,11 +13,14 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import dynamic from 'next/dynamic'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { protocolsAndChainsOptions } from '~/components/Filters/options'
 
 const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
 	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
 }) as React.FC<ILineAndBarChartProps>
+
+const toggleOptions = protocolsAndChainsOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
 export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
@@ -44,7 +47,7 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
+			<ProtocolsChainsSearch options={toggleOptions} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
