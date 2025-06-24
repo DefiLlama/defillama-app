@@ -237,8 +237,8 @@ const columns = (
 	{
 		id: 'mcap/tvl',
 		header: 'Mcap/TVL',
-		accessorFn: (protocol) => (protocol.mcap && protocol.tvl ? protocol.mcap / protocol.tvl : null),
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		accessorFn: (protocol) => (protocol.mcap && protocol.tvl ? (protocol.mcap / protocol.tvl).toFixed(2) : null),
+		cell: (info) => <>{info.getValue() != null ? (info.getValue() as number) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
