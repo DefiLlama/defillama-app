@@ -344,20 +344,6 @@ export const PeggedAssetInfo = ({
 									</span>
 								)}
 
-								{wiki && (
-									<span>
-										<a
-											href={wiki}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
-										>
-											<span>DeFiLlama Wiki</span>
-											<Icon name="arrow-up-right" height={14} width={14} />
-										</a>
-									</span>
-								)}
-
 								{onCoinGecko === 'true' && (
 									<span>
 										<a

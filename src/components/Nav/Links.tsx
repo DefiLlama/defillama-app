@@ -203,11 +203,6 @@ export const navLinks: ILinks = {
 			},
 			{ name: 'Correlation', path: '/correlation' },
 			{
-				name: 'Wiki',
-				path: 'https://wiki.defillama.com/wiki/Main_Page',
-				external: true
-			},
-			{
 				name: 'Press / Media',
 				path: '/press'
 			},
