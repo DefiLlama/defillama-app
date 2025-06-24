@@ -16,6 +16,10 @@ interface SubmitButtonProps {
 	selectedDatasetChain?: string | null
 	selectedTokens?: string[]
 	onSubmit: () => void
+	selectedTab?: 'charts' | 'script'
+	script?: string
+	composerChartName?: string
+	onAddLlamaScriptChart?: (chart: { id: string; name: string; llamascript: string }) => void
 }
 
 export function SubmitButton({
@@ -31,40 +35,71 @@ export function SubmitButton({
 	chartTypesLoading,
 	selectedTableType = 'protocols',
 	selectedDatasetChain,
-	selectedTokens = [],
-	onSubmit
+	onSubmit,
+	selectedTab = 'charts',
+	script = '',
+	composerChartName = '',
+	onAddLlamaScriptChart,
+	selectedTokens = []
 }: SubmitButtonProps) {
-	const isDisabled = 
+	const isComposerScriptValid = selectedTab === 'script' && script.trim() && composerChartName.trim()
+	const isComposerChartsValid = selectedTab === 'charts' && composerItems.length > 0
+
+	const isDisabled =
 		chartTypesLoading ||
-		(selectedMainTab === 'chart' && selectedChartTab === 'chain' && (!selectedChain || selectedChartTypes.length === 0)) ||
-		(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && (!selectedProtocol || selectedChartTypes.length === 0)) ||
-		(selectedMainTab === 'table' && selectedTableType === 'protocols' && (!selectedChains || selectedChains.length === 0)) ||
+		(selectedMainTab === 'chart' &&
+			selectedChartTab === 'chain' &&
+			(!selectedChain || selectedChartTypes.length === 0)) ||
+		(selectedMainTab === 'chart' &&
+			selectedChartTab === 'protocol' &&
+			(!selectedProtocol || selectedChartTypes.length === 0)) ||
+		(selectedMainTab === 'table' &&
+			selectedTableType === 'protocols' &&
+			(!selectedChains || selectedChains.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
-		(selectedMainTab === 'table' && selectedTableType === 'token-usage' && (!selectedTokens || selectedTokens.length === 0)) ||
-		(selectedMainTab === 'composer' && composerItems.length === 0) ||
+		(selectedMainTab === 'table' &&
+			selectedTableType === 'token-usage' &&
+			(!selectedTokens || selectedTokens.length === 0)) ||
+		(selectedMainTab === 'composer' && !(isComposerChartsValid || isComposerScriptValid)) ||
 		(selectedMainTab === 'text' && !textContent.trim())
 
 	const getButtonText = () => {
 		if (editItem) return 'Save Changes'
-		
+
 		switch (selectedMainTab) {
-			case 'table': return 'Add Table'
-			case 'composer': return 'Add Multi-Chart'
-			case 'text': return 'Add Text'
+			case 'table':
+				return 'Add Table'
+			case 'composer':
+				if (selectedTab === 'script') return 'Add Script Chart'
+				return 'Add Multi-Chart'
+			case 'text':
+				return 'Add Text'
 			case 'chart':
 				if (selectedChartTypes.length > 1) {
 					return `Add ${selectedChartTypes.length} Charts`
 				}
 				return 'Add Chart'
-			default: return 'Add Chart'
+			default:
+				return 'Add Chart'
 		}
+	}
+
+	const handleClick = () => {
+		if (!editItem && selectedMainTab === 'composer') {
+			if (selectedTab === 'script' && isComposerScriptValid && onAddLlamaScriptChart) {
+				const id = `llamascript-${Date.now()}`
+				onAddLlamaScriptChart({ id, name: composerChartName || 'LlamaScript Chart', llamascript: script })
+				return
+			}
+		}
+		onSubmit()
 	}
 
 	return (
 		<div className="flex justify-end mt-5 md:mt-7">
 			<button
 				className="px-4 py-2.5 md:px-6 md:py-3 bg-[var(--primary1)] text-white font-medium hover:bg-[var(--primary1-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-sm md:text-base"
-				onClick={onSubmit}
+				onClick={handleClick}
 				disabled={isDisabled}
 			>
 				{getButtonText()}

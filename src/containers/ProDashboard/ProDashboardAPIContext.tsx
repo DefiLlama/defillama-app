@@ -69,6 +69,7 @@ interface ProDashboardContextType {
 	saveDashboard: () => Promise<void>
 	saveDashboardName: () => Promise<void>
 	copyDashboard: () => Promise<void>
+	setItems: React.Dispatch<React.SetStateAction<DashboardItemConfig[]>>
 }
 
 const ProDashboardContext = createContext<ProDashboardContextType | undefined>(undefined)
@@ -519,7 +520,8 @@ export function ProDashboardAPIProvider({
 		deleteDashboard: deleteDashboardWithConfirmation,
 		saveDashboard,
 		saveDashboardName,
-		copyDashboard
+		copyDashboard,
+		setItems
 	}
 
 	return <ProDashboardContext.Provider value={value}>{children}</ProDashboardContext.Provider>

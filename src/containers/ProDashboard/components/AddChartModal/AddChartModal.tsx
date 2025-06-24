@@ -9,9 +9,20 @@ import { TextTab } from './TextTab'
 import { SubmitButton } from './SubmitButton'
 import { useModalActions } from './useModalActions'
 import { AddChartModalProps } from './types'
+import React, { useState, useEffect } from 'react'
 
 export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps) {
 	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)
+
+	const [selectedTab, setSelectedTab] = useState<'charts' | 'script'>('charts')
+	const [script, setScript] = useState('')
+
+	useEffect(() => {
+		if (editItem && editItem.kind === 'chart' && editItem.type === 'llamascript') {
+			setSelectedTab('script')
+			setScript(state.composerScript || '')
+		}
+	}, [editItem, state.composerScript])
 
 	const getCurrentItemType = () => {
 		if (state.selectedMainTab === 'chart') {
@@ -53,6 +64,10 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 
 	const showPreview =
 		shouldFetchPreviewData && state.selectedChartTypes.some((type) => availableChartTypes.includes(type))
+
+	const handleAddLlamaScriptChart = (chart: { id: string; name: string; llamascript: string }) => {
+		actions.handleAddLlamaScriptChart(chart)
+	}
 
 	if (!isOpen) return null
 
@@ -115,6 +130,13 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onChartTypeChange={actions.setSelectedChartType}
 							onAddToComposer={actions.handleAddToComposer}
 							onRemoveFromComposer={actions.handleRemoveFromComposer}
+							onAddLlamaScriptChart={handleAddLlamaScriptChart}
+							selectedTab={selectedTab}
+							onSelectedTabChange={setSelectedTab}
+							script={script}
+							onScriptChange={setScript}
+							composerScript={state.composerScript}
+							setComposerScript={actions.setComposerScript}
 						/>
 					)}
 
@@ -143,7 +165,9 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onTextContentChange={actions.setTextContent}
 						/>
 					)}
+				</div>
 
+				<div className="px-6 pt-2 pb-6 border-t pro-border bg-inherit sticky bottom-0 z-10">
 					<SubmitButton
 						editItem={editItem}
 						selectedMainTab={state.selectedMainTab}
@@ -159,6 +183,10 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						selectedDatasetChain={state.selectedDatasetChain}
 						selectedTokens={state.selectedTokens}
 						onSubmit={actions.handleSubmit}
+						selectedTab={selectedTab}
+						script={script}
+						composerChartName={state.composerChartName}
+						onAddLlamaScriptChart={handleAddLlamaScriptChart}
 					/>
 				</div>
 			</div>

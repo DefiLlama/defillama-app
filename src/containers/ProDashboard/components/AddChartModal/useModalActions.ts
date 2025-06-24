@@ -28,7 +28,8 @@ export function useModalActions(
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
-		handleEditItem
+		handleEditItem,
+		setItems
 	} = useProDashboard()
 
 	const { state, actions, resetState } = useModalState(editItem, isOpen)
@@ -148,10 +149,19 @@ export function useModalActions(
 
 	const handleSubmit = () => {
 		if (editItem) {
-			// Edit mode - create new item with same ID and update in place
 			let newItem: DashboardItemConfig | null = null
-
-			if (state.selectedMainTab === 'composer' && state.composerItems.length > 0) {
+			if (
+				state.selectedMainTab === 'composer' &&
+				state.composerScript &&
+				editItem.kind === 'chart' &&
+				editItem.type === 'llamascript'
+			) {
+				newItem = {
+					...editItem,
+					name: state.composerChartName.trim() || undefined,
+					llamascript: state.composerScript
+				} as ChartConfig
+			} else if (state.selectedMainTab === 'composer' && state.composerItems.length > 0) {
 				newItem = {
 					...editItem,
 					kind: 'multi',
@@ -304,6 +314,25 @@ export function useModalActions(
 		onClose()
 	}
 
+	const handleAddLlamaScriptChart = (chart: { id: string; name: string; llamascript: string }) => {
+		const newChart: ChartConfig = {
+			id: chart.id,
+			kind: 'chart',
+			chain: '',
+			type: 'llamascript',
+			llamascript: chart.llamascript,
+			name: chart.name,
+			grouping: 'day',
+			colSpan: 1
+		}
+		setItems((prev: DashboardItemConfig[]) => {
+			const newItems = [...prev, newChart]
+			return newItems
+		})
+		resetState()
+		onClose()
+	}
+
 	return {
 		state,
 		actions: {
@@ -318,7 +347,8 @@ export function useModalActions(
 			handleMainTabChange,
 			handleChartTabChange,
 			handleComposerSubTypeChange,
-			handleSubmit
+			handleSubmit,
+			handleAddLlamaScriptChart
 		},
 		computed: {
 			selectedProtocolData,
