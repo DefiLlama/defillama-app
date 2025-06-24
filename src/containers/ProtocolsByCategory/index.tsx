@@ -7,11 +7,12 @@ import { Tooltip } from '~/components/Tooltip'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Icon } from '~/components/Icon'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { chainIconUrl, download, formattedNum, toNiceCsvDate } from '~/utils'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import dynamic from 'next/dynamic'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
 	ssr: false,
@@ -61,7 +62,7 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 							</span>
 						</p>
 					)}
-					<div className="flex flex-col gap-2">
+					<div className="flex flex-col flex-1 gap-2 mb-auto">
 						{props.fees24h != null && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
 								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Fees (7d)</span>
@@ -86,6 +87,16 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume24h, true)}</span>
 							</p>
 						)}
+						<CSVDownloadButton
+							onClick={() => {
+								const rows: any = [['Timestamp', 'Date', props.category]]
+								for (const item of props.charts['TVL']?.data ?? []) {
+									rows.push([item[0], toNiceCsvDate(item[0] / 1000), item[1]])
+								}
+								download(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
+							}}
+							className="h-[30px] !bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)] mr-auto mt-auto"
+						/>
 					</div>
 				</div>
 				<div className="bg-[var(--cards-bg)] min-h-[360px] rounded-md col-span-2">
