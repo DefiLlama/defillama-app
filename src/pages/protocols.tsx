@@ -1,11 +1,14 @@
 import Layout from '~/layout'
-import { ProtocolList } from '~/containers/ProtocolList'
 import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
+import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
+import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 
 export const getStaticProps = withPerformanceLogging('protocols', async () => {
-	const { protocols } = await getSimpleProtocolsPageData()
+	const protocols = await getProtocolsByChain({
+		chain: 'All',
+		metadata: { name: 'All', stablecoins: true, fees: true, dexs: true, derivatives: true, id: 'all' }
+	}).then((data) => data.protocols)
 
 	return {
 		props: {
@@ -18,7 +21,7 @@ export const getStaticProps = withPerformanceLogging('protocols', async () => {
 export default function Protocols({ protocols }) {
 	return (
 		<Layout title={`TVL Rankings - DefiLlama`} defaultSEO>
-			<ProtocolList filteredProtocols={protocols} showChainList={false} />
+			<ChainProtocolsTable protocols={protocols} />
 		</Layout>
 	)
 }
