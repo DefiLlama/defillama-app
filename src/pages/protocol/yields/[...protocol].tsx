@@ -1,6 +1,6 @@
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
-import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { ProtocolPools } from '~/containers/ProtocolOverview/Yields'
 import { maxAgeForNext } from '~/api'
@@ -23,9 +23,8 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const [protocolData, pageStyles, yields] = await Promise.all([
+		const [protocolData, yields] = await Promise.all([
 			getProtocol(protocol),
-			getProtocolPageStyles(metadata.name),
 			fetchWithErrorLogging(YIELD_POOLS_API)
 				.then((res) => res.json())
 				.catch((err) => {
@@ -53,7 +52,6 @@ export const getStaticProps = withPerformanceLogging(
 				parentProtocol: protocolData.parentProtocol ?? null,
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
-				pageStyles,
 				metrics,
 				yields:
 					yields && yields.data && projectYields.length > 0
@@ -79,7 +77,6 @@ export default function Protocols(props) {
 			category={props.category}
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
-			pageStyles={props.pageStyles}
 			tab="yields"
 		>
 			<div className="bg-[var(--cards-bg)] rounded-md">

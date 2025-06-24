@@ -436,7 +436,6 @@ const ProtocolContainer = ({
 	return (
 		<ProtocolOverviewLayout
 			isCEX={isCEX}
-			pageStyles={pageStyles}
 			name={name}
 			category={category}
 			otherProtocols={otherProtocols}

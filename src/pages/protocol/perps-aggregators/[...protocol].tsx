@@ -5,7 +5,7 @@ import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/Pro
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
-import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
@@ -22,15 +22,14 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const [protocolData, adapterData, pageStyles] = await Promise.all([
+		const [protocolData, adapterData] = await Promise.all([
 			getProtocol(protocol),
 			getAdapterProtocolSummary({
 				adapterType: 'derivatives-aggregator',
 				protocol: metadata.name,
 				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
-			}),
-			getProtocolPageStyles(metadata.name)
+			})
 		])
 
 		const metrics = getProtocolMetrics({ protocolData, metadata })
@@ -40,7 +39,6 @@ export const getStaticProps = withPerformanceLogging(
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
-				pageStyles,
 				metrics,
 				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions: adapterData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
@@ -61,7 +59,6 @@ export default function Protocols(props) {
 			category={props.category}
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
-			pageStyles={props.pageStyles}
 			tab="perps-aggregators"
 		>
 			<div className="bg-[var(--cards-bg)] rounded-md">

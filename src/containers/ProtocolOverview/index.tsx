@@ -90,7 +90,6 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	return (
 		<ProtocolOverviewLayout
 			isCEX={props.isCEX}
-			pageStyles={props.pageStyles}
 			name={props.name}
 			category={props.category}
 			otherProtocols={props.otherProtocols}

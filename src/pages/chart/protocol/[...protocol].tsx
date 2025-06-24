@@ -170,7 +170,6 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 				<ProtocolLineBarChart
 					chartData={finalCharts}
 					chartColors={props.chartColors}
-					color={props.pageStyles['--primary-color']}
 					isThemeDark={isThemeDark}
 					valueSymbol={valueSymbol}
 					groupBy={groupBy}

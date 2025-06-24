@@ -135,7 +135,6 @@ export interface IProtocolOverviewPageData {
 	methodology?: string | null
 	methodologyURL?: string | null
 	github?: Array<string> | null
-	pageStyles: IProtocolPageStyles
 	metrics: IProtocolPageMetrics
 	fees: IAdapterOverview | null
 	revenue: IAdapterOverview | null
@@ -252,14 +251,6 @@ export interface IHack {
 	defillamaId: number
 	parentProtocolId: string
 	language: string | null
-}
-
-export interface IProtocolPageStyles {
-	'--primary-color': string
-	'--bg-color': string
-	'--btn-bg': string
-	'--btn-hover-bg': string
-	'--btn-text': string
 }
 
 interface ICredit {

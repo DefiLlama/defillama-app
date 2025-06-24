@@ -1,6 +1,6 @@
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
-import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { GovernanceData } from '~/containers/ProtocolOverview/Governance'
 import { maxAgeForNext } from '~/api'
@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const [protocolData, pageStyles] = await Promise.all([getProtocol(protocol), getProtocolPageStyles(metadata.name)])
+		const protocolData = await getProtocol(protocol)
 
 		const metrics = getProtocolMetrics({ protocolData, metadata })
 
@@ -47,7 +47,6 @@ export const getStaticProps = withPerformanceLogging(
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
-				pageStyles,
 				metrics,
 				governanceApis: governanceApis.filter((x) => !!x)
 			},
@@ -67,7 +66,6 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			category={props.category}
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
-			pageStyles={props.pageStyles}
 			tab="governance"
 		>
 			<div className="bg-[var(--cards-bg)] rounded-md">

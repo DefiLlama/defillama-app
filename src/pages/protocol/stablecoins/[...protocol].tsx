@@ -1,6 +1,6 @@
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
-import { getProtocol, getProtocolMetrics, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { StablecoinInfo } from '~/containers/ProtocolOverview/Stablecoin'
@@ -21,7 +21,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const [protocolData, pageStyles] = await Promise.all([getProtocol(protocol), getProtocolPageStyles(metadata.name)])
+		const protocolData = await getProtocol(protocol)
 
 		const metrics = getProtocolMetrics({ protocolData, metadata })
 
@@ -34,7 +34,6 @@ export const getStaticProps = withPerformanceLogging(
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
-				pageStyles,
 				metrics,
 				assetName: protocolData.stablecoins[0]
 			},
@@ -54,7 +53,6 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			category={props.category}
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
-			pageStyles={props.pageStyles}
 			tab="stablecoins"
 		>
 			<div className="bg-[var(--cards-bg)] rounded-md">

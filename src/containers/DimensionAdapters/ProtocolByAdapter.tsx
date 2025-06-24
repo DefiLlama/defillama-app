@@ -16,7 +16,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import { ADAPTER_TYPES, VOLUME_TYPE_ADAPTERS } from './constants'
 import { BasicLink } from '~/components/Link'
-import { defaultPageStyles } from '../ProtocolOverview/queries'
+import { defaultProtocolPageStyles } from '../ProtocolOverview/Chart/constants'
 
 export function ProtocolByAdapter(props: IProtocolContainerProps) {
 	const {
@@ -62,7 +62,7 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 	const router = useRouter()
 
 	return (
-		<Layout title={props.title} style={defaultPageStyles}>
+		<Layout title={props.title} style={defaultProtocolPageStyles}>
 			<SEO
 				cardName={displayName}
 				tvl={formattedNum(total24h)?.toString()}

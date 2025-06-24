@@ -372,7 +372,6 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 					<ProtocolLineBarChart
 						chartData={finalCharts}
 						chartColors={props.chartColors}
-						color={props.pageStyles['--primary-color']}
 						isThemeDark={isThemeDark}
 						valueSymbol={valueSymbol}
 						groupBy={groupBy}

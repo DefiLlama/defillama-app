@@ -4,14 +4,15 @@ import { scams } from '~/constants'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { slug, tokenIconUrl } from '~/utils'
 import { BasicLink } from '~/components/Link'
-import { IProtocolPageMetrics, IProtocolPageStyles } from './types'
+import { IProtocolPageMetrics } from './types'
 import * as Ariakit from '@ariakit/react'
 import { TokenLogo } from '~/components/TokenLogo'
+import { oldBlue } from '~/constants/colors'
+import { defaultProtocolPageStyles } from './Chart/constants'
 
 export function ProtocolOverviewLayout({
 	children,
 	isCEX,
-	pageStyles,
 	name,
 	category,
 	otherProtocols,
@@ -21,7 +22,6 @@ export function ProtocolOverviewLayout({
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
-	pageStyles: IProtocolPageStyles
 	name: string
 	category: string
 	otherProtocols?: Array<string>
@@ -50,7 +50,7 @@ export function ProtocolOverviewLayout({
 		| 'forks'
 }) {
 	return (
-		<Layout title={`${name} - DefiLlama`} backgroundColor={pageStyles['--bg-color']} style={pageStyles as any}>
+		<Layout title={`${name} - DefiLlama`} style={defaultProtocolPageStyles}>
 			<ProtocolsChainsSearch options={toggleOptions} />
 			{scams.includes(name) && (
 				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-[var(--btn-bg)] border border-[var(--bg-color)] mb-1">

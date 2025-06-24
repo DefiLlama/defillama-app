@@ -3,7 +3,8 @@ import { maxAgeForNext } from '~/api'
 import { fuseProtocolData } from '~/api/categories/protocols'
 import { cexData } from '../../cexs'
 import { withPerformanceLogging } from '~/utils/perf'
-import { fetchArticles, getProtocol, getProtocolPageStyles } from '~/containers/ProtocolOverview/queries'
+import { fetchArticles, getProtocol } from '~/containers/ProtocolOverview/queries'
+import { oldBlue } from '~/constants/colors'
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/assets/[...cex]',
@@ -20,10 +21,9 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const [protocolRes, articles, pageStyles]: any = await Promise.all([
+		const [protocolRes, articles]: any = await Promise.all([
 			getProtocol(exchangeName),
-			fetchArticles({ tags: exchangeName }),
-			getProtocolPageStyles(exchangeData.name)
+			fetchArticles({ tags: exchangeName })
 		])
 
 		let inflowsExist = false
@@ -63,8 +63,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const protocolData = fuseProtocolData(protocolRes)
-		const backgroundColor = pageStyles['--primary-color']
-
+		const backgroundColor = oldBlue
 		return {
 			props: {
 				articles,
@@ -77,8 +76,7 @@ export const getStaticProps = withPerformanceLogging(
 						? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 						: null
 				},
-				metrics: { tvl: true },
-				pageStyles
+				metrics: { tvl: true }
 			},
 			revalidate: !protocolRes ? 0 : maxAgeForNext([22])
 		}

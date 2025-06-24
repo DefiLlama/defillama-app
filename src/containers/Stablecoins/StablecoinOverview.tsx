@@ -25,8 +25,8 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
-import { defaultPageStyles } from '../ProtocolOverview/queries'
 import { Tooltip } from '~/components/Tooltip'
+import { defaultProtocolPageStyles } from '../ProtocolOverview/Chart/constants'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -169,7 +169,7 @@ export const PeggedAssetInfo = ({
 			'--tag-border-color': transparentize(0.9, backgroundColor),
 			'--tag-bg': backgroundColor,
 			'--tag-hover-bg': transparentize(0.8, backgroundColor),
-			...defaultPageStyles
+			...defaultProtocolPageStyles
 		}
 	}, [backgroundColor])
 

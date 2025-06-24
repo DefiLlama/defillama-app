@@ -22,14 +22,10 @@ import {
 import { sluggify } from '~/utils/cache-client'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import metadata from '~/utils/metadata'
-import {
-	fetchArticles,
-	getProtocolMetrics,
-	getProtocolPageStyles,
-	getTokenCGData
-} from '~/containers/ProtocolOverview/queries'
+import { fetchArticles, getProtocolMetrics, getTokenCGData } from '~/containers/ProtocolOverview/queries'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { IArticle } from '~/containers/ProtocolOverview/types'
+import { oldBlue } from '~/constants/colors'
 const { chainMetadata, protocolMetadata } = metadata
 
 const chartTypes = [
@@ -136,7 +132,6 @@ export const getProtocolData = async (
 		liquidityInfo,
 		hacks,
 		raises,
-		pageStyles,
 		allProtocols,
 		users,
 		feesProtocols,
@@ -159,7 +154,6 @@ export const getProtocolData = async (
 		IArticle[],
 		any,
 		Array<{ id: string; tokenBreakdowns: { [cat: string]: number } }>,
-		any,
 		any,
 		any,
 		any,
@@ -247,7 +241,6 @@ export const getProtocolData = async (
 						return []
 					})
 			: [],
-		getProtocolPageStyles(protocolData.name),
 		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
 		protocolMetadata[protocolData.id]?.activeUsers && !isCpusHot
 			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
@@ -498,7 +491,7 @@ export const getProtocolData = async (
 		(p) => p.name === protocolData.name || p.parentProtocol === protocolData.id
 	)
 
-	const backgroundColor = pageStyles['--primary-color']
+	const backgroundColor = oldBlue
 	const colors = getNDistinctColors(chartTypes.length, backgroundColor)
 	const colorTones = {
 		...Object.fromEntries(chartTypes.map((type, index) => [type, colors[index]])),
@@ -757,7 +750,6 @@ export const getProtocolData = async (
 					? hacks?.filter((hack) => +hack.defillamaId === +protocolData.id)?.sort((a, b) => a.date - b.date)
 					: null) ?? null,
 			clientSide: isCpusHot,
-			pageStyles,
 			metrics,
 			incentivesData
 		},

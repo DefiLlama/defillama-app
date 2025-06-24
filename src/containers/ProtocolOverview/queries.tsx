@@ -22,7 +22,6 @@ import {
 	IProtocolMetadata,
 	IProtocolOverviewPageData,
 	IProtocolPageMetrics,
-	IProtocolPageStyles,
 	IUpdatedProtocol,
 	IArticlesResponse,
 	IArticle,
@@ -69,82 +68,6 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		console.log(`[ERROR] [${Date.now() - start}ms] <${PROTOCOL_API}/${protocolName}>`, e)
 
 		return null
-	}
-}
-
-export const getProtocolPageStyles = async (protocolName: string): Promise<IProtocolPageStyles> => {
-	const bgColor = await getColor(tokenIconPaletteUrl(protocolName))
-
-	const bgColor2 = bgColor.length < 7 ? oldBlue : bgColor
-	const backgroundColor = isDarkColor(bgColor2) ? oldBlue : bgColor2
-
-	return getStyles(backgroundColor)
-}
-
-function getStyles(color: string) {
-	let color2 = color.length < 7 ? oldBlue : color
-
-	let finalColor = isDarkColor(color2) ? oldBlue : color2
-
-	return {
-		'--primary-color': finalColor,
-		'--bg-color': transparentize(0.6, finalColor),
-		'--btn-bg': transparentize(0.9, finalColor),
-		'--btn-hover-bg': transparentize(0.8, finalColor),
-		'--btn-text': darken(0.1, finalColor)
-	}
-}
-
-export const defaultPageStyles = {
-	'--primary-color': oldBlue,
-	'--bg-color': 'rgba(31,103,210,0.4)',
-	'--btn-bg': 'rgba(31,103,210,0.1)',
-	'--btn-hover-bg': 'rgba(31,103,210,0.2)',
-	'--btn-text': '#1851a6'
-} as React.CSSProperties
-
-function isDarkColor(color: string) {
-	// Convert hex to RGB
-	const hex = color.replace('#', '')
-	const r = parseInt(hex.substring(0, 2), 16)
-	const g = parseInt(hex.substring(2, 4), 16)
-	const b = parseInt(hex.substring(4, 6), 16)
-
-	// Calculate relative luminance
-	const max = Math.max(r, g, b)
-	const min = Math.min(r, g, b)
-
-	// Calculate saturation (0-1)
-	const saturation = max === 0 ? 0 : (max - min) / max
-
-	// Check if the color is grayish by comparing RGB components and saturation
-	const tolerance = 15 // RGB difference tolerance
-	const saturationThreshold = 0.15 // Colors with saturation below this are considered grayish
-
-	const isGrayish =
-		Math.abs(r - g) <= tolerance &&
-		Math.abs(g - b) <= tolerance &&
-		Math.abs(r - b) <= tolerance &&
-		saturation <= saturationThreshold
-
-	return isGrayish
-}
-
-const getColor = async (path: string) => {
-	try {
-		if (!path) return primaryColor
-
-		const color = await fetchWithErrorLogging(path).then((res) => res.text())
-
-		if (!color.startsWith('#')) {
-			console.log(path, color)
-			return primaryColor
-		}
-
-		return color
-	} catch (error) {
-		console.log(path, 'rugged, but handled')
-		return primaryColor
 	}
 }
 
@@ -984,7 +907,6 @@ export const getProtocolOverviewPageData = async ({
 			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
 			explorer_url: getProtocolTokenUrlOnExplorer(protocolData.address)
 		},
-		pageStyles: defaultPageStyles as any,
 		metrics: getProtocolMetrics({ protocolData, metadata }),
 		fees: feesData,
 		revenue: revenueData,

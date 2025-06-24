@@ -20,7 +20,7 @@ import { fetchApi } from '~/utils/async'
 import { Icon } from '~/components/Icon'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
-import { defaultPageStyles } from '~/containers/ProtocolOverview/queries'
+import { defaultProtocolPageStyles } from '~/containers/ProtocolOverview/Chart/constants'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -599,7 +599,7 @@ function cleanPool(pool) {
 
 export default function YieldPoolPage(props) {
 	return (
-		<Layout title={`Yield Chart - DefiLlama`} style={defaultPageStyles} defaultSEO>
+		<Layout title={`Yield Chart - DefiLlama`} style={defaultProtocolPageStyles} defaultSEO>
 			<PageView {...props} />
 		</Layout>
 	)
