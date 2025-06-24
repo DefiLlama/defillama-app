@@ -1793,28 +1793,13 @@ const ProtocolContainer = ({
 									/>
 								</LazyChart>
 							)}
-							{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
-								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
-									<AreaChart
-										chartData={tokenBreakdown}
-										title="Tokens"
-										customLegendName="Token"
-										customLegendOptions={tokensUnique}
-									/>
-								</LazyChart>
-							)}
+
 							{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
 								<>
-									{tokenBreakdownPieChart?.length > 0 && (
-										<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
-											<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
-										</LazyChart>
-									)}
-
 									<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 										<AreaChart
 											chartData={tokenBreakdownUSD}
-											title="Tokens (USD)"
+											title="Token Values (USD)"
 											customLegendName="Token"
 											customLegendOptions={tokensUnique}
 											valueSymbol="$"
@@ -1822,6 +1807,28 @@ const ProtocolContainer = ({
 									</LazyChart>
 								</>
 							)}
+
+							{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
+								<>
+									{tokenBreakdownPieChart?.length > 0 && (
+										<LazyChart className="pt-10 relative col-span-full min-h-[440px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+											<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+										</LazyChart>
+									)}
+								</>
+							)}
+
+							{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
+								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+									<AreaChart
+										chartData={tokenBreakdown}
+										title="Token Balances (Raw Quantities)"
+										customLegendName="Token"
+										customLegendOptions={tokensUnique}
+									/>
+								</LazyChart>
+							)}
+
 							{usdInflows?.length > 0 && (
 								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
 									<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />

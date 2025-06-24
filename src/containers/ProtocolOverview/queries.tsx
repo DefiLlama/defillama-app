@@ -157,10 +157,18 @@ export const getProtocolMetrics = ({
 }): IProtocolPageMetrics => {
 	let inflowsExist = false
 	let multipleChains = false
+	let tokenBreakdownExist = false
 	if (!protocolData.misrepresentedTokens) {
 		for (const chain in protocolData.chainTvls ?? {}) {
 			if (protocolData.chainTvls[chain].tokensInUsd?.length > 0) {
 				inflowsExist = true
+				break
+			}
+		}
+
+		for (const chain in protocolData.chainTvls ?? {}) {
+			if (protocolData.chainTvls[chain].tokens?.length > 0) {
+				tokenBreakdownExist = true
 				break
 			}
 		}
@@ -180,7 +188,7 @@ export const getProtocolMetrics = ({
 		}
 	}
 
-	const tvlTab = inflowsExist || multipleChains
+	const tvlTab = inflowsExist || multipleChains || tokenBreakdownExist
 
 	return {
 		tvl: metadata.tvl ? true : false,

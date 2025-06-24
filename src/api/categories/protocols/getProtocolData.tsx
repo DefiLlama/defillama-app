@@ -103,6 +103,11 @@ export const getProtocolData = async (
 		return { notFound: true, props: null }
 	}
 
+	const metrics = getProtocolMetrics({
+		protocolData: protocolRes as any,
+		metadata
+	})
+
 	const protocolData = fuseProtocolData(protocolRes)
 
 	const devMetricsProtocolUrl = protocolData.id?.includes('parent')
@@ -567,7 +572,7 @@ export const getProtocolData = async (
 	const allTimeTokenTaxesRevenue = tokenTaxData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimeVolume = volumeData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
 	const allTimePerpsVolume = perpsData?.reduce((acc, curr) => (acc += curr.totalAllTime || 0), 0) ?? null
-	const metrics = protocolData.metrics || {}
+
 	const treasury = treasuries.find((p) => p.id.replace('-treasury', '') === protocolData.id)
 	const otherProtocols = protocolData?.otherProtocols?.map((p) => sluggify(p)) ?? []
 	const projectYields = yields?.data?.filter(
@@ -752,7 +757,7 @@ export const getProtocolData = async (
 					: null) ?? null,
 			clientSide: isCpusHot,
 			pageStyles,
-			metrics: getProtocolMetrics({ protocolData: protocolRes as any, metadata }),
+			metrics,
 			incentivesData
 		},
 		revalidate: maxAgeForNext([22])
