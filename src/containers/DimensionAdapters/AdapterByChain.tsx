@@ -569,10 +569,10 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 					: chartKeys[type]
 
 			return (
-				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
+				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-[18px]"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -591,7 +591,9 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 						</button>
 					) : null}
 
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="flex-shrink-0" onClick={row.getToggleExpandedHandler()}>
+						{index + 1}
+					</span>
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
