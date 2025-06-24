@@ -1,6 +1,6 @@
 import { formatPercentage, getNDistinctColors, slug, timeFromNow } from '~/utils'
 import { maxAgeForNext } from '~/api'
-import { fuseProtocolData, getProtocolEmissons, getProtocolsRaw } from '~/api/categories/protocols'
+import { fuseProtocolData, getProtocolEmissons } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import {
 	ACTIVE_USERS_API,
@@ -16,7 +16,8 @@ import {
 	NFT_MARKETPLACES_VOLUME_API,
 	RAISES_API,
 	DIMENISIONS_OVERVIEW_API,
-	LIQUIDITY_API
+	LIQUIDITY_API,
+	PROTOCOLS_API
 } from '~/constants'
 import { sluggify } from '~/utils/cache-client'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
@@ -247,7 +248,7 @@ export const getProtocolData = async (
 					})
 			: [],
 		getProtocolPageStyles(protocolData.name),
-		getProtocolsRaw(),
+		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
 		protocolMetadata[protocolData.id]?.activeUsers && !isCpusHot
 			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
 					.then((res) => res.json())

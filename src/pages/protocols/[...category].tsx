@@ -1,13 +1,12 @@
 import Layout from '~/layout'
-import { ProtocolList } from '~/containers/ProtocolList'
 import { maxAgeForNext } from '~/api'
-import { getProtocolsPageData } from '~/api/categories/protocols'
 import { PROTOCOLS_API } from '~/constants/index'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-
 import { fetchWithErrorLogging } from '~/utils/async'
 import { descriptions } from '../categories'
+import { ProtocolsByCategory } from '~/containers/ProtocolsByCategory'
+import { getProtocolsByCategory } from '~/containers/ProtocolsByCategory/queries'
 
 const fetch = fetchWithErrorLogging
 
@@ -26,13 +25,13 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const props = await getProtocolsPageData(categoryName, chain)
+		const props = await getProtocolsByCategory({ category: categoryName, chain })
 
-		if (props.filteredProtocols.length === 0) {
+		if (!props)
 			return {
 				notFound: true
 			}
-		}
+
 		return {
 			props,
 			revalidate: maxAgeForNext([22])
@@ -50,10 +49,10 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-export default function Protocols({ category, ...props }) {
+export default function Protocols(props) {
 	return (
-		<Layout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`} defaultSEO>
-			<ProtocolList category={capitalizeFirstLetter(category)} {...props} csvDownload={true} />
+		<Layout title={`${capitalizeFirstLetter(props.category)} TVL Rankings - DefiLlama`} defaultSEO>
+			<ProtocolsByCategory {...props} />
 		</Layout>
 	)
 }

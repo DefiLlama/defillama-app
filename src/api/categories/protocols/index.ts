@@ -27,25 +27,10 @@ import {
 	COINS_INFO_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
-import { getFeesAndRevenueProtocolsByChain } from '~/api/categories/adaptors'
 import { fetchWithErrorLogging } from '~/utils/async'
-import { getDexVolumeByChain } from '../adaptors'
 import { sluggify } from '~/utils/cache-client'
-
-export const getProtocolsRaw = () => fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
-
-export const getProtocols = () =>
-	fetchWithErrorLogging(PROTOCOLS_API)
-		.then((r) => r.json())
-		.then(({ protocols, chains, parentProtocols }) => ({
-			protocolsDict: protocols.reduce((acc, curr) => {
-				acc[slug(curr.name)] = curr
-				return acc
-			}, {}),
-			protocols,
-			chains,
-			parentProtocols
-		}))
+import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 
 export const getAllProtocolEmissionsWithHistory = async ({
 	startDate,
@@ -458,71 +443,9 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 	}
 }
 
-// used in /protocols/[category]
-export async function getProtocolsPageData(category?: string, chain?: string) {
-	const { protocols, chains, parentProtocols } = await getProtocols()
-	const normalizedCategory = category?.toLowerCase().replace(' ', '_')
-	const feesRes = await getFeesAndRevenueProtocolsByChain({
-		chain
-	})
-	const volumesRes = await getDexVolumeByChain({
-		chain,
-		excludeTotalDataChart: true,
-		excludeTotalDataChartBreakdown: true
-	})
-
-	const chainsSet = new Set()
-
-	protocols.forEach(({ chains, category: pCategory }) => {
-		chains.forEach((chain) => {
-			if (!category || !chain) {
-				chainsSet.add(chain)
-			} else {
-				if (pCategory?.toLowerCase() === category?.toLowerCase() && chains.includes(chain)) {
-					chainsSet.add(chain)
-				}
-			}
-		})
-	})
-
-	let categoryChart = null
-
-	if (chain) {
-		try {
-			categoryChart =
-				(await fetchWithErrorLogging(`${CHART_API}/categories/${normalizedCategory}`).then((r) => r.json()))[chain] ??
-				null
-		} catch (e) {
-			categoryChart = null
-		}
-	} else {
-		const res = await fetchWithErrorLogging(`${CATEGORY_API}`).then((r) => r.json())
-
-		categoryChart = Object.entries(res.chart)
-			.map(([date, value]) => [date, value[category]?.tvl ?? null])
-			.filter(([_, val]) => !!val)
-	}
-
-	let filteredProtocols = formatProtocolsData({ category, protocols, chain })
-	const protcolNames = filteredProtocols.map((p) => p.name)
-	const filteredFees = feesRes?.filter((p) => protcolNames.includes(p.name)) ?? []
-	const filteredVolumes = volumesRes?.protocols.filter((p) => protcolNames.includes(p.name)) ?? []
-
-	return {
-		categoryChart,
-		filteredProtocols,
-		chain: chain ?? 'All',
-		protocols,
-		fees: filteredFees,
-		volumes: filteredVolumes,
-		category,
-		chains: chains.filter((chain) => chainsSet.has(chain)),
-		parentProtocols
-	}
-}
 // - used in /airdrops, /protocols, /recent, /top-gainers-and-losers, /top-protocols, /watchlist
 export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep) {
-	const { protocols, chains, parentProtocols } = await getProtocolsRaw()
+	const { protocols, chains, parentProtocols } = await fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
 	const filteredProtocols = formatProtocolsData({
 		protocols,

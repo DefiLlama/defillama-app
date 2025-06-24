@@ -1,11 +1,12 @@
 import { slug } from '~/utils'
-import { getProtocols } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { maxAgeForNext } from '~/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { PROTOCOLS_API } from '~/constants'
+import { fetchWithErrorLogging } from '~/utils/async'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
@@ -35,7 +36,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 export async function getStaticPaths() {
-	const res = await getProtocols()
+	const res = await fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 
 	const paths: string[] = res.protocols.slice(0, 30).map(({ name }) => ({
 		params: { protocol: [slug(name)] }

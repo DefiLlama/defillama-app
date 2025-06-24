@@ -2,14 +2,13 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import CompareTokens from '~/containers/CompareTokens'
-import { getProtocols } from '~/api/categories/protocols'
-import { DIMENISIONS_OVERVIEW_API } from '~/constants'
+import { DIMENISIONS_OVERVIEW_API, PROTOCOLS_API } from '~/constants'
 import { fetchWithErrorLogging } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging('compare-tokens', async () => {
 	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols, volumeProtocols] = await Promise.all([
 		getAllCGTokensList(),
-		getProtocols(),
+		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
 		fetchWithErrorLogging(
 			`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 		)

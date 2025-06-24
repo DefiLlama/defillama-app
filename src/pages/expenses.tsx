@@ -1,5 +1,4 @@
 import { maxAgeForNext } from '~/api'
-import { getProtocolsRaw } from '~/api/categories/protocols'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -10,11 +9,12 @@ import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { PROTOCOLS_API } from '~/constants'
 
 const fetch = fetchWithErrorLogging
 
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
-	const { protocols, parentProtocols } = await getProtocolsRaw()
+	const { protocols, parentProtocols } = await fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
 	const expenses = await fetch(
 		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
 	).then((r) => r.json())

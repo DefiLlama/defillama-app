@@ -196,7 +196,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		columns: [
 			columnHelper.accessor('fees_24h', {
 				header: 'Fees 24h',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -206,7 +206,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('revenue_24h', {
 				header: 'Revenue 24h',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -216,7 +216,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('fees_7d', {
 				header: 'Fees 7d',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -226,7 +226,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('revenue_7d', {
 				header: 'Revenue 7d',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -236,7 +236,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('fees_30d', {
 				header: 'Fees 30d',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -246,7 +246,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('revenue_30d', {
 				header: 'Revenue 30d',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -256,7 +256,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('fees_1y', {
 				header: 'Monthly Avg 1Y Fees',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -266,7 +266,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('revenue_1y', {
 				header: 'Revenue 1Y',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -276,7 +276,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			// columnHelper.accessor('average_revenue_1y', {
 			// 	header: 'Monthly Avg 1Y Rev',
-			// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+			// 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			// 	sortUndefined: 'last',
 			// 	meta: {
 			// 		align: 'end'
@@ -285,7 +285,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			// }),
 			columnHelper.accessor('holdersRevenue30d', {
 				header: 'Holders Revenue 30d',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -296,7 +296,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			// columnHelper.accessor('userFees_24h', {
 			// 	header: 'User Fees 24h',
-			// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+			// 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			// 	sortUndefined: 'last',
 			// 	meta: {
 			// 		align: 'end',
@@ -306,7 +306,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			// }),
 			columnHelper.accessor('cumulativeFees', {
 				header: 'Cumulative Fees',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -316,7 +316,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('holderRevenue_24h', {
 				header: 'Holders Revenue 24h',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -328,7 +328,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			,
 			// columnHelper.accessor('treasuryRevenue_24h', {
 			// 	header: 'Treasury Revenue 24h',
-			// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+			// 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			// 	sortUndefined: 'last',
 			// 	meta: {
 			// 		align: 'end'
@@ -337,7 +337,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			// }),
 			// columnHelper.accessor('supplySideRevenue_24h', {
 			// 	header: 'Supply Side Revenue 24h',
-			// 	cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+			// 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			// 	sortUndefined: 'last',
 			// 	meta: {
 			// 		align: 'end'
@@ -346,7 +346,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			// }),
 			columnHelper.accessor('pf', {
 				header: 'P/F',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? info.getValue() + 'x' : null}</>,
+				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -356,7 +356,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('ps', {
 				header: 'P/S',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? info.getValue() + 'x' : null}</>,
+				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -376,7 +376,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		columns: [
 			columnHelper.accessor('volume_24h', {
 				header: 'Spot Volume 24h',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -386,7 +386,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('volume_7d', {
 				header: 'Spot Volume 7d',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -406,7 +406,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			}),
 			columnHelper.accessor('cumulativeVolume', {
 				header: 'Spot Cumulative Volume',
-				cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -806,7 +806,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
 		header: 'Fees 24h',
 		accessorKey: 'fees_24h',
-		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -816,7 +816,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
 		header: 'Fees 7d',
 		accessorKey: 'fees_7d',
-		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -826,7 +826,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
 		header: 'Fees 30d',
 		accessorKey: 'fees_30d',
-		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -836,7 +836,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
 		header: 'Revenue 24h',
 		accessorKey: 'revenue_24h',
-		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -846,7 +846,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
 		header: 'Revenue 7d',
 		accessorKey: 'revenue_7d',
-		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -856,7 +856,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
 		header: 'Volume 24h',
 		accessorKey: 'volume_24h',
-		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -867,7 +867,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		header: 'Volume 7d',
 		accessorKey: 'volume_7d',
 		sortUndefined: 'last',
-		cell: (info) => <>{info.getValue() || info.getValue() === 0 ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		meta: {
 			align: 'end'
 		},

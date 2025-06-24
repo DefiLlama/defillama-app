@@ -642,7 +642,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 		}
 	}
 
-	const finalProtocols: Record<string, IProtocol> = {}
+	const protocolsStore: Record<string, IProtocol> = {}
 
 	const parentStore: Record<string, Array<IChildProtocol>> = {}
 
@@ -762,7 +762,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			if (protocol.parentProtocol && metadataCache.protocolMetadata[protocol.parentProtocol]) {
 				parentStore[protocol.parentProtocol] = [...(parentStore?.[protocol.parentProtocol] ?? []), childStore]
 			} else {
-				finalProtocols[protocol.defillamaId] = childStore
+				protocolsStore[protocol.defillamaId] = childStore
 			}
 		}
 	}
@@ -856,7 +856,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				  }
 				: null
 
-			finalProtocols[parentProtocol.id] = {
+			protocolsStore[parentProtocol.id] = {
 				name: metadataCache.protocolMetadata[parentProtocol.id].displayName,
 				slug: metadataCache.protocolMetadata[parentProtocol.id].name,
 				category: null,
@@ -873,22 +873,27 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			}
 
 			if (parentFees) {
-				finalProtocols[parentProtocol.id].fees = parentFees
+				protocolsStore[parentProtocol.id].fees = parentFees
 			}
 			if (parentRevenue) {
-				finalProtocols[parentProtocol.id].revenue = parentRevenue
+				protocolsStore[parentProtocol.id].revenue = parentRevenue
 			}
 			if (parentDexs) {
-				finalProtocols[parentProtocol.id].dexs = parentDexs
+				protocolsStore[parentProtocol.id].dexs = parentDexs
 			}
 			if (parentEmissions) {
-				finalProtocols[parentProtocol.id].emissions = parentEmissions
+				protocolsStore[parentProtocol.id].emissions = parentEmissions
 			}
 		}
 	}
 
+	const finalProtocols: IProtocol[] = []
+	for (const protocol in protocolsStore) {
+		finalProtocols.push(protocolsStore[protocol])
+	}
+
 	return {
-		protocols: Object.values(finalProtocols).sort((a, b) => (b.tvl?.default?.tvl ?? 0) - (a.tvl?.default?.tvl ?? 0)),
+		protocols: finalProtocols.sort((a, b) => (b.tvl?.default?.tvl ?? 0) - (a.tvl?.default?.tvl ?? 0)),
 		chains,
 		fees,
 		dexs,
