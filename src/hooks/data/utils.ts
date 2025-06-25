@@ -20,6 +20,9 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	const categories = new Set()
 
 	const hasAtleastOnceValue = {}
+	let weightedVolumeChange = 0
+	let totalVolumeWeight = 0
+
 	const {
 		mcap,
 		tvl,
@@ -88,6 +91,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 				acc.mcap = acc.mcap + curr.mcap
 			}
 
+			if (curr.volume_7d && curr.volumeChange_7d !== undefined && curr.volumeChange_7d !== null) {
+				weightedVolumeChange += curr.volumeChange_7d * curr.volume_7d
+				totalVolumeWeight += curr.volume_7d
+			}
+
 			return acc
 		},
 		{
@@ -119,6 +127,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	const change1m: number | null = getPercentChange(tvl, tvlPrevMonth)
 	const pf = getAnnualizedRatio(mcap, fees_30d)
 	const ps = getAnnualizedRatio(mcap, revenue_30d)
+
+	let volumeChange_7d = null
+	if (totalVolumeWeight > 0) {
+		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
+	}
 
 	let mcaptvl = null
 
@@ -158,6 +171,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		supplySideRevenue_24h,
 		volume_24h,
 		volume_7d,
+		volumeChange_7d,
 		cumulativeVolume,
 		pf,
 		ps,

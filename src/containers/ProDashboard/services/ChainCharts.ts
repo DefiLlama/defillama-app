@@ -45,7 +45,6 @@ export default class ChainCharts {
 			: `${DIMENISIONS_OVERVIEW_API}/${endpoint}/${chain}`
 		const response = await fetch(url)
 		const data = await response.json()
-		console.log(data)
 		return convertToNumberFormat(data.totalDataChart ?? [])
 	}
 
@@ -61,13 +60,11 @@ export default class ChainCharts {
 		const response = await fetch(`${CHART_API}/${chain}`)
 		const data = await response.json()
 		const res = convertToNumberFormat(data.tvl ?? [])
-		console.log(res)
 		return res
 	}
 
 	private static async stablecoinsData(chain: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
-		console.log({ chain, dataType })
 		const response = await fetch(`${PEGGEDCHART_API}/${chain}`)
 		const data = await response.json()
 
@@ -92,7 +89,6 @@ export default class ChainCharts {
 			: `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${chain}`
 		const response = await fetch(url)
 		const data = await response.json()
-		console.log(data)
 		return convertToNumberFormat(data.totalDataChart ?? [])
 	}
 
@@ -111,7 +107,6 @@ export default class ChainCharts {
 
 			inflowsData.push([parseInt(currentDay.date, 10), inflow])
 		}
-		console.log({ inflowsData })
 		return inflowsData
 	}
 

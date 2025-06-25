@@ -50,6 +50,9 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let revenue_7d = 0
 	let revenue_30d = 0
 
+	let weightedVolumeChange = 0
+	let totalVolumeWeight = 0
+
 	// Aggregate metrics from filtered children
 	filteredSubRows.forEach((child) => {
 		if (child.tvl) tvl += child.tvl
@@ -59,6 +62,10 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		if (child.mcap) mcap += child.mcap
 		if (child.volume_24h) volume_24h += child.volume_24h
 		if (child.volume_7d) volume_7d += child.volume_7d
+		if (child.volume_7d && child.volumeChange_7d !== undefined && child.volumeChange_7d !== null) {
+			weightedVolumeChange += child.volumeChange_7d * child.volume_7d
+			totalVolumeWeight += child.volume_7d
+		}
 		if (child.fees_24h) fees_24h += child.fees_24h
 		if (child.fees_7d) fees_7d += child.fees_7d
 		if (child.fees_30d) fees_30d += child.fees_30d
@@ -67,10 +74,14 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		if (child.revenue_30d) revenue_30d += child.revenue_30d
 	})
 
-	// Calculate percentage changes
 	const change_1d = getPercentChange(tvl, tvlPrevDay)
 	const change_7d = getPercentChange(tvl, tvlPrevWeek)
 	const change_1m = getPercentChange(tvl, tvlPrevMonth)
+
+	let volumeChange_7d = null
+	if (totalVolumeWeight > 0) {
+		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
+	}
 
 	// Calculate mcaptvl
 	let mcaptvl = null
@@ -87,6 +98,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		mcap: mcap || parent.mcap, // Keep original mcap if no child has mcap
 		volume_24h,
 		volume_7d,
+		volumeChange_7d,
 		fees_24h,
 		fees_7d,
 		fees_30d,
@@ -121,7 +133,6 @@ export function useProTable(
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsListMultiChain(chains)
 	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByMultiChain(chains)
 	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
-
 	const finalProtocolsList = React.useMemo(() => {
 		if (!fullProtocolsList) return []
 
@@ -165,7 +176,26 @@ export function useProTable(
 					.filter((p) => p !== null)
 			}
 			if (categorySet) {
-				protocols = protocols.filter((p) => categorySet.has(p.category))
+				protocols = protocols
+					.map((p) => {
+						if (p.category && categorySet.has(p.category)) {
+							return p
+						}
+
+						const protocolWithSubRows = p as any
+						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
+							const filteredSubRows = protocolWithSubRows.subRows.filter(
+								(child: any) => child.category && categorySet.has(child.category)
+							)
+
+							if (filteredSubRows.length > 0) {
+								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
+							}
+						}
+
+						return null
+					})
+					.filter((p) => p !== null)
 			}
 		}
 

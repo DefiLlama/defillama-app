@@ -80,7 +80,6 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 	let itemIconUrl: string | undefined = undefined
 	let itemInfo: Chain | Protocol | undefined
 	let itemIdentifier: string = ''
-	console.log('chart', chart)
 	if (chart.protocol) {
 		itemInfo = getProtocolInfo(chart.protocol)
 		itemName = itemInfo?.name || chart.protocol
