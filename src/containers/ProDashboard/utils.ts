@@ -73,7 +73,6 @@ export const getItemIconUrl = (itemType: 'chain' | 'protocol', itemInfo: any, it
 import { generateConsistentChartColor } from './utils/colorManager'
 
 export const generateChartColor = (itemName: string, fallbackColor: string): string => {
-	console.log('itemName', itemName)
 	const itemType = itemName?.includes('_') ? 'protocol' : 'chain'
 
 	return generateConsistentChartColor(itemName, fallbackColor, itemType)

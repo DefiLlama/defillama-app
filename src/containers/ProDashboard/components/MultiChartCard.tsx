@@ -14,8 +14,9 @@ interface MultiChartCardProps {
 }
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { getProtocolInfo } = useProDashboard()
+	const { getProtocolInfo, handleGroupingChange } = useProDashboard()
 	const [showPercentage, setShowPercentage] = useState(false)
+	const [showStacked, setShowStacked] = useState(false)
 
 	// Filter valid items and create series data
 	const validItems = multi.items.filter((cfg) => {
@@ -34,13 +35,15 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const loadingItems = multi.items.filter((cfg) => cfg.isLoading)
 
 	const series = useMemo(() => {
-		const baseSeries = validItems.map((cfg, i) => {
+		const baseSeries = validItems.map((cfg) => {
 			const rawData = cfg.data as [string, number][]
 			const meta = CHART_TYPES[cfg.type]
 			const name = cfg.protocol ? getProtocolInfo(cfg.protocol)?.name || cfg.protocol : cfg.chain
 
 			const data: [number, number][] = rawData.map(([timestamp, value]) => [
-				Math.floor(new Date(timestamp).getTime()),
+				typeof timestamp === 'string' && !isNaN(Number(timestamp))
+					? Number(timestamp)
+					: Math.floor(new Date(timestamp).getTime()),
 				value
 			])
 
@@ -55,7 +58,45 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			}
 		})
 
-		if (!showPercentage) return baseSeries
+		const uniqueTypes = new Set(validItems.map((item) => item.type))
+		const allBarType =
+			uniqueTypes.size === 1 &&
+			validItems.every((item) => {
+				const chartType = CHART_TYPES[item.type]
+				return chartType?.chartType === 'bar'
+			})
+
+		if (allBarType && showStacked) {
+			const allTimestamps = new Set<number>()
+			baseSeries.forEach((serie) => {
+				serie.data.forEach(([timestamp]) => allTimestamps.add(timestamp))
+			})
+
+			const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
+
+			const alignedSeries = baseSeries.map((serie) => {
+				const dataMap = new Map(serie.data)
+				const alignedData: [number, number][] = sortedTimestamps.map((timestamp) => [
+					timestamp,
+					dataMap.get(timestamp) || 0
+				])
+
+				return {
+					...serie,
+					data: alignedData,
+					stack: 'total'
+				}
+			})
+
+			return alignedSeries
+		}
+
+		if (!showPercentage) {
+			return baseSeries.map((serie) => {
+				const { stack, ...rest } = serie as any
+				return rest
+			})
+		}
 
 		const allTimestamps = new Set<number>()
 		baseSeries.forEach((serie) => {
@@ -127,7 +168,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				}
 			}
 		})
-	}, [validItems, showPercentage, getProtocolInfo])
+	}, [validItems, showPercentage, showStacked, getProtocolInfo])
 
 	const hasAnyData = validItems.length > 0
 	const isAllLoading = loadingItems.length === multi.items.length
@@ -136,31 +177,87 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const uniqueMetricTypes = new Set(validItems.map((item) => item.type))
 	const hasMultipleMetrics = uniqueMetricTypes.size > 1
 
-	console.log({ uniqueMetricTypes, hasMultipleMetrics })
+	const allChartsGroupable = multi.items.every((item) => {
+		const chartType = CHART_TYPES[item.type]
+		return chartType?.groupable === true
+	})
+
+	const allChartsAreBarType =
+		!hasMultipleMetrics &&
+		validItems.every((item) => {
+			const chartType = CHART_TYPES[item.type]
+			return chartType?.chartType === 'bar'
+		})
+
+	const groupingOptions: ('day' | 'week' | 'month')[] = ['day', 'week', 'month']
 
 	return (
 		<div className="p-4 h-full min-h-[340px] flex flex-col">
-			<div className="flex items-center justify-between mb-2 pr-28">
-				<div className="flex items-center gap-2">
-					<h3 className="text-sm font-medium text-[var(--text1)]">
-						{multi.name || `Multi-Chart (${multi.items.length})`}
-					</h3>
-					{hasPartialFailures && (
-						<div className="flex items-center gap-1 text-xs text-yellow-500">
-							<Icon name="alert-triangle" height={12} width={12} />
-							<span>Partial data</span>
-						</div>
-					)}
+			<div className="mb-2 pr-[86px]">
+				<div className="flex flex-wrap items-start justify-between gap-3">
+					<div className="flex items-center gap-2 min-w-0">
+						<h3 className="text-sm font-medium text-[var(--text1)] truncate">
+							{multi.name || `Multi-Chart (${multi.items.length})`}
+						</h3>
+						{hasPartialFailures && (
+							<div className="flex items-center gap-1 text-xs text-yellow-500 shrink-0">
+								<Icon name="alert-triangle" height={12} width={12} />
+								<span className="hidden sm:inline">Partial data</span>
+								<span className="sm:hidden">!</span>
+							</div>
+						)}
+					</div>
+					<div className="flex items-center gap-2 shrink-0">
+						{allChartsGroupable && hasAnyData && (
+							<div className="flex border border-[var(--form-control-border)] overflow-hidden">
+								{groupingOptions.map((option, index) => (
+									<button
+										key={option}
+										onClick={() => handleGroupingChange(multi.id, option)}
+										className={`px-2 sm:px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
+										${index > 0 ? 'border-l border-[var(--form-control-border)]' : ''}
+										${
+											multi.grouping === option
+												? 'bg-[var(--primary1)] text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:ring-opacity-50'
+												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-none focus:ring-1 focus:ring-[var(--form-control-border)]'
+										}`}
+									>
+										<span className="hidden xs:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+										<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
+									</button>
+								))}
+							</div>
+						)}
+						{hasAnyData && !hasMultipleMetrics && (
+							<>
+								{allChartsAreBarType && (
+									<button
+										onClick={() => {
+											setShowStacked(!showStacked)
+											setShowPercentage(false)
+										}}
+										className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
+										title={showStacked ? 'Show grouped bars' : 'Show stacked bars'}
+									>
+										<Icon name="layers" height={12} width={12} />
+										<span className="hidden sm:inline">{showStacked ? 'Stacked' : 'Grouped'}</span>
+									</button>
+								)}
+								<button
+									onClick={() => {
+										setShowPercentage(!showPercentage)
+										setShowStacked(false)
+									}}
+									className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
+									title={showPercentage ? 'Show absolute values' : 'Show percentage'}
+								>
+									<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
+									<span className="hidden sm:inline">{showPercentage ? 'Percentage' : 'Absolute'}</span>
+								</button>
+							</>
+						)}
+					</div>
 				</div>
-				{hasAnyData && !hasMultipleMetrics && (
-					<button
-						onClick={() => setShowPercentage(!showPercentage)}
-						className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
-					>
-						<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
-						<span>{showPercentage ? 'Percentage' : 'Absolute'}</span>
-					</button>
-				)}
 			</div>
 
 			{/* Status info for failures */}
@@ -204,8 +301,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					</div>
 				) : (
 					<MultiSeriesChart
+						key={`${showStacked}-${showPercentage}`}
 						series={series}
 						valueSymbol={showPercentage ? '%' : '$'}
+						groupBy={multi.grouping === 'week' ? 'weekly' : multi.grouping === 'month' ? 'monthly' : 'daily'}
 						hideDataZoom={true}
 						chartOptions={
 							showPercentage

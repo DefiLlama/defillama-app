@@ -349,12 +349,16 @@ export function ProDashboardAPIProvider({
 	}
 
 	const handleAddMultiChart = (chartItems: ChartConfig[], name?: string) => {
+		const defaultGrouping = 'day'
 		const newMultiChart: MultiChartConfig = {
 			id: generateItemId('multi', ''),
 			kind: 'multi',
 			name: name || `Multi-Chart ${items.filter((item) => item.kind === 'multi').length + 1}`,
-			items: chartItems,
-			grouping: 'day',
+			items: chartItems.map((chart) => ({
+				...chart,
+				grouping: chart.grouping || defaultGrouping
+			})),
+			grouping: defaultGrouping,
 			colSpan: 1
 		}
 		setItems((prev) => {
@@ -413,7 +417,15 @@ export function ProDashboardAPIProvider({
 					if (item.id === chartId && item.kind === 'chart') {
 						return { ...item, grouping: newGrouping }
 					} else if (item.kind === 'multi' && item.id === chartId) {
-						return { ...item, grouping: newGrouping }
+						const updatedMulti = {
+							...item,
+							grouping: newGrouping,
+							items: item.items.map((nestedChart) => ({
+								...nestedChart,
+								grouping: newGrouping
+							}))
+						}
+						return updatedMulti
 					}
 					return item
 				})
