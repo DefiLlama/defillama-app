@@ -86,7 +86,7 @@ export function ProDashboardAPIProvider({
 
 	const chains: Chain[] = rawChains
 	const [items, setItems] = useState<DashboardItemConfig[]>([])
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('all')
+	const [timePeriod, setTimePeriod] = useState<TimePeriod>('365d')
 	const [dashboardName, setDashboardName] = useState<string>('My Dashboard')
 	const [dashboardId, setDashboardId] = useState<string | null>(initialDashboardId || null)
 	const [currentDashboard, setCurrentDashboard] = useState<Dashboard | null>(null)

@@ -113,7 +113,15 @@ export const CHART_TYPES = {
 	gasUsed: { id: 'gasUsed', title: 'Gas Used', chartType: 'bar', color: '#F59E0B', groupable: true },
 	medianApy: { id: 'medianApy', title: 'Median APY', chartType: 'area', color: '#059669' },
 	stablecoins: { id: 'stablecoins', title: 'Stablecoins', chartType: 'area', color: '#06B6D4' },
-	stablecoinInflows: { id: 'stablecoinInflows', title: 'Stablecoin Inflows', chartType: 'bar', color: '#F59E0B', groupable: true }
+	stablecoinInflows: {
+		id: 'stablecoinInflows',
+		title: 'Stablecoin Inflows',
+		chartType: 'bar',
+		color: '#F59E0B',
+		groupable: true
+	},
+	chainFees: { id: 'chainFees', title: 'Chain Fees', chartType: 'bar', color: '#F59E0B', groupable: true },
+	chainRevenue: { id: 'chainRevenue', title: 'Chain Revenue', chartType: 'bar', color: '#F59E0B', groupable: true }
 }
 
 // Helper functions to extract chart types from CHART_TYPES
@@ -140,7 +148,9 @@ export const getChainChartTypes = (): string[] => {
 		'newUsers',
 		'gasUsed',
 		'stablecoins',
-		'stablecoinInflows'
+		'stablecoinInflows',
+		'chainFees',
+		'chainRevenue'
 	]
 }
 

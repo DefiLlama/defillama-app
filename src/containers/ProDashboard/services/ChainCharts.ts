@@ -1,6 +1,7 @@
 import {
 	CHART_API,
 	DIMENISIONS_OVERVIEW_API,
+	DIMENISIONS_SUMMARY_BASE_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOL_NEW_USERS_API,
@@ -22,6 +23,9 @@ const CHART_METADATA = {
 	bridgeAggregators: { type: 'dimensions', endpoint: 'bridge-aggregators' },
 	perpsAggregators: { type: 'dimensions', endpoint: 'aggregator-derivatives' },
 	options: { type: 'dimensions', endpoint: 'options' },
+
+	chainFees: { type: 'protocol', endpoint: 'fees' },
+	chainRevenue: { type: 'protocol', endpoint: 'fees', dataType: 'dailyRevenue' },
 
 	users: { type: 'userMetrics', api: PROTOCOL_ACTIVE_USERS_API },
 	activeUsers: { type: 'userMetrics', api: PROTOCOL_ACTIVE_USERS_API },
@@ -81,6 +85,17 @@ export default class ChainCharts {
 		return formattedData
 	}
 
+	private static async protocolData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
+		if (!chain) return []
+		const url = dataType
+			? `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${chain}?dataType=${dataType}`
+			: `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${chain}`
+		const response = await fetch(url)
+		const data = await response.json()
+		console.log(data)
+		return convertToNumberFormat(data.totalDataChart ?? [])
+	}
+
 	private static calculateInflows(aggregatedData: any[]): [number, number][] {
 		if (aggregatedData.length < 2) return []
 
@@ -113,6 +128,8 @@ export default class ChainCharts {
 				return this.tvlData(chain)
 			case 'dimensions':
 				return this.dimensionsData(chain, metadata.endpoint, metadata.dataType)
+			case 'protocol':
+				return this.protocolData(chain, metadata.endpoint, metadata.dataType)
 			case 'userMetrics':
 				return this.userMetrics(chain, metadata.api)
 			case 'stablecoins':
@@ -177,5 +194,11 @@ export default class ChainCharts {
 	}
 	static async stablecoinInflows(chain: string): Promise<[number, number][]> {
 		return this.getData('stablecoinInflows', chain)
+	}
+	static async chainFees(chain: string): Promise<[number, number][]> {
+		return this.getData('chainFees', chain)
+	}
+	static async chainRevenue(chain: string): Promise<[number, number][]> {
+		return this.getData('chainRevenue', chain)
 	}
 }
