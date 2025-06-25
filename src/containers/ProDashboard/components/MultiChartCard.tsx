@@ -66,7 +66,14 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				return chartType?.chartType === 'bar'
 			})
 
-		if (allBarType && showStacked) {
+		const allAreaType =
+			uniqueTypes.size === 1 &&
+			validItems.every((item) => {
+				const chartType = CHART_TYPES[item.type]
+				return chartType?.chartType === 'area'
+			})
+
+		if ((allBarType || allAreaType) && showStacked) {
 			const allTimestamps = new Set<number>()
 			baseSeries.forEach((serie) => {
 				serie.data.forEach(([timestamp]) => allTimestamps.add(timestamp))
@@ -84,7 +91,12 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				return {
 					...serie,
 					data: alignedData,
-					stack: 'total'
+					stack: 'total',
+					...(allAreaType && {
+						areaStyle: {
+							opacity: 0.7
+						}
+					})
 				}
 			})
 
@@ -189,6 +201,15 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			return chartType?.chartType === 'bar'
 		})
 
+	const allChartsAreAreaType =
+		!hasMultipleMetrics &&
+		validItems.every((item) => {
+			const chartType = CHART_TYPES[item.type]
+			return chartType?.chartType === 'area'
+		})
+
+	const canStack = allChartsAreBarType || allChartsAreAreaType
+
 	const groupingOptions: ('day' | 'week' | 'month')[] = ['day', 'week', 'month']
 
 	return (
@@ -230,17 +251,17 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						)}
 						{hasAnyData && !hasMultipleMetrics && (
 							<>
-								{allChartsAreBarType && (
+								{canStack && (
 									<button
 										onClick={() => {
 											setShowStacked(!showStacked)
 											setShowPercentage(false)
 										}}
 										className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
-										title={showStacked ? 'Show grouped bars' : 'Show stacked bars'}
+										title={showStacked ? 'Show separate' : 'Show stacked'}
 									>
 										<Icon name="layers" height={12} width={12} />
-										<span className="hidden sm:inline">{showStacked ? 'Stacked' : 'Grouped'}</span>
+										<span className="hidden sm:inline">{showStacked ? 'Stacked' : 'Separate'}</span>
 									</button>
 								)}
 								<button
