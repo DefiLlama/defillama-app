@@ -170,7 +170,7 @@ const columns = (
 
 					<span className="flex flex-col -my-2">
 						<BasicLink
-							href={`/protocol/`}
+							href={`/protocol/${row.original.slug}`}
 							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
