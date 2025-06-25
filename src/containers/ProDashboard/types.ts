@@ -121,7 +121,8 @@ export const CHART_TYPES = {
 		groupable: true
 	},
 	chainFees: { id: 'chainFees', title: 'Chain Fees', chartType: 'bar', color: '#F59E0B', groupable: true },
-	chainRevenue: { id: 'chainRevenue', title: 'Chain Revenue', chartType: 'bar', color: '#F59E0B', groupable: true }
+	chainRevenue: { id: 'chainRevenue', title: 'Chain Revenue', chartType: 'bar', color: '#F59E0B', groupable: true },
+	bridgedTvl: { id: 'bridgedTvl', title: 'Bridged TVL', chartType: 'area', color: '#9333EA' }
 }
 
 // Helper functions to extract chart types from CHART_TYPES
@@ -150,7 +151,8 @@ export const getChainChartTypes = (): string[] => {
 		'stablecoins',
 		'stablecoinInflows',
 		'chainFees',
-		'chainRevenue'
+		'chainRevenue',
+		'bridgedTvl'
 	]
 }
 

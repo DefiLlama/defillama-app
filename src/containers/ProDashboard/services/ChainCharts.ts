@@ -6,7 +6,8 @@ import {
 	PROTOCOL_TRANSACTIONS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_GAS_USED_API,
-	PEGGEDCHART_API
+	PEGGEDCHART_API,
+	CHAINS_ASSETS_CHART
 } from '~/constants'
 import { convertToNumberFormat } from '../utils'
 
@@ -34,7 +35,9 @@ const CHART_METADATA = {
 	gasUsed: { type: 'userMetrics', api: PROTOCOL_GAS_USED_API },
 
 	stablecoins: { type: 'stablecoins' },
-	stablecoinInflows: { type: 'stablecoins', dataType: 'inflows' }
+	stablecoinInflows: { type: 'stablecoins', dataType: 'inflows' },
+
+	bridgedTvl: { type: 'chainAssets' }
 }
 
 export default class ChainCharts {
@@ -110,6 +113,21 @@ export default class ChainCharts {
 		return inflowsData
 	}
 
+	private static async chainAssetsData(chain: string): Promise<[number, number][]> {
+		if (!chain) return []
+		const response = await fetch(`${CHAINS_ASSETS_CHART}/${chain}`)
+		const data = await response.json()
+
+		if (!Array.isArray(data)) return []
+
+		const formattedData: [number, number][] = data.map((item: any) => [
+			parseInt(item.timestamp, 10),
+			parseFloat(item.data.total) || 0
+		])
+
+		return formattedData
+	}
+
 	static async getData(chartType: string, chain: string): Promise<[number, number][]> {
 		const metadata = CHART_METADATA[chartType]
 
@@ -129,6 +147,8 @@ export default class ChainCharts {
 				return this.userMetrics(chain, metadata.api)
 			case 'stablecoins':
 				return this.stablecoinsData(chain, metadata.dataType)
+			case 'chainAssets':
+				return this.chainAssetsData(chain)
 			default:
 				console.error(`Unknown metadata type: ${metadata.type}`)
 				return []
@@ -195,5 +215,8 @@ export default class ChainCharts {
 	}
 	static async chainRevenue(chain: string): Promise<[number, number][]> {
 		return this.getData('chainRevenue', chain)
+	}
+	static async bridgedTvl(chain: string): Promise<[number, number][]> {
+		return this.getData('bridgedTvl', chain)
 	}
 }
