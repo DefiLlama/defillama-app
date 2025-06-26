@@ -282,6 +282,7 @@ export async function getProtocolsByCategory({
 
 	let chart = []
 	if (chain) {
+		if (!tvlByCategories[chain]) return null
 		chart = tvlByCategories[chain].map(([date, tvl]) => [+date * 1e3, tvl])
 	} else {
 		for (const date in tvlOnAllChains.chart) {
