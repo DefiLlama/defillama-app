@@ -14,24 +14,20 @@ export function SubscribeModal({ isOpen, onClose, children }: SubscribeModalProp
 
 	useEffect(() => {
 		setIsMounted(true)
+	}, [])
+
+	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				onClose()
-			}
+			if (event.key === 'Escape') onClose()
 		}
 
 		const handleClickOutside = (event: MouseEvent) => {
-			if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
-				onClose()
-			}
+			if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) onClose()
 		}
 
 		if (isOpen) {
 			document.addEventListener('keydown', handleKeyDown)
 			document.addEventListener('mousedown', handleClickOutside)
-		} else {
-			document.removeEventListener('keydown', handleKeyDown)
-			document.removeEventListener('mousedown', handleClickOutside)
 		}
 
 		return () => {

@@ -5,7 +5,15 @@ import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { ChartCard } from './ChartCard'
 import { TextCard } from './TextCard'
 import { ProtocolsByChainTable } from './ProTable'
-import { StablecoinsDataset, CexDataset, RevenueDataset, HoldersRevenueDataset, EarningsDataset, TokenUsageDataset } from './datasets'
+import {
+	StablecoinsDataset,
+	CexDataset,
+	RevenueDataset,
+	HoldersRevenueDataset,
+	EarningsDataset,
+	TokenUsageDataset,
+	YieldsDataset
+} from './datasets'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
@@ -20,7 +28,8 @@ interface ChartGridProps {
 }
 
 export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
-	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem, isReadOnly } = useProDashboard()
+	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem, isReadOnly } =
+		useProDashboard()
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -51,7 +60,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 					{chartsWithData.map((item) => (
 						<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
-							<div className="pro-glass h-full relative">
+							<div className={`pro-glass h-full relative ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
 								<div className={item.kind === 'table' ? 'pr-12' : ''}>
 									{item.kind === 'chart' ? (
 										<ChartCard key={`${item.id}-${item.colSpan}`} chart={item} />
@@ -69,11 +78,22 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 										) : item.datasetType === 'earnings' ? (
 											<EarningsDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
 										) : item.datasetType === 'token-usage' ? (
-											<TokenUsageDataset 
-												key={`${item.id}-${item.colSpan}`} 
+											<TokenUsageDataset
+												key={`${item.id}-${item.colSpan}`}
 												config={item}
-												onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} 
+												onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)}
 											/>
+										) : item.datasetType === 'yields' ? (
+											<div className="relative" style={{ isolation: 'isolate' }}>
+												<YieldsDataset
+													key={`${item.id}-${item.colSpan}`}
+													chains={item.chains}
+													tableId={item.id}
+													columnOrder={item.columnOrder}
+													columnVisibility={item.columnVisibility}
+													filters={item.filters as any}
+												/>
+											</div>
 										) : (
 											<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
 										)
@@ -106,7 +126,11 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						{chartsWithData.map((item) => (
 							<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
-									<div className={`pro-glass h-full relative ${item.kind === 'table' ? 'pt-6' : ''} overflow-hidden`}>
+									<div
+										className={`pro-glass h-full relative ${item.kind === 'table' ? 'pt-6' : ''} ${
+											item.kind === 'table' ? 'overflow-visible' : 'overflow-hidden'
+										}`}
+									>
 										<div className="absolute top-1 right-1 z-20 flex gap-1">
 											<button
 												className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
@@ -155,11 +179,22 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 												) : item.datasetType === 'earnings' ? (
 													<EarningsDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
 												) : item.datasetType === 'token-usage' ? (
-													<TokenUsageDataset 
-														key={`${item.id}-${item.colSpan}`} 
+													<TokenUsageDataset
+														key={`${item.id}-${item.colSpan}`}
 														config={item}
-														onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} 
+														onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)}
 													/>
+												) : item.datasetType === 'yields' ? (
+													<div className="relative" style={{ isolation: 'isolate' }}>
+														<YieldsDataset
+															key={`${item.id}-${item.colSpan}`}
+															chains={item.chains}
+															tableId={item.id}
+															columnOrder={item.columnOrder}
+															columnVisibility={item.columnVisibility}
+															filters={item.filters as any}
+														/>
+													</div>
 												) : (
 													<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
 												)

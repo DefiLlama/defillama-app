@@ -240,6 +240,14 @@ export function useModalActions(
 						tokenSymbols: state.selectedTokens,
 						includeCex: state.includeCex
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'yields') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'yields',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
@@ -293,6 +301,8 @@ export function useModalActions(
 					handleAddTable(state.selectedChains, 'dataset', 'earnings')
 				} else if (state.selectedTableType === 'token-usage' && state.selectedTokens.length > 0) {
 					handleAddTable([], 'dataset', 'token-usage', undefined, state.selectedTokens, state.includeCex)
+				} else if (state.selectedTableType === 'yields') {
+					handleAddTable(state.selectedChains, 'dataset', 'yields')
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())

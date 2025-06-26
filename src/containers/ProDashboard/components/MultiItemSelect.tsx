@@ -15,6 +15,7 @@ interface MultiItemSelectProps {
 	placeholder: string
 	itemType: 'chain' | 'protocol' | 'token'
 	onInputChange?: (value: string) => void
+	customProps?: any
 }
 
 const CustomChainOption = ({ innerProps, label, data }) => (
@@ -73,10 +74,10 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 const CustomTokenOption = ({ innerProps, label, data }) => (
 	<div {...innerProps} className="flex items-center gap-2 p-2 cursor-pointer">
 		{data.logo ? (
-			<img 
-				src={data.logo} 
-				alt="" 
-				className="w-5 h-5 rounded-full" 
+			<img
+				src={data.logo}
+				alt=""
+				className="w-5 h-5 rounded-full"
 				onError={(e) => {
 					e.currentTarget.style.display = 'none'
 				}}
@@ -136,13 +137,11 @@ export function MultiItemSelect({
 	isLoading,
 	placeholder,
 	itemType,
-	onInputChange
+	onInputChange,
+	customProps
 }: MultiItemSelectProps) {
-	const OptionComponent = itemType === 'chain' 
-		? CustomChainOption 
-		: itemType === 'protocol' 
-			? CustomProtocolOption 
-			: CustomTokenOption
+	const OptionComponent =
+		itemType === 'chain' ? CustomChainOption : itemType === 'protocol' ? CustomProtocolOption : CustomTokenOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
 	const selectedOptions = useMemo(() => {
@@ -172,6 +171,7 @@ export function MultiItemSelect({
 					closeMenuOnSelect={false}
 					menuPosition="fixed"
 					isClearable
+					{...customProps}
 				/>
 			)}
 		</div>

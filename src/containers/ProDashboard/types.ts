@@ -64,7 +64,7 @@ export interface ProtocolsTableConfig {
 		isValid: boolean
 		errorMessage?: string
 	}>
-	datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings' | 'token-usage'
+	datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings' | 'token-usage' | 'yields'
 	datasetChain?: string
 	tokenSymbols?: string[]
 	includeCex?: boolean

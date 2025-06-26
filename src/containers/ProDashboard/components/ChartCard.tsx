@@ -92,7 +92,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 		itemIdentifier = chart.chain
 	}
 
-	const chartColor = generateChartColor(itemIdentifier, chartTypeDetails.color)
+	const chartColor = generateChartColor(itemIdentifier, chartTypeDetails?.color)
 
 	return (
 		<div className="p-4 h-full flex flex-col">

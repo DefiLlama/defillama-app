@@ -21,6 +21,7 @@ interface TableTabProps {
 
 const tableTypeOptions = [
 	{ value: 'protocols', label: 'Protocols' },
+	{ value: 'yields', label: 'Yields' },
 	{ value: 'cex', label: 'CEX' },
 	{ value: 'stablecoins', label: 'Stablecoins' },
 	{ value: 'revenue', label: 'Revenue' },
@@ -82,7 +83,8 @@ export function TableTab({
 				/>
 			) : selectedTableType === 'revenue' ||
 			  selectedTableType === 'holders-revenue' ||
-			  selectedTableType === 'earnings' ? (
+			  selectedTableType === 'earnings' ||
+			  selectedTableType === 'yields' ? (
 				<MultiItemSelect
 					label="Select Chains (optional)"
 					options={chainOptions}
