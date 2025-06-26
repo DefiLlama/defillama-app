@@ -1101,9 +1101,9 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 			{props.tokenCGData.volume24h?.total ? (
 				<details className="group">
 					<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">{`24h ${
+						<span className="text-[#545757] dark:text-[#cccccc]">{`${
 							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
-						} Volume`}</span>
+						} Volume 24h`}</span>
 						<Icon
 							name="chevron-down"
 							height={16}

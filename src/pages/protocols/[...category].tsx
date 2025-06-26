@@ -42,7 +42,7 @@ export const getStaticProps = withPerformanceLogging(
 export async function getStaticPaths() {
 	const res = await fetch(PROTOCOLS_API)
 
-	const paths = (await res.json()).protocolCategories.slice(0, 10).map((category) => ({
+	const paths = (await res.json()).protocolCategories.map((category) => ({
 		params: { category: [slug(category)] }
 	}))
 
