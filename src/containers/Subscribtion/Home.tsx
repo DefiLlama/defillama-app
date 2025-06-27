@@ -203,7 +203,6 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					/>
 					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-[60px] object-contain" />
 					<img src="/icons/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
-					<img src="/icons/jpmorgan.svg" alt="JPMorgan" className="h-[28px] object-contain" />
 					<span className="flex flex-col gap-2">
 						<img src="/icons/ecb-1.svg" alt="" className="h-[28px] object-contain" />
 						<img src="/icons/ecb-2.svg" alt="European Central Bank" className="h-[10px] object-contain" />
