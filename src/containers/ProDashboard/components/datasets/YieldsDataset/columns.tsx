@@ -140,7 +140,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'change1d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? formattedPercent(value, true) : '-'}</>
+			return <>{value ? formattedPercent(value) : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -152,7 +152,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'change7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? formattedPercent(value, true) : '-'}</>
+			return <>{value ? formattedPercent(value) : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -290,7 +290,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		sortDescFirst: true,
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			return <>{value !== null ? formattedPercent(value * 100, false) : '-'}</>
+			return <>{value !== null ? formattedPercent(value * 100, true) : '-'}</>
 		},
 		size: 80,
 		meta: {

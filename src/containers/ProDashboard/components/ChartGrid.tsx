@@ -54,6 +54,58 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		return colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
 	}
 
+	const renderItemContent = (item: DashboardItemConfig) => {
+		if (item.kind === 'chart') {
+			return <ChartCard chart={item} />
+		}
+
+		if (item.kind === 'multi') {
+			return <MultiChartCard multi={item} />
+		}
+
+		if (item.kind === 'text') {
+			return <TextCard text={item} />
+		}
+
+		if (item.kind === 'table') {
+			if (item.tableType === 'dataset') {
+				if (item.datasetType === 'cex') return <CexDataset />
+				if (item.datasetType === 'revenue') return <RevenueDataset chains={item.chains} />
+				if (item.datasetType === 'holders-revenue') return <HoldersRevenueDataset chains={item.chains} />
+				if (item.datasetType === 'earnings') return <EarningsDataset chains={item.chains} />
+				if (item.datasetType === 'token-usage')
+					return <TokenUsageDataset config={item} onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} />
+				if (item.datasetType === 'yields')
+					return (
+						<div className="relative" style={{ isolation: 'isolate' }}>
+							<YieldsDataset
+								chains={item.chains}
+								tableId={item.id}
+								columnOrder={item.columnOrder}
+								columnVisibility={item.columnVisibility}
+								filters={item.filters as any}
+							/>
+						</div>
+					)
+				return <StablecoinsDataset chain={item.datasetChain || 'All'} />
+			}
+
+			return (
+				<ProtocolsByChainTable
+					tableId={item.id}
+					chains={item.chains}
+					colSpan={item.colSpan}
+					filters={item.filters}
+					columnOrder={item.columnOrder}
+					columnVisibility={item.columnVisibility}
+					customColumns={item.customColumns}
+				/>
+			)
+		}
+
+		return null
+	}
+
 	if (isReadOnly) {
 		return (
 			<div className="mt-2">
@@ -61,55 +113,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 					{chartsWithData.map((item) => (
 						<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
 							<div className={`pro-glass h-full relative ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
-								<div className={item.kind === 'table' ? 'pr-12' : ''}>
-									{item.kind === 'chart' ? (
-										<ChartCard key={`${item.id}-${item.colSpan}`} chart={item} />
-									) : item.kind === 'multi' ? (
-										<MultiChartCard key={`${item.id}-${item.colSpan}`} multi={item} />
-									) : item.kind === 'text' ? (
-										<TextCard key={`${item.id}-${item.colSpan}`} text={item} />
-									) : item.kind === 'table' && item.tableType === 'dataset' ? (
-										item.datasetType === 'cex' ? (
-											<CexDataset key={`${item.id}-${item.colSpan}`} />
-										) : item.datasetType === 'revenue' ? (
-											<RevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
-										) : item.datasetType === 'holders-revenue' ? (
-											<HoldersRevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
-										) : item.datasetType === 'earnings' ? (
-											<EarningsDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
-										) : item.datasetType === 'token-usage' ? (
-											<TokenUsageDataset
-												key={`${item.id}-${item.colSpan}`}
-												config={item}
-												onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)}
-											/>
-										) : item.datasetType === 'yields' ? (
-											<div className="relative" style={{ isolation: 'isolate' }}>
-												<YieldsDataset
-													key={`${item.id}-${item.colSpan}`}
-													chains={item.chains}
-													tableId={item.id}
-													columnOrder={item.columnOrder}
-													columnVisibility={item.columnVisibility}
-													filters={item.filters as any}
-												/>
-											</div>
-										) : (
-											<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
-										)
-									) : (
-										<ProtocolsByChainTable
-											key={`${item.id}-${item.colSpan}`}
-											tableId={item.id}
-											chains={item.chains}
-											colSpan={item.colSpan}
-											filters={item.filters}
-											columnOrder={item.columnOrder}
-											columnVisibility={item.columnVisibility}
-											customColumns={item.customColumns}
-										/>
-									)}
-								</div>
+								<div className={item.kind === 'table' ? 'pr-12' : ''}>{renderItemContent(item)}</div>
 							</div>
 						</div>
 					))}
@@ -162,55 +166,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 												<Icon name="x" height={14} width={14} />
 											</button>
 										</div>
-										<div>
-											{item.kind === 'chart' ? (
-												<ChartCard key={`${item.id}-${item.colSpan}`} chart={item} />
-											) : item.kind === 'multi' ? (
-												<MultiChartCard key={`${item.id}-${item.colSpan}`} multi={item} />
-											) : item.kind === 'text' ? (
-												<TextCard key={`${item.id}-${item.colSpan}`} text={item} />
-											) : item.kind === 'table' && item.tableType === 'dataset' ? (
-												item.datasetType === 'cex' ? (
-													<CexDataset key={`${item.id}-${item.colSpan}`} />
-												) : item.datasetType === 'revenue' ? (
-													<RevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
-												) : item.datasetType === 'holders-revenue' ? (
-													<HoldersRevenueDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
-												) : item.datasetType === 'earnings' ? (
-													<EarningsDataset key={`${item.id}-${item.colSpan}`} chains={item.chains} />
-												) : item.datasetType === 'token-usage' ? (
-													<TokenUsageDataset
-														key={`${item.id}-${item.colSpan}`}
-														config={item}
-														onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)}
-													/>
-												) : item.datasetType === 'yields' ? (
-													<div className="relative" style={{ isolation: 'isolate' }}>
-														<YieldsDataset
-															key={`${item.id}-${item.colSpan}`}
-															chains={item.chains}
-															tableId={item.id}
-															columnOrder={item.columnOrder}
-															columnVisibility={item.columnVisibility}
-															filters={item.filters as any}
-														/>
-													</div>
-												) : (
-													<StablecoinsDataset key={`${item.id}-${item.colSpan}`} chain={item.datasetChain || 'All'} />
-												)
-											) : (
-												<ProtocolsByChainTable
-													key={`${item.id}-${item.colSpan}`}
-													tableId={item.id}
-													chains={item.chains}
-													colSpan={item.colSpan}
-													filters={item.filters}
-													columnOrder={item.columnOrder}
-													columnVisibility={item.columnVisibility}
-													customColumns={item.customColumns}
-												/>
-											)}
-										</div>
+										<div>{renderItemContent(item)}</div>
 									</div>
 								</SortableItem>
 							</div>
