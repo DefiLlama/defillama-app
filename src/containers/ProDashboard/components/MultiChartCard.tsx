@@ -16,7 +16,7 @@ interface MultiChartCardProps {
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
 	const { getProtocolInfo, handleGroupingChange } = useProDashboard()
 	const [showPercentage, setShowPercentage] = useState(false)
-	const [showStacked, setShowStacked] = useState(false)
+	const [showStacked, setShowStacked] = useState(true)
 
 	// Filter valid items and create series data
 	const validItems = multi.items.filter((cfg) => {
