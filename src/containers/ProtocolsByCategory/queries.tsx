@@ -113,7 +113,7 @@ export async function getProtocolsByCategory({
 
 	for (const protocol of protocols) {
 		if (protocol.category == category && (chain ? protocol.chainTvls[chain] : true)) {
-			let tvl = null
+			let tvl = 0
 			const extraTvls: Record<string, number> = {}
 			if (chain) {
 				for (const pchain in protocol.chainTvls) {
@@ -135,7 +135,7 @@ export async function getProtocolsByCategory({
 						continue
 					}
 
-					tvl = (tvl ?? 0) + (protocol.chainTvls[chain].tvl ?? 0)
+					tvl = tvl + (protocol.chainTvls[chain].tvl ?? 0)
 				}
 			} else {
 				for (const pchain in protocol.chainTvls) {
@@ -153,41 +153,39 @@ export async function getProtocolsByCategory({
 						continue
 					}
 
-					tvl = (tvl ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
+					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
 				}
 			}
 
-			if (tvl != null) {
-				const borrowed = extraTvls.borrowed ?? null
-				const supplied = borrowed && tvl > 0 ? borrowed + tvl : null
-				const suppliedTvl = supplied ? (supplied / tvl).toFixed(2) : null
-				const fees = adapterDataStore[protocol.defillamaId]?.fees ?? null
-				const revenue = adapterDataStore[protocol.defillamaId]?.revenue ?? null
-				const dexVolume = adapterDataStore[protocol.defillamaId]?.dexVolume ?? null
-				const perpVolume = adapterDataStore[protocol.defillamaId]?.perpVolume ?? null
+			const borrowed = extraTvls.borrowed ?? null
+			const supplied = borrowed && tvl > 0 ? borrowed + tvl : null
+			const suppliedTvl = supplied ? (supplied / tvl).toFixed(2) : null
+			const fees = adapterDataStore[protocol.defillamaId]?.fees ?? null
+			const revenue = adapterDataStore[protocol.defillamaId]?.revenue ?? null
+			const dexVolume = adapterDataStore[protocol.defillamaId]?.dexVolume ?? null
+			const perpVolume = adapterDataStore[protocol.defillamaId]?.perpVolume ?? null
 
-				const finalData = {
-					name: protocol.name,
-					slug: slug(protocol.name),
-					logo: tokenIconUrl(protocol.name),
-					chains: protocol.chains,
-					tvl,
-					extraTvls,
-					mcap: protocol.mcap ?? null,
-					...(['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
-					fees,
-					revenue,
-					dexVolume,
-					perpVolume
-				}
-				if (protocol.parentProtocol) {
-					parentProtocolsStore[protocol.parentProtocol] = [
-						...(parentProtocolsStore[protocol.parentProtocol] ?? []),
-						finalData
-					]
-				} else {
-					protocolsStore[protocol.defillamaId] = finalData
-				}
+			const finalData = {
+				name: protocol.name,
+				slug: slug(protocol.name),
+				logo: tokenIconUrl(protocol.name),
+				chains: protocol.chains,
+				tvl,
+				extraTvls,
+				mcap: protocol.mcap ?? null,
+				...(['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
+				fees,
+				revenue,
+				dexVolume,
+				perpVolume
+			}
+			if (protocol.parentProtocol) {
+				parentProtocolsStore[protocol.parentProtocol] = [
+					...(parentProtocolsStore[protocol.parentProtocol] ?? []),
+					finalData
+				]
+			} else {
+				protocolsStore[protocol.defillamaId] = finalData
 			}
 		}
 	}
