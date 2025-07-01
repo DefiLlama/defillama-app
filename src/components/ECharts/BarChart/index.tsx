@@ -185,6 +185,7 @@ export default function BarChart({
 
 		return () => {
 			window.removeEventListener('resize', resize)
+			chartInstance.dispose()
 		}
 	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id])
 
