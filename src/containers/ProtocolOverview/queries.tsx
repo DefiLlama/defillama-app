@@ -864,6 +864,23 @@ export const getProtocolOverviewPageData = async ({
 		chartColors[chart] = allColors[index]
 	})
 
+	if (!availableCharts.includes('DEX Volume')) {
+		const sameColorCharts = [
+			'DEX Aggregator Volume',
+			'Perp Volume',
+			'Perp Aggregator Volume',
+			'Bridge Aggregator Volume',
+			'Options Notional Volume',
+			'Options Premium Volume'
+		] as ProtocolChartsLabels[]
+
+		const volumeCharts = sameColorCharts.filter((chart) => availableCharts.includes(chart))
+
+		if (volumeCharts.length > 0) {
+			chartColors['DEX Volume'] = chartColors[volumeCharts[0]]
+		}
+	}
+
 	const hallmarks = {}
 	for (const hack of hacks ?? []) {
 		hallmarks[hack.date] = `Hack: ${hack.classification ?? ''}`
