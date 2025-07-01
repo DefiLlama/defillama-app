@@ -436,7 +436,7 @@ function formatChartEmphasisDate(value: number) {
 
 function getStartAndEndDayOfTheWeek(value: number) {
 	const current = new Date(value)
-	const past = new Date(value - 7 * 24 * 60 * 60 * 1000)
+	const past = new Date(value - 6 * 24 * 60 * 60 * 1000)
 
 	const currentMonth = monthNames[current.getUTCMonth()]
 	const pastMonth = monthNames[past.getUTCMonth()]

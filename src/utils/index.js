@@ -575,9 +575,12 @@ export function firstDayOfMonth(dateString) {
 // TODO params & return value should be in seconds
 export function lastDayOfWeek(dateString) {
 	const date = new Date(dateString)
-	const weekDay = date.getUTCDay() === 0 ? 7 : date.getUTCDay()
-	const lastDayOfWeek = date.getUTCDate() - weekDay
-	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), lastDayOfWeek) / 1000)
+	const weekDay = date.getUTCDay()
+	// Calculate days to add to get to the end of the week (Sunday)
+	const daysToAdd = weekDay === 0 ? 0 : 7 - weekDay
+	// Create a new date by adding days (this handles month boundaries automatically)
+	const lastDayDate = new Date(date.getTime() + daysToAdd * 24 * 60 * 60 * 1000)
+	return Math.trunc(lastDayDate.getTime() / 1000)
 }
 
 function hexToHSL(hex) {
