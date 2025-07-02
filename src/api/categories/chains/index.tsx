@@ -11,7 +11,8 @@ import {
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
-	RAISES_API
+	RAISES_API,
+	TEMP_CHAIN_NFTS
 } from '~/constants'
 import { formatProtocolsData } from '../protocols/utils'
 import { formatProtocolsList } from '~/hooks/data/defi'
@@ -194,9 +195,7 @@ export async function getChainPageData(chain?: string) {
 		chain && chain !== 'All' && chainMetadata?.derivatives
 			? getOverview('derivatives', chainName?.toLowerCase(), undefined, false, false)
 			: null,
-		chain && chain !== 'All'
-			? fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
-			: null,
+		chain && chain !== 'All' ? fetchWithErrorLogging(TEMP_CHAIN_NFTS).then((res) => res.json()) : null,
 		fetchWithErrorLogging(CHAINS_ASSETS)
 			.then((res) => res.json())
 			.catch(() => ({})),

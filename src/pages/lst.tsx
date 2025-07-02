@@ -9,6 +9,7 @@ import { formattedNum, firstDayOfMonth, lastDayOfWeek, toK } from '~/utils'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
+import { COINS_PRICES_API } from '~/constants'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -236,9 +237,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	// Fetch ETH price from API
 	const fetchEthPrice = async () => {
 		try {
-			const response = await fetch(
-				'https://coins.llama.fi/prices/current/ethereum:0x0000000000000000000000000000000000000000'
-			)
+			const response = await fetch(`${COINS_PRICES_API}/current/ethereum:0x0000000000000000000000000000000000000000`)
 			const data = await response.json()
 			return data.coins['ethereum:0x0000000000000000000000000000000000000000'].price
 		} catch (error) {

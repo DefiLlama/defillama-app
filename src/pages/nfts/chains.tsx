@@ -9,11 +9,12 @@ import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadataCache from '~/utils/metadata'
+import { TEMP_CHAIN_NFTS } from '~/constants'
 
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
-	const data = (await fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) =>
-		res.json()
-	)) as Promise<Record<string, number>>
+	const data = (await fetchWithErrorLogging(TEMP_CHAIN_NFTS).then((res) => res.json())) as Promise<
+		Record<string, number>
+	>
 
 	if (!data) return { notFound: true }
 

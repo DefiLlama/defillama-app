@@ -2,7 +2,7 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { DIMENISIONS_OVERVIEW_API } from '~/constants'
+import { DIMENISIONS_OVERVIEW_API, YIELD_POOLS_API } from '~/constants'
 import Layout from '~/layout'
 import { fetchApi } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -10,7 +10,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('about', async () => {
 	const [protocolsRaw, yields, fees, dexs] = await Promise.all([
 		getSimpleProtocolsPageData(),
-		fetchApi('https://yields.llama.fi/pools'),
+		fetchApi(YIELD_POOLS_API),
 		fetchApi(`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`),
 		fetchApi(`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`)
 	])

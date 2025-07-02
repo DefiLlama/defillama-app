@@ -2,6 +2,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 import { IChainTvl } from '~/api/types'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { cexData as cexList } from '~/pages/cexs'
+import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 
 const fetch = fetchWithErrorLogging
 
@@ -47,7 +48,7 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 					'x-cg-pro-api-key': process.env.CG_KEY
 				}
 			}).then((res) => res.json()),
-			fetch(`https://coins.llama.fi/prices/current/coingecko:bitcoin`).then((res) => res.json())
+			fetch(`${COINS_PRICES_API}/current/coingecko:bitcoin`).then((res) => res.json())
 		])
 
 		spot = spotData
@@ -65,16 +66,10 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 
 			try {
 				const [protocolData, inflows24h, inflows7d, inflows1m] = await Promise.all([
-					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
-						r.json()
-					),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
-						r.json()
-					),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
-						r.json()
-					)
+					fetch(`${PROTOCOL_API}/${c.slug}`).then((r) => r.json()),
+					fetch(`${INFLOWS_API}/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) => r.json()),
+					fetch(`${INFLOWS_API}/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`).then((r) => r.json()),
+					fetch(`${INFLOWS_API}/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`).then((r) => r.json())
 				])
 
 				const { chainTvls = {} } = protocolData

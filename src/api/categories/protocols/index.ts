@@ -24,13 +24,12 @@ import {
 	CATEGORY_PERFORMANCE_API,
 	CATEGORY_COIN_PRICES_API,
 	CATEGORY_INFO_API,
-	COINS_INFO_API
+	COINS_INFO_API,
+	COINS_PRICES_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
-import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 
 export const getAllProtocolEmissionsWithHistory = async ({
 	startDate,
@@ -42,7 +41,7 @@ export const getAllProtocolEmissionsWithHistory = async ({
 	try {
 		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
 		const coins = await fetchWithErrorLogging(
-			`https://coins.llama.fi/prices/current/${res
+			`${COINS_PRICES_API}/current/${res
 				.filter((p) => p.gecko_id)
 				.map((p) => 'coingecko:' + p.gecko_id)
 				.join(',')}`

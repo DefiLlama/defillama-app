@@ -58,7 +58,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-[1]"
 				>
 					<span className="sr-only">Enable Goblin Mode</span>
-					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="min-h-[34px] w-[34px]" />
+					<Image src={boboLogo} width={34} height={34} alt="bobo cheers" className="min-h-[34px] w-[34px]" />
 				</button>
 				<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
 				<LastUpdated data={data} />

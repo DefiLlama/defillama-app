@@ -1,5 +1,5 @@
 import { getColorFromNumber, slug } from '~/utils'
-import { ACTIVE_USERS_API, CHAINS_ASSETS } from '~/constants'
+import { ACTIVE_USERS_API, CHAINS_ASSETS, TEMP_CHAIN_NFTS } from '~/constants'
 import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
@@ -63,9 +63,7 @@ export const getChainsByCategory = async ({
 			>
 		>,
 		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()) as Promise<IChainAssets>,
-		fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json()) as Promise<
-			Record<string, number>
-		>,
+		fetchWithErrorLogging(TEMP_CHAIN_NFTS).then((res) => res.json()) as Promise<Record<string, number>>,
 		getDimensionAdapterChainsOverview({ adapterType: 'fees', dataType: 'dailyAppRevenue' })
 	])
 
