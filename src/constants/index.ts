@@ -137,12 +137,12 @@ export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
 export const ICONS_PALETTE_CDN = 'https://icons.llamao.fi/palette'
 // export const ICONS_PALETTE_CDN = 'https://palette.llamao.fi/palette'
 
-export const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}dev-metrics/twitter-files`
+export const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
 export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
 
 export const HACKS_API = `${SERVER_URL}/hacks`
 
-export const DEV_METRICS_API = `${DATASETS_SERVER_URL}dev-metrics/github`
+export const DEV_METRICS_API = `${DATASETS_SERVER_URL}/dev-metrics/github`
 
 const COINS_SERVER_URL = process.env.COINS_SERVER_URL ?? 'https://coins.llama.fi'
 export const COINS_PRICES_API = `${COINS_SERVER_URL}/prices`
@@ -157,7 +157,7 @@ export const CATEGORY_COIN_PRICES_API = `${FDV_SERVER_URL}/prices`
 export const CATEGORY_INFO_API = `${FDV_SERVER_URL}/info`
 export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
 
-export const LIQUIDITY_API = `${DATASETS_SERVER_URL}liquidity.json`
+export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
 
 export const AUTH_SERVER = 'https://auth.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
