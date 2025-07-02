@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { LazyChart } from '~/components/LazyChart'
 import { Bookmark } from '~/components/Bookmark'
@@ -1411,7 +1411,7 @@ const ProtocolContainer = ({
 							className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-1"
 						>
 							<span className="sr-only">Enable Goblin Mode</span>
-							<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="min-h-[34px] w-[34px]" />
+							<Image src={boboLogo} width={34} height={34} alt="bobo cheers" className="min-h-[34px] w-[34px]" />
 						</button>
 					</div>
 					<div className="grid grid-cols-1 xl:grid-cols-2 gap-1 *:only:col-span-full *:last:odd:col-span-full">

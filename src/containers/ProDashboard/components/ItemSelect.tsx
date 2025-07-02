@@ -77,7 +77,7 @@ const TextOption = ({ innerProps, label }) => (
 
 function VirtualizedMenuList(props) {
 	const { options, children, maxHeight, getValue } = props
-	const listRef = useRef()
+	const listRef = useRef<HTMLDivElement>(null)
 	const itemCount = options.length
 	const virtualizer = useVirtualizer({
 		count: itemCount,

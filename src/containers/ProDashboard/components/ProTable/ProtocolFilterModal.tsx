@@ -38,7 +38,7 @@ const CustomProtocolOption = ({ innerProps, label, data }: any) => {
 
 function VirtualizedMenuList(props: any) {
 	const { options, children, maxHeight, getValue } = props
-	const listRef = React.useRef<any>()
+	const listRef = React.useRef<HTMLDivElement>(null)
 	const itemCount = options.length
 	const virtualizer = useVirtualizer({
 		count: itemCount,

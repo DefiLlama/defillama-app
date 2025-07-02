@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import lostLlama from '~/assets/404.png'
 
 export default function HomePage(props) {

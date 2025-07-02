@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Image from 'next/future/image'
+import Image from 'next/image'
 import { useNFTApp } from '~/hooks'
 import DefiLogo from '~/assets/logo_white.png'
 import NFTLogo from '~/assets/nft_logo_white.png'

@@ -414,9 +414,9 @@ export function useProTable(
 		}
 	}, [table, columnOrder])
 
-	const prevColumnOrderRef = React.useRef<string[]>()
-	const prevColumnVisibilityRef = React.useRef<Record<string, boolean>>()
-	const prevCustomColumnsRef = React.useRef<CustomColumn[]>()
+	const prevColumnOrderRef = React.useRef<string[]>(null)
+	const prevColumnVisibilityRef = React.useRef<Record<string, boolean>>(null)
+	const prevCustomColumnsRef = React.useRef<CustomColumn[]>(null)
 
 	React.useEffect(() => {
 		if (options?.onColumnsChange) {

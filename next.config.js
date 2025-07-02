@@ -557,17 +557,6 @@ const nextConfig = {
 	},
 	images: {
 		domains: ['icons.llama.fi', 'assets.coingecko.com', 'yield-charts.llama.fi', 'icons.llamao.fi']
-	},
-	compiler: {
-		styledComponents: true
-	},
-	generateBuildId: async () => {
-		// get the latest git commit hash here
-		const commitHash = Math.random().toString() //require('child_process').execSync('git rev-parse HEAD').toString().trim()
-		return commitHash
-	},
-	experimental: {
-		largePageDataBytes: 6_000_000
 	}
 }
 
