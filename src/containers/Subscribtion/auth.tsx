@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useCallback, ReactNode, useState } from 'react'
 import toast from 'react-hot-toast'
 import pb, { AuthModel } from '~/utils/pocketbase'
-import { SiweMessage } from 'siwe'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AUTH_SERVER } from '~/constants'
-
+import { createSiweMessage } from 'viem/siwe'
 interface User extends AuthModel {
 	subscription_status: string
 	subscription: {
@@ -255,18 +254,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			}
 
 			const { nonce } = await getNonce(address)
-			const message = new SiweMessage({
+			const issuedAt = new Date()
+			const message = createSiweMessage({
 				domain: window.location.host,
-				address,
+				address: address as `0x${string}`,
 				statement: 'Sign in with Ethereum to the app.',
 				uri: window.location.origin,
 				version: '1',
 				chainId: 1,
-				nonce: nonce
+				nonce: nonce,
+				issuedAt: issuedAt
 			})
 
 			const signature = await signMessageFunction({
-				message: message.prepareMessage(),
+				message: message,
 				account: address as `0x${string}`
 			})
 
@@ -274,7 +275,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				const response = await fetch(`${AUTH_SERVER}/eth-auth`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ message, signature, address })
+					body: JSON.stringify({ message, signature, address, issuedAt: issuedAt.toISOString() })
 				})
 
 				if (!response.ok) {
