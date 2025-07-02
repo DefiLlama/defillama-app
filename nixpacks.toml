@@ -5,7 +5,10 @@ nixPkgs = ['bun']
 cmds = ["bun install"]
 
 [phases.build]
-cmds = ["bun run build"]
+cmds = [
+  "next build 2>&1 | tee build.log",
+  "node ./scripts/build-msg.js $? \"$(date -u +%s)\" \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$(find .next -name _buildManifest.js | sed 's/\\/_buildManifest.js//g' | sed 's/\\.next\\/static\\///g')\" \"\" \"\" \"\""
+]
 
 [start]
 cmd = "bun run start"
