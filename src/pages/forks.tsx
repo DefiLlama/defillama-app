@@ -86,13 +86,13 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 			<Metrics currentMetric="TVL in forks" />
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="isolate relative rounded-md p-3 bg-[var(--cards-bg)] flex-1 min-h-[360px] flex flex-col">
+				<div className="isolate relative rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px] flex flex-col">
 					<CSVDownloadButton onClick={downloadCSV} className="ml-auto absolute right-3 top-3 z-10" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={forkColors} />
 					</React.Suspense>
 				</div>
-				<div className="rounded-md p-3 bg-[var(--cards-bg)] flex-1 min-h-[360px]">
+				<div className="rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px]">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -109,7 +109,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 			</div>
 			<React.Suspense
 				fallback={
-					<div style={{ minHeight: `${tokensList.length * 50 + 200}px` }} className="bg-[var(--cards-bg)] rounded-md" />
+					<div style={{ minHeight: `${tokensList.length * 50 + 200}px` }} className="bg-(--cards-bg) rounded-md" />
 				}
 			>
 				<TableWithSearch

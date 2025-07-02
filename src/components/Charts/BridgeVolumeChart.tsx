@@ -103,14 +103,14 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 		<>
 			<div className="flex justify-end flex-wrap max-w-2xl w-full mx-auto gap-4 p-3 overflow-x-auto">
 				<div className="flex-1 flex flex-col gap-1 ml-auto">
-					<h2 className="text-sm font-medium text-[var(--text2)]">Time Period:</h2>
-					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+					<h2 className="text-sm font-medium text-(--text2)">Time Period:</h2>
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 						{TIME_PERIODS.map((period) => (
 							<button
 								key={period}
 								onClick={() => setTimePeriod(period)}
 								data-active={timePeriod === period}
-								className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="flex-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								{period}
 							</button>
@@ -119,19 +119,19 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 				</div>
 
 				<div className="flex-1 flex flex-col gap-1">
-					<h2 className="text-sm font-medium text-[var(--text2)]">View:</h2>
-					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+					<h2 className="text-sm font-medium text-(--text2)">View:</h2>
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 						<button
 							onClick={() => setViewType('Split')}
 							data-active={viewType === 'Split'}
-							className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="flex-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
 							Split
 						</button>
 						<button
 							onClick={() => setViewType('Combined')}
 							data-active={viewType === 'Combined'}
-							className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="flex-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
 							Combined
 						</button>
@@ -139,19 +139,19 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 				</div>
 
 				<div className="flex-1 flex flex-col gap-1">
-					<h2 className="text-sm font-medium text-[var(--text2)]">Metric:</h2>
-					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+					<h2 className="text-sm font-medium text-(--text2)">Metric:</h2>
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 						<button
 							onClick={() => setMetricType('Volume')}
 							data-active={metricType === 'Volume'}
-							className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="flex-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
 							Volume
 						</button>
 						<button
 							onClick={() => setMetricType('Transactions')}
 							data-active={metricType === 'Transactions'}
-							className="flex-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="flex-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
 							Transactions
 						</button>

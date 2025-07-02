@@ -62,7 +62,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -70,7 +70,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 						{row.original?.deprecated ? (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
 							>
 								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
 								<Tooltip
@@ -83,7 +83,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 						) : (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							>{`${value}`}</BasicLink>
 						)}
 
@@ -108,7 +108,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-[var(--link-text)]">
+				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-(--link-text)">
 					{getValue() as string | null}
 				</BasicLink>
 			) : (
@@ -468,7 +468,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -476,7 +476,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 						{row.original?.deprecated ? (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
 							>
 								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
 								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
@@ -486,7 +486,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 						) : (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							>{`${value}`}</BasicLink>
 						)}
 
@@ -509,7 +509,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		accessorKey: 'category',
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-[var(--link-text)]">
+				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-(--link-text)">
 					{getValue() as string | null}
 				</BasicLink>
 			) : (
@@ -619,7 +619,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -627,7 +627,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 						{row.original?.deprecated ? (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
 							>
 								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
 								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
@@ -637,7 +637,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 						) : (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							>{`${value}`}</BasicLink>
 						)}
 
@@ -660,7 +660,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 		accessorKey: 'category',
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-[var(--link-text)]">
+				<BasicLink href={`/protocols/${getValue()}`} className="text-sm font-medium text-(--link-text)">
 					{getValue() as string | null}
 				</BasicLink>
 			) : (
@@ -774,7 +774,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 						{row.original?.deprecated ? (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
 							>
 								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
 								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
@@ -784,7 +784,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 						) : (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							>{`${value}`}</BasicLink>
 						)}
 
@@ -890,11 +890,11 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>{`${value}`}</BasicLink>
 				</span>
 			)

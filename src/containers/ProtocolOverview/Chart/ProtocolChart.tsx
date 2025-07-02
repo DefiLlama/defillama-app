@@ -363,7 +363,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		)
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
+		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2">
 			{chartOptions.length > 0 ? (
 				<div className="flex items-center gap-2 flex-wrap m-3">
 					{chartOptions.map((coption) => (
@@ -394,14 +394,14 @@ const ProtocolChart = React.memo(function ProtocolChart({
 							<span
 								className={`border ${
 									toggledMetrics[coption.key] === 'true'
-										? 'border-[var(--btn-hover-bg)] bg-[var(--btn-bg)]'
+										? 'border-(--btn-hover-bg) bg-(--btn-bg)'
 										: 'border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E]'
 								} rounded p-[2px] h-[18px] w-[34px]`}
 							>
 								{toggledMetrics[coption.key] !== 'true' ? (
-									<span className="block h-3 w-3 bg-[#707A7A] rounded-[3px] flex-shrink-0 mr-auto"></span>
+									<span className="block h-3 w-3 bg-[#707A7A] rounded-[3px] shrink-0 mr-auto"></span>
 								) : (
-									<span className="block h-3 w-3 bg-[var(--primary-color)] rounded-[3px] flex-shrink-0 ml-auto"></span>
+									<span className="block h-3 w-3 bg-(--primary-color) rounded-[3px] shrink-0 ml-auto"></span>
 								)}
 							</span>
 							<span>{coption.label}</span>
@@ -412,7 +412,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 
 			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end m-3 mt-0 first:mt-3">
 				{chartDenominations.length > 0 && (
-					<div className="mr-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+					<div className="mr-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--btn-hover-bg)">
 						{chartDenominations.map((D) => (
 							<BasicLink
 								href={
@@ -422,7 +422,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 								}
 								key={D.symbol}
 								shallow
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--btn-bg)] focus-visible:bg-[var(--btn-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--btn-bg) focus-visible:bg-(--btn-bg) data-[active=true]:bg-(--btn-hover-bg)"
 								data-active={
 									toggledMetrics.denomination === D.symbol || (D.symbol === 'USD' && !toggledMetrics.denomination)
 								}
@@ -435,7 +435,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 
 				{hasAtleasOneBarChart ? (
 					<>
-						<div className="ml-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+						<div className="ml-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--btn-hover-bg)">
 							<BasicLink
 								href={
 									realPathname +
@@ -443,7 +443,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 									'groupBy=daily'
 								}
 								shallow
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
 								data-active={toggledMetrics.groupBy === 'daily' || !toggledMetrics.groupBy}
 							>
 								Daily
@@ -456,7 +456,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 									'groupBy=weekly'
 								}
 								shallow
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
 								data-active={toggledMetrics.groupBy === 'weekly'}
 							>
 								Weekly
@@ -469,7 +469,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 									'groupBy=monthly'
 								}
 								shallow
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
 								data-active={toggledMetrics.groupBy === 'monthly'}
 							>
 								Monthly
@@ -482,7 +482,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 									'groupBy=cumulative'
 								}
 								shallow
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
 								data-active={toggledMetrics.groupBy === 'cumulative'}
 							>
 								Cumulative

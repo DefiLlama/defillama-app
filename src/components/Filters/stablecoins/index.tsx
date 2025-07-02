@@ -9,7 +9,7 @@ export function PeggedFilters(props: { pathname: string; downloadCsv: () => void
 	const isSmall = useMedia(`(max-width: 639px)`)
 	const isClient = useIsClient()
 	return (
-		<div className="flex flex-col gap-4 p-3 bg-[var(--cards-bg)] rounded-md">
+		<div className="flex flex-col gap-4 p-3 bg-(--cards-bg) rounded-md">
 			<PeggedSearch variant="secondary" />
 
 			<div className="flex flex-wrap gap-2 min-h-9 *:flex-1 sm:hidden">

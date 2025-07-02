@@ -143,14 +143,14 @@ export function RecentlyListedProtocolsTable({
 	}
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
+		<div className="bg-(--cards-bg) rounded-md">
 			<div className="flex items-center justify-end flex-wrap gap-2 p-3">
 				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={projectName}
@@ -158,7 +158,7 @@ export function RecentlyListedProtocolsTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="border border-[var(--form-control-border)] w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 				<SelectWithCombobox
@@ -172,7 +172,7 @@ export function RecentlyListedProtocolsTable({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 					}}
 				/>
 				<TVLRange variant="third" />

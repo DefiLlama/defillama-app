@@ -10,11 +10,11 @@ export const EmailVerificationWarning = ({ email, onResendVerification, isLoadin
 	return (
 		<div className="bg-[#2a2417] border border-amber-500/20 rounded-xl p-5 shadow-md relative overflow-hidden">
 			<div className="flex gap-4 items-start relative">
-				<div className="flex-shrink-0 bg-amber-400/10 text-amber-400 p-2 rounded-lg">
+				<div className="shrink-0 bg-amber-400/10 text-amber-400 p-2 rounded-lg">
 					<Icon name="alert-triangle" height={20} width={20} />
 				</div>
 
-				<div className="flex-grow">
+				<div className="grow">
 					<h3 className="text-lg font-semibold text-amber-100 mb-2">Verify Your Email Address</h3>
 					<p className="text-[#e0d5bc] mb-4 text-sm">
 						Please verify your email address to access all Pro features and API capabilities. We've sent a verification

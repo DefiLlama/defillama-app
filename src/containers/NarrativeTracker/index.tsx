@@ -127,28 +127,28 @@ export const CategoryPerformanceContainer = ({
 		<>
 			<ProtocolsChainsSearch />
 
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<h1 className="text-xl font-semibold p-3">
 					{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
 				</h1>
 
-				<div className="flex flex-wrap overflow-x-auto border-b border-[var(--form-control-border)]">
+				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 					<button
-						className="py-2 px-6 whitespace-nowrap border-b border-[var(--form-control-border)] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						className="py-2 px-6 whitespace-nowrap border-b border-(--form-control-border) data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						onClick={() => setTab('linechart')}
 						data-selected={tab === 'linechart'}
 					>
 						Linechart
 					</button>
 					<button
-						className="py-2 px-6 whitespace-nowrap border-b border-l border-[var(--form-control-border)] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-(--form-control-border) data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						onClick={() => setTab('barchart')}
 						data-selected={tab === 'barchart'}
 					>
 						Barchart
 					</button>
 					<button
-						className="py-2 px-6 whitespace-nowrap border-b border-l border-[var(--form-control-border)] data-[selected=true]:border-b-[var(--primary1)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+						className="py-2 px-6 whitespace-nowrap border-b border-l border-(--form-control-border) data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						onClick={() => setTab('heatmap')}
 						data-selected={tab === 'heatmap'}
 					>
@@ -157,11 +157,11 @@ export const CategoryPerformanceContainer = ({
 				</div>
 
 				<div className="flex items-center gap-3 p-3 justify-end">
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 						{(['7D', '30D', 'YTD', '365D'] as const).map((period) => (
 							<button
 								key={period}
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={groupBy === period}
 								onClick={() => setGroupBy(period)}
 							>
@@ -169,12 +169,12 @@ export const CategoryPerformanceContainer = ({
 							</button>
 						))}
 					</div>
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 						<p className="pl-3 pr-1">Show as:</p>
 						{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
 							<button
 								key={denom}
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={groupByDenom === denom}
 								onClick={() => setGroupByDenom(denom)}
 							>

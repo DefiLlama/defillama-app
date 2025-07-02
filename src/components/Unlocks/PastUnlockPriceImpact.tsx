@@ -111,7 +111,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 	}, [data])
 
 	return (
-		<div className={`bg-[var(--cards-bg)] rounded-md p-1 flex flex-col gap-0.5 ${className}`}>
+		<div className={`bg-(--cards-bg) rounded-md p-1 flex flex-col gap-0.5 ${className}`}>
 			<Tooltip
 				className="text-lg font-semibold mb-1"
 				content={`Price change 7 days after the most recent major unlock event, not counting non-circulating and farming emissions. Sorted by the value of the unlock event.`}
@@ -126,7 +126,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 							<div className="flex flex-col">
 								<BasicLink
 									href={`/unlocks/${slug(impact.name)}`}
-									className="overflow-hidden text-[var(--bg-2)] whitespace-nowrap font-medium text-lg text-ellipsis hover:underline"
+									className="overflow-hidden text-(--bg-2) whitespace-nowrap font-medium text-lg text-ellipsis hover:underline"
 								>
 									{impact.name} ({impact.symbol})
 								</BasicLink>
@@ -138,10 +138,10 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 							</span>
 							<Ariakit.HovercardProvider>
 								<Ariakit.HovercardAnchor>
-									<Icon name="help-circle" width={16} height={16} className="text-[var(--text3)] cursor-help" />
+									<Icon name="help-circle" width={16} height={16} className="text-(--text3) cursor-help" />
 								</Ariakit.HovercardAnchor>
 								<Ariakit.Hovercard
-									className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
+									className="rounded-md bg-(--bg1) dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
 									unmountOnHide
 									portal={true}
 								>
@@ -152,7 +152,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 										</span>
 										<span className="flex flex-col">
 											<span>{dayjs(impact.timestamp * 1e3).format('MMM D, YYYY')}</span>
-											<span className="text-sm text-[var(--text3)]">
+											<span className="text-sm text-(--text3)">
 												{dayjs(impact.timestamp * 1e3).format('HH:mm')} GMT
 												{dayjs(impact.timestamp * 1e3)
 													.format('Z')
@@ -161,7 +161,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 										</span>
 									</span>
 
-									<hr className="border-[var(--bg4)]" />
+									<hr className="border-(--bg4)" />
 
 									<span className="flex flex-col gap-4">
 										{impact.unlockBreakdown.map((item, idx) => {
@@ -180,17 +180,17 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 																		name={item.unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
 																		height={16}
 																		width={16}
-																		className="text-[var(--text3)]"
+																		className="text-(--text3)"
 																	/>
 																</Ariakit.TooltipAnchor>
-																<Ariakit.Tooltip className="rounded-md bg-[var(--bg2)] px-2 py-1 text-sm z-50">
+																<Ariakit.Tooltip className="rounded-md bg-(--bg2) px-2 py-1 text-sm z-50">
 																	{item.unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
 																</Ariakit.Tooltip>
 															</Ariakit.TooltipProvider>
 														</span>
 														<span>{usdValue ? formattedNum(usdValue, true) : '-'}</span>
 													</span>
-													<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
+													<span className="flex items-center justify-between gap-2 text-(--text3)">
 														<span>
 															{percentage && formattedNum(percentage)}%{' '}
 															{percentageFloat && <>({formattedNum(percentageFloat)}% of float)</>}
@@ -203,7 +203,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 											)
 										})}
 									</span>
-									<hr className="border-[var(--bg4)]" />
+									<hr className="border-(--bg4)" />
 
 									<span className="flex flex-col gap-1">
 										<span className="flex items-center justify-between gap-2 font-semibold">
@@ -215,7 +215,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 												)}
 											</span>
 										</span>
-										<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
+										<span className="flex items-center justify-between gap-2 text-(--text3)">
 											<span>
 												{impact.maxSupply &&
 													`${formattedNum(

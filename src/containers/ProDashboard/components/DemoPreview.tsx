@@ -60,13 +60,13 @@ const DemoChartCard = ({ chart }: { chart: ChartConfig }) => {
 	)
 
 	return (
-		<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+		<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 			<div className="p-4 h-full flex flex-col">
 				<div className="flex items-center gap-2 mb-2">
-					<div className="w-6 h-6 rounded-full bg-[var(--primary1)] flex items-center justify-center text-xs text-white font-bold">
+					<div className="w-6 h-6 rounded-full bg-(--primary1) flex items-center justify-center text-xs text-white font-bold">
 						{itemName.charAt(0).toUpperCase()}
 					</div>
-					<h2 className="text-lg font-semibold text-[var(--text1)]">
+					<h2 className="text-lg font-semibold text-(--text1)">
 						{itemName} {chartTypeDetails.title}
 					</h2>
 				</div>
@@ -119,10 +119,10 @@ const DemoMultiChartCard = ({ multi }: { multi: MultiChartConfig }) => {
 	})
 
 	return (
-		<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+		<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 			<div className="p-4 h-full flex flex-col">
 				<div className="flex items-center gap-2 mb-2">
-					<h3 className="text-sm font-medium text-[var(--text1)]">{multi.name}</h3>
+					<h3 className="text-sm font-medium text-(--text1)">{multi.name}</h3>
 				</div>
 
 				<div style={{ height: '300px', flexGrow: 1 }}>
@@ -386,22 +386,22 @@ const features = [
 export const DemoPreview = () => {
 	return (
 		<div className="relative min-h-screen">
-			<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl py-6 border-b border-[var(--divider)]">
+			<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl py-6 border-b border-(--divider)">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
 					<div className="text-center">
-						<h1 className="text-3xl font-bold text-[var(--text1)] mb-2">Pro Dashboard Preview</h1>
-						<p className="text-lg text-[var(--text2)]">See what you'll get with Pro access</p>
+						<h1 className="text-3xl font-bold text-(--text1) mb-2">Pro Dashboard Preview</h1>
+						<p className="text-lg text-(--text2)">See what you'll get with Pro access</p>
 					</div>
 
 					<div className="flex items-center justify-center">
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
 							{features.map((feature, index) => (
-								<div key={index} className="flex items-center gap-2 text-sm text-[var(--text2)]">
+								<div key={index} className="flex items-center gap-2 text-sm text-(--text2)">
 									<Icon
 										name={feature.icon as any}
 										height={16}
 										width={16}
-										className="text-[var(--primary1)] flex-shrink-0"
+										className="text-(--primary1) shrink-0"
 									/>
 									<span className="whitespace-nowrap">{feature.text}</span>
 								</div>
@@ -411,13 +411,13 @@ export const DemoPreview = () => {
 
 					<div className="flex items-center justify-center gap-6">
 						<div className="text-center">
-							<div className="text-3xl font-bold text-[var(--text1)]">
-								$49<span className="text-lg font-normal text-[var(--text2)]">/month</span>
+							<div className="text-3xl font-bold text-(--text1)">
+								$49<span className="text-lg font-normal text-(--text2)">/month</span>
 							</div>
-							<div className="text-sm text-[var(--text2)]">Llama+ subscription</div>
+							<div className="text-sm text-(--text2)">Llama+ subscription</div>
 						</div>
 						<Link href="/subscription">
-							<span className="px-8 py-3 bg-[var(--primary1)] text-white font-medium hover:bg-[var(--primary1-hover)] transition-colors flex items-center gap-2 cursor-pointer rounded-md">
+							<span className="px-8 py-3 bg-(--primary1) text-white font-medium hover:bg-(--primary1-hover) transition-colors flex items-center gap-2 cursor-pointer rounded-md">
 								<Icon name="arrow-right" height={16} width={16} />
 								Upgrade Now
 							</span>
@@ -426,21 +426,21 @@ export const DemoPreview = () => {
 				</div>
 			</div>
 
-			<div className="bg-[var(--bg7)] bg-opacity-20 border-t border-[var(--divider)] py-2">
+			<div className="bg-(--bg7) bg-opacity-20 border-t border-(--divider) py-2">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6">
 					<div className="flex items-center justify-center">
-						<span className="text-xs text-[var(--text2)] opacity-75 italic">
+						<span className="text-xs text-(--text2) opacity-75 italic">
 							Demo Preview - All data shown below is simulated for demonstration purposes
 						</span>
 					</div>
 				</div>
 			</div>
 
-			<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl py-6">
+			<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl py-6">
 				<div className=" max-w-[1400px] mx-auto">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 						<div className="md:col-span-1 min-h-[340px]">
-							<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<TextCard text={demoTextCard} />
 							</div>
 						</div>
@@ -462,7 +462,7 @@ export const DemoPreview = () => {
 						))}
 
 						<div className="md:col-span-2 min-h-[400px]">
-							<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<ProtocolsByChainTable 
 									tableId="demo-ethereum-protocols" 
 									chains={['Ethereum']} 
@@ -472,13 +472,13 @@ export const DemoPreview = () => {
 						</div>
 
 						<div className="md:col-span-1 min-h-[340px]">
-							<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<TextCard text={demoTextCard2} />
 							</div>
 						</div>
 
 						<div className="md:col-span-1 min-h-[340px]">
-							<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<TextCard text={demoTextCard3} />
 							</div>
 						</div>
@@ -494,7 +494,7 @@ export const DemoPreview = () => {
 						))}
 
 						<div className="md:col-span-1 min-h-[340px]">
-							<div className="bg-[var(--bg7)] bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<TextCard text={demoTextCard4} />
 							</div>
 						</div>

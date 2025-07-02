@@ -180,7 +180,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					data-strike={info.row.original.strikeTvl ?? 'false'}
-					className="flex justify-end gap-1 data-[strike=true]:text-[var(--text-disabled)]"
+					className="flex justify-end gap-1 data-[strike=true]:text-(--text-disabled)"
 				>
 					{['Morpho Compound', 'Morpho Aave'].includes(info.row.original.project) ? (
 						<QuestionHelper

@@ -444,21 +444,21 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		<div className="flex flex-col gap-4 mt-[-24px]">
 			<div className="flex flex-wrap items-center justify-end gap-4">
 				{timeView === 'currentMonth' && (
-					<div className="flex items-center gap-2 order-1 md:order-none">
+					<div className="flex items-center gap-2 order-1 md:order-0">
 						<button
 							onClick={goToPrevMonth}
-							className="p-1.5 rounded hover:bg-[var(--bg7)] text-[var(--text2)] hover:text-[var(--text1)]"
+							className="p-1.5 rounded-sm hover:bg-(--bg7) text-(--text2) hover:text-(--text1)"
 							aria-label="Previous Month"
 						>
 							←
 						</button>
 
-						<span className="text-sm font-medium text-[var(--text1)] w-28 text-center">
+						<span className="text-sm font-medium text-(--text1) w-28 text-center">
 							{selectedDate.format('MMMM YYYY')}
 						</span>
 						<button
 							onClick={goToNextMonth}
-							className="p-1.5 rounded hover:bg-[var(--bg7)] text-[var(--text2)] hover:text-[var(--text1)]"
+							className="p-1.5 rounded-sm hover:bg-(--bg7) text-(--text2) hover:text-(--text1)"
 							aria-label="Next Month"
 						>
 							→
@@ -466,25 +466,25 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					</div>
 				)}
 
-				<div className="mt-4 text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+				<div className="mt-4 text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 					<button
 						onClick={() => setTimeView('currentMonth')}
 						data-active={timeView === 'currentMonth'}
-						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 					>
 						Month
 					</button>
 					<button
 						onClick={() => setTimeView('currentYear')}
 						data-active={timeView === 'currentYear'}
-						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 					>
 						Current Year
 					</button>
 					<button
 						onClick={() => setTimeView('allYears')}
 						data-active={timeView === 'allYears'}
-						className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 					>
 						All Years
 					</button>

@@ -50,7 +50,7 @@ export const EmailChangeModal = ({
 							id="new-email"
 							type="email"
 							required
-							className="w-full py-3 px-4 text-sm rounded-lg bg-[#222429] border border-[#39393E] text-white focus:outline-none focus:ring-2 focus:ring-[#5C5CF9] focus:border-transparent"
+							className="w-full py-3 px-4 text-sm rounded-lg bg-[#222429] border border-[#39393E] text-white focus:outline-hidden focus:ring-2 focus:ring-[#5C5CF9] focus:border-transparent"
 							placeholder="your.new.email@example.com"
 							value={email}
 							onChange={(e) => onEmailChange(e.target.value)}

@@ -185,16 +185,16 @@ export const DimensionProtocolOverviewChart = ({
 	}, [totalDataChart, enabledSettings, chartInterval])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
+		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[418px]">
 			<div className="flex items-center justify-end p-3 gap-2">
 				{title && <h2 className="text-base font-semibold mr-auto">{title}</h2>}
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 					{INTERVALS_LIST.map((dataInterval) => (
 						<button
 							key={dataInterval}
 							onClick={() => changeChartInterval(dataInterval as any)}
 							data-active={dataInterval === chartInterval}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
 							{dataInterval}
 						</button>
@@ -237,7 +237,7 @@ export const DimensionProtocolOverviewChart = ({
 						}
 					}}
 					smol
-					className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+					className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<LineAndBarChart
@@ -290,14 +290,14 @@ export const DimensionProtocolChartByType = ({
 	})
 
 	if (isLoading) {
-		return <div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]" />
+		return <div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[418px]" />
 	}
 
 	if (chartType === 'overview') {
 		return (
 			<LazyChart
 				enable
-				className="relative col-span-full min-h-[418px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full"
+				className="relative col-span-full min-h-[418px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
 			>
 				<DimensionProtocolOverviewChart
 					totalDataChart={data.totalDataChart}
@@ -310,7 +310,7 @@ export const DimensionProtocolChartByType = ({
 	return (
 		<LazyChart
 			enable
-			className="relative col-span-full min-h-[418px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full"
+			className="relative col-span-full min-h-[418px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
 		>
 			<ChartByType
 				totalDataChartBreakdown={data.totalDataChartBreakdown}
@@ -439,16 +439,16 @@ const ChartByType = ({
 	}, [allTypes, chartInterval, chartType, selectedTypes, totalDataChartBreakdown])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
+		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[418px]">
 			<div className="flex items-center gap-1 justify-end flex-wrap p-3">
 				{title && <h2 className="text-base font-semibold mr-auto">{title}</h2>}
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 					{INTERVALS_LIST.map((dataInterval) => (
 						<button
 							key={dataInterval}
 							onClick={() => changeChartInterval(dataInterval as any)}
 							data-active={dataInterval === chartInterval}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
 							{dataInterval}
 						</button>
@@ -467,7 +467,7 @@ const ChartByType = ({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium z-10'
 					}}
 					portal
 				/>
@@ -514,7 +514,7 @@ const ChartByType = ({
 						}
 					}}
 					smol
-					className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+					className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<LineAndBarChart

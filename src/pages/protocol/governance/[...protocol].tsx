@@ -68,7 +68,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			metrics={props.metrics}
 			tab="governance"
 		>
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<GovernanceData apis={props.governanceApis} />
 			</div>
 		</ProtocolOverviewLayout>

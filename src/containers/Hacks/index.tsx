@@ -73,14 +73,14 @@ function HacksTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
+		<div className="bg-(--cards-bg) rounded-md">
 			<div className="p-3 flex items-center justify-end">
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={projectName}
@@ -88,7 +88,7 @@ function HacksTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 			</div>
@@ -105,7 +105,7 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{totalHacked}b</span>
@@ -119,7 +119,7 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 						<span className="font-semibold text-2xl font-jetbrains">{totalRugs}b</span>
 					</p>
 				</div>
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[360px]">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[360px]">
 					<div className="flex items-center p-3 -mb-12">
 						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 					</div>
@@ -143,7 +143,7 @@ function ChartSelector({ options, selectedChart, onClick }) {
 
 	return (
 		<Ariakit.SelectProvider value={selectedChart} setValue={onClick}>
-			<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10">
+			<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium z-10">
 				<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
 				<Ariakit.SelectArrow />
 			</Ariakit.Select>
@@ -152,9 +152,9 @@ function ChartSelector({ options, selectedChart, onClick }) {
 				hideOnInteractOutside
 				gutter={6}
 				wrapperProps={{
-					className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+				className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 			>
 				{options.map((option) => (
 					<Ariakit.SelectItem
@@ -163,7 +163,7 @@ function ChartSelector({ options, selectedChart, onClick }) {
 						focusOnHover
 						setValueOnClick={false}
 						onClick={() => onItemClick(option)}
-						className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
+						className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border)"
 					>
 						{option}
 					</Ariakit.SelectItem>

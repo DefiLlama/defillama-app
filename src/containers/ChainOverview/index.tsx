@@ -32,7 +32,7 @@ export function ChainOverview(props: IChainOverviewData) {
 							rel="noreferrer noopener"
 							href={app.href}
 							key={`llama-app-${app.href}`}
-							className="min-w-fit max-w-[70vw] flex-1 flex items-center gap-[10px] p-[10px] rounded-lg bg-[var(--cards-bg)] border border-[var(--cards-bg)] max-h-[64px] relative overflow-hidden"
+							className="min-w-fit max-w-[70vw] flex-1 flex items-center gap-[10px] p-[10px] rounded-lg bg-(--cards-bg) border border-(--cards-bg) max-h-[64px] relative overflow-hidden"
 						>
 							{app.background}
 							<>{app.icon}</>
@@ -44,7 +44,7 @@ export function ChainOverview(props: IChainOverviewData) {
 									{app.description}
 								</span>
 							</span>
-							<Icon name="arrow-up-right-2" className="h-6 w-6 flex-shrink-0" />
+							<Icon name="arrow-up-right-2" className="h-6 w-6 shrink-0" />
 						</a>
 					))}
 				</div>
@@ -53,7 +53,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				fallback={
 					<div
 						style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
-						className="bg-[var(--cards-bg)] rounded-md"
+						className="bg-(--cards-bg) rounded-md"
 					/>
 				}
 			>

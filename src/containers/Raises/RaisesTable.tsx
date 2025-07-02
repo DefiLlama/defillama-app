@@ -62,14 +62,14 @@ export function RaisesTable({ raises, downloadCsv }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
+		<div className="bg-(--cards-bg) rounded-md">
 			<div className="flex items-center gap-2 flex-wrap p-3">
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={projectName}
@@ -77,14 +77,14 @@ export function RaisesTable({ raises, downloadCsv }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 				<a
 					target="_blank"
 					rel="noreferrer noopener"
 					href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093"
-					className="min-h-[34px] ml-auto flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+					className="min-h-[34px] ml-auto flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
 					<span>Methodology & biases</span>
 					<Icon name="external-link" height={14} width={14} />

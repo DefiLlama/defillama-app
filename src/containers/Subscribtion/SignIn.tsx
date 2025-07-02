@@ -134,7 +134,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 				}}
 			>
 				<div className="flex items-center justify-between mb-5">
-					<Ariakit.DialogHeading className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#5C5CF9] to-[#8A8AFF]">
+					<Ariakit.DialogHeading className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF]">
 						{flow === 'signin' ? 'Sign In' : flow === 'signup' ? 'Create Account' : 'Reset Password'}
 					</Ariakit.DialogHeading>
 					<button
@@ -148,7 +148,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 
 				<div className="flex flex-col gap-3 w-full">
 					<button
-						className="w-full py-3 rounded-lg bg-gradient-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white relative disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 font-medium"
+						className="w-full py-3 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white relative disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 font-medium"
 						onClick={handleWalletSignIn}
 						disabled={loaders.signInWithEthereum}
 					>
@@ -167,9 +167,9 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 				</div>
 
 				<div className="relative flex items-center my-2">
-					<div className="flex-grow border-t border-[#39393E]"></div>
-					<span className="flex-shrink mx-4 text-sm text-[#9a9da1]">or continue with email</span>
-					<div className="flex-grow border-t border-[#39393E]"></div>
+					<div className="grow border-t border-[#39393E]"></div>
+					<span className="shrink mx-4 text-sm text-[#9a9da1]">or continue with email</span>
+					<div className="grow border-t border-[#39393E]"></div>
 				</div>
 
 				{flow === 'signin' ? (
@@ -186,7 +186,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 									id={`${text || 'default'}-signin-email`}
 									type="email"
 									required
-									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
+									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
@@ -201,7 +201,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								id="signin-password"
 								type="password"
 								required
-								className="w-full p-3 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
+								className="w-full p-3 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 							/>
@@ -218,7 +218,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						</div>
 
 						<button
-							className="w-full py-3 mt-1 rounded-lg bg-gradient-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="w-full py-3 mt-1 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
 							disabled={loaders.login}
 						>
 							{loaders.login ? (
@@ -275,7 +275,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 									id={`${text || 'default'}-signup-email`}
 									type="email"
 									required
-									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
+									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
@@ -292,7 +292,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								required
 								className={`w-full p-3 rounded-lg bg-[#222429] border ${
 									passwordError ? 'border-red-500' : 'border-[#39393E]'
-								} text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
+								} text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
 								value={password}
 								onChange={(e) => {
 									setPassword(e.target.value)
@@ -315,7 +315,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								required
 								className={`w-full p-3 rounded-lg bg-[#222429] border ${
 									confirmPasswordError ? 'border-red-500' : 'border-[#39393E]'
-								} text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
+								} text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
 								value={confirmPassword}
 								onChange={(e) => {
 									setConfirmPassword(e.target.value)
@@ -348,7 +348,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						</label>
 
 						<button
-							className="w-full py-3 mt-1 rounded-lg bg-gradient-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="w-full py-3 mt-1 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
 							disabled={loaders.signup}
 						>
 							{loaders.signup ? (
@@ -411,7 +411,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 									id={`${text || 'default'}-forgot-email`}
 									type="email"
 									required
-									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-none focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
+									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
@@ -419,7 +419,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						</div>
 
 						<button
-							className="w-full py-3 mt-1 rounded-lg bg-gradient-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="w-full py-3 mt-1 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
 							disabled={loaders.resetPassword}
 						>
 							{loaders.resetPassword ? (

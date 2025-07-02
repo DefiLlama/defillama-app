@@ -23,7 +23,7 @@ export default function AdapterTest() {
 	return (
 		<Layout title={`Tests`} defaultSEO>
 			<Announcement>This page is just used for tests, don't trust anything on this page</Announcement>
-			<div className="grid grid-cols-2 rounded-xl bg-[var(--bg6)] shadow">
+			<div className="grid grid-cols-2 rounded-xl bg-(--bg6) shadow-sm">
 				<LazyChart>
 					<BarChart chartData={chartData} title="Data" />
 				</LazyChart>

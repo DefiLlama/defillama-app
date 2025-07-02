@@ -26,7 +26,7 @@ function PressPage({ protocols }) {
 	return (
 		<Layout title="Donations - DefiLlama" defaultSEO>
 			<ProtocolsChainsSearch />
-			<div className="bg-[var(--cards-bg)] p-3 rounded-md flex flex-col gap-4">
+			<div className="bg-(--cards-bg) p-3 rounded-md flex flex-col gap-4">
 				<h1 className="text-lg font-semibold">Why donate?</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
@@ -34,7 +34,7 @@ function PressPage({ protocols }) {
 					are supported by donations.
 				</p>
 			</div>
-			<div className="bg-[var(--cards-bg)] p-3 rounded-md flex flex-col gap-4">
+			<div className="bg-(--cards-bg) p-3 rounded-md flex flex-col gap-4">
 				<h1 className="text-lg font-semibold">Affiliate links</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">
@@ -45,7 +45,7 @@ function PressPage({ protocols }) {
 						{protocols.map((p) => (
 							<li key={p.name}>
 								<a
-									className="text-[var(--blue)] hover:underline"
+									className="text-(--blue) hover:underline"
 									target="_blank"
 									rel="noopener noreferrer"
 									href={p.url}
@@ -57,7 +57,7 @@ function PressPage({ protocols }) {
 					</ul>
 				</div>
 			</div>
-			<div className="bg-[var(--cards-bg)] p-3 rounded-md flex flex-col gap-4">
+			<div className="bg-(--cards-bg) p-3 rounded-md flex flex-col gap-4">
 				<h1 className="text-lg font-semibold">Direct donation</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">
@@ -67,7 +67,7 @@ function PressPage({ protocols }) {
 					</ul>
 				</div>
 			</div>
-			<div className="bg-[var(--cards-bg)] p-3 rounded-md flex flex-col gap-4">
+			<div className="bg-(--cards-bg) p-3 rounded-md flex flex-col gap-4">
 				<h1 className="text-lg font-semibold">Use of funds</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">

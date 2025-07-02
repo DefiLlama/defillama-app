@@ -59,7 +59,7 @@ export const SubscriptionUpgrade = ({ onSubscribe, loading = null }: Subscriptio
 
 			<div className="mt-8 space-y-4">
 				<div className="flex gap-4 p-4 bg-[#1a1b1f] border border-[#39393E] rounded-lg hover:border-[#5C5CF9]/40 transition-colors">
-					<div className="flex-shrink-0 bg-[#5C5CF9]/10 text-[#5C5CF9] h-10 w-10 flex items-center justify-center rounded-lg">
+					<div className="shrink-0 bg-[#5C5CF9]/10 text-[#5C5CF9] h-10 w-10 flex items-center justify-center rounded-lg">
 						<Icon name="plug" height={18} width={18} />
 					</div>
 					<div>
@@ -71,7 +71,7 @@ export const SubscriptionUpgrade = ({ onSubscribe, loading = null }: Subscriptio
 				</div>
 
 				<div className="flex gap-4 p-4 bg-[#1a1b1f] border border-[#39393E] rounded-lg hover:border-[#5C5CF9]/40 transition-colors">
-					<div className="flex-shrink-0 bg-[#5C5CF9]/10 text-[#5C5CF9] h-10 w-10 flex items-center justify-center rounded-lg">
+					<div className="shrink-0 bg-[#5C5CF9]/10 text-[#5C5CF9] h-10 w-10 flex items-center justify-center rounded-lg">
 						<Icon name="layers" height={18} width={18} />
 					</div>
 					<div>
@@ -83,7 +83,7 @@ export const SubscriptionUpgrade = ({ onSubscribe, loading = null }: Subscriptio
 				</div>
 
 				<div className="flex gap-4 p-4 bg-[#1a1b1f] border border-[#39393E] rounded-lg hover:border-[#5C5CF9]/40 transition-colors">
-					<div className="flex-shrink-0 bg-[#5C5CF9]/10 text-[#5C5CF9] h-10 w-10 flex items-center justify-center rounded-lg">
+					<div className="shrink-0 bg-[#5C5CF9]/10 text-[#5C5CF9] h-10 w-10 flex items-center justify-center rounded-lg">
 						<Icon name="pie-chart" height={18} width={18} />
 					</div>
 					<div>

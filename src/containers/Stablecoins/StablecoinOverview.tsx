@@ -176,19 +176,19 @@ export const PeggedAssetInfo = ({
 	return (
 		<>
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1" style={tagStyles as any}>
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<Ariakit.TabProvider defaultSelectedId={defaultSelectedId}>
 						<Ariakit.TabList aria-label="Pegged Tabs" className="flex">
 							<Ariakit.Tab
-								className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-md border-[var(--tag-border-color)] hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] aria-selected:border-b-[var(--tag-bg)]"
+								className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-md border-(--tag-border-color) hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) aria-selected:border-b-(--tag-bg)"
 								id={defaultSelectedId}
 							>
 								Stats
 							</Ariakit.Tab>
-							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-[var(--tag-border-color)] hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] aria-selected:border-b-[var(--tag-bg)]">
+							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-(--tag-border-color) hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) aria-selected:border-b-(--tag-bg)">
 								Info
 							</Ariakit.Tab>
-							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-[var(--tag-border-color)] hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] aria-selected:border-b-[var(--tag-bg)]">
+							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-(--tag-border-color) hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) aria-selected:border-b-(--tag-bg)">
 								Links
 							</Ariakit.Tab>
 						</Ariakit.TabList>
@@ -309,7 +309,7 @@ export const PeggedAssetInfo = ({
 											href={blockExplorerLink}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 										>
 											<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={14} width={14} />
 										</a>
@@ -322,7 +322,7 @@ export const PeggedAssetInfo = ({
 											href={url}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 										>
 											<span>Website</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
@@ -336,7 +336,7 @@ export const PeggedAssetInfo = ({
 											href={twitter}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 										>
 											<span>Twitter</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
@@ -350,7 +350,7 @@ export const PeggedAssetInfo = ({
 											href={`https://www.coingecko.com/en/coins/${gecko_id}`}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 										>
 											<span>CoinGecko</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
@@ -362,7 +362,7 @@ export const PeggedAssetInfo = ({
 									href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+									className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 								>
 									<span>Check the code</span>
 									<Icon name="arrow-up-right" height={14} width={14} />
@@ -372,32 +372,32 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabProvider>
 				</div>
 
-				<div className="bg-[var(--cards-bg)] rounded-md min-h-[416px] flex flex-col col-span-2">
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--tag-border-color)] m-3">
+				<div className="bg-(--cards-bg) rounded-md min-h-[416px] flex flex-col col-span-2">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--tag-border-color) m-3">
 						<button
 							data-active={chartType === 'Mcap'}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] data-[active=true]:bg-[var(--tag-hover-bg)]"
+							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) data-[active=true]:bg-(--tag-hover-bg)"
 							onClick={() => setChartType('Mcap')}
 						>
 							Total Circ
 						</button>
 						<button
 							data-active={chartType === 'Pie'}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] data-[active=true]:bg-[var(--tag-hover-bg)]"
+							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) data-[active=true]:bg-(--tag-hover-bg)"
 							onClick={() => setChartType('Pie')}
 						>
 							Pie
 						</button>
 						<button
 							data-active={chartType === 'Dominance'}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] data-[active=true]:bg-[var(--tag-hover-bg)]"
+							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) data-[active=true]:bg-(--tag-hover-bg)"
 							onClick={() => setChartType('Dominance')}
 						>
 							Dominance
 						</button>
 						<button
 							data-active={chartType === 'Chain Mcaps'}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--tag-hover-bg)] focus-visible:bg-[var(--tag-hover-bg)] data-[active=true]:bg-[var(--tag-hover-bg)]"
+							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) data-[active=true]:bg-(--tag-hover-bg)"
 							onClick={() => setChartType('Chain Mcaps')}
 						>
 							Area

@@ -82,11 +82,11 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<BasicLink
 						href={`/bridged/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as any}
 					</BasicLink>

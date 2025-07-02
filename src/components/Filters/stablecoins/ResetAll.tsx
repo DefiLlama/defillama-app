@@ -11,7 +11,7 @@ export function ResetAllStablecoinFilters({ pathname }: { pathname: string; nest
 				updater(Object.fromEntries(Object.values(STABLECOINS_SETTINGS).map((s) => [s, false])))
 				router.push(pathname, undefined, { shallow: true })
 			}}
-			className="rounded-md py-2 px-3 text-sm sm:text-xs bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] max-sm:text-left"
+			className="rounded-md py-2 px-3 text-sm sm:text-xs bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) max-sm:text-left"
 		>
 			Reset all filters
 		</button>

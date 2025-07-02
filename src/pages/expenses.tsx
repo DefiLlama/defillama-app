@@ -69,11 +69,11 @@ const columns: ColumnDef<any>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
 					</BasicLink>
@@ -106,12 +106,12 @@ const columns: ColumnDef<any>[] = [
 		cell: ({ getValue }) =>
 			getValue() ? (
 				<a
-					className="flex items-center justify-center flex-shrink-0 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+					className="flex items-center justify-center shrink-0 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					href={getValue()[0] as string}
 					target="_blank"
 					rel="noopener noreferrer"
 				>
-					<Icon name="arrow-up-right" height={14} width={14} className="flex-shrink-0" />
+					<Icon name="arrow-up-right" height={14} width={14} className="shrink-0" />
 				</a>
 			) : null
 	}

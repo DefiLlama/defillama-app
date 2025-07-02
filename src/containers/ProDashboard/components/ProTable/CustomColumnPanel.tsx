@@ -367,7 +367,7 @@ export function CustomColumnPanel({
 							value={newColumnName}
 							onChange={(e) => setNewColumnName(e.target.value)}
 							placeholder="e.g., P/E Ratio, Custom Metric"
-							className="w-full px-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-none focus:border-[var(--primary1)] transition-colors pro-bg2"
+							className="w-full px-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
 							onMouseDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
@@ -388,12 +388,12 @@ export function CustomColumnPanel({
 									setTimeout(() => setShowAutocomplete(false), 150)
 								}}
 								placeholder="e.g., tvl / mcap, (fees_24h + revenue_24h) * 365, tvl * 0.1"
-								className={`w-full px-3 py-2 text-sm border pro-text1 placeholder:pro-text3 focus:outline-none transition-colors pro-bg2 ${
+								className={`w-full px-3 py-2 text-sm border pro-text1 placeholder:pro-text3 focus:outline-hidden transition-colors pro-bg2 ${
 									newColumnExpression && !liveValidation.isValid 
 										? 'border-red-500 focus:border-red-500' 
 										: newColumnExpression && liveValidation.isValid
 										? 'border-green-500 focus:border-green-500'
-										: 'pro-divider focus:border-[var(--primary1)]'
+										: 'pro-divider focus:border-(--primary1)'
 								}`}
 								onMouseDown={(e) => e.stopPropagation()}
 								onDragStart={(e) => e.preventDefault()}
@@ -403,7 +403,7 @@ export function CustomColumnPanel({
 							{/* Autocomplete dropdown */}
 							{showAutocomplete && filteredSuggestions.length > 0 && (
 								<div 
-									className="absolute z-50 mt-1 pro-bg2 border pro-divider rounded shadow-lg max-h-64 overflow-y-auto thin-scrollbar"
+									className="absolute z-50 mt-1 pro-bg2 border pro-divider rounded-sm shadow-lg max-h-64 overflow-y-auto thin-scrollbar"
 									style={{ 
 										width: '320px',
 										minWidth: '280px',
@@ -419,17 +419,17 @@ export function CustomColumnPanel({
 											onClick={() => insertSuggestion(suggestion)}
 											className={`px-3 py-1.5 cursor-pointer flex items-center gap-2 text-sm ${
 												index === autocompleteIndex 
-													? 'bg-[var(--primary1)] text-white' 
+													? 'bg-(--primary1) text-white' 
 													: 'pro-hover-bg pro-text1'
 											}`}
 											onMouseEnter={() => setAutocompleteIndex(index)}
 										>
-											<span className={`w-1 h-1 rounded-full flex-shrink-0 ${
+											<span className={`w-1 h-1 rounded-full shrink-0 ${
 												suggestion.type === 'variable' ? 'bg-blue-500' :
 												suggestion.type === 'function' ? 'bg-purple-500' :
 												'bg-gray-500'
 											}`} />
-											<code className="font-mono text-sm flex-shrink-0 min-w-0">{suggestion.display}</code>
+											<code className="font-mono text-sm shrink-0 min-w-0">{suggestion.display}</code>
 											<span className="text-xs pro-text3 truncate ml-auto">{suggestion.description}</span>
 										</div>
 									))}
@@ -511,7 +511,7 @@ export function CustomColumnPanel({
 					<button
 						onClick={handleAddColumn}
 						disabled={!newColumnName.trim() || !newColumnExpression.trim()}
-						className="px-3 py-1 bg-[var(--primary1)] text-white hover:bg-[var(--primary1-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+						className="px-3 py-1 bg-(--primary1) text-white hover:bg-(--primary1-hover) transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
 					>
 						Add Custom Column
 					</button>
@@ -529,12 +529,12 @@ export function CustomColumnPanel({
 							type="button"
 							onClick={() => insertVariable(variable.key)}
 							title={variable.name}
-							className="text-center p-1 text-xs border pro-divider pro-hover-bg transition-colors pro-bg2 rounded"
+							className="text-center p-1 text-xs border pro-divider pro-hover-bg transition-colors pro-bg2 rounded-sm"
 							onMouseDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
 						>
-							<code className="text-[var(--primary1)] font-mono text-xs block truncate">{variable.key}</code>
+							<code className="text-(--primary1) font-mono text-xs block truncate">{variable.key}</code>
 						</button>
 					))}
 				</div>
@@ -562,7 +562,7 @@ export function CustomColumnPanel({
 											<Icon name="x" height={12} width={12} className="text-red-500" />
 										)}
 									</div>
-									<div className="text-xs font-mono pro-text2 pro-bg2 px-2 py-1 border pro-divider rounded">
+									<div className="text-xs font-mono pro-text2 pro-bg2 px-2 py-1 border pro-divider rounded-sm">
 										{column.expression}
 									</div>
 									{!column.isValid && column.errorMessage && (
@@ -587,15 +587,15 @@ export function CustomColumnPanel({
 				<h5 className="text-sm font-medium pro-text2 mb-3">Example Expressions</h5>
 				<div className="space-y-2 text-xs">
 					<div>
-						<code className="text-[var(--primary1)] font-mono">(fees_24h + revenue_24h) * 365</code>
+						<code className="text-(--primary1) font-mono">(fees_24h + revenue_24h) * 365</code>
 						<span className="pro-text3 ml-2">Annualized fees + revenue</span>
 					</div>
 					<div>
-						<code className="text-[var(--primary1)] font-mono">volume_24h / tvl</code>
+						<code className="text-(--primary1) font-mono">volume_24h / tvl</code>
 						<span className="pro-text3 ml-2">Volume to TVL ratio</span>
 					</div>
 					<div>
-						<code className="text-[var(--primary1)] font-mono">(change_1d + change_7d) / 2</code>
+						<code className="text-(--primary1) font-mono">(change_1d + change_7d) / 2</code>
 						<span className="pro-text3 ml-2">Average price change</span>
 					</div>
 				</div>

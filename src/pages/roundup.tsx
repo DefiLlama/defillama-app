@@ -16,13 +16,13 @@ export default function Roundup({ messages }: { messages: Array<string | Array<s
 					href="https://t.me/defillama_tg"
 					target="_blank"
 					rel="noopener noreferrer"
-					className="underline text-[var(--blue)]"
+					className="underline text-(--blue)"
 				>
 					Telegram
 				</a>
 			</Announcement>
 
-			<div className="flex flex-col gap-3 bg-[var(--cards-bg)] rounded-md p-3">
+			<div className="flex flex-col gap-3 bg-(--cards-bg) rounded-md p-3">
 				<h1 className="font-semibold text-xl text-center">Daily news roundup with the 🦙</h1>
 
 				<div className="flex flex-col gap-[2px] max-w-lg mx-auto text-base">
@@ -38,7 +38,7 @@ export default function Roundup({ messages }: { messages: Array<string | Array<s
 						return (
 							<a href={x[1]} target="_blank" rel="noreferrer noopener" key={x[1]}>
 								<span>&gt; </span>
-								<span className="underline text-[var(--link)]">{x[0]}</span>
+								<span className="underline text-(--link)">{x[0]}</span>
 							</a>
 						)
 					})}

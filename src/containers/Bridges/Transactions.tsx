@@ -85,7 +85,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 
 	return (
 		<>
-			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-[var(--cards-bg)] p-3">
+			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-(--cards-bg) p-3">
 				<h1 className="text-xl font-semibold">Generate Bridge Transactions CSV</h1>
 
 				<form
@@ -136,7 +136,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 						))}
 					</select>
 					<button
-						className="py-2 px-3 text-base font-semibold rounded-lg bg-[var(--link-bg)] text-[var(--link-text)] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-active-bg)] disabled:cursor-not-allowed disabled:opacity-60"
+						className="py-2 px-3 text-base font-semibold rounded-lg bg-(--link-bg) text-(--link-text) whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-active-bg) disabled:cursor-not-allowed disabled:opacity-60"
 						disabled={isPending}
 					>
 						{isPending ? 'Downloading...' : 'Download .CSV'}

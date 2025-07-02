@@ -24,7 +24,7 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 				{...props}
 				className={`${
 					!menu.parent
-						? 'flex items-center justify-between gap-3 py-2 px-3 bg-[var(--btn-bg)] rounded-md'
+						? 'flex items-center justify-between gap-3 py-2 px-3 bg-(--btn-bg) rounded-md'
 						: 'flex items-center justify-between gap-3 py-2 px-3'
 				} ${props.className ?? ''}`}
 				render={menu.parent ? <NestedMenuItem render={props.render} /> : undefined}
@@ -37,9 +37,9 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 				gutter={8}
 				shift={menu.parent ? -9 : 0}
 				wrapperProps={{
-					className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className={`flex flex-col gap-2 rounded-md max-sm:rounded-b-none bg-[var(--bg1)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 p-2 overflow-x-auto h-[70vh] sm:max-h-[60vh] ${
+				className={`flex flex-col gap-2 rounded-md max-sm:rounded-b-none bg-(--bg1) border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 p-2 overflow-x-auto h-[70vh] sm:max-h-[60vh] ${
 					menu.parent ? 'max-sm:drawer-to-left' : 'max-sm:drawer'
 				}`}
 			>

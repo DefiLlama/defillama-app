@@ -192,12 +192,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								strokeWidth="2"
 								strokeLinecap="round"
 								strokeLinejoin="round"
-								className="text-[var(--primary1)] mb-2"
+								className="text-(--primary1) mb-2"
 							>
 								<line x1="12" y1="5" x2="12" y2="19"></line>
 								<line x1="5" y1="12" x2="19" y2="12"></line>
 							</svg>
-							<span className="text-[var(--primary1)] font-medium text-lg">Add Item</span>
+							<span className="text-(--primary1) font-medium text-lg">Add Item</span>
 						</div>
 					</div>
 				</SortableContext>

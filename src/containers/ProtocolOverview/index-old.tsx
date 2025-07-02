@@ -453,7 +453,7 @@ const ProtocolContainer = ({
 			{!tab || tab === 'information' ? (
 				<div className="flex flex-col gap-1">
 					<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-						<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+						<div className="bg-(--cards-bg) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 							<h1 className="flex items-center flex-wrap gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(name)} size={24} />
 								<span className="font-bold">{name ? name + `${deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}</span>
@@ -1378,7 +1378,7 @@ const ProtocolContainer = ({
 									onClick={() => {
 										window.open(`https://api.llama.fi/dataset/${protocol}.csv`)
 									}}
-									className="mt-4 mr-auto !bg-[var(--btn-bg)] !text-inherit"
+									className="mt-4 mr-auto bg-(--btn-bg)! text-inherit!"
 								/>
 							) : null}
 						</div>
@@ -1408,14 +1408,14 @@ const ProtocolContainer = ({
 
 						<button
 							onClick={() => setBobo(!bobo)}
-							className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-[1]"
+							className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-1"
 						>
 							<span className="sr-only">Enable Goblin Mode</span>
 							<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" className="min-h-[34px] w-[34px]" />
 						</button>
 					</div>
-					<div className="grid grid-cols-1 xl:grid-cols-2 gap-1 only:*:col-span-full odd:last:*:col-span-full">
-						<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
+					<div className="grid grid-cols-1 xl:grid-cols-2 gap-1 *:only:col-span-full *:last:odd:col-span-full">
+						<div className="bg-(--cards-bg) rounded-md p-3 flex flex-col gap-4">
 							<h3 className="font-semibold text-lg">{isCEX ? 'Exchange Information' : 'Protocol Information'}</h3>
 							{description && <p>{description}</p>}
 
@@ -1426,7 +1426,7 @@ const ProtocolContainer = ({
 
 									<a
 										href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category}`}
-										className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 										target="_blank"
 										rel="noopener noreferrer"
 									>
@@ -1462,7 +1462,7 @@ const ProtocolContainer = ({
 								{referralUrl || url ? (
 									<a
 										href={referralUrl || url}
-										className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 										target="_blank"
 										rel="noopener noreferrer"
 										color={backgroundColor}
@@ -1474,7 +1474,7 @@ const ProtocolContainer = ({
 								{twitter && (
 									<a
 										href={`https://twitter.com/${twitter}`}
-										className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+										className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 										target="_blank"
 										rel="noopener noreferrer"
 										color={backgroundColor}
@@ -1492,7 +1492,7 @@ const ProtocolContainer = ({
 						</div>
 
 						{articles && articles.length > 0 && (
-							<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
+							<div className="bg-(--cards-bg) rounded-md p-3 flex flex-col gap-4">
 								<div className="flex items-center justify-between">
 									<h3 className="font-semibold text-lg">Latest from DL News</h3>
 
@@ -1507,7 +1507,7 @@ const ProtocolContainer = ({
 							</div>
 						)}
 						{devMetrics && (
-							<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
+							<div className="bg-(--cards-bg) rounded-md p-3 flex flex-col gap-4">
 								<span className="flex items-center gap-2">
 									<h3 className="font-semibold text-lg">Development Activity</h3>{' '}
 									<p>(updated at {dayjs(devMetrics.last_report_generated_time).format('DD/MM/YY')})</p>
@@ -1528,7 +1528,7 @@ const ProtocolContainer = ({
 							</div>
 						)}
 						{(address || protocolData.gecko_id || explorers) && (
-							<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
+							<div className="bg-(--cards-bg) rounded-md p-3 flex flex-col gap-4">
 								<h3 className="font-semibold text-lg">Token Information</h3>
 
 								{address && (
@@ -1544,7 +1544,7 @@ const ProtocolContainer = ({
 									{protocolData.gecko_id && (
 										<a
 											href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -1557,7 +1557,7 @@ const ProtocolContainer = ({
 											<a
 												href={blockExplorerLink}
 												key={blockExplorerName}
-												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+												className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 												target="_blank"
 												rel="noopener noreferrer"
 											>
@@ -1573,7 +1573,7 @@ const ProtocolContainer = ({
 							helperTexts?.revenue ||
 							(helperTexts?.users && users?.activeUsers) ||
 							Object.values(methodologyUrls ?? {}).filter((x) => !!x).length > 0) && (
-							<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
+							<div className="bg-(--cards-bg) rounded-md p-3 flex flex-col gap-4">
 								<h3 className="font-semibold text-lg">Methodology</h3>
 								{methodology && (
 									<p>
@@ -1588,7 +1588,7 @@ const ProtocolContainer = ({
 									{methodologyUrls?.tvl && !methodologyUrls.tvl.endsWith('dummy.js') && (
 										<a
 											href={methodologyUrls.tvl}
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -1600,7 +1600,7 @@ const ProtocolContainer = ({
 									{methodologyUrls?.fees && (
 										<a
 											href={methodologyUrls.fees}
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -1612,7 +1612,7 @@ const ProtocolContainer = ({
 									{methodologyUrls?.dexs && (
 										<a
 											href={methodologyUrls.dexs}
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -1624,7 +1624,7 @@ const ProtocolContainer = ({
 									{methodologyUrls?.dexAggregators && (
 										<a
 											href={methodologyUrls.dexAggregators}
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -1636,7 +1636,7 @@ const ProtocolContainer = ({
 									{methodologyUrls?.perps && (
 										<a
 											href={methodologyUrls.perps}
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -1648,7 +1648,7 @@ const ProtocolContainer = ({
 									{methodologyUrls?.options && (
 										<a
 											href={methodologyUrls.options}
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -1660,7 +1660,7 @@ const ProtocolContainer = ({
 									{methodologyUrls?.bridgeAggregators && (
 										<a
 											href={methodologyUrls.bridgeAggregators}
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -1672,7 +1672,7 @@ const ProtocolContainer = ({
 									{methodologyUrls?.treasury && (
 										<a
 											href={methodologyUrls.treasury}
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -1686,7 +1686,7 @@ const ProtocolContainer = ({
 												<a
 													href={stablecoin.split('$')[1]}
 													key={`code-${stablecoin}`}
-													className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+													className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 													target="_blank"
 													rel="noopener noreferrer"
 												>
@@ -1700,7 +1700,7 @@ const ProtocolContainer = ({
 						)}
 
 						{hacksData && hacksData.length > 0 ? (
-							<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
+							<div className="bg-(--cards-bg) rounded-md p-3 flex flex-col gap-4">
 								<h3 className="font-semibold text-lg">Hacks</h3>
 
 								{hacksData.map((hack) => (
@@ -1754,7 +1754,7 @@ const ProtocolContainer = ({
 						) : null}
 
 						{similarProtocols && similarProtocols.length > 0 ? (
-							<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4">
+							<div className="bg-(--cards-bg) rounded-md p-3 flex flex-col gap-4">
 								<h3 className="font-semibold text-lg">Competitors</h3>
 
 								<div className="flex items-center gap-4 flex-wrap">
@@ -1776,13 +1776,13 @@ const ProtocolContainer = ({
 				</div>
 			) : null}
 			{showCharts && ['tvl', 'assets'].includes(tab) ? (
-				<div className="grid grid-cols-2 bg-[var(--cards-bg)] rounded-md pt-2">
+				<div className="grid grid-cols-2 bg-(--cards-bg) rounded-md pt-2">
 					{isLoading ? (
 						<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 					) : (
 						<>
 							{chainsSplit && chainsUnique?.length > 1 && (
-								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<AreaChart
 										chartData={chainsSplit}
 										title="Chains"
@@ -1795,7 +1795,7 @@ const ProtocolContainer = ({
 
 							{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
 								<>
-									<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+									<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 										<AreaChart
 											chartData={tokenBreakdownUSD}
 											title="Token Values (USD)"
@@ -1810,7 +1810,7 @@ const ProtocolContainer = ({
 							{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
 								<>
 									{tokenBreakdownPieChart?.length > 0 && (
-										<LazyChart className="pt-10 relative col-span-full min-h-[440px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+										<LazyChart className="pt-10 relative col-span-full min-h-[440px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 											<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
 										</LazyChart>
 									)}
@@ -1818,7 +1818,7 @@ const ProtocolContainer = ({
 							)}
 
 							{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
-								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<AreaChart
 										chartData={tokenBreakdown}
 										title="Token Balances (Raw Quantities)"
@@ -1829,12 +1829,12 @@ const ProtocolContainer = ({
 							)}
 
 							{usdInflows?.length > 0 && (
-								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
 								</LazyChart>
 							)}
 							{tokenInflows?.length > 0 && tokensUnique?.length > 0 && (
-								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<BarChart
 										chartData={tokenInflows}
 										title="Token Inflows"

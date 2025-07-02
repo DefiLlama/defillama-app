@@ -222,16 +222,16 @@ export function RecentProtocols({
 												<tr>
 													<th
 														colSpan={2}
-														className="p-2 font-semibold text-center whitespace-nowrap border border-[var(--form-control-border)]"
+														className="p-2 font-semibold text-center whitespace-nowrap border border-(--form-control-border)"
 													>
 														{address[0]}
 													</th>
 												</tr>
 												<tr>
-													<th className="p-2 font-semibold text-center whitespace-nowrap border border-[var(--form-control-border)]">
+													<th className="p-2 font-semibold text-center whitespace-nowrap border border-(--form-control-border)">
 														Protocol Name
 													</th>
-													<th className="p-2 font-semibold text-center whitespace-nowrap border border-[var(--form-control-border)]">
+													<th className="p-2 font-semibold text-center whitespace-nowrap border border-(--form-control-border)">
 														Token Amount
 													</th>
 												</tr>
@@ -241,7 +241,7 @@ export function RecentProtocols({
 													<tr>
 														<td
 															colSpan={2}
-															className="p-2 font-normal text-center whitespace-nowrap border border-[var(--form-control-border)]"
+															className="p-2 font-normal text-center whitespace-nowrap border border-(--form-control-border)"
 														>
 															<p className="text-red-500 text-center">No airdrops detected for this address</p>
 														</td>
@@ -249,10 +249,10 @@ export function RecentProtocols({
 												) : (
 													address[1].map((airdrop) => (
 														<tr key={`${airdrop.name}:${airdrop.claimableAmount}`}>
-															<th className="p-2 font-normal text-center whitespace-nowrap border border-[var(--form-control-border)]">
+															<th className="p-2 font-normal text-center whitespace-nowrap border border-(--form-control-border)">
 																{airdrop.name}
 															</th>
-															<td className="p-2 font-normal text-center whitespace-nowrap border border-[var(--form-control-border)]">
+															<td className="p-2 font-normal text-center whitespace-nowrap border border-(--form-control-border)">
 																{airdrop.isActive ? (
 																	<span className="flex items-center justify-center gap-2">
 																		<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
@@ -309,7 +309,7 @@ export function RecentProtocols({
 										required
 										disabled={fetchingEligibleAirdrops}
 										placeholder="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, 0x71a15Ac12ee91BF7c83D08506f3a3588143898B5"
-										className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+										className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 									/>
 								</label>
 								<button
@@ -330,7 +330,7 @@ export function RecentProtocols({
 				</span>
 			) : null}
 
-			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex items-center gap-4 justify-between">
+			<div className="bg-(--cards-bg) rounded-md p-3 flex items-center gap-4 justify-between">
 				<h1 className="text-xl font-semibold mr-auto">{header}</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>

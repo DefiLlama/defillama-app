@@ -93,18 +93,18 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 			<p
 				className={`text-center ${
 					currentMetric === 'Stablecoin Supply' && !isChains ? 'my-1' : 'mt-1 lg:-mt-2 mb-1'
-				} flex items-center gap-1 justify-center flex-wrap relative w-full isolate rounded-md h-10 bg-[var(--cards-bg)] p-1`}
+				} flex items-center gap-1 justify-center flex-wrap relative w-full isolate rounded-md h-10 bg-(--cards-bg) p-1`}
 			>
 				<img src="/icons/metrics-l.svg" width={189} height={82} alt="" className="rounded-l-md absolute left-0" />
-				<span className="bg-[var(--old-blue)] text-white text-xs rounded-md py-[7px] items-center gap-2 px-2 hidden lg:flex">
+				<span className="bg-(--old-blue) text-white text-xs rounded-md py-[7px] items-center gap-2 px-2 hidden lg:flex">
 					<Icon name="sparkles" height={12} width={12} />
 					<span>New</span>
 				</span>
-				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
+				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
 					{currentMetric === 'CEX Assets' ? 'CEXs' : isChains ? 'Chains' : 'Protocols'}
 				</Ariakit.DialogDisclosure>
 				<span>ranked by </span>
-				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-[var(--old-blue)] bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
+				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
 					{currentMetric === 'CEX Assets' ? 'Assets' : currentMetric}
 				</Ariakit.DialogDisclosure>
 				<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs z-10">
@@ -144,14 +144,14 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				className="dialog gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] max-sm:drawer h-[70vh] lg:h-[calc(100vh-32px)]"
 				unmountOnHide
 			>
-				<div className="p-1 bg-[var(--cards-bg)] rounded-md flex flex-col gap-2">
+				<div className="p-1 bg-(--cards-bg) rounded-md flex flex-col gap-2">
 					<div className="flex items-center gap-2">
 						<Ariakit.DialogHeading className="text-2xl font-bold">Metrics for</Ariakit.DialogHeading>
 						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-1">
 							{['Protocols', 'Chains'].map((dataType) => (
 								<button
 									onClick={() => setTab(dataType as 'Protocols' | 'Chains')}
-									className="flex-shrink-0 py-1 px-[10px] min-h-8 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white rounded-md"
+									className="shrink-0 py-1 px-[10px] min-h-8 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white rounded-md"
 									data-active={tab === dataType}
 									key={dataType}
 								>
@@ -160,7 +160,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							))}
 						</div>
 						<Ariakit.DialogDismiss
-							className="ml-auto p-2 -my-2 rounded-lg hover:bg-[var(--divider)] text-[var(--text3)] hover:text-[var(--text1)]"
+							className="ml-auto p-2 -my-2 rounded-lg hover:bg-(--divider) text-(--text3) hover:text-(--text1)"
 							aria-label="Close modal"
 						>
 							<Icon name="x" height={20} width={20} />
@@ -171,12 +171,12 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+							className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 						/>
 						<input
 							type="text"
 							placeholder="Search..."
-							className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-none"
+							className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
 						/>
@@ -188,13 +188,13 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							{chains.map((metric) => (
 								<BasicLink
 									key={`chain-metric-${metric.name}`}
-									className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									className="p-[10px] rounded-md bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
 									href={metric.route}
 								>
 									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 										<span className="font-medium">{metric.name}</span>
 										{metric.chainsTracked ? (
-											<span className="text-xs text-[var(--link)]">{metric.chainsTracked} tracked</span>
+											<span className="text-xs text-(--link)">{metric.chainsTracked} tracked</span>
 										) : null}
 									</span>
 									<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
@@ -206,7 +206,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							{protocols.map((metric) => (
 								<BasicLink
 									key={`protocol-metric-${metric.name}`}
-									className="p-[10px] rounded-md bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									className="p-[10px] rounded-md bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
 									href={
 										chain && metric.chainRoute ? `${metric.chainRoute.replace('{chain}', chain)}` : metric.mainRoute
 									}
@@ -214,7 +214,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 										<span className="font-medium">{metric.name}</span>
 										{metric.protocolsTracked ? (
-											<span className="text-xs text-[var(--link)]">{metric.protocolsTracked} tracked</span>
+											<span className="text-xs text-(--link)">{metric.protocolsTracked} tracked</span>
 										) : null}
 									</span>
 									<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>

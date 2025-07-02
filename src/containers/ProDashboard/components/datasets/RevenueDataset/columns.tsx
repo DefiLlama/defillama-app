@@ -30,11 +30,11 @@ export const revenueDatasetColumns: ColumnDef<IRevenueRow>[] = [
 			const name = getValue() as string
 			return (
 				<span className="flex items-center gap-2 relative pl-6">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo size={20} logo={tokenIconUrl(slug(name))} data-lgonly />
 					<BasicLink
 						href={`/revenue/${row.original.slug}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{name}
 					</BasicLink>
@@ -48,7 +48,7 @@ export const revenueDatasetColumns: ColumnDef<IRevenueRow>[] = [
 		accessorKey: 'category',
 		cell: ({ getValue }) => {
 			const value = getValue() as string
-			return <span className="text-sm text-[var(--text2)]">{value || '-'}</span>
+			return <span className="text-sm text-(--text2)">{value || '-'}</span>
 		},
 		size: 120
 	},

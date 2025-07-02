@@ -58,17 +58,17 @@ export function ComposerTab({
 					value={composerChartName}
 					onChange={(e) => onComposerChartNameChange(e.target.value)}
 					placeholder="Enter chart name..."
-					className="w-full px-3 py-2 border pro-border pro-text1 placeholder-pro-text3 focus:border-[var(--primary1)] focus:outline-none pro-bg2 text-sm md:text-base"
+					className="w-full px-3 py-2 border pro-border pro-text1 placeholder-pro-text3 focus:border-(--primary1) focus:outline-hidden pro-bg2 text-sm md:text-base"
 				/>
 			</div>
 
 			<div className="flex flex-col lg:flex-row gap-4 lg:h-96">
-				<div className="flex-1 lg:flex-[7] border pro-border p-3 md:p-4 space-y-3 md:space-y-4">
+				<div className="flex-1 lg:flex-7 border pro-border p-3 md:p-4 space-y-3 md:space-y-4">
 					<div className="grid grid-cols-2 gap-0">
 						<button
 							className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
 								composerSubType === 'chain'
-									? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
+									? 'border-(--primary1) bg-(--primary1) text-white'
 									: 'pro-border pro-hover-bg pro-text2'
 							}`}
 							onClick={() => onComposerSubTypeChange('chain')}
@@ -78,7 +78,7 @@ export function ComposerTab({
 						<button
 							className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
 								composerSubType === 'protocol'
-									? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
+									? 'border-(--primary1) bg-(--primary1) text-white'
 									: 'pro-border pro-hover-bg pro-text2'
 							}`}
 							onClick={() => onComposerSubTypeChange('protocol')}
@@ -122,7 +122,7 @@ export function ComposerTab({
 					)}
 
 					<button
-						className="w-full px-3 py-2.5 md:px-4 md:py-3 bg-[var(--primary1)] text-white text-sm font-medium hover:bg-[var(--primary1-hover)] disabled:opacity-50 border border-[var(--primary1)] transition-colors duration-200"
+						className="w-full px-3 py-2.5 md:px-4 md:py-3 bg-(--primary1) text-white text-sm font-medium hover:bg-(--primary1-hover) disabled:opacity-50 border border-(--primary1) transition-colors duration-200"
 						onClick={onAddToComposer}
 						disabled={
 							(composerSubType === 'chain' && !selectedChain) ||
@@ -134,7 +134,7 @@ export function ComposerTab({
 					</button>
 				</div>
 
-				<div className="flex-1 lg:flex-[3] border pro-border p-3 md:p-4 min-h-[200px] lg:min-h-0">
+				<div className="flex-1 lg:flex-3 border pro-border p-3 md:p-4 min-h-[200px] lg:min-h-0">
 					<div className="text-sm font-medium pro-text2 mb-2 md:mb-3">
 						Charts ({composerItems.length})
 					</div>

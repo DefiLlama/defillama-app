@@ -15,7 +15,7 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 							height={16}
 							width={16}
 							data-open={open}
-							className="data-[open=true]:rotate-90 transition-transform duration-100 flex-shrink-0"
+							className="data-[open=true]:rotate-90 transition-transform duration-100 shrink-0"
 						/>
 						{helperText ? (
 							<Tooltip content={helperText} className="underline decoration-dotted whitespace-nowrap">

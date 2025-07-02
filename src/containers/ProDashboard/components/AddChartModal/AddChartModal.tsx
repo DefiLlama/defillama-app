@@ -58,7 +58,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 
 	return (
 		<div
-			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex justify-center items-end md:items-center z-50 add-chart-modal"
+			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs flex justify-center items-end md:items-center z-50 add-chart-modal"
 			onClick={onClose}
 		>
 			<div

@@ -69,13 +69,13 @@ export const OraclesByChain = ({
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="isolate relative rounded-md p-3 bg-[var(--cards-bg)] flex-1 min-h-[360px] flex flex-col">
+				<div className="isolate relative rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px] flex flex-col">
 					<CSVDownloadButton onClick={downloadCsv} className="ml-auto absolute right-3 top-3 z-10" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
 					</React.Suspense>
 				</div>
-				<div className="rounded-md p-3 bg-[var(--cards-bg)] flex-1 min-h-[360px]">
+				<div className="rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px]">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -92,7 +92,7 @@ export const OraclesByChain = ({
 			</div>
 			<React.Suspense
 				fallback={
-					<div style={{ minHeight: `${tokensList.length * 50 + 200}px` }} className="bg-[var(--cards-bg)] rounded-md" />
+					<div style={{ minHeight: `${tokensList.length * 50 + 200}px` }} className="bg-(--cards-bg) rounded-md" />
 				}
 			>
 				<TableWithSearch
@@ -133,10 +133,10 @@ const columns: ColumnDef<IOraclesRow>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<BasicLink
 						href={`/oracles/${getValue()}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{getValue() as string}
 					</BasicLink>

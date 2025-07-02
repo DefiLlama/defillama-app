@@ -20,12 +20,12 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 						name="calendar"
 						width={16}
 						height={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={startDate && `${formatDate(startDate)}`}
 						onClick={() => onStartChange(null)}
-						className="border border-[var(--form-control-border)] w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
+						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
 					/>
 				</div>
 				<div style={{ position: 'absolute', zIndex: 100, top: 0, display: startDate ? 'none' : 'block' }}>
@@ -43,7 +43,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<input
 						value={startHour}
 						onChange={(e) => setHours([e.target?.value, endHour])}
-						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-[var(--form-control-border)] w-10"
+						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-(--form-control-border) w-10"
 					/>
 					<span>h</span>
 				</label>
@@ -55,12 +55,12 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 						name="calendar"
 						width={16}
 						height={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={endDate && `${formatDate(endDate)}`}
 						onClick={() => onEndChange(null)}
-						className="border border-[var(--form-control-border)] w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
+						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
 					/>
 				</div>
 				<div style={{ position: 'absolute', top: 0, zIndex: 100, display: endDate ? 'none' : 'block' }}>
@@ -78,7 +78,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					<input
 						value={endHour}
 						onChange={(e) => setHours([startHour, e.target?.value])}
-						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-[var(--form-control-border)] w-10"
+						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-(--form-control-border) w-10"
 					/>
 					<span>h</span>
 				</label>

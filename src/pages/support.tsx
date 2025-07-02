@@ -51,7 +51,7 @@ function Support() {
 	return (
 		<Layout title="Support - DefiLlama" defaultSEO>
 			<div className="flex flex-col gap-4 w-full max-w-lg mx-auto xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11">
-				<form onSubmit={onSubmit} className="flex flex-col gap-4 p-3 w-full bg-[var(--cards-bg)] rounded-md">
+				<form onSubmit={onSubmit} className="flex flex-col gap-4 p-3 w-full bg-(--cards-bg) rounded-md">
 					<h1 className="text-xl font-semibold text-center mb-3">Support</h1>
 					<label className="flex flex-col gap-1">
 						<span>Name</span>
@@ -59,7 +59,7 @@ function Support() {
 							type="text"
 							name="name"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 
@@ -69,7 +69,7 @@ function Support() {
 							type="email"
 							name="email"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 
@@ -78,7 +78,7 @@ function Support() {
 						<textarea
 							name="body"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						></textarea>
 					</label>
 
@@ -87,7 +87,7 @@ function Support() {
 						<input
 							type="file"
 							name="attachment"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 

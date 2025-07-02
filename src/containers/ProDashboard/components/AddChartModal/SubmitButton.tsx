@@ -63,7 +63,7 @@ export function SubmitButton({
 	return (
 		<div className="flex justify-end mt-5 md:mt-7">
 			<button
-				className="px-4 py-2.5 md:px-6 md:py-3 bg-[var(--primary1)] text-white font-medium hover:bg-[var(--primary1-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-sm md:text-base"
+				className="px-4 py-2.5 md:px-6 md:py-3 bg-(--primary1) text-white font-medium hover:bg-(--primary1-hover) disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-sm md:text-base"
 				onClick={onSubmit}
 				disabled={isDisabled}
 			>

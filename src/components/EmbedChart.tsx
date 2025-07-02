@@ -49,7 +49,7 @@ export function EmbedChart({ color }: { color?: string }) {
 				style={color ? ({ '--btn-bg': transparentize(0.8, color) } as any) : undefined}
 				className={`font-medium text-sm flex items-center justify-center rounded-md ${
 					color ? 'h-[34px] w-[34px]' : 'h-[30px] w-[30px]'
-				} bg-[var(--btn-bg,#E2E2E2)] dark:bg-[var(--btn-bg,#303032)]`}
+				} bg-(--btn-bg,#E2E2E2) dark:bg-(--btn-bg,#303032)`}
 			>
 				<Icon name="code" height={12} width={12} />
 				<span className="sr-only">Embed Chart</span>
@@ -59,7 +59,7 @@ export function EmbedChart({ color }: { color?: string }) {
 				unmountOnHide
 				hideOnInteractOutside
 				gutter={6}
-				className="w-full max-h-[calc(100vh-200px)] rounded-md text-[hsl(204,10%,10%)] dark:text-[hsl(0,0%,100%)] bg-[hsl(204,20%,100%)] dark:bg-[hsl(204,3%,12%)] overflow-auto overscroll-contain z-10 sm:max-w-[min(calc(100vw_-_16px),320px)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
+				className="w-full max-h-[calc(100vh-200px)] rounded-md text-[hsl(204,10%,10%)] dark:text-[hsl(0,0%,100%)] bg-[hsl(204,20%,100%)] dark:bg-[hsl(204,3%,12%)] overflow-auto overscroll-contain z-10 sm:max-w-[min(calc(100vw-16px),320px)] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)]"
 			>
 				<div className="p-1">
 					<p className="p-2 rounded-md bg-white dark:bg-black break-all">{url}</p>

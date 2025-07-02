@@ -192,7 +192,7 @@ export function CompareChains() {
 		<>
 			<ProtocolsChainsSearch />
 
-			<div className="bg-[var(--cards-bg)] rounded-md flex items-center gap-3 p-3 last:*:-my-3">
+			<div className="bg-(--cards-bg) rounded-md flex items-center gap-3 p-3 *:last:-my-3">
 				<h2 className="font-semibold text-base">Compare chains: </h2>
 
 				<ReactSelect
@@ -210,7 +210,7 @@ export function CompareChains() {
 			</div>
 
 			<div className="flex flex-col gap-1 relative">
-				<div className="bg-[var(--cards-bg)] rounded-md min-h-[404px]">
+				<div className="bg-(--cards-bg) rounded-md min-h-[404px]">
 					<div className="flex items-center flex-wrap gap-2 p-3">
 						{supportedCharts.map(({ id, name, key }) =>
 							data?.data?.some((val) => val?.[key] && val?.[key]?.length > 0) ? (
@@ -255,7 +255,7 @@ export function CompareChains() {
 								className="flex flex-col justify-between relative isolate xl:grid-cols-[auto_1fr] gap-1"
 								key={`${chainData?.chain || i}`}
 							>
-								<div className="flex-1 flex flex-col gap-8 p-5 col-span-1 w-full bg-[var(--cards-bg)] rounded-md overflow-x-auto">
+								<div className="flex-1 flex flex-col gap-8 p-5 col-span-1 w-full bg-(--cards-bg) rounded-md overflow-x-auto">
 									<h1 className="flex items-center gap-2 text-xl font-semibold">
 										<TokenLogo logo={chainIconUrl(chainData?.chain)} size={24} />
 										<span>{chainData.chain}</span>

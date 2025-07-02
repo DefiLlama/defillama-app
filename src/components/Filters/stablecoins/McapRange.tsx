@@ -38,7 +38,7 @@ export function McapRange({ nestedMenu }: { nestedMenu?: boolean }) {
 					{min || max ? (
 						<>
 							<span>Mcap: </span>
-							<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
+							<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
 						</>
 					) : (
 						'Mcap'

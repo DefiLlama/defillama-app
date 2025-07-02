@@ -122,15 +122,15 @@ export const AdapterByChainChart = ({
 	})
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
+		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2">
 			<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
-				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] mr-auto">
+				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296] mr-auto">
 					{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
 						<a
 							key={dataInterval}
 							onClick={() => setChartInterval(dataInterval)}
 							data-active={dataInterval === chartInterval}
-							className="cursor-pointer flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="cursor-pointer shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
 							{dataInterval}
 						</a>
@@ -146,7 +146,7 @@ export const AdapterByChainChart = ({
 					}}
 					isLoading={isDownloadingBreakdownChart}
 					smol
-					className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+					className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 
@@ -170,26 +170,26 @@ export const ChainsByAdapterChart = ({
 	}, [chartData, chartInterval, selectedChains, chartType])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
+		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2">
 			<>
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] mr-auto">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296] mr-auto">
 						{INTERVALS_LIST.map((dataInterval) => (
 							<a
 								key={dataInterval}
 								onClick={() => setChartInterval(dataInterval)}
 								data-active={dataInterval === chartInterval}
-								className="cursor-pointer flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="cursor-pointer shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								{dataInterval}
 							</a>
 						))}
 					</div>
 
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 						{CHART_TYPES.map((dataType) => (
 							<button
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={dataType === chartType}
 								key={dataType}
 								onClick={() => setChartType(dataType)}
@@ -211,7 +211,7 @@ export const ChainsByAdapterChart = ({
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
+								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium z-10'
 						}}
 						portal
 					/>
@@ -233,7 +233,7 @@ export const ChainsByAdapterChart = ({
 							)
 						}}
 						smol
-						className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+						className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 			</>

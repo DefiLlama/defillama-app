@@ -43,14 +43,14 @@ function ReportError() {
 	return (
 		<Layout title="Report Error - DefiLlama" defaultSEO>
 			<div className="flex flex-col gap-4 w-full max-w-lg mx-auto xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11">
-				<form onSubmit={onSubmit} className="flex flex-col gap-4 p-3 w-full bg-[var(--cards-bg)] rounded-md">
+				<form onSubmit={onSubmit} className="flex flex-col gap-4 p-3 w-full bg-(--cards-bg) rounded-md">
 					<h1 className="text-xl font-semibold text-center mb-3">Report Error</h1>
 					<label className="flex flex-col gap-1">
 						<span>Chain / Protocol</span>
 						<input
 							name="protocol"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
@@ -58,14 +58,14 @@ function ReportError() {
 						<textarea
 							name="message"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
 						<span>Where can we find correct information? (optional)</span>
 						<textarea
 							name="correctSource"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
@@ -73,7 +73,7 @@ function ReportError() {
 						<input
 							name="contact"
 							placeholder="Email address"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 					<button
@@ -85,7 +85,7 @@ function ReportError() {
 					</button>
 					{error && <small className="text-center text-red-500">{error.message}</small>}
 				</form>
-				<div className="flex flex-col gap-4 w-full bg-[var(--cards-bg)] rounded-md p-3">
+				<div className="flex flex-col gap-4 w-full bg-(--cards-bg) rounded-md p-3">
 					<p className="text-center text-base font-medium">
 						Please submit a report if you notice any of the following:
 					</p>

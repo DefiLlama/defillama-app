@@ -392,7 +392,7 @@ export const ChainProtocolsTable = ({
 	}
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md isolate">
+		<div className="bg-(--cards-bg) rounded-md isolate">
 			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 				<h3 className="text-lg font-semibold mr-auto">Protocol Rankings</h3>
 				<TagGroup
@@ -417,11 +417,11 @@ export const ChainProtocolsTable = ({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 					}}
 					customFooter={
 						<button
-							className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] text-[var(--text1)] text-xs font-medium border border-[var(--form-control-border)]"
+							className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-(--btn-bg) hover:bg-(--btn-hover-bg) text-(--text1) text-xs font-medium border border-(--form-control-border)"
 							onClick={handleAddCustomColumn}
 							type="button"
 						>
@@ -618,19 +618,19 @@ const columns: ColumnDef<IProtocol>[] = [
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					)}
 
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={`${ICONS_CDN}/protocols/${row.original.slug}?w=48&h=48`} data-lgonly />
 
 					<span className="flex flex-col -my-2">
 						<BasicLink
 							href={`/protocol/${row.original.slug}`}
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
 						</BasicLink>
 
-						<Tooltip content={<Chains />} className="text-[0.7rem] text-[var(--text-disabled)]">
+						<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
@@ -653,7 +653,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			getValue() ? (
 				<BasicLink
 					href={`/protocols/${slug(getValue() as string)}`}
-					className="text-sm font-medium text-[var(--link-text)]"
+					className="text-sm font-medium text-(--link-text)"
 				>
 					{getValue() as string}
 				</BasicLink>
@@ -1223,7 +1223,7 @@ const Tvl = ({ rowValues }) => {
 					text={"There's some internal doublecounting that is excluded from parent TVL, so sum won't match"}
 				/>
 			) : null}
-			<span className={rowValues.strikeTvl ? 'text-[var(--text-disabled)]' : ''}>
+			<span className={rowValues.strikeTvl ? 'text-(--text-disabled)' : ''}>
 				{formattedNum(rowValues.tvl.default.tvl, true)}
 			</span>
 		</span>

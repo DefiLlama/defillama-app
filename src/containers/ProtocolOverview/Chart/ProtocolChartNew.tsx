@@ -166,7 +166,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-start">
 				{props.availableCharts.length > 0 ? (
 					<Ariakit.DialogProvider store={metricsDialogStore}>
-						<Ariakit.DialogDisclosure className="flex flex-shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] border border-[#e6e6e6] dark:border-[#222324]">
+						<Ariakit.DialogDisclosure className="flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-[#e6e6e6] dark:border-[#222324]">
 							<span>Add Metrics</span>
 							<Icon name="plus" className="h-[14px] w-[14px]" />
 						</Ariakit.DialogDisclosure>
@@ -198,7 +198,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 												})
 										}}
 										data-active={toggledMetrics[protocolCharts[chart]] === 'true'}
-										className="flex items-center gap-1 border border-[var(--old-blue)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] rounded-full px-2 py-1 data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+										className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
 										<span>{chart}</span>
 										{toggledMetrics[protocolCharts[chart]] === 'true' ? (
@@ -228,7 +228,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 												})
 										}}
 										data-active={toggledMetrics.events === 'true'}
-										className="flex items-center gap-1 border border-[var(--old-blue)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] rounded-full px-2 py-1 data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+										className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
 										<span>Events</span>
 										{toggledMetrics.events === 'true' ? (
@@ -267,7 +267,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
 						/>
 						<span
-							className="text-xs flex items-center gap-1 border-2 border-[var(--old-blue)] rounded-full px-2 py-1"
+							className="text-xs flex items-center gap-1 border-2 border-(--old-blue) rounded-full px-2 py-1"
 							style={{
 								borderColor: props.chartColors[tchart]
 							}}
@@ -279,11 +279,11 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 				))}
 				<div className="ml-auto flex flex-wrap justify-end gap-1">
 					{props.chartDenominations?.length ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 							{props.chartDenominations.map((denom) => (
 								<button
 									key={`denomination-${denom.symbol}`}
-									className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--old-blue)]"
+									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--old-blue)"
 									data-active={
 										toggledMetrics.denomination === denom.symbol ||
 										(denom.symbol === 'USD' && !toggledMetrics.denomination)
@@ -302,11 +302,11 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					{hasAtleasOneBarChart ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 							<Tooltip
 								content="Daily"
 								render={<button />}
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 								data-active={groupBy === 'daily' || !groupBy}
 								onClick={() => {
 									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'daily'), undefined, { shallow: true })
@@ -317,7 +317,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							<Tooltip
 								content="Weekly"
 								render={<button />}
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 								data-active={groupBy === 'weekly'}
 								onClick={() => {
 									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'weekly'), undefined, { shallow: true })
@@ -328,7 +328,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							<Tooltip
 								content="Monthly"
 								render={<button />}
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 								data-active={groupBy === 'monthly'}
 								onClick={() => {
 									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'monthly'), undefined, { shallow: true })
@@ -337,7 +337,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 								M
 							</Tooltip>
 							<button
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 								data-active={groupBy === 'cumulative'}
 								onClick={() => {
 									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'cumulative'), undefined, {
@@ -359,7 +359,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 							}
 						}}
 						smol
-						className="h-[30px] !bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 			</div>

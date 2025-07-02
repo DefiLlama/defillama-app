@@ -54,7 +54,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			metrics={props.metrics}
 			tab="bridges"
 		>
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<BridgeContainerOnClient protocol={props.name} />
 			</div>
 		</ProtocolOverviewLayout>

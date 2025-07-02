@@ -53,8 +53,8 @@ export const SubscriberContent = ({
 				<span className="text-xl font-semibold text-white mb-1">Change Subscription</span>
 			</div>
 			<div className="mb-6 w-full">
-				<div className="flex items-center gap-3 bg-gradient-to-r from-yellow-400/10 to-yellow-900/30 border border-yellow-500 text-yellow-100 rounded-xl px-6 py-4 w-full shadow-sm">
-					<Icon name="alert-triangle" className="text-yellow-400 flex-shrink-0" height={24} width={24} />
+				<div className="flex items-center gap-3 bg-linear-to-r from-yellow-400/10 to-yellow-900/30 border border-yellow-500 text-yellow-100 rounded-xl px-6 py-4 w-full shadow-xs">
+					<Icon name="alert-triangle" className="text-yellow-400 shrink-0" height={24} width={24} />
 
 					<span className="text-base font-medium">
 						Before changing your subscription tier, you need to cancel your current subscription. Your current
@@ -77,8 +77,8 @@ export const SubscriberContent = ({
 			</div>
 
 			{(isPro || isLegacy) && (
-				<div className="relative overflow-hidden bg-gradient-to-b from-[#222429] to-[#1d1f24] border border-[#39393E] rounded-xl shadow-xl">
-					<div className="absolute -inset-1 blur-[100px] bg-gradient-to-r from-[#5C5EFC]/20 to-[#462A92]/20 opacity-70 -z-10"></div>
+				<div className="relative overflow-hidden bg-linear-to-b from-[#222429] to-[#1d1f24] border border-[#39393E] rounded-xl shadow-xl">
+					<div className="absolute -inset-1 blur-[100px] bg-linear-to-r from-[#5C5EFC]/20 to-[#462A92]/20 opacity-70 -z-10"></div>
 
 					<div className="border-b border-[#39393E]/40 p-6">
 						<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -117,7 +117,7 @@ export const SubscriberContent = ({
 							</div>
 						) : apiKey ? (
 							<div className="space-y-6">
-								<div className="bg-gradient-to-r from-[#1a1b1f] to-[#1a1b1f]/80 border border-[#39393E] rounded-lg overflow-hidden">
+								<div className="bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 border border-[#39393E] rounded-lg overflow-hidden">
 									<div className="p-4 border-b border-[#39393E]/60 flex justify-between items-center">
 										<h4 className="font-medium flex items-center gap-2">
 											<Icon name="file-plus" height={16} width={16} className="text-[#5C5CF9]" />
@@ -157,8 +157,8 @@ export const SubscriberContent = ({
 									</div>
 
 									<div className="p-4 relative group">
-										<div className="p-3 bg-gradient-to-r from-[#13141a] to-[#181a1f] border border-[#39393E]/60 rounded-lg font-mono text-sm break-all">
-											<div className="absolute inset-0 flex items-center justify-center bg-[#181a1f]/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+										<div className="p-3 bg-linear-to-r from-[#13141a] to-[#181a1f] border border-[#39393E]/60 rounded-lg font-mono text-sm break-all">
+											<div className="absolute inset-0 flex items-center justify-center bg-[#181a1f]/90 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
 												<button
 													onClick={() => {
 														navigator.clipboard.writeText(apiKey)
@@ -175,7 +175,7 @@ export const SubscriberContent = ({
 									</div>
 								</div>
 
-								<div className="p-5 bg-gradient-to-r from-[#1a1b1f] to-[#1a1b1f]/80 border border-[#39393E] rounded-lg">
+								<div className="p-5 bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 border border-[#39393E] rounded-lg">
 									<div className="flex items-center justify-between mb-5">
 										<h4 className="font-medium">Usage Dashboard</h4>
 										<span className="text-xs text-[#5C5CF9] bg-[#5C5CF9]/10 px-3 py-1 rounded-full">
@@ -217,9 +217,9 @@ export const SubscriberContent = ({
 													<div
 														className={`relative h-full w-[${((credits / creditsLimit) * 100).toFixed(
 															1
-														)}%] bg-gradient-to-r from-[#5C5CF9]/80 to-[#5842C3]`}
+														)}%] bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]`}
 													>
-														<div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-[length:1rem_1rem] animate-shimmer"></div>
+														<div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem] animate-shimmer"></div>
 													</div>
 												)}
 											</div>
@@ -243,8 +243,8 @@ export const SubscriberContent = ({
 											</div>
 
 											<div className="h-3 bg-[#39393E]/20 rounded-full overflow-hidden mb-2">
-												<div className="relative h-full w-full bg-gradient-to-r from-[#5C5CF9]/80 to-[#5842C3]">
-													<div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-[length:1rem_1rem] animate-shimmer"></div>
+												<div className="relative h-full w-full bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]">
+													<div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem] animate-shimmer"></div>
 												</div>
 											</div>
 
@@ -269,7 +269,7 @@ export const SubscriberContent = ({
 
 								<button
 									onClick={generateNewKey}
-									className="relative px-6 py-3.5 font-medium bg-gradient-to-r from-[#5C5CF9] to-[#5842C3] hover:from-[#4A4AF0] hover:to-[#4335A8] text-white rounded-lg transition-colors flex items-center gap-2 mx-auto shadow-lg group"
+									className="relative px-6 py-3.5 font-medium bg-linear-to-r from-[#5C5CF9] to-[#5842C3] hover:from-[#4A4AF0] hover:to-[#4335A8] text-white rounded-lg transition-colors flex items-center gap-2 mx-auto shadow-lg group"
 									disabled={isApiKeyLoading}
 								>
 									{isApiKeyLoading ? (
@@ -295,7 +295,7 @@ export const SubscriberContent = ({
 				</div>
 			)}
 
-			<div className="bg-gradient-to-b from-[#222429] to-[#1d1f24] border border-[#39393E] rounded-xl shadow-lg overflow-hidden">
+			<div className="bg-linear-to-b from-[#222429] to-[#1d1f24] border border-[#39393E] rounded-xl shadow-lg overflow-hidden">
 				<div className="border-b border-[#39393E]/40 p-6">
 					<div className="flex items-center gap-3">
 						<div className="relative">
@@ -315,7 +315,7 @@ export const SubscriberContent = ({
 
 				<div className="p-6">
 					<div className="space-y-6">
-						<div className="p-5 bg-gradient-to-r from-[#1a1b1f] to-[#1a1b1f]/80 border border-[#39393E] rounded-lg">
+						<div className="p-5 bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 border border-[#39393E] rounded-lg">
 							<div className="flex justify-between items-center mb-4">
 								<h4 className="font-medium flex items-center gap-2">
 									<Icon name="bookmark" height={16} width={16} className="text-[#5C5CF9]" />

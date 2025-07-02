@@ -6,9 +6,9 @@ function PluginPage() {
 	return (
 		<Layout title="DefiLlama - ChatGPT Plugin" defaultSEO>
 			<ProtocolsChainsSearch />
-			<h1 className="text-xl font-semibold bg-[var(--cards-bg)] rounded-md p-3">DefiLlama ChatGPT Plugin</h1>
+			<h1 className="text-xl font-semibold bg-(--cards-bg) rounded-md p-3">DefiLlama ChatGPT Plugin</h1>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">About</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
@@ -17,7 +17,7 @@ function PluginPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Best Practices</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>To achieve the best results from the plugin, follow these steps:</p>
@@ -36,7 +36,7 @@ function PluginPage() {
 				<p>
 					If you have any feedback or bug reports, please log them here:{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://form.typeform.com/to/tJkEGYxQ"
@@ -46,7 +46,7 @@ function PluginPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Legal</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>

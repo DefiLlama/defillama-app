@@ -46,14 +46,14 @@ export const Switch = ({
 			<span
 				className={`border ${
 					checked
-						? 'border-[var(--btn-hover-bg)] bg-[var(--btn-bg)]'
+						? 'border-(--btn-hover-bg) bg-(--btn-bg)'
 						: 'border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E]'
 				} rounded p-[2px] h-[18px] w-[34px]`}
 			>
 				{!checked ? (
-					<span className="block h-3 w-3 bg-[#707A7A] rounded-[3px] flex-shrink-0 mr-auto"></span>
+					<span className="block h-3 w-3 bg-[#707A7A] rounded-[3px] shrink-0 mr-auto"></span>
 				) : (
-					<span className="block h-3 w-3 bg-[var(--primary-color)] rounded-[3px] flex-shrink-0 ml-auto"></span>
+					<span className="block h-3 w-3 bg-(--primary-color) rounded-[3px] shrink-0 ml-auto"></span>
 				)}
 			</span>
 			{help ? (

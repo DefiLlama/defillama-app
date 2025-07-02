@@ -435,7 +435,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch options={tvlOptions} />
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
 					<h1 className="text-xl font-semibold mr-auto">Categories</h1>
 					<SelectWithCombobox
@@ -449,7 +449,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 						labelType="smol"
 					/>
 				</div>
-				<div className="bg-[var(--cards-bg)] rounded-md relative">
+				<div className="bg-(--cards-bg) rounded-md relative">
 					<React.Suspense fallback={<></>}>
 						<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
 					</React.Suspense>
@@ -458,7 +458,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 
 			<React.Suspense
 				fallback={
-					<div style={{ minHeight: `${categories.length * 50 + 200}px` }} className="bg-[var(--cards-bg)] rounded-md" />
+					<div style={{ minHeight: `${categories.length * 50 + 200}px` }} className="bg-(--cards-bg) rounded-md" />
 				}
 			>
 				<TableWithSearch
@@ -514,7 +514,7 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 							)}
 						</button>
 					) : null}
-					<span className="flex-shrink-0">{index + 1}</span>{' '}
+					<span className="shrink-0">{index + 1}</span>{' '}
 					{row.depth > 0 ? (
 						<span className="text-sm font-medium overflow-hidden whitespace-nowrap text-ellipsis">
 							{getValue() as string}
@@ -522,7 +522,7 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 					) : (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string}
 						</BasicLink>

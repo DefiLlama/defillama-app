@@ -116,7 +116,7 @@ export default function Protocol({ data, governanceType }) {
 	return (
 		<Layout title={`${data.metadata.name} Governance - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
-			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-[var(--cards-bg)] rounded-md">
+			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-(--cards-bg) rounded-md">
 				<h1 className="flex items-center gap-2 text-xl font-semibold">
 					<TokenLogo logo={tokenIconUrl(data.metadata.name)} />
 					<span>{data.metadata.name}</span>
@@ -170,10 +170,10 @@ export default function Protocol({ data, governanceType }) {
 				</div>
 
 				<div className="grid grid-cols-2">
-					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<BarChart title={'Activity'} chartData={data.activity} stacks={simpleStack} stackColors={barChartColors} />
 					</LazyChart>
-					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<BarChart
 							title={'Max Votes'}
 							chartData={data.maxVotes}
@@ -186,7 +186,7 @@ export default function Protocol({ data, governanceType }) {
 				<div className="flex flex-wrap items-center gap-9">
 					{data.metadata.domain && (
 						<a
-							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`https://${data.metadata.domain}`}
@@ -197,7 +197,7 @@ export default function Protocol({ data, governanceType }) {
 
 					{data.metadata.twitter && (
 						<a
-							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`https://twitter.com/${data.metadata.twitter}`}
@@ -208,7 +208,7 @@ export default function Protocol({ data, governanceType }) {
 
 					{data.metadata.github && (
 						<a
-							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`https://github.com/${data.metadata.github}`}
@@ -220,7 +220,7 @@ export default function Protocol({ data, governanceType }) {
 
 					{data.metadata.coingecko && (
 						<a
-							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)]"
+							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`}

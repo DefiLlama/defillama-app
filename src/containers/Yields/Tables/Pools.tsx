@@ -210,7 +210,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				<BasicLink
 					href={`/yields/pool/${configID}`}
 					target="_blank"
-					className="text-sm font-medium text-[var(--link-text)]"
+					className="text-sm font-medium text-(--link-text)"
 				>
 					<ImageWithFallback
 						src={`https://yield-charts.llama.fi/yield-chart/${configID}`}
@@ -417,7 +417,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					data-strike={info.row.original.strikeTvl ?? 'false'}
-					className="flex justify-end gap-1 data-[strike=true]:text-[var(--text-disabled)]"
+					className="flex justify-end gap-1 data-[strike=true]:text-(--text-disabled)"
 				>
 					{['Morpho Compound', 'Morpho Aave'].includes(info.row.original.project) ? (
 						<QuestionHelper

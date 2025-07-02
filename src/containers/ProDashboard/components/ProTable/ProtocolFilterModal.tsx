@@ -155,7 +155,7 @@ export function ProtocolFilterModal({
 
 	const modalContent = (
 		<>
-			<div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={onClose} />
+			<div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40" onClick={onClose} />
 
 			<div
 				className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl max-h-[80vh] shadow-2xl z-50 flex flex-col border pro-divider"

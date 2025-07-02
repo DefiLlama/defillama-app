@@ -43,7 +43,7 @@ export function SubscribeLayout({ children }) {
 					</div>
 				</header>
 
-				<main className="flex-grow py-8">{children}</main>
+				<main className="grow py-8">{children}</main>
 
 				<footer className="border-t border-[#39393E]/40 mt-auto py-8 px-5">
 					<div className="max-w-6xl xl:max-w-7xl mx-auto">

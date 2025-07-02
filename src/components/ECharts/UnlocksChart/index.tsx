@@ -306,7 +306,7 @@ export default function AreaChart({
 
 	return (
 		<div
-			className="relative [&[role='combobox']]:*:ml-auto [&[role='combobox']]:*:mr-3 [&[role='combobox']]:*:mt-3"
+			className="relative *:[&[role='combobox']]:ml-auto *:[&[role='combobox']]:mr-3 *:[&[role='combobox']]:mt-3"
 			{...props}
 		>
 			{customLegendName && customLegendOptions?.length > 1 && (
@@ -323,7 +323,7 @@ export default function AreaChart({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium z-10'
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium z-10'
 					}}
 					portal
 				/>

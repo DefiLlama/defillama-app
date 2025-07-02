@@ -45,7 +45,7 @@ export function AvailableRange({
 						{min || max ? (
 							<>
 								<span>Available: </span>
-								<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
+								<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
 							</>
 						) : (
 							'Available'

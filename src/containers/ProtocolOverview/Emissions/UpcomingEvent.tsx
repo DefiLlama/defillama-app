@@ -9,7 +9,7 @@ import { generateGoogleCalendarUrl } from '~/utils/calendar'
 
 const ProtocolPageButton = () => {
 	return (
-		<Ariakit.MenuButton className="flex items-center gap-2 hover:bg-[var(--bg2)] p-2 rounded">
+		<Ariakit.MenuButton className="flex items-center gap-2 hover:bg-(--bg2) p-2 rounded-sm">
 			<Icon name="calendar-plus" width={16} height={16} />
 			Add to Calendar
 		</Ariakit.MenuButton>
@@ -21,7 +21,7 @@ const RegularButton = () => {
 		<Ariakit.MenuButton className="flex items-center gap-2">
 			<div className="flex space-x-2">
 				<div className="flex flex-col items-center">
-					<div className="text-white bg-[#2C2C2E] dark:bg-zinc-800 hover:bg-[var(--bg2)] hover:text-black transition-colors rounded-lg w-10 h-10 flex items-center justify-center mb-4">
+					<div className="text-white bg-[#2C2C2E] dark:bg-zinc-800 hover:bg-(--bg2) hover:text-black transition-colors rounded-lg w-10 h-10 flex items-center justify-center mb-4">
 						<Icon name="calendar-plus" width={24} height={24} />
 					</div>
 				</div>
@@ -38,7 +38,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 			<Ariakit.Menu
 				unmountOnHide
 				gutter={8}
-				className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 			>
 				<Ariakit.MenuItem
 					render={
@@ -48,7 +48,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 							rel="noopener noreferrer"
 						/>
 					}
-					className="flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer first-of-type:rounded-t-md border-b border-[var(--form-control-border)]"
+					className="flex items-center gap-2 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md border-b border-(--form-control-border)"
 				>
 					<Icon name="external-link" width={16} height={16} />
 					Google Calendar
@@ -58,7 +58,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 					render={
 						<a href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue}&name=${tokenName}`} />
 					}
-					className="flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md"
+					className="flex items-center gap-2 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md"
 				>
 					<Icon name="download-cloud" width={16} height={16} />
 					Other Calendars Apps
@@ -129,24 +129,24 @@ export const UpcomingEvent = ({
 
 	if (isProtocolPage) {
 		return (
-			<span className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-3 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2">
+			<span className="rounded-md bg-(--bg1) dark:bg-[#121316] p-3 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2">
 				<span className="flex items-center gap-2 justify-between">
 					<span className="flex flex-col px-2">
 						<span className="font-semibold">Unlock Value:</span>
 						{tokenValue ? formattedNum(tokenValue, true) : <span>{formattedNum(unlockPercent)}%</span>}
 						{unlockPercent ? (
-							<span className="text-[var(--text3)]">
+							<span className="text-(--text3)">
 								{tokenValue ? formattedNum(unlockPercent) + '%' : null}
 								{unlockPercentFloat ? <>({formattedNum(unlockPercentFloat)}% of float)</> : null}
 							</span>
 						) : null}
 					</span>
 					<span className="flex flex-col px-2">
-						<span className="text-right font-medium text-[var(--text2)] flex flex-col">
+						<span className="text-right font-medium text-(--text2) flex flex-col">
 							{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}
-							<span className="text-[var(--text2)]">
+							<span className="text-(--text2)">
 								{timestamp ? `${dayjs(timestamp * 1e3).format('h:mm A')} ` : null}
-								<span className="text-[var(--text3)] text-sm">
+								<span className="text-(--text3) text-sm">
 									{timestamp
 										? `GMT${dayjs(timestamp * 1e3)
 												.format('Z')
@@ -157,7 +157,7 @@ export const UpcomingEvent = ({
 						</span>
 						{timeLeft > 0 ? (
 							<span
-								className="bg-[var(--bg4)] rounded-md text-sm px-3 py-1.5 flex items-center justify-center"
+								className="bg-(--bg4) rounded-md text-sm px-3 py-1.5 flex items-center justify-center"
 								suppressHydrationWarning
 							>
 								{days}D {hours}H {minutes}M {seconds}S
@@ -165,7 +165,7 @@ export const UpcomingEvent = ({
 						) : (
 							<span className="flex items-center justify-end gap-1">
 								<span
-									className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center"
+									className="bg-(--bg4) rounded-md text-sm h-8 w-8 flex items-center justify-center"
 									style={{ width: 'fit-content', padding: '0px 8px' }}
 								>
 									{Math.abs(days)} days ago
@@ -175,7 +175,7 @@ export const UpcomingEvent = ({
 					</span>
 				</span>
 
-				<hr className="border-[var(--bg4)]" />
+				<hr className="border-(--bg4)" />
 				<span className="flex flex-col gap-4">
 					{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp }) => {
 						const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
@@ -197,27 +197,27 @@ export const UpcomingEvent = ({
 													name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
 													height={16}
 													width={16}
-													className="text-[var(--text3)]"
+													className="text-(--text3)"
 												/>
 											</Ariakit.TooltipAnchor>
-											<Ariakit.Tooltip className="rounded-md bg-[var(--bg2)] px-2 py-1 text-sm z-50">
+											<Ariakit.Tooltip className="rounded-md bg-(--bg2) px-2 py-1 text-sm z-50">
 												{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
 											</Ariakit.Tooltip>
 										</Ariakit.TooltipProvider>
 									</span>
 									<span className="inline-flex items-baseline gap-1">
 										{usdValue ? formattedNum(usdValue, true) : '-'}
-										{isLinearPerDay && <span className="text-xs text-[var(--text3)]">/ day</span>}
+										{isLinearPerDay && <span className="text-xs text-(--text3)">/ day</span>}
 									</span>
 								</span>
-								<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
+								<span className="flex items-center justify-between gap-2 text-(--text3)">
 									<span>
 										{formattedNum(percentage)}%{' '}
 										{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
 									</span>
 									<span className="inline-flex items-baseline gap-1">
 										{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
-										{isLinearPerDay && <span className="text-xs text-[var(--text3)]">/ day</span>}
+										{isLinearPerDay && <span className="text-xs text-(--text3)">/ day</span>}
 									</span>
 								</span>
 							</span>
@@ -246,11 +246,11 @@ export const UpcomingEvent = ({
 							<div className="flex justify-between items-end" style={{ width: '150px' }}>
 								<div className="flex flex-col items-start">
 									<span className="text-white text-sm font-semibold">{formattedNum(tokenValue, true)}</span>
-									<span className="text-[var(--text3)] text-xs font-medium">Unlock Value</span>
+									<span className="text-(--text3) text-xs font-medium">Unlock Value</span>
 								</div>
 								<div className="flex flex-col items-end">
 									<span className="text-white text-sm font-semibold">{formattedNum(unlockPercentFloat)}%</span>
-									<span className="text-[var(--text3)] text-xs font-medium">of float</span>
+									<span className="text-(--text3) text-xs font-medium">of float</span>
 								</div>
 							</div>
 
@@ -296,7 +296,7 @@ export const UpcomingEvent = ({
 				</Ariakit.HovercardAnchor>
 				<Ariakit.HovercardDisclosure />
 				<Ariakit.Hovercard
-					className="rounded-md bg-[var(--bg1)] dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
+					className="rounded-md bg-(--bg1) dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
 					unmountOnHide
 					portal={true}
 				>
@@ -307,7 +307,7 @@ export const UpcomingEvent = ({
 						</span>
 						<span className="flex flex-col">
 							<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
-							<span className="text-sm text-[var(--text3)]">
+							<span className="text-sm text-(--text3)">
 								{timestamp
 									? `${dayjs(timestamp * 1e3).format('HH:mm')} GMT${dayjs(timestamp * 1e3)
 											.format('Z')
@@ -316,7 +316,7 @@ export const UpcomingEvent = ({
 							</span>
 						</span>
 					</span>
-					<hr className="border-[var(--bg4)]" />
+					<hr className="border-(--bg4)" />
 					<span className="flex flex-col gap-4">
 						{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp }) => {
 							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
@@ -338,41 +338,41 @@ export const UpcomingEvent = ({
 														name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
 														height={16}
 														width={16}
-														className="text-[var(--text3)]"
+														className="text-(--text3)"
 													/>
 												</Ariakit.TooltipAnchor>
-												<Ariakit.Tooltip className="rounded-md bg-[var(--bg2)] px-2 py-1 text-sm z-50">
+												<Ariakit.Tooltip className="rounded-md bg-(--bg2) px-2 py-1 text-sm z-50">
 													{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
 												</Ariakit.Tooltip>
 											</Ariakit.TooltipProvider>
 										</span>
 										<span className="inline-flex items-baseline gap-1">
 											{usdValue ? formattedNum(usdValue, true) : '-'}
-											{isLinearPerDay && <span className="text-xs text-[var(--text3)]">/ day</span>}
+											{isLinearPerDay && <span className="text-xs text-(--text3)">/ day</span>}
 										</span>
 									</span>
-									<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
+									<span className="flex items-center justify-between gap-2 text-(--text3)">
 										<span>
 											{formattedNum(percentage)}%{' '}
 											{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
 										</span>
 										<span className="inline-flex items-baseline gap-1">
 											{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
-											{isLinearPerDay && <span className="text-xs text-[var(--text3)]">/ day</span>}
+											{isLinearPerDay && <span className="text-xs text-(--text3)">/ day</span>}
 										</span>
 									</span>
 								</span>
 							)
 						})}
 					</span>
-					<hr className="border-[var(--bg4)]" />
+					<hr className="border-(--bg4)" />
 
 					<span className="flex flex-col gap-1">
 						<span className="flex items-center justify-between gap-2 font-semibold">
 							<span>Total</span>
 							<span>{tokenValue ? formattedNum(tokenValue, true) : '-'}</span>
 						</span>
-						<span className="flex items-center justify-between gap-2 text-[var(--text3)]">
+						<span className="flex items-center justify-between gap-2 text-(--text3)">
 							<span>
 								{unlockPercent && `${formattedNum(unlockPercent)}%`}
 								{unlockPercentFloat && ` (${formattedNum(unlockPercentFloat)}% of float)`}

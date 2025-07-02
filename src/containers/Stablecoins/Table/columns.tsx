@@ -53,11 +53,11 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 						</>
 					) : (
 						<>
-							<span className="flex-shrink-0">{index + 1}</span>
+							<span className="shrink-0">{index + 1}</span>
 							<TokenLogo logo={chainIconUrl(row.original.name)} data-lgonly />
 							<BasicLink
 								href={`/stablecoins/${row.original.name}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 							>
 								{getValue() as string}
 							</BasicLink>
@@ -77,7 +77,7 @@ export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 			return (
 				<>
 					{value.link ? (
-						<BasicLink href={value.link} className="text-sm font-medium text-[var(--link-text)]">
+						<BasicLink href={value.link} className="text-sm font-medium text-(--link-text)">
 							{value.name}
 						</BasicLink>
 					) : (
@@ -177,12 +177,12 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 
 			return (
 				<span className="flex items-center gap-2">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={peggedAssetIconUrl(row.original.name)} data-lgonly />
 					{row.original?.deprecated ? (
 						<BasicLink
 							href={`/stablecoin/${slug(row.original.name)}`}
-							className="flex items-center gap-1 text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="flex items-center gap-1 text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
 								{getValue() as string}
@@ -200,7 +200,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 					) : (
 						<BasicLink
 							href={`/stablecoin/${slug(row.original.name)}`}
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string}
 						</BasicLink>
@@ -284,7 +284,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				<Tooltip
 					content={info.row.original.change_1d_nol}
 					className={`justify-end overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-						info.row.original.change_1d_nol.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
+						info.row.original.change_1d_nol.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
 					}`}
 				>
 					{formattedPercent(info.getValue())}
@@ -305,7 +305,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				<Tooltip
 					content={info.row.original.change_7d_nol}
 					className={`justify-end overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-						info.row.original.change_7d_nol.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
+						info.row.original.change_7d_nol.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
 					}`}
 				>
 					{formattedPercent(info.getValue())}
@@ -326,7 +326,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				<Tooltip
 					content={info.row.original.change_1m_nol}
 					className={`justify-end overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-						info.row.original.change_1m_nol.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
+						info.row.original.change_1m_nol.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
 					}`}
 				>
 					{formattedPercent(info.getValue())}
@@ -463,7 +463,7 @@ function formattedPeggedPercent(percent, noSign = false) {
 	}
 
 	return (
-		<span className="font-[var(--weight)] text-[var(--color)]" style={{ '--weight': weight, '--color': color } as any}>
+		<span className="font-(--weight) text-(--color)" style={{ '--weight': weight, '--color': color } as any}>
 			{finalValue}
 		</span>
 	)
@@ -525,16 +525,16 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 
 					{isSubRow ? (
 						<>
-							<span className="flex-shrink-0">{index + 1}</span>
+							<span className="shrink-0">{index + 1}</span>
 							<span>{value}</span>
 						</>
 					) : (
 						<>
-							<span className="flex-shrink-0">{index + 1}</span>
+							<span className="shrink-0">{index + 1}</span>
 							<TokenLogo logo={chainIconUrl(value)} data-lgonly />
 							<BasicLink
 								href={`/stablecoins/${value}`}
-								className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							>
 								{value}
 							</BasicLink>

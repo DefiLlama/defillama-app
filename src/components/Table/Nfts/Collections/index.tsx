@@ -41,7 +41,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 	}, [collectionName, instance])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
+		<div className="bg-(--cards-bg) rounded-md">
 			<div className="flex items-center gap-2 justify-end flex-wrap p-3">
 				<h1 className="text-xl font-semibold mr-auto">NFT Collections</h1>
 
@@ -50,7 +50,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={collectionName}
@@ -58,7 +58,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 							setCollectionName(e.target.value)
 						}}
 						placeholder="Search collections..."
-						className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 			</div>

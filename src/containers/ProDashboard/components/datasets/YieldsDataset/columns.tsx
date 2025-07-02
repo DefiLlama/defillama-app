@@ -48,11 +48,11 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 					<TokenLogo size={20} logo={tokenIconUrl(row.original.project)} data-lgonly />
 					<BasicLink
 						href={`/yields/pool/${row.original.configID}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{pool}
 					</BasicLink>
-					{row.original.poolMeta && <span className="text-xs text-[var(--text2)]">{row.original.poolMeta}</span>}
+					{row.original.poolMeta && <span className="text-xs text-(--text2)">{row.original.poolMeta}</span>}
 				</span>
 			)
 		},
@@ -64,7 +64,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		cell: ({ getValue, row }) => {
 			const value = getValue() as string
 			return (
-				<BasicLink href={`/yields?project=${row.original.projectslug}`} className="text-sm text-[var(--link-text)]">
+				<BasicLink href={`/yields?project=${row.original.projectslug}`} className="text-sm text-(--link-text)">
 					{value}
 				</BasicLink>
 			)
@@ -126,7 +126,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 			return (
 				<span className="flex items-center justify-end gap-1">
 					{value ? formattedPercent(value, true) : '-'}
-					{symbols && symbols.length > 0 && <span className="text-xs text-[var(--text2)]">({symbols.join(', ')})</span>}
+					{symbols && symbols.length > 0 && <span className="text-xs text-(--text2)">({symbols.join(', ')})</span>}
 				</span>
 			)
 		},

@@ -31,13 +31,13 @@ function AboutPage(props: any) {
 	return (
 		<Layout title="About - DeFiLlama" defaultSEO>
 			<ProtocolsChainsSearch />
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h1 className="font-semibold text-lg">About DeFiLlama</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://github.com/DefiLlama/DefiLlama-Adapters"
@@ -46,7 +46,7 @@ function AboutPage(props: any) {
 					</a>{' '}
 					and maintained by a team of passionate individuals and{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors"
@@ -58,7 +58,7 @@ function AboutPage(props: any) {
 				<p>Our focus is on accurate data and transparent methodology.</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Stats</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div>
@@ -73,13 +73,13 @@ function AboutPage(props: any) {
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Contact</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://discord.defillama.com"
@@ -88,7 +88,7 @@ function AboutPage(props: any) {
 					</a>
 					. If you want communication to be private you can use{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://twitter.com/defillama"
@@ -97,7 +97,7 @@ function AboutPage(props: any) {
 					</a>{' '}
 					as a slower alternative, or, as an even slower option, you can also contact us by email at{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="mailto:support@defillama.com"
@@ -110,7 +110,7 @@ function AboutPage(props: any) {
 					For questions around product, methodology, data... You'll get much faster responses by using our priority
 					support, available{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://defillama.com/subscription"
@@ -121,7 +121,7 @@ function AboutPage(props: any) {
 				<p>
 					DeFiLlama is a part of{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://twitter.com/llamacorporg"
@@ -136,13 +136,13 @@ function AboutPage(props: any) {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Acknowledgements</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					Thanks to{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://allium.so/"

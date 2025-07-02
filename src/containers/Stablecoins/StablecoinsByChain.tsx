@@ -247,7 +247,7 @@ function PeggedAssetsOverview({
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total {title}</span>
 						<span className="font-semibold text-2xl font-jetbrains">{mcapToDisplay}</span>
@@ -267,7 +267,7 @@ function PeggedAssetsOverview({
 									<span className="font-semibold text-2xl font-jetbrains">{change7d_nol}</span>
 									<span
 										className={`${
-											change7d.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
+											change7d.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
 										} font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis`}
 									>{`${change7d}%`}</span>
 								</span>
@@ -279,7 +279,7 @@ function PeggedAssetsOverview({
 							<Tooltip
 								content={change1d_nol}
 								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-									change1d.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
+									change1d.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
 								}`}
 							>
 								{`${change1d}%`}
@@ -290,7 +290,7 @@ function PeggedAssetsOverview({
 							<Tooltip
 								content={change30d_nol}
 								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-									change30d.startsWith('-') ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'
+									change30d.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
 								}`}
 							>
 								{`${change30d}%`}
@@ -303,8 +303,8 @@ function PeggedAssetsOverview({
 					</p>
 				</div>
 				<div
-					className={`bg-[var(--cards-bg)] rounded-md flex flex-col gap-4 col-span-2 min-h-[424px] relative ${
-						chartType === 'Token Inflows' && tokenInflows ? 'first:*:-mb-6' : ''
+					className={`bg-(--cards-bg) rounded-md flex flex-col gap-4 col-span-2 min-h-[424px] relative ${
+						chartType === 'Token Inflows' && tokenInflows ? '*:first:-mb-6' : ''
 					}`}
 				>
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />

@@ -15,7 +15,7 @@ export const ProTableCSVButton = ({
 	customClassName?: string
 }) => {
 	const tableButtonStyles = customClassName ||
-		'flex items-center gap-2 px-3 py-1.5 text-sm border pro-border hover:bg-[var(--bg3)] text-[var(--text1)] transition-colors bg-[var(--bg1)] dark:bg-[#070e0f] disabled:opacity-50 disabled:cursor-not-allowed'
+		'flex items-center gap-2 px-3 py-1.5 text-sm border pro-border hover:bg-(--bg3) text-(--text1) transition-colors bg-(--bg1) dark:bg-[#070e0f] disabled:opacity-50 disabled:cursor-not-allowed'
 
 	return (
 		<CSVDownloadButton

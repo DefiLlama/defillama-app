@@ -15,7 +15,7 @@ export const MobileNav = React.memo(function MobileNav() {
 
 	return (
 		<nav className="flex items-center z-10 gap-2 py-3 px-4 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] lg:hidden">
-			<BasicLink href="/" className="flex-shrink-0 mr-auto">
+			<BasicLink href="/" className="shrink-0 mr-auto">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img
 					src="/defillama-press-kit/defi/PNG/defillama.png"

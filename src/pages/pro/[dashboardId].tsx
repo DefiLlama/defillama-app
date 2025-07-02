@@ -83,7 +83,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 					<p className="text-lg pro-text2">Please sign in to view this dashboard</p>
 					<button
 						onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
-						className="px-6 py-3 bg-[var(--primary1)] hover:bg-[var(--primary1-hover)] text-white font-medium transition-colors rounded-md"
+						className="px-6 py-3 bg-(--primary1) hover:bg-(--primary1-hover) text-white font-medium transition-colors rounded-md"
 					>
 						Sign In
 					</button>
@@ -95,7 +95,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 	if (subscription?.status !== 'active') {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-				<div className="max-w-2xl w-full bg-[var(--bg7)] bg-opacity-30 backdrop-blur-xl border border-white/20 rounded-lg p-8 md:p-12 shadow-lg">
+				<div className="max-w-2xl w-full bg-(--bg7) bg-opacity-30 backdrop-blur-xl border border-white/20 rounded-lg p-8 md:p-12 shadow-lg">
 					<div className="text-center space-y-6">
 						<h1 className="text-3xl font-bold pro-text1">Pro Dashboard Access</h1>
 						<p className="text-lg pro-text2">
@@ -104,19 +104,19 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-8 py-4">
 							<div className="flex items-center gap-2 text-sm pro-text2">
-								<Icon name="bar-chart-2" height={16} width={16} className="text-[var(--primary1)] flex-shrink-0" />
+								<Icon name="bar-chart-2" height={16} width={16} className="text-(--primary1) shrink-0" />
 								<span>Customizable Charts</span>
 							</div>
 							<div className="flex items-center gap-2 text-sm pro-text2">
-								<Icon name="activity" height={16} width={16} className="text-[var(--primary1)] flex-shrink-0" />
+								<Icon name="activity" height={16} width={16} className="text-(--primary1) shrink-0" />
 								<span>Multiple Dashboards</span>
 							</div>
 							<div className="flex items-center gap-2 text-sm pro-text2">
-								<Icon name="percent" height={16} width={16} className="text-[var(--primary1)] flex-shrink-0" />
+								<Icon name="percent" height={16} width={16} className="text-(--primary1) shrink-0" />
 								<span>Advanced Analytics</span>
 							</div>
 							<div className="flex items-center gap-2 text-sm pro-text2">
-								<Icon name="layers" height={16} width={16} className="text-[var(--primary1)] flex-shrink-0" />
+								<Icon name="layers" height={16} width={16} className="text-(--primary1) shrink-0" />
 								<span>Multi-Charts</span>
 							</div>
 						</div>
@@ -129,7 +129,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 						<div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
 							<button
 								onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
-								className="px-8 py-3 bg-[var(--primary1)] hover:bg-[var(--primary1-hover)] text-white font-medium transition-colors inline-flex items-center gap-2 rounded-md"
+								className="px-8 py-3 bg-(--primary1) hover:bg-(--primary1-hover) text-white font-medium transition-colors inline-flex items-center gap-2 rounded-md"
 							>
 								<Icon name="arrow-right" height={16} width={16} />
 								Subscribe Now

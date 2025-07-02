@@ -177,7 +177,7 @@ export function CexDataset() {
 							value={exchangeName}
 							onChange={(e) => setExchangeName(e.target.value)}
 							className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1
-								focus:outline-none focus:ring-1 focus:ring-[var(--primary1)]"
+								focus:outline-hidden focus:ring-1 focus:ring-(--primary1)"
 						/>
 					</div>
 				</div>

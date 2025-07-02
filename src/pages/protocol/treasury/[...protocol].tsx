@@ -50,7 +50,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			metrics={props.metrics}
 			tab="treasury"
 		>
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<TreasuryChart protocolName={props.name} />
 			</div>
 		</ProtocolOverviewLayout>

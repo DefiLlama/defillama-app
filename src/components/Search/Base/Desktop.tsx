@@ -69,10 +69,10 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 					hideOnInteractOutside
 					gutter={6}
 					sameWidth
-					className="flex flex-col bg-[var(--bg1)] rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="flex flex-col bg-(--bg1) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 				>
 					{loading ? (
-						<p className="text-[var(--text1)] py-6 px-3 text-center">Loading...</p>
+						<p className="text-(--text1) py-6 px-3 text-center">Loading...</p>
 					) : matches.length ? (
 						<>
 							{matches.slice(0, viewableMatches + 1).map((option) => (
@@ -81,7 +81,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 							{matches.length > viewableMatches ? (
 								<button
-									className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+									className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
 									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
@@ -90,7 +90,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 						</>
 					) : customSearchRoute ? (
 						<button
-							className="text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)] p-3 rounded-md"
+							className="text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2) p-3 rounded-md"
 							onClick={() => {
 								if (props.onItemClick) {
 									props.onItemClick({ route: `${customSearchRoute}${searchValue}`, name: searchValue })
@@ -103,7 +103,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 							Search for {searchValue}
 						</button>
 					) : (
-						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+						<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
 					)}
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
@@ -164,11 +164,11 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange, varia
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="w-full text-sm rounded-md border border-[#e6e6e6] dark:border-[#222324] text-black dark:text-white bg-[var(--app-bg)] py-[5px] px-[10px] pl-8"
+				className="w-full text-sm rounded-md border border-[#e6e6e6] dark:border-[#222324] text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-8"
 			/>
 
 			{!hideIcon ? (
-				<span className="rounded-md text-xs text-[var(--link-text)] bg-[var(--link-bg)] p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
+				<span className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
 					⌘K
 				</span>
 			) : null}
@@ -210,7 +210,7 @@ const Row = ({ data, onItemClick, setOpen }: IRowProps) => {
 			hideOnClick={false}
 			setValueOnClick={false}
 			disabled={loading}
-			className="p-3 flex items-center gap-4 text-[var(--text1)] cursor-pointer hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] aria-disabled:opacity-50 outline-none"
+			className="p-3 flex items-center gap-4 text-(--text1) cursor-pointer hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) aria-disabled:opacity-50 outline-hidden"
 		>
 			{data?.logo || data?.fallbackLogo ? <TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} /> : null}
 			<span>{data.name}</span>

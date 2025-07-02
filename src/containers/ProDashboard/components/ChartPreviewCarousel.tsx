@@ -83,7 +83,7 @@ export function ChartPreviewCarousel({
 							key={index}
 							onClick={() => setCurrentIndex(index)}
 							className={`w-1.5 h-1.5 rounded-full transition-colors ${
-								index === currentIndex ? 'bg-[var(--primary1)]' : 'pro-bg3'
+								index === currentIndex ? 'bg-(--primary1)' : 'pro-bg3'
 							}`}
 						/>
 					))}

@@ -88,13 +88,13 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 						</button>
 					) : null}
 
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 
 					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
 
 					{row.subRows?.length === 0 ? (
 						<a
-							className="text-[var(--blue)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-(--blue) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`royalties/${row.original.defillamaId}`}

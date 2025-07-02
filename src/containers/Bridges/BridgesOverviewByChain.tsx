@@ -233,7 +233,7 @@ export function BridgesOverviewByChain({
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total volume (24h)</span>
 						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(dayTotalVolume, true)}</span>
@@ -249,12 +249,12 @@ export function BridgesOverviewByChain({
 
 					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
 				</div>
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2">
 					{selectedChain === 'All' ? (
 						<>
 							<div className="flex items-center">
 								<button
-									className="flex-1 flex items-center justify-center p-3 text-xs font-medium border-b-2 border-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-bg)] data-[active=true]:border-[var(--old-blue)]"
+									className="flex-1 flex items-center justify-center p-3 text-xs font-medium border-b-2 border-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-bg) data-[active=true]:border-(--old-blue)"
 									data-active={chartView === 'netflow'}
 									onClick={() => setChartView('netflow')}
 								>
@@ -262,7 +262,7 @@ export function BridgesOverviewByChain({
 								</button>
 
 								<button
-									className="flex-1 flex items-center justify-center p-3 text-xs font-medium border-b-2 border-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--link-bg)] data-[active=true]:border-[var(--old-blue)]"
+									className="flex-1 flex items-center justify-center p-3 text-xs font-medium border-b-2 border-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-bg) data-[active=true]:border-(--old-blue)"
 									onClick={() => setChartView('volume')}
 									data-active={chartView === 'volume'}
 								>
@@ -329,18 +329,18 @@ export function BridgesOverviewByChain({
 				</div>
 			</div>
 
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<div className="flex items-center justify-between p-3">
 					<div className="flex items-center">
 						<button
-							className="px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:border-[var(--old-blue)]"
+							className="px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
 							data-active={activeTab === 'bridges'}
 							onClick={() => setActiveTab('bridges')}
 						>
 							Bridges
 						</button>
 						<button
-							className="px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:border-[var(--old-blue)]"
+							className="px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
 							data-active={activeTab === 'messaging'}
 							onClick={() => setActiveTab('messaging')}
 						>

@@ -42,7 +42,7 @@ export function APYRange({ nestedMenu }: IAPYRange) {
 					{min || max ? (
 						<>
 							<span>APY: </span>
-							<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
+							<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
 						</>
 					) : (
 						<span>APY</span>

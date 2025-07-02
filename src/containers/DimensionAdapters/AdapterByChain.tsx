@@ -361,7 +361,7 @@ export function AdapterByChain(props: IProps) {
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' ? (
 				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1 text-base">
-					<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+					<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{props.chain !== 'All' && (
 							<h1 className="flex items-center flex-nowrap gap-2">
 								<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
@@ -398,7 +398,7 @@ export function AdapterByChain(props: IProps) {
 									</Tooltip>
 									<span
 										className={`text-right font-jetbrains pl-2 pb-1 text-ellipsis" ${
-											props.change_7dover7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+											props.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
 										}`}
 									>
 										{`${props.change_7dover7d >= 0 ? '+' : ''}${props.change_7dover7d}%`}
@@ -416,14 +416,14 @@ export function AdapterByChain(props: IProps) {
 					/>
 				</div>
 			) : null}
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<div className="flex items-center justify-end flex-wrap gap-4 p-3">
 					<div className="relative w-full sm:max-w-[280px] mr-auto">
 						<Icon
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+							className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 						/>
 						<input
 							value={projectName}
@@ -431,7 +431,7 @@ export function AdapterByChain(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="border border-[var(--form-control-border)] w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
 					<SelectWithCombobox
@@ -446,7 +446,7 @@ export function AdapterByChain(props: IProps) {
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 						}}
 					/>
 					{props.categories.length > 0 && (
@@ -462,7 +462,7 @@ export function AdapterByChain(props: IProps) {
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 							}}
 						/>
 					)}
@@ -591,7 +591,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 						</button>
 					) : null}
 
-					<span className="flex-shrink-0" onClick={row.getToggleExpandedHandler()}>
+					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
 						{index + 1}
 					</span>
 
@@ -600,12 +600,12 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 					<span className="flex flex-col -my-2">
 						<BasicLink
 							href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
 						</BasicLink>
 
-						<Tooltip content={<Chains />} className="text-[0.7rem] text-[var(--text-disabled)]">
+						<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
@@ -631,7 +631,7 @@ const getColumnsByType = (
 					getValue() ? (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-[var(--link-text)]"
+							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
 						</BasicLink>
@@ -691,7 +691,7 @@ const getColumnsByType = (
 					getValue() ? (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-[var(--link-text)]"
+							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
 						</BasicLink>
@@ -750,7 +750,7 @@ const getColumnsByType = (
 					getValue() ? (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-[var(--link-text)]"
+							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
 						</BasicLink>
@@ -1038,7 +1038,7 @@ const getColumnsByType = (
 					getValue() ? (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-[var(--link-text)]"
+							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
 						</BasicLink>

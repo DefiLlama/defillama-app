@@ -83,7 +83,7 @@ const CustomTokenOption = ({ innerProps, label, data }) => (
 				}}
 			/>
 		) : (
-			<div className="w-5 h-5 rounded-full bg-[var(--bg3)]" />
+			<div className="w-5 h-5 rounded-full bg-(--bg3)" />
 		)}
 		<span>{label}</span>
 	</div>

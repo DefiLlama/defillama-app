@@ -144,7 +144,7 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 
 	return (
 		<Layout title={`Compare Protocols - DefiLlama`} defaultSEO>
-			<div className="bg-[var(--cards-bg)] rounded-md isolate">
+			<div className="bg-(--cards-bg) rounded-md isolate">
 				<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 					<h1 className="text-lg font-semibold mr-auto">Compare Protocols</h1>
 					<SelectWithCombobox
@@ -157,7 +157,7 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] text-black dark:text-white font-medium'
+								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) text-black dark:text-white font-medium'
 						}}
 					/>
 				</div>

@@ -62,7 +62,7 @@ export default function YieldBorrow(data) {
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
 
-			<p className="bg-[var(--cards-bg)] p-3 rounded-md whitespace-pre-line text-center">
+			<p className="bg-(--cards-bg) p-3 rounded-md whitespace-pre-line text-center">
 				This page displays leveraged lending APY values. The way this works:
 				<br />
 				1. deposit collateral amount N into pool X
@@ -72,7 +72,7 @@ export default function YieldBorrow(data) {
 				3. deposit the borrowed amount M into pool X
 				<button
 					onClick={() => setMethodologyActivated((prev) => !prev)}
-					className="block text-[var(--blue)] mx-auto font-medium hover:underline"
+					className="block text-(--blue) mx-auto font-medium hover:underline"
 				>
 					Example
 				</button>

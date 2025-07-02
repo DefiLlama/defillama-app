@@ -18,7 +18,7 @@ export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 					<TokenLogo logo={chainIconUrl(item.chain)} />
 					<BasicLink
 						href={'/nfts/chain/' + item.chain}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
 					>
 						{capitalizeFirstLetter(item.chain)}
 					</BasicLink>
@@ -86,7 +86,7 @@ export const marketplacesColumns: ColumnDef<INftsCollectionRow>[] = [
 					<TokenLogo logo={tokenIconUrl(item.marketplace)} />
 					<BasicLink
 						href={'/nfts/marketplace/' + item.slug}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline min-w-[200px] ml-4"
 					>
 						{capitalizeFirstLetter(item.marketplace)}
 					</BasicLink>

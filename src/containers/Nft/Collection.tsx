@@ -56,7 +56,7 @@ export function NFTCollectionContainer() {
 			<NFTsSearch />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={data[0].image} fallbackLogo={data?.[0]?.image} size={48} />
 						<FormattedName text={name} fontWeight={700} />
@@ -85,13 +85,13 @@ export function NFTCollectionContainer() {
 						href={`https://etherscan.io/token/${address.split(':')[0]}`}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-[var(--link-text)] bg-[var(--link-bg)] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] mt-auto mr-auto"
+						className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) mt-auto mr-auto"
 					>
 						<span>View on Etherscan</span> <Icon name="arrow-up-right" height={14} width={14} />
 					</a>
 				</div>
 
-				<div className="bg-[var(--cards-bg)] rounded-md col-span-2 min-h-[392px]">
+				<div className="bg-(--cards-bg) rounded-md col-span-2 min-h-[392px]">
 					<div className="flex items-center justify-end p-3 pb-0 w-full">
 						<Switch
 							label="Include Outliers"
@@ -117,10 +117,10 @@ export function NFTCollectionContainer() {
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="bg-[var(--cards-bg)] pt-3 rounded-md relative col-span-full min-h-[372px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+				<LazyChart className="bg-(--cards-bg) pt-3 rounded-md relative col-span-full min-h-[372px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
 				</LazyChart>
-				<LazyChart className="bg-[var(--cards-bg)] pt-3 rounded-md relative col-span-full min-h-[372px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+				<LazyChart className="bg-(--cards-bg) pt-3 rounded-md relative col-span-full min-h-[372px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<OrderbookChart chartData={orderbook} />
 				</LazyChart>
 			</div>

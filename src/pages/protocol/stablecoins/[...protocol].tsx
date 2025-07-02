@@ -55,7 +55,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			metrics={props.metrics}
 			tab="stablecoins"
 		>
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<StablecoinInfo assetName={props.assetName} />
 			</div>
 		</ProtocolOverviewLayout>

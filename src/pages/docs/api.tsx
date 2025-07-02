@@ -24,7 +24,7 @@ export function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
 	return (
 		<>
 			{router.pathname === '/docs/api' ? (
-				<div className="relative p-3 text-sm text-black dark:text-white text-center rounded-md bg-[hsl(215deg_79%_51%_/_12%)]">
+				<div className="relative p-3 text-sm text-black dark:text-white text-center rounded-md bg-[hsl(215deg_79%_51%/12%)]">
 					<div className="flex flex-col items-center">
 						<div className="flex flex-col items-start gap-4">
 							<p>

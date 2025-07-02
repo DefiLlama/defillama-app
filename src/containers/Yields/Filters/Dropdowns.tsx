@@ -311,7 +311,7 @@ export function YieldFilterDropdowns({
 				<CSVDownloadButton
 					className={
 						nestedMenu
-							? 'rounded-md py-2 px-3 text-xs whitespace-nowrap sm:ml-auto bg-[var(--link-active-bg)] text-white max-sm:mx-3 max-sm:my-6'
+							? 'rounded-md py-2 px-3 text-xs whitespace-nowrap sm:ml-auto bg-(--link-active-bg) text-white max-sm:mx-3 max-sm:my-6'
 							: 'ml-auto'
 					}
 					onClick={onCSVDownload}

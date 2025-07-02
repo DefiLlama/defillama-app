@@ -74,7 +74,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 			tooltip: {
 				trigger: 'axis',
 				axisPointer: {
-					type: 'shadow'
+					type: 'shadow-sm'
 				},
 				formatter: function (params) {
 					const chain = params[0].axisValue

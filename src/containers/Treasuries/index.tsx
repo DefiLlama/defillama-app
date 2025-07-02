@@ -117,11 +117,11 @@ export const columns: ColumnDef<any>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug}#treasury`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{name}
 					</BasicLink>
@@ -159,7 +159,7 @@ export const columns: ColumnDef<any>[] = [
 
 			return (
 				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
-					<span className="h-5 !w-full ml-auto bg-white flex items-center flex-nowrap">
+					<span className="h-5 w-full! ml-auto bg-white flex items-center flex-nowrap">
 						{dominance.map((dom) => {
 							const color = breakdownColor(dom[0])
 							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
@@ -312,7 +312,7 @@ const Breakdown = ({ data }) => {
 
 	return (
 		<span className="flex items-center flex-nowrap gap-1">
-			<span style={{ '--color': color } as any} className="h-4 w-4 bg-[var(--color)] rounded-sm"></span>
+			<span style={{ '--color': color } as any} className="h-4 w-4 bg-(--color) rounded-xs"></span>
 			<span>{name}</span>
 		</span>
 	)

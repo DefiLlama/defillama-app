@@ -235,7 +235,7 @@ export default function UnlocksCalendar({
 				<span>Are we missing any protocol?</span>{' '}
 				<a
 					href="https://airtable.com/shrD1bSGYNcdFQ6kd"
-					className="text-[var(--blue)] underline font-medium"
+					className="text-(--blue) underline font-medium"
 					target="_blank"
 					rel="noopener noreferrer"
 				>
@@ -243,12 +243,12 @@ export default function UnlocksCalendar({
 				</a>
 			</Announcement>
 
-			<div className="flex items-center justify-between gap-2 p-3 bg-[var(--cards-bg)] rounded-md">
+			<div className="flex items-center justify-between gap-2 p-3 bg-(--cards-bg) rounded-md">
 				<h1 className="text-xl font-semibold">Token Unlocks Calendar</h1>
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => setShowOnlyWatchlist((prev) => !prev)}
-						className="border border-[var(--form-control-border)] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+						className="border border-(--form-control-border) p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
 					>
 						<Icon
 							name="bookmark"
@@ -261,7 +261,7 @@ export default function UnlocksCalendar({
 
 					<button
 						onClick={() => setShowOnlyInsider((prev) => !prev)}
-						className="border border-[var(--form-control-border)] p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+						className="border border-(--form-control-border) p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
 					>
 						<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text1)' : 'none' }} />
 						{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}
@@ -269,7 +269,7 @@ export default function UnlocksCalendar({
 				</div>
 			</div>
 
-			<div className="bg-[var(--cards-bg)] rounded-md p-3">
+			<div className="bg-(--cards-bg) rounded-md p-3">
 				<CalendarView unlocksData={unlocksData} precomputedData={precomputedData} />
 			</div>
 		</Layout>

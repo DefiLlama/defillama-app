@@ -39,7 +39,7 @@ export function DefiWatchlistContainer() {
 		<>
 			<ProtocolsChainsSearch />
 			<WatchListTabs />
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<h1 className="text-xl font-semibold p-3">Saved Protocols</h1>
 
 				<span className="flex items-center flex-wrap gap-4 p-3">
@@ -49,7 +49,7 @@ export function DefiWatchlistContainer() {
 						key={`${selectedPortfolio}-${portfolios.length}`}
 						options={portfolios}
 						onItemClick={(value) => setSelectedPortfolio(value)}
-						className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium"
+						className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium"
 					/>
 					<button
 						onClick={() => {

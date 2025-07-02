@@ -299,7 +299,7 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400, retu
 	if (fontWeight > 400) {
 		return (
 			<span
-				className={`${noSign ? '' : color === 'green' ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'}`}
+				className={`${noSign ? '' : color === 'green' ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}
 				style={{ fontWeight }}
 			>
 				{finalValue}
@@ -308,7 +308,7 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400, retu
 	}
 
 	return (
-		<span className={`${noSign ? '' : color === 'green' ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'}`}>
+		<span className={`${noSign ? '' : color === 'green' ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}>
 			{finalValue}
 		</span>
 	)

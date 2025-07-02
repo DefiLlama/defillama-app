@@ -145,13 +145,13 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 	return (
 		<>
 			<div className="flex items-center gap-2 p-3 flex-wrap">
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 					{VIEW_MODES.map((mode) => (
 						<button
 							key={mode}
 							onClick={() => setViewMode(mode)}
 							data-active={viewMode === mode}
-							className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
 							{mode} View
 						</button>
@@ -186,7 +186,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 					}}
 				/>
 			) : (
-				<p className="flex items-center justify-center text-[var(--text3)]" style={{ height: height ?? '360px' }}>
+				<p className="flex items-center justify-center text-(--text3)" style={{ height: height ?? '360px' }}>
 					No upcoming unlock data available for the selected period.
 				</p>
 			)}

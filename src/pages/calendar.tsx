@@ -137,8 +137,8 @@ export default function Protocols({ emissions }) {
 		<Layout title={`Calendar - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>
 
-			<div className="bg-[var(--cards-bg)] rounded-md">
-				<div className="flex items-center gap-4 flex-wrap last:*:ml-auto p-3">
+			<div className="bg-(--cards-bg) rounded-md">
+				<div className="flex items-center gap-4 flex-wrap *:last:ml-auto p-3">
 					<h1 className="text-xl font-semibold">Crypto Calendar</h1>
 
 					<Ariakit.SelectProvider
@@ -157,11 +157,11 @@ export default function Protocols({ emissions }) {
 							)
 						}}
 					>
-						<Ariakit.Select className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap">
+						<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-(--text1) flex-nowrap">
 							{selectedOptions.length > 0 ? (
 								<>
 									<span>Type: </span>
-									<span className="text-[var(--link)]">
+									<span className="text-(--link)">
 										{`${selectedOptions[1]}${
 											selectedOptions.length > 1 ? ` + ${selectedOptions.length - 1} others` : ''
 										}`}
@@ -177,11 +177,11 @@ export default function Protocols({ emissions }) {
 							gutter={6}
 							hideOnInteractOutside
 							wrapperProps={{
-								className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+								className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 							}}
-							className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+							className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 						>
-							<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-[var(--form-control-border)]">
+							<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg1) text-(--link) text-xs border-b border-(--form-control-border)">
 								<button
 									onClick={() => {
 										router.push(
@@ -224,10 +224,10 @@ export default function Protocols({ emissions }) {
 								<Ariakit.SelectItem
 									key={`calendar-type-${value}`}
 									value={value}
-									className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
+									className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
 								>
 									<span>{value}</span>
-									<Ariakit.SelectItemCheck className="h-3 w-3 flex items-center justify-center rounded-sm flex-shrink-0 border border-[#28a2b5]" />
+									<Ariakit.SelectItemCheck className="h-3 w-3 flex items-center justify-center rounded-xs shrink-0 border border-[#28a2b5]" />
 								</Ariakit.SelectItem>
 							))}
 						</Ariakit.SelectPopover>
@@ -238,7 +238,7 @@ export default function Protocols({ emissions }) {
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+							className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 						/>
 						<input
 							value={projectName}
@@ -246,7 +246,7 @@ export default function Protocols({ emissions }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search events..."
-							className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
 				</div>

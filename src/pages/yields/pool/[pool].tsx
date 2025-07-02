@@ -247,7 +247,7 @@ const PageView = (props) => {
 
 	if (isLoading) {
 		return (
-			<div className="flex items-center justify-center h-full rounded-md bg-[var(--cards-bg)]">
+			<div className="flex items-center justify-center h-full rounded-md bg-(--cards-bg)">
 				<p className="text-center">Loading...</p>
 			</div>
 		)
@@ -256,7 +256,7 @@ const PageView = (props) => {
 	return (
 		<>
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl flex-wrap">
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 							? `${poolData.symbol} (${poolData.poolMeta})`
@@ -318,7 +318,7 @@ const PageView = (props) => {
 					</p>
 				</div>
 
-				<LazyChart className="bg-[var(--cards-bg)] rounded-md pt-3 col-span-2 min-h-[480px]">
+				<LazyChart className="bg-(--cards-bg) rounded-md pt-3 col-span-2 min-h-[480px]">
 					{!isLoading && (
 						<Chart
 							height="468px"
@@ -331,7 +331,7 @@ const PageView = (props) => {
 				</LazyChart>
 			</div>
 
-			<div className="grid grid-cols-2 gap-1 rounded-md bg-[var(--cards-bg)]">
+			<div className="grid grid-cols-2 gap-1 rounded-md bg-(--cards-bg)">
 				{hasRiskData && (
 					<div className="flex flex-col col-span-2 xl:col-span-1 p-5">
 						<h2 className="mb-6 flex items-center gap-3 text-lg font-bold">
@@ -340,7 +340,7 @@ const PageView = (props) => {
 						</h2>
 						<div className="flex flex-col items-start relative">
 							<div className="flex flex-col justify-between flex-1 w-full relative">
-								<div className="flex items-center p-1 border border-[var(--form-control-border)] mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-(--form-control-border) mb-3 last:mb-0 rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.pool_design?.rating_color)}
@@ -349,7 +349,7 @@ const PageView = (props) => {
 									</p>
 									<p className="text-sm flex-1">Pool Design</p>
 								</div>
-								<div className="flex items-center p-1 border border-[var(--form-control-border)] mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-(--form-control-border) mb-3 last:mb-0 rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.assets?.rating_color)}
@@ -372,7 +372,7 @@ const PageView = (props) => {
 										))}
 									</div>
 								</div>
-								<div className="flex items-center p-1 border border-[var(--form-control-border)] mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-(--form-control-border) mb-3 last:mb-0 rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.protocols?.underlying[0]?.rating_color)}
@@ -397,7 +397,7 @@ const PageView = (props) => {
 											))}
 									</div>
 								</div>
-								<div className="flex items-center p-1 border border-[var(--form-control-border)] mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-(--form-control-border) mb-3 last:mb-0 rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.chain?.rating_color)}
@@ -454,7 +454,7 @@ const PageView = (props) => {
 				) : (
 					<>
 						{barChartData?.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<BarChart
 									title="Supply APY"
 									chartData={barChartData}
@@ -465,7 +465,7 @@ const PageView = (props) => {
 							</LazyChart>
 						) : null}
 						{areaChartData.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<AreaChart
 									title="7 day moving average of Supply APY"
 									chartData={areaChartData}
@@ -478,13 +478,13 @@ const PageView = (props) => {
 				)}
 			</div>
 
-			<div className="grid grid-cols-2 gap-1 rounded-md bg-[var(--cards-bg)]">
+			<div className="grid grid-cols-2 gap-1 rounded-md bg-(--cards-bg)">
 				{fetchingChartDataBorrow ? (
 					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 				) : (
 					<>
 						{areaChartDataBorrow?.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<BarChart
 									title="Borrow APY"
 									chartData={barChartDataBorrow}
@@ -495,7 +495,7 @@ const PageView = (props) => {
 							</LazyChart>
 						) : null}
 						{areaChartDataBorrow.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<AreaChart
 									title="Net Borrow APY"
 									chartData={netBorrowChartData}
@@ -506,7 +506,7 @@ const PageView = (props) => {
 						) : null}
 
 						{areaChartDataBorrow?.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<AreaChart
 									chartData={areaChartDataBorrow}
 									title="Pool Liquidity"
@@ -520,7 +520,7 @@ const PageView = (props) => {
 					</>
 				)}
 			</div>
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] rounded-md p-5">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) rounded-md p-5">
 				<h3 className="font-semibold text-lg">Protocol Information</h3>
 				<p className="flex items-center gap-2">
 					<span>Category</span>
@@ -536,7 +536,7 @@ const PageView = (props) => {
 							href={url}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+							className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 						>
 							<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
 						</a>
@@ -547,7 +547,7 @@ const PageView = (props) => {
 							href={`https://twitter.com/${twitter}`}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-[var(--btn-bg)] whitespace-nowrap hover:bg-[var(--btn-hover-bg)]"
+							className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 						>
 							<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
 						</a>

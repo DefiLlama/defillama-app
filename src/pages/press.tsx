@@ -4,7 +4,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const PressPanel = ({ imageFilename }) => (
-	<div className="border border-[var(--form-control-border)] rounded-md text-center p-4">
+	<div className="border border-(--form-control-border) rounded-md text-center p-4">
 		<TokenLogo logo={`/press/${imageFilename}`} size={150} />
 	</div>
 )
@@ -44,9 +44,9 @@ function PressPage() {
 	return (
 		<Layout title="Press - DefiLlama" defaultSEO>
 			<ProtocolsChainsSearch />
-			<h1 className="text-xl font-semibold bg-[var(--cards-bg)] rounded-md p-3">Press & Media</h1>
+			<h1 className="text-xl font-semibold bg-(--cards-bg) rounded-md p-3">Press & Media</h1>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">About DefiLlama</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
@@ -63,13 +63,13 @@ function PressPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Contact</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://discord.defillama.com"
@@ -78,7 +78,7 @@ function PressPage() {
 					</a>
 					. If you want communication to be private you can use{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://twitter.com/defillama"
@@ -87,7 +87,7 @@ function PressPage() {
 					</a>{' '}
 					as a slower alternative, or, as an even slower option, you can also contact us by email at{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="mailto:support@defillama.com"
@@ -98,7 +98,7 @@ function PressPage() {
 				<p>
 					DefiLlama is a part of{' '}
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="https://twitter.com/llamacorporg"
@@ -113,7 +113,7 @@ function PressPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Press</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 
@@ -123,7 +123,7 @@ function PressPage() {
 				<div className="grid grid-cols-[repeat(auto-fit,minmax(100px,200px))] place-content-center w-full gap-2 mt-4">
 					{pressList.map((imageFilename) => (
 						<a
-							className="text-[var(--blue)] hover:underline"
+							className="text-(--blue) hover:underline"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={imageFilename[1]}
@@ -135,7 +135,7 @@ function PressPage() {
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] p-3 rounded-md">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">Branding Assets</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
@@ -144,7 +144,7 @@ function PressPage() {
 				</p>
 				<p>
 					<a
-						className="text-[var(--blue)] hover:underline"
+						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="/defillama-press-kit.zip"

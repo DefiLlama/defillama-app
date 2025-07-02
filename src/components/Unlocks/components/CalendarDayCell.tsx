@@ -20,7 +20,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 	const [isDarkMode] = useDarkModeManager()
 
 	if (!dayInfo.date)
-		return <div className="h-24 w-full border border-[var(--divider)] bg-[var(--bg6)] opacity-40"></div>
+		return <div className="h-24 w-full border border-(--divider) bg-(--bg6) opacity-40"></div>
 
 	const dateStr = dayInfo.date.format('YYYY-MM-DD')
 	const dayData = unlocksData[dateStr]
@@ -43,13 +43,13 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 		interpolatedColorRgb = interpolateColor(baseColor, highlightColorRgb, intensityFactor)
 	}
 
-	const textColorClass = 'text-[var(--text1)]'
+	const textColorClass = 'text-(--text1)'
 
-	const textColorClassToday = 'text-[var(--blue)]'
+	const textColorClassToday = 'text-(--blue)'
 
 	const cellClasses = `h-24 w-full relative border transition-colors duration-150 ease-in-out ${
-		isToday ? 'border-[var(--blue)]' : 'border-[var(--divider)]'
-	} ${!dayInfo.isCurrentMonth ? 'bg-[var(--bg6)] opacity-60 hover:opacity-80' : 'hover:brightness-110'}`
+		isToday ? 'border-(--blue)' : 'border-(--divider)'
+	} ${!dayInfo.isCurrentMonth ? 'bg-(--bg6) opacity-60 hover:opacity-80' : 'hover:brightness-110'}`
 
 	const cellStyle: React.CSSProperties = {}
 	if (dayInfo.isCurrentMonth && hasUnlocks) {
@@ -81,24 +81,24 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 		<Tooltip
 			content={
 				<div className="flex flex-col gap-3 p-3 max-w-xs">
-					<div className="font-semibold text-sm text-[var(--text1)]">
+					<div className="font-semibold text-sm text-(--text1)">
 						Total Unlock Value: {formattedNum(dayData.totalValue, true)}
 					</div>
 					{dayData.events.length > 0 && (
 						<>
-							<div className="border-t border-[var(--divider)] -mx-3"></div>
+							<div className="border-t border-(--divider) -mx-3"></div>
 							<div className="flex flex-col gap-2">
 								{dayData.events.map((event, i) => (
 									<div key={i} className="flex justify-between items-center gap-4 text-xs">
 										<BasicLink
 											href={`/unlocks/${slug(event.protocol)}`}
 											target="_blank"
-											className="text-sm font-medium text-[var(--link-text)] flex items-center gap-1.5 hover:text-[var(--blue)] flex-shrink min-w-0 group"
+											className="text-sm font-medium text-(--link-text) flex items-center gap-1.5 hover:text-(--blue) shrink min-w-0 group"
 										>
 											<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
 											<span className="truncate group-hover:underline">{event.protocol}</span>
 										</BasicLink>
-										<span className="text-[var(--text2)] font-medium whitespace-nowrap">
+										<span className="text-(--text2) font-medium whitespace-nowrap">
 											{formattedNum(event.value, true)}
 										</span>
 									</div>

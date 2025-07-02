@@ -294,8 +294,8 @@ export function useProTable(
 					e.stopPropagation()
 					onFilterClick()
 				}}
-				className={`p-1 rounded hover:bg-[var(--bg3)] transition-colors ${
-					hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : 'text-[var(--text3)]'
+				className={`p-1 rounded hover:bg-(--bg3) transition-colors ${
+					hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : 'text-(--text3)'
 				}`}
 				title="Filter protocols"
 			>

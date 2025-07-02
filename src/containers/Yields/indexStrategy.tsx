@@ -107,7 +107,7 @@ const YieldsStrategyPage = ({
 			{poolsData.length > 0 ? (
 				<YieldsStrategyTable data={poolsData} />
 			) : (
-				<p className="bg-[var(--cards-bg)] p-3 rounded-md text-center">
+				<p className="bg-(--cards-bg) p-3 rounded-md text-center">
 					Given a collateral token this finder will display "lend-borrow-farm" strategies across all our tracked pools.
 					<br />
 					It calculates the total Strategy APY taking into account the individual apy components at each step.

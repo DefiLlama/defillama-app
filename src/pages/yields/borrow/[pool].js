@@ -161,7 +161,7 @@ const PageView = () => {
 // 	return (
 // 		<>
 // 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-// 				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+// 				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 // 					<Name style={{ flexWrap: 'wrap' }}>
 // 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 // 							? `${poolData.symbol} (${poolData.poolMeta})`
@@ -178,7 +178,7 @@ const PageView = () => {
 // 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Supply Base APY:</th>
 // 								<td className="font-jetbrains text-right">{apyBase.toFixed(2)}%</td>
 // 							</tr>
-// 							<tr className="border-b border-[var(--divider)]">
+// 							<tr className="border-b border-(--divider)">
 // 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Supply Reward APY:</th>
 // 								<td className="font-jetbrains text-right">{apyReward.toFixed(2)}%</td>
 // 							</tr>
@@ -191,7 +191,7 @@ const PageView = () => {
 // 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Borrow Base APY:</th>
 // 								<td className="font-jetbrains text-right">{apyBaseBorrow.toFixed(2)}%</td>
 // 							</tr>
-// 							<tr className="border-b border-[var(--divider)]">
+// 							<tr className="border-b border-(--divider)">
 // 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Borrow Reward APY:</th>
 // 								<td className="font-jetbrains text-right">{apyRewardBorrow.toFixed(2)}%</td>
 // 							</tr>
@@ -212,7 +212,7 @@ const PageView = () => {
 // 					</TableWrapper>
 // 				</div>
 
-// 				<LazyChart className="bg-[var(--cards-bg)] rounded-md pt-3 col-span-2  min-h-[372px]">
+// 				<LazyChart className="bg-(--cards-bg) rounded-md pt-3 col-span-2  min-h-[372px]">
 // 					<AreaChart title="Net Borrow APY" chartData={netBorrowChartData} color={backgroundColor} valueSymbol={'%'} />
 
 // 					<ButtonLight as="button" onClick={downloadCsv} useTextColor={true}>
@@ -227,7 +227,7 @@ const PageView = () => {
 // 				</ButtonLight>
 // 			</div>
 
-// 			<div className="grid grid-cols-2 bg-[var(--cards-bg)] rounded-md">
+// 			<div className="grid grid-cols-2 bg-(--cards-bg) rounded-md">
 // 				{fetchingChartData ? (
 // 					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 // 				) : (
@@ -272,7 +272,7 @@ const PageView = () => {
 // 				)}
 // 			</div>
 
-// <div className="flex flex-col gap-4 bg-[var(--cards-bg)] rounded-md p-6">
+// <div className="flex flex-col gap-4 bg-(--cards-bg) rounded-md p-6">
 
 // 					<h3 className="font-semibold text-lg">Protocol Information</h3>
 // 					<p className="flex items-center gap-2">

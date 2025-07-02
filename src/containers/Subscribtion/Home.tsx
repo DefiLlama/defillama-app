@@ -118,7 +118,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 						alt=""
 					/>
 				</div>
-				<h1 className="text-[2rem] font-[800] text-center">DefiLlama</h1>
+				<h1 className="text-[2rem] font-extrabold text-center">DefiLlama</h1>
 				{isSubscribed ? null : (
 					<p className="text-[#919296] text-center">
 						Upgrade now for access to LlamaFeed, increased api limits and premium api endpoints.

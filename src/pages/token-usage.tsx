@@ -87,7 +87,7 @@ export default function Tokens({ searchData }) {
 				onItemClick={onItemClick}
 				customSearchRoute="/token-usage?token="
 			/>
-			<div className="bg-[var(--cards-bg)] rounded-md w-full">
+			<div className="bg-(--cards-bg) rounded-md w-full">
 				{isLoading ? (
 					<div className="flex items-center justify-center mx-auto w-full my-32">
 						<LocalLoader />
@@ -123,7 +123,7 @@ export default function Tokens({ searchData }) {
 							fallback={
 								<div
 									style={{ minHeight: `${filteredProtocols.length * 50 + 200}px` }}
-									className="bg-[var(--cards-bg)] rounded-md"
+									className="bg-(--cards-bg) rounded-md"
 								/>
 							}
 						>
@@ -177,11 +177,11 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 
 			return (
 				<span className="flex items-center gap-2">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>{`${value}`}</BasicLink>
 				</span>
 			)

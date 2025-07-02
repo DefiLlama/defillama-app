@@ -29,7 +29,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 	const [bobo, setBobo] = React.useState(false)
 	return (
 		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="bg-(--cards-bg) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 				<p className="flex flex-col">
 					<TotalLiquidable {...data} />
 				</p>
@@ -47,7 +47,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					className="mt-auto mr-auto"
 				/>
 			</div>
-			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-4 p-3 col-span-2 min-h-[458px]">
+			<div className="bg-(--cards-bg) rounded-md flex flex-col gap-4 p-3 col-span-2 min-h-[458px]">
 				<div className="flex items-center gap-4 flex-wrap">
 					<StackBySwitch />
 					<CurrencyToggle symbol={data.symbol} />
@@ -55,7 +55,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				</div>
 				<button
 					onClick={() => setBobo(!bobo)}
-					className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-[1]"
+					className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-1"
 				>
 					<span className="sr-only">Enable Goblin Mode</span>
 					<Image src={boboLogo} width={34} height={34} alt="bobo cheers" className="min-h-[34px] w-[34px]" />
@@ -73,18 +73,18 @@ const CurrencyToggle = (props: { symbol: string }) => {
 	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 
 	return (
-		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 			<button
 				data-active={!isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}
-				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+				className="flex items-center gap-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 			>
 				{props.symbol.toUpperCase()}
 			</button>
 			<button
 				data-active={isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}
-				className="flex items-center gap-1 flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+				className="flex items-center gap-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 			>
 				USD
 			</button>

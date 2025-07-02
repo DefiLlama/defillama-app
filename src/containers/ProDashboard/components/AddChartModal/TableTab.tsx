@@ -242,14 +242,14 @@ export function TableTab({
 						onInputChange={setTokenSearchInput}
 					/>
 					<div
-						className="flex items-center gap-2 px-3 py-1.5 border border-[var(--divider)] hover:border-[var(--text3)] transition-colors cursor-pointer"
+						className="flex items-center gap-2 px-3 py-1.5 border border-(--divider) hover:border-(--text3) transition-colors cursor-pointer"
 						onClick={() => onIncludeCexChange(!includeCex)}
 					>
 						<div className="relative w-4 h-4">
 							<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
 							<div
 								className={`w-4 h-4 border-2 transition-all ${
-									includeCex ? 'bg-[var(--primary1)] border-[var(--primary1)]' : 'bg-transparent border-[var(--text3)]'
+									includeCex ? 'bg-(--primary1) border-(--primary1)' : 'bg-transparent border-(--text3)'
 								}`}
 							>
 								{includeCex && (

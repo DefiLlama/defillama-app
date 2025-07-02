@@ -125,7 +125,7 @@ export function ColumnManagementPanel({
 						<div className="flex items-center gap-2">
 							<Icon name="check" height={12} width={12} className="text-green-500" />
 							<span className="text-xs pro-text1">{column.name}</span>
-							{isCustom && <span className="text-xs px-1 py-0.5 bg-[var(--primary1)] text-white rounded">Custom</span>}
+							{isCustom && <span className="text-xs px-1 py-0.5 bg-(--primary1) text-white rounded-sm">Custom</span>}
 						</div>
 						<div className="flex items-center gap-1">
 							{moveColumnUp && !isFirst && (
@@ -210,7 +210,7 @@ export function ColumnManagementPanel({
 						<button
 							onClick={() => setActiveTab('columns')}
 							className={`px-3 py-1 text-xs transition-colors ${
-								activeTab === 'columns' ? 'bg-[var(--primary1)] text-white' : 'pro-text2 pro-hover-bg'
+								activeTab === 'columns' ? 'bg-(--primary1) text-white' : 'pro-text2 pro-hover-bg'
 							}`}
 						>
 							Standard Columns
@@ -218,7 +218,7 @@ export function ColumnManagementPanel({
 						<button
 							onClick={() => setActiveTab('custom')}
 							className={`px-3 py-1 text-xs transition-colors ${
-								activeTab === 'custom' ? 'bg-[var(--primary1)] text-white' : 'pro-text2 pro-hover-bg'
+								activeTab === 'custom' ? 'bg-(--primary1) text-white' : 'pro-text2 pro-hover-bg'
 							}`}
 						>
 							Custom Columns
@@ -261,7 +261,7 @@ export function ColumnManagementPanel({
 							placeholder="Search columns..."
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
-							className="w-full pl-9 pr-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-none focus:border-[var(--primary1)] transition-colors pro-bg2"
+							className="w-full pl-9 pr-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
 						/>
 					</div>
 
@@ -334,7 +334,7 @@ export function ColumnManagementPanel({
 				</span>
 				<button
 					onClick={() => setShowColumnPanel(false)}
-					className="px-3 py-1 bg-[var(--primary1)] text-white hover:bg-[var(--primary1-hover)] transition-colors border border-[var(--primary1)]"
+					className="px-3 py-1 bg-(--primary1) text-white hover:bg-(--primary1-hover) transition-colors border border-(--primary1)"
 				>
 					Done
 				</button>

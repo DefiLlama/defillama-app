@@ -105,8 +105,8 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				isCEX={props.isCEX}
 			/>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
-				<div className="hidden xl:flex flex-col gap-6 col-span-1 row-[2_/_3] xl:row-[1_/_2] bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:min-h-[360px]">
-					<h1 className="flex items-center flex-wrap gap-2 text-xl last:*:ml-auto">
+				<div className="hidden xl:flex flex-col gap-6 col-span-1 row-[2/3] xl:row-[1/2] bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:min-h-[360px]">
+					<h1 className="flex items-center flex-wrap gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">
 							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
@@ -127,8 +127,8 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					/>
 					<KeyMetrics {...props} formatPrice={formatPrice} />
 				</div>
-				<div className="grid grid-cols-2 gap-2 col-span-1 xl:col-[2_/_-1]">
-					<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2">
+				<div className="grid grid-cols-2 gap-2 col-span-1 xl:col-[2/-1]">
+					<div className="col-span-full flex flex-col gap-6 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2">
 						<div className="xl:hidden flex flex-col gap-6">
 							<h1 className="flex items-center flex-wrap gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
@@ -153,7 +153,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						<ProtocolChart2 {...props} />
 					</div>
 					{props.hasKeyMetrics ? (
-						<div className="col-span-full flex flex-col gap-6 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:hidden">
+						<div className="col-span-full flex flex-col gap-6 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:hidden">
 							<KeyMetrics {...props} formatPrice={formatPrice} />
 						</div>
 					) : null}
@@ -313,7 +313,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	if (!props.articles?.length) return null
 
 	return (
-		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
+		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
 			<div className="flex items-center justify-between">
 				<h3 className="font-semibold">Latest from DL News</h3>
 				<a href="https://www.dlnews.com">
@@ -327,11 +327,11 @@ const Articles = (props: IProtocolOverviewPageData) => {
 					href={article.href}
 					target="_blank"
 					rel="noreferrer noopener"
-					className="p-2 flex flex-col gap-3 rounded-md bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+					className="p-2 flex flex-col gap-3 rounded-md bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
 				>
 					{article.imgSrc ? (
 						<img
-							className="object-cover rounded h-[100px] w-full flex-shrink-0"
+							className="object-cover rounded-sm h-[100px] w-full shrink-0"
 							src={article.imgSrc}
 							alt={article.headline}
 						/>
@@ -1241,7 +1241,7 @@ function Users(props: IProtocolOverviewPageData) {
 	if (!users) return null
 	return (
 		<div>
-			<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+			<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 				<Tooltip
 					content="This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
 					className="font-semibold underline decoration-dotted mr-auto"
@@ -1423,7 +1423,7 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 
 const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 	return (
-		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
+		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
 			<h2 className="text-base font-semibold">Protocol Information</h2>
 			{props.description ? <p>{props.description}</p> : null}
 			{props.category ? (
@@ -1439,13 +1439,13 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 			{props.audits ? (
 				<>
 					<p className="flex items-center gap-1">
-						<span className="flex-shrink-0">Audits:</span>
+						<span className="shrink-0">Audits:</span>
 						{props.audits.auditLinks.length > 0 ? (
 							<Menu
 								name="Yes"
 								options={props.audits.auditLinks}
 								isExternal
-								className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
 							/>
 						) : (
 							<span>No</span>
@@ -1458,7 +1458,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 				{props.website ? (
 					<a
 						href={props.website}
-						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -1470,7 +1470,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 					? props.github.map((github) => (
 							<a
 								href={`https://github.com/${github}`}
-								className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+								className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
 								target="_blank"
 								rel="noopener noreferrer"
 								key={`${props.name}-github-${github}`}
@@ -1483,7 +1483,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 				{props.twitter ? (
 					<a
 						href={`https://twitter.com/${props.twitter}`}
-						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)]"
+						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -1497,7 +1497,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 }
 const Methodology = (props: IProtocolOverviewPageData) => {
 	return (
-		<div className="flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
+		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
 			<h2 className="text-base font-semibold">Methodology</h2>
 			{props.methodologyURL ? (
 				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
@@ -1611,14 +1611,14 @@ function Unlocks(props: IProtocolOverviewPageData) {
 	const unlocks = props.unlocks
 	if (!unlocks) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<h2 className="text-base font-semibold">Unlocks</h2>
 			<div className="flex flex-col">
 				{unlocks.recent ? (
 					<div className="flex flex-col gap-1">
 						<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last unlock event</h3>
 						<p className="flex items-center justify-between gap-4">
-							<span className="bg-[var(--app-bg)] rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
+							<span className="bg-(--app-bg) rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
 								{unlocks.recent.timestamp}
 							</span>
 							<span className="font-jetbrains">{formattedNum(unlocks.recent.amount)}</span>
@@ -1629,7 +1629,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 					<div className="flex flex-col gap-1">
 						<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Upcoming unlock event</h3>
 						<p className="flex items-center justify-between gap-4">
-							<span className="bg-[var(--app-bg)] rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
+							<span className="bg-(--app-bg) rounded-md px-2 py-1 border border-[#e6e6e6] dark:border-[#222324]">
 								{unlocks.upcoming.timestamp}
 							</span>
 							<span className="font-jetbrains">{formattedNum(unlocks.upcoming.amount)}</span>
@@ -1645,15 +1645,15 @@ function Governance(props: IProtocolOverviewPageData) {
 	const governance = props.governance
 	if (!governance) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<h2 className="text-base font-semibold">Governance</h2>
 			<div className="flex flex-col gap-1">
 				<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last proposal</h3>
 				<p className="flex items-center justify-between gap-4">
 					<span>{governance.lastProposal.title}</span>
 					<span
-						className={`bg-[var(--app-bg)] rounded-md text-xs px-2 py-1 border border-[#e6e6e6] dark:border-[#222324] text-[var(--pct-green)] ${
-							governance.lastProposal.status === 'Passed' ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+						className={`bg-(--app-bg) rounded-md text-xs px-2 py-1 border border-[#e6e6e6] dark:border-[#222324] text-(--pct-green) ${
+							governance.lastProposal.status === 'Passed' ? 'text-(--pct-green)' : 'text-(--pct-red)'
 						}`}
 					>
 						{governance.lastProposal.status}
@@ -1668,7 +1668,7 @@ function Yields(props: IProtocolOverviewPageData) {
 	const yields = props.yields
 	if (!yields) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<h2 className="text-base font-semibold">Yields</h2>
 			<div>
 				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
@@ -1684,7 +1684,7 @@ function Yields(props: IProtocolOverviewPageData) {
 				href={`/yields?project=${
 					props.otherProtocols ? props.otherProtocols.slice(1).join('&project=') : slug(props.name)
 				}`}
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-[var(--primary-color)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-1"
+				className="text-xs mr-auto py-1 px-2 rounded-full border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-1"
 			>
 				<span>View all Yields</span>
 				<Icon name="arrow-right" className="w-4 h-4" />
@@ -1697,7 +1697,7 @@ function DevActivity(props: IProtocolOverviewPageData) {
 	const devActivity = props.devMetrics
 	if (!devActivity) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<div>
 				<h2 className="text-base font-semibold">Development Activity</h2>
 				{devActivity.updatedAt != null ? (
@@ -1747,7 +1747,7 @@ function DevActivity(props: IProtocolOverviewPageData) {
 const Hacks = (props: IProtocolOverviewPageData) => {
 	if (!props.hacks?.length) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<h2 className="text-base font-semibold">Hacks</h2>
 			<div className="flex flex-col">
 				{props.hacks.map((hack) => (
@@ -1816,7 +1816,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 const Competitors = (props: IProtocolOverviewPageData) => {
 	if (!props.competitors?.length) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-[var(--cards-bg)] border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<h2 className="text-base font-semibold">Competitors</h2>
 			<div className="flex items-center gap-4 flex-wrap">
 				{props.competitors.map((similarProtocol) => (

@@ -44,7 +44,7 @@ export function RaisedRange({
 					{min || max ? (
 						<>
 							<span>Amount Raised: </span>
-							<span className="text-[var(--link)]">{`${min || 'min'} - ${max || 'max'}`}</span>
+							<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
 						</>
 					) : (
 						<span>Amount Raised</span>

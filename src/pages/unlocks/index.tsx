@@ -85,7 +85,7 @@ export default function Protocols({ data, unlockStats }) {
 				<span>Are we missing any protocol?</span>
 				<a
 					href="https://airtable.com/shrD1bSGYNcdFQ6kd"
-					className="text-[var(--blue)] underline font-medium"
+					className="text-(--blue) underline font-medium"
 					target="_blank"
 					rel="noopener noreferrer"
 				>
@@ -96,7 +96,7 @@ export default function Protocols({ data, unlockStats }) {
 			<Metrics currentMetric="Unlocks" />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="text-xl font-semibold">Unlock Statistics</h1>
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Protocols Tracked</span>
@@ -111,20 +111,20 @@ export default function Protocols({ data, unlockStats }) {
 						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(upcomingUnlocks30dValue, true)}</span>
 					</p>
 				</div>
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2 min-h-[418px]">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[418px]">
 					<UpcomingUnlockVolumeChart protocols={data} />
 				</div>
 			</div>
 
 			<Suspense fallback={<div className="min-h-[400px] md:min-h-[200px] xl:min-h-[130px]"></div>}>
 				<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1 isolate">
-					<div className="col-span-1 bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
+					<div className="col-span-1 bg-(--cards-bg) rounded-md p-2 flex flex-col gap-1">
 						<TopUnlocks data={data} period={1} title="24h Top Unlocks" className="col-span-1 h-[130px]" />
 					</div>
-					<div className="col-span-1 bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
+					<div className="col-span-1 bg-(--cards-bg) rounded-md p-2 flex flex-col gap-1">
 						<TopUnlocks data={data} period={30} title="30d Top Unlocks" className="col-span-1 h-[130px]" />
 					</div>
-					<div className="col-span-1 bg-[var(--cards-bg)] rounded-md p-2 flex flex-col gap-1">
+					<div className="col-span-1 bg-(--cards-bg) rounded-md p-2 flex flex-col gap-1">
 						<PastUnlockPriceImpact data={data} title="Post Unlock Price Impact" className="col-span-1 h-[130px]" />
 					</div>
 				</div>

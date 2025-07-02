@@ -84,7 +84,7 @@ export function SelectWithCombobox({
 							className="bg-white dark:bg-black rounded-md py-2 px-3 m-3 mb-0"
 						/>
 						{clearAll || toggleAll ? (
-							<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-[var(--form-control-border)]">
+							<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg1) text-(--link) text-xs border-b border-(--form-control-border)">
 								{clearAll ? (
 									<button onClick={clearAll} className="p-3">
 										Clear
@@ -102,7 +102,7 @@ export function SelectWithCombobox({
 								key={valuesAreAnArrayOfStrings ? option : option.key}
 								render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
 								hideOnClick={false}
-								className="flex items-center justify-between gap-4 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
+								className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
 							>
 								{valuesAreAnArrayOfStrings ? (
 									<span>{option}</span>
@@ -114,12 +114,12 @@ export function SelectWithCombobox({
 								) : (
 									<span>{option.name}</span>
 								)}
-								<Ariakit.SelectItemCheck className="h-3 w-3 flex items-center justify-center rounded-sm flex-shrink-0 border border-[#28a2b5]" />
+								<Ariakit.SelectItemCheck className="h-3 w-3 flex items-center justify-center rounded-xs shrink-0 border border-[#28a2b5]" />
 							</NestedMenuItem>
 						))}
 						{matches.length > viewableMatches ? (
 							<button
-								className="w-full py-4 px-3 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+								className="w-full py-4 px-3 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
 								onClick={() => setViewableMatches((prev) => prev + 20)}
 							>
 								See more...
@@ -147,12 +147,12 @@ export function SelectWithCombobox({
 				}}
 			>
 				<Ariakit.Select
-					className="bg-[var(--btn-bg)] hover:bg-[var(--btn-hover-bg)] focus-visible:bg-[var(--btn-hover-bg)] flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-[var(--text1)] flex-nowrap"
+					className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-(--text1) flex-nowrap"
 					{...triggerProps}
 				>
 					{labelType === 'smol' ? (
 						<span className="flex items-center gap-1">
-							<span className="text-[10px] -my-2 rounded-full min-w-4 flex items-center justify-center border border-[var(--form-control-border)] p-[1px]">
+							<span className="text-[10px] -my-2 rounded-full min-w-4 flex items-center justify-center border border-(--form-control-border) p-px">
 								{selectedValues.length}
 							</span>
 							<span>{label}</span>
@@ -160,7 +160,7 @@ export function SelectWithCombobox({
 					) : labelType === 'regular' && selectedValues.length > 0 ? (
 						<>
 							<span>{label}: </span>
-							<span className="text-[var(--link)]">
+							<span className="text-(--link)">
 								{selectedValues.length > 2
 									? `${selectedValues[0]} + ${selectedValues.length - 1} others`
 									: selectedValues.join(', ')}
@@ -176,9 +176,9 @@ export function SelectWithCombobox({
 					hideOnInteractOutside
 					gutter={6}
 					wrapperProps={{
-						className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="flex flex-col bg-[var(--bg1)] rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 					portal={portal || false}
 				>
 					<Ariakit.Combobox
@@ -190,7 +190,7 @@ export function SelectWithCombobox({
 					{matches.length > 0 ? (
 						<>
 							{clearAll || toggleAll ? (
-								<span className="sticky z-[1] top-0 flex flex-wrap justify-between gap-1 bg-[var(--bg1)] text-[var(--link)] text-xs border-b border-[var(--form-control-border)]">
+								<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg1) text-(--link) text-xs border-b border-(--form-control-border)">
 									{clearAll ? (
 										<button onClick={clearAll} className="p-3">
 											Clear
@@ -210,7 +210,7 @@ export function SelectWithCombobox({
 										<Ariakit.SelectItem
 											key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 											value={valuesAreAnArrayOfStrings ? option : option.key}
-											className="group flex items-center gap-2 py-2 px-3 flex-shrink-0 hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] cursor-pointer last-of-type:rounded-b-md border-b border-[var(--form-control-border)]"
+											className="group flex items-center gap-2 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
 											render={<Ariakit.ComboboxItem />}
 										>
 											{valuesAreAnArrayOfStrings ? (
@@ -228,7 +228,7 @@ export function SelectWithCombobox({
 													<button
 														type="button"
 														tabIndex={-1}
-														className="p-1 rounded hover:bg-[var(--btn-hover-bg)]"
+														className="p-1 rounded-sm hover:bg-(--btn-hover-bg)"
 														onClick={(e) => {
 															e.stopPropagation()
 															onEditCustomColumn && onEditCustomColumn(option.customIndex!)
@@ -240,7 +240,7 @@ export function SelectWithCombobox({
 													<button
 														type="button"
 														tabIndex={-1}
-														className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
+														className="p-1 rounded-sm hover:bg-red-100 dark:hover:bg-red-900"
 														onClick={(e) => {
 															e.stopPropagation()
 															onDeleteCustomColumn && onDeleteCustomColumn(option.customIndex!)
@@ -257,30 +257,30 @@ export function SelectWithCombobox({
 														e.stopPropagation()
 														selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
 													}}
-													className="font-medium text-xs text-[var(--link)] underline hidden group-hover:inline-block group-focus-visible:inline-block"
+													className="font-medium text-xs text-(--link) underline hidden group-hover:inline-block group-focus-visible:inline-block"
 												>
 													Only
 												</button>
 											) : null}
-											<Ariakit.SelectItemCheck className="ml-auto h-3 w-3 flex items-center justify-center rounded-sm flex-shrink-0 border border-[#28a2b5]" />
+											<Ariakit.SelectItemCheck className="ml-auto h-3 w-3 flex items-center justify-center rounded-xs shrink-0 border border-[#28a2b5]" />
 										</Ariakit.SelectItem>
 									)
 								})}
 							</Ariakit.ComboboxList>
 							{matches.length > viewableMatches ? (
 								<button
-									className="w-full py-4 px-3 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+									className="w-full py-4 px-3 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
 									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
 								</button>
 							) : null}
 							{customFooter ? (
-								<div className="mt-2 border-t border-[var(--form-control-border)] pt-2">{customFooter}</div>
+								<div className="mt-2 border-t border-(--form-control-border) pt-2">{customFooter}</div>
 							) : null}
 						</>
 					) : (
-						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+						<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
 					)}
 				</Ariakit.SelectPopover>
 			</Ariakit.SelectProvider>

@@ -41,7 +41,7 @@ export function TableHeader({
 							onClick={() => applyPreset(preset)}
 							className={`flex items-center gap-1 px-3 py-1.5 text-sm border capitalize transition-colors ${
 								activePreset === preset
-									? 'bg-[var(--primary1)] text-white border-[var(--primary1)]'
+									? 'bg-(--primary1) text-white border-(--primary1)'
 									: 'pro-border pro-hover-bg pro-text1 pro-bg1'
 							}`}
 						>

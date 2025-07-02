@@ -15,7 +15,7 @@ export function SubscribeProCard({
 }) {
 	return (
 		<div
-			className={`price-card py-8 px-5 flex flex-col w-[92vw] snap-center flex-shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:flex-shrink relative transition-all duration-300 hover:transform md:hover:scale-[1.02] bg-[#22242966] border-2 border-[#4a4a50] backdrop-blur-xl rounded-xl shadow-2xl overflow-hidden`}
+			className={`price-card py-8 px-5 flex flex-col w-[92vw] snap-center shrink-0 md:w-auto md:flex-1 md:max-w-[400px] md:px-5 md:snap-none md:shrink relative transition-all duration-300 hover:transform md:hover:scale-[1.02] bg-[#22242966] border-2 border-[#4a4a50] backdrop-blur-xl rounded-xl shadow-2xl overflow-hidden`}
 			style={{ boxShadow: '0 0 15px rgba(138, 138, 255, 0.12), 0 0 5px rgba(92, 92, 249, 0.08)' }}
 		>
 			<div className="absolute inset-0 overflow-hidden">
@@ -41,9 +41,9 @@ export function SubscribeProCard({
 						'linear-gradient(135deg, rgba(92, 92, 249, 0.05) 0%, rgba(138, 138, 255, 0.02) 50%, rgba(70, 42, 146, 0.03) 100%)'
 				}}
 			></div>
-			<h2 className="whitespace-nowrap text-[2rem] font-[800] text-center text-[#5C5CF9] relative z-10">Pro</h2>
+			<h2 className="whitespace-nowrap text-[2rem] font-extrabold text-center text-[#5C5CF9] relative z-10">Pro</h2>
 			<div className="flex items-center justify-center mt-1 relative z-10">
-				<span className="text-center text-2xl font-medium bg-gradient-to-r from-[#5C5CF9] to-[#8a8aff] bg-clip-text text-transparent">
+				<span className="text-center text-2xl font-medium bg-linear-to-r from-[#5C5CF9] to-[#8a8aff] bg-clip-text text-transparent">
 					300 USD
 				</span>
 				<span className="text-[#8a8c90] ml-1">/month</span>
@@ -51,15 +51,15 @@ export function SubscribeProCard({
 			<p className="text-center font-medium text-[#8a8c90] mt-1 relative z-10">Multiple payment options</p>
 			<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
 				<li className="flex flex-nowrap gap-[10px] items-start">
-					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 shrink-0" />
 					<span>All features included in Llama+ tier</span>
 				</li>
 				<li className="flex flex-nowrap gap-[10px] items-start">
-					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 shrink-0" />
 					<span>Access to TVL, revenue/fees and prices API endpoints</span>
 				</li>
 				<li className="flex flex-nowrap gap-[10px] items-start">
-					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 flex-shrink-0" />
+					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 shrink-0" />
 					<span>Access to all data (unlocks, active users, token liq...)</span>
 				</li>
 				<li className="px-[26px] flex flex-col gap-1 mt-1">

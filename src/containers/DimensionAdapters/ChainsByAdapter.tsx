@@ -158,7 +158,7 @@ export function ChainsByAdapter(props: IProps) {
 					<span>Are we missing any protocol?</span>{' '}
 					<a
 						href="https://airtable.com/shrtBA9lvj6E036Qx"
-						className="text-[var(--blue)] underline font-medium"
+						className="text-(--blue) underline font-medium"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -171,14 +171,14 @@ export function ChainsByAdapter(props: IProps) {
 			{props.adapterType !== 'fees' && (
 				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} type={props.type} />
 			)}
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<div className="flex items-center justify-end flex-wrap gap-4 p-3">
 					<div className="relative w-full sm:max-w-[280px] mr-auto">
 						<Icon
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+							className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 						/>
 						<input
 							value={projectName}
@@ -186,7 +186,7 @@ export function ChainsByAdapter(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="border border-[var(--form-control-border)] w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
 					<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
@@ -213,13 +213,13 @@ const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains']
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
 					<BasicLink
 						href={route ? `/${route}/chain/${slug(value)}` : `/chain/${slug(value)}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{value}
 					</BasicLink>

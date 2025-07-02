@@ -10,7 +10,7 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 	return (
 		<div className="p-4 h-full flex flex-col">
 			{text.title && (
-				<div className="mb-3 flex-shrink-0 pr-28">
+				<div className="mb-3 shrink-0 pr-28">
 					<h2 className="text-lg font-semibold pro-text1">{text.title}</h2>
 				</div>
 			)}
@@ -27,20 +27,20 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 							ol: ({ children }) => <ol className="list-decimal list-inside mb-2 pro-text2">{children}</ol>,
 							li: ({ children }) => <li className="mb-1">{children}</li>,
 							code: ({ children }) => (
-								<code className="bg-[var(--bg3)] px-1 py-0.5 rounded text-xs font-mono pro-text1">{children}</code>
+								<code className="bg-(--bg3) px-1 py-0.5 rounded-sm text-xs font-mono pro-text1">{children}</code>
 							),
 							pre: ({ children }) => (
-								<pre className="bg-[var(--bg3)] p-3 rounded mb-2 overflow-x-auto thin-scrollbar">{children}</pre>
+								<pre className="bg-(--bg3) p-3 rounded-sm mb-2 overflow-x-auto thin-scrollbar">{children}</pre>
 							),
 							blockquote: ({ children }) => (
-								<blockquote className="border-l-4 border-[var(--primary1)] pl-4 italic pro-text3 mb-2">
+								<blockquote className="border-l-4 border-(--primary1) pl-4 italic pro-text3 mb-2">
 									{children}
 								</blockquote>
 							),
 							a: ({ children, href }) => (
 								<a
 									href={href}
-									className="text-[var(--primary1)] hover:underline"
+									className="text-(--primary1) hover:underline"
 									target="_blank"
 									rel="noopener noreferrer"
 								>

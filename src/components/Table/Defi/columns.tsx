@@ -50,13 +50,13 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 
 					<BasicLink
 						href={`/forks/${getValue()}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
 					</BasicLink>
@@ -160,7 +160,7 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<ButtonLight
-				className="flex items-center justify-center gap-4 !p-[6px]"
+				className="flex items-center justify-center gap-4 p-[6px]!"
 				as="a"
 				href={getValue() as string}
 				target="_blank"
@@ -211,7 +211,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 					<TokenLogo logo={tokenIconUrl(getValue())} />
 					<BasicLink
 						href={`/unlocks/${slug(getValue() as string)}`}
-						className="text-sm text-[var(--link-text)] overflow-hidden whitespace-nowrap font-bold text-ellipsis hover:underline"
+						className="text-sm text-(--link-text) overflow-hidden whitespace-nowrap font-bold text-ellipsis hover:underline"
 					>
 						{getValue() as string}
 					</BasicLink>
@@ -396,11 +396,11 @@ export const calendarColumns: ColumnDef<any>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					{row.original.type === 'Unlock' ? (
 						<BasicLink
 							href={`/unlocks/${slug(row.original.link)}`}
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string}
 						</BasicLink>
@@ -459,11 +459,11 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 							</>
 						)}
 					</button>
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
 						href={`/governance/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}
 					</BasicLink>
@@ -513,7 +513,7 @@ export const activeInvestorsColumns: ColumnDef<{
 					<div className="flex gap-2" onClick={() => window.open('/pitch', '_blank')}>
 						<BasicLink
 							href={`/raises/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string}
 						</BasicLink>
@@ -585,9 +585,9 @@ export const activeInvestorsColumns: ColumnDef<{
 					<Ariakit.Hovercard
 						unmountOnHide
 						wrapperProps={{
-							className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none max-sm:!w-full'
+							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="max-w-xl z-10 p-1 shadow rounded-md bg-[var(--bg2)] border border-[var(--bg3)] text-[var(--text1)] flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden max-sm-drawer"
+						className="max-w-xl z-10 p-1 shadow-sm rounded-md bg-(--bg2) border border-(--bg3) text-(--text1) flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden max-sm-drawer"
 					>
 						{getValue() as string | null}
 					</Ariakit.Hovercard>
@@ -656,7 +656,7 @@ export const hacksColumns: ColumnDef<IHacksRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<ButtonLight
-				className="flex items-center justify-center gap-4 !p-[6px]"
+				className="flex items-center justify-center gap-4 p-[6px]!"
 				as="a"
 				href={getValue() as string}
 				target="_blank"
@@ -695,13 +695,13 @@ export const cexColumn: ColumnDef<any>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					{row.original.slug === undefined ? (
 						(getValue() as string | null)
 					) : (
 						<BasicLink
 							href={`/cex/${slug(row.original.slug)}`}
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string | null}
 						</BasicLink>
@@ -772,7 +772,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		cell: (info) => (
 			<span
-				className="text-[var(--text1)]"
+				className="text-(--text1)"
 				style={
 					(info.getValue() as number) < 0
 						? ({ '--text1': '#f85149' } as any)
@@ -796,7 +796,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		cell: (info) => (
 			<span
-				className="text-[var(--text1)]"
+				className="text-(--text1)"
 				style={
 					(info.getValue() as number) < 0
 						? ({ '--text1': '#f85149' } as any)
@@ -820,7 +820,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		cell: (info) => (
 			<span
-				className="text-[var(--text1)]"
+				className="text-(--text1)"
 				style={
 					(info.getValue() as number) < 0
 						? ({ '--text1': '#f85149' } as any)
@@ -844,7 +844,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 200,
 		cell: (info) => (
 			<span
-				className="text-[var(--text1)]"
+				className="text-(--text1)"
 				style={
 					(info.getValue() as number) < 0
 						? ({ '--text1': '#f85149' } as any)
@@ -922,7 +922,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			<>
 				{getValue() === undefined ? null : (
 					<ButtonLight
-						className="flex items-center justify-center gap-4 !p-[6px]"
+						className="flex items-center justify-center gap-4 p-[6px]!"
 						as="a"
 						href={getValue() as string}
 						target="_blank"
@@ -948,7 +948,7 @@ export const cexColumn: ColumnDef<any>[] = [
 					<QuestionHelper text="This CEX has no published their wallet addresses" />
 				) : (
 					<ButtonLight
-						className="flex items-center justify-center gap-4 !p-[6px]"
+						className="flex items-center justify-center gap-4 p-[6px]!"
 						as="a"
 						href={getValue() as string}
 						target="_blank"
@@ -977,10 +977,10 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
+					<span className="shrink-0">{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
 					<BasicLink
 						href={`/protocol/${nameSlug}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string | null}
 					</BasicLink>
@@ -1136,10 +1136,10 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<BasicLink
 						href={row.original.url}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string | null}
 					</BasicLink>
@@ -1223,7 +1223,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		cell: ({ getValue }) =>
 			getValue() ? (
 				<ButtonLight
-					className="flex items-center justify-center gap-4 !p-[6px]"
+					className="flex items-center justify-center gap-4 p-[6px]!"
 					as="a"
 					href={getValue() as string}
 					target="_blank"
@@ -1241,7 +1241,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		cell: ({ getValue }) =>
 			getValue() ? (
 				<ButtonLight
-					className="flex items-center justify-center gap-4 !p-[6px]"
+					className="flex items-center justify-center gap-4 p-[6px]!"
 					as="a"
 					href={getValue() as string}
 					target="_blank"
@@ -1298,19 +1298,19 @@ export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					{['bitcoin', 'ethereum', 'solana'].includes(row.original.id) ? (
 						<BasicLink
 							href={`https://www.coingecko.com/en/coins/${row.original.id}`}
 							target="_blank"
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string | null}
 						</BasicLink>
 					) : (
 						<BasicLink
 							href={`/narrative-tracker/${row.original.id}`}
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{getValue() as string | null}
 						</BasicLink>
@@ -1371,7 +1371,7 @@ export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 					<BasicLink
 						href={`https://www.coingecko.com/en/coins/${row.original.id}`}
 						target="_blank"
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string | null}
 					</BasicLink>
@@ -1462,14 +1462,14 @@ const SimpleUpcomingEvent = ({ timestamp, name }) => {
 	return (
 		<span className="flex items-center gap-2">
 			<span>{name}</span>
-			<span className="h-10 w-[1px] bg-[var(--bg4)]" />
+			<span className="h-10 w-px bg-(--bg4)" />
 			<span className="flex items-center gap-1">
-				<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">{days}D</span>
-				<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">{hours}H</span>
-				<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">{minutes}M</span>
-				<span className="bg-[var(--bg4)] rounded-md text-sm h-8 w-8 flex items-center justify-center">{seconds}S</span>
+				<span className="bg-(--bg4) rounded-md text-sm h-8 w-8 flex items-center justify-center">{days}D</span>
+				<span className="bg-(--bg4) rounded-md text-sm h-8 w-8 flex items-center justify-center">{hours}H</span>
+				<span className="bg-(--bg4) rounded-md text-sm h-8 w-8 flex items-center justify-center">{minutes}M</span>
+				<span className="bg-(--bg4) rounded-md text-sm h-8 w-8 flex items-center justify-center">{seconds}S</span>
 			</span>
-			<span className="h-10 w-[1px] bg-[var(--bg4)]" />
+			<span className="h-10 w-px bg-(--bg4)" />
 			<span className="flex items-center justify-between gap-2">
 				<span>{toNiceDayMonthYear(timestamp)}</span>
 				<span>{toNiceHour(timestamp)}</span>

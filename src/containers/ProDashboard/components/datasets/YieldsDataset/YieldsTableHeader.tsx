@@ -55,7 +55,7 @@ export function YieldsTableHeader({
 						value={poolName}
 						onChange={(e) => setPoolName(e.target.value)}
 						className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1
-							focus:outline-none focus:ring-1 focus:ring-[var(--primary1)]"
+							focus:outline-hidden focus:ring-1 focus:ring-(--primary1)"
 					/>
 				</div>
 			</div>
@@ -68,7 +68,7 @@ export function YieldsTableHeader({
 							onClick={() => applyPreset(preset)}
 							className={`flex items-center gap-1 px-3 py-1.5 text-sm border capitalize transition-colors ${
 								activePreset === preset
-									? 'bg-[var(--primary1)] text-white border-[var(--primary1)]'
+									? 'bg-(--primary1) text-white border-(--primary1)'
 									: 'pro-border pro-hover-bg pro-text1 pro-bg1'
 							}`}
 						>
@@ -87,7 +87,7 @@ export function YieldsTableHeader({
 						<Icon name="align-left" height={14} width={14} />
 						Filters
 						{activeFilterCount > 0 && (
-							<span className="absolute -top-1 -right-1 bg-[var(--primary1)] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+							<span className="absolute -top-1 -right-1 bg-(--primary1) text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
 								{activeFilterCount}
 							</span>
 						)}

@@ -15,7 +15,7 @@ const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 
 export function Treasury({ protocolName }) {
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1" id="treasury">
+		<div className="bg-(--cards-bg) rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1" id="treasury">
 			<h3>Treasury</h3>
 
 			<TreasuryChart protocolName={protocolName} />
@@ -85,16 +85,16 @@ export const TreasuryChart = ({ protocolName }: { protocolName: string }) => {
 				<div className="grid grid-cols-2 rounded-md min-h-[360px]"></div>
 			) : (
 				<div className="grid grid-cols-2 rounded-md min-h-[384px] p-3">
-					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<PieChart chartData={top10Tokens} />
 					</LazyChart>
-					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
 					</LazyChart>
-					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
 					</LazyChart>
-					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
 					</LazyChart>
 				</div>

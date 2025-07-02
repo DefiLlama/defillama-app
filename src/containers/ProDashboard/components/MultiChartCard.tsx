@@ -217,7 +217,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			<div className="mb-2 pr-[86px]">
 				<div className="flex flex-wrap items-start justify-between gap-3">
 					<div className="flex items-center gap-2 min-w-0">
-						<h3 className="text-sm font-medium text-[var(--text1)] truncate">
+						<h3 className="text-sm font-medium text-(--text1) truncate">
 							{multi.name || `Multi-Chart (${multi.items.length})`}
 						</h3>
 						{hasPartialFailures && (
@@ -230,17 +230,17 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					</div>
 					<div className="flex items-center gap-2 shrink-0">
 						{allChartsGroupable && hasAnyData && (
-							<div className="flex border border-[var(--form-control-border)] overflow-hidden">
+							<div className="flex border border-(--form-control-border) overflow-hidden">
 								{groupingOptions.map((option, index) => (
 									<button
 										key={option}
 										onClick={() => handleGroupingChange(multi.id, option)}
 										className={`px-2 sm:px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
-										${index > 0 ? 'border-l border-[var(--form-control-border)]' : ''}
+										${index > 0 ? 'border-l border-(--form-control-border)' : ''}
 										${
 											multi.grouping === option
-												? 'bg-[var(--primary1)] text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:ring-opacity-50'
-												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-none focus:ring-1 focus:ring-[var(--form-control-border)]'
+												? 'bg-(--primary1) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary1) focus:ring-opacity-50'
+												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
 										}`}
 									>
 										<span className="hidden xs:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
@@ -283,7 +283,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			{/* Status info for failures */}
 			{(failedItems.length > 0 || loadingItems.length > 0) && (
-				<div className="mb-2 text-xs text-[var(--text3)]">
+				<div className="mb-2 text-xs text-(--text3)">
 					{loadingItems.length > 0 && (
 						<div>
 							Loading: {loadingItems.length} chart{loadingItems.length > 1 ? 's' : ''}
@@ -306,16 +306,16 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				{!hasAnyData && isAllLoading ? (
 					<div className="flex items-center justify-center h-full">
 						<div className="text-center">
-							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary1)] mx-auto mb-2"></div>
-							<p className="text-sm text-[var(--text3)]">Loading charts...</p>
+							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-(--primary1) mx-auto mb-2"></div>
+							<p className="text-sm text-(--text3)">Loading charts...</p>
 						</div>
 					</div>
 				) : !hasAnyData ? (
 					<div className="flex items-center justify-center h-full">
 						<div className="text-center">
 							<Icon name="alert-triangle" height={24} width={24} className="mx-auto mb-2 text-red-500" />
-							<p className="text-sm text-[var(--text3)]">Failed to load chart data</p>
-							<p className="text-xs text-[var(--text3)] mt-1">
+							<p className="text-sm text-(--text3)">Failed to load chart data</p>
+							<p className="text-xs text-(--text3) mt-1">
 								{failedItems.length} of {multi.items.length} charts failed
 							</p>
 						</div>

@@ -200,7 +200,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 	return (
 		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="bg-(--cards-bg) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 				{props.metadata.name !== 'All' && (
 					<h1 className="flex items-center flex-nowrap gap-2">
 						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
@@ -231,7 +231,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						>
 							<span
 								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-									change24h >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+									change24h >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
 								}`}
 							>
 								{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
@@ -271,7 +271,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 													<Tooltip
 														content={`${formattedNum(props.stablecoins.change7dUsd, true)}`}
 														className={`justify-end font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-															+props.stablecoins.change7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+															+props.stablecoins.change7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
 														}`}
 													>
 														{`${+props.stablecoins.change7d > 0 ? '+' : ''}${props.stablecoins.change7d}%`}
@@ -404,7 +404,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 											</th>
 											<td
 												className={`text-right font-jetbrains pl-2 pb-1 text-ellipsis" ${
-													props.dexs.change_7dover7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+													props.dexs.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
 												}`}
 											>
 												{`${props.dexs.change_7dover7d >= 0 ? '+' : ''}${props.dexs.change_7dover7d}%`}
@@ -450,7 +450,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 											</th>
 											<td
 												className={`text-right font-jetbrains pl-2 pb-1 text-ellipsis" ${
-													props.perps.change_7dover7d >= 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'
+													props.perps.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
 												}`}
 											>
 												{`${props.perps.change_7dover7d >= 0 ? '+' : ''}${props.perps.change_7dover7d}%`}
@@ -769,7 +769,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					className="mt-auto mr-auto"
 				/>
 			</div>
-			<div className="bg-[var(--cards-bg)] rounded-md flex flex-col col-span-2">
+			<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 					<div className="flex items-center flex-wrap gap-2 mr-auto">
 						{chartOptions.map(({ id, name }) => (
@@ -797,11 +797,11 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					</div>
 
 					{DENOMINATIONS.length > 1 ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 							{DENOMINATIONS.map((denom) => (
 								<button
 									key={`denom-${denom}`}
-									className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--old-blue)]"
+									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--old-blue)"
 									data-active={denomination === denom}
 									onClick={() => updateRoute('currency', denom, router)}
 								>
@@ -812,11 +812,11 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					) : null}
 
 					{hasAtleasOneBarChart ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 							<Tooltip
 								content="Daily"
 								render={<button />}
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 								data-active={groupBy === 'daily' || !groupBy}
 								onClick={() => updateGroupBy('daily')}
 							>
@@ -825,7 +825,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							<Tooltip
 								content="Weekly"
 								render={<button />}
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 								data-active={groupBy === 'weekly'}
 								onClick={() => updateGroupBy('weekly')}
 							>
@@ -834,14 +834,14 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							<Tooltip
 								content="Monthly"
 								render={<button />}
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 								data-active={groupBy === 'monthly'}
 								onClick={() => updateGroupBy('monthly')}
 							>
 								M
 							</Tooltip>
 							<button
-								className="flex-shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:text-[var(--link-text)]"
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 								data-active={groupBy === 'cumulative'}
 								onClick={() => updateGroupBy('cumulative')}
 							>

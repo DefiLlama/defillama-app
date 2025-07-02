@@ -20,7 +20,7 @@ export function RaisesSearch({ list }) {
 	const [open, setOpen] = useState(false)
 
 	return (
-		<div className="relative hidden lg:flex flex-col rounded-md shadow data-[alwaysdisplay=true]:flex">
+		<div className="relative hidden lg:flex flex-col rounded-md shadow-sm data-[alwaysdisplay=true]:flex">
 			<Ariakit.ComboboxProvider
 				resetValueOnHide
 				setValue={(value) => {
@@ -38,9 +38,9 @@ export function RaisesSearch({ list }) {
 					hideOnInteractOutside
 					gutter={6}
 					wrapperProps={{
-						className: 'max-sm:!fixed max-sm:!bottom-0 max-sm:!top-[unset] max-sm:!transform-none !w-full'
+						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! w-full!'
 					}}
-					className="flex flex-col bg-[var(--bg1)] rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="flex flex-col bg-(--bg1) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 				>
 					{matches.length ? (
 						<>
@@ -50,7 +50,7 @@ export function RaisesSearch({ list }) {
 
 							{matches.length > viewableMatches ? (
 								<button
-									className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)]"
+									className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
 									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
@@ -58,7 +58,7 @@ export function RaisesSearch({ list }) {
 							) : null}
 						</>
 					) : (
-						<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+						<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
 					)}
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
@@ -122,7 +122,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 			/>
 
 			{!hideIcon ? (
-				<span className="absolute top-2 right-3 p-[6px] bg-[#f5f5f5] dark:bg-[#151515] text-[var(--link)] font-medium rounded-md">
+				<span className="absolute top-2 right-3 p-[6px] bg-[#f5f5f5] dark:bg-[#151515] text-(--link) font-medium rounded-md">
 					⌘K
 				</span>
 			) : null}
@@ -149,7 +149,7 @@ const Row = ({ name, setOpen }) => {
 			hideOnClick={false}
 			setValueOnClick={false}
 			disabled={loading}
-			className="p-3 flex items-center gap-4 text-[var(--text1)] cursor-pointer hover:bg-[var(--primary1-hover)] focus-visible:bg-[var(--primary1-hover)] data-[active-item]:bg-[var(--primary1-hover)] aria-disabled:opacity-50 outline-none"
+			className="p-3 flex items-center gap-4 text-(--text1) cursor-pointer hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) aria-disabled:opacity-50 outline-hidden"
 		>
 			<span>{name}</span>
 			{loading ? (

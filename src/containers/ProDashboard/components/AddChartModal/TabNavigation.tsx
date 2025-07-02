@@ -22,7 +22,7 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 					key={tab.id}
 					className={`px-2 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-medium border transition-colors duration-200 ${
 						selectedMainTab === tab.id
-							? 'border-[var(--primary1)] bg-[var(--primary1)] text-white'
+							? 'border-(--primary1) bg-(--primary1) text-white'
 							: 'pro-border pro-hover-bg pro-text2'
 					}`}
 					onClick={() => !editItem && onTabChange(tab.id)}

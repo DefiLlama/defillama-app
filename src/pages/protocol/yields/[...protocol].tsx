@@ -79,7 +79,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="yields"
 		>
-			<div className="bg-[var(--cards-bg)] rounded-md">
+			<div className="bg-(--cards-bg) rounded-md">
 				<ProtocolPools
 					data={props.yields}
 					protocol={slug(props.name)}

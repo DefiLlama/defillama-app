@@ -33,14 +33,14 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative pl-6">
-					<span className="flex-shrink-0">{index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={peggedAssetIconUrl(name)} data-lgonly />
 					<BasicLink
 						href={`/stablecoins/${row.original.gecko_id || name}`}
-						className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{name}
-						{symbol && symbol !== '-' && <span className="text-[var(--text3)]"> ({symbol})</span>}
+						{symbol && symbol !== '-' && <span className="text-(--text3)"> ({symbol})</span>}
 					</BasicLink>
 				</span>
 			)
@@ -62,7 +62,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 								name="alert-triangle" 
 								height={14} 
 								width={14} 
-								className={pegDeviation > 0 ? 'text-[var(--pct-green)]' : 'text-[var(--pct-red)]'}
+								className={pegDeviation > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}
 							/>
 						</Tooltip>
 					)}
@@ -93,7 +93,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'}`}>
+				<span className={`font-mono ${value < 0 ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
 					{formattedPercent(value)}
 				</span>
 			)
@@ -109,7 +109,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'}`}>
+				<span className={`font-mono ${value < 0 ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
 					{formattedPercent(value)}
 				</span>
 			)
@@ -125,7 +125,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-[var(--pct-red)]' : 'text-[var(--pct-green)]'}`}>
+				<span className={`font-mono ${value < 0 ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
 					{formattedPercent(value)}
 				</span>
 			)
@@ -145,7 +145,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 
 			return (
 				<Tooltip content={chains.join(', ')}>
-					<span className="text-sm text-[var(--text2)]">
+					<span className="text-sm text-(--text2)">
 						{displayChains.join(', ')}
 						{remainingCount > 0 && ` +${remainingCount}`}
 					</span>

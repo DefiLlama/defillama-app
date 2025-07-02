@@ -145,7 +145,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 	return (
 		<>
 			<div className="flex flex-col md:flex-row gap-1 min-h-[434px]">
-				<div className="w-full md:w-80 flex flex-col bg-[var(--cards-bg)] rounded-md">
+				<div className="w-full md:w-80 flex flex-col bg-(--cards-bg) rounded-md">
 					<div className="flex flex-col gap-2 p-3">
 						<h1 className="text-xl font-semibold">Daily Stats</h1>
 						<span className="text-xs opacity-70">{lastUpdated}</span>
@@ -167,13 +167,13 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 						/>
 					</div>
 				</div>
-				<div className="flex flex-col flex-1 w-full bg-[var(--cards-bg)] rounded-md">
+				<div className="flex flex-col flex-1 w-full bg-(--cards-bg) rounded-md">
 					<div className="flex flex-wrap justify-end gap-2 p-3">
 						<h2 className="text-lg font-semibold mr-auto">Flows (Source: Farside)</h2>
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-[var(--form-control-border)] text-[#666] dark:text-[#919296]">
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 							<button
 								data-active={groupBy === 'daily'}
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								onClick={() => setGroupBy('daily')}
 							>
 								Daily
@@ -181,7 +181,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 							<button
 								data-active={groupBy === 'weekly'}
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								onClick={() => setGroupBy('weekly')}
 							>
 								Weekly
@@ -189,7 +189,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 							<button
 								data-active={groupBy === 'monthly'}
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								onClick={() => setGroupBy('monthly')}
 							>
 								Monthly
@@ -197,7 +197,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 							<button
 								data-active={groupBy === 'cumulative'}
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								onClick={() => setGroupBy('cumulative')}
 							>
 								Cumulative
@@ -216,7 +216,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[var(--form-control-border)] text-[#666] dark:text-[#919296] hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] font-medium'
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 							}}
 							portal
 						/>
@@ -236,7 +236,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 								}
 							}}
 							smol
-							className="!bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)]"
+							className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</div>
 					<LineAndBarChart charts={finalCharts} groupBy={groupBy === 'cumulative' ? 'daily' : groupBy} />

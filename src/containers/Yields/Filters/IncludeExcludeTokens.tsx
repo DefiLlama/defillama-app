@@ -92,7 +92,7 @@ export function IncludeExcludeTokens({
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
 			<div
-				className="relative hidden sm:flex flex-col rounded-md text-xs data-[alwaysdisplay=true]:flex bg-[var(--btn-bg)]"
+				className="relative hidden sm:flex flex-col rounded-md text-xs data-[alwaysdisplay=true]:flex bg-(--btn-bg)"
 				{...props}
 			>
 				{(tokensToInclude.length > 0 ||
@@ -126,7 +126,7 @@ export function IncludeExcludeTokens({
 							<button
 								key={'exacttokensinsearch' + token}
 								onClick={() => handleTokenExact(token, 'delete')}
-								className="flex items-center gap-1 flex-nowrap py-1 px-2 whitespace-nowrap rounded-md text-[var(--link-text)] bg-[var(--link-bg)]"
+								className="flex items-center gap-1 flex-nowrap py-1 px-2 whitespace-nowrap rounded-md text-(--link-text) bg-(--link-bg)"
 							>
 								<span>{`Exact: ${token}`}</span>
 								<Icon name="x" height={14} width={14} />
@@ -160,7 +160,7 @@ export function IncludeExcludeTokens({
 									setTab(dataType as 'Tokens' | 'Pairs')
 									setSearchValue('')
 								}}
-								className="flex-shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--old-blue)] data-[active=true]:text-white rounded-md"
+								className="shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white rounded-md"
 								data-active={tab === dataType}
 								key={dataType}
 							>
@@ -169,7 +169,7 @@ export function IncludeExcludeTokens({
 						))}
 					</div>
 					<Ariakit.DialogDismiss
-						className="ml-auto p-2 -my-2 rounded-lg hover:bg-[var(--divider)] text-[var(--text3)] hover:text-[var(--text1)]"
+						className="ml-auto p-2 -my-2 rounded-lg hover:bg-(--divider) text-(--text3) hover:text-(--text1)"
 						aria-label="Close modal"
 						onClick={() => {
 							setNewPairTokens([])
@@ -194,13 +194,13 @@ export function IncludeExcludeTokens({
 									name="search"
 									height={16}
 									width={16}
-									className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+									className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 								/>
 								<Ariakit.Combobox
 									autoSelect
 									autoFocus
 									placeholder="Search for a token to filter by..."
-									className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-none"
+									className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
 								/>
 							</div>
 							{matches.length ? (
@@ -211,7 +211,7 @@ export function IncludeExcludeTokens({
 											onClick={() => {
 												handleTokenInclude(token.symbol)
 											}}
-											className="flex items-center flex-wrap gap-1 p-2 text-sm overflow-hidden bg-[var(--cards-bg)] hover:bg-[rgba(31,103,210,0.12)] py-2 px-4 rounded-md cursor-pointer"
+											className="flex items-center flex-wrap gap-1 p-2 text-sm overflow-hidden bg-(--cards-bg) hover:bg-[rgba(31,103,210,0.12)] py-2 px-4 rounded-md cursor-pointer"
 										>
 											{(token?.logo || token?.fallbackLogo) && (
 												<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />
@@ -242,7 +242,7 @@ export function IncludeExcludeTokens({
 														e.stopPropagation()
 														handleTokenExact(token.symbol)
 													}}
-													className="flex-1 rounded-md sm:py-1 sm:px-2 text-[var(--link-text)] bg-[var(--link-bg)]"
+													className="flex-1 rounded-md sm:py-1 sm:px-2 text-(--link-text) bg-(--link-bg)"
 												>
 													Exact
 												</button>
@@ -253,14 +253,14 @@ export function IncludeExcludeTokens({
 									{matches.length > viewableMatches ? (
 										<button
 											onClick={() => setViewableMatches((prev) => prev + 20)}
-											className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)] rounded-md"
+											className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2) rounded-md"
 										>
 											See more...
 										</button>
 									) : null}
 								</div>
 							) : (
-								<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+								<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
 							)}
 						</Ariakit.ComboboxProvider>
 					</>
@@ -283,13 +283,13 @@ export function IncludeExcludeTokens({
 									name="search"
 									height={16}
 									width={16}
-									className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+									className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 								/>
 								<Ariakit.Combobox
 									autoSelect
 									autoFocus
 									placeholder="Search for a token to add to current pair..."
-									className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-none"
+									className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
 								/>
 							</div>
 							{matches.length ? (
@@ -306,7 +306,7 @@ export function IncludeExcludeTokens({
 													dialogElement.scrollTo({ top: 0, behavior: 'smooth' })
 												}
 											}}
-											className="flex items-center flex-wrap gap-1 p-2 text-sm overflow-hidden bg-[var(--cards-bg)] hover:bg-[rgba(31,103,210,0.12)] py-2 px-4 rounded-md cursor-pointer"
+											className="flex items-center flex-wrap gap-1 p-2 text-sm overflow-hidden bg-(--cards-bg) hover:bg-[rgba(31,103,210,0.12)] py-2 px-4 rounded-md cursor-pointer"
 										>
 											{(token?.logo || token?.fallbackLogo) && (
 												<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />
@@ -318,14 +318,14 @@ export function IncludeExcludeTokens({
 									{matches.length > viewableMatches ? (
 										<button
 											onClick={() => setViewableMatches((prev) => prev + 20)}
-											className="text-left w-full pt-4 px-4 pb-7 text-[var(--link)] hover:bg-[var(--bg2)] focus-visible:bg-[var(--bg2)] rounded-md"
+											className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2) rounded-md"
 										>
 											See more...
 										</button>
 									) : null}
 
 									<button
-										className="w-full rounded-md bg-[var(--old-blue)] text-white py-2 sticky bottom-0 disabled:text-opacity-50 disabled:cursor-not-allowed"
+										className="w-full rounded-md bg-(--old-blue) text-white py-2 sticky bottom-0 disabled:text-opacity-50 disabled:cursor-not-allowed"
 										onClick={() => {
 											handlePairTokens(newPairTokens.join('-'))
 											dialogStore.toggle()
@@ -339,7 +339,7 @@ export function IncludeExcludeTokens({
 									</button>
 								</div>
 							) : (
-								<p className="text-[var(--text1)] py-6 px-3 text-center">No results found</p>
+								<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
 							)}
 						</Ariakit.ComboboxProvider>
 					</>

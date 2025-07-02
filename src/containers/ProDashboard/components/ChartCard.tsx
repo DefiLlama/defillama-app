@@ -48,7 +48,7 @@ const ChartRenderer = memo(function ChartRenderer({
 			<div className="flex flex-col items-center justify-center h-full pro-text3">
 				<Icon name="alert-triangle" height={24} width={24} className="mb-2 text-[#F2994A]" />
 				<p>Error loading data</p>
-				<button className="mt-2 text-sm text-[var(--primary1)] hover:underline" onClick={() => refetch()}>
+				<button className="mt-2 text-sm text-(--primary1) hover:underline" onClick={() => refetch()}>
 					Try again
 				</button>
 			</div>
@@ -112,17 +112,17 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 				</div>
 				<div className="flex items-center gap-2">
 					{isGroupable && (
-						<div className="flex border border-[var(--form-control-border)] overflow-hidden">
+						<div className="flex border border-(--form-control-border) overflow-hidden">
 							{groupingOptions.map((option, index) => (
 								<button
 									key={option}
 									onClick={() => handleGroupingChange(chart.id, option)}
 									className={`px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
-										${index > 0 ? 'border-l border-[var(--form-control-border)]' : ''}
+										${index > 0 ? 'border-l border-(--form-control-border)' : ''}
 										${
 											chart.grouping === option
-												? 'bg-[var(--primary1)] text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary1)] focus:ring-opacity-50'
-												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-none focus:ring-1 focus:ring-[var(--form-control-border)]'
+												? 'bg-(--primary1) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary1) focus:ring-opacity-50'
+												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
 										}`}
 								>
 									{option.charAt(0).toUpperCase() + option.slice(1)}

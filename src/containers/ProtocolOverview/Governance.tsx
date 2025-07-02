@@ -55,7 +55,7 @@ export function GovernanceTable({ data, governanceType }) {
 	}, [proposalname, instance])
 
 	return (
-		<div className="bg-[var(--cards-bg)] rounded-md">
+		<div className="bg-(--cards-bg) rounded-md">
 			<div className="flex items-center gap-2 flex-wrap justify-end p-3">
 				<h1 className="text-xl font-semibold mr-auto">Proposals</h1>
 				<Switch
@@ -69,7 +69,7 @@ export function GovernanceTable({ data, governanceType }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-[var(--text3)] top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={proposalname}
@@ -77,7 +77,7 @@ export function GovernanceTable({ data, governanceType }) {
 							setProposalName(e.target.value)
 						}}
 						placeholder="Search proposals..."
-						className="border border-[var(--form-control-border)] w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
 			</div>
@@ -165,13 +165,13 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 		<div className="flex flex-col">
 			{apisByCategory.length > 1 ? (
 				<div className="p-4">
-					<div className="ml-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-[var(--btn-hover-bg)]">
+					<div className="ml-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--btn-hover-bg)">
 						{apisByCategory.map((apiCat, index) => (
 							<button
 								key={apiCat + 'governance-table-filter'}
 								onClick={() => setApiCategoryIndex(index)}
 								data-active={apiCategoryIndex === index}
-								className="flex-shrink-0 py-2 px-3 whitespace-nowrap hover:bg-[var(--link-hover-bg)] focus-visible:bg-[var(--link-hover-bg)] data-[active=true]:bg-[var(--btn-hover-bg)]"
+								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
 							>
 								{apiCat}
 							</button>
@@ -287,7 +287,7 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 		cell: (info) => (
 			<span
 				data-isactive={info.getValue() === 0 ? false : true}
-				className="text-[var(--pct-red)] data-[isactive=true]:text-[var(--pct-green)]"
+				className="text-(--pct-red) data-[isactive=true]:text-(--pct-green)"
 			>
 				{info.getValue() === 0 ? 'Closed' : 'Active'}
 			</span>

@@ -61,11 +61,11 @@ export function NameYieldPool({
 		<span className="flex items-center gap-2">
 			{bookmark ? <Bookmark readableProtocolName={configID} data-lgonly /> : null}
 
-			<span className="flex-shrink-0">{index}</span>
+			<span className="shrink-0">{index}</span>
 
 			{url ? (
 				<ButtonLight
-					className="hidden lg:flex items-center justify-center gap-4 !p-[6px] flex-shrink-0"
+					className="hidden lg:flex items-center justify-center gap-4 p-[6px]! shrink-0"
 					as="a"
 					href={url}
 					target="_blank"
@@ -84,10 +84,10 @@ export function NameYieldPool({
 			>
 				{poolMeta ? (
 					<>
-						<span className="flex-shrink-0 overflow-hidden whitespace-nowrap text-ellipsis text-[var(--link-text)] font-medium">
+						<span className="shrink-0 overflow-hidden whitespace-nowrap text-ellipsis text-(--link-text) font-medium">
 							{value}
 						</span>
-						<span className="ml-1 flex-shrink-1 bg-[var(--bg3)] text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
+						<span className="ml-1 flex-shrink-1 bg-(--bg3) text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
 							{poolMeta}
 						</span>
 					</>
@@ -106,14 +106,14 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 				{url ? (
 					<Tooltip
 						render={<a href={url} target="_blank" rel="noopener noreferrer" />}
-						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center text-[var(--link-text)] font-medium !flex-shrink"
+						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center text-(--link-text) font-medium shrink!"
 						content={children}
 					>
 						{children}
 					</Tooltip>
 				) : (
 					<Tooltip
-						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center text-[var(--link-text)] font-medium !flex-shrink"
+						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center text-(--link-text) font-medium shrink!"
 						content={children}
 					>
 						{children}
@@ -129,7 +129,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 				<BasicLink
 					href={url}
 					target="_blank"
-					className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis flex items-center"
+					className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis flex items-center"
 				>
 					{children}
 				</BasicLink>
@@ -160,7 +160,7 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 			) : (
 				<BasicLink
 					href={tokenUrl}
-					className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis ml-2"
+					className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis ml-2"
 				>
 					{project}
 				</BasicLink>
@@ -179,7 +179,7 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 			<TokenLogo logo={iconUrl} />
 			<BasicLink
 				href={tokenUrl}
-				className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis"
+				className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 			>
 				{project}
 			</BasicLink>
@@ -194,7 +194,7 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 
 	return (
 		<span className="flex items-center gap-2">
-			<span className="opacity-0 flex-shrink-0">{index}</span>
+			<span className="opacity-0 shrink-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
@@ -223,7 +223,7 @@ export function FRStrategyRoute({ project1, airdropProject1, project2, airdropPr
 
 	return (
 		<span className="flex items-center gap-2">
-			<span className="opacity-0 flex-shrink-0">{index}</span>
+			<span className="opacity-0 shrink-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">

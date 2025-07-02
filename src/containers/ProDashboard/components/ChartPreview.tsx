@@ -32,7 +32,7 @@ export function ChartPreview({ data, chartType, isLoading, hasError, itemName }:
 
 	if (hasError) {
 		return (
-			<div className="flex flex-col items-center justify-center h-full text-[var(--text3)]">
+			<div className="flex flex-col items-center justify-center h-full text-(--text3)">
 				<Icon name="alert-triangle" height={16} width={16} className="mb-1 text-[#F2994A]" />
 				<p className="text-xs">Error loading preview</p>
 			</div>
@@ -41,7 +41,7 @@ export function ChartPreview({ data, chartType, isLoading, hasError, itemName }:
 
 	if (!data || data.length === 0) {
 		return (
-			<div className="flex items-center justify-center h-full text-[var(--text3)]">
+			<div className="flex items-center justify-center h-full text-(--text3)">
 				<p className="text-xs">No data available</p>
 			</div>
 		)

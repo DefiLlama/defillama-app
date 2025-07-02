@@ -85,7 +85,7 @@ export function Flag({
 							name="protocol"
 							value={protocol}
 							disabled
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
@@ -95,12 +95,12 @@ export function Flag({
 								name="dataType"
 								value={dataType}
 								disabled
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 							/>
 						) : (
 							<select
 								name="dataType"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 							>
 								<option value="TVL">TVL</option>
 								<option value="Mcap">Mcap</option>
@@ -133,14 +133,14 @@ export function Flag({
 						<textarea
 							name="message"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
 						<span>Where can we find correct information? (optional)</span>
 						<textarea
 							name="correctSource"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
@@ -148,7 +148,7 @@ export function Flag({
 						<input
 							name="contact"
 							placeholder="Email address"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-[var(--form-control-border)]"
+							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 						/>
 					</label>
 					<button

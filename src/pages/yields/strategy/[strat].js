@@ -174,11 +174,11 @@ const PageView = () => {
 	return (
 		<>
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="text-xl">APY Breakdown:</h1>
 					<table className="w-full text-base border-collapse">
 						<tbody>
-							<tr className="border-b border-[var(--divider)]">
+							<tr className="border-b border-(--divider)">
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Strategy APY:</th>
 								<td className="font-jetbrains text-right pb-1">{finalAPY?.toFixed(2)}%</td>
 							</tr>
@@ -218,12 +218,12 @@ const PageView = () => {
 					</table>
 				</div>
 
-				<LazyChart className="bg-[var(--cards-bg)] rounded-md pt-3 col-span-2 min-h-[480px]">
+				<LazyChart className="bg-(--cards-bg) rounded-md pt-3 col-span-2 min-h-[480px]">
 					<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
 				</LazyChart>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-[var(--cards-bg)] rounded-md p-3">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) rounded-md p-3">
 				<h3>Steps</h3>
 				<p className="flex items-center gap-2">
 					<span>1.</span>
@@ -278,14 +278,14 @@ const PageView = () => {
 				)}
 			</div>
 
-			<div className="grid grid-cols-2 gap-1 rounded-md bg-[var(--cards-bg)]">
+			<div className="grid grid-cols-2 gap-1 rounded-md bg-(--cards-bg)">
 				{fetchingLendData ? (
 					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 				) : (
 					lendHistory?.data?.length && (
 						<>
 							{barChartDataSupply?.length ? (
-								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<BarChart
 										title="Supply APY"
 										chartData={barChartDataSupply}
@@ -297,7 +297,7 @@ const PageView = () => {
 							) : null}
 
 							{barChartDataBorrow?.length ? (
-								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<BarChart
 										title="Borrow APY"
 										chartData={barChartDataBorrow}
@@ -309,7 +309,7 @@ const PageView = () => {
 							) : null}
 
 							{barChartDataFarm?.length ? (
-								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n_-_1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<BarChart
 										title="Farm APY"
 										chartData={barChartDataFarm}

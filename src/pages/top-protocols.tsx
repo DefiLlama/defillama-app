@@ -74,22 +74,22 @@ export default function Chains({ data, columns, uniqueCategories }) {
 	return (
 		<Layout title="Top Protocols - DefiLlama" defaultSEO>
 			<ProtocolsChainsSearch />
-			<div className="bg-[var(--cards-bg)] rounded-md p-3 flex items-center gap-2 justify-between">
+			<div className="bg-(--cards-bg) rounded-md p-3 flex items-center gap-2 justify-between">
 				<h1 className="text-xl font-semibold mr-auto">Top Protocols by Chain</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>
-			<div className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-248px)] overflow-x-auto mx-auto text-[var(--text1)] bg-[var(--cards-bg)] h-[85vh]">
+			<div className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-248px)] overflow-x-auto mx-auto text-(--text1) bg-(--cards-bg) h-[85vh]">
 				<div className="grid" style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}>
 					<div
-						className="col-span-full grid sticky top-0 z-[1]"
+						className="col-span-full grid sticky top-0 z-1"
 						style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}
 					>
-						<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-b border-r border-[var(--divider)] sticky left-0 z-[1]">
+						<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border-b border-r border-(--divider) sticky left-0 z-1">
 							Chain
 						</div>
 						{uniqueCategories.map((cat) => (
 							<div
-								className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-b border-r border-[var(--divider)]"
+								className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border-b border-r border-(--divider)"
 								key={`uniq-cat-${cat}`}
 							>
 								<span className="flex items-center gap-1">
@@ -106,13 +106,13 @@ export default function Chains({ data, columns, uniqueCategories }) {
 							style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}
 							key={`top-protocols-of${item.chain}`}
 						>
-							<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-b border-r border-[var(--divider)] sticky left-0">
+							<div className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border-b border-r border-(--divider) sticky left-0">
 								<span className="flex items-center gap-2">
-									<span className="flex-shrink-0">{index + 1}</span>
+									<span className="shrink-0">{index + 1}</span>
 									<TokenLogo logo={chainIconUrl(item.chain)} />
 									<BasicLink
 										href={`/chain/${slug(item.chain)}`}
-										className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+										className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 									>
 										{item.chain}
 									</BasicLink>
@@ -120,13 +120,13 @@ export default function Chains({ data, columns, uniqueCategories }) {
 							</div>
 							{uniqueCategories.map((cat) => (
 								<div
-									className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-[var(--cards-bg)] border-b border-r border-[var(--divider)]"
+									className="col-span-1 p-3 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border-b border-r border-(--divider)"
 									key={`uniq-cat-${cat}-${item.chain}`}
 								>
 									{item[cat] ? (
 										<BasicLink
 											href={`/protocol/${slug(item[cat])}`}
-											className="text-sm font-medium text-[var(--link-text)]"
+											className="text-sm font-medium text-(--link-text)"
 										>
 											{item[cat]}
 										</BasicLink>

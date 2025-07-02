@@ -20,8 +20,8 @@ export const DesktopNav = React.memo(function DesktopNav() {
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	return (
-		<nav className="z-10 fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-[var(--app-bg)] hidden lg:flex flex-col w-[244px] gap-1 p-4 pl-0 *:pl-4 no-scrollbar">
-			<BasicLink href="/" className="flex-shrink-0">
+		<nav className="z-10 fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-(--app-bg) hidden lg:flex flex-col w-[244px] gap-1 p-4 pl-0 *:pl-4 no-scrollbar">
+			<BasicLink href="/" className="shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img
 					src="/defillama-press-kit/defi/PNG/defillama.png"
@@ -56,7 +56,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 							<button
 								key={link.name}
 								onClick={link.onClick}
-								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
 							>
 								{link.name}
 							</button>
@@ -70,7 +70,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 									{...(link.external ? { target: '_blank' } : {})}
 									rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 									data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+									className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
 								>
 									{link.name}
 									{link.newTag === true ? <NewTag /> : null}
@@ -88,7 +88,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 							<button
 								key={link.name}
 								onClick={link.onClick}
-								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
 							>
 								{link.name}
 							</button>
@@ -102,7 +102,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 									{...(link.external ? { target: '_blank' } : {})}
 									rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 									data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-[var(--link-active-bg)] data-[linkactive=true]:text-white p-[6px]"
+									className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
 								>
 									{link.name}
 									{link.newTag === true ? <NewTag /> : null}
@@ -115,7 +115,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 
 			{isAccountLoading ? (
 				<div
-					className="absolute bottom-0 left-0 right-0 bg-[var(--app-bg)] p-3 border-t border-black/20 dark:border-white/20 flex flex-col gap-2"
+					className="absolute bottom-0 left-0 right-0 bg-(--app-bg) p-3 border-t border-black/20 dark:border-white/20 flex flex-col gap-2"
 					style={{ height: 138 }}
 				>
 					<div className="flex items-center justify-center w-full h-full">
@@ -123,7 +123,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 					</div>
 				</div>
 			) : (
-				<div className="absolute bottom-0 left-0 right-0 bg-[var(--app-bg)] p-3 border-t border-black/20 dark:border-white/20 flex flex-col gap-2">
+				<div className="absolute bottom-0 left-0 right-0 bg-(--app-bg) p-3 border-t border-black/20 dark:border-white/20 flex flex-col gap-2">
 					{isAuthenticated ? (
 						<div className="flex flex-col gap-1.5">
 							{user && (
@@ -131,7 +131,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 									href="/subscription"
 									className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 px-1 truncate font-medium flex items-center gap-1.5 transition-colors"
 								>
-									<Icon name="users" className="w-4 h-4 flex-shrink-0" />
+									<Icon name="users" className="w-4 h-4 shrink-0" />
 									{user.email}
 								</BasicLink>
 							)}

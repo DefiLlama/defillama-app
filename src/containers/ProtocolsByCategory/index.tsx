@@ -50,7 +50,7 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 			<ProtocolsChainsSearch options={toggleOptions} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-[var(--cards-bg)] rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					{props.chain !== 'All' && props.chain && (
 						<h1 className="flex items-center gap-2">
 							<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
@@ -98,11 +98,11 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 								}
 								download(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
 							}}
-							className="h-[30px] !bg-transparent border border-[var(--form-control-border)] !text-[#666] dark:!text-[#919296] hover:!bg-[var(--link-hover-bg)] focus-visible:!bg-[var(--link-hover-bg)] mr-auto mt-auto"
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mr-auto mt-auto"
 						/>
 					</div>
 				</div>
-				<div className="bg-[var(--cards-bg)] min-h-[360px] rounded-md col-span-2">
+				<div className="bg-(--cards-bg) min-h-[360px] rounded-md col-span-2">
 					<LineAndBarChart charts={props.charts} valueSymbol="$" />
 				</div>
 			</div>
@@ -162,7 +162,7 @@ const columns = (
 						</button>
 					) : null}
 
-					<span className="flex-shrink-0" onClick={row.getToggleExpandedHandler()}>
+					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
 						{index + 1}
 					</span>
 
@@ -171,12 +171,12 @@ const columns = (
 					<span className="flex flex-col -my-2">
 						<BasicLink
 							href={`/protocol/${row.original.slug}`}
-							className="text-sm font-medium text-[var(--link-text)] overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
 						</BasicLink>
 
-						<Tooltip content={<Chains />} className="text-[0.7rem] text-[var(--text-disabled)]">
+						<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>

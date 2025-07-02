@@ -123,12 +123,12 @@ export const IconsRow = ({
 				<Ariakit.HovercardProvider>
 					<Ariakit.HovercardAnchor
 						render={<button />}
-						className="h-6 w-6 rounded-full flex items-center justify-center text-[var(--text1)] bg-[var(--bg3)] flex-shrink-0"
+						className="h-6 w-6 rounded-full flex items-center justify-center text-(--text1) bg-(--bg3) shrink-0"
 					>
 						{`+${hoverChains.length}`}
 					</Ariakit.HovercardAnchor>
 					<Ariakit.Hovercard
-						className="max-w-xl z-10 p-1 shadow rounded-md bg-[var(--bg2)] border border-[var(--bg3)] text-[var(--text1)] flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden"
+						className="max-w-xl z-10 p-1 shadow-sm rounded-md bg-(--bg2) border border-(--bg3) text-(--text1) flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden"
 						unmountOnHide
 						portal
 					>
