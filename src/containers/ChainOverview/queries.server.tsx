@@ -387,7 +387,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			) ?? null
 
 		const topProtocolsByFeesChart =
-			fees && fees.totalDataChartBreakdown.length > 0
+			fees?.totalDataChartBreakdown?.length > 0
 				? (protocols
 						.sort((a, b) => (b.fees?.total24h ?? 0) - (a.fees?.total24h ?? 0))
 						.filter((a) => (a.fees?.total24h ? true : false))
@@ -396,7 +396,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				: null
 
 		const feesGenerated24h =
-			fees && fees.totalDataChartBreakdown.length > 0
+			fees?.totalDataChartBreakdown?.length > 0
 				? fees.protocols.reduce((acc, curr) => (acc += curr.total24h || 0), 0)
 				: null
 
