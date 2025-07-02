@@ -636,12 +636,12 @@
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.0.0"
 
-"@meilisearch/instant-meilisearch@0.22.0":
-  version "0.22.0"
-  resolved "https://registry.yarnpkg.com/@meilisearch/instant-meilisearch/-/instant-meilisearch-0.22.0.tgz#8cfaee69406708d0dd65efe31c298e62d7bb366f"
-  integrity sha512-vIIzUMgyIIqzrtukGRN3w2OEcTgVJjZpU1wTMnVVN6YPpIOZwMxOnuuufTV7xa5b5WIX53oFYVLG2MtINDShew==
+"@meilisearch/instant-meilisearch@^0.27.0":
+  version "0.27.0"
+  resolved "https://registry.yarnpkg.com/@meilisearch/instant-meilisearch/-/instant-meilisearch-0.27.0.tgz#2b25f37058132fb86be5f844439bd049ab2cc9aa"
+  integrity sha512-wydZj3FLElIpK6Ceu5RfihgFMHkxB8HWhwWfRfubb3JR08phttU14DKdNk98RC5iTPwRzUQSk1cl+/gBmUGBUg==
   dependencies:
-    meilisearch "^0.45.0"
+    meilisearch "0.51"
 
 "@metamask/eth-json-rpc-provider@^1.0.0":
   version "1.0.1"
@@ -2295,10 +2295,10 @@ ajv@^6.12.4:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
-algoliasearch-helper@3.22.5:
-  version "3.22.5"
-  resolved "https://registry.yarnpkg.com/algoliasearch-helper/-/algoliasearch-helper-3.22.5.tgz#2fcc26814e10a121a2c2526a1b05c754061c56c0"
-  integrity sha512-lWvhdnc+aKOKx8jyA3bsdEgHzm/sglC4cYdMG4xSQyRiPLJVJtH/IVYZG3Hp6PkTEhQqhyVYkeP9z2IlcHJsWw==
+algoliasearch-helper@3.26.0:
+  version "3.26.0"
+  resolved "https://registry.yarnpkg.com/algoliasearch-helper/-/algoliasearch-helper-3.26.0.tgz#d6e283396a9fc5bf944f365dc3b712570314363f"
+  integrity sha512-Rv2x3GXleQ3ygwhkhJubhhYGsICmShLAiqtUuJTUkr9uOCOXyF2E71LVT4XDnVffbknv8XgScP4U0Oxtgm+hIw==
   dependencies:
     "@algolia/events" "^4.0.1"
 
@@ -4588,27 +4588,27 @@ inline-style-parser@0.2.4:
   resolved "https://registry.yarnpkg.com/inline-style-parser/-/inline-style-parser-0.2.4.tgz#f4af5fe72e612839fcd453d989a586566d695f22"
   integrity sha512-0aO8FkhNZlj/ZIbNi7Lxxr12obT7cL1moPfE4tg1LkX7LlLfC6DeX4l2ZEud1ukP9jNQyNnfzQVqwbwmAATY4Q==
 
-instantsearch-ui-components@0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/instantsearch-ui-components/-/instantsearch-ui-components-0.9.0.tgz#f7ae71fe623d18eff32b73071749f31826cb7b89"
-  integrity sha512-ugQ+XdPx3i3Sxu+woRo6tPE0Fz/kWd4KblTUfZD1TZZBsm/8qFvcbg5dVBDvXX9v7ntoyugXCzC/XCZMzrSkig==
+instantsearch-ui-components@0.11.1:
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/instantsearch-ui-components/-/instantsearch-ui-components-0.11.1.tgz#664ca03f657079946e459af72fa8d2674799c466"
+  integrity sha512-ZqUbJYYgObQ47J08ftXV1KNC1vdEoiD4/49qrkCdW46kRzLxLgYXJGuEuk48DQwK4aBtIoccgTyfbMGfcqNjxg==
   dependencies:
     "@babel/runtime" "^7.1.2"
 
-instantsearch.js@4.75.5:
-  version "4.75.5"
-  resolved "https://registry.yarnpkg.com/instantsearch.js/-/instantsearch.js-4.75.5.tgz#922b5f8c3cd95c46488994beaf53c8bffea16d49"
-  integrity sha512-XnplrpnSfFzVtoL7YBKWbf3FPwmjfSFM8BN+nnuRsfzwUwWgb7zQLxh2mRtohUFI9fnA7vAcJlDcmichfYgjmA==
+instantsearch.js@4.79.0:
+  version "4.79.0"
+  resolved "https://registry.yarnpkg.com/instantsearch.js/-/instantsearch.js-4.79.0.tgz#fe228b86006fdb81c8425e8d383350cea6ba7b2a"
+  integrity sha512-6t9Td/pXNYfJAb1NHv520oQMKHiudPxRuKkNdUCe72xUJmJTlNT2Z4b8Aj1HmDaq0KDUAhxMt73ch+/0Gwknzg==
   dependencies:
     "@algolia/events" "^4.0.1"
     "@types/dom-speech-recognition" "^0.0.1"
     "@types/google.maps" "^3.55.12"
     "@types/hogan.js" "^3.0.0"
     "@types/qs" "^6.5.3"
-    algoliasearch-helper "3.22.5"
+    algoliasearch-helper "3.26.0"
     hogan.js "^3.0.2"
     htm "^3.0.0"
-    instantsearch-ui-components "0.9.0"
+    instantsearch-ui-components "0.11.1"
     preact "^10.10.0"
     qs "^6.5.1 < 6.10"
     search-insights "^2.17.2"
@@ -5567,10 +5567,10 @@ media-query-parser@^2.0.2:
   dependencies:
     "@babel/runtime" "^7.12.5"
 
-meilisearch@^0.45.0:
-  version "0.45.0"
-  resolved "https://registry.yarnpkg.com/meilisearch/-/meilisearch-0.45.0.tgz#52364961c0cee328ae3ff55d221cc7682ee3a891"
-  integrity sha512-+zCzEqE+CumY4icB0Vox180adZqaNtnr60hJWGiEdmol5eWmksfY8rYsTcz87styXC2ZOg+2yF56gdH6oyIBTA==
+meilisearch@0.51:
+  version "0.51.0"
+  resolved "https://registry.yarnpkg.com/meilisearch/-/meilisearch-0.51.0.tgz#508ab5bb2c2935e0f2ff71de1cf28fef598ca050"
+  integrity sha512-IuNsYyT8r/QLhU33XDZdXWUT6cA/nACCHHZc+NHkNuaU55LELRxff1uBJhpJcwjYaAPEEmeWrzBhYl2XlhJdAg==
 
 memoize-one@^5.0.0:
   version "5.2.1"
@@ -6663,25 +6663,25 @@ react-inspector@^5.1.1:
     is-dom "^1.0.0"
     prop-types "^15.0.0"
 
-react-instantsearch-core@7.13.8:
-  version "7.13.8"
-  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-7.13.8.tgz#1087ae05150e92204fd1ab83464fed3942fae087"
-  integrity sha512-1bcHCFJ3Qw9HWFkeM5MNMqzw0BI4LIR61qI1lPAcJREih9NXy3R3inPeOk2T2FKkgAp5PJbjNQ3DOTxErV88jg==
+react-instantsearch-core@7.16.0:
+  version "7.16.0"
+  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-7.16.0.tgz#d8267ba3995eec7abcf5fbe25f4b21cd6a8ee122"
+  integrity sha512-Hs4zt4yfoV1rstXWmFspTztBJ1azWpLNHcsIqpFItCnwzhUe8fuqeFggr6iZmDB1P0VRShOaQTWVSBRLuRn8kA==
   dependencies:
     "@babel/runtime" "^7.1.2"
-    algoliasearch-helper "3.22.5"
-    instantsearch.js "4.75.5"
+    algoliasearch-helper "3.26.0"
+    instantsearch.js "4.79.0"
     use-sync-external-store "^1.0.0"
 
-react-instantsearch@7.13.8:
-  version "7.13.8"
-  resolved "https://registry.yarnpkg.com/react-instantsearch/-/react-instantsearch-7.13.8.tgz#baf0fe429764402048b8895f4cb659caaf57fbb8"
-  integrity sha512-14t7qAlp5H2dD+ljQLPhMZt40JX7YGKXdAooGZBo8IB+0M7NHAhsn/SVRdxSObb9bx1hg4uaBIZ51Wajgw8Xbg==
+react-instantsearch@^7.16.0:
+  version "7.16.0"
+  resolved "https://registry.yarnpkg.com/react-instantsearch/-/react-instantsearch-7.16.0.tgz#5fcbbaadc3d90f24f3230c25b9fc5c1013dd752a"
+  integrity sha512-LTfl1L9DBc/j1d6lYy5nk2JPRH9Yu5QeIAenwp3EAwRFUkaU93WVyE1hI2aqfj5IIuOxVvwvVXy/QeQQ6ZS22g==
   dependencies:
     "@babel/runtime" "^7.1.2"
-    instantsearch-ui-components "0.9.0"
-    instantsearch.js "4.75.5"
-    react-instantsearch-core "7.13.8"
+    instantsearch-ui-components "0.11.1"
+    instantsearch.js "4.79.0"
+    react-instantsearch-core "7.16.0"
 
 react-intersection-observer@9.2.2:
   version "9.2.2"
