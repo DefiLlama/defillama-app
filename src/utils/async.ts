@@ -64,24 +64,6 @@ export async function fetchWithErrorLogging(
 	}
 }
 
-export async function handleResponse(response: Response) {
-	if (!response.ok) {
-		const error = {
-			message: response.statusText || 'An error occurred',
-			status: response.status
-		}
-
-		try {
-			const errorData = await response.json()
-			error.message = errorData.message || error.message
-		} catch {}
-
-		throw error
-	}
-
-	return response.json()
-}
-
 export async function fetchWithTimeout(url, ms, options = {}) {
 	const controller = new AbortController()
 	const promise = fetchWithErrorLogging(url, { signal: controller.signal, ...options })

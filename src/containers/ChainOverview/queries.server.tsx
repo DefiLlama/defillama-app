@@ -21,7 +21,7 @@ import {
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
-import { fetchWithErrorLogging, handleResponse } from '~/utils/async'
+import { fetchWithErrorLogging } from '~/utils/async'
 import metadataCache from '~/utils/metadata'
 import type {
 	IChainMetadata,
@@ -116,7 +116,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			any,
 			any
 		] = await Promise.all([
-			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then(handleResponse),
+			fetchWithErrorLogging(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then((res) => res.json()),
 			getProtocolsByChain({ chain, metadata }),
 			getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
 				.then((data) => {
@@ -180,23 +180,23 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			!metadata.activeUsers
 				? Promise.resolve(null)
 				: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${metadata.name}`)
-						.then(handleResponse)
+						.then((res) => res.json())
 						.then((data: Array<[number, number]>) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
 			!metadata.activeUsers
 				? Promise.resolve(null)
 				: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${metadata.name}`)
-						.then(handleResponse)
+						.then((res) => res.json())
 						.then((data: Array<[number, string]>) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
 			!metadata.activeUsers
 				? Promise.resolve(null)
 				: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${metadata.name}`)
-						.then(handleResponse)
+						.then((res) => res.json())
 						.then((data: Array<[number, number]>) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
-			fetchWithErrorLogging(RAISES_API).then(handleResponse),
-			chain === 'All' ? Promise.resolve(null) : fetchWithErrorLogging(PROTOCOLS_TREASURY).then(handleResponse),
+			fetchWithErrorLogging(RAISES_API).then((res) => res.json()),
+			chain === 'All' ? Promise.resolve(null) : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((res) => res.json()),
 			metadata.gecko_id
 				? fetchWithErrorLogging(
 						`https://pro-api.coingecko.com/api/v3/coins/${metadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
@@ -205,13 +205,15 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 								'x-cg-pro-api-key': process.env.CG_KEY
 							}
 						}
-				  ).then(handleResponse)
+				  )
+						.then((res) => res.json())
+						.catch(() => ({}))
 				: Promise.resolve({}),
 			chain && chain !== 'All'
-				? fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then(handleResponse)
+				? fetchWithErrorLogging(`https://defillama-datasets.llama.fi/temp/chainNfts`).then((res) => res.json())
 				: Promise.resolve(null),
 			fetchWithErrorLogging(CHAINS_ASSETS)
-				.then(handleResponse)
+				.then((res) => res.json())
 				.catch(() => ({})),
 			metadata.fees && chain !== 'All'
 				? getAdapterChainOverview({
@@ -296,13 +298,13 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							'x-cg-pro-api-key': process.env.CG_KEY
 						}
 				  })
-						.then(handleResponse)
+						.then((res) => res.json())
 						.then((data) => data?.market_cap_chart?.market_cap?.slice(0, 14) ?? null)
 						.catch(() => null)
 				: Promise.resolve(null),
 			chain === 'All'
 				? fetchWithErrorLogging(`https://api.llama.fi/categories`)
-						.then(handleResponse)
+						.then((res) => res.json())
 						.then((data) => {
 							const chart = Object.entries(data.chart)
 
@@ -316,7 +318,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
 			chain !== 'All'
 				? fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
-						.then(handleResponse)
+						.then((res) => res.json())
 						.then(async (data) => {
 							const protocolData = data.protocols.find((item) => item.chain === metadata.name)
 							const protocolEmissions = await getProtocolEmissons(slug(protocolData.name))
@@ -528,7 +530,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 		IAdapterOverview | null,
 		any
 	] = await Promise.all([
-		fetchWithErrorLogging(PROTOCOLS_API).then(handleResponse),
+		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
 		metadata.fees
 			? getAdapterChainOverview({
 					adapterType: 'fees',
@@ -564,7 +566,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			  })
 			: Promise.resolve(null),
 		fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
-			.then(handleResponse)
+			.then((res) => res.json())
 			.catch((err) => {
 				console.log(err)
 				return null
