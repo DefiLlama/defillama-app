@@ -11,8 +11,7 @@
 		"dev": "yarn run build:metadata && next dev",
 		"build:metadata": "node scripts/pullMetadata.js",
 		"build": "yarn run build:metadata && next build",
-		"start": "next start",
-		"start:server": "./scripts/prestart.sh & node server.js",
+		"start": "./scripts/prestart.sh & next start",
 		"format": "prettier --write .",
 		"lint": "next lint",
 		"ts": "tsc --noEmit"
