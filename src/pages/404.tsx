@@ -2,7 +2,7 @@ import Layout from '~/layout'
 import Image from 'next/image'
 import lostLlama from '~/assets/404.png'
 
-export default function HomePage(props) {
+export default function HomePage() {
 	return (
 		<Layout title="DefiLlama - Page not found">
 			<div className="text-5xl flex flex-col items-center justify-center">
