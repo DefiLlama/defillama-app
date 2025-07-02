@@ -22,6 +22,7 @@ const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarCha
 
 const toggleOptions = protocolsAndChainsOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
+const sortByRevenye = ['Trading App']
 export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
@@ -112,6 +113,7 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 				placeholder="Search protocols..."
 				columnToSearch="name"
 				header="Protocol Rankings"
+				defaultSorting={sortByRevenye.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : []}
 			/>
 		</>
 	)
