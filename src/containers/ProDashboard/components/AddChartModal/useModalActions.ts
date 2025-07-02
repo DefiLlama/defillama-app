@@ -248,6 +248,38 @@ export function useModalActions(
 						datasetType: 'yields',
 						chains: state.selectedChains
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'aggregators') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'aggregators',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'perps') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'perps',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'options') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'options',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'dexs') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'dexs',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
@@ -303,6 +335,14 @@ export function useModalActions(
 					handleAddTable([], 'dataset', 'token-usage', undefined, state.selectedTokens, state.includeCex)
 				} else if (state.selectedTableType === 'yields') {
 					handleAddTable(state.selectedChains, 'dataset', 'yields')
+				} else if (state.selectedTableType === 'aggregators') {
+					handleAddTable(state.selectedChains, 'dataset', 'aggregators')
+				} else if (state.selectedTableType === 'perps') {
+					handleAddTable(state.selectedChains, 'dataset', 'perps')
+				} else if (state.selectedTableType === 'options') {
+					handleAddTable(state.selectedChains, 'dataset', 'options')
+				} else if (state.selectedTableType === 'dexs') {
+					handleAddTable(state.selectedChains, 'dataset', 'dexs')
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())

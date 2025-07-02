@@ -42,7 +42,18 @@ interface ProDashboardContextType {
 	handleAddTable: (
 		chains: string[],
 		tableType?: 'protocols' | 'dataset',
-		datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings' | 'token-usage' | 'yields',
+		datasetType?:
+			| 'stablecoins'
+			| 'cex'
+			| 'revenue'
+			| 'holders-revenue'
+			| 'earnings'
+			| 'token-usage'
+			| 'yields'
+			| 'dexs'
+			| 'perps'
+			| 'aggregators'
+			| 'options',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean
@@ -320,7 +331,19 @@ export function ProDashboardAPIProvider({
 	const handleAddTable = (
 		chains: string[],
 		tableType: 'protocols' | 'dataset' = 'protocols',
-		datasetType?: 'stablecoins' | 'cex' | 'revenue' | 'holders-revenue' | 'earnings' | 'token-usage' | 'yields',
+		datasetType?:
+			| 'stablecoins'
+			| 'cex'
+			| 'revenue'
+			| 'holders-revenue'
+			| 'earnings'
+			| 'token-usage'
+			| 'yields'
+			| 'dexs'
+			| 'perps'
+			| 'aggregators'
+			| 'options'
+			| 'options',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean

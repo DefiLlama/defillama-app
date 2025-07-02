@@ -3,6 +3,8 @@ import { ItemSelect } from '../ItemSelect'
 import { CombinedTableType } from './types'
 import { useTokenSearch } from '../datasets/TokenUsageDataset/useTokenSearch'
 import { useState } from 'react'
+import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
+import { reactSelectStyles } from '../../utils/reactSelectStyles'
 
 interface TableTabProps {
 	selectedChains: string[]
@@ -20,15 +22,111 @@ interface TableTabProps {
 }
 
 const tableTypeOptions = [
-	{ value: 'protocols', label: 'Protocols' },
-	{ value: 'yields', label: 'Yields' },
-	{ value: 'cex', label: 'CEX' },
-	{ value: 'stablecoins', label: 'Stablecoins' },
-	{ value: 'revenue', label: 'Revenue' },
-	{ value: 'holders-revenue', label: 'Holders Revenue' },
-	{ value: 'earnings', label: 'Earnings' },
-	{ value: 'token-usage', label: 'Token Usage' }
+	{
+		value: 'protocols',
+		label: 'Protocols',
+		description: 'Protocol TVL rankings and performance metrics',
+		icon: '📊'
+	},
+	{
+		value: 'yields',
+		label: 'Yields',
+		description: 'DeFi yield opportunities with APY, TVL, and IL data',
+		icon: '🌾'
+	},
+	{
+		value: 'cex',
+		label: 'CEX',
+		description: 'Centralized exchange assets, flows, and trading metrics',
+		icon: '🏦'
+	},
+	{
+		value: 'stablecoins',
+		label: 'Stablecoins',
+		description: 'Stablecoin market caps, price stability, and chains',
+		icon: '💵'
+	},
+	{
+		value: 'revenue',
+		label: 'Revenue',
+		description: 'Protocol revenue generation across timeframes',
+		icon: '💰'
+	},
+	{
+		value: 'holders-revenue',
+		label: 'Holders Revenue',
+		description: 'Revenue distributed to token holders',
+		icon: '👥'
+	},
+	{
+		value: 'earnings',
+		label: 'Earnings',
+		description: 'Protocol profitability and earnings data',
+		icon: '📈'
+	},
+	{
+		value: 'token-usage',
+		label: 'Token Usage',
+		description: 'Track protocol adoption by token usage',
+		icon: '🪙'
+	},
+	{
+		value: 'aggregators',
+		label: 'DEX Aggregators',
+		description: 'Aggregator trading volume and market dominance',
+		icon: '🔄'
+	},
+	{
+		value: 'perps',
+		label: 'Perpetuals',
+		description: 'Perpetual futures trading volume and trends',
+		icon: '📉'
+	},
+	{
+		value: 'options',
+		label: 'Options',
+		description: 'Options trading volume across protocols',
+		icon: '⚡'
+	},
+	{
+		value: 'dexs',
+		label: 'DEXs',
+		description: 'Decentralized exchange volume and market share',
+		icon: '💱'
+	}
 ]
+
+const DatasetOption = ({ innerProps, label, data, options, innerRef }) => {
+	const isLast = options[options.length - 1].value === data.value
+	return (
+		<div
+			ref={innerRef}
+			{...innerProps}
+			style={{
+				padding: '8px 12px',
+				cursor: 'pointer',
+				borderBottom: isLast ? 'none' : '1px solid var(--divider)'
+			}}
+		>
+			<div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+				<span style={{ fontSize: '16px', marginTop: '1px' }}>{data.icon}</span>
+				<div style={{ flex: 1 }}>
+					<div style={{ fontWeight: 500, marginBottom: '2px', color: 'var(--pro-text1)', fontSize: '14px' }}>
+						{label}
+					</div>
+					<div style={{ fontSize: '12px', color: 'var(--pro-text2)', lineHeight: '1.3' }}>{data.description}</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+const SingleValue = ({ children, data }) => (
+	<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-2px' }}>
+		<span style={{ fontSize: '16px' }}>{data.icon}</span>
+		<span>{children}</span>
+	</div>
+)
 
 export function TableTab({
 	selectedChains,
@@ -47,19 +145,52 @@ export function TableTab({
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
 
-	// Fetch default tokens on mount for token-usage type
 	const { data: defaultTokens = [] } = useTokenSearch('')
 	return (
 		<div className="flex flex-col gap-4">
-			<ItemSelect
-				label="Table Type"
-				options={tableTypeOptions}
-				selectedValue={selectedTableType}
-				onChange={(option) => onTableTypeChange(option.value as CombinedTableType)}
-				placeholder="Select table type..."
-				isLoading={false}
-				itemType="text"
-			/>
+			<div>
+				<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">Table Type</label>
+				<ReactSelect
+					options={tableTypeOptions}
+					value={tableTypeOptions.find((option) => option.value === selectedTableType)}
+					onChange={(option: any) => onTableTypeChange(option.value as CombinedTableType)}
+					components={{
+						Option: DatasetOption
+					}}
+					placeholder="Select table type..."
+					className="w-full text-sm md:text-base"
+					styles={{
+						...reactSelectStyles,
+						control: (provided: any, state: any) => ({
+							...reactSelectStyles.control(provided, state),
+							minHeight: '40px'
+						}),
+						menu: (provided: any) => ({
+							...reactSelectStyles.menu(provided),
+							padding: 0
+						}),
+						menuList: (provided: any) => ({
+							...reactSelectStyles.menuList(provided),
+							maxHeight: '320px',
+							overflowY: 'auto',
+							'&::-webkit-scrollbar': {
+								width: '6px'
+							},
+							'&::-webkit-scrollbar-track': {
+								background: 'var(--pro-bg2)'
+							},
+							'&::-webkit-scrollbar-thumb': {
+								background: 'var(--pro-text3)',
+								borderRadius: '3px'
+							},
+							'&::-webkit-scrollbar-thumb:hover': {
+								background: 'var(--pro-text2)'
+							}
+						})
+					}}
+					menuPosition="fixed"
+				/>
+			</div>
 
 			{selectedTableType === 'protocols' ? (
 				<MultiItemSelect
@@ -84,7 +215,11 @@ export function TableTab({
 			) : selectedTableType === 'revenue' ||
 			  selectedTableType === 'holders-revenue' ||
 			  selectedTableType === 'earnings' ||
-			  selectedTableType === 'yields' ? (
+			  selectedTableType === 'yields' ||
+			  selectedTableType === 'aggregators' ||
+			  selectedTableType === 'perps' ||
+			  selectedTableType === 'options' ||
+			  selectedTableType === 'dexs' ? (
 				<MultiItemSelect
 					label="Select Chains (optional)"
 					options={chainOptions}

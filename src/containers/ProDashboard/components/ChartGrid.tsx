@@ -12,7 +12,11 @@ import {
 	HoldersRevenueDataset,
 	EarningsDataset,
 	TokenUsageDataset,
-	YieldsDataset
+	YieldsDataset,
+	AggregatorsDataset,
+	PerpsDataset,
+	OptionsDataset,
+	DexsDataset
 } from './datasets'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
@@ -87,6 +91,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							/>
 						</div>
 					)
+				if (item.datasetType === 'aggregators') return <AggregatorsDataset chains={item.chains} />
+				if (item.datasetType === 'perps') return <PerpsDataset chains={item.chains} />
+				if (item.datasetType === 'options') return <OptionsDataset chains={item.chains} />
+				if (item.datasetType === 'dexs') return <DexsDataset chains={item.chains} />
 				return <StablecoinsDataset chain={item.datasetChain || 'All'} />
 			}
 
