@@ -28,6 +28,7 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
 import { AdapterByChainChart } from './ChainChart'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
+import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<
@@ -466,6 +467,7 @@ export function AdapterByChain(props: IProps) {
 							}}
 						/>
 					)}
+					<FullOldViewButton type={props.type} />
 					<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
 				</div>
 

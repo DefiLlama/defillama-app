@@ -16,7 +16,8 @@ import {
 	AggregatorsDataset,
 	PerpsDataset,
 	OptionsDataset,
-	DexsDataset
+	DexsDataset,
+	BridgeAggregatorsDataset
 } from './datasets'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
@@ -95,6 +96,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				if (item.datasetType === 'perps') return <PerpsDataset chains={item.chains} />
 				if (item.datasetType === 'options') return <OptionsDataset chains={item.chains} />
 				if (item.datasetType === 'dexs') return <DexsDataset chains={item.chains} />
+				if (item.datasetType === 'bridge-aggregators') return <BridgeAggregatorsDataset chains={item.chains} />
 				return <StablecoinsDataset chain={item.datasetChain || 'All'} />
 			}
 

@@ -280,6 +280,14 @@ export function useModalActions(
 						datasetType: 'dexs',
 						chains: state.selectedChains
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'bridge-aggregators') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'bridge-aggregators',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
@@ -300,7 +308,7 @@ export function useModalActions(
 			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'chain' && state.selectedChain) {
 				// Handle multiple selected charts
 				if (state.selectedChartTypes.length > 0) {
-					state.selectedChartTypes.forEach(chartType => {
+					state.selectedChartTypes.forEach((chartType) => {
 						handleAddChart(state.selectedChain, chartType, 'chain')
 					})
 				} else if (state.selectedChartType) {
@@ -311,7 +319,7 @@ export function useModalActions(
 				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
 				// Handle multiple selected charts
 				if (state.selectedChartTypes.length > 0) {
-					state.selectedChartTypes.forEach(chartType => {
+					state.selectedChartTypes.forEach((chartType) => {
 						handleAddChart(state.selectedProtocol, chartType, 'protocol', protocol?.geckoId)
 					})
 				} else if (state.selectedChartType) {
@@ -343,6 +351,8 @@ export function useModalActions(
 					handleAddTable(state.selectedChains, 'dataset', 'options')
 				} else if (state.selectedTableType === 'dexs') {
 					handleAddTable(state.selectedChains, 'dataset', 'dexs')
+				} else if (state.selectedTableType === 'bridge-aggregators') {
+					handleAddTable(state.selectedChains, 'dataset', 'bridge-aggregators')
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())

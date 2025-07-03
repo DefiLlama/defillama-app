@@ -53,7 +53,8 @@ interface ProDashboardContextType {
 			| 'dexs'
 			| 'perps'
 			| 'aggregators'
-			| 'options',
+			| 'options'
+			| 'bridge-aggregators',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean
@@ -343,7 +344,7 @@ export function ProDashboardAPIProvider({
 			| 'perps'
 			| 'aggregators'
 			| 'options'
-			| 'options',
+			| 'bridge-aggregators',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean

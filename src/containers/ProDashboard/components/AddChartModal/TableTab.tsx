@@ -93,6 +93,12 @@ const tableTypeOptions = [
 		label: 'DEXs',
 		description: 'Decentralized exchange volume and market share',
 		icon: '💱'
+	},
+	{
+		value: 'bridge-aggregators',
+		label: 'Bridge Aggregators',
+		description: 'Cross-chain bridge aggregator volume and metrics',
+		icon: '🌉'
 	}
 ]
 
@@ -219,7 +225,8 @@ export function TableTab({
 			  selectedTableType === 'aggregators' ||
 			  selectedTableType === 'perps' ||
 			  selectedTableType === 'options' ||
-			  selectedTableType === 'dexs' ? (
+			  selectedTableType === 'dexs' ||
+			  selectedTableType === 'bridge-aggregators' ? (
 				<MultiItemSelect
 					label="Select Chains (optional)"
 					options={chainOptions}
