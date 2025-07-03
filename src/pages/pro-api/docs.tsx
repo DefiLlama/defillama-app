@@ -3,7 +3,7 @@ import openApiSpec from '~/docs/resolvedSpec.json'
 import 'swagger-ui/dist/swagger-ui.css'
 import { ApiDocs } from '../docs/api'
 import { useIsClient } from '~/hooks'
-import { useMemo, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Layout from '~/layout'
 import Head from 'next/head'
 
@@ -42,15 +42,16 @@ export default function Docs() {
 		})
 		return spec
 	})()
-	if (!isClient) {
-		return null
-	}
+
+	useEffect(() => {
+		const link = document.createElement('link')
+		link.rel = 'stylesheet'
+		link.href = '/swagger-dark.css'
+		document.head.appendChild(link)
+	}, [])
 
 	return (
 		<Layout title={`API Docs - DefiLlama`}>
-			<Head>
-				<link rel="stylesheet" type="text/css" href="/swagger-dark.css" />
-			</Head>
 			<div className="relative p-3 text-sm text-black dark:text-white text-center rounded-md bg-[hsl(215deg_79%_51%/12%)]">
 				<p>
 					Upgrade to the <b>Pro API</b>{' '}
