@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import 'swagger-ui/dist/swagger-ui.css'
 import { useIsClient } from '~/hooks'
 import { useRouter } from 'next/router'
-import '../../../public/swagger-dark.css'
 
 export function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
 	const router = useRouter()
@@ -87,6 +86,13 @@ function Swagger({ spec }) {
 		}
 
 		init()
+	}, [])
+
+	useEffect(() => {
+		const link = document.createElement('link')
+		link.rel = 'stylesheet'
+		link.href = '/swagger-dark.css'
+		document.head.appendChild(link)
 	}, [])
 
 	return <div id="swagger" />
