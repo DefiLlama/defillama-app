@@ -1,11 +1,9 @@
 import yamlApiSpec from '~/docs/proSpec.json'
 import openApiSpec from '~/docs/resolvedSpec.json'
-import 'swagger-ui/dist/swagger-ui.css'
 import { ApiDocs } from '../docs/api'
 import { useIsClient } from '~/hooks'
-import { useMemo, useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Layout from '~/layout'
-import Head from 'next/head'
 
 export default function Docs() {
 	const isClient = useIsClient()
@@ -27,7 +25,7 @@ export default function Docs() {
 		}
 	}
 
-	const finalSpec = (() => {
+	const finalSpec = useMemo(() => {
 		const spec = JSON.parse(JSON.stringify(yamlApiSpec))
 		spec.servers = spec.servers.map((s: any) => ({ ...s, url: s.url.replaceAll('APIKEY', savedApiKey ?? 'APIKEY') }))
 		Object.entries(openApiSpec.paths).forEach(([path, val]) => {
@@ -41,16 +39,10 @@ export default function Docs() {
 			spec.paths[`/${server}${path}`] = routes
 		})
 		return spec
-	})()
-	if (!isClient) {
-		return null
-	}
+	}, [savedApiKey])
 
 	return (
 		<Layout title={`API Docs - DefiLlama`}>
-			<Head>
-				<link rel="stylesheet" type="text/css" href="/swagger-dark.css" />
-			</Head>
 			<div className="relative p-3 text-sm text-black dark:text-white text-center rounded-md bg-[hsl(215deg_79%_51%/12%)]">
 				<p>
 					Upgrade to the <b>Pro API</b>{' '}
@@ -84,7 +76,7 @@ export default function Docs() {
 				</p>
 			</div>
 
-			<ApiDocs spec={{ ...finalSpec }} />
+			<ApiDocs spec={finalSpec} />
 		</Layout>
 	)
 }
