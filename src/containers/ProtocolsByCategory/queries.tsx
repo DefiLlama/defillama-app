@@ -69,7 +69,9 @@ export async function getProtocolsByCategory({
 	const adapterDataStore = {}
 	for (const protocol of feesData?.protocols ?? []) {
 		if (!adapterDataStore[protocol.defillamaId]) {
-			adapterDataStore[protocol.defillamaId] = {}
+			adapterDataStore[protocol.defillamaId] = {
+				chains: protocol.chains
+			}
 		}
 		adapterDataStore[protocol.defillamaId].fees = {
 			total24h: protocol.total24h ?? null,
@@ -79,32 +81,41 @@ export async function getProtocolsByCategory({
 	}
 	for (const protocol of revenueData?.protocols ?? []) {
 		if (!adapterDataStore[protocol.defillamaId]) {
-			adapterDataStore[protocol.defillamaId] = {}
+			adapterDataStore[protocol.defillamaId] = {
+				chains: protocol.chains
+			}
 		}
 		adapterDataStore[protocol.defillamaId].revenue = {
 			total24h: protocol.total24h ?? null,
 			total7d: protocol.total7d ?? null,
-			total30d: protocol.total30d ?? null
+			total30d: protocol.total30d ?? null,
+			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains]))
 		}
 	}
 	for (const protocol of dexVolumeData?.protocols ?? []) {
 		if (!adapterDataStore[protocol.defillamaId]) {
-			adapterDataStore[protocol.defillamaId] = {}
+			adapterDataStore[protocol.defillamaId] = {
+				chains: protocol.chains
+			}
 		}
 		adapterDataStore[protocol.defillamaId].dexVolume = {
 			total24h: protocol.total24h ?? null,
 			total7d: protocol.total7d ?? null,
-			total30d: protocol.total30d ?? null
+			total30d: protocol.total30d ?? null,
+			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains]))
 		}
 	}
 	for (const protocol of perpVolumeData?.protocols ?? []) {
 		if (!adapterDataStore[protocol.defillamaId]) {
-			adapterDataStore[protocol.defillamaId] = {}
+			adapterDataStore[protocol.defillamaId] = {
+				chains: protocol.chains
+			}
 		}
 		adapterDataStore[protocol.defillamaId].perpVolume = {
 			total24h: protocol.total24h ?? null,
 			total7d: protocol.total7d ?? null,
-			total30d: protocol.total30d ?? null
+			total30d: protocol.total30d ?? null,
+			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains]))
 		}
 	}
 
@@ -112,7 +123,10 @@ export async function getProtocolsByCategory({
 	const parentProtocolsStore = {}
 
 	for (const protocol of protocols) {
-		if (protocol.category == category && (chain ? protocol.chainTvls[chain] : true)) {
+		if (
+			protocol.category == category &&
+			(chain ? protocol.chainTvls[chain] || adapterDataStore[protocol.defillamaId] : true)
+		) {
 			let tvl = 0
 			const extraTvls: Record<string, number> = {}
 			if (chain) {
@@ -169,7 +183,9 @@ export async function getProtocolsByCategory({
 				name: protocol.name,
 				slug: slug(protocol.name),
 				logo: tokenIconUrl(protocol.name),
-				chains: protocol.chains,
+				chains: Array.from(
+					new Set([...(adapterDataStore[protocol.defillamaId]?.chains ?? []), ...(protocol.chains ?? [])])
+				),
 				tvl,
 				extraTvls,
 				mcap: protocol.mcap ?? null,
