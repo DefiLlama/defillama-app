@@ -2,10 +2,14 @@ import Layout from '~/layout'
 import yamlApiSpec from '~/docs/resolvedSpec.json'
 import { useEffect } from 'react'
 import 'swagger-ui/dist/swagger-ui.css'
+import { useIsClient } from '~/hooks'
 import { useRouter } from 'next/router'
+import SwaggerUI from 'swagger-ui'
 
 export function ApiDocs({ spec }: { spec: any }) {
 	const router = useRouter()
+	const isClient = useIsClient()
+	if (!isClient) return null
 
 	const downloadSpec = () => {
 		const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(spec, null, 2))
@@ -67,7 +71,6 @@ function Swagger({ spec }) {
 	useEffect(() => {
 		async function init() {
 			try {
-				const { default: SwaggerUI } = await import('swagger-ui')
 				SwaggerUI({
 					dom_id: '#swagger',
 					defaultModelsExpandDepth: -1,

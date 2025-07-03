@@ -5,7 +5,6 @@ import { ApiDocs } from '../docs/api'
 import { useIsClient } from '~/hooks'
 import { useState, useEffect } from 'react'
 import Layout from '~/layout'
-import Head from 'next/head'
 
 export default function Docs() {
 	const isClient = useIsClient()
@@ -49,6 +48,10 @@ export default function Docs() {
 		link.href = '/swagger-dark.css'
 		document.head.appendChild(link)
 	}, [])
+
+	if (!isClient) {
+		return null
+	}
 
 	return (
 		<Layout title={`API Docs - DefiLlama`}>
