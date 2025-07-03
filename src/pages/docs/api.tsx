@@ -5,7 +5,7 @@ import 'swagger-ui/dist/swagger-ui.css'
 import { useIsClient } from '~/hooks'
 import { useRouter } from 'next/router'
 
-export function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
+export function ApiDocs({ spec }: { spec: any }) {
 	const router = useRouter()
 	const isClient = useIsClient()
 	if (!isClient) return null
