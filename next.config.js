@@ -305,6 +305,11 @@ const nextConfig = {
 				permanent: true
 			},
 			{
+				source: '/dex/chains',
+				destination: '/dexs/chains',
+				permanent: true
+			},
+			{
 				source: '/dexs/chain',
 				destination: '/dexs/chains',
 				permanent: true
