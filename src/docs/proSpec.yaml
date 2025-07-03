@@ -20,7 +20,7 @@ tags:
     description: Data from dashboards on our side menu
   - name: token liquidity
     description: Provides the available liquidity for swapping from one token to another on a specific chain
-  - name: Yields
+  - name: yields
     description: Data from our yields/APY dashboard
   - name: ETFs
     description: Tradfi ETFs
@@ -235,7 +235,7 @@ paths:
   /yields/pools:
     get:
       tags:
-        - Yields
+        - yields
       summary: Retrieve the latest data for all pools, including enriched information such as predictions
       responses:
         '200':
@@ -243,7 +243,7 @@ paths:
   /yields/poolsOld:
     get:
       tags:
-        - Yields
+        - yields
       summary: Same as /pools but it also includes a new parameter `pool_old` which usually contains pool address (but not guaranteed)
       responses:
         '200':
@@ -251,7 +251,7 @@ paths:
   /yields/chart/{pool}:
     get:
       tags:
-        - Yields
+        - yields
       summary: Get historical APY and TVL of a pool
       parameters:
         - name: pool
@@ -267,7 +267,7 @@ paths:
   /yields/poolsBorrow:
     get:
       tags:
-        - Yields
+        - yields
       summary: Borrow costs APY of assets from lending markets
       responses:
         '200':
@@ -275,7 +275,7 @@ paths:
   /yields/chartLendBorrow/{pool}:
     get:
       tags:
-        - Yields
+        - yields
       summary: Historical borrow cost APY from a pool on a lending market, pool ids should be obtained from /poolsBorrow
       parameters:
         - name: pool
@@ -291,7 +291,7 @@ paths:
   /yields/perps:
     get:
       tags:
-        - Yields
+        - yields
       summary: Funding rates and Open Interest of perps across exchanges, including both Decentralized and Centralized
       responses:
         '200':
@@ -299,7 +299,7 @@ paths:
   /yields/lsdRates:
     get:
       tags:
-        - Yields
+        - yields
       summary: APY rates of multiple LSDs
       responses:
         '200':
