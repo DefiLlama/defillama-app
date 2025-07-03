@@ -1,13 +1,10 @@
-a {
-  color: #8c8cfa;
-}
-
 .dark .swagger-ui,
 .dark .swagger-ui section h3 {
   color: #b5bac9;
 }
 
 .dark .swagger-ui a {
+  color: #8c8cfa;
   background-color: transparent;
 }
 
@@ -1635,12 +1632,6 @@ a {
   height: 50px;
   background-color: #242424 !important;
   border: 2px solid #3e4346 !important;
-}
-
-::-webkit-scrollbar-corner {
-}
-
-::-webkit-resizer {
 }
 
 ::-webkit-scrollbar-button:vertical:start:decrement {

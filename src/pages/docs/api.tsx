@@ -2,9 +2,9 @@ import Layout from '~/layout'
 import yamlApiSpec from '~/docs/resolvedSpec.json'
 import { useEffect } from 'react'
 import 'swagger-ui/dist/swagger-ui.css'
-import Head from 'next/head'
 import { useIsClient } from '~/hooks'
 import { useRouter } from 'next/router'
+import '../../../public/swagger-dark.css'
 
 export function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
 	const router = useRouter()
@@ -95,9 +95,6 @@ function Swagger({ spec }) {
 export default function ApiDocsPage() {
 	return (
 		<Layout title="DefiLlama API Docs">
-			<Head>
-				<link rel="stylesheet" type="text/css" href="/swagger-dark.css" />
-			</Head>
 			<ApiDocs spec={yamlApiSpec} />
 		</Layout>
 	)
