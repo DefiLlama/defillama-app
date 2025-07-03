@@ -513,7 +513,12 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						)
 				  }
 				: null,
-			chainIncentives: chainIncentives
+			chainIncentives: chainIncentives ?? {
+				emissions24h: null,
+				emissions7d: null,
+				emissions30d: null,
+				incentivesChart: null
+			}
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
