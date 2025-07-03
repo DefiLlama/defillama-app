@@ -69,24 +69,28 @@ export function ApiDocs({ spec = yamlApiSpec }: { spec: any }) {
 function Swagger({ spec }) {
 	useEffect(() => {
 		async function init() {
-			const { default: SwaggerUI } = await import('swagger-ui')
-			SwaggerUI({
-				dom_id: '#swagger',
-				defaultModelsExpandDepth: -1,
-				spec: spec,
-				syntaxHighlight: {
-					activated: false,
-					theme: 'agate'
-				},
-				requestInterceptor: (request) => {
-					request.url = request.url.replace(/%3A/g, ':').replace(/%2C/g, ',')
-					return request
-				}
-			})
+			try {
+				const { default: SwaggerUI } = await import('swagger-ui')
+				SwaggerUI({
+					dom_id: '#swagger',
+					defaultModelsExpandDepth: -1,
+					spec: spec,
+					syntaxHighlight: {
+						activated: false,
+						theme: 'agate'
+					},
+					requestInterceptor: (request) => {
+						request.url = request.url.replace(/%3A/g, ':').replace(/%2C/g, ',')
+						return request
+					}
+				})
+			} catch (error) {
+				console.error('Failed to load Swagger UI:', error)
+			}
 		}
 
 		init()
-	}, [])
+	}, [spec])
 
 	useEffect(() => {
 		const link = document.createElement('link')
