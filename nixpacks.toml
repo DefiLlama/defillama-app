@@ -10,4 +10,4 @@ cmds = [
 ]
 
 [start]
-cmd = "./scripts/prestart.sh & bun run start"
+cmd = "bun run start"
