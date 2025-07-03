@@ -22,7 +22,13 @@ export function getFieldError(error: any, key: string) {
 
 interface AuthContextType {
 	login: (email: string, password: string, onSuccess?: () => void) => Promise<void>
-	signup: (email: string, password: string, passwordConfirm: string, onSuccess?: () => void) => Promise<void>
+	signup: (
+		email: string,
+		password: string,
+		passwordConfirm: string,
+		turnstileToken: string,
+		onSuccess?: () => void
+	) => Promise<void>
 	logout: () => void
 	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response>
 	signInWithEthereum: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
@@ -126,24 +132,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		mutationFn: async ({
 			email,
 			password,
-			passwordConfirm
+			passwordConfirm,
+			turnstileToken
 		}: {
 			email: string
 			password: string
 			passwordConfirm: string
+			turnstileToken: string
 		}) => {
-			const data = {
-				email,
-				password,
-				passwordConfirm,
-				auth_method: 'email',
-				source: 'defillama'
+			const response = await fetch(`${AUTH_SERVER}/auth/signup`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email,
+					password,
+					passwordConfirm,
+					auth_method: 'email',
+					source: 'defillama',
+					turnstile_token: turnstileToken
+				})
+			})
+
+			if (!response.ok) {
+				const errorData = await response.json()
+				throw errorData
 			}
 
-			await pb.collection('users').create(data)
+			const { token } = await response.json()
 
-			await pb.collection('users').authWithPassword(email, password)
-			await pb.collection('users').requestVerification(email)
+			pb.authStore.save(token)
 		},
 		onSuccess: () => {
 			setIsAuthenticated(true)
@@ -154,23 +171,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			toast.success('Account created! Please check your email to verify your account.', { duration: 5000 })
 		},
 		onError: (error: any) => {
-			let shownError = false
-			const data = error.data.data
-			console.log(data)
-			if (data) {
-				;['email', 'password', 'passwordConfirm'].forEach((key) => {
-					if (data[key]) {
-						let errorMsg = data[key].message
-
-						toast.error(errorMsg)
-
-						shownError = true
-					}
-				})
-
-				if (!shownError && data.message) {
-					toast.error(data.message)
-				}
+			console.log({ error })
+			const message = error.error
+			if (message) {
+				toast.error(message)
 			} else {
 				toast.error('Failed to create account. Please try again.')
 			}
@@ -178,9 +182,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	})
 
 	const signup = useCallback(
-		async (email: string, password: string, passwordConfirm: string, onSuccess?: () => void) => {
+		async (
+			email: string,
+			password: string,
+			passwordConfirm: string,
+			turnstileToken: string,
+			onSuccess?: () => void
+		) => {
 			try {
-				await signupMutation.mutateAsync({ email, password, passwordConfirm })
+				await signupMutation.mutateAsync({ email, password, passwordConfirm, turnstileToken })
 				onSuccess?.()
 			} catch (e) {}
 		},

@@ -6,6 +6,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/LocalLoader'
 import { BasicLink } from '~/components/Link'
+import { Turnstile } from '~/components/Turnstile'
 
 export const SignIn = ({ text, className }: { text?: string; className?: string }) => {
 	const dialogState = Ariakit.useDialogStore()
@@ -18,6 +19,8 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 	const [confirmPassword, setConfirmPassword] = useState('')
 	const [passwordError, setPasswordError] = useState('')
 	const [confirmPasswordError, setConfirmPasswordError] = useState('')
+	const [turnstileToken, setTurnstileToken] = useState('')
+	const [emailError, setEmailError] = useState('')
 
 	const { login, signup, signInWithEthereum, signInWithGithub, resetPassword, isAuthenticated, loaders } =
 		useAuthContext()
@@ -54,6 +57,10 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 	const handleEmailSignUp = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 
+		setEmailError('')
+		setPasswordError('')
+		setConfirmPasswordError('')
+
 		const isPasswordValid = validatePassword(password)
 		const isConfirmPasswordValid = validateConfirmPassword(password, confirmPassword)
 
@@ -61,11 +68,28 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 			return
 		}
 
+		if (!turnstileToken) {
+			return
+		}
+
 		try {
-			await signup(email, password, confirmPassword)
+			await signup(email, password, confirmPassword, turnstileToken)
 			dialogState.hide()
-		} catch (error) {
+			setTurnstileToken('')
+		} catch (error: any) {
 			console.error('Error signing up:', error)
+
+			if (error?.error) {
+				if (error.error.email?.message) {
+					setEmailError(error.error.email.message)
+				}
+				if (error.data.password?.message) {
+					setPasswordError(error.data.password.message)
+				}
+				if (error.data.passwordConfirm?.message) {
+					setConfirmPasswordError(error.data.passwordConfirm.message)
+				}
+			}
 		}
 	}
 
@@ -275,11 +299,17 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 									id={`${text || 'default'}-signup-email`}
 									type="email"
 									required
-									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
+									className={`w-full p-3 pl-10 rounded-lg bg-[#222429] border ${
+										emailError ? 'border-red-500' : 'border-[#39393E]'
+									} text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
 									value={email}
-									onChange={(e) => setEmail(e.target.value)}
+									onChange={(e) => {
+										setEmail(e.target.value)
+										setEmailError('')
+									}}
 								/>
 							</div>
+							{emailError && <p className="text-xs text-red-500 mt-1">{emailError}</p>}
 						</div>
 
 						<div className="space-y-1.5">
@@ -296,7 +326,11 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								value={password}
 								onChange={(e) => {
 									setPassword(e.target.value)
-									validatePassword(e.target.value)
+									// Only validate locally on change, don't clear server errors
+									const localValidation = validatePassword(e.target.value)
+									if (localValidation) {
+										setPasswordError('')
+									}
 									if (confirmPassword) {
 										validateConfirmPassword(e.target.value, confirmPassword)
 									}
@@ -347,9 +381,21 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 							</span>
 						</label>
 
+						<div className="mt-4">
+							<Turnstile
+								onVerify={(token) => setTurnstileToken(token)}
+								onError={() => {
+									setTurnstileToken('')
+									console.error('Turnstile verification failed')
+								}}
+								onExpire={() => setTurnstileToken('')}
+								className="flex justify-center"
+							/>
+						</div>
+
 						<button
-							className="w-full py-3 mt-1 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-							disabled={loaders.signup}
+							className="w-full py-3 mt-4 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+							disabled={loaders.signup || !turnstileToken}
 						>
 							{loaders.signup ? (
 								<span className="flex items-center justify-center gap-2">

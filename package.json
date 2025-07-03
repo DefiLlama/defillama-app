@@ -20,6 +20,7 @@
 		"@ariakit/react": "0.4.16",
 		"@dnd-kit/core": "6.0.8",
 		"@dnd-kit/sortable": "7.0.2",
+		"@marsidev/react-turnstile": "^1.1.0",
 		"@meilisearch/instant-meilisearch": "^0.27.0",
 		"@rainbow-me/rainbowkit": "2.2.1",
 		"@tanstack/react-query": "5.61.3",
