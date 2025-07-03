@@ -1,9 +1,8 @@
 import yamlApiSpec from '~/docs/proSpec.json'
 import openApiSpec from '~/docs/resolvedSpec.json'
-import 'swagger-ui/dist/swagger-ui.css'
 import { ApiDocs } from '../docs/api'
 import { useIsClient } from '~/hooks'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Layout from '~/layout'
 
 export default function Docs() {
@@ -26,7 +25,7 @@ export default function Docs() {
 		}
 	}
 
-	const finalSpec = (() => {
+	const finalSpec = useMemo(() => {
 		const spec = JSON.parse(JSON.stringify(yamlApiSpec))
 		spec.servers = spec.servers.map((s: any) => ({ ...s, url: s.url.replaceAll('APIKEY', savedApiKey ?? 'APIKEY') }))
 		Object.entries(openApiSpec.paths).forEach(([path, val]) => {
@@ -40,18 +39,7 @@ export default function Docs() {
 			spec.paths[`/${server}${path}`] = routes
 		})
 		return spec
-	})()
-
-	useEffect(() => {
-		const link = document.createElement('link')
-		link.rel = 'stylesheet'
-		link.href = '/swagger-dark.css'
-		document.head.appendChild(link)
-	}, [])
-
-	if (!isClient) {
-		return null
-	}
+	}, [savedApiKey])
 
 	return (
 		<Layout title={`API Docs - DefiLlama`}>
@@ -88,7 +76,7 @@ export default function Docs() {
 				</p>
 			</div>
 
-			<ApiDocs spec={{ ...finalSpec }} />
+			<ApiDocs spec={finalSpec} />
 		</Layout>
 	)
 }

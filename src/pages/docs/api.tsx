@@ -1,15 +1,12 @@
 import Layout from '~/layout'
 import yamlApiSpec from '~/docs/resolvedSpec.json'
 import { useEffect } from 'react'
-import 'swagger-ui/dist/swagger-ui.css'
-import { useIsClient } from '~/hooks'
 import { useRouter } from 'next/router'
-import SwaggerUI from 'swagger-ui'
+import SwaggerUI from 'swagger-ui-react'
+import 'swagger-ui-react/swagger-ui.css'
 
 export function ApiDocs({ spec }: { spec: any }) {
 	const router = useRouter()
-	const isClient = useIsClient()
-	if (!isClient) return null
 
 	const downloadSpec = () => {
 		const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(spec, null, 2))
@@ -20,6 +17,13 @@ export function ApiDocs({ spec }: { spec: any }) {
 		downloadAnchorNode.click()
 		downloadAnchorNode.remove()
 	}
+
+	useEffect(() => {
+		const link = document.createElement('link')
+		link.rel = 'stylesheet'
+		link.href = '/swagger-dark.css'
+		document.head.appendChild(link)
+	}, [])
 
 	return (
 		<>
@@ -62,44 +66,20 @@ export function ApiDocs({ spec }: { spec: any }) {
 					Download API Spec
 				</button>
 			</div>
-			<Swagger spec={spec} />
+			<SwaggerUI
+				defaultModelsExpandDepth={-1}
+				spec={spec}
+				syntaxHighlight={{
+					activated: false,
+					theme: 'agate'
+				}}
+				requestInterceptor={(request) => {
+					request.url = request.url.replace(/%3A/g, ':').replace(/%2C/g, ',')
+					return request
+				}}
+			/>
 		</>
 	)
-}
-
-function Swagger({ spec }) {
-	useEffect(() => {
-		async function init() {
-			try {
-				SwaggerUI({
-					dom_id: '#swagger',
-					defaultModelsExpandDepth: -1,
-					spec: spec,
-					syntaxHighlight: {
-						activated: false,
-						theme: 'agate'
-					},
-					requestInterceptor: (request) => {
-						request.url = request.url.replace(/%3A/g, ':').replace(/%2C/g, ',')
-						return request
-					}
-				})
-			} catch (error) {
-				console.error('Failed to load Swagger UI:', error)
-			}
-		}
-
-		init()
-	}, [spec])
-
-	useEffect(() => {
-		const link = document.createElement('link')
-		link.rel = 'stylesheet'
-		link.href = '/swagger-dark.css'
-		document.head.appendChild(link)
-	}, [])
-
-	return <div id="swagger" />
 }
 
 export default function ApiDocsPage() {
