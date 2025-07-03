@@ -45,7 +45,7 @@ export function ChartTypeSelector({
 	}
 
 	return (
-		<div className="mb-3 md:mb-4">
+		<div className="mb-3 md:mb-4 selector-container">
 			<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">Chart Type</label>
 			{isLoading ? (
 				<div className="flex items-center justify-center h-10">
@@ -60,7 +60,8 @@ export function ChartTypeSelector({
 					className="w-full text-sm md:text-base"
 					styles={reactSelectStyles}
 					components={{ MenuList }}
-					menuPortalTarget={typeof document !== 'undefined' ? document.querySelector('.add-chart-modal') : null}
+					menuPosition="fixed"
+					menuShouldScrollIntoView={false}
 				/>
 			)}
 		</div>
