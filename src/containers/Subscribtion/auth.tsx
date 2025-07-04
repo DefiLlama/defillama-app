@@ -62,6 +62,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	const [isAuthenticated, setIsAuthenticated] = useState(false)
 	const [subscription, setSubscription] = useState<any>(null)
 	const [isSubscriptionError, setIsSubscriptionError] = useState(false)
+
 	const {
 		data: currentUserData,
 		isPending: userQueryIsPending,
@@ -77,18 +78,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				const refreshResult = await pb.collection('users').authRefresh()
 				setIsAuthenticated(true)
 				return { ...refreshResult.record }
-			} catch (error) {
+			} catch (error: any) {
 				console.error('Error refreshing auth:', error)
-				pb.authStore.clear()
-				setIsAuthenticated(false)
+
+				if (error?.status === 401 || error?.code === 401) {
+					pb.authStore.clear()
+					setIsAuthenticated(false)
+				} else {
+					setIsAuthenticated(!!pb.authStore.token)
+				}
+
 				throw error
 			}
 		},
 		enabled: true,
-		staleTime: 0,
+		staleTime: 5 * 60 * 1000,
 		refetchOnMount: true,
 		refetchOnWindowFocus: false,
-		gcTime: 0
+		gcTime: 10 * 60 * 1000,
+		retry: 3,
+		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
 	})
 
 	const loginMutation = useMutation({
