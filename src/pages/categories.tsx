@@ -306,7 +306,7 @@ export const descriptions = {
 	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights'
 }
 
-const tvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
+const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
 
 export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
@@ -432,7 +432,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch options={tvlOptions} />
+			<ProtocolsChainsSearch options={finalTvlOptions} />
 			<div className="bg-(--cards-bg) rounded-md">
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
 					<h1 className="text-xl font-semibold mr-auto">Categories</h1>
