@@ -144,12 +144,12 @@ const ActiveInvestors = ({ data }) => {
 
 	return (
 		<Layout title={`Investors - DefiLlama`} defaultSEO className="gap-4">
-			<Announcement notCancellable>
+			{/* <Announcement notCancellable>
 				<span>Looking for investors?</span>{' '}
 				<a href="/pitch" className="text-(--blue) underline font-medium" target="_blank" rel="noopener noreferrer">
 					Send your pitch to selected ones through us
 				</a>
-			</Announcement>
+			</Announcement> */}
 
 			<div className="bg-(--cards-bg) rounded-md">
 				<div className="flex items-center gap-2 justify-end flex-wrap p-3">

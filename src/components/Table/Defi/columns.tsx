@@ -509,21 +509,19 @@ export const activeInvestorsColumns: ColumnDef<{
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return (
-				<Tooltip content={'Looking for investors? Send your pitch to selected ones through us'}>
-					<div className="flex gap-2" onClick={() => window.open('/pitch', '_blank')}>
-						<BasicLink
-							href={`/raises/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-						>
-							{getValue() as string}
-						</BasicLink>
-						<Icon
-							name="mail"
-							style={{ minHeight: '16px', minWidth: '16px', width: '16px', height: '16px' }}
-							color={primaryColor}
-							cursor={'pointer'}
-						/>
-					</div>
+				<Tooltip content={'Looking for investors? Send your pitch to selected ones through us'} className="flex gap-2">
+					<BasicLink
+						href={`/raises/${slug(getValue() as string)}`}
+						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+					>
+						{getValue() as string}
+					</BasicLink>
+					<Icon
+						name="mail"
+						style={{ minHeight: '16px', minWidth: '16px', width: '16px', height: '16px' }}
+						color={primaryColor}
+						cursor={'pointer'}
+					/>
 				</Tooltip>
 			)
 			return

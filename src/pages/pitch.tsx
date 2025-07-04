@@ -59,6 +59,7 @@ async function generateVCList(): Promise<VC[]> {
 }
 
 export const getStaticProps = withPerformanceLogging('pitch', async () => {
+	return { notFound: true }
 	const vcList = await generateVCList()
 	const categories = Array.from(new Set(vcList.flatMap((vc) => Array.from(vc.categories)?.filter(Boolean)?.map(trim))))
 	const chains = Array.from(new Set(vcList.flatMap((vc) => Array.from(vc.chains)?.filter(Boolean))?.map(trim)))
