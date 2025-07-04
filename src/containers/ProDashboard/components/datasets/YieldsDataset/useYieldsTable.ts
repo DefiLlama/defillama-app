@@ -397,9 +397,10 @@ export function useYieldsTable({
 		return count
 	}, [filters])
 
-	const applyFilters = React.useCallback(() => {
+	const applyFilters = React.useCallback((newFilters?: YieldsFilters) => {
+		const filtersToApply = newFilters !== undefined ? newFilters : filters
 		if (onFiltersChange) {
-			onFiltersChange(filters)
+			onFiltersChange(filtersToApply)
 		}
 	}, [filters, onFiltersChange])
 

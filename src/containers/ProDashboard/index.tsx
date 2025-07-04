@@ -151,7 +151,7 @@ function ProDashboardContent() {
 								{showDashboardMenu && (
 									<>
 										<div className="fixed inset-0 z-10" onClick={() => setShowDashboardMenu(false)} />
-										<div className="absolute right-0 top-full mt-2 w-64 bg-(--bg7) bg-opacity-90 backdrop-filter backdrop-blur-xl border border-white/30 shadow-lg z-20">
+										<div className="absolute right-0 top-full mt-2 w-64 bg-(--bg7) bg-opacity-90 backdrop-filter backdrop-blur-xl border border-white/30 shadow-lg z-[1000]">
 											<div className="p-2">
 												{isReadOnly ? (
 													<button
@@ -248,9 +248,7 @@ function ProDashboardContent() {
 
 					<button
 						className={`px-2.5 py-2 md:px-4 md:py-2 ${
-							!isReadOnly
-								? 'bg-(--primary1) hover:bg-(--primary1-hover)'
-								: 'bg-(--bg3) cursor-not-allowed'
+							!isReadOnly ? 'bg-(--primary1) hover:bg-(--primary1-hover)' : 'bg-(--bg3) cursor-not-allowed'
 						} text-white flex items-center gap-2 text-sm md:text-base whitespace-nowrap md:hidden`}
 						onClick={() => !isReadOnly && setShowAddModal(true)}
 						disabled={isReadOnly}

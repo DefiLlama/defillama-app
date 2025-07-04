@@ -22,7 +22,7 @@ interface YieldsFiltersPanelProps {
 	filters: YieldsFilters
 	setFilters: (filters: YieldsFilters) => void
 	availableChains: string[]
-	onApplyFilters: () => void
+	onApplyFilters: (filters?: YieldsFilters) => void
 	onResetFilters: () => void
 	activeFilterCount: number
 }
@@ -52,7 +52,7 @@ export function YieldsFiltersPanel({
 
 	const handleApply = () => {
 		setFilters(localFilters)
-		onApplyFilters()
+		onApplyFilters(localFilters)
 		setShowFiltersPanel(false)
 	}
 
