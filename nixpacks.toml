@@ -6,7 +6,7 @@ cmds = ["bun install"]
 
 [phases.build]
 cmds = [
-  "START_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) && START_TIME_TS=$(date -u +%s) && bun run build 2>&1 | tee build.log; BUILD_STATUS=$? && BUILD_TIME_SEC=$(($(date -u +%s) - $START_TIME_TS)) && BUILD_TIME_MIN=$(($BUILD_TIME_SEC / 60)) && BUILD_TIME_STR=$(printf \"%ss\" $(($BUILD_TIME_SEC % 60))) && if [ $BUILD_TIME_MIN -gt 0 ]; then BUILD_TIME_STR=$(printf \"%sm %s\" $BUILD_TIME_MIN $BUILD_TIME_STR); fi && BUILD_ID=$(find .next -name _buildManifest.js 2>/dev/null | sed 's/\\/_buildManifest.js//g' | sed 's/\\.next\\/static\\///g' || echo '') && bun run ./scripts/build-msg.js $BUILD_STATUS \"$BUILD_TIME_STR\" \"$START_TIME\" \"$BUILD_ID\" \"\" \"\" \"\""
+  "START_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) && START_TIME_TS=$(date -u +%s) && bun run build 2>&1 | tee build.log; BUILD_STATUS=$? && BUILD_TIME_SEC=$(($(date -u +%s) - $START_TIME_TS)) && BUILD_TIME_MIN=$(($BUILD_TIME_SEC / 60)) && BUILD_TIME_STR=$(printf \"%ss\" $(($BUILD_TIME_SEC % 60))) && if [ $BUILD_TIME_MIN -gt 0 ]; then BUILD_TIME_STR=$(printf \"%sm %s\" $BUILD_TIME_MIN $BUILD_TIME_STR); fi && BUILD_ID=$(find .next -name _buildManifest.js 2>/dev/null | sed 's/\\/_buildManifest.js//g' | sed 's/\\.next\\/static\\///g' || echo '') && bun run ./scripts/build-msg.js $BUILD_STATUS \"$BUILD_TIME_STR\" \"$START_TIME\" \"$BUILD_ID\" \"\" \"\" \"\" && exit $BUILD_STATUS"
 ]
 
 [start]
