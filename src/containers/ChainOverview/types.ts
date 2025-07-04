@@ -93,6 +93,7 @@ export interface IChainOverviewData {
 		total14d: number
 		tokens: Array<[string, string]>
 	} | null
+	tvlAndFeesOptions: Array<{ name: string; key: string }>
 }
 
 export interface ILiteChart {

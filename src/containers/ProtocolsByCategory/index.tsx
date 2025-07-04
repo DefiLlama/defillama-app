@@ -12,11 +12,11 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { protocolsAndChainsOptions } from '~/components/Filters/options'
+import { tvlOptions } from '~/components/Filters/options'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
-const toggleOptions = protocolsAndChainsOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
+const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
 const sortByRevenye = ['Trading App']
 export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {

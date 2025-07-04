@@ -10,7 +10,7 @@ import { AuditInfo } from '~/components/AuditInfo'
 import ProtocolChart from './Chart/ProtocolChart'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { extraTvlOptionsHelperTexts, protocolsAndChainsOptions } from '~/components/Filters/options'
+import { extraTvlOptionsHelperTexts, tvlOptions } from '~/components/Filters/options'
 import { DEFI_SETTINGS_KEYS, FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formatPercentage, formattedNum, getBlockExplorer, slug, tokenIconUrl } from '~/utils'
 import { useFetchProtocolTwitter, useGetTokenPrice } from '~/api/categories/protocols/client'
@@ -304,7 +304,7 @@ const ProtocolContainer = ({
 				// check if tvl name is addl tvl type and is toggled
 				if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name)) {
 					acc.extraTvls.push([name, tvl])
-					acc.tvlOptions.push(protocolsAndChainsOptions.find((e) => e.key === name))
+					acc.tvlOptions.push(tvlOptions.find((e) => e.key === name))
 				} else {
 					// only include total tvl of each chain skip breakdown of addl tvls if extra tvl type is not toggled
 					if (!name.includes('-')) {

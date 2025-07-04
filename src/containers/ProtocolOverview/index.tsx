@@ -12,7 +12,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { BasicLink } from '~/components/Link'
 import { DLNewsLogo } from '~/components/News/Logo'
 import dayjs from 'dayjs'
-import { feesOptions, protocolsAndChainsOptions } from '~/components/Filters/options'
+import { feesOptions, tvlOptions } from '~/components/Filters/options'
 import { Menu } from '~/components/Menu'
 import { ProtocolChart2 } from './Chart/ProtocolChartNew'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
@@ -29,7 +29,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 
 		for (const chain in props.currentTvlByChain ?? {}) {
 			if (chain.toLowerCase() in extraTvlsEnabled || chain == 'offers') {
-				const option = protocolsAndChainsOptions.find((e) => e.key === chain)
+				const option = tvlOptions.find((e) => e.key === chain)
 				if (option && chain !== 'offers') {
 					toggleOptions.push(option)
 				}

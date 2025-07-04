@@ -14,7 +14,7 @@ import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { protocolsAndChainsOptions } from '~/components/Filters/options'
+import { tvlOptions } from '~/components/Filters/options'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -306,7 +306,7 @@ export const descriptions = {
 	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights'
 }
 
-const tvlOptions = protocolsAndChainsOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
+const tvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
 
 export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)

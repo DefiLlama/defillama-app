@@ -5,7 +5,7 @@ import { useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { SearchV2 } from '../InstantSearch'
 import { useIsClient } from '~/hooks'
 import { useCallback, useMemo } from 'react'
-import { protocolsAndChainsOptions } from '~/components/Filters/options'
+import { tvlOptions } from '~/components/Filters/options'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { Select } from '~/components/Select'
 
@@ -76,19 +76,19 @@ const Search = ({ hideFilters = false, options, ...props }: IProtocolsChainsSear
 const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) => {
 	const router = useRouter()
 
-	const tvlOptions = useMemo(() => {
-		return options || protocolsAndChainsOptions
+	const finalTvlOptions = useMemo(() => {
+		return options || tvlOptions
 	}, [options])
 
-	const { selectedValues, setSelectedValues } = useProtocolsFilterState(tvlOptions)
+	const { selectedValues, setSelectedValues } = useProtocolsFilterState(finalTvlOptions)
 
 	if (router.pathname?.includes('/protocol/')) {
-		if (!tvlOptions || tvlOptions.length === 0) return null
-		const hasFees = tvlOptions.find((o) => ['bribes', 'tokentax'].includes(o.key))
+		if (!finalTvlOptions || finalTvlOptions.length === 0) return null
+		const hasFees = finalTvlOptions.find((o) => ['bribes', 'tokentax'].includes(o.key))
 		return (
 			<>
 				<Select
-					allValues={tvlOptions}
+					allValues={finalTvlOptions}
 					selectedValues={selectedValues}
 					setSelectedValues={setSelectedValues}
 					selectOnlyOne={(newOption) => {
@@ -107,7 +107,7 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 	return (
 		<>
 			<Select
-				allValues={tvlOptions}
+				allValues={finalTvlOptions}
 				selectedValues={selectedValues}
 				setSelectedValues={setSelectedValues}
 				selectOnlyOne={(newOption) => {

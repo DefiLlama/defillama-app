@@ -1,6 +1,6 @@
 import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 
-export const protocolsAndChainsOptions = [
+export const tvlOptions = [
 	{
 		name: 'Staking',
 		key: DEFI_SETTINGS.STAKING,
@@ -43,4 +43,4 @@ export const feesOptions = [
 	{ name: 'Token Tax', key: FEES_SETTINGS.TOKENTAX, help: null }
 ]
 
-export const extraTvlOptionsHelperTexts = Object.fromEntries(protocolsAndChainsOptions.map((p) => [p.key, p.help]))
+export const extraTvlOptionsHelperTexts = Object.fromEntries(tvlOptions.map((p) => [p.key, p.help]))

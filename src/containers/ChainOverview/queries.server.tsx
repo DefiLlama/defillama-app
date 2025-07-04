@@ -39,6 +39,7 @@ import type {
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { getAllProtocolEmissions, getETFData, getProtocolEmissons } from '~/api/categories/protocols'
+import { tvlOptions } from '~/components/Filters/options'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
 	const metadata: IChainMetadata =
@@ -441,6 +442,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 
 		const uniqUnlockTokenColors = getNDistinctColors(uniqueUnlockTokens.size)
 
+		const tvlAndFeesOptions = tvlOptions.filter((o) => extraTvlChart?.[o.key]?.length)
+
 		return {
 			chain,
 			metadata,
@@ -518,7 +521,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				emissions7d: null,
 				emissions30d: null,
 				incentivesChart: null
-			}
+			},
+			tvlAndFeesOptions
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`

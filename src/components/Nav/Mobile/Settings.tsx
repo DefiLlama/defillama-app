@@ -1,5 +1,5 @@
 import { DARK_MODE, TSETTINGTYPE, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { protocolsAndChainsOptions } from '~/components/Filters/options'
+import { tvlOptions } from '~/components/Filters/options'
 import { nftOptions } from '~/components/Filters/nfts/options'
 import { useRouter } from 'next/router'
 import { feesOptions } from '~/components/Filters/options'
@@ -107,8 +107,8 @@ const useAppSettings = (): {
 	}
 
 	if (router.pathname.startsWith('/protocol')) {
-		return { options: [...protocolsAndChainsOptions, ...feesOptions], dashboardType: 'tvl_fees' }
+		return { options: [...tvlOptions, ...feesOptions], dashboardType: 'tvl_fees' }
 	}
 
-	return { options: protocolsAndChainsOptions, dashboardType: 'tvl_fees' }
+	return { options: tvlOptions, dashboardType: 'tvl_fees' }
 }

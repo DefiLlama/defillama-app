@@ -93,10 +93,10 @@ export function toFilterPool({
 	}
 
 	const isValidTvlRange =
-		(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
+		(minTvl != null && !Number.isNaN(Number(minTvl))) || (maxTvl != null && !Number.isNaN(Number(maxTvl)))
 
 	const isValidApyRange =
-		(minApy !== undefined && !Number.isNaN(Number(minApy))) || (maxApy !== undefined && !Number.isNaN(Number(maxApy)))
+		(minApy != null && !Number.isNaN(Number(minApy))) || (maxApy != null && !Number.isNaN(Number(maxApy)))
 
 	if (isValidTvlRange) {
 		toFilter = toFilter && (minTvl ? curr.tvlUsd >= minTvl : true) && (maxTvl ? curr.tvlUsd <= maxTvl : true)
@@ -504,24 +504,24 @@ export const filterPool = ({
 	}
 
 	const isValidTvlRange =
-		(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
+		(minTvl != null && !Number.isNaN(Number(minTvl))) || (maxTvl != null && !Number.isNaN(Number(maxTvl)))
 
 	if (isValidTvlRange) {
 		toFilter = toFilter && (minTvl ? pool.farmTvlUsd >= minTvl : true) && (maxTvl ? pool.tvlUsd <= maxTvl : true)
 	}
 
 	const isValidAvailableRange =
-		(minAvailable !== undefined && !Number.isNaN(Number(minAvailable))) ||
-		(maxAvailable !== undefined && !Number.isNaN(Number(maxAvailable)))
+		(minAvailable != null && !Number.isNaN(Number(minAvailable))) ||
+		(maxAvailable != null && !Number.isNaN(Number(maxAvailable)))
 
 	if (isValidAvailableRange) {
 		toFilter =
 			toFilter &&
-			(minAvailable ? pool.borrow.totalAvailableUsd > minAvailable : true) &&
-			(maxAvailable ? pool.borrow.totalAvailableUsd < maxAvailable : true)
+			(minAvailable ? +(pool.borrow.totalAvailableUsd || 0) >= +minAvailable : true) &&
+			(maxAvailable ? +(pool.borrow.totalAvailableUsd || 0) <= +maxAvailable : true)
 	}
 
-	const isValidLtvValue = customLTV !== undefined && !Number.isNaN(Number(customLTV))
+	const isValidLtvValue = customLTV != null && !Number.isNaN(Number(customLTV))
 
 	if (isValidLtvValue && strategyPage) {
 		toFilter = toFilter && (customLTV ? Number(customLTV) > 0 && Number(customLTV) <= 100 : true)
