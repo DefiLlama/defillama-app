@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -11,11 +10,9 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { ITotalBorrowedByChainPageData } from './queries'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense } from 'react'
 
-const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<ILineAndBarChartProps>
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
 export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
 	return (
@@ -55,7 +52,9 @@ export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
 					</div>
 				</div>
 				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 pt-3">
-					<LineAndBarChart charts={props.charts} />
+					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+						<LineAndBarChart charts={props.charts} />
+					</Suspense>
 				</div>
 			</div>
 			<TableWithSearch
@@ -140,10 +139,7 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<BasicLink
-					href={`/protocols/${slug(getValue() as string)}`}
-					className="text-sm font-medium text-(--link-text)"
-				>
+				<BasicLink href={`/protocols/${slug(getValue() as string)}`} className="text-sm font-medium text-(--link-text)">
 					{getValue() as string}
 				</BasicLink>
 			) : (

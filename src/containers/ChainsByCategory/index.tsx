@@ -1,6 +1,5 @@
-import { Suspense, useMemo } from 'react'
+import * as React from 'react'
 import Layout from '~/layout'
-import dynamic from 'next/dynamic'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { toNiceCsvDate, download } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -15,13 +14,8 @@ import { ChainsByCategoryTable } from './Table'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Metrics } from '~/components/Metrics'
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
-
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 export function ChainsByCategory({
 	chainAssets,
@@ -38,49 +32,50 @@ export function ChainsByCategory({
 	const { minTvl, maxTvl } = query
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	const { dataByChain, pieChartData, chainsWithExtraTvlsAndDominanceByDay, chainsUniqueFiltered } = useMemo(() => {
-		// add extra tvls like staking pool2 based on toggles selected
-		const dataByChain = formatDataWithExtraTvls({
-			data: chains,
-			applyLqAndDc: true,
-			extraTvlsEnabled,
-			chainAssets
-		}).filter(
-			(chain) =>
-				(typeof minTvl === 'string' && minTvl !== '' ? chain.tvl >= +minTvl : true) &&
-				(typeof maxTvl === 'string' && maxTvl !== '' ? chain.tvl <= +maxTvl : true)
-		)
+	const { dataByChain, pieChartData, chainsWithExtraTvlsAndDominanceByDay, chainsUniqueFiltered } =
+		React.useMemo(() => {
+			// add extra tvls like staking pool2 based on toggles selected
+			const dataByChain = formatDataWithExtraTvls({
+				data: chains,
+				applyLqAndDc: true,
+				extraTvlsEnabled,
+				chainAssets
+			}).filter(
+				(chain) =>
+					(typeof minTvl === 'string' && minTvl !== '' ? chain.tvl >= +minTvl : true) &&
+					(typeof maxTvl === 'string' && maxTvl !== '' ? chain.tvl <= +maxTvl : true)
+			)
 
-		// format chains data to use in pie chart
-		const onlyChainTvls = dataByChain.map((chain) => ({
-			name: chain.name,
-			value: chain.tvl
-		}))
+			// format chains data to use in pie chart
+			const onlyChainTvls = dataByChain.map((chain) => ({
+				name: chain.name,
+				value: chain.tvl
+			}))
 
-		const chainsWithLowTvls = onlyChainTvls.slice(10).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
+			const chainsWithLowTvls = onlyChainTvls.slice(10).reduce((total, entry) => {
+				return (total += entry.value)
+			}, 0)
 
-		// limit chains in pie chart to 10 and remaining chains in others
-		const pieChartData = onlyChainTvls
-			.slice(0, 10)
-			.sort((a, b) => b.value - a.value)
-			.concat({ name: 'Others', value: chainsWithLowTvls })
+			// limit chains in pie chart to 10 and remaining chains in others
+			const pieChartData = onlyChainTvls
+				.slice(0, 10)
+				.sort((a, b) => b.value - a.value)
+				.concat({ name: 'Others', value: chainsWithLowTvls })
 
-		const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = groupDataWithTvlsByDay({
-			chains: stackedDataset,
-			tvlTypes,
-			extraTvlsEnabled
-		})
+			const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = groupDataWithTvlsByDay({
+				chains: stackedDataset,
+				tvlTypes,
+				extraTvlsEnabled
+			})
 
-		return {
-			dataByChain,
-			pieChartData,
-			chainsWithExtraTvlsByDay,
-			chainsWithExtraTvlsAndDominanceByDay,
-			chainsUniqueFiltered: chainsUnique.filter((chain) => (dataByChain.find((c) => c.name === chain) ? true : false))
-		}
-	}, [chains, chainAssets, extraTvlsEnabled, stackedDataset, tvlTypes, minTvl, maxTvl, chainsUnique])
+			return {
+				dataByChain,
+				pieChartData,
+				chainsWithExtraTvlsByDay,
+				chainsWithExtraTvlsAndDominanceByDay,
+				chainsUniqueFiltered: chainsUnique.filter((chain) => (dataByChain.find((c) => c.name === chain) ? true : false))
+			}
+		}, [chains, chainAssets, extraTvlsEnabled, stackedDataset, tvlTypes, minTvl, maxTvl, chainsUnique])
 
 	const downloadCsv = async () => {
 		window.alert('Data download might take up to 1 minute, click OK to proceed')
@@ -115,12 +110,12 @@ export function ChainsByCategory({
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="isolate relative rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px] flex flex-col">
 					<CSVDownloadButton onClick={downloadCsv} className="ml-auto absolute right-3 top-3 z-10" />
-					<Suspense fallback={<></>}>
+					<React.Suspense fallback={<></>}>
 						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
-					</Suspense>
+					</React.Suspense>
 				</div>
 				<div className="rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px]">
-					<Suspense fallback={<></>}>
+					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
 							stacks={chainsUniqueFiltered}
@@ -131,20 +126,17 @@ export function ChainsByCategory({
 							expandTo100Percent={true}
 							chartOptions={chartOptions}
 						/>
-					</Suspense>
+					</React.Suspense>
 				</div>
 			</div>
 
-			<Suspense
+			<React.Suspense
 				fallback={
-					<div
-						style={{ minHeight: `${groupedChains.length * 50 + 200}px` }}
-						className="bg-(--cards-bg) rounded-md"
-					/>
+					<div style={{ minHeight: `${groupedChains.length * 50 + 200}px` }} className="bg-(--cards-bg) rounded-md" />
 				}
 			>
 				<ChainsByCategoryTable data={groupedChains} />
-			</Suspense>
+			</React.Suspense>
 		</Layout>
 	)
 }

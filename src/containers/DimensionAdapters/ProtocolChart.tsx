@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { getDimensionProtocolPageData, IJoin2ReturnType } from '~/api/categories/adaptors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -13,10 +12,9 @@ import { useQuery } from '@tanstack/react-query'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
-const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<ILineAndBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 export const DimensionProtocolOverviewChart = ({
 	totalDataChart,
@@ -240,12 +238,14 @@ export const DimensionProtocolOverviewChart = ({
 					className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
-			<LineAndBarChart
-				charts={mainChartData.charts}
-				groupBy={
-					chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
-				}
-			/>
+			<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+				<LineAndBarChart
+					charts={mainChartData.charts}
+					groupBy={
+						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
+					}
+				/>
+			</React.Suspense>
 		</div>
 	)
 }
@@ -517,12 +517,14 @@ const ChartByType = ({
 					className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
-			<LineAndBarChart
-				charts={mainChartData.charts}
-				groupBy={
-					chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
-				}
-			/>
+			<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+				<LineAndBarChart
+					charts={mainChartData.charts}
+					groupBy={
+						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
+					}
+				/>
+			</React.Suspense>
 		</div>
 	)
 }

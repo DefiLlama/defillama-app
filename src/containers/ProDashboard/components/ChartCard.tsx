@@ -1,18 +1,14 @@
 import { Icon } from '~/components/Icon'
-import dynamic from 'next/dynamic'
 import { ChartConfig, CHART_TYPES, Chain, Protocol } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 import { getItemIconUrl, generateChartColor } from '../utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
-import { memo } from 'react'
+import { lazy, memo, Suspense } from 'react'
+import { IChartProps, IBarChartProps } from '~/components/ECharts/types'
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-})
+const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-})
+const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 interface ChartCardProps {
 	chart: ChartConfig
@@ -62,9 +58,17 @@ const ChartRenderer = memo(function ChartRenderer({
 	const chartType = CHART_TYPES[chart.type]
 
 	if (chartType.chartType === 'bar') {
-		return <BarChart chartData={data} valueSymbol="$" height="300px" color={color} hideDataZoom hideDownloadButton />
+		return (
+			<Suspense fallback={<></>}>
+				<BarChart chartData={data} valueSymbol="$" height="300px" color={color} hideDataZoom hideDownloadButton />
+			</Suspense>
+		)
 	} else {
-		return <AreaChart chartData={data} valueSymbol="$" color={color} height="300px" hideDataZoom hideDownloadButton />
+		return (
+			<Suspense fallback={<></>}>
+				<AreaChart chartData={data} valueSymbol="$" color={color} height="300px" hideDataZoom hideDownloadButton />
+			</Suspense>
+		)
 	}
 })
 

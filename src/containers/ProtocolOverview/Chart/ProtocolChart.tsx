@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import dynamic from 'next/dynamic'
 import { useLocalStorageSettingsManager, useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
@@ -12,9 +11,7 @@ import { transparentize } from 'polished'
 import { BasicLink } from '~/components/Link'
 import { IProtocolPageMetrics } from '../types'
 
-const AreaChart = dynamic(() => import('./Chart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = React.lazy(() => import('./Chart')) as React.FC<IChartProps>
 
 interface IProps {
 	protocol: string
@@ -537,29 +534,31 @@ export const ProtocolChartOnly = React.memo(function ProtocolChartOnly({
 			{!isRouterReady ? null : isLoading ? (
 				<p className="relative text-center top-[50%]">{`Fetching ${fetchingTypes.join(', ')} ...`}</p>
 			) : (
-				<AreaChart
-					chartData={chartData}
-					color={color}
-					title=""
-					valueSymbol={valueSymbol}
-					stacks={chartsUnique}
-					hallmarks={!(events === 'false') && hallmarks}
-					tooltipSort={false}
-					stackColors={chartColors}
-					style={
-						bobo
-							? {
-									backgroundImage: 'url("/bobo.png")',
-									backgroundSize: '100% 360px',
-									backgroundRepeat: 'no-repeat',
-									backgroundPosition: 'bottom'
-							  }
-							: undefined
-					}
-					unlockTokenSymbol={unlockTokenSymbol}
-					isThemeDark={isThemeDark}
-					groupBy={groupBy}
-				/>
+				<React.Suspense fallback={<></>}>
+					<AreaChart
+						chartData={chartData}
+						color={color}
+						title=""
+						valueSymbol={valueSymbol}
+						stacks={chartsUnique}
+						hallmarks={!(events === 'false') && hallmarks}
+						tooltipSort={false}
+						stackColors={chartColors}
+						style={
+							bobo
+								? {
+										backgroundImage: 'url("/bobo.png")',
+										backgroundSize: '100% 360px',
+										backgroundRepeat: 'no-repeat',
+										backgroundPosition: 'bottom'
+								  }
+								: undefined
+						}
+						unlockTokenSymbol={unlockTokenSymbol}
+						isThemeDark={isThemeDark}
+						groupBy={groupBy}
+					/>
+				</React.Suspense>
 			)}
 		</LazyChart>
 	)

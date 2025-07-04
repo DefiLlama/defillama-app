@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -14,10 +13,9 @@ import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly'] as const
 const CHART_TYPES = ['Volume', 'Dominance'] as const
 
-const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<ILineAndBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 const downloadBreakdownChart = async ({
 	adapterType,
@@ -150,7 +148,9 @@ export const AdapterByChainChart = ({
 				/>
 			</div>
 
-			<LineAndBarChart charts={charts} groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'} />
+			<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+				<LineAndBarChart charts={charts} groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'} />
+			</React.Suspense>
 		</div>
 	)
 }
@@ -239,13 +239,17 @@ export const ChainsByAdapterChart = ({
 			</>
 
 			{chartType === 'Dominance' ? (
-				<LineAndBarChart charts={charts} valueSymbol="%" expandTo100Percent chartOptions={chartOptions} />
+				<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+					<LineAndBarChart charts={charts} valueSymbol="%" expandTo100Percent chartOptions={chartOptions} />
+				</React.Suspense>
 			) : (
-				<LineAndBarChart
-					charts={charts}
-					chartOptions={chartOptions}
-					groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
-				/>
+				<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+					<LineAndBarChart
+						charts={charts}
+						chartOptions={chartOptions}
+						groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
+					/>
+				</React.Suspense>
 			)}
 		</div>
 	)

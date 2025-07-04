@@ -1,15 +1,11 @@
-import dynamic from 'next/dynamic'
 import { CHART_TYPES } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 import { Icon } from '~/components/Icon'
+import { lazy, Suspense } from 'react'
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-})
+const AreaChart = lazy(() => import('~/components/ECharts/AreaChart'))
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-})
+const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
 
 interface ChartPreviewProps {
 	data: [number, number][] | undefined
@@ -49,29 +45,33 @@ export function ChartPreview({ data, chartType, isLoading, hasError, itemName }:
 
 	if (chartTypeDetails.chartType === 'bar') {
 		return (
-			<BarChart
-				chartData={data}
-				valueSymbol="$"
-				height="320px"
-				color={chartTypeDetails.color}
-				hideDataZoom
-				hideDownloadButton
-				title=""
-				containerClassName="h-[320px]"
-			/>
+			<Suspense fallback={<></>}>
+				<BarChart
+					chartData={data}
+					valueSymbol="$"
+					height="320px"
+					color={chartTypeDetails.color}
+					hideDataZoom
+					hideDownloadButton
+					title=""
+					containerClassName="h-[320px]"
+				/>
+			</Suspense>
 		)
 	} else {
 		return (
-			<AreaChart
-				chartData={data}
-				valueSymbol="$"
-				color={chartTypeDetails.color}
-				height="320px"
-				hideDataZoom
-				hideDownloadButton
-				title=""
-				containerClassName="h-[320px]"
-			/>
+			<Suspense fallback={<></>}>
+				<AreaChart
+					chartData={data}
+					valueSymbol="$"
+					color={chartTypeDetails.color}
+					height="320px"
+					hideDataZoom
+					hideDownloadButton
+					title=""
+					containerClassName="h-[320px]"
+				/>
+			</Suspense>
 		)
 	}
 }

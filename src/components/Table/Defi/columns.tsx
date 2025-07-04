@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 import { Bookmark } from '~/components/Bookmark'
@@ -32,13 +32,10 @@ import type {
 	ILSDRow
 } from './types'
 import * as Ariakit from '@ariakit/react'
-import dynamic from 'next/dynamic'
 import { primaryColor } from '~/constants/colors'
-const UnconstrainedSmolLineChart = dynamic(
-	() => import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => m.UnconstrainedSmolLineChart),
-	{
-		ssr: false
-	}
+
+const UnconstrainedSmolLineChart = lazy(() =>
+	import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
 )
 export const forksColumn: ColumnDef<IForksRow>[] = [
 	{

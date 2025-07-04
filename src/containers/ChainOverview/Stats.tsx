@@ -2,23 +2,19 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { IChainOverviewData } from './types'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useFetchChainChartData } from './useFetchChainChartData'
 import { RowWithSubRows } from '~/containers/ProtocolOverview/RowWithSubRows'
 import { formatRaise, formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
-import { Fragment, memo, useMemo } from 'react'
+import { Fragment, lazy, memo, Suspense, useMemo } from 'react'
 import { Switch } from '~/components/Switch'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { EmbedChart } from '~/components/EmbedChart'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { chainOverviewChartSwitchColors } from './colors'
 
-const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]"></div>
-})
+const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart').then((m) => ({ default: m.ChainChart })))
 
 export const Stats = memo(function Stats(props: IChainOverviewData) {
 	const router = useRouter()
@@ -857,7 +853,9 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						<p>Loading...</p>
 					</div>
 				) : (
-					<ChainChart datasets={chartDatasets} title="" denomination={denomination} isThemeDark={darkMode} />
+					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+						<ChainChart datasets={chartDatasets} title="" denomination={denomination} isThemeDark={darkMode} />
+					</Suspense>
 				)}
 			</div>
 		</div>

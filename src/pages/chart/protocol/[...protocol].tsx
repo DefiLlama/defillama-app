@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { useEffect, useMemo } from 'react'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
@@ -7,15 +7,11 @@ import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queri
 import { slug } from '~/utils'
 import { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
 import { maxAgeForNext } from '~/api'
-import dynamic from 'next/dynamic'
 import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChartNew'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
 const { protocolMetadata } = metadata
 
-const ProtocolLineBarChart = dynamic(() => import('~/containers/ProtocolOverview/Chart/Chart2'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<any>
+const ProtocolLineBarChart = lazy(() => import('~/containers/ProtocolOverview/Chart/Chart2')) as React.FC<any>
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
@@ -167,15 +163,17 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 					fetching {loadingCharts}...
 				</p>
 			) : (
-				<ProtocolLineBarChart
-					chartData={finalCharts}
-					chartColors={props.chartColors}
-					isThemeDark={isThemeDark}
-					valueSymbol={valueSymbol}
-					groupBy={groupBy}
-					hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
-					unlockTokenSymbol={props.token.symbol}
-				/>
+				<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+					<ProtocolLineBarChart
+						chartData={finalCharts}
+						chartColors={props.chartColors}
+						isThemeDark={isThemeDark}
+						valueSymbol={valueSymbol}
+						groupBy={groupBy}
+						hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
+						unlockTokenSymbol={props.token.symbol}
+					/>
+				</Suspense>
 			)}
 		</div>
 	)

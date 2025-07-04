@@ -1,8 +1,7 @@
 import { useRouter } from 'next/router'
 import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
@@ -24,10 +23,7 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
-const ProtocolLineBarChart = dynamic(() => import('./Chart2'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<any>
+const ProtocolLineBarChart = lazy(() => import('./Chart2')) as React.FC<any>
 
 // Utility function to update any query parameter in URL
 const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: string): string => {
@@ -369,15 +365,17 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 						fetching {loadingCharts}...
 					</p>
 				) : (
-					<ProtocolLineBarChart
-						chartData={finalCharts}
-						chartColors={props.chartColors}
-						isThemeDark={isThemeDark}
-						valueSymbol={valueSymbol}
-						groupBy={groupBy}
-						hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
-						unlockTokenSymbol={props.token.symbol}
-					/>
+					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+						<ProtocolLineBarChart
+							chartData={finalCharts}
+							chartColors={props.chartColors}
+							isThemeDark={isThemeDark}
+							valueSymbol={valueSymbol}
+							groupBy={groupBy}
+							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
+							unlockTokenSymbol={props.token.symbol}
+						/>
+					</Suspense>
 				)}
 			</div>
 		</div>

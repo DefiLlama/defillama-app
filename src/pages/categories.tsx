@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
@@ -17,10 +16,9 @@ import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/L
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { protocolsAndChainsOptions } from '~/components/Filters/options'
 
-const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<ILineAndBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const [{ protocols }, revenueData, { chart, categories: protocolsByCategory }] = await Promise.all([
@@ -450,7 +448,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					/>
 				</div>
 				<div className="bg-(--cards-bg) rounded-md relative">
-					<React.Suspense fallback={<></>}>
+					<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
 						<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
 					</React.Suspense>
 				</div>

@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import { lazy, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
@@ -8,15 +7,9 @@ import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~
 import { getColorFromNumber } from '~/utils'
 import { useEffect } from 'react'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false,
-	loading: () => <></>
-})
+const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false,
-	loading: () => <></>
-})
+const AreaChart = lazy(() => import('~/components/ECharts/AreaChart'))
 
 const PageView = () => {
 	const router = useRouter()
@@ -235,6 +228,7 @@ const PageView = () => {
 // 						<>
 // 							{barChartDataSupply?.length ? (
 // 								<LazyChart>
+//									<Suspense fallback={<></>}>
 // 									<BarChart
 // 										title="Supply APY"
 // 										chartData={barChartDataSupply}
@@ -242,10 +236,12 @@ const PageView = () => {
 // 										stackColors={barChartColors}
 // 										valueSymbol={'%'}
 // 									/>
+// 								</Suspense>
 // 								</LazyChart>
 // 							) : null}
 
 // 							<LazyChart>
+//								<Suspense fallback={<></>}>
 // 								<BarChart
 // 									title="Borrow APY"
 // 									chartData={barChartDataBorrow}
@@ -253,10 +249,12 @@ const PageView = () => {
 // 									stackColors={barChartColors}
 // 									valueSymbol={'%'}
 // 								/>
+// 								</Suspense>
 // 							</LazyChart>
 
 // 							{areaChartData?.length ? (
 // 								<LazyChart>
+//								<Suspense fallback={<></>}>
 // 									<AreaChart
 // 										chartData={areaChartData}
 // 										title="Pool Liquidity"
@@ -265,6 +263,7 @@ const PageView = () => {
 // 										valueSymbol="$"
 // 										stackColors={colors}
 // 									/>
+// 								</Suspense>
 // 								</LazyChart>
 // 							) : null}
 // 						</>

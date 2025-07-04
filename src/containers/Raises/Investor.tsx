@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import {
 	useReactTable,
@@ -24,13 +23,9 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { oldBlue } from '~/constants/colors'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const columnResizeMode = 'onChange'
 
@@ -185,16 +180,22 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 					</details>
 				</div>
 				<div className="bg-(--cards-bg) rounded-md col-span-2 min-h-[360px]">
-					<BarChart chartData={fundingRoundsByMonth} title="" groupBy="monthly" color={oldBlue} valueSymbol="" />
+					<React.Suspense fallback={<></>}>
+						<BarChart chartData={fundingRoundsByMonth} title="" groupBy="monthly" color={oldBlue} valueSymbol="" />
+					</React.Suspense>
 				</div>
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
 				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-(--cards-bg) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
+					<React.Suspense fallback={<></>}>
+						<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
+					</React.Suspense>
 				</LazyChart>
 				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-(--cards-bg) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
+					<React.Suspense fallback={<></>}>
+						<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
+					</React.Suspense>
 				</LazyChart>
 			</div>
 

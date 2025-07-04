@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { YieldFiltersV2 } from './Filters'
-import dynamic from 'next/dynamic'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 
@@ -9,18 +8,10 @@ interface IChartProps {
 	chartData: any
 }
 
-const ScatterChart = dynamic(() => import('~/components/ECharts/ScatterChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
-const BoxplotChart = dynamic(() => import('~/components/ECharts/BoxplotChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
-const TreemapChart = dynamic(() => import('~/components/ECharts/TreemapChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
-const BarChartYields = dynamic(() => import('~/components/ECharts/BarChart/Yields'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const ScatterChart = React.lazy(() => import('~/components/ECharts/ScatterChart')) as React.FC<IChartProps>
+const BoxplotChart = React.lazy(() => import('~/components/ECharts/BoxplotChart')) as React.FC<IChartProps>
+const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<IChartProps>
+const BarChartYields = React.lazy(() => import('~/components/ECharts/BarChart/Yields')) as React.FC<IChartProps>
 
 export const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens, tokenSymbolsList }) => {
 	const { query, pathname } = useRouter()
@@ -101,10 +92,18 @@ export const PlotsPage = ({ pools, chainList, projectList, categoryList, median,
 				resetFilters={true}
 			/>
 
-			<BarChartYields chartData={median} />
-			<TreemapChart chartData={poolsData} />
-			<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
-			<BoxplotChart chartData={poolsData.filter((p) => !p.outlier)} />
+			<React.Suspense fallback={<></>}>
+				<BarChartYields chartData={median} />
+			</React.Suspense>
+			<React.Suspense fallback={<></>}>
+				<TreemapChart chartData={poolsData} />
+			</React.Suspense>
+			<React.Suspense fallback={<></>}>
+				<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
+			</React.Suspense>
+			<React.Suspense fallback={<></>}>
+				<BoxplotChart chartData={poolsData.filter((p) => !p.outlier)} />
+			</React.Suspense>
 		</>
 	)
 }

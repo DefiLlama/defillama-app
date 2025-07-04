@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { LazyChart } from '~/components/LazyChart'
 import type { IBarChartProps } from '~/components/ECharts/types'
@@ -12,9 +11,7 @@ function decode(str: string) {
 	return str.match(/.{1,4}/g)?.map((g) => fromB64(g.replaceAll('=', '')))
 }
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 export default function AdapterTest() {
 	const router = useRouter()
@@ -25,7 +22,9 @@ export default function AdapterTest() {
 			<Announcement>This page is just used for tests, don't trust anything on this page</Announcement>
 			<div className="grid grid-cols-2 rounded-xl bg-(--bg6) shadow-sm">
 				<LazyChart>
-					<BarChart chartData={chartData} title="Data" />
+					<React.Suspense fallback={<></>}>
+						<BarChart chartData={chartData} title="Data" />
+					</React.Suspense>
 				</LazyChart>
 			</div>
 		</Layout>

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
@@ -19,9 +18,9 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
-const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
-	ssr: false
-}) as React.FC<any>
+const ChainChart: any = React.lazy(() =>
+	import('~/containers/ChainOverview/Chart').then((m) => ({ default: m.ChainChart }))
+)
 
 const CustomOption = ({ innerProps, label, data }) => (
 	<div {...innerProps} style={{ display: 'flex', margin: '8px', cursor: 'pointer' }}>

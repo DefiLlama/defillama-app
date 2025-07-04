@@ -13,16 +13,15 @@ import { useStackBy } from './utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Image from 'next/image'
 import boboLogo from '~/assets/boboSmug.png'
-import dynamic from 'next/dynamic'
 import { StackBySwitch } from './StackBySwitch'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download } from '~/utils'
 import { Switch } from '~/components/Switch'
 import { Icon } from '~/components/Icon'
 
-const LiquidationsChart = dynamic(() => import('./LiquidationsChart').then((module) => module.LiquidationsChart), {
-	ssr: false
-}) as React.FC<any>
+const LiquidationsChart = React.lazy(() =>
+	import('./LiquidationsChart').then((module) => ({ default: module.LiquidationsChart }))
+) as React.FC<any>
 
 export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData }) => {
 	const { data, prevData } = props
@@ -60,7 +59,9 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					<span className="sr-only">Enable Goblin Mode</span>
 					<Image src={boboLogo} width={34} height={34} alt="bobo cheers" className="min-h-[34px] w-[34px]" />
 				</button>
-				<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
+				<React.Suspense fallback={<></>}>
+					<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
+				</React.Suspense>
 				<LastUpdated data={data} />
 			</div>
 		</div>

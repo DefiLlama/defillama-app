@@ -3,7 +3,6 @@ import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
 import { formattedNum } from '~/utils'
-import dynamic from 'next/dynamic'
 import { generateCalendarDays, generateWeekDays } from './utils/calendarUtils'
 import { DAYS_OF_WEEK } from './constants'
 import { CalendarViewProps, DayInfo } from './types'
@@ -12,11 +11,12 @@ import { CalendarDayCell } from './components/CalendarDayCell'
 import { WeekDayColumn } from './components/WeekDayColumn'
 import { UnlocksListView } from './components/UnlocksListView'
 import { LazyChart } from '~/components/LazyChart'
+import { lazy, Suspense } from 'react'
 
 dayjs.extend(isBetween)
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), { ssr: false })
-const UnlocksTreemapChart = dynamic(() => import('~/components/ECharts/UnlocksTreemapChart'), { ssr: false })
+const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
+const UnlocksTreemapChart = lazy(() => import('~/components/ECharts/UnlocksTreemapChart'))
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomputedData }) => {
 	const [currentDate, setCurrentDate] = React.useState(dayjs())
@@ -185,128 +185,134 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 			{viewMode === 'week' && weeklyChartData && (
 				<div className="mb-4 min-h-[350px]">
 					<LazyChart>
-						<BarChart
-							chartData={weeklyChartData.chartData}
-							stacks={weeklyChartData.stacks}
-							stackColors={weeklyChartData.stackColors}
-							valueSymbol="$"
-							height="300px"
-							chartOptions={{
-								tooltip: {
-									trigger: 'axis',
-									formatter: (params: any) => {
-										if (!params || params.length === 0) return ''
+						<Suspense fallback={<></>}>
+							<BarChart
+								chartData={weeklyChartData.chartData}
+								stacks={weeklyChartData.stacks}
+								stackColors={weeklyChartData.stackColors}
+								valueSymbol="$"
+								height="300px"
+								chartOptions={{
+									tooltip: {
+										trigger: 'axis',
+										formatter: (params: any) => {
+											if (!params || params.length === 0) return ''
 
-										const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
-										let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
-										let totalValue = 0
+											const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
+											let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
+											let totalValue = 0
 
-										const validParams = params
-											.filter((param) => param.value && param.value[1] > 0)
-											.sort((a, b) => b.value[1] - a.value[1])
+											const validParams = params
+												.filter((param) => param.value && param.value[1] > 0)
+												.sort((a, b) => b.value[1] - a.value[1])
 
-										if (validParams.length === 0) {
-											tooltipContent += 'No unlocks'
-										} else {
-											validParams.forEach((param) => {
-												const value = param.value[1]
-												totalValue += value
-												tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+											if (validParams.length === 0) {
+												tooltipContent += 'No unlocks'
+											} else {
+												validParams.forEach((param) => {
+													const value = param.value[1]
+													totalValue += value
+													tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 													<span>${param.marker} ${param.seriesName}</span>
 													<span style="font-weight: 500;">${formattedNum(value, true)}</span>
 												</div>`
-											})
-											if (validParams.length > 1) {
-												tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+												})
+												if (validParams.length > 1) {
+													tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 													<span><strong>Total</strong></span>
 													<span style="font-weight: 600;">${formattedNum(totalValue, true)}</span>
 												</div>`
+												}
 											}
-										}
 
-										return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+											return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+										}
+									},
+									legend: {
+										type: 'scroll',
+										bottom: 0,
+										left: 'center',
+										itemGap: 15
+									},
+									grid: {
+										bottom: 40
 									}
-								},
-								legend: {
-									type: 'scroll',
-									bottom: 0,
-									left: 'center',
-									itemGap: 15
-								},
-								grid: {
-									bottom: 40
-								}
-							}}
-						/>
+								}}
+							/>
+						</Suspense>
 					</LazyChart>
 				</div>
 			)}
 
 			{viewMode === 'treemap' ? (
 				<LazyChart className="h-[600px]">
-					<UnlocksTreemapChart unlocksData={unlocksData} height="600px" filterYear={currentDate.year()} />
+					<Suspense fallback={<></>}>
+						<UnlocksTreemapChart unlocksData={unlocksData} height="600px" filterYear={currentDate.year()} />
+					</Suspense>
 				</LazyChart>
 			) : viewMode === 'month' ? (
 				<>
 					{monthlyChartData && (
 						<div className="mb-4 min-h-[350px]">
 							<LazyChart>
-								<BarChart
-									chartData={monthlyChartData.chartData}
-									stacks={monthlyChartData.stacks}
-									stackColors={monthlyChartData.stackColors}
-									valueSymbol="$"
-									height="300px"
-									chartOptions={{
-										tooltip: {
-											trigger: 'axis',
-											formatter: (params: any) => {
-												if (!params || params.length === 0) return ''
+								<Suspense fallback={<></>}>
+									<BarChart
+										chartData={monthlyChartData.chartData}
+										stacks={monthlyChartData.stacks}
+										stackColors={monthlyChartData.stackColors}
+										valueSymbol="$"
+										height="300px"
+										chartOptions={{
+											tooltip: {
+												trigger: 'axis',
+												formatter: (params: any) => {
+													if (!params || params.length === 0) return ''
 
-												const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
-												let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
-												let totalValue = 0
+													const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
+													let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
+													let totalValue = 0
 
-												const validParams = params
-													.filter((param) => param.value && param.value[1] > 0)
-													.sort((a, b) => b.value[1] - a.value[1])
+													const validParams = params
+														.filter((param) => param.value && param.value[1] > 0)
+														.sort((a, b) => b.value[1] - a.value[1])
 
-												if (validParams.length === 0) {
-													tooltipContent += 'No unlocks'
-												} else {
-													validParams.forEach((param) => {
-														const value = param.value[1]
-														totalValue += value
-														tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+													if (validParams.length === 0) {
+														tooltipContent += 'No unlocks'
+													} else {
+														validParams.forEach((param) => {
+															const value = param.value[1]
+															totalValue += value
+															tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 															<span>${param.marker} ${param.seriesName}</span>
 															<span style="font-weight: 500;">${formattedNum(value, true)}</span>
 														</div>`
-													})
-													if (validParams.length > 1) {
-														tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+														})
+														if (validParams.length > 1) {
+															tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 															<span><strong>Total</strong></span>
 															<span style="font-weight: 600;">${formattedNum(totalValue, true)}</span>
 														</div>`
+														}
 													}
-												}
 
-												return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+													return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
+												}
+											},
+											legend: {
+												type: 'scroll',
+												bottom: 0,
+												left: 'center',
+												itemGap: 15
+											},
+											grid: {
+												bottom: 40
+											},
+											xAxis: {
+												type: 'time'
 											}
-										},
-										legend: {
-											type: 'scroll',
-											bottom: 0,
-											left: 'center',
-											itemGap: 15
-										},
-										grid: {
-											bottom: 40
-										},
-										xAxis: {
-											type: 'time'
-										}
-									}}
-								/>
+										}}
+									/>
+								</Suspense>
 							</LazyChart>
 						</div>
 					)}

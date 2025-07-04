@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
@@ -22,20 +21,11 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { defaultProtocolPageStyles } from '~/containers/ProtocolOverview/Chart/constants'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<IBarChartProps>
+const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<IChartProps>
+const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const Chart = dynamic(() => import('~/components/ECharts/AreaChart2'), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<IChartProps>
+const Chart = lazy(() => import('~/components/ECharts/AreaChart2')) as React.FC<IChartProps>
 
 const getRatingColor = (rating) => {
 	switch (rating?.toLowerCase()) {
@@ -455,23 +445,27 @@ const PageView = (props) => {
 					<>
 						{barChartData?.length ? (
 							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<BarChart
-									title="Supply APY"
-									chartData={barChartData}
-									stacks={barChartStacks}
-									stackColors={barChartColors}
-									valueSymbol={'%'}
-								/>
+								<Suspense fallback={<></>}>
+									<BarChart
+										title="Supply APY"
+										chartData={barChartData}
+										stacks={barChartStacks}
+										stackColors={barChartColors}
+										valueSymbol={'%'}
+									/>
+								</Suspense>
 							</LazyChart>
 						) : null}
 						{areaChartData.length ? (
 							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<AreaChart
-									title="7 day moving average of Supply APY"
-									chartData={areaChartData}
-									color={backgroundColor}
-									valueSymbol={'%'}
-								/>
+								<Suspense fallback={<></>}>
+									<AreaChart
+										title="7 day moving average of Supply APY"
+										chartData={areaChartData}
+										color={backgroundColor}
+										valueSymbol={'%'}
+									/>
+								</Suspense>
 							</LazyChart>
 						) : null}
 					</>
@@ -485,36 +479,42 @@ const PageView = (props) => {
 					<>
 						{areaChartDataBorrow?.length ? (
 							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<BarChart
-									title="Borrow APY"
-									chartData={barChartDataBorrow}
-									stacks={barChartStacks}
-									stackColors={barChartColors}
-									valueSymbol={'%'}
-								/>
+								<Suspense fallback={<></>}>
+									<BarChart
+										title="Borrow APY"
+										chartData={barChartDataBorrow}
+										stacks={barChartStacks}
+										stackColors={barChartColors}
+										valueSymbol={'%'}
+									/>
+								</Suspense>
 							</LazyChart>
 						) : null}
 						{areaChartDataBorrow.length ? (
 							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<AreaChart
-									title="Net Borrow APY"
-									chartData={netBorrowChartData}
-									color={backgroundColor}
-									valueSymbol={'%'}
-								/>
+								<Suspense fallback={<></>}>
+									<AreaChart
+										title="Net Borrow APY"
+										chartData={netBorrowChartData}
+										color={backgroundColor}
+										valueSymbol={'%'}
+									/>
+								</Suspense>
 							</LazyChart>
 						) : null}
 
 						{areaChartDataBorrow?.length ? (
 							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<AreaChart
-									chartData={areaChartDataBorrow}
-									title="Pool Liquidity"
-									customLegendName="Filter"
-									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
-									valueSymbol="$"
-									stackColors={liquidityChartColors}
-								/>
+								<Suspense fallback={<></>}>
+									<AreaChart
+										chartData={areaChartDataBorrow}
+										title="Pool Liquidity"
+										customLegendName="Filter"
+										customLegendOptions={['Supplied', 'Borrowed', 'Available']}
+										valueSymbol="$"
+										stackColors={liquidityChartColors}
+									/>
+								</Suspense>
 							</LazyChart>
 						) : null}
 					</>

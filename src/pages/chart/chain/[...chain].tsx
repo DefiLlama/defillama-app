@@ -1,6 +1,5 @@
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { getChainPageData } from '~/api/categories/chains'
 import { LocalLoader } from '~/components/LocalLoader'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -12,9 +11,7 @@ import metadata from '~/utils/metadata'
 import { slug } from '~/utils'
 const { chainMetadata } = metadata
 
-const ChainChart: any = dynamic(() => import('~/containers/ChainOverview/Chart').then((m) => m.ChainChart), {
-	ssr: false
-})
+const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart').then((m) => ({ default: m.ChainChart })))
 
 export const getStaticProps = withPerformanceLogging(
 	'chart/chain/[...chain]',
@@ -113,7 +110,9 @@ export default function ChainChartPage({
 					<LocalLoader />
 				</div>
 			) : (
-				<ChainChart datasets={chartDatasets} title="" denomination={denomination} isThemeDark={isThemeDark} />
+				<Suspense fallback={<></>}>
+					<ChainChart datasets={chartDatasets} title="" denomination={denomination} isThemeDark={isThemeDark} />
+				</Suspense>
 			)}
 		</>
 	)

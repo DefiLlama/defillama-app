@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { Announcement } from '~/components/Announcement'
@@ -13,9 +12,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { oldBlue } from '~/constants/colors'
 import { Metrics } from '~/components/Metrics'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname } = useRouter()
@@ -74,7 +71,9 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</div>
 
 				<div className="bg-(--cards-bg) rounded-md col-span-2 min-h-[360px] ">
-					<BarChart chartData={monthlyInvestment} title="" valueSymbol="$" color={oldBlue} groupBy="monthly" />
+					<React.Suspense fallback={<></>}>
+						<BarChart chartData={monthlyInvestment} title="" valueSymbol="$" color={oldBlue} groupBy="monthly" />
+					</React.Suspense>
 				</div>
 			</div>
 

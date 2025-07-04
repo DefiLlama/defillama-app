@@ -6,7 +6,6 @@ import { SEO } from '~/components/SEO'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
-import dynamic from 'next/dynamic'
 import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
@@ -14,12 +13,8 @@ import { VirtualTable } from '~/components/Table/Table'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Metrics } from '~/components/Metrics'
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')
@@ -139,24 +134,28 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 
 						{chartType !== 'inflows' ? (
 							<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>
-								<PieChart
-									chartData={tokens.map(([name, value]: [string, string]) => ({
-										name,
-										value: +value
-									}))}
-									usdFormat={false}
-								/>
+								<React.Suspense fallback={<></>}>
+									<PieChart
+										chartData={tokens.map(([name, value]: [string, string]) => ({
+											name,
+											value: +value
+										}))}
+										usdFormat={false}
+									/>
+								</React.Suspense>
 							</div>
 						) : (
 							<div className="w-full">
-								<BarChart
-									chartData={inflows}
-									title=""
-									hideDefaultLegend={true}
-									customLegendName="Token"
-									customLegendOptions={tokenInflowNames}
-									// chartOptions={inflowsChartOptions}
-								/>
+								<React.Suspense fallback={<></>}>
+									<BarChart
+										chartData={inflows}
+										title=""
+										hideDefaultLegend={true}
+										customLegendName="Token"
+										customLegendOptions={tokenInflowNames}
+										// chartOptions={inflowsChartOptions}
+									/>
+								</React.Suspense>
 							</div>
 						)}
 					</div>

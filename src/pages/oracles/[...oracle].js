@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import { lazy, Suspense, useMemo } from 'react'
 import Layout from '~/layout'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { formatChartTvlsByDay } from '~/hooks/data'
@@ -14,10 +13,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { oldBlue } from '~/constants/colors'
 import { protocolsOracleColumns } from '~/components/Table/Defi/Protocols/columns'
 
-const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
-	ssr: false,
-	loading: () => <></>
-})
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 export const getStaticProps = withPerformanceLogging(
 	'oracles/[...oracle]',
@@ -61,10 +57,10 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 			extraTvlsEnabled
 		})
 
-		const protocolsData = dataWithTvs.map(p => ({
+		const protocolsData = dataWithTvs.map((p) => ({
 			...p,
 			tvs: p.tvs ?? p.tvl ?? 0
-		}));
+		}))
 
 		const finalChartData = formatChartTvlsByDay({ data: chainChartData || chartData, extraTvlsEnabled, key: 'TVS' })
 
@@ -114,7 +110,9 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 				</div>
 
 				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[360px]">
-					<LineAndBarChart charts={charts} alwaysShowTooltip />
+					<Suspense fallback={<></>}>
+						<LineAndBarChart charts={charts} alwaysShowTooltip />
+					</Suspense>
 				</div>
 			</div>
 

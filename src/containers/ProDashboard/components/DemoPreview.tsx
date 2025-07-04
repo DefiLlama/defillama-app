@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import MultiChartCard from './MultiChartCard'
 import { TextCard } from './TextCard'
 import { ProtocolsByChainTable } from './ProTable'
@@ -6,24 +6,15 @@ import { ChartPreview } from './ChartPreview'
 import { Icon } from '~/components/Icon'
 import Link from 'next/link'
 import type { ChartConfig, MultiChartConfig, TextConfig } from '../types'
-import dynamic from 'next/dynamic'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from '../types'
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-})
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart'))
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-})
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart'))
 
-const MultiSeriesChart = dynamic(() => import('~/components/ECharts/MultiSeriesChart'), {
-	ssr: false
-})
+const MultiSeriesChart = React.lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-})
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 
 const generateFakeChartData = (baseValue: number, volatility: number = 0.1): [string, number][] => {
 	const data: [string, number][] = []
@@ -73,23 +64,27 @@ const DemoChartCard = ({ chart }: { chart: ChartConfig }) => {
 
 				<div style={{ height: '300px', flexGrow: 1 }}>
 					{chartTypeDetails.chartType === 'bar' ? (
-						<BarChart
-							chartData={fakeData}
-							valueSymbol="$"
-							height="300px"
-							color={chartTypeDetails.color}
-							hideDataZoom
-							hideDownloadButton
-						/>
+						<React.Suspense fallback={<></>}>
+							<BarChart
+								chartData={fakeData}
+								valueSymbol="$"
+								height="300px"
+								color={chartTypeDetails.color}
+								hideDataZoom
+								hideDownloadButton
+							/>
+						</React.Suspense>
 					) : (
-						<AreaChart
-							chartData={fakeData}
-							valueSymbol="$"
-							color={chartTypeDetails.color}
-							height="300px"
-							hideDataZoom
-							hideDownloadButton
-						/>
+						<React.Suspense fallback={<></>}>
+							<AreaChart
+								chartData={fakeData}
+								valueSymbol="$"
+								color={chartTypeDetails.color}
+								height="300px"
+								hideDataZoom
+								hideDownloadButton
+							/>
+						</React.Suspense>
 					)}
 				</div>
 			</div>
@@ -126,7 +121,9 @@ const DemoMultiChartCard = ({ multi }: { multi: MultiChartConfig }) => {
 				</div>
 
 				<div style={{ height: '300px', flexGrow: 1 }}>
-					<MultiSeriesChart series={series} valueSymbol="$" hideDataZoom={true} />
+					<React.Suspense fallback={<></>}>
+						<MultiSeriesChart series={series} valueSymbol="$" hideDataZoom={true} />
+					</React.Suspense>
 				</div>
 			</div>
 		</div>
@@ -397,12 +394,7 @@ export const DemoPreview = () => {
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
 							{features.map((feature, index) => (
 								<div key={index} className="flex items-center gap-2 text-sm text-(--text2)">
-									<Icon
-										name={feature.icon as any}
-										height={16}
-										width={16}
-										className="text-(--primary1) shrink-0"
-									/>
+									<Icon name={feature.icon as any} height={16} width={16} className="text-(--primary1) shrink-0" />
 									<span className="whitespace-nowrap">{feature.text}</span>
 								</div>
 							))}
@@ -463,11 +455,7 @@ export const DemoPreview = () => {
 
 						<div className="md:col-span-2 min-h-[400px]">
 							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
-								<ProtocolsByChainTable 
-									tableId="demo-ethereum-protocols" 
-									chains={['Ethereum']} 
-									colSpan={2}
-								/>
+								<ProtocolsByChainTable tableId="demo-ethereum-protocols" chains={['Ethereum']} colSpan={2} />
 							</div>
 						</div>
 

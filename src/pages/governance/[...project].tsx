@@ -11,7 +11,6 @@ import {
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
-import dynamic from 'next/dynamic'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { formatGovernanceData } from '~/api/categories/protocols'
 import { GovernanceTable } from '~/containers/ProtocolOverview/Governance'
@@ -24,9 +23,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 export const getStaticProps = withPerformanceLogging(
 	'governance/[...project]',
@@ -171,15 +168,24 @@ export default function Protocol({ data, governanceType }) {
 
 				<div className="grid grid-cols-2">
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<BarChart title={'Activity'} chartData={data.activity} stacks={simpleStack} stackColors={barChartColors} />
+						<React.Suspense fallback={<></>}>
+							<BarChart
+								title={'Activity'}
+								chartData={data.activity}
+								stacks={simpleStack}
+								stackColors={barChartColors}
+							/>
+						</React.Suspense>
 					</LazyChart>
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<BarChart
-							title={'Max Votes'}
-							chartData={data.maxVotes}
-							stacks={maxVotesStack}
-							stackColors={barChartColors}
-						/>
+						<React.Suspense fallback={<></>}>
+							<BarChart
+								title={'Max Votes'}
+								chartData={data.maxVotes}
+								stacks={maxVotesStack}
+								stackColors={barChartColors}
+							/>
+						</React.Suspense>
 					</LazyChart>
 				</div>
 

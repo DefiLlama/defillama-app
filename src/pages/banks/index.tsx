@@ -1,16 +1,13 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import data from './final.json'
-import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { toNiceDateYear } from '~/utils'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { sortingFns } from '@tanstack/react-table'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<any>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<any>
 
 const banksTableColumns = [
 	{
@@ -62,11 +59,13 @@ const Banks = () => {
 		<Layout title="Bank Failures">
 			<ProtocolsChainsSearch />
 			<div className="relative col-span-2 bg-(--cards-bg) rounded-md p-3 min-h-[384px]">
-				<BarChart
-					chartData={Object.entries(data.years).map((t) => [new Date(t[0]).getTime() / 1e3, t[1] * 1e6])}
-					title="Assets of failed banks (inflation adjusted)"
-					valueSymbol="$"
-				/>
+				<React.Suspense fallback={<></>}>
+					<BarChart
+						chartData={Object.entries(data.years).map((t) => [new Date(t[0]).getTime() / 1e3, t[1] * 1e6])}
+						title="Assets of failed banks (inflation adjusted)"
+						valueSymbol="$"
+					/>
+				</React.Suspense>
 			</div>
 			<TableWithSearch
 				data={tableData}

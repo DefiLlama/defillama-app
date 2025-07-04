@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
@@ -12,17 +11,11 @@ interface IChartProps {
 	title?: string
 }
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart/NonTimeSeries'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart/NonTimeSeries')) as React.FC<IBarChartProps>
 
-const TreemapChart = dynamic(() => import('~/components/ECharts/TreemapChart2'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart2')) as React.FC<IChartProps>
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IAreaChartProps>
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IAreaChartProps>
 
 // for linechart
 function calculateDenominatedChange(data, denominatedCoin) {
@@ -186,24 +179,30 @@ export const CategoryPerformanceContainer = ({
 
 				<div className="min-h-[360px]">
 					{tab === 'barchart' ? (
-						<BarChart title="" chartData={barChart} valueSymbol="%" height="533px" />
+						<React.Suspense fallback={<></>}>
+							<BarChart title="" chartData={barChart} valueSymbol="%" height="533px" />
+						</React.Suspense>
 					) : tab === 'linechart' ? (
-						<AreaChart
-							title=""
-							chartData={lineChart}
-							stacks={areaChartLegend}
-							valueSymbol="%"
-							hideDefaultLegend={true}
-							hideGradient={true}
-							customLegendName={isCoinPage ? 'Coin' : 'Category'}
-							customLegendOptions={areaChartLegend}
-							tooltipValuesRelative
-							hideOthersInTooltip
-							chartOptions={areaChartoptions}
-							height="533px"
-						/>
+						<React.Suspense fallback={<></>}>
+							<AreaChart
+								title=""
+								chartData={lineChart}
+								stacks={areaChartLegend}
+								valueSymbol="%"
+								hideDefaultLegend={true}
+								hideGradient={true}
+								customLegendName={isCoinPage ? 'Coin' : 'Category'}
+								customLegendOptions={areaChartLegend}
+								tooltipValuesRelative
+								hideOthersInTooltip
+								chartOptions={areaChartoptions}
+								height="533px"
+							/>
+						</React.Suspense>
 					) : (
-						<TreemapChart chartData={treemapChart} />
+						<React.Suspense fallback={<></>}>
+							<TreemapChart chartData={treemapChart} />
+						</React.Suspense>
 					)}
 				</div>
 

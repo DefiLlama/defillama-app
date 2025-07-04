@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
@@ -22,10 +21,9 @@ import {
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
+import { lazy, Suspense } from 'react'
 
-const MultiChartCard = dynamic(() => import('./MultiChartCard'), {
-	ssr: false
-})
+const MultiChartCard = lazy(() => import('./MultiChartCard'))
 
 interface ChartGridProps {
 	onAddChartClick: () => void
@@ -65,7 +63,11 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		}
 
 		if (item.kind === 'multi') {
-			return <MultiChartCard multi={item} />
+			return (
+				<Suspense fallback={<></>}>
+					<MultiChartCard multi={item} />
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'text') {

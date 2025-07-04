@@ -1,30 +1,23 @@
-import dynamic from 'next/dynamic'
 import { IChainOverviewData } from './types'
-import { Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { formattedNum, getPercentChange, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { BasicLink } from '~/components/Link'
 
-const FeesGeneratedChart: any = dynamic(
-	() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.FeesGeneratedChart),
-	{
-		ssr: false
-	}
+const FeesGeneratedChart: any = lazy(() =>
+	import('~/containers/ChainOverview/SmolCharts').then((m) => ({ default: m.FeesGeneratedChart }))
 )
 
-const SmolLineChart: any = dynamic(() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.SmolLineChart), {
-	ssr: false
-})
+const SmolLineChart: any = lazy(() =>
+	import('~/containers/ChainOverview/SmolCharts').then((m) => ({ default: m.SmolLineChart }))
+)
 
-const SmolBarChart: any = dynamic(() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.SmolBarChart), {
-	ssr: false
-})
+const SmolBarChart: any = lazy(() =>
+	import('~/containers/ChainOverview/SmolCharts').then((m) => ({ default: m.SmolBarChart }))
+)
 
-const UpcomingUnlocksChart: any = dynamic(
-	() => import('~/containers/ChainOverview/SmolCharts').then((m) => m.UpcomingUnlocksChart),
-	{
-		ssr: false
-	}
+const UpcomingUnlocksChart: any = lazy(() =>
+	import('~/containers/ChainOverview/SmolCharts').then((m) => ({ default: m.UpcomingUnlocksChart }))
 )
 
 export const SmolStats = (props: IChainOverviewData) => {
