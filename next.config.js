@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	reactStrictMode: true,
+	// Increase timeout for static page generation (default is 60 seconds)
+	staticPageGenerationTimeout: 300, // 5 minutes
 	async redirects() {
 		return [
 			{
