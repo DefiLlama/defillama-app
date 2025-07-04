@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
@@ -28,13 +27,9 @@ import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { defaultProtocolPageStyles } from '../ProtocolOverview/Chart/constants'
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const risksHelperTexts = {
 	algorithmic:
@@ -405,33 +400,43 @@ export const PeggedAssetInfo = ({
 					</div>
 
 					{chartType === 'Mcap' && (
-						<AreaChart
-							title={`Total ${symbol} Circulating`}
-							chartData={peggedAreaTotalData}
-							stacks={totalChartTooltipLabel}
-							color={backgroundColor}
-							hideDefaultLegend={true}
-						/>
+						<React.Suspense fallback={<></>}>
+							<AreaChart
+								title={`Total ${symbol} Circulating`}
+								chartData={peggedAreaTotalData}
+								stacks={totalChartTooltipLabel}
+								color={backgroundColor}
+								hideDefaultLegend={true}
+							/>
+						</React.Suspense>
 					)}
 					{chartType === 'Chain Mcaps' && (
-						<AreaChart
-							title=""
-							chartData={peggedAreaChartData}
-							stacks={chainsUnique}
-							valueSymbol="$"
-							hideDefaultLegend={true}
-						/>
+						<React.Suspense fallback={<></>}>
+							<AreaChart
+								title=""
+								chartData={peggedAreaChartData}
+								stacks={chainsUnique}
+								valueSymbol="$"
+								hideDefaultLegend={true}
+							/>
+						</React.Suspense>
 					)}
 					{chartType === 'Dominance' && (
-						<AreaChart
-							title=""
-							valueSymbol="%"
-							chartData={dataWithExtraPeggedAndDominanceByDay}
-							stacks={chainsUnique}
-							hideDefaultLegend={true}
-						/>
+						<React.Suspense fallback={<></>}>
+							<AreaChart
+								title=""
+								valueSymbol="%"
+								chartData={dataWithExtraPeggedAndDominanceByDay}
+								stacks={chainsUnique}
+								hideDefaultLegend={true}
+							/>
+						</React.Suspense>
 					)}
-					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}
+					{chartType === 'Pie' && (
+						<React.Suspense fallback={<></>}>
+							<PieChart chartData={chainsCirculatingValues} />
+						</React.Suspense>
+					)}
 				</div>
 			</div>
 

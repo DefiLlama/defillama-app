@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import { lastDayOfWeek, firstDayOfMonth, toK, download, toNiceCsvDate } from '~/utils'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -10,10 +9,9 @@ import Layout from '~/layout'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Select } from '~/components/Select'
 
-const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<ILineAndBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 interface AssetSectionProps {
 	name: string
@@ -239,7 +237,9 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</div>
-					<LineAndBarChart charts={finalCharts} groupBy={groupBy === 'cumulative' ? 'daily' : groupBy} />
+					<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+						<LineAndBarChart charts={finalCharts} groupBy={groupBy === 'cumulative' ? 'daily' : groupBy} />
+					</React.Suspense>
 				</div>
 			</div>
 			<TableWithSearch data={snapshot} columns={ETFColumn} columnToSearch={'ticker'} placeholder={'Search ETF...'} />

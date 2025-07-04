@@ -1,14 +1,11 @@
-import { useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import type { IBarChartProps } from '~/components/ECharts/types'
 
 dayjs.extend(weekOfYear)
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 interface ProtocolUnlockData {
 	name: string
@@ -160,31 +157,33 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 			</div>
 
 			{chartData.length > 0 ? (
-				<BarChart
-					chartData={chartData}
-					title="Upcoming Unlocks"
-					height={height}
-					hideDefaultLegend={true}
-					customLegendOptions={viewMode === 'Total' ? chartLegendOptions : []}
-					stacks={chartStacks}
-					stackColors={chartStackColors}
-					chartOptions={{
-						tooltip: {
-							trigger: 'axis'
-						},
-						xAxis: {
-							type: 'time'
-						},
-						yAxis: {
-							type: 'value'
-						},
-						grid: {
-							left: '3%',
-							right: '4%',
-							containLabel: true
-						}
-					}}
-				/>
+				<Suspense fallback={<></>}>
+					<BarChart
+						chartData={chartData}
+						title="Upcoming Unlocks"
+						height={height}
+						hideDefaultLegend={true}
+						customLegendOptions={viewMode === 'Total' ? chartLegendOptions : []}
+						stacks={chartStacks}
+						stackColors={chartStackColors}
+						chartOptions={{
+							tooltip: {
+								trigger: 'axis'
+							},
+							xAxis: {
+								type: 'time'
+							},
+							yAxis: {
+								type: 'value'
+							},
+							grid: {
+								left: '3%',
+								right: '4%',
+								containLabel: true
+							}
+						}}
+					/>
+				</Suspense>
 			) : (
 				<p className="flex items-center justify-center text-(--text3)" style={{ height: height ?? '360px' }}>
 					No upcoming unlock data available for the selected period.

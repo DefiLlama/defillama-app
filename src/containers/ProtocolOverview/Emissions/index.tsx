@@ -1,6 +1,5 @@
 import { chunk, groupBy, omit, sum, isEqual } from 'lodash'
-import dynamic from 'next/dynamic'
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, lazy, Suspense } from 'react'
 import useWindowSize from '~/hooks/useWindowSize'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -32,13 +31,9 @@ const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: b
 	return extended
 }
 
-const AreaChart = dynamic(() => import('~/components/ECharts/UnlocksChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = lazy(() => import('~/components/ECharts/UnlocksChart')) as React.FC<IChartProps>
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
+const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
 	return (
@@ -446,47 +441,53 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								}}
 							/>
 						</div>
-						<AreaChart
-							customYAxis={chartConfig.customYAxis}
-							title="Schedule"
-							stacks={chartConfig.stacks}
-							chartData={displayData}
-							hallmarks={hallmarks}
-							stackColors={chartConfig.colors}
-							isStackedChart
-						/>
+						<Suspense fallback={<></>}>
+							<AreaChart
+								customYAxis={chartConfig.customYAxis}
+								title="Schedule"
+								stacks={chartConfig.stacks}
+								chartData={displayData}
+								hallmarks={hallmarks}
+								stackColors={chartConfig.colors}
+								isStackedChart
+							/>
+						</Suspense>
 					</LazyChart>
 				)}
 
 				<div className="grid grid-cols-2 gap-1">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
 						<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-(--cards-bg) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<PieChart
-								showLegend
-								title="Allocation"
-								chartData={pieChartDataAllocationMode}
-								stackColors={chartConfig.colors}
-								usdFormat={false}
-								legendPosition={pieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-							/>
+							<Suspense fallback={<></>}>
+								<PieChart
+									showLegend
+									title="Allocation"
+									chartData={pieChartDataAllocationMode}
+									stackColors={chartConfig.colors}
+									usdFormat={false}
+									legendPosition={pieChartLegendPosition}
+									legendTextStyle={pieChartLegendTextStyle}
+								/>
+							</Suspense>
 						</LazyChart>
 					)}
 
 					{unlockedPercent > 0 && (
 						<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-(--cards-bg) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<PieChart
-								formatTooltip={unlockedPieChartFormatTooltip}
-								showLegend
-								radius={unlockedPieChartRadius}
-								title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
-								legendPosition={pieChartLegendPosition}
-								legendTextStyle={pieChartLegendTextStyle}
-								chartData={unlockedPieChartData}
-								stackColors={unlockedPieChartStackColors}
-								usdFormat={false}
-								customLabel={unlockedPieChartCustomLabel}
-							/>
+							<Suspense fallback={<></>}>
+								<PieChart
+									formatTooltip={unlockedPieChartFormatTooltip}
+									showLegend
+									radius={unlockedPieChartRadius}
+									title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
+									legendPosition={pieChartLegendPosition}
+									legendTextStyle={pieChartLegendTextStyle}
+									chartData={unlockedPieChartData}
+									stackColors={unlockedPieChartStackColors}
+									usdFormat={false}
+									customLabel={unlockedPieChartCustomLabel}
+								/>
+							</Suspense>
 						</LazyChart>
 					)}
 				</div>
@@ -504,9 +505,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<div className="flex justify-between flex-wrap">
 								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<p className="text-base text-(--text3)" key={cat}>{`${capitalizeFirstLetter(
-											cat
-										)} - ${perc}%`}</p>
+										<p className="text-base text-(--text3)" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
 							</div>
@@ -517,9 +516,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<div className="flex justify-between flex-wrap">
 								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<p className="text-base text-(--text3)" key={cat}>{`${capitalizeFirstLetter(
-											cat
-										)} - ${perc}%`}</p>
+										<p className="text-base text-(--text3)" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
 							</div>

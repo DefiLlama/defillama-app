@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { maxAgeForNext } from '~/api'
@@ -13,9 +12,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 function formatDataForChart(langs) {
 	const langsUnique = new Set<string>()
@@ -88,26 +85,30 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 			<div className="bg-(--cards-bg) rounded-md *:*:*:[&[role='combobox']]:-mb-9">
 				<h2 className="font-semibold text-xl p-3">Breakdown by Smart Contract Languages</h2>
 				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<AreaChart
-						chartData={langs}
-						title="TVL"
-						customLegendName="Language"
-						customLegendOptions={langsUnique}
-						valueSymbol="$"
-						stacks={langsUnique}
-						stackColors={colors}
-					/>
+					<React.Suspense fallback={<></>}>
+						<AreaChart
+							chartData={langs}
+							title="TVL"
+							customLegendName="Language"
+							customLegendOptions={langsUnique}
+							valueSymbol="$"
+							stacks={langsUnique}
+							stackColors={colors}
+						/>
+					</React.Suspense>
 				</LazyChart>
 				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<AreaChart
-						chartData={langsDominance}
-						title="TVL Dominance"
-						customLegendName="Language"
-						customLegendOptions={langsUnique}
-						valueSymbol="%"
-						stacks={langsUnique}
-						stackColors={colors}
-					/>
+					<React.Suspense fallback={<></>}>
+						<AreaChart
+							chartData={langsDominance}
+							title="TVL Dominance"
+							customLegendName="Language"
+							customLegendOptions={langsUnique}
+							valueSymbol="%"
+							stacks={langsUnique}
+							stackColors={colors}
+						/>
+					</React.Suspense>
 				</LazyChart>
 			</div>
 
@@ -115,14 +116,16 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 				<h2 className="font-semibold text-xl p-3">Open/Closed Source breakdown of solana protocols</h2>
 
 				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<AreaChart
-						chartData={osDominance}
-						title=""
-						valueSymbol="%"
-						stacks={osUnique}
-						stackColors={sourceTypeColor}
-						hideDefaultLegend
-					/>
+					<React.Suspense fallback={<></>}>
+						<AreaChart
+							chartData={osDominance}
+							title=""
+							valueSymbol="%"
+							stacks={osUnique}
+							stackColors={sourceTypeColor}
+							hideDefaultLegend
+						/>
+					</React.Suspense>
 				</LazyChart>
 			</div>
 		</Layout>

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
@@ -13,9 +12,9 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { useQueries } from '@tanstack/react-query'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
-const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
-	ssr: false
-}) as React.FC<ILineAndBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('comparison', async () => {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo'])

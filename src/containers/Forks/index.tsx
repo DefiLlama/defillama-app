@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import { lazy, Suspense, useMemo } from 'react'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formattedNum, getPercentChange, getTokenDominance } from '~/utils'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
@@ -8,10 +7,7 @@ import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { oldBlue } from '~/constants/colors'
 
-const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<ILineAndBarChartProps>
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
 export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -83,7 +79,9 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 					</p>
 				</div>
 				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[360px]">
-					<LineAndBarChart charts={charts} alwaysShowTooltip />
+					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+						<LineAndBarChart charts={charts} alwaysShowTooltip />
+					</Suspense>
 				</div>
 			</div>
 

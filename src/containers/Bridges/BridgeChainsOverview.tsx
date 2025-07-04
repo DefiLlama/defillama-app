@@ -1,14 +1,12 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
+import { lazy } from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { BridgesSearch } from '~/components/Search/Bridges'
 import { BridgeChainsTable } from '~/components/Table/Bridges'
 import { toNiceCsvDate, download } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 export function BridgeChainsOverview({ allChains, tableData, chartData, chartStacks }) {
 	const downloadCsv = () => {

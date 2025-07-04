@@ -2,7 +2,6 @@ import * as React from 'react'
 import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
-import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 import { IChartProps } from '~/components/ECharts/types'
 import { useRouter } from 'next/router'
@@ -14,17 +13,13 @@ import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { Switch } from '~/components/Switch'
 
-const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
-	ssr: false
-}) as React.FC<ICollectionScatterChartProps>
+const CollectionScatterChart = React.lazy(
+	() => import('./CollectionScatterChart')
+) as React.FC<ICollectionScatterChartProps>
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const OrderbookChart = dynamic(() => import('./OrderbookChart'), {
-	ssr: false
-}) as React.FC<IOrderBookChartProps>
+const OrderbookChart = React.lazy(() => import('./OrderbookChart')) as React.FC<IOrderBookChartProps>
 
 export function NFTCollectionContainer() {
 	const router = useRouter()
@@ -108,20 +103,26 @@ export function NFTCollectionContainer() {
 							}
 						/>
 					</div>
-					<CollectionScatterChart
-						sales={includeOutliers ? sales : salesExOutliers}
-						salesMedian1d={salesMedian1d as any}
-						volume={stats}
-					/>
+					<React.Suspense fallback={<></>}>
+						<CollectionScatterChart
+							sales={includeOutliers ? sales : salesExOutliers}
+							salesMedian1d={salesMedian1d as any}
+							volume={stats}
+						/>
+					</React.Suspense>
 				</div>
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
 				<LazyChart className="bg-(--cards-bg) pt-3 rounded-md relative col-span-full min-h-[372px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
+					<React.Suspense fallback={<></>}>
+						<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
+					</React.Suspense>
 				</LazyChart>
 				<LazyChart className="bg-(--cards-bg) pt-3 rounded-md relative col-span-full min-h-[372px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-					<OrderbookChart chartData={orderbook} />
+					<React.Suspense fallback={<></>}>
+						<OrderbookChart chartData={orderbook} />
+					</React.Suspense>
 				</LazyChart>
 			</div>
 		</Layout>

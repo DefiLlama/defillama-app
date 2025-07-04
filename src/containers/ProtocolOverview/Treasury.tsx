@@ -1,17 +1,12 @@
-import dynamic from 'next/dynamic'
 import { useFetchProtocolTreasury } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { buildProtocolAddlChartsData } from './utils'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
+const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 export function Treasury({ protocolName }) {
 	return (
@@ -86,16 +81,24 @@ export const TreasuryChart = ({ protocolName }: { protocolName: string }) => {
 			) : (
 				<div className="grid grid-cols-2 rounded-md min-h-[384px] p-3">
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<PieChart chartData={top10Tokens} />
+						<Suspense fallback={<></>}>
+							<PieChart chartData={top10Tokens} />
+						</Suspense>
 					</LazyChart>
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
+						<Suspense fallback={<></>}>
+							<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
+						</Suspense>
 					</LazyChart>
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
+						<Suspense fallback={<></>}>
+							<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
+						</Suspense>
 					</LazyChart>
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
+						<Suspense fallback={<></>}>
+							<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
+						</Suspense>
 					</LazyChart>
 				</div>
 			)}

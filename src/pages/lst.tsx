@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
@@ -11,17 +10,11 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
 import { COINS_PRICES_API } from '~/constants'
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	const data = await getLSDPageData()
@@ -110,18 +103,22 @@ const PageView = ({
 					<div className="flex flex-col items-center gap-4 min-h-[408px] w-full">
 						{tab === 'breakdown' ? (
 							<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 pt-12 xl:*:*:[&[role='combobox']]:-mt-9!">
-								<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
-								<AreaChart
-									chartData={areaChartData}
-									stacks={tokens}
-									stackColors={lsdColors}
-									customLegendName="LST"
-									customLegendOptions={tokens}
-									hideDefaultLegend
-									valueSymbol="%"
-									title=""
-									expandTo100Percent={true}
-								/>
+								<React.Suspense fallback={<></>}>
+									<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
+								</React.Suspense>
+								<React.Suspense fallback={<></>}>
+									<AreaChart
+										chartData={areaChartData}
+										stacks={tokens}
+										stackColors={lsdColors}
+										customLegendName="LST"
+										customLegendOptions={tokens}
+										hideDefaultLegend
+										valueSymbol="%"
+										title=""
+										expandTo100Percent={true}
+									/>
+								</React.Suspense>
 							</div>
 						) : (
 							<div className="flex flex-col w-full gap-1">
@@ -160,27 +157,31 @@ const PageView = ({
 								</div>
 
 								{groupBy === 'cumulative' ? (
-									<AreaChart
-										chartData={inflowsData}
-										stacks={tokens}
-										stackColors={lsdColors}
-										customLegendName="LST"
-										customLegendOptions={tokens}
-										hideDefaultLegend
-										valueSymbol="ETH"
-										title=""
-									/>
+									<React.Suspense fallback={<></>}>
+										<AreaChart
+											chartData={inflowsData}
+											stacks={tokens}
+											stackColors={lsdColors}
+											customLegendName="LST"
+											customLegendOptions={tokens}
+											hideDefaultLegend
+											valueSymbol="ETH"
+											title=""
+										/>
+									</React.Suspense>
 								) : (
-									<BarChart
-										chartData={inflowsData}
-										hideDefaultLegend
-										customLegendName="Protocol"
-										customLegendOptions={tokens}
-										stacks={barChartStacks}
-										stackColors={lsdColors}
-										valueSymbol="ETH"
-										title=""
-									/>
+									<React.Suspense fallback={<></>}>
+										<BarChart
+											chartData={inflowsData}
+											hideDefaultLegend
+											customLegendName="Protocol"
+											customLegendOptions={tokens}
+											stacks={barChartStacks}
+											stackColors={lsdColors}
+											valueSymbol="ETH"
+											title=""
+										/>
+									</React.Suspense>
 								)}
 							</div>
 						)}

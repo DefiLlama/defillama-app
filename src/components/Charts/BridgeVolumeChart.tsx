@@ -1,14 +1,10 @@
-import { Suspense, useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import dayjs from 'dayjs'
 import { LocalLoader } from '../LocalLoader'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false,
-	loading: () => <div className="min-h-[360px]" />
-}) as React.FC<IBarChartProps>
+const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 interface BridgeVolumeChartProps {
 	chain?: string
@@ -159,7 +155,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 				</div>
 			</div>
 
-			<Suspense fallback={<div style={{ height }} />}>
+			<Suspense fallback={<div style={{ height: height ?? '360px' }} />}>
 				<BarChart
 					chartData={chartData}
 					title=""

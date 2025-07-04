@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { BridgesSearch } from '~/components/Search/Bridges'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -15,13 +14,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
-
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const BridgeInfo = ({
 	displayName,
@@ -137,18 +131,24 @@ const BridgeInfo = ({
 					</div>
 					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
-							<BarChart
-								chartData={volumeChartDataByChain}
-								title=""
-								chartOptions={volumeChartOptions}
-								stacks={inflowChartStacks}
-							/>
+							<React.Suspense fallback={<></>}>
+								<BarChart
+									chartData={volumeChartDataByChain}
+									title=""
+									chartOptions={volumeChartOptions}
+									stacks={inflowChartStacks}
+								/>
+							</React.Suspense>
 						)}
 						{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
-							<PieChart chartData={tokenWithdrawals} />
+							<React.Suspense fallback={<></>}>
+								<PieChart chartData={tokenWithdrawals} />
+							</React.Suspense>
 						)}
 						{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 && (
-							<PieChart chartData={tokenDeposits} />
+							<React.Suspense fallback={<></>}>
+								<PieChart chartData={tokenDeposits} />
+							</React.Suspense>
 						)}
 					</LazyChart>
 				</div>

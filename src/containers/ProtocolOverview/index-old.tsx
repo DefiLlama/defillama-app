@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { LazyChart } from '~/components/LazyChart'
@@ -31,17 +30,11 @@ import { Tooltip } from '~/components/Tooltip'
 import { ProtocolOverviewLayout } from './Layout'
 import { IArticle, IProtocolPageMetrics } from './types'
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 interface IProtocolContainerProps {
 	articles: IArticle[]
@@ -1783,26 +1776,30 @@ const ProtocolContainer = ({
 						<>
 							{chainsSplit && chainsUnique?.length > 1 && (
 								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<AreaChart
-										chartData={chainsSplit}
-										title="Chains"
-										customLegendName="Chain"
-										customLegendOptions={chainsUnique}
-										valueSymbol="$"
-									/>
+									<React.Suspense fallback={<></>}>
+										<AreaChart
+											chartData={chainsSplit}
+											title="Chains"
+											customLegendName="Chain"
+											customLegendOptions={chainsUnique}
+											valueSymbol="$"
+										/>
+									</React.Suspense>
 								</LazyChart>
 							)}
 
 							{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
 								<>
 									<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-										<AreaChart
-											chartData={tokenBreakdownUSD}
-											title="Token Values (USD)"
-											customLegendName="Token"
-											customLegendOptions={tokensUnique}
-											valueSymbol="$"
-										/>
+										<React.Suspense fallback={<></>}>
+											<AreaChart
+												chartData={tokenBreakdownUSD}
+												title="Token Values (USD)"
+												customLegendName="Token"
+												customLegendOptions={tokensUnique}
+												valueSymbol="$"
+											/>
+										</React.Suspense>
 									</LazyChart>
 								</>
 							)}
@@ -1811,7 +1808,9 @@ const ProtocolContainer = ({
 								<>
 									{tokenBreakdownPieChart?.length > 0 && (
 										<LazyChart className="pt-10 relative col-span-full min-h-[440px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-											<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+											<React.Suspense fallback={<></>}>
+												<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+											</React.Suspense>
 										</LazyChart>
 									)}
 								</>
@@ -1819,30 +1818,36 @@ const ProtocolContainer = ({
 
 							{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
 								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<AreaChart
-										chartData={tokenBreakdown}
-										title="Token Balances (Raw Quantities)"
-										customLegendName="Token"
-										customLegendOptions={tokensUnique}
-									/>
+									<React.Suspense fallback={<></>}>
+										<AreaChart
+											chartData={tokenBreakdown}
+											title="Token Balances (Raw Quantities)"
+											customLegendName="Token"
+											customLegendOptions={tokensUnique}
+										/>
+									</React.Suspense>
 								</LazyChart>
 							)}
 
 							{usdInflows?.length > 0 && (
 								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
+									<React.Suspense fallback={<></>}>
+										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
+									</React.Suspense>
 								</LazyChart>
 							)}
 							{tokenInflows?.length > 0 && tokensUnique?.length > 0 && (
 								<LazyChart className="relative col-span-full min-h-[400px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<BarChart
-										chartData={tokenInflows}
-										title="Token Inflows"
-										customLegendName="Token"
-										customLegendOptions={tokensUnique}
-										hideDefaultLegend={true}
-										valueSymbol="$"
-									/>
+									<React.Suspense fallback={<></>}>
+										<BarChart
+											chartData={tokenInflows}
+											title="Token Inflows"
+											customLegendName="Token"
+											customLegendOptions={tokensUnique}
+											hideDefaultLegend={true}
+											valueSymbol="$"
+										/>
+									</React.Suspense>
 								</LazyChart>
 							)}
 						</>

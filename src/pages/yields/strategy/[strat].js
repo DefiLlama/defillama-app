@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { LazyChart } from '~/components/LazyChart'
@@ -12,15 +11,9 @@ import {
 import { calculateLoopAPY } from '~/containers/Yields/queries/index'
 import { toK } from '~/utils'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false,
-	loading: () => <></>
-})
+const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false,
-	loading: () => <></>
-})
+const AreaChart = lazy(() => import('~/components/ECharts/AreaChart'))
 
 const PageView = () => {
 	const { query } = useRouter()
@@ -286,37 +279,43 @@ const PageView = () => {
 						<>
 							{barChartDataSupply?.length ? (
 								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<BarChart
-										title="Supply APY"
-										chartData={barChartDataSupply}
-										stacks={barChartStacks}
-										stackColors={barChartColors}
-										valueSymbol={'%'}
-									/>
+									<Suspense fallback={<></>}>
+										<BarChart
+											title="Supply APY"
+											chartData={barChartDataSupply}
+											stacks={barChartStacks}
+											stackColors={barChartColors}
+											valueSymbol={'%'}
+										/>
+									</Suspense>
 								</LazyChart>
 							) : null}
 
 							{barChartDataBorrow?.length ? (
 								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<BarChart
-										title="Borrow APY"
-										chartData={barChartDataBorrow}
-										stacks={barChartStacks}
-										stackColors={barChartColors}
-										valueSymbol={'%'}
-									/>
+									<Suspense fallback={<></>}>
+										<BarChart
+											title="Borrow APY"
+											chartData={barChartDataBorrow}
+											stacks={barChartStacks}
+											stackColors={barChartColors}
+											valueSymbol={'%'}
+										/>
+									</Suspense>
 								</LazyChart>
 							) : null}
 
 							{barChartDataFarm?.length ? (
 								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<BarChart
-										title="Farm APY"
-										chartData={barChartDataFarm}
-										stacks={barChartStacks}
-										stackColors={barChartColors}
-										valueSymbol={'%'}
-									/>
+									<Suspense fallback={<></>}>
+										<BarChart
+											title="Farm APY"
+											chartData={barChartDataFarm}
+											stacks={barChartStacks}
+											stackColors={barChartColors}
+											valueSymbol={'%'}
+										/>
+									</Suspense>
 								</LazyChart>
 							) : null}
 						</>

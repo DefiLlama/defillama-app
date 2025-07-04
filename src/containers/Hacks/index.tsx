@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import {
 	useReactTable,
@@ -19,13 +18,8 @@ import * as Ariakit from '@ariakit/react'
 import { FormattedName } from '~/components/FormattedName'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
-
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 const columnResizeMode = 'onChange'
 
@@ -125,9 +119,13 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 					</div>
 
 					{chartType === 'Total Value Hacked' && monthlyHacks ? (
-						<BarChart chartData={monthlyHacks} title="Monthly sum" groupBy="monthly" />
+						<React.Suspense fallback={<></>}>
+							<BarChart chartData={monthlyHacks} title="Monthly sum" groupBy="monthly" />
+						</React.Suspense>
 					) : (
-						<PieChart chartData={pieChartData} />
+						<React.Suspense fallback={<></>}>
+							<PieChart chartData={pieChartData} />
+						</React.Suspense>
 					)}
 				</div>
 			</div>

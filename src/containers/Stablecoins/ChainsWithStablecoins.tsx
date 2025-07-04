@@ -1,6 +1,4 @@
 import * as React from 'react'
-
-import dynamic from 'next/dynamic'
 import { GroupStablecoins } from '~/components/MultiSelect/Stablecoins'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
@@ -18,13 +16,9 @@ import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { Metrics } from '~/components/Metrics'
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 function PeggedChainsOverview({
 	chainCirculatings,
@@ -210,38 +204,48 @@ function PeggedChainsOverview({
 				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[406px]">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 					{chartType === 'Total Market Cap' && (
-						<AreaChart
-							title=""
-							chartData={peggedAreaTotalData}
-							stacks={totalMcapLabel}
-							color={'lightcoral'}
-							hideDefaultLegend={true}
-							valueSymbol="$"
-							hideGradient={true}
-						/>
+						<React.Suspense fallback={<></>}>
+							<AreaChart
+								title=""
+								chartData={peggedAreaTotalData}
+								stacks={totalMcapLabel}
+								color={'lightcoral'}
+								hideDefaultLegend={true}
+								valueSymbol="$"
+								hideGradient={true}
+							/>
+						</React.Suspense>
 					)}
 					{chartType === 'Chain Market Caps' && (
-						<AreaChart
-							title=""
-							chartData={peggedAreaChartData}
-							stacks={chainList}
-							valueSymbol="$"
-							hideDefaultLegend={true}
-							hideGradient={true}
-						/>
+						<React.Suspense fallback={<></>}>
+							<AreaChart
+								title=""
+								chartData={peggedAreaChartData}
+								stacks={chainList}
+								valueSymbol="$"
+								hideDefaultLegend={true}
+								hideGradient={true}
+							/>
+						</React.Suspense>
 					)}
 					{chartType === 'Dominance' && (
-						<AreaChart
-							title=""
-							valueSymbol="%"
-							chartData={dataWithExtraPeggedAndDominanceByDay}
-							stacks={chainList}
-							hideDefaultLegend={true}
-							hideGradient={true}
-							expandTo100Percent={true}
-						/>
+						<React.Suspense fallback={<></>}>
+							<AreaChart
+								title=""
+								valueSymbol="%"
+								chartData={dataWithExtraPeggedAndDominanceByDay}
+								stacks={chainList}
+								hideDefaultLegend={true}
+								hideGradient={true}
+								expandTo100Percent={true}
+							/>
+						</React.Suspense>
 					)}
-					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}
+					{chartType === 'Pie' && (
+						<React.Suspense fallback={<></>}>
+							<PieChart chartData={chainsCirculatingValues} />
+						</React.Suspense>
+					)}
 				</div>
 			</div>
 

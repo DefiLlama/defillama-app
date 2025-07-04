@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
@@ -15,13 +14,9 @@ import { download } from '~/utils'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Metrics } from '~/components/Metrics'
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false
-}) as React.FC<IPieChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 export const getStaticProps = withPerformanceLogging('forks', async () => {
 	const data = await getForkPageData()

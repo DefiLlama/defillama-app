@@ -1,5 +1,5 @@
-import { DEFI_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useMemo } from 'react'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { lazy, Suspense, useMemo } from 'react'
 import { IProtocolByCategoryPageData } from './types'
 import { ColumnDef } from '@tanstack/react-table'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -10,15 +10,11 @@ import { Icon } from '~/components/Icon'
 import { chainIconUrl, download, formattedNum, toNiceCsvDate } from '~/utils'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import dynamic from 'next/dynamic'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { protocolsAndChainsOptions } from '~/components/Filters/options'
 
-const LineAndBarChart = dynamic(() => import('~/components/ECharts/LineAndBarChart'), {
-	ssr: false,
-	loading: () => <div className="flex items-center justify-center m-auto min-h-[360px]" />
-}) as React.FC<ILineAndBarChartProps>
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
 const toggleOptions = protocolsAndChainsOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
@@ -104,7 +100,9 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 					</div>
 				</div>
 				<div className="bg-(--cards-bg) min-h-[360px] rounded-md col-span-2">
-					<LineAndBarChart charts={props.charts} valueSymbol="$" />
+					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+						<LineAndBarChart charts={props.charts} valueSymbol="$" />
+					</Suspense>
 				</div>
 			</div>
 			<TableWithSearch

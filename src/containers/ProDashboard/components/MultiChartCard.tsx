@@ -1,13 +1,10 @@
-import dynamic from 'next/dynamic'
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { generateChartColor } from '../utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { Icon } from '~/components/Icon'
-import { memo, useState, useMemo } from 'react'
+import { memo, useState, useMemo, lazy, Suspense } from 'react'
 
-const MultiSeriesChart = dynamic(() => import('~/components/ECharts/MultiSeriesChart'), {
-	ssr: false
-})
+const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
 interface MultiChartCardProps {
 	multi: MultiChartConfig
@@ -321,73 +318,75 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						</div>
 					</div>
 				) : (
-					<MultiSeriesChart
-						key={`${showStacked}-${showPercentage}`}
-						series={series}
-						valueSymbol={showPercentage ? '%' : '$'}
-						groupBy={multi.grouping === 'week' ? 'weekly' : multi.grouping === 'month' ? 'monthly' : 'daily'}
-						hideDataZoom={true}
-						chartOptions={
-							showPercentage
-								? {
-										yAxis: {
-											max: 100,
-											min: 0,
-											axisLabel: {
-												formatter: '{value}%'
-											}
-										},
-										tooltip: {
-											valueFormatter: (value: number) => value.toFixed(2) + '%'
-										},
-										grid: {
-											top: series.length > 5 ? 120 : 80,
-											bottom: 68,
-											left: 12,
-											right: 12,
-											containLabel: true
-										},
-										legend: {
-											top: 10,
-											type: 'scroll',
-											pageButtonPosition: 'end',
-											height: series.length > 5 ? 80 : 40
-										}
-								  }
-								: {
-										yAxis: {
-											max: undefined,
-											min: undefined,
-											axisLabel: {
-												formatter: (value: number) => {
-													const absValue = Math.abs(value)
-													if (absValue >= 1e9) {
-														return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-													} else if (absValue >= 1e6) {
-														return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-													} else if (absValue >= 1e3) {
-														return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-													}
-													return value.toString()
+					<Suspense fallback={<></>}>
+						<MultiSeriesChart
+							key={`${showStacked}-${showPercentage}`}
+							series={series}
+							valueSymbol={showPercentage ? '%' : '$'}
+							groupBy={multi.grouping === 'week' ? 'weekly' : multi.grouping === 'month' ? 'monthly' : 'daily'}
+							hideDataZoom={true}
+							chartOptions={
+								showPercentage
+									? {
+											yAxis: {
+												max: 100,
+												min: 0,
+												axisLabel: {
+													formatter: '{value}%'
 												}
+											},
+											tooltip: {
+												valueFormatter: (value: number) => value.toFixed(2) + '%'
+											},
+											grid: {
+												top: series.length > 5 ? 120 : 80,
+												bottom: 68,
+												left: 12,
+												right: 12,
+												containLabel: true
+											},
+											legend: {
+												top: 10,
+												type: 'scroll',
+												pageButtonPosition: 'end',
+												height: series.length > 5 ? 80 : 40
 											}
-										},
-										grid: {
-											top: series.length > 5 ? 120 : 80,
-											bottom: 68,
-											left: 12,
-											right: 12,
-											containLabel: true
-										},
-										legend: {
-											top: 10,
-											type: 'scroll',
-											pageButtonPosition: 'end',
-											height: series.length > 5 ? 80 : 40
-										}
-								  }
-						}
-					/>
+									  }
+									: {
+											yAxis: {
+												max: undefined,
+												min: undefined,
+												axisLabel: {
+													formatter: (value: number) => {
+														const absValue = Math.abs(value)
+														if (absValue >= 1e9) {
+															return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+														} else if (absValue >= 1e6) {
+															return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+														} else if (absValue >= 1e3) {
+															return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+														}
+														return value.toString()
+													}
+												}
+											},
+											grid: {
+												top: series.length > 5 ? 120 : 80,
+												bottom: 68,
+												left: 12,
+												right: 12,
+												containLabel: true
+											},
+											legend: {
+												top: 10,
+												type: 'scroll',
+												pageButtonPosition: 'end',
+												height: series.length > 5 ? 80 : 40
+											}
+									  }
+							}
+						/>
+					</Suspense>
 				)}
 			</div>
 		</div>

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -14,20 +13,11 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useEffect } from 'react'
 import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false,
-	loading: () => <div className="min-h-[360px]" />
-}) as React.FC<IBarChartProps>
+const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
-const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
-	ssr: false,
-	loading: () => <div className="min-h-[360px]" />
-}) as React.FC<IPieChartProps>
+const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const NetflowChart = dynamic(() => import('~/components/ECharts/BarChart/NetflowChart'), {
-	ssr: false,
-	loading: () => <div className="min-h-[600px]" />
-}) as React.FC<any>
+const NetflowChart = React.lazy(() => import('~/components/ECharts/BarChart/NetflowChart')) as React.FC<any>
 
 export function BridgesOverviewByChain({
 	selectedChain = 'All',
@@ -271,7 +261,9 @@ export function BridgesOverviewByChain({
 							</div>
 
 							{chartView === 'netflow' ? (
-								<NetflowChart height={600} />
+								<React.Suspense fallback={<div className="min-h-[600px]" />}>
+									<NetflowChart height={600} />
+								</React.Suspense>
 							) : (
 								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
 							)}
@@ -296,31 +288,47 @@ export function BridgesOverviewByChain({
 								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
 							)}
 							{chartType === 'Net Flow' && chainNetFlowData && chainNetFlowData.length > 0 && (
-								<BarChart
-									chartData={chainNetFlowData}
-									title=""
-									hideDefaultLegend={true}
-									customLegendName="Volume"
-									customLegendOptions={['Net Flow']}
-								/>
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<BarChart
+										chartData={chainNetFlowData}
+										title=""
+										hideDefaultLegend={true}
+										customLegendName="Volume"
+										customLegendOptions={['Net Flow']}
+									/>
+								</React.Suspense>
 							)}
 							{chartType === 'Net Flow (%)' && chainPercentageNet && chainPercentageNet.length > 0 && (
-								<BarChart
-									chartData={chainPercentageNet}
-									title=""
-									valueSymbol="%"
-									stacks={{ Inflows: 'stackA', Outflows: 'stackA' }}
-									hideDefaultLegend={true}
-									customLegendName="Volume"
-									customLegendOptions={['Inflows', 'Outflows']}
-								/>
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<BarChart
+										chartData={chainPercentageNet}
+										title=""
+										valueSymbol="%"
+										stacks={{ Inflows: 'stackA', Outflows: 'stackA' }}
+										hideDefaultLegend={true}
+										customLegendName="Volume"
+										customLegendOptions={['Inflows', 'Outflows']}
+									/>
+								</React.Suspense>
 							)}
 							{chartType === 'Inflows' && (
 								<BridgeVolumeChart chain={selectedChain === 'All' ? 'all' : selectedChain} height="360px" />
 							)}
-							{chartType === 'Net Flow By Chain' && <NetflowChart height="600px" />}
-							{chartType === '24h Tokens Deposited' && <PieChart chartData={tokenWithdrawals} />}
-							{chartType === '24h Tokens Withdrawn' && <PieChart chartData={tokenDeposits} />}
+							{chartType === 'Net Flow By Chain' && (
+								<React.Suspense fallback={<div className="min-h-[600px]" />}>
+									<NetflowChart height="600px" />
+								</React.Suspense>
+							)}
+							{chartType === '24h Tokens Deposited' && (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<PieChart chartData={tokenWithdrawals} />
+								</React.Suspense>
+							)}
+							{chartType === '24h Tokens Withdrawn' && (
+								<React.Suspense fallback={<div className="min-h-[360px]" />}>
+									<PieChart chartData={tokenDeposits} />
+								</React.Suspense>
+							)}
 						</>
 					)}
 					<div className="flex items-center justify-end p-3">
