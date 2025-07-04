@@ -65,8 +65,10 @@ const getLargeTransactionsData = async (chain: string, startTimestamp: number, e
 }
 
 export async function getBridgeOverviewPageData(chain) {
-	const { bridges, chains } = await getBridges()
-	const { chainCoingeckoIds } = await fetch(CONFIG_API).then((r) => r.json())
+	const [{ bridges, chains }, { chainCoingeckoIds }] = await Promise.all([
+		getBridges(),
+		fetch(CONFIG_API).then((r) => r.json())
+	])
 
 	let chartDataByBridge = []
 	let bridgeNames: string[] = []
