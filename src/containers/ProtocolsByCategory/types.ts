@@ -28,4 +28,5 @@ export interface IProtocolByCategoryPageData {
 	revenue24h: number | null
 	dexVolume24h: number | null
 	perpVolume24h: number | null
+	extraTvlCharts: Record<string, Record<string, number>>
 }

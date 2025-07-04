@@ -19,23 +19,40 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
 const sortByRevenye = ['Trading App']
+
 export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
-	const finalProtocols = useMemo(() => {
+	const { finalProtocols, charts } = useMemo(() => {
 		const toggledSettings = Object.entries(tvlSettings)
 			.filter(([key, value]) => value === true)
 			.map(([key]) => key)
 
-		if (toggledSettings.length === 0) return props.protocols
+		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }
 
-		return props.protocols.map((protocol) => {
+		const finalProtocols = props.protocols.map((protocol) => {
 			let tvl = protocol.tvl
 			for (const setting of toggledSettings) {
 				tvl += protocol.extraTvls[setting] ?? 0
 			}
 			return { ...protocol, tvl }
 		})
+
+		const finalChartData = props.charts['TVL'].data.map(([date, tvl]) => {
+			let total = tvl
+			for (const setting of toggledSettings) {
+				total += props.extraTvlCharts[setting]?.[date] ?? 0
+			}
+			return [date, total] as [number, number]
+		})
+
+		return {
+			finalProtocols,
+			charts: {
+				...props.charts,
+				TVL: { ...props.charts['TVL'], data: finalChartData }
+			} as ILineAndBarChartProps['charts']
+		}
 	}, [tvlSettings, props])
 
 	const categoryColumns = useMemo(() => {
@@ -58,7 +75,7 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 						<p className="flex flex-col">
 							<span className="text-[#545757] dark:text-[#cccccc] text-sm">Total Value Locked</span>
 							<span className="font-semibold text-2xl font-jetbrains min-h-8">
-								{formattedNum(props.charts['TVL']?.data[props.charts['TVL']?.data.length - 1][1], true)}
+								{formattedNum(charts['TVL']?.data[charts['TVL']?.data.length - 1][1], true)}
 							</span>
 						</p>
 					)}
@@ -101,7 +118,7 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 				</div>
 				<div className="bg-(--cards-bg) min-h-[360px] rounded-md col-span-2">
 					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
-						<LineAndBarChart charts={props.charts} valueSymbol="$" />
+						<LineAndBarChart charts={charts} valueSymbol="$" />
 					</Suspense>
 				</div>
 			</div>

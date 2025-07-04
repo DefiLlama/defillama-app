@@ -127,12 +127,12 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			}
 		}
 
-		const end = Date.now()
-		IS_RUNTIME &&
-			!options?.silent &&
-			isServer &&
-			end - start > 10_000 &&
-			postRuntimeLogs(`[fetch-cache] [MISS] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
+		// const end = Date.now()
+		// IS_RUNTIME &&
+		// 	!options?.silent &&
+		// 	isServer &&
+		// 	end - start > 10_000 &&
+		// 	postRuntimeLogs(`[fetch-cache] [MISS] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return new Response(blob, responseInit)
 	}
 }

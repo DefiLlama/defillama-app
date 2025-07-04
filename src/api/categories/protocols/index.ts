@@ -7,7 +7,6 @@ import {
 } from '~/utils'
 import type { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 import {
-	CATEGORY_API,
 	PROTOCOLS_API,
 	PROTOCOL_API,
 	PROTOCOL_EMISSIONS_API,
@@ -16,7 +15,6 @@ import {
 	YIELD_POOLS_API,
 	LSD_RATES_API,
 	CHAINS_ASSETS,
-	CHART_API,
 	ETF_SNAPSHOT_API,
 	ETF_FLOWS_API,
 	CHAIN_ASSETS_FLOWS,

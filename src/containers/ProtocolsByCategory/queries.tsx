@@ -6,6 +6,9 @@ import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
 import { IProtocolByCategoryPageData } from './types'
 import { slug, tokenIconUrl } from '~/utils'
 import { oldBlue } from '~/constants/colors'
+import { tvlOptions } from '~/components/Filters/options'
+
+const extraTvlOptions = tvlOptions.filter((o) => !['doublecounted', 'liquidstaking'].includes(o.key)).map((o) => o.key)
 
 export async function getProtocolsByCategory({
 	category,
@@ -295,12 +298,18 @@ export async function getProtocolsByCategory({
 	}
 
 	let chart = []
+	let extraTvlCharts: Record<string, Record<string, number>> = {}
 	if (chain) {
 		if (!tvlByCategories[chain]) return null
 		chart = tvlByCategories[chain].map(([date, tvl]) => [+date * 1e3, tvl])
 	} else {
 		for (const date in tvlOnAllChains.chart) {
 			chart.push([+date * 1e3, tvlOnAllChains.chart[date][category]?.tvl ?? null])
+			for (const tvlType in tvlOnAllChains.chart[date][category]) {
+				if (tvlType === 'tvl') continue
+				extraTvlCharts[tvlType] = extraTvlCharts[tvlType] ?? {}
+				extraTvlCharts[tvlType][+date * 1e3] = tvlOnAllChains.chart[date][category][tvlType]
+			}
 		}
 	}
 
@@ -329,6 +338,7 @@ export async function getProtocolsByCategory({
 		fees24h: feesData?.total24h ?? null,
 		revenue24h: revenueData?.total24h ?? null,
 		dexVolume24h: dexVolumeData?.total24h ?? null,
-		perpVolume24h: perpVolumeData?.total24h ?? null
+		perpVolume24h: perpVolumeData?.total24h ?? null,
+		extraTvlCharts
 	}
 }
