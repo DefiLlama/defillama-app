@@ -1,8 +1,9 @@
 import { MultiItemSelect } from '../MultiItemSelect'
 import { ItemSelect } from '../ItemSelect'
+import { SingleSelectWithTags } from '../SingleSelectWithTags'
 import { CombinedTableType } from './types'
 import { useTokenSearch } from '../datasets/TokenUsageDataset/useTokenSearch'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { reactSelectStyles } from '../../utils/reactSelectStyles'
 
@@ -16,7 +17,7 @@ interface TableTabProps {
 	selectedTableType: CombinedTableType
 	onTableTypeChange: (type: CombinedTableType) => void
 	selectedTokens: string[]
-	onTokensChange: (options: any) => void
+	onTokensChange: (tokens: string[]) => void
 	includeCex: boolean
 	onIncludeCexChange: (include: boolean) => void
 }
@@ -152,6 +153,22 @@ export function TableTab({
 	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
 
 	const { data: defaultTokens = [] } = useTokenSearch('')
+
+	const mergedTokenOptions = useMemo(() => {
+		const baseOptions = tokenSearchInput ? tokenOptions : defaultTokens
+
+		if (!selectedTokens || selectedTokens.length === 0) {
+			return baseOptions
+		}
+
+		const optionMap = new Map(baseOptions.map((opt) => [opt.value, opt]))
+
+		const additionalOptions = selectedTokens
+			.filter((token) => !optionMap.has(token))
+			.map((token) => ({ value: token, label: token }))
+
+		return [...additionalOptions, ...baseOptions]
+	}, [tokenSearchInput, tokenOptions, defaultTokens, selectedTokens])
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
@@ -238,15 +255,23 @@ export function TableTab({
 				/>
 			) : selectedTableType === 'token-usage' ? (
 				<>
-					<MultiItemSelect
+					<SingleSelectWithTags
 						label="Select Tokens (up to 4)"
-						options={tokenSearchInput ? tokenOptions : defaultTokens}
+						options={mergedTokenOptions}
 						selectedValues={selectedTokens}
-						onChange={onTokensChange}
+						onAddValue={(value) => {
+							if (!selectedTokens.includes(value) && selectedTokens.length < 4) {
+								onTokensChange([...selectedTokens, value])
+							}
+						}}
+						onRemoveValue={(value) => {
+							onTokensChange(selectedTokens.filter((token) => token !== value))
+						}}
 						isLoading={isLoadingTokens}
 						placeholder="Search tokens..."
 						itemType="token"
 						onInputChange={setTokenSearchInput}
+						maxSelections={4}
 					/>
 					<div
 						className="flex items-center gap-2 px-3 py-1.5 border border-(--divider) hover:border-(--text3) transition-colors cursor-pointer"

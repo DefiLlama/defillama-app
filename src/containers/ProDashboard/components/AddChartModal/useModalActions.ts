@@ -82,10 +82,9 @@ export function useModalActions(
 		actions.setSelectedDatasetChain(option.value)
 	}
 
-	const handleTokensChange = (options: any) => {
-		const symbols = options ? options.map((opt: any) => opt.value) : []
-		if (symbols.length <= 4) {
-			actions.setSelectedTokens(symbols)
+	const handleTokensChange = (tokens: string[]) => {
+		if (tokens.length <= 4) {
+			actions.setSelectedTokens(tokens)
 		}
 	}
 
