@@ -88,7 +88,7 @@ export const FullOldViewButton = ({ type, className }: FullOldViewButtonProps) =
 					) : (
 						<>
 							<Icon name="plus" height={14} width={14} />
-							<span>View Full In Dashboard</span>
+							<span>Open in Dashboard</span>
 						</>
 					)}
 				</button>
