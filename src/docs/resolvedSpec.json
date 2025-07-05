@@ -1176,7 +1176,7 @@
 						"description": "protocol slug",
 						"schema": {
 							"type": "string",
-							"example": "lyra"
+							"example": "derive"
 						}
 					},
 					{
@@ -1323,7 +1323,7 @@
 						"description": "protocol slug",
 						"schema": {
 							"type": "string",
-							"example": "lyra"
+							"example": "derive"
 						}
 					},
 					{

@@ -819,7 +819,7 @@ paths:
           description: protocol slug
           schema:
             type: string
-            example: lyra
+            example: derive
         - name: dataType
           in: query
           required: false
@@ -918,7 +918,7 @@ paths:
           description: protocol slug
           schema:
             type: string
-            example: lyra
+            example: derive
         - name: dataType
           in: query
           required: false
