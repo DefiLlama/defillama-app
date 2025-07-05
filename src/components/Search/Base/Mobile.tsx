@@ -1,6 +1,5 @@
-import { memo, useMemo, useState } from 'react'
+import { memo, useDeferredValue, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
-import { useDebounce } from '~/hooks/useDebounce'
 import { useGetLiquidationSearchList } from '../Liquidations/hooks'
 import { useGetUnlocksSearchList } from '../Unlocks/hooks'
 import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
@@ -45,7 +44,7 @@ const DefiSearch = memo(function DefiSearch() {
 	const [inputValue, setInputValue] = useState('')
 	const [display, setDisplay] = useState(false)
 
-	const debouncedInputValue = useDebounce(inputValue, 500)
+	const deferredInputValue = useDeferredValue(inputValue)
 
 	const [resultsLength, setResultsLength] = useState(10)
 
@@ -54,8 +53,8 @@ const DefiSearch = memo(function DefiSearch() {
 	}
 
 	const finalResults = useMemo(
-		() => filterAnSortResults(results.hits, debouncedInputValue),
-		[debouncedInputValue, results.hits]
+		() => filterAnSortResults(results.hits, deferredInputValue),
+		[deferredInputValue, results.hits]
 	)
 
 	return (
@@ -142,7 +141,7 @@ const MobileSearchV1 = memo(function MobileSearchV1() {
 	const [inputValue, setInputValue] = useState('')
 	const [display, setDisplay] = useState(false)
 
-	const debouncedInputValue = useDebounce(inputValue, 500)
+	const deferredInputValue = useDeferredValue(inputValue)
 
 	const [resultsLength, setResultsLength] = useState(10)
 
@@ -150,7 +149,7 @@ const MobileSearchV1 = memo(function MobileSearchV1() {
 		setResultsLength((prev) => prev + 10)
 	}
 
-	const finalResults = useMemo(() => filterAnSortResults(data, debouncedInputValue), [debouncedInputValue, data])
+	const finalResults = useMemo(() => filterAnSortResults(data, deferredInputValue), [deferredInputValue, data])
 
 	return (
 		<>

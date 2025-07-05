@@ -1,4 +1,3 @@
-import { useDebounce } from '~/hooks/useDebounce'
 import { fetchApi } from '~/utils/async'
 import {
 	NFT_CHAINS_API,
@@ -21,6 +20,7 @@ import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
 import { useQuery } from '@tanstack/react-query'
+import { useDeferredValue } from 'react'
 
 const fetch = fetchWithErrorLogging
 
@@ -493,8 +493,8 @@ export const getNFTSearchResults = async (query: string) => {
 }
 
 export const useFetchNFTsList = (searchValue: string) => {
-	const debouncedSearchTerm = useDebounce(searchValue, 500)
-	const url = debouncedSearchTerm ? `${NFT_SEARCH_API}?query=${debouncedSearchTerm}` : NFT_COLLECTIONS_API
+	const deferredSearchTerm = useDeferredValue(searchValue)
+	const url = deferredSearchTerm ? `${NFT_SEARCH_API}?query=${deferredSearchTerm}` : NFT_COLLECTIONS_API
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['nfts-list', url],
@@ -505,6 +505,6 @@ export const useFetchNFTsList = (searchValue: string) => {
 	return {
 		data: data?.hits?.map((el) => el._source) ?? data?.data ?? null,
 		error: error,
-		isLoading: (isLoading && !!searchValue) || searchValue != debouncedSearchTerm
+		isLoading: (isLoading && !!searchValue) || searchValue != deferredSearchTerm
 	}
 }

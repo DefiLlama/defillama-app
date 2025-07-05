@@ -295,7 +295,7 @@ const ProtocolContainer = ({
 		const {
 			tvls: tvlsByChain,
 			extraTvls,
-			tvlOptions
+			finalTvlOptions
 		} = tvlByChain.reduce(
 			(acc, [name, tvl]: [string, number]) => {
 				// skip masterchef tvl type
@@ -304,7 +304,7 @@ const ProtocolContainer = ({
 				// check if tvl name is addl tvl type and is toggled
 				if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name)) {
 					acc.extraTvls.push([name, tvl])
-					acc.tvlOptions.push(tvlOptions.find((e) => e.key === name))
+					acc.finalTvlOptions.push(tvlOptions.find((e) => e.key === name))
 				} else {
 					// only include total tvl of each chain skip breakdown of addl tvls if extra tvl type is not toggled
 					if (!name.includes('-')) {
@@ -325,7 +325,7 @@ const ProtocolContainer = ({
 			{
 				tvls: {},
 				extraTvls: [],
-				tvlOptions: []
+				finalTvlOptions: []
 			}
 		)
 
@@ -342,7 +342,7 @@ const ProtocolContainer = ({
 
 		const chainsUnique = tvls.map((t) => t[0])
 
-		return { tvls, chainsUnique, extraTvls, toggleOptions: [...tvlOptions, ...feesToggle] }
+		return { tvls, chainsUnique, extraTvls, toggleOptions: [...finalTvlOptions, ...feesToggle] }
 	}, [dailyBribesRevenue, dailyTokenTaxes, extraTvlsEnabled, tvlByChain])
 
 	const { data: addlProtocolData, isLoading } = useFetchProtocolAddlChartsData(protocol)

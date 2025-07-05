@@ -1,9 +1,8 @@
-import { useState } from 'react'
+import { useDeferredValue, useState } from 'react'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { VirtualTable } from '~/components/Table/Table'
-import { useDebounce } from '~/hooks/useDebounce'
 import { formattedPercent } from '~/utils'
 
 import { fetchWithErrorLogging } from '~/utils/async'
@@ -29,7 +28,7 @@ interface ITrendingContracts {
 	name?: string
 }
 
-async function getContracts(chain: string, time: number) {
+async function getContracts(chain: string, time: string) {
 	return await fetch(
 		`https://trending-contracts-api.onrender.com/${chain}_tc/${valueToFilter[time] || valueToFilter['1d']}`
 	)
@@ -76,7 +75,7 @@ export default function TrendingContracts() {
 	const [value, setValue] = useState('1d')
 	const [chain, setChain] = useState('Ethereum')
 
-	const time = useDebounce(value, 500)
+	const time = useDeferredValue(value)
 
 	const activeChain = typeof chain === 'string' ? chain.toLowerCase() : 'ethereum'
 
