@@ -122,8 +122,16 @@ export function ProtocolOverviewLayout({
 											key={'navigate to ' + `/protocol/${slug(value)}`}
 											render={<BasicLink href={`/protocol/${slug(value)}`} />}
 											data-active={name === value}
-											className="flex items-center gap-2 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) data-[active=true]:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border) whitespace-nowrap overflow-hidden text-ellipsis"
+											className={`group flex items-center gap-2 py-2 relative ${
+												i === 0 ? 'px-3' : 'ml-5'
+											} shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) data-[active=true]:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md whitespace-nowrap overflow-hidden text-ellipsis`}
 										>
+											{i !== 0 && (
+												<>
+													<span className="w-[1px] h-full group-last:h-[50%] absolute top-0 bottom-0 left-0 block bg-(--form-control-border)" />
+													<span className="w-3 h-[1px] bg-(--form-control-border) -mr-2" />
+												</>
+											)}
 											<TokenLogo logo={tokenIconUrl(value)} size={16} />
 											<span>{value}</span>
 										</Ariakit.MenuItem>
