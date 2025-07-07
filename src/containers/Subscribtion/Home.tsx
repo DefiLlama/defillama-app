@@ -294,11 +294,6 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				<h2 className="text-[32px] font-extrabold">They trust us</h2>
 
 				<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 place-items-center gap-20">
-					<img
-						src="/icons/federal-bank-ny.svg"
-						alt="Federal Reserve Bank of New York"
-						className="h-[28px] object-contain"
-					/>
 					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-[60px] object-contain" />
 					<img src="/icons/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
 					<span className="flex flex-col gap-2">
