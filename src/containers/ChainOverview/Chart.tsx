@@ -632,7 +632,7 @@ export function ChainChart({
 
 		const offsets = {
 			TVL: 60,
-			'DEs Volume': 60,
+			'DEXs Volume': 60,
 			'Chain Fees': 55,
 			'Chain Revenue': 65,
 			'App Revenue': 65,
