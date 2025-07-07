@@ -20,7 +20,7 @@ interface IMultiSeriesChartProps {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
 	valueSymbol?: string
 	alwaysShowTooltip?: boolean
 	hideDataZoom?: boolean
@@ -46,8 +46,8 @@ export default function MultiSeriesChart({
 	const defaultChartSettings = useDefaults({
 		valueSymbol,
 		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly')
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly'].includes(groupBy)
+				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly')
 				: 'daily',
 		isThemeDark,
 		alwaysShowTooltip

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react'
+import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react'
 import { QueryObserverResult, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
@@ -54,7 +54,8 @@ interface ProDashboardContextType {
 			| 'perps'
 			| 'aggregators'
 			| 'options'
-			| 'bridge-aggregators',
+			| 'bridge-aggregators'
+			| 'trending-contracts',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean
@@ -64,7 +65,7 @@ interface ProDashboardContextType {
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 	handleRemoveItem: (itemId: string) => void
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
-	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month') => void
+	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => void
 	handleColSpanChange: (chartId: string, newColSpan: 1 | 2) => void
 	handleTableFiltersChange: (tableId: string, filters: TableFilters) => void
 	handleTableColumnsChange: (
@@ -344,7 +345,8 @@ export function ProDashboardAPIProvider({
 			| 'perps'
 			| 'aggregators'
 			| 'options'
-			| 'bridge-aggregators',
+			| 'bridge-aggregators'
+			| 'trending-contracts',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean
@@ -362,6 +364,9 @@ export function ProDashboardAPIProvider({
 				...(datasetType === 'token-usage' && {
 					tokenSymbols: Array.isArray(tokenSymbol) ? tokenSymbol : tokenSymbol ? [tokenSymbol] : [],
 					includeCex
+				}),
+				...(datasetType === 'trending-contracts' && {
+					datasetTimeframe: '1d'
 				})
 			})
 		}
@@ -435,7 +440,7 @@ export function ProDashboardAPIProvider({
 	)
 
 	const handleGroupingChange = useCallback(
-		(chartId: string, newGrouping: 'day' | 'week' | 'month') => {
+		(chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => {
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === chartId && item.kind === 'chart') {

@@ -22,9 +22,15 @@ export const getStartOfMonth = (date: Date): Date => {
 	return new Date(date.getFullYear(), date.getMonth(), 1)
 }
 
+export const getStartOfQuarter = (date: Date): Date => {
+	const month = date.getMonth()
+	const quarterStartMonth = Math.floor(month / 3) * 3
+	return new Date(date.getFullYear(), quarterStartMonth, 1)
+}
+
 export const groupData = (
 	data: [string, number][] | undefined,
-	grouping: 'day' | 'week' | 'month' = 'day'
+	grouping: 'day' | 'week' | 'month' | 'quarter' = 'day'
 ): [string, number][] => {
 	if (!data || data.length === 0) return []
 
@@ -42,6 +48,8 @@ export const groupData = (
 			groupKeyDate = getStartOfWeek(date)
 		} else if (grouping === 'month') {
 			groupKeyDate = getStartOfMonth(date)
+		} else if (grouping === 'quarter') {
+			groupKeyDate = getStartOfQuarter(date)
 		} else {
 			groupKeyDate = date
 		}

@@ -14,6 +14,8 @@ interface TableTabProps {
 	onChainsChange: (options: any[]) => void
 	selectedDatasetChain: string | null
 	onDatasetChainChange: (option: any) => void
+	selectedDatasetTimeframe: string | null
+	onDatasetTimeframeChange: (timeframe: string) => void
 	selectedTableType: CombinedTableType
 	onTableTypeChange: (type: CombinedTableType) => void
 	selectedTokens: string[]
@@ -100,6 +102,12 @@ const tableTypeOptions = [
 		label: 'Bridge Aggregators',
 		description: 'Cross-chain bridge aggregator volume and metrics',
 		icon: '🌉'
+	},
+	{
+		value: 'trending-contracts',
+		label: 'Trending Contracts',
+		description: 'Most active smart contracts by transactions and gas usage',
+		icon: '🔥'
 	}
 ]
 
@@ -142,6 +150,8 @@ export function TableTab({
 	onChainsChange,
 	selectedDatasetChain,
 	onDatasetChainChange,
+	selectedDatasetTimeframe,
+	onDatasetTimeframeChange,
 	selectedTableType,
 	onTableTypeChange,
 	selectedTokens,
@@ -253,6 +263,35 @@ export function TableTab({
 					placeholder="All chains..."
 					itemType="chain"
 				/>
+			) : selectedTableType === 'trending-contracts' ? (
+				<>
+					<ItemSelect
+						label="Select Chain"
+						options={chainOptions.filter(opt => 
+							['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'].includes(opt.label)
+						)}
+						selectedValue={selectedDatasetChain}
+						onChange={onDatasetChainChange}
+						isLoading={protocolsLoading}
+						placeholder="Select chain..."
+						itemType="chain"
+					/>
+					<div>
+						<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">Time Period</label>
+						<ReactSelect
+							options={[
+								{ value: '1d', label: '1 Day' },
+								{ value: '7d', label: '7 Days' },
+								{ value: '30d', label: '30 Days' }
+							]}
+							value={selectedDatasetTimeframe ? { value: selectedDatasetTimeframe, label: selectedDatasetTimeframe === '1d' ? '1 Day' : selectedDatasetTimeframe === '7d' ? '7 Days' : '30 Days' } : null}
+							onChange={(option: any) => onDatasetTimeframeChange(option?.value || '1d')}
+							placeholder="Select time period..."
+							className="w-full text-sm md:text-base"
+							styles={reactSelectStyles}
+						/>
+					</div>
+				</>
 			) : selectedTableType === 'token-usage' ? (
 				<>
 					<SingleSelectWithTags

@@ -78,7 +78,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 	const chartTypeDetails = CHART_TYPES[chart.type]
 	const isGroupable = chartTypeDetails?.groupable
 
-	const groupingOptions: ('day' | 'week' | 'month')[] = ['day', 'week', 'month']
+	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
 	let itemName: string = ''
 	let itemIconUrl: string | undefined = undefined

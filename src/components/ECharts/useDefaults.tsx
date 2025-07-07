@@ -64,7 +64,7 @@ interface IUseDefaultsProps {
 	unlockTokenSymbol?: string
 	isThemeDark: boolean
 	hideOthersInTooltip?: boolean
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
 	alwaysShowTooltip?: boolean
 }
 
@@ -405,11 +405,13 @@ const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 
 // timestamps in monthly chart date is 1st of every month
 // timestamps in weekly chart date is last day of week i.e., sunday
-export function formatTooltipChartDate(value: number, groupBy: 'daily' | 'weekly' | 'monthly', hideTime?: boolean) {
+export function formatTooltipChartDate(value: number, groupBy: 'daily' | 'weekly' | 'monthly' | 'quarterly', hideTime?: boolean) {
 	const date = new Date(value)
 
 	return groupBy === 'monthly'
 		? `${monthNames[date.getUTCMonth()]} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
+		: groupBy === 'quarterly'
+		? getQuarterDateRange(value)
 		: groupBy === 'weekly'
 		? getStartAndEndDayOfTheWeek(value)
 		: date.getUTCHours() !== 0 && !hideTime
@@ -452,4 +454,16 @@ function lastDayOfMonth(dateString) {
 	let date = new Date(dateString)
 
 	return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+}
+
+function getQuarterDateRange(value: number) {
+	const date = new Date(value)
+	const month = date.getUTCMonth()
+	const year = date.getUTCFullYear()
+	const quarterStartMonth = Math.floor(month / 3) * 3
+	const quarterEndMonth = quarterStartMonth + 2
+	
+	const quarterEndDate = new Date(year, quarterEndMonth + 1, 0).getUTCDate()
+	
+	return `${monthNames[quarterStartMonth]} 1 - ${monthNames[quarterEndMonth]} ${quarterEndDate}, ${year}`
 }

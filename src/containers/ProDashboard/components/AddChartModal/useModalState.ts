@@ -17,6 +17,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [textContent, setTextContent] = useState<string>('')
 	const [selectedTableType, setSelectedTableType] = useState<CombinedTableType>('protocols')
 	const [selectedDatasetChain, setSelectedDatasetChain] = useState<string | null>(null)
+	const [selectedDatasetTimeframe, setSelectedDatasetTimeframe] = useState<string | null>(null)
 	const [selectedTokens, setSelectedTokens] = useState<string[]>([])
 	const [includeCex, setIncludeCex] = useState<boolean>(false)
 
@@ -44,6 +45,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				if (editItem.tableType === 'dataset') {
 					setSelectedTableType(editItem.datasetType || 'stablecoins')
 					setSelectedDatasetChain(editItem.datasetChain || null)
+					setSelectedDatasetTimeframe(editItem.datasetTimeframe || null)
 					if (editItem.datasetType === 'token-usage') {
 						setSelectedTokens(editItem.tokenSymbols || [])
 						setIncludeCex(editItem.includeCex || false)
@@ -72,6 +74,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setTextContent('')
 			setSelectedTableType('protocols')
 			setSelectedDatasetChain(null)
+			setSelectedDatasetTimeframe(null)
 			setSelectedTokens([])
 			setIncludeCex(false)
 		}
@@ -89,6 +92,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedProtocol(null)
 		setSelectedTableType('protocols')
 		setSelectedDatasetChain(null)
+		setSelectedDatasetTimeframe(null)
 		setSelectedTokens([])
 		setIncludeCex(false)
 	}
@@ -108,6 +112,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		textContent,
 		selectedTableType,
 		selectedDatasetChain,
+		selectedDatasetTimeframe,
 		selectedTokens,
 		includeCex
 	}
@@ -129,6 +134,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setTextContent,
 			setSelectedTableType,
 			setSelectedDatasetChain,
+			setSelectedDatasetTimeframe,
 			setSelectedTokens,
 			setIncludeCex
 		},

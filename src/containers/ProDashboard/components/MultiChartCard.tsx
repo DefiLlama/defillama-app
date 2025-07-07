@@ -207,7 +207,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 	const canStack = allChartsAreBarType || allChartsAreAreaType
 
-	const groupingOptions: ('day' | 'week' | 'month')[] = ['day', 'week', 'month']
+	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
 	return (
 		<div className="p-4 h-full min-h-[340px] flex flex-col">
@@ -323,7 +323,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 							key={`${showStacked}-${showPercentage}`}
 							series={series}
 							valueSymbol={showPercentage ? '%' : '$'}
-							groupBy={multi.grouping === 'week' ? 'weekly' : multi.grouping === 'month' ? 'monthly' : 'daily'}
+							groupBy={multi.grouping === 'week' ? 'weekly' : multi.grouping === 'month' ? 'monthly' : multi.grouping === 'quarter' ? 'quarterly' : 'daily'}
 							hideDataZoom={true}
 							chartOptions={
 								showPercentage

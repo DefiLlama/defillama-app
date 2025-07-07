@@ -13,7 +13,7 @@ export interface MultiChartConfig {
 	kind: 'multi'
 	name?: string
 	items: ChartConfig[]
-	grouping?: 'day' | 'week' | 'month'
+	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	colSpan?: 1 | 2
 }
 
@@ -37,7 +37,7 @@ export interface ChartConfig {
 	isLoading?: boolean
 	hasError?: boolean
 	refetch?: () => void
-	grouping?: 'day' | 'week' | 'month'
+	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	geckoId?: string | null
 	colSpan?: 1 | 2
 }
@@ -88,9 +88,11 @@ export interface ProtocolsTableConfig {
 		| 'options'
 		| 'dexs'
 		| 'bridge-aggregators'
+		| 'trending-contracts'
 	datasetChain?: string
 	tokenSymbols?: string[]
 	includeCex?: boolean
+	datasetTimeframe?: string
 }
 
 export interface Protocol {

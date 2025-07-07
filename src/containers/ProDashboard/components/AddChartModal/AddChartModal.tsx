@@ -126,6 +126,8 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onChainsChange={actions.handleChainsChange}
 							selectedDatasetChain={state.selectedDatasetChain}
 							onDatasetChainChange={actions.handleDatasetChainChange}
+							selectedDatasetTimeframe={state.selectedDatasetTimeframe}
+							onDatasetTimeframeChange={actions.setSelectedDatasetTimeframe}
 							selectedTableType={state.selectedTableType}
 							onTableTypeChange={actions.setSelectedTableType}
 							selectedTokens={state.selectedTokens}

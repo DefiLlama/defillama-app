@@ -40,6 +40,7 @@ export function SubmitButton({
 		(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && (!selectedProtocol || selectedChartTypes.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'protocols' && (!selectedChains || selectedChains.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
+		(selectedMainTab === 'table' && selectedTableType === 'trending-contracts' && !selectedDatasetChain) ||
 		(selectedMainTab === 'table' && selectedTableType === 'token-usage' && (!selectedTokens || selectedTokens.length === 0)) ||
 		(selectedMainTab === 'composer' && composerItems.length === 0) ||
 		(selectedMainTab === 'text' && !textContent.trim())
