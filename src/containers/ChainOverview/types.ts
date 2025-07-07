@@ -75,7 +75,7 @@ export interface IChainOverviewData {
 	perps: { total24h: number | null; total7d: number | null; change_7dover7d: number | null }
 	users: { activeUsers: number | null; newUsers: number | null; transactions: number | null }
 	inflows: { netInflows: number | null } | null
-	raises: Array<[number, number]> | null
+	raisesChart: Record<string, number> | null
 	treasury: { tvl: number | null; tokenBreakdowns: Record<string, number> | null } | null
 	chainRaises: Array<IRaises> | null
 	chainAssets: IFormattedChainAsset | null

@@ -368,11 +368,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		}
 
 		const raisesChart =
-			metadata.name !== 'All' && raisesData
+			metadata.name === 'All' && raisesData
 				? (raisesData?.raises ?? []).reduce((acc, curr) => {
-						if (curr.date && curr.defillamaId === `chain#${slug(metadata.name)}`) {
-							acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
-						}
+						acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
 						return acc
 				  }, {} as Record<string, number>)
 				: null
@@ -484,7 +482,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				change_7dover7d: perps?.change_7dover7d ?? null
 			},
 			users: { activeUsers, newUsers, transactions: transactions ? +transactions : null },
-			raises: raisesChart ? Object.entries(raisesChart).map(([date, amount]) => [+date, amount]) : null,
+			raisesChart,
 			inflows: inflowsData,
 			treasury: treasury ? { tvl: treasury.tvl ?? null, tokenBreakdowns: treasury.tokenBreakdowns ?? null } : null,
 			chainRaises: chainRaises ?? null,

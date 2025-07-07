@@ -107,7 +107,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 			},
 			{
 				id: 'stables',
-				name: 'Stablecoins',
+				name: 'Stablecoins Mcap',
 				isVisible: props.stablecoins?.mcap != null ? true : false
 			},
 			{
@@ -178,7 +178,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 		stablecoinsData: props.stablecoins,
 		inflowsData: props.inflows,
 		userData: props.users,
-		raisesChart: props.raises,
+		raisesChart: props.raisesChart,
 		chart: props.tvlChart,
 		extraTvlCharts: props.extraTvlChart,
 		extraTvlsEnabled,
@@ -737,7 +737,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									<div className="flex flex-wrap gap-2">
 										{chartOptions.map((tchart) => (
 											<button
-												key={`add--chain-metric-${tchart}`}
+												key={`add-chain-metric-${tchart.id}`}
 												onClick={() => {
 													updateRoute(
 														tchart.id,

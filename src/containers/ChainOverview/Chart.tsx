@@ -14,7 +14,14 @@ const groupableCharts = [
 	'aggregatorsData',
 	'perpsChart',
 	'chainTokenVolumeData',
-	'appRevenueChart'
+	'appRevenueChart',
+	'appFeesChart',
+	'addresses',
+	'transactions',
+	'inflows',
+	'chainIncentives',
+	'chainFees',
+	'chainRevenue'
 ]
 
 const colorsArray = [
@@ -332,7 +339,7 @@ export function ChainChart({
 			}
 
 			if (route.stables === 'true' && data?.totalStablesData) {
-				const color = getColor(isCompare) || chainOverviewChartColors.stablecoins
+				const color = getColor(isCompare) || chainOverviewChartColors.stables
 				const areaColor = getAreaColor(color, isThemeDark)
 				series.push({
 					name: namePrefix + 'Stablecoins Mcap',
@@ -762,7 +769,7 @@ export function ChainChart({
 					id: 'Stablecoins Mcap',
 					axisLabel: {
 						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.stablecoins)
+						color: () => (isCompare ? '#fff' : chainOverviewChartColors.stables)
 					}
 				},
 				{
