@@ -269,7 +269,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									<span className="font-jetbrains ml-auto">{formattedNum(props.stablecoins.mcap, true)}</span>
 								</summary>
 								<div className="flex flex-col mb-3">
-									{props.stablecoins.change7d ? (
+									{props.stablecoins.change7d != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Change (7d)</span>
 											<Tooltip
@@ -282,7 +282,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 											</Tooltip>
 										</p>
 									) : null}
-									{props.stablecoins.dominance ? (
+									{props.stablecoins.dominance != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">
 												{props.stablecoins.topToken.symbol} Dominance
@@ -315,7 +315,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<span className="font-jetbrains ml-auto">{formattedNum(props.chainRevenue?.total24h, true)}</span>
 							</p>
 						) : null}
-						{props.chainFees?.totalREV24h ? (
+						{props.chainFees?.totalREV24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 								<Tooltip
 									content="REV is the sum of chain fees and MEV tips"
@@ -387,26 +387,30 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total24h, true)}</span>
 								</summary>
 								<div className="flex flex-col mb-3">
-									{props.dexs.total7d ? (
+									{props.dexs.total7d != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Volume (7d)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total7d, true)}</span>
 										</p>
 									) : null}
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Weekly Change</span>
-										<span
-											className={`font-jetbrains ml-auto ${
-												props.dexs.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
-											}`}
-										>
-											{`${props.dexs.change_7dover7d >= 0 ? '+' : ''}${props.dexs.change_7dover7d}%`}
-										</span>
-									</p>
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">DEX vs CEX dominance</span>
-										<span className="font-jetbrains ml-auto">{props.dexs.dexsDominance}%</span>
-									</p>
+									{props.dexs.change_7dover7d != null && (
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+											<span className="text-[#545757] dark:text-[#cccccc]">Weekly Change</span>
+											<span
+												className={`font-jetbrains ml-auto ${
+													props.dexs.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+												}`}
+											>
+												{`${props.dexs.change_7dover7d >= 0 ? '+' : ''}${props.dexs.change_7dover7d}%`}
+											</span>
+										</p>
+									)}
+									{props.dexs.dexsDominance != null ? (
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+											<span className="text-[#545757] dark:text-[#cccccc]">DEX vs CEX dominance</span>
+											<span className="font-jetbrains ml-auto">{props.dexs.dexsDominance}%</span>
+										</p>
+									) : null}
 								</div>
 							</details>
 						) : null}
@@ -428,22 +432,24 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total24h, true)}</span>
 								</summary>
 								<div className="flex flex-col mb-3">
-									{props.perps.total7d ? (
+									{props.perps.total7d != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Perps Volume (7d)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total7d, true)}</span>
 										</p>
 									) : null}
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Weekly Change</span>
-										<span
-											className={`font-jetbrains ml-auto ${
-												props.perps.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
-											}`}
-										>
-											{`${props.perps.change_7dover7d >= 0 ? '+' : ''}${props.perps.change_7dover7d}%`}
-										</span>
-									</p>
+									{props.perps.change_7dover7d != null ? (
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+											<span className="text-[#545757] dark:text-[#cccccc]">Weekly Change</span>
+											<span
+												className={`font-jetbrains ml-auto ${
+													props.perps.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+												}`}
+											>
+												{`${props.perps.change_7dover7d >= 0 ? '+' : ''}${props.perps.change_7dover7d}%`}
+											</span>
+										</p>
+									) : null}
 								</div>
 							</details>
 						) : null}
@@ -486,13 +492,13 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									<span className="font-jetbrains ml-auto">{formattedNum(props.users.activeUsers, false)}</span>
 								</summary>
 								<div className="flex flex-col mb-3">
-									{props.users.newUsers ? (
+									{props.users.newUsers != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">New Addresses (24h)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.users.newUsers, false)}</span>
 										</p>
 									) : null}
-									{props.users.transactions ? (
+									{props.users.transactions != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Transactions (24h)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.users.transactions, false)}</span>
@@ -514,7 +520,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.tvl, true)}</span>
 								</summary>
 								<div className="flex flex-col mb-3">
-									{props.treasury.tokenBreakdowns?.stablecoins ? (
+									{props.treasury.tokenBreakdowns?.stablecoins != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Stablecoins</span>
 											<span className="font-jetbrains ml-auto">
@@ -522,7 +528,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 											</span>
 										</p>
 									) : null}
-									{props.treasury.tokenBreakdowns?.majors ? (
+									{props.treasury.tokenBreakdowns?.majors != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Major Tokens (ETH, BTC)</span>
 											<span className="font-jetbrains ml-auto">
@@ -530,7 +536,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 											</span>
 										</p>
 									) : null}
-									{props.treasury.tokenBreakdowns?.others ? (
+									{props.treasury.tokenBreakdowns?.others != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Other Tokens</span>
 											<span className="font-jetbrains ml-auto">
@@ -538,7 +544,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 											</span>
 										</p>
 									) : null}
-									{props.treasury.tokenBreakdowns?.ownTokens ? (
+									{props.treasury.tokenBreakdowns?.ownTokens != null ? (
 										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Own Tokens</span>
 											<span className="font-jetbrains ml-auto">
