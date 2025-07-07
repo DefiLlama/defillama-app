@@ -1235,7 +1235,7 @@
 						"description": "Desired data type, dailyFees by default.",
 						"schema": {
 							"type": "string",
-							"enum": ["dailyFees", "dailyRevenue", "dailyHoldersRevenue"],
+							"enum": ["dailyFees", "dailyRevenue"],
 							"example": "dailyFees"
 						}
 					}
@@ -1294,7 +1294,7 @@
 						"description": "Desired data type, dailyFees by default.",
 						"schema": {
 							"type": "string",
-							"enum": ["dailyFees", "dailyRevenue", "dailyHoldersRevenue"],
+							"enum": ["dailyFees", "dailyRevenue"],
 							"example": "dailyFees"
 						}
 					}
@@ -1333,7 +1333,7 @@
 						"description": "Desired data type, dailyFees by default.",
 						"schema": {
 							"type": "string",
-							"enum": ["dailyFees", "dailyRevenue", "dailyHoldersRevenue"],
+							"enum": ["dailyFees", "dailyRevenue"],
 							"example": "dailyFees"
 						}
 					}
