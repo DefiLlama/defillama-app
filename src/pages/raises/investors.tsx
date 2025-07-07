@@ -151,7 +151,7 @@ const ActiveInvestors = ({ data }) => {
 				</a>
 			</Announcement> */}
 
-			<div className="bg-(--cards-bg) rounded-md">
+			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 				<div className="flex items-center gap-2 justify-end flex-wrap p-3">
 					<h1 className="text-xl font-semibold mr-auto">Investors</h1>
 					<div className="relative w-full sm:max-w-[280px]">

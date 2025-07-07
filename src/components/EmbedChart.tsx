@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
-import { transparentize } from 'polished'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
@@ -45,12 +44,7 @@ export function EmbedChart({ color }: { color?: string }) {
 
 	return (
 		<Ariakit.PopoverProvider>
-			<Ariakit.PopoverDisclosure
-				style={color ? ({ '--btn-bg': transparentize(0.8, color) } as any) : undefined}
-				className={`font-medium text-sm flex items-center justify-center rounded-md ${
-					color ? 'h-[34px] w-[34px]' : 'h-[30px] w-[30px]'
-				} bg-(--btn-bg,#E2E2E2) dark:bg-(--btn-bg,#303032)`}
-			>
+			<Ariakit.PopoverDisclosure className="font-medium text-sm flex items-center justify-center rounded-md h-[30px] w-[30px] border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 				<Icon name="code" height={12} width={12} />
 				<span className="sr-only">Embed Chart</span>
 			</Ariakit.PopoverDisclosure>

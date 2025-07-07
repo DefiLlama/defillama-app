@@ -104,7 +104,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>
-			<div className="bg-(--cards-bg) rounded-md">
+			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 				<TableSwitch />
 				{isLiqsShowingInspector ? (
 					<LiqPositionsTable data={data} prevData={prevData} />

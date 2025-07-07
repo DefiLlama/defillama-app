@@ -90,11 +90,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
-			<p
-				className={`text-center ${
-					currentMetric === 'Stablecoin Supply' && !isChains ? 'my-1' : 'mt-1 lg:-mt-2 mb-1'
-				} flex items-center gap-1 justify-center flex-wrap relative w-full isolate rounded-md h-10 bg-(--cards-bg) p-1`}
-			>
+			<p className="text-center flex items-center gap-1 justify-center flex-wrap relative w-full isolate rounded-md h-10 bg-(--cards-bg) p-1">
 				<img src="/icons/metrics-l.svg" width={189} height={82} alt="" className="rounded-l-md absolute left-0" />
 				<span className="bg-(--old-blue) text-white text-xs rounded-md py-[7px] items-center gap-2 px-2 hidden lg:flex">
 					<Icon name="sparkles" height={12} width={12} />

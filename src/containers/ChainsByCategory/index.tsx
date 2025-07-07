@@ -132,7 +132,10 @@ export function ChainsByCategory({
 
 			<React.Suspense
 				fallback={
-					<div style={{ minHeight: `${groupedChains.length * 50 + 200}px` }} className="bg-(--cards-bg) rounded-md" />
+					<div
+						style={{ minHeight: `${groupedChains.length * 50 + 200}px` }}
+						className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md"
+					/>
 				}
 			>
 				<ChainsByCategoryTable data={groupedChains} />

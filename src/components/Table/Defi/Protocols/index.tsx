@@ -396,7 +396,7 @@ export function ProtocolsTableWithSearch({
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md">
+		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 			<div className="p-3 flex items-center justify-between gap-4">
 				<h1 className="text-lg font-semibold mr-auto">Protocol Rankings</h1>
 				<div className="relative w-full sm:max-w-[280px] ml-auto">

@@ -108,7 +108,7 @@ export function TableWithSearch({
 	}, [instance, windowSize])
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md">
+		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 			<div className="flex items-center justify-end gap-2 p-3">
 				{header ? <h1 className="text-lg font-semibold mr-auto">{header}</h1> : null}
 				<div className="relative w-full sm:max-w-[280px]">

@@ -433,7 +433,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch options={finalTvlOptions} />
-			<div className="bg-(--cards-bg) rounded-md">
+			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
 					<h1 className="text-xl font-semibold mr-auto">Categories</h1>
 					<SelectWithCombobox
@@ -456,7 +456,10 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 
 			<React.Suspense
 				fallback={
-					<div style={{ minHeight: `${categories.length * 50 + 200}px` }} className="bg-(--cards-bg) rounded-md" />
+					<div
+						style={{ minHeight: `${categories.length * 50 + 200}px` }}
+						className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md"
+					/>
 				}
 			>
 				<TableWithSearch

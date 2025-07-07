@@ -61,7 +61,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="perps-aggregators"
 		>
-			<div className="bg-(--cards-bg) rounded-md">
+			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
 					<DimensionProtocolChartByType
 						chartType="overview"

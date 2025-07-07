@@ -9,14 +9,7 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 		<>
 			<tr className="group">
 				<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
-					<button onClick={() => setOpen(!open)} className="ml-[-18px] flex items-center gap-[2px] whitespace-nowrap">
-						<Icon
-							name="chevron-right"
-							height={16}
-							width={16}
-							data-open={open}
-							className="data-[open=true]:rotate-90 transition-transform duration-100 shrink-0"
-						/>
+					<button onClick={() => setOpen(!open)} className="flex items-center gap-[2px] whitespace-nowrap">
 						{helperText ? (
 							<Tooltip content={helperText} className="underline decoration-dotted whitespace-nowrap">
 								{rowHeader}
@@ -24,6 +17,12 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 						) : (
 							<span className="whitespace-nowrap">{rowHeader}</span>
 						)}
+						<Icon
+							name="chevron-down"
+							height={16}
+							width={16}
+							className="group-open:rotate-180 transition-transform duration-100 relative top-[2px]"
+						/>
 					</button>
 					{protocolName && dataType ? (
 						<Flag

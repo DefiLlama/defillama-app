@@ -137,7 +137,7 @@ export default function Protocols({ emissions }) {
 		<Layout title={`Calendar - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>
 
-			<div className="bg-(--cards-bg) rounded-md">
+			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 				<div className="flex items-center gap-4 flex-wrap *:last:ml-auto p-3">
 					<h1 className="text-xl font-semibold">Crypto Calendar</h1>
 

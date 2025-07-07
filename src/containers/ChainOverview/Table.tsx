@@ -392,7 +392,7 @@ export const ChainProtocolsTable = ({
 	}
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md isolate">
+		<div className="bg-(--cards-bg) rounded-md border border-[#e6e6e6] dark:border-[#222324] isolate">
 			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 				<h3 className="text-lg font-semibold mr-auto">Protocol Rankings</h3>
 				<TagGroup
@@ -651,10 +651,7 @@ const columns: ColumnDef<IProtocol>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<BasicLink
-					href={`/protocols/${slug(getValue() as string)}`}
-					className="text-sm font-medium text-(--link-text)"
-				>
+				<BasicLink href={`/protocols/${slug(getValue() as string)}`} className="text-sm font-medium text-(--link-text)">
 					{getValue() as string}
 				</BasicLink>
 			) : (

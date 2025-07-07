@@ -35,12 +35,12 @@ export default function TopGainersLosers({ protocols }) {
 	return (
 		<Layout title={`Top Gainers and Losers - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
-			<div className="bg-(--cards-bg) rounded-md">
+			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 				<h1 className="text-xl font-semibold p-3">Top Gainers</h1>
 				<TopGainersAndLosers data={topGainers} />
 			</div>
 
-			<div className="bg-(--cards-bg) rounded-md">
+			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 				<h1 className="text-xl font-semibold p-3">Top Losers</h1>
 				<TopGainersAndLosers data={topLosers} />
 			</div>

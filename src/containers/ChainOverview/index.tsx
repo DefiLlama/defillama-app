@@ -15,6 +15,7 @@ export function ChainOverview(props: IChainOverviewData) {
 		<Layout
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
 			defaultSEO
+			className="gap-2"
 		>
 			<ProtocolsChainsSearch options={props.tvlAndFeesOptions} />
 			<Metrics currentMetric="TVL" />
@@ -50,7 +51,10 @@ export function ChainOverview(props: IChainOverviewData) {
 			) : null}
 			<Suspense
 				fallback={
-					<div style={{ minHeight: `${props.protocols.length * 50 + 200}px` }} className="bg-(--cards-bg) rounded-md" />
+					<div
+						style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
+						className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md"
+					/>
 				}
 			>
 				<Table protocols={props.protocols} />

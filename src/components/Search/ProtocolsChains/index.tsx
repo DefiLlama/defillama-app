@@ -26,7 +26,7 @@ export const ProtocolsChainsSearch = ({ hideFilters, ...props }: IProtocolsChain
 	}
 
 	return (
-		<span className="hidden lg:block min-h-[44px]">
+		<span className="hidden lg:block min-h-[32px]">
 			<SearchV2 indexName="protocols">
 				<Search {...props} hideFilters={hideFilters} />
 			</SearchV2>

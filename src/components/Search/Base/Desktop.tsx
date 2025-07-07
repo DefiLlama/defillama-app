@@ -42,7 +42,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	return (
 		<div
 			className={`relative hidden lg:flex items-center justify-between gap-4 data-[alwaysdisplay=true]:flex ${
-				variant === 'secondary' ? '' : 'pb-3'
+				variant === 'secondary' ? '' : ''
 			}`}
 			{...extra}
 		>

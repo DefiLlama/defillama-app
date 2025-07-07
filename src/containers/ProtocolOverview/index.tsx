@@ -1216,7 +1216,7 @@ const SmolStats = ({
 				{data.slice(1).map((metric) => (
 					<p
 						className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1"
-						key={`dex-aggregator-${metric.name}`}
+						key={`${metric.name}-${metric.value}-${protocolName}`}
 					>
 						{metric.tooltipContent ? (
 							<Tooltip

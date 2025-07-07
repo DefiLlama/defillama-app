@@ -50,7 +50,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			metrics={props.metrics}
 			tab="unlocks"
 		>
-			<div className="bg-(--cards-bg) rounded-md">
+			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 				<UnlocksCharts protocolName={props.name} />
 			</div>
 		</ProtocolOverviewLayout>

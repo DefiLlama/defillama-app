@@ -55,7 +55,7 @@ export function GovernanceTable({ data, governanceType }) {
 	}, [proposalname, instance])
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md">
+		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 			<div className="flex items-center gap-2 flex-wrap justify-end p-3">
 				<h1 className="text-xl font-semibold mr-auto">Proposals</h1>
 				<Switch

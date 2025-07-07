@@ -143,7 +143,7 @@ export function RecentlyListedProtocolsTable({
 	}
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md">
+		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
 			<div className="flex items-center justify-end flex-wrap gap-2 p-3">
 				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
