@@ -361,8 +361,8 @@ export function AdapterByChain(props: IProps) {
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' ? (
-				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1 text-base">
-					<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
+					<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{props.chain !== 'All' && (
 							<h1 className="flex items-center flex-nowrap gap-2">
 								<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
@@ -381,24 +381,23 @@ export function AdapterByChain(props: IProps) {
 							</p>
 						) : null}
 
-						<div className="flex flex-col gap-1">
+						<div className="flex flex-col">
 							{props.total30d != null ? (
-								<p className="flex items-center gap-4 justify-between flex-wrap">
-									<span className="font-normal text-[#545757] dark:text-[#cccccc]">{metricName} (30d)</span>
-									<span className="text-right font-jetbrains">{formattedNum(props.total30d, true)}</span>
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+									<span className="text-[#545757] dark:text-[#cccccc]">{metricName} (30d)</span>
+									<span className="font-jetbrains ml-auto">{formattedNum(props.total30d, true)}</span>
 								</p>
 							) : null}
 							{props.change_7dover7d != null ? (
-								<p className="flex items-center gap-4 justify-between flex-wrap">
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
 									<Tooltip
 										content="Change of last 7d volume over the previous 7d volume"
-										className="underline decoration-dotted font-normal text-[#545757] dark:text-[#cccccc]"
-										render={<span />}
+										className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 									>
 										Weekly Change
 									</Tooltip>
 									<span
-										className={`text-right font-jetbrains pl-2 pb-1 text-ellipsis" ${
+										className={`ml-auto font-jetbrains ${
 											props.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
 										}`}
 									>
@@ -418,7 +417,7 @@ export function AdapterByChain(props: IProps) {
 				</div>
 			) : null}
 			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
-				<div className="flex items-center justify-end flex-wrap gap-4 p-3">
+				<div className="flex items-center justify-end flex-wrap gap-4 p-2">
 					<div className="relative w-full sm:max-w-[280px] mr-auto">
 						<Icon
 							name="search"

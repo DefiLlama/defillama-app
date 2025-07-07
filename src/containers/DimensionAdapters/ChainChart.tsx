@@ -9,6 +9,7 @@ import { useMutation } from '@tanstack/react-query'
 import { oldBlue } from '~/constants/colors'
 import { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { Tooltip } from '~/components/Tooltip'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly'] as const
 const CHART_TYPES = ['Volume', 'Dominance'] as const
@@ -120,18 +121,19 @@ export const AdapterByChainChart = ({
 	})
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2">
-			<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
-				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296] mr-auto">
+		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md flex flex-col col-span-2">
+			<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-2">
+				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 					{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
-						<a
-							key={dataInterval}
+						<Tooltip
+							content={dataInterval}
+							render={<button />}
+							className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 							onClick={() => setChartInterval(dataInterval)}
 							data-active={dataInterval === chartInterval}
-							className="cursor-pointer shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
-							{dataInterval}
-						</a>
+							{dataInterval.slice(0, 1).toUpperCase()}
+						</Tooltip>
 					))}
 				</div>
 				<CSVDownloadButton
@@ -144,10 +146,9 @@ export const AdapterByChainChart = ({
 					}}
 					isLoading={isDownloadingBreakdownChart}
 					smol
-					className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
-
 			<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
 				<LineAndBarChart charts={charts} groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'} />
 			</React.Suspense>
@@ -233,7 +234,7 @@ export const ChainsByAdapterChart = ({
 							)
 						}}
 						smol
-						className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
 					/>
 				</div>
 			</>

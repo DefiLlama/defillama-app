@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 
 const DexsVolumeOnAllChains = (props) => {
 	return (
-		<Layout title={`${type} - DefiLlama`} defaultSEO>
+		<Layout title={`${type} - DefiLlama`} defaultSEO className="gap-2">
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

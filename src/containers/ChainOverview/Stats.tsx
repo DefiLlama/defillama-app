@@ -718,7 +718,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 				</div>
 			</div>
 			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md flex flex-col col-span-2">
-				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+				<div className="flex flex-wrap items-center justify-end gap-2 p-2">
 					<div className="flex items-center flex-wrap gap-2 mr-auto">
 						{chartOptions.length > 0 ? (
 							<Ariakit.DialogProvider store={metricsDialogStore}>

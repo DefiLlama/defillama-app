@@ -100,21 +100,25 @@ export function ChainsByCategory({
 	const groupedChains = useGroupChainsByParent(dataByChain, showByGroup ? chainsGroupbyParent : {})
 
 	return (
-		<Layout title={`${category} Chains DeFi TVL - DefiLlama`} defaultSEO>
+		<Layout title={`${category} Chains DeFi TVL - DefiLlama`} defaultSEO className="gap-2">
 			<ProtocolsChainsSearch />
 
 			<Metrics currentMetric="TVL" isChains={true} />
 
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
 
-			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="isolate relative rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px] flex flex-col">
-					<CSVDownloadButton onClick={downloadCsv} className="ml-auto absolute right-3 top-3 z-10" />
+			<div className="flex flex-col gap-2 xl:flex-row">
+				<div className="isolate relative rounded-md p-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] flex-1 min-h-[360px] flex flex-col">
+					<CSVDownloadButton
+						onClick={downloadCsv}
+						smol
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+					/>
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
 					</React.Suspense>
 				</div>
-				<div className="rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px]">
+				<div className="rounded-md p-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] flex-1 min-h-[360px]">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
