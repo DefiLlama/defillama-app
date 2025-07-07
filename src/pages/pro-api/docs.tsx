@@ -36,7 +36,9 @@ export default function Docs() {
 					return [method, { ...route, servers: undefined }]
 				})
 			)
+			if(!spec.paths[`/${server}${path}`]){
 			spec.paths[`/${server}${path}`] = routes
+			}
 		})
 		return spec
 	}, [savedApiKey])

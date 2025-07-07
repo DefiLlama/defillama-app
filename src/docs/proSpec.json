@@ -805,6 +805,153 @@
 				}
 			}
 		},
+		"/overview/fees": {
+			"get": {
+				"tags": ["fees and revenue"],
+				"summary": "List all protocols along with summaries of their fees and revenue and dataType history data",
+				"servers": [
+					{
+						"url": "https://api.llama.fi"
+					}
+				],
+				"parameters": [
+					{
+						"name": "excludeTotalDataChart",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude aggregated chart from response",
+						"schema": {
+							"type": "boolean",
+							"example": true
+						}
+					},
+					{
+						"name": "excludeTotalDataChartBreakdown",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude broken down chart from response",
+						"schema": {
+							"type": "boolean",
+							"example": true
+						}
+					},
+					{
+						"name": "dataType",
+						"in": "query",
+						"required": false,
+						"description": "Desired data type, dailyFees by default.",
+						"schema": {
+							"type": "string",
+							"enum": ["dailyFees", "dailyRevenue", "dailyHoldersRevenue"],
+							"example": "dailyFees"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/overview/fees/{chain}": {
+			"get": {
+				"tags": ["fees and revenue"],
+				"summary": "List all protocols along with summaries of their fees and revenue and dataType history data by chain",
+				"servers": [
+					{
+						"url": "https://api.llama.fi"
+					}
+				],
+				"parameters": [
+					{
+						"name": "chain",
+						"in": "path",
+						"required": true,
+						"description": "chain name, list of all supported chains can be found under allChains attribute in /overview/fees response",
+						"schema": {
+							"type": "string",
+							"example": "ethereum"
+						}
+					},
+					{
+						"name": "excludeTotalDataChart",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude aggregated chart from response",
+						"schema": {
+							"type": "boolean",
+							"example": true
+						}
+					},
+					{
+						"name": "excludeTotalDataChartBreakdown",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude broken down chart from response",
+						"schema": {
+							"type": "boolean",
+							"example": true
+						}
+					},
+					{
+						"name": "dataType",
+						"in": "query",
+						"required": false,
+						"description": "Desired data type, dailyFees by default.",
+						"schema": {
+							"type": "string",
+							"enum": ["dailyFees", "dailyRevenue", "dailyHoldersRevenue"],
+							"example": "dailyFees"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/summary/fees/{protocol}": {
+			"get": {
+				"tags": ["fees and revenue"],
+				"summary": "Get summary of protocol fees and revenue with historical data",
+				"servers": [
+					{
+						"url": "https://api.llama.fi"
+					}
+				],
+				"parameters": [
+					{
+						"name": "protocol",
+						"in": "path",
+						"required": true,
+						"description": "protocol slug",
+						"schema": {
+							"type": "string",
+							"example": "lyra"
+						}
+					},
+					{
+						"name": "dataType",
+						"in": "query",
+						"required": false,
+						"description": "Desired data type, dailyFees by default.",
+						"schema": {
+							"type": "string",
+							"enum": ["dailyFees", "dailyRevenue", "dailyHoldersRevenue"],
+							"example": "dailyFees"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
 		"/usage/APIKEY": {
 			"get": {
 				"tags": ["meta"],
