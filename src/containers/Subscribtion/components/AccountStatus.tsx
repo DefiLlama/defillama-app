@@ -94,7 +94,10 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 						<span className="font-medium text-sm bg-linear-to-r from-white to-[#b4b7bc] group-hover:from-white group-hover:to-white bg-clip-text text-transparent transition-colors">
 							{isSubscribed ? (
 								<span className="flex items-center gap-2">
-									<span>{subscription.type === 'llamafeed' ? 'Llama+' : 'Pro'}</span>
+									<span>
+										{subscription.type === 'llamafeed' ? 'Llama+' : 'Pro'}
+										{subscription.provider === 'trial' && ' Trial'}
+									</span>
 									<Icon
 										name="star"
 										height={12}
@@ -121,6 +124,22 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 						</span>
 					</div>
 				</div>
+
+				{subscription?.provider === 'trial' && subscription?.expires_at && (
+					<div className="mt-4 p-3.5 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 rounded-xl border border-orange-500/30 hover:border-orange-500/50 transition-all duration-300 hover:shadow-[0_4px_12px_rgba(251,146,60,0.15)] group">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+								</svg>
+								<span className="text-sm text-orange-400 font-medium">Trial Expires</span>
+							</div>
+							<span className="text-sm text-[#b4b7bc]">
+								{new Date(parseFloat(subscription.expires_at) * 1000).toLocaleString()}
+							</span>
+						</div>
+					</div>
+				)}
 
 				{user.walletAddress && (
 					<div className="mt-4 p-3.5 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 rounded-xl border border-[#39393E]/40 hover:border-[#5C5CF9]/30 transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] group">

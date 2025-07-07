@@ -28,6 +28,10 @@ export interface Subscription {
 	started_at?: string
 	type: string
 	provider: string
+	metadata?: {
+		is_trial?: boolean
+		trial_started_at?: string
+	}
 }
 
 export interface SubscriptionResponse {

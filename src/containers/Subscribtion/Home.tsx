@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { AccountInfo } from './AccountInfo'
@@ -10,8 +11,10 @@ import { EmailChangeModal } from './components/EmailChangeModal'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { ReturnModal } from './components/ReturnModal'
+import { TrialActivation } from './components/TrialActivation'
+import { SignIn } from './SignIn'
 
-export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
+export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTrial?: boolean }) {
 	const { isAuthenticated, loaders, user, changeEmail, addEmail } = useAuthContext()
 	const { subscription, isSubscriptionFetching } = useSubscribe()
 	const [showEmailForm, setShowEmailForm] = useState(false)
@@ -30,12 +33,13 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
 	const router = useRouter()
+	const queryClient = useQueryClient()
 	const [showReturnModal, setShowReturnModal] = useState(false)
 	const [hasShownModal, setHasShownModal] = useState(false)
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
 	const [activePriceCard, setActivePriceCard] = useState(0)
-	console.log(user)
+
 	useEffect(() => {
 		const ref = pricingContainer.current
 		if (!ref) return
@@ -125,6 +129,93 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					</p>
 				)}
 
+				{!isAuthenticated && isTrial && (
+					<div className="relative bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden p-6 mt-4 transition-all duration-300">
+						<div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#5c5cf9] to-transparent opacity-40"></div>
+						<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-[#5c5cf9] opacity-10 blur-2xl"></div>
+
+						<div className="flex items-center gap-3 mb-4">
+							<div className="p-2 bg-[#5c5cf9]/10 rounded-lg">
+								<svg className="w-6 h-6 text-[#5c5cf9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+									/>
+								</svg>
+							</div>
+							<h2 className="text-2xl font-bold bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-transparent">
+								Welcome to Your Free Trial!
+							</h2>
+						</div>
+
+						<p className="text-[#b4b7bc] mb-6 leading-relaxed">
+							You've been invited to experience Llama+ for free! Sign in or create an account to activate your exclusive
+							24-hour trial access.
+						</p>
+
+						<SignIn
+							text="Sign In to Activate Trial"
+							className="w-full py-3 px-4 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20"
+						/>
+					</div>
+				)}
+
+				{isAuthenticated && isTrial && !isSubscribed && (
+					<TrialActivation
+						onSuccess={() => {
+							queryClient.invalidateQueries({ queryKey: ['subscription'] })
+							window.location.reload()
+						}}
+					/>
+				)}
+
+				{isAuthenticated && isTrial && isSubscribed && subscription?.provider === 'trial' && (
+					<div className="relative bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden p-6 mt-4 transition-all duration-300">
+						<div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-green-500 to-transparent opacity-40"></div>
+						<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-green-500 opacity-10 blur-2xl"></div>
+
+						<div className="flex items-center gap-3 mb-4">
+							<div className="p-2 bg-green-500/10 rounded-lg">
+								<svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+									/>
+								</svg>
+							</div>
+							<h2 className="text-2xl font-bold bg-linear-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+								Trial Active
+							</h2>
+						</div>
+
+						<p className="text-[#b4b7bc] mb-4">
+							Your 24-hour trial is currently active. Enjoy full access to all premium features!
+						</p>
+
+						{subscription?.expires_at && (
+							<div className="bg-[#1a1b1f]/50 border border-[#39393E] rounded-lg p-3">
+								<div className="flex items-center gap-2 text-sm">
+									<svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+										/>
+									</svg>
+									<span className="text-[#919296]">
+										Expires: {new Date(parseFloat(subscription.expires_at) * 1000).toLocaleString()}
+									</span>
+								</div>
+							</div>
+						)}
+					</div>
+				)}
+
 				{isAuthenticated && isSubscribed ? null : (
 					<div
 						className="h-[64px] w-[90%] mx-auto rounded-[50%] relative -bottom-[60px] -mb-[45px] z-0"
@@ -165,7 +256,14 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							ref={pricingContainer}
 							className="pricing-container flex flex-row relative z-10 overflow-x-auto scroll-smooth snap-x snap-mandatory max-md:-mx-2 max-md:pl-2 gap-4 py-4 justify-start md:overflow-visible md:justify-center"
 						>
-							<SubscribePlusCard context="page" />
+							<SubscribePlusCard
+								context="page"
+								active={
+									subscription?.status === 'active' &&
+									subscription?.type === 'llamafeed' &&
+									subscription?.provider !== 'trial'
+								}
+							/>
 							<SubscribeProCard context="page" />
 							<SubscribeEnterpriseCard />
 						</div>

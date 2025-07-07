@@ -65,7 +65,7 @@ export const SubscriberContent = ({
 			<div className="flex flex-row gap-4 justify-center mb-8">
 				<SubscribePlusCard
 					context="account"
-					active={isLlamaFeed}
+					active={isLlamaFeed && subscription?.provider !== 'trial'}
 					onCancelSubscription={isLlamaFeed ? () => handleManageSubscription('llamafeed') : undefined}
 				/>
 				<SubscribeProCard

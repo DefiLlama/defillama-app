@@ -7,11 +7,12 @@ import { WalletProvider } from '~/layout/WalletProvider'
 export default function Subscribe() {
 	const router = useRouter()
 	const returnUrl = safeInternalPath(router.query.returnUrl)
+	const isTrial = router.query.trial === 'true'
 
 	return (
 		<WalletProvider>
 			<SubscribeLayout>
-				<SubscribeHome returnUrl={returnUrl} />
+				<SubscribeHome returnUrl={returnUrl} isTrial={isTrial} />
 			</SubscribeLayout>
 		</WalletProvider>
 	)
