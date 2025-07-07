@@ -10,7 +10,7 @@ import { Fragment, lazy, memo, Suspense, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { EmbedChart } from '~/components/EmbedChart'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { chainOverviewChartSwitchColors } from './colors'
+import { chainOverviewChartColors, BAR_CHARTS, chainCharts } from './constants'
 import { Icon } from '~/components/Icon'
 import dayjs from 'dayjs'
 import * as Ariakit from '@ariakit/react'
@@ -27,7 +27,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	const { chartOptions, toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart } = useMemo(() => {
+	const { toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart } = useMemo(() => {
 		let CHAIN_SYMBOL = props.chainTokenInfo?.token_symbol ?? null
 		let chainGeckoId = props.chainTokenInfo?.gecko_id ?? null
 
@@ -43,123 +43,19 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 		const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
-		const chartOptions = [
-			{
-				id: 'tvl',
-				name: 'TVL',
-				isVisible: true
-			},
-			{
-				id: 'dexs',
-				name: 'DEXs Volume',
-				isVisible: props.dexs?.total24h != null ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'chainFees',
-				name: 'Chain Fees',
-				isVisible: props.chainFees?.total24h != null ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'chainRevenue',
-				name: 'Chain Revenue',
-				isVisible: props.chainRevenue?.total24h != null ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'chainIncentives',
-				name: 'Token Incentives',
-				isVisible: props.chainIncentives?.emissions24h != null ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'appRevenue',
-				name: 'App Revenue',
-				isVisible: props.appRevenue?.total24h != null ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'appFees',
-				name: 'App Fees',
-				isVisible: props.appFees?.total24h != null ? true : false,
-				type: 'bar'
-			},
-			{ id: 'perps', name: 'Perps Volume', isVisible: props.perps?.total24h != null ? true : false, type: 'bar' },
-			{ id: 'chainAssets', name: 'Bridged TVL', isVisible: props.chainAssets != null ? true : false, type: 'bar' },
-			{
-				id: 'addresses',
-				name: 'Addresses',
-				isVisible: props.users.activeUsers != null ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'txs',
-				name: 'Transactions',
-				isVisible: props.users.transactions != null ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'raises',
-				name: 'Raises',
-				isVisible: props.metadata.name === 'All',
-				type: 'bar'
-			},
-			{
-				id: 'stables',
-				name: 'Stablecoins Mcap',
-				isVisible: props.stablecoins?.mcap != null ? true : false
-			},
-			{
-				id: 'inflows',
-				name: 'Inflows',
-				isVisible: props.inflows?.netInflows != null ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'developers',
-				name: 'Core Developers',
-				isVisible: props.devMetrics ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'devsCommits',
-				name: 'Commits',
-				isVisible: props.devMetrics ? true : false,
-				type: 'bar'
-			},
-			{
-				id: 'chainTokenPrice',
-				name: `${CHAIN_SYMBOL} Price`,
-				isVisible: CHAIN_SYMBOL ? true : false
-			},
-			{
-				id: 'chainTokenMcap',
-				name: `${props.chainTokenInfo?.token_symbol} MCap`,
-				isVisible: props.chainTokenInfo?.token_symbol ? true : false
-			},
-			{
-				id: 'chainTokenVolume',
-				name: `${props.chainTokenInfo?.token_symbol} Volume`,
-				isVisible: props.chainTokenInfo?.token_symbol ? true : false,
-				type: 'bar'
-			}
-		].filter((o) => o.isVisible)
-
-		const hasAtleasOneBarChart = chartOptions.reduce((acc, curr) => {
-			if (curr.isVisible && curr.type === 'bar' && router.query[curr.id] === 'true') {
+		const hasAtleasOneBarChart = props.charts.reduce((acc, curr) => {
+			if (BAR_CHARTS.includes(curr) && router.query[curr] === 'true') {
 				acc = true
 			}
 
 			return acc
 		}, false)
 
-		const toggledCharts = chartOptions.filter((o) =>
-			o.id === 'tvl' ? router.query[o.id] !== 'false' : router.query[o.id] === 'true'
+		const toggledCharts = props.charts.filter((tchart) =>
+			tchart === 'TVL' ? router.query[chainCharts[tchart]] !== 'false' : router.query[chainCharts[tchart]] === 'true'
 		)
 
 		return {
-			chartOptions,
 			DENOMINATIONS,
 			chainGeckoId,
 			hasAtleasOneBarChart,
@@ -726,7 +622,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md flex flex-col col-span-2">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-2">
 					<div className="flex items-center flex-wrap gap-2 mr-auto">
-						{chartOptions.length > 0 ? (
+						{props.charts.length > 0 ? (
 							<Ariakit.DialogProvider store={metricsDialogStore}>
 								<Ariakit.DialogDisclosure className="flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-[#e6e6e6] dark:border-[#222324]">
 									<span>Add Metrics</span>
@@ -735,17 +631,17 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<Ariakit.Dialog className="dialog gap-3 sm:w-full max-sm:drawer" unmountOnHide>
 									<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 									<div className="flex flex-wrap gap-2">
-										{chartOptions.map((tchart) => (
+										{props.charts.map((tchart) => (
 											<button
-												key={`add-chain-metric-${tchart.id}`}
+												key={`add-chain-metric-${chainCharts[tchart]}`}
 												onClick={() => {
 													updateRoute(
-														tchart.id,
-														tchart.id === 'tvl'
-															? router.query[tchart.id] !== 'false'
+														chainCharts[tchart],
+														chainCharts[tchart] === 'tvl'
+															? router.query[chainCharts[tchart]] !== 'false'
 																? 'false'
 																: 'true'
-															: router.query[tchart.id] === 'true'
+															: router.query[chainCharts[tchart]] === 'true'
 															? 'false'
 															: 'true',
 														router
@@ -753,18 +649,20 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 													metricsDialogStore.toggle()
 												}}
 												data-active={
-													tchart.id === 'tvl' ? router.query[tchart.id] !== 'false' : router.query[tchart.id] === 'true'
+													chainCharts[tchart] === 'tvl'
+														? router.query[chainCharts[tchart]] !== 'false'
+														: router.query[chainCharts[tchart]] === 'true'
 												}
 												className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 											>
-												<span>{tchart.name}</span>
-												{tchart.id === 'tvl' ? (
-													router.query[tchart.id] === 'false' ? (
+												<span>{tchart}</span>
+												{chainCharts[tchart] === 'tvl' ? (
+													router.query[chainCharts[tchart]] === 'false' ? (
 														<Icon name="plus" className="h-[14px] w-[14px]" />
 													) : (
 														<Icon name="x" className="h-[14px] w-[14px]" />
 													)
-												) : router.query[tchart.id] === 'true' ? (
+												) : router.query[chainCharts[tchart]] === 'true' ? (
 													<Icon name="x" className="h-[14px] w-[14px]" />
 												) : (
 													<Icon name="plus" className="h-[14px] w-[14px]" />
@@ -778,20 +676,20 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						{toggledCharts.map((tchart) => (
 							<label
 								className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto"
-								key={`add-or-remove-metric-${tchart.id}`}
+								key={`add-or-remove-metric-${chainCharts[tchart]}`}
 							>
 								<input
 									type="checkbox"
-									value={tchart.name}
+									value={tchart}
 									checked={true}
 									onChange={() => {
 										updateRoute(
-											tchart.id,
-											tchart.id === 'tvl'
-												? router.query[tchart.id] !== 'false'
+											chainCharts[tchart],
+											chainCharts[tchart] === 'tvl'
+												? router.query[chainCharts[tchart]] !== 'false'
 													? 'false'
 													: 'true'
-												: router.query[tchart.id] === 'true'
+												: router.query[chainCharts[tchart]] === 'true'
 												? 'false'
 												: 'true',
 											router
@@ -802,10 +700,10 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<span
 									className="text-xs flex items-center gap-1 border-2 border-(--old-blue) rounded-full px-2 py-1"
 									style={{
-										borderColor: chainOverviewChartSwitchColors[tchart.id]['--primary-color']
+										borderColor: chainOverviewChartColors[chainCharts[tchart]]
 									}}
 								>
-									<span>{tchart.name}</span>
+									<span>{tchart}</span>
 									<Icon name="x" className="h-[14px] w-[14px]" />
 								</span>
 							</label>

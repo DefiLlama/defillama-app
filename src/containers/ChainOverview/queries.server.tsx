@@ -40,6 +40,7 @@ import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { getAllProtocolEmissions, getETFData, getProtocolEmissons } from '~/api/categories/protocols'
 import { tvlOptions } from '~/components/Filters/options'
+import { ChainChartLabels } from './constants'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
 	const metadata: IChainMetadata =
@@ -442,6 +443,60 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 
 		const tvlAndFeesOptions = tvlOptions.filter((o) => extraTvlChart?.[o.key]?.length)
 
+		const charts: ChainChartLabels[] = ['TVL']
+
+		if (stablecoins?.mcap != null) {
+			charts.push('Stablecoins Mcap')
+		}
+		if (chainFees?.total24h != null) {
+			charts.push('Chain Fees')
+		}
+		if (chainRevenue?.total24h != null) {
+			charts.push('Chain Revenue')
+		}
+		if (dexs?.total24h != null) {
+			charts.push('DEXs Volume')
+		}
+		if (perps?.total24h != null) {
+			charts.push('Perps Volume')
+		}
+		if (chainIncentives?.emissions24h != null) {
+			charts.push('Token Incentives')
+		}
+		if (appRevenue?.total24h != null) {
+			charts.push('App Revenue')
+		}
+		if (appFees?.total24h != null) {
+			charts.push('App Fees')
+		}
+		if (chainAssets != null) {
+			charts.push('Bridged TVL')
+		}
+		if (activeUsers != null) {
+			charts.push('Active Addresses')
+		}
+		if (newUsers != null) {
+			charts.push('New Addresses')
+		}
+		if (transactions != null) {
+			charts.push('Transactions')
+		}
+		if (raisesChart != null) {
+			charts.push('Raises')
+		}
+		if (inflowsData?.netInflows != null) {
+			charts.push('Net Inflows')
+		}
+		if (chain !== 'All' && metadata.gecko_id != null) {
+			charts.push('Token Price')
+		}
+		if (chain !== 'All' && metadata.gecko_id != null) {
+			charts.push('Token Mcap')
+		}
+		if (chain !== 'All' && metadata.gecko_id != null) {
+			charts.push('Token Volume')
+		}
+
 		return {
 			chain,
 			metadata,
@@ -520,7 +575,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				emissions30d: null,
 				incentivesChart: null
 			},
-			tvlAndFeesOptions
+			tvlAndFeesOptions,
+			charts
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`

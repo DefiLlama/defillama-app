@@ -18,6 +18,7 @@ import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/quer
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useMemo } from 'react'
 import { getPercentChange, getPrevTvlFromChart, nearestUtcZeroHour } from '~/utils'
+import { chainCharts } from './constants'
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -45,54 +46,57 @@ export const useFetchChainChartData = ({
 	const { data: denominationPriceHistory, isLoading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
 		denomination !== 'USD' ||
 			router.query.price === 'true' ||
-			router.query.chainTokenPrice === 'true' ||
-			router.query.chainTokenMcap === 'true' ||
-			router.query.chainTokenVolume === 'true'
+			router.query[chainCharts['Token Price']] === 'true' ||
+			router.query[chainCharts['Token Mcap']] === 'true' ||
+			router.query[chainCharts['Token Volume']] === 'true'
 			? chainGeckoId
 			: null
 	)
 
 	const { data: dexsChart, isLoading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
-		dexsData?.total24h && router.query.dexs === 'true' ? selectedChain : null
+		dexsData?.total24h && router.query[chainCharts['DEXs Volume']] === 'true' ? selectedChain : null
 	)
 
 	const { data: feesAndRevenueChart, isLoading: fetchingFeesAndRevenueChartDataByChain } =
 		useGetFeesAndRevenueChartDataByChain(
-			feesData?.total24h && (router.query.chainFees === 'true' || router.query.chainRevenue === 'true')
+			feesData?.total24h &&
+				(router.query[chainCharts['Chain Fees']] === 'true' || router.query[chainCharts['Chain Revenue']] === 'true')
 				? selectedChain
 				: null
 		)
 
 	const { data: appRevenueChart, isLoading: fetchingAppRevenue } = useGetAppRevenueChartDataByChain(
-		appRevenueData?.total24h && router.query.appRevenue === 'true' ? selectedChain : null
+		appRevenueData?.total24h && router.query[chainCharts['App Revenue']] === 'true' ? selectedChain : null
 	)
 
 	const { data: appFeesChart, isLoading: fetchingAppFees } = useGetAppFeesChartDataByChain(
-		appFeesData?.total24h && router.query.appFees === 'true' ? selectedChain : null
+		appFeesData?.total24h && router.query[chainCharts['App Fees']] === 'true' ? selectedChain : null
 	)
 
 	const { data: stablecoinsChartData, isLoading: fetchingStablecoinsChartDataByChain } =
-		useGetStabelcoinsChartDataByChain(stablecoinsData?.mcap && router.query.stables === 'true' ? selectedChain : null)
+		useGetStabelcoinsChartDataByChain(
+			stablecoinsData?.mcap && router.query[chainCharts['Stablecoins Mcap']] === 'true' ? selectedChain : null
+		)
 
 	const { data: inflowsChartData, isLoading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
-		inflowsData?.netInflows && router.query.inflows === 'true' ? selectedChain : null
+		inflowsData?.netInflows && router.query[chainCharts['Net Inflows']] === 'true' ? selectedChain : null
 	)
 
 	const { data: usersData, isLoading: fetchingUsersChartData } = useFetchProtocolUsers(
-		userData?.activeUsers && router.query.addresses === 'true' ? 'chain$' + selectedChain : null
+		userData?.activeUsers && router.query[chainCharts['Active Addresses']] === 'true' ? 'chain$' + selectedChain : null
 	)
 
 	const { data: txsData, isLoading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
-		userData?.transactions && router.query.txs === 'true' ? 'chain$' + selectedChain : null
+		userData?.transactions && router.query[chainCharts['Transactions']] === 'true' ? 'chain$' + selectedChain : null
 	)
 
 	const { data: perpsChart, isLoading: fetchingPerpsChartData } = useGetItemOverviewByChain(
-		perpsData?.total24h && router.query.perps === 'true' ? selectedChain : null,
+		perpsData?.total24h && router.query[chainCharts['Perps Volume']] === 'true' ? selectedChain : null,
 		'derivatives'
 	)
 
 	const { data: chainAssetsChart, isLoading: fetchingChainAssetsChart } = useGetChainAssetsChart(
-		chainAssets && router.query.chainAssets === 'true' ? selectedChain : null
+		chainAssets && router.query[chainCharts['Bridged TVL']] === 'true' ? selectedChain : null
 	)
 
 	const isFetchingChartData =

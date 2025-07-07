@@ -1,4 +1,5 @@
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { ChainChartLabels } from './constants'
 
 export interface IChainMetadata {
 	stablecoins?: boolean
@@ -94,6 +95,7 @@ export interface IChainOverviewData {
 		tokens: Array<[string, string]>
 	} | null
 	tvlAndFeesOptions: Array<{ name: string; key: string }>
+	charts: ChainChartLabels[]
 }
 
 export interface ILiteChart {
