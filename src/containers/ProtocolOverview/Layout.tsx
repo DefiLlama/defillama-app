@@ -124,7 +124,7 @@ export function ProtocolOverviewLayout({
 											render={<BasicLink href={`/protocol/${slug(value)}`} />}
 											data-active={name === value}
 											className={`group flex items-center gap-2 py-2 relative ${
-												i === 0 ? 'px-3' : 'ml-5'
+												i === 0 ? 'px-3' : 'ml-5 pr-3'
 											} shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) data-[active=true]:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md whitespace-nowrap overflow-hidden text-ellipsis`}
 										>
 											{i !== 0 && (

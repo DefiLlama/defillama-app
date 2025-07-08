@@ -1,6 +1,4 @@
-import { darken, transparentize } from 'polished'
-import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug, tokenIconPaletteUrl } from '~/utils'
-import { oldBlue, primaryColor } from '~/constants/colors'
+import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
@@ -866,12 +864,12 @@ export const getProtocolOverviewPageData = async ({
 
 	if (!availableCharts.includes('DEX Volume')) {
 		const sameColorCharts = [
-			'DEX Aggregator Volume',
 			'Perp Volume',
-			'Perp Aggregator Volume',
-			'Bridge Aggregator Volume',
+			'Options Premium Volume',
 			'Options Notional Volume',
-			'Options Premium Volume'
+			'DEX Aggregator Volume',
+			'Perp Aggregator Volume',
+			'Bridge Aggregator Volume'
 		] as ProtocolChartsLabels[]
 
 		const volumeCharts = sameColorCharts.filter((chart) => availableCharts.includes(chart))
