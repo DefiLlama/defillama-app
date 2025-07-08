@@ -339,6 +339,18 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
+			if (type === 'Raises') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Raises']
+						}
+					}
+				})
+			}
 		})
 
 		if (allYAxis.length === 0) {
