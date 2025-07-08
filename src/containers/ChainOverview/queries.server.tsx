@@ -38,7 +38,7 @@ import type {
 } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { getAllProtocolEmissions, getETFData, getProtocolEmissons } from '~/api/categories/protocols'
+import { getAllProtocolEmissions, getETFData } from '~/api/categories/protocols'
 import { tvlOptions } from '~/components/Filters/options'
 import { ChainChartLabels } from './constants'
 
@@ -321,11 +321,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chain !== 'All'
 				? fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
 						.then((res) => res.json())
-						.then(async (data) => {
+						.then((data) => {
 							const protocolData = data.protocols.find((item) => item.chain === metadata.name)
-							const protocolEmissions = await getProtocolEmissons(slug(protocolData.name))
 							return {
-								incentivesChart: protocolEmissions.unlockUsdChart,
 								emissions24h: protocolData.emission24h,
 								emissions7d: protocolData.emission7d,
 								emissions30d: protocolData.emission30d
@@ -347,34 +345,56 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			dcAndLsOverlap = []
 		} = chartData || {}
 
-		const tvlChart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]) as Array<
-			[string, number]
-		>
-
+		const tvlAndFeesOptions = tvlOptions.filter((o) => chartData?.[o.key]?.length)
 		const extraTvlChart = {
-			staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
-			borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
-			pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
-			vesting: vesting.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
-			offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]),
-			doublecounted: doublecounted.map(
-				([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]
-			),
-			liquidstaking: liquidstaking.map(
-				([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]
-			),
-			dcAndLsOverlap: dcAndLsOverlap.map(
-				([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)] as [string, number]
-			)
+			staking: {},
+			borrowed: {},
+			pool2: {},
+			vesting: {},
+			offers: {},
+			doublecounted: {},
+			liquidstaking: {},
+			dcAndLsOverlap: {}
+		}
+		for (const [date, totalLiquidityUSD] of staking) {
+			extraTvlChart.staking[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+		}
+		for (const [date, totalLiquidityUSD] of borrowed) {
+			extraTvlChart.borrowed[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+		}
+		for (const [date, totalLiquidityUSD] of pool2) {
+			extraTvlChart.pool2[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+		}
+		for (const [date, totalLiquidityUSD] of vesting) {
+			extraTvlChart.vesting[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+		}
+		for (const [date, totalLiquidityUSD] of offers) {
+			extraTvlChart.offers[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+		}
+		for (const [date, totalLiquidityUSD] of doublecounted) {
+			extraTvlChart.doublecounted[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+		}
+		for (const [date, totalLiquidityUSD] of liquidstaking) {
+			extraTvlChart.liquidstaking[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+		}
+		for (const [date, totalLiquidityUSD] of dcAndLsOverlap) {
+			extraTvlChart.dcAndLsOverlap[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 
-		const raisesChart =
-			metadata.name === 'All' && raisesData
-				? (raisesData?.raises ?? []).reduce((acc, curr) => {
-						acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
-						return acc
-				  }, {} as Record<string, number>)
-				: null
+		// by default we should not include liquidstaking and doublecounted in the tvl chart, but include overlapping tvl so you dont subtract twice
+		const tvlChart = tvl.map(([date, totalLiquidityUSD]) => {
+			let sum = Math.trunc(totalLiquidityUSD)
+			if (extraTvlChart['liquidstaking']?.[+date * 1e3]) {
+				sum -= Math.trunc(extraTvlChart['liquidstaking'][+date * 1e3])
+			}
+			if (extraTvlChart['doublecounted']?.[+date * 1e3]) {
+				sum -= Math.trunc(extraTvlChart['doublecounted'][+date * 1e3])
+			}
+			if (extraTvlChart['dcAndLsOverlap']?.[+date * 1e3]) {
+				sum += Math.trunc(extraTvlChart['dcAndLsOverlap'][+date * 1e3])
+			}
+			return [+date * 1e3, sum]
+		}) as Array<[number, number]>
 
 		const chainRaises =
 			raisesData?.raises?.filter((r) => r.defillamaId === `chain#${metadata.name.toLowerCase()}`) ?? null
@@ -441,8 +461,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 
 		const uniqUnlockTokenColors = getNDistinctColors(uniqueUnlockTokens.size)
 
-		const tvlAndFeesOptions = tvlOptions.filter((o) => extraTvlChart?.[o.key]?.length)
-
 		const charts: ChainChartLabels[] = ['TVL']
 
 		if (stablecoins?.mcap != null) {
@@ -469,7 +487,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		if (appFees?.total24h != null) {
 			charts.push('App Fees')
 		}
-		if (chainAssets != null) {
+		if (chain !== 'All' && chainAssets != null) {
 			charts.push('Bridged TVL')
 		}
 		if (activeUsers != null) {
@@ -481,7 +499,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		if (transactions != null) {
 			charts.push('Transactions')
 		}
-		if (raisesChart != null) {
+		if (chain === 'All') {
 			charts.push('Raises')
 		}
 		if (inflowsData?.netInflows != null) {
@@ -537,7 +555,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				change_7dover7d: perps?.change_7dover7d ?? null
 			},
 			users: { activeUsers, newUsers, transactions: transactions ? +transactions : null },
-			raisesChart,
 			inflows: inflowsData,
 			treasury: treasury ? { tvl: treasury.tvl ?? null, tokenBreakdowns: treasury.tokenBreakdowns ?? null } : null,
 			chainRaises: chainRaises ?? null,
@@ -572,8 +589,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chainIncentives: chainIncentives ?? {
 				emissions24h: null,
 				emissions7d: null,
-				emissions30d: null,
-				incentivesChart: null
+				emissions30d: null
 			},
 			tvlAndFeesOptions,
 			charts

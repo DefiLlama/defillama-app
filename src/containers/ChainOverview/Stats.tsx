@@ -10,24 +10,28 @@ import { Fragment, lazy, memo, Suspense, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { EmbedChart } from '~/components/EmbedChart'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { chainOverviewChartColors, BAR_CHARTS, chainCharts } from './constants'
+import { chainOverviewChartColors, BAR_CHARTS, chainCharts, ChainChartLabels } from './constants'
 import { Icon } from '~/components/Icon'
 import dayjs from 'dayjs'
 import * as Ariakit from '@ariakit/react'
 
-const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart').then((m) => ({ default: m.ChainChart })))
+const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
+
+const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export const Stats = memo(function Stats(props: IChainOverviewData) {
 	const router = useRouter()
-
-	const denomination = router.query?.currency ?? 'USD'
-	const groupBy = router.query?.groupBy ?? 'daily'
+	const queryParamsString = useMemo(() => {
+		return JSON.stringify(router.query ?? {})
+	}, [router.query])
 
 	const [darkMode] = useDarkModeManager()
 
-	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
-	const { toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart } = useMemo(() => {
+	const { toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart, groupBy, denomination } = useMemo(() => {
+		const queryParams = JSON.parse(queryParamsString)
+
 		let CHAIN_SYMBOL = props.chainTokenInfo?.token_symbol ?? null
 		let chainGeckoId = props.chainTokenInfo?.gecko_id ?? null
 
@@ -44,46 +48,41 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 		const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
 		const toggledCharts = props.charts.filter((tchart) =>
-			tchart === 'TVL' ? router.query[chainCharts[tchart]] !== 'false' : router.query[chainCharts[tchart]] === 'true'
-		)
+			tchart === 'TVL' ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
+		) as ChainChartLabels[]
 
-		const hasAtleasOneBarChart = toggledCharts.reduce((acc, curr) => {
-			if (BAR_CHARTS.includes(curr) && router.query[chainCharts[curr]] === 'true') {
-				acc = true
-			}
+		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
-			return acc
-		}, false)
+		const groupBy =
+			hasAtleasOneBarChart && queryParams?.groupBy
+				? groupByOptions.includes(queryParams.groupBy as any)
+					? (queryParams.groupBy as any)
+					: 'daily'
+				: 'daily'
+
+		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
 
 		return {
 			DENOMINATIONS,
 			chainGeckoId,
 			hasAtleasOneBarChart,
-			toggledCharts
+			toggledCharts,
+			groupBy,
+			denomination
 		}
-	}, [props, router.query])
+	}, [props, queryParamsString])
 
-	const { totalValueUSD, change24h, valueChange24hUSD, chartDatasets, isFetchingChartData } = useFetchChainChartData({
-		denomination,
-		selectedChain: props.metadata.name,
-		dexsData: props.dexs,
-		feesData: props.chainFees,
-		revenueData: props.chainRevenue,
-		appRevenueData: props.appRevenue,
-		appFeesData: props.appFees,
-		stablecoinsData: props.stablecoins,
-		inflowsData: props.inflows,
-		userData: props.users,
-		raisesChart: props.raisesChart,
-		chart: props.tvlChart,
-		extraTvlCharts: props.extraTvlChart,
-		extraTvlsEnabled,
-		devMetricsData: props.devMetrics,
-		chainGeckoId,
-		perpsData: props.perps,
-		chainAssets: props.chainAssets,
-		chainIncentives: props.chainIncentives
-	})
+	const { totalValueUSD, change24h, valueChange24hUSD, finalCharts, valueSymbol, isFetchingChartData } =
+		useFetchChainChartData({
+			denomination,
+			selectedChain: props.metadata.name,
+			tvlChart: props.tvlChart,
+			extraTvlCharts: props.extraTvlChart,
+			tvlSettings,
+			chainGeckoId,
+			toggledCharts,
+			groupBy
+		})
 
 	const updateGroupBy = (newGroupBy) => {
 		router.push(
@@ -518,7 +517,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									<span className="font-jetbrains ml-auto">
 										{formattedNum(
 											props.chainAssets.total.total +
-												(extraTvlsEnabled.govtokens ? +(props.chainAssets?.ownTokens?.total ?? 0) : 0),
+												(tvlSettings.govtokens ? +(props.chainAssets?.ownTokens?.total ?? 0) : 0),
 											true
 										)}
 									</span>
@@ -655,7 +654,14 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 												}
 												className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 											>
-												<span>{tchart}</span>
+												<span>
+													{tchart.includes('Token')
+														? tchart.replace(
+																'Token',
+																props.chainTokenInfo?.token_symbol ? `$${props.chainTokenInfo?.token_symbol}` : 'Token'
+														  )
+														: tchart}
+												</span>
 												{chainCharts[tchart] === 'tvl' ? (
 													router.query[chainCharts[tchart]] === 'false' ? (
 														<Icon name="plus" className="h-[14px] w-[14px]" />
@@ -700,10 +706,17 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								<span
 									className="text-xs flex items-center gap-1 border-2 border-(--old-blue) rounded-full px-2 py-1"
 									style={{
-										borderColor: chainOverviewChartColors[chainCharts[tchart]]
+										borderColor: chainOverviewChartColors[tchart]
 									}}
 								>
-									<span>{tchart}</span>
+									<span>
+										{tchart.includes('Token')
+											? tchart.replace(
+													'Token',
+													props.chainTokenInfo?.token_symbol ? `$${props.chainTokenInfo?.token_symbol}` : 'Token'
+											  )
+											: tchart}
+									</span>
 									<Icon name="x" className="h-[14px] w-[14px]" />
 								</span>
 							</label>
@@ -769,7 +782,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							window.open(
 								`https://api.llama.fi/simpleChainDataset/${
 									chainsNamesMap[props.metadata.name] || props.metadata.name
-								}?${Object.entries(extraTvlsEnabled)
+								}?${Object.entries(tvlSettings)
 									.filter((t) => t[1] === true)
 									.map((t) => `${t[0]}=true`)
 									.join('&')}`.replaceAll(' ', '%20')
@@ -786,7 +799,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					</div>
 				) : (
 					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
-						<ChainChart datasets={chartDatasets} title="" denomination={denomination} isThemeDark={darkMode} />
+						<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={darkMode} groupBy={groupBy} />
 					</Suspense>
 				)}
 			</div>

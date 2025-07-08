@@ -29,7 +29,9 @@ export const useGetBridgeChartDataByChain = (chain?: string) => {
 								return null
 							})
 				: () => null,
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: !!chain
 	})
 }
 

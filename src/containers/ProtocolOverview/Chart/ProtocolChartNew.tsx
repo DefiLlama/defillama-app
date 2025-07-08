@@ -967,7 +967,6 @@ export const useFetchAndFormatChartData = ({
 		if (loadingCharts.length > 0) {
 			return {
 				finalCharts: {} as Record<string, Array<[string | number, number]>>,
-				stacks: [],
 				valueSymbol,
 				loadingCharts: loadingCharts.join(', ').toLowerCase()
 			}
@@ -976,12 +975,14 @@ export const useFetchAndFormatChartData = ({
 		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number]> } = {}
 
 		if (tvlChart?.length > 0 && toggledMetrics.tvl === 'true') {
-			charts.TVL = tvlChart
+			const chartName: ProtocolChartsLabels = 'TVL' as const
+			charts[chartName] = tvlChart
 		}
 
 		if (protocolTokenData) {
 			if (toggledMetrics.mcap === 'true') {
-				charts.Mcap = formatLineChart({
+				const chartName: ProtocolChartsLabels = 'Mcap' as const
+				charts[chartName] = formatLineChart({
 					data: protocolTokenData.mcaps,
 					groupBy,
 					dateInMs: true,
@@ -989,7 +990,8 @@ export const useFetchAndFormatChartData = ({
 				})
 			}
 			if (toggledMetrics.tokenPrice === 'true') {
-				charts['Token Price'] = formatLineChart({
+				const chartName: ProtocolChartsLabels = 'Token Price' as const
+				charts[chartName] = formatLineChart({
 					data: protocolTokenData.prices,
 					groupBy,
 					dateInMs: true,
@@ -997,7 +999,8 @@ export const useFetchAndFormatChartData = ({
 				})
 			}
 			if (toggledMetrics.tokenVolume === 'true') {
-				charts['Token Volume'] = formatLineChart({
+				const chartName: ProtocolChartsLabels = 'Token Volume' as const
+				charts[chartName] = formatLineChart({
 					data: protocolTokenData.volumes,
 					groupBy,
 					dateInMs: true,
@@ -1005,7 +1008,8 @@ export const useFetchAndFormatChartData = ({
 				})
 			}
 			if (toggledMetrics.fdv === 'true') {
-				charts['FDV'] = formatLineChart({
+				const chartName: ProtocolChartsLabels = 'FDV' as const
+				charts[chartName] = formatLineChart({
 					data: protocolTokenData.prices.map(([date, price]) => [date, price * tokenTotalSupply]),
 					groupBy,
 					dateInMs: true,
@@ -1015,7 +1019,8 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (tokenLiquidityData) {
-			charts['Token Liquidity'] = formatLineChart({ data: tokenLiquidityData, groupBy, denominationPriceHistory })
+			const chartName: ProtocolChartsLabels = 'Token Liquidity' as const
+			charts[chartName] = formatLineChart({ data: tokenLiquidityData, groupBy, denominationPriceHistory })
 		}
 
 		const feesStore = {}
@@ -1140,23 +1145,28 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (finalFeesChart.length > 0) {
-			charts.Fees = finalFeesChart
+			const chartName: ProtocolChartsLabels = 'Fees' as const
+			charts[chartName] = finalFeesChart
 		}
 
 		if (finalRevenueChart.length > 0) {
-			charts.Revenue = finalRevenueChart
+			const chartName: ProtocolChartsLabels = 'Revenue' as const
+			charts[chartName] = finalRevenueChart
 		}
 
 		if (finalHoldersRevenueChart.length > 0) {
-			charts['Holders Revenue'] = finalHoldersRevenueChart
+			const chartName: ProtocolChartsLabels = 'Holders Revenue' as const
+			charts[chartName] = finalHoldersRevenueChart
 		}
 
 		if (dexVolumeData) {
-			charts['DEX Volume'] = formatBarChart({ data: dexVolumeData.totalDataChart, groupBy, denominationPriceHistory })
+			const chartName: ProtocolChartsLabels = 'DEX Volume' as const
+			charts[chartName] = formatBarChart({ data: dexVolumeData.totalDataChart, groupBy, denominationPriceHistory })
 		}
 
 		if (perpsVolumeData) {
-			charts['Perp Volume'] = formatBarChart({
+			const chartName: ProtocolChartsLabels = 'Perp Volume' as const
+			charts[chartName] = formatBarChart({
 				data: perpsVolumeData.totalDataChart,
 				groupBy,
 				denominationPriceHistory
@@ -1164,7 +1174,8 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (optionsPremiumVolumeData) {
-			charts['Options Premium Volume'] = formatBarChart({
+			const chartName: ProtocolChartsLabels = 'Options Premium Volume' as const
+			charts[chartName] = formatBarChart({
 				data: optionsPremiumVolumeData.totalDataChart,
 				groupBy,
 				denominationPriceHistory
@@ -1172,7 +1183,8 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (optionsNotionalVolumeData) {
-			charts['Options Notional Volume'] = formatBarChart({
+			const chartName: ProtocolChartsLabels = 'Options Notional Volume' as const
+			charts[chartName] = formatBarChart({
 				data: optionsNotionalVolumeData.totalDataChart,
 				groupBy,
 				denominationPriceHistory
@@ -1180,7 +1192,8 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (dexAggregatorsVolumeData) {
-			charts['DEX Aggregator Volume'] = formatBarChart({
+			const chartName: ProtocolChartsLabels = 'DEX Aggregator Volume' as const
+			charts[chartName] = formatBarChart({
 				data: dexAggregatorsVolumeData.totalDataChart,
 				groupBy,
 				denominationPriceHistory
@@ -1188,7 +1201,8 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (perpsAggregatorsVolumeData) {
-			charts['Perp Aggregator Volume'] = formatBarChart({
+			const chartName: ProtocolChartsLabels = 'Perp Aggregator Volume' as const
+			charts[chartName] = formatBarChart({
 				data: perpsAggregatorsVolumeData.totalDataChart,
 				groupBy,
 				denominationPriceHistory
@@ -1196,7 +1210,8 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (bridgeAggregatorsVolumeData) {
-			charts['Bridge Aggregator Volume'] = formatBarChart({
+			const chartName: ProtocolChartsLabels = 'Bridge Aggregator Volume' as const
+			charts[chartName] = formatBarChart({
 				data: bridgeAggregatorsVolumeData.totalDataChart,
 				groupBy,
 				denominationPriceHistory
@@ -1221,11 +1236,13 @@ export const useFetchAndFormatChartData = ({
 				finalChart.push([+date * 1e3, store[date]])
 			}
 
-			charts['Unlocks'] = finalChart
+			const chartName: ProtocolChartsLabels = 'Unlocks' as const
+			charts[chartName] = finalChart
 		}
 
 		if (unlocksAndIncentivesData?.unlockUsdChart) {
-			charts['Incentives'] = formatBarChart({
+			const chartName: ProtocolChartsLabels = 'Incentives' as const
+			charts[chartName] = formatBarChart({
 				data: unlocksAndIncentivesData.unlockUsdChart,
 				groupBy,
 				denominationPriceHistory
@@ -1237,7 +1254,8 @@ export const useFetchAndFormatChartData = ({
 			for (const date in extraTvlCharts.staking) {
 				chartData.push([+date * 1e3, extraTvlCharts.staking[date]])
 			}
-			charts['Staking'] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
+			const chartName: ProtocolChartsLabels = 'Staking' as const
+			charts[chartName] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
 		}
 
 		if (extraTvlCharts?.borrowed && toggledMetrics.borrowed_tvl === 'true') {
@@ -1245,11 +1263,13 @@ export const useFetchAndFormatChartData = ({
 			for (const date in extraTvlCharts.borrowed) {
 				chartData.push([+date * 1e3, extraTvlCharts.borrowed[date]])
 			}
-			charts['Borrowed'] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
+			const chartName: ProtocolChartsLabels = 'Borrowed' as const
+			charts[chartName] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
 		}
 
 		if (medianAPYData) {
-			charts['Median APY'] = formatLineChart({
+			const chartName: ProtocolChartsLabels = 'Median APY' as const
+			charts[chartName] = formatLineChart({
 				data: medianAPYData.map((item) => [+item.date * 1e3, item.medianAPY]),
 				groupBy,
 				dateInMs: true,
@@ -1284,9 +1304,12 @@ export const useFetchAndFormatChartData = ({
 			for (const date in maxVotes) {
 				finalMaxVotes.push([+date * 1e3, maxVotes[date]])
 			}
-			charts['Total Proposals'] = finalTotalProposals
-			charts['Successful Proposals'] = finalSuccessfulProposals
-			charts['Max Votes'] = finalMaxVotes
+			const chartName1: ProtocolChartsLabels = 'Total Proposals' as const
+			charts[chartName1] = finalTotalProposals
+			const chartName2: ProtocolChartsLabels = 'Successful Proposals' as const
+			charts[chartName2] = finalSuccessfulProposals
+			const chartName3: ProtocolChartsLabels = 'Max Votes' as const
+			charts[chartName3] = finalMaxVotes
 		}
 
 		if (devMetricsData && (toggledMetrics.devsMetrics === 'true' || toggledMetrics.devsCommits === 'true')) {
@@ -1303,11 +1326,13 @@ export const useFetchAndFormatChartData = ({
 			}
 
 			if (toggledMetrics.devsMetrics === 'true') {
-				charts['Developers'] = developers
+				const chartName: ProtocolChartsLabels = 'Developers' as const
+				charts[chartName] = developers
 			}
 
 			if (toggledMetrics.devsCommits === 'true') {
-				charts['Devs Commits'] = commits
+				const chartName: ProtocolChartsLabels = 'Devs Commits' as const
+				charts[chartName] = commits
 			}
 		}
 
@@ -1328,16 +1353,19 @@ export const useFetchAndFormatChartData = ({
 			}
 
 			if (toggledMetrics.contributersMetrics === 'true') {
-				charts['Contributers'] = contributers
+				const chartName: ProtocolChartsLabels = 'Contributers' as const
+				charts[chartName] = contributers
 			}
 
 			if (toggledMetrics.contributersCommits === 'true') {
-				charts['Contributers Commits'] = commits
+				const chartName: ProtocolChartsLabels = 'Contributers Commits' as const
+				charts[chartName] = commits
 			}
 		}
 
 		if (nftVolumeData && toggledMetrics.nftVolume === 'true') {
-			charts['NFT Volume'] = formatBarChart({
+			const chartName: ProtocolChartsLabels = 'NFT Volume' as const
+			charts[chartName] = formatBarChart({
 				data: nftVolumeData,
 				groupBy,
 				dateInMs: true,
@@ -1346,31 +1374,38 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (activeAddressesData && toggledMetrics.activeAddresses === 'true') {
-			charts['Active Addresses'] = formatLineChart({
+			const chartName: ProtocolChartsLabels = 'Active Addresses' as const
+			charts[chartName] = formatLineChart({
 				data: activeAddressesData,
 				groupBy,
-				denominationPriceHistory: null
+				denominationPriceHistory: null,
+				dateInMs: true
 			})
 		}
 
 		if (newAddressesData && toggledMetrics.newAddresses === 'true') {
-			charts['New Addresses'] = formatLineChart({
+			const chartName: ProtocolChartsLabels = 'New Addresses' as const
+			charts[chartName] = formatLineChart({
 				data: newAddressesData,
 				groupBy,
-				denominationPriceHistory: null
+				denominationPriceHistory: null,
+				dateInMs: true
 			})
 		}
 
 		if (transactionsData && toggledMetrics.transactions === 'true') {
-			charts['Transactions'] = formatLineChart({
+			const chartName: ProtocolChartsLabels = 'Transactions' as const
+			charts[chartName] = formatLineChart({
 				data: transactionsData,
 				groupBy,
-				denominationPriceHistory: null
+				denominationPriceHistory: null,
+				dateInMs: true
 			})
 		}
 
 		if (treasuryData && toggledMetrics.treasury === 'true') {
-			charts['Treasury'] = formatLineChart({
+			const chartName: ProtocolChartsLabels = 'Treasury' as const
+			charts[chartName] = formatLineChart({
 				data: treasuryData,
 				groupBy,
 				dateInMs: true,
@@ -1379,7 +1414,8 @@ export const useFetchAndFormatChartData = ({
 		}
 
 		if (usdInflowsData && toggledMetrics.usdInflows === 'true') {
-			charts['USD Inflows'] = formatBarChart({
+			const chartName: ProtocolChartsLabels = 'USD Inflows' as const
+			charts[chartName] = formatBarChart({
 				data: usdInflowsData,
 				groupBy,
 				dateInMs: true,
@@ -1474,7 +1510,9 @@ const formatBarChart = ({
 				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
 				: isMonthly
 				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
-				: date
+				: dateInMs
+				? +date / 1e3
+				: +date
 			// sum up values as it is bar chart
 			if (denominationPriceHistory) {
 				const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
@@ -1525,7 +1563,9 @@ const formatLineChart = ({
 				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
 				: isMonthly
 				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
-				: date
+				: dateInMs
+				? +date / 1e3
+				: +date
 			// do not sum up values, just use the last value for each date
 			const finalValue = denominationPriceHistory
 				? denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]

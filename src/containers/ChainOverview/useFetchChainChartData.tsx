@@ -1,289 +1,721 @@
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
-
 import {
-	useDenominationPriceHistory,
-	useFetchProtocolTransactions,
-	useFetchProtocolUsers
+	useFetchProtocolActiveUsers,
+	useFetchProtocolNewUsers,
+	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
-import {
-	useGetAppRevenueChartDataByChain,
-	useGetAppFeesChartDataByChain,
-	useGetChainAssetsChart,
-	useGetFeesAndRevenueChartDataByChain,
-	useGetItemOverviewByChain,
-	useGetVolumeChartDataByChain
-} from '~/api/categories/chains/client'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useMemo } from 'react'
-import { getPercentChange, getPrevTvlFromChart, nearestUtcZeroHour } from '~/utils'
-import { chainCharts } from './constants'
+import { firstDayOfMonth, getPercentChange, getPrevTvlFromChart, lastDayOfWeek, slug } from '~/utils'
+import { ChainChartLabels, chainCharts } from './constants'
+import { useQuery } from '@tanstack/react-query'
+import {
+	getAdapterChainOverview,
+	getAdapterProtocolSummary,
+	IAdapterOverview,
+	IAdapterSummary
+} from '~/containers/DimensionAdapters/queries'
+import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
+import { getProtocolEmissons } from '~/api/categories/protocols'
 
 export const useFetchChainChartData = ({
 	denomination,
 	selectedChain,
-	dexsData,
-	feesData,
-	revenueData,
-	appRevenueData,
-	appFeesData,
-	stablecoinsData,
-	inflowsData,
-	userData,
-	raisesChart,
-	chart,
+	tvlChart,
 	extraTvlCharts,
-	extraTvlsEnabled,
-	devMetricsData,
+	tvlSettings,
 	chainGeckoId,
-	perpsData,
-	chainAssets,
-	chainIncentives
+	toggledCharts,
+	groupBy
+}: {
+	denomination: string
+	selectedChain: string
+	tvlChart: Array<[number, number]>
+	extraTvlCharts: Record<string, Record<string, number>>
+	tvlSettings: Record<string, boolean>
+	chainGeckoId?: string
+	toggledCharts: Array<ChainChartLabels>
+	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 }) => {
 	const router = useRouter()
 
-	const { data: denominationPriceHistory, isLoading: fetchingDenominationPriceHistory } = useDenominationPriceHistory(
+	const denominationGeckoId =
 		denomination !== 'USD' ||
-			router.query.price === 'true' ||
-			router.query[chainCharts['Token Price']] === 'true' ||
-			router.query[chainCharts['Token Mcap']] === 'true' ||
-			router.query[chainCharts['Token Volume']] === 'true'
+		toggledCharts.includes('Token Price') ||
+		toggledCharts.includes('Token Mcap') ||
+		toggledCharts.includes('Token Volume')
 			? chainGeckoId
 			: null
-	)
 
-	const { data: dexsChart, isLoading: fetchingVolumeChartDataByChain } = useGetVolumeChartDataByChain(
-		dexsData?.total24h && router.query[chainCharts['DEXs Volume']] === 'true' ? selectedChain : null
-	)
+	const isTokenPriceEnabled = toggledCharts.includes('Token Price') ? true : false
+	const isTokenMcapEnabled = toggledCharts.includes('Token Mcap') ? true : false
+	const isTokenVolumeEnabled = toggledCharts.includes('Token Volume') ? true : false
 
-	const { data: feesAndRevenueChart, isLoading: fetchingFeesAndRevenueChartDataByChain } =
-		useGetFeesAndRevenueChartDataByChain(
-			feesData?.total24h &&
-				(router.query[chainCharts['Chain Fees']] === 'true' || router.query[chainCharts['Chain Revenue']] === 'true')
-				? selectedChain
-				: null
-		)
+	// date in the chart is in ms
+	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<{
+		prices: Record<string, number>
+		mcaps: Array<[number, number]>
+		volumes: Array<[number, number]>
+	}>({
+		queryKey: ['priceHistory', denominationGeckoId],
+		queryFn: () =>
+			fetch(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`)
+				.then((r) => r.json())
+				.then((res) => {
+					if (!res.data?.prices?.length) return null
 
-	const { data: appRevenueChart, isLoading: fetchingAppRevenue } = useGetAppRevenueChartDataByChain(
-		appRevenueData?.total24h && router.query[chainCharts['App Revenue']] === 'true' ? selectedChain : null
-	)
-
-	const { data: appFeesChart, isLoading: fetchingAppFees } = useGetAppFeesChartDataByChain(
-		appFeesData?.total24h && router.query[chainCharts['App Fees']] === 'true' ? selectedChain : null
-	)
-
-	const { data: stablecoinsChartData, isLoading: fetchingStablecoinsChartDataByChain } =
-		useGetStabelcoinsChartDataByChain(
-			stablecoinsData?.mcap && router.query[chainCharts['Stablecoins Mcap']] === 'true' ? selectedChain : null
-		)
-
-	const { data: inflowsChartData, isLoading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
-		inflowsData?.netInflows && router.query[chainCharts['Net Inflows']] === 'true' ? selectedChain : null
-	)
-
-	const { data: usersData, isLoading: fetchingUsersChartData } = useFetchProtocolUsers(
-		userData?.activeUsers && router.query[chainCharts['Active Addresses']] === 'true' ? 'chain$' + selectedChain : null
-	)
-
-	const { data: txsData, isLoading: fetchingTransactionsChartData } = useFetchProtocolTransactions(
-		userData?.transactions && router.query[chainCharts['Transactions']] === 'true' ? 'chain$' + selectedChain : null
-	)
-
-	const { data: perpsChart, isLoading: fetchingPerpsChartData } = useGetItemOverviewByChain(
-		perpsData?.total24h && router.query[chainCharts['Perps Volume']] === 'true' ? selectedChain : null,
-		'derivatives'
-	)
-
-	const { data: chainAssetsChart, isLoading: fetchingChainAssetsChart } = useGetChainAssetsChart(
-		chainAssets && router.query[chainCharts['Bridged TVL']] === 'true' ? selectedChain : null
-	)
-
-	const isFetchingChartData =
-		fetchingDenominationPriceHistory ||
-		fetchingVolumeChartDataByChain ||
-		fetchingFeesAndRevenueChartDataByChain ||
-		fetchingAppRevenue ||
-		fetchingAppFees ||
-		fetchingStablecoinsChartDataByChain ||
-		fetchingInflowsChartData ||
-		fetchingUsersChartData ||
-		fetchingTransactionsChartData ||
-		fetchingPerpsChartData ||
-		fetchingChainAssetsChart
-
-	const globalChart = useMemo(() => {
-		const globalChart = (chart ?? []).map((data) => {
-			let sum = data[1]
-			Object.entries(extraTvlCharts).forEach(([prop, propCharts]: [string, Array<[number, number]>]) => {
-				const stakedData = propCharts.find((x) => x[0] === data[0])
-
-				// find current date and only add values on that date in "data" above
-				if (stakedData) {
-					if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
-						sum -= stakedData[1]
+					const store = {}
+					for (const [date, value] of res.data.prices) {
+						store[date] = value
 					}
 
-					if (prop === 'liquidstaking' && !extraTvlsEnabled['liquidstaking']) {
-						sum -= stakedData[1]
-					}
+					return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
+				}),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: denominationGeckoId ? true : false
+	})
 
-					if (prop === 'dcAndLsOverlap') {
-						if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
-							sum += stakedData[1]
-						}
-					}
+	const isChainFeesEnabled = toggledCharts.includes('Chain Fees') ? true : false
+	const { data: chainFeesData = null, isLoading: fetchingChainFees } = useQuery<IAdapterSummary>({
+		queryKey: ['chainFees', selectedChain, isChainFeesEnabled],
+		queryFn: () =>
+			isChainFeesEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						protocol: selectedChain,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isChainFeesEnabled
+	})
 
-					if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
-						sum += stakedData[1]
-					}
-				}
+	const isChainRevenueEnabled =
+		toggledCharts.includes('Chain Revenue') && router.query[chainCharts['Chain Revenue']] === 'true' ? true : false
+	const { data: chainRevenueData = null, isLoading: fetchingChainRevenue } = useQuery<IAdapterSummary>({
+		queryKey: ['chainRevenue', selectedChain, isChainRevenueEnabled],
+		queryFn: () =>
+			isChainRevenueEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						protocol: selectedChain,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyRevenue'
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isChainRevenueEnabled
+	})
+
+	const isDexVolumeEnabled =
+		toggledCharts.includes('DEXs Volume') && router.query[chainCharts['DEXs Volume']] === 'true' ? true : false
+	const { data: dexVolumeData = null, isLoading: fetchingDexVolume } = useQuery<IAdapterOverview>({
+		queryKey: ['dexVolume', selectedChain, isDexVolumeEnabled],
+		queryFn: () =>
+			isDexVolumeEnabled
+				? getAdapterChainOverview({
+						chain: selectedChain,
+						adapterType: 'dexs',
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isDexVolumeEnabled
+	})
+
+	const isPerpsVolumeEnabled =
+		toggledCharts.includes('Perps Volume') && router.query[chainCharts['Perps Volume']] === 'true' ? true : false
+	const { data: perpsVolumeData = null, isLoading: fetchingPerpVolume } = useQuery<IAdapterOverview>({
+		queryKey: ['perpVolume', selectedChain, isPerpsVolumeEnabled],
+		queryFn: () =>
+			isPerpsVolumeEnabled
+				? getAdapterChainOverview({
+						chain: selectedChain,
+						adapterType: 'derivatives',
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isPerpsVolumeEnabled
+	})
+
+	const isChainAppFeesEnabled =
+		toggledCharts.includes('App Fees') && router.query[chainCharts['App Fees']] === 'true' ? true : false
+	const { data: chainAppFeesData = null, isLoading: fetchingChainAppFees } = useQuery<IAdapterOverview>({
+		queryKey: ['chainAppFees', selectedChain, isChainAppFeesEnabled],
+		queryFn: () =>
+			isChainAppFeesEnabled
+				? getAdapterChainOverview({
+						adapterType: 'fees',
+						chain: selectedChain,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyAppFees'
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isChainAppFeesEnabled
+	})
+
+	const isChainAppRevenueEnabled =
+		toggledCharts.includes('App Revenue') && router.query[chainCharts['App Revenue']] === 'true' ? true : false
+	const { data: chainAppRevenueData = null, isLoading: fetchingChainAppRevenue } = useQuery<IAdapterOverview>({
+		queryKey: ['chainAppRevenue', selectedChain, isChainAppRevenueEnabled],
+		queryFn: () =>
+			isChainAppRevenueEnabled
+				? getAdapterChainOverview({
+						adapterType: 'fees',
+						chain: selectedChain,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyAppRevenue'
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isChainAppRevenueEnabled
+	})
+
+	const { data: stablecoinsChartData = null, isLoading: fetchingStablecoinsChartDataByChain } =
+		useGetStabelcoinsChartDataByChain(toggledCharts.includes('Stablecoins Mcap') ? selectedChain : null)
+
+	const { data: inflowsChartData = null, isLoading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
+		toggledCharts.includes('Net Inflows') ? selectedChain : null
+	)
+
+	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
+		toggledCharts.includes('Active Addresses') ? `chain$${selectedChain}` : null
+	)
+	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
+		toggledCharts.includes('New Addresses') ? `chain$${selectedChain}` : null
+	)
+	const { data: transactionsData = null, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
+		toggledCharts.includes('Transactions') ? `chain$${selectedChain}` : null
+	)
+
+	const isBridgedTvlEnabled = toggledCharts.includes('Bridged TVL') ? true : false
+	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
+		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
+		queryFn: isBridgedTvlEnabled
+			? () => fetch(`${CHAINS_ASSETS_CHART}/${selectedChain}`).then((r) => r.json())
+			: () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isBridgedTvlEnabled
+	})
+
+	const isRaisesEnabled = toggledCharts.includes('Raises') ? true : false
+	const { data: raisesData = null, isLoading: fetchingRaises } = useQuery<Array<[number, number]>>({
+		queryKey: ['raisesChart', selectedChain, isRaisesEnabled],
+		queryFn: () =>
+			isRaisesEnabled
+				? fetch(`${RAISES_API}`)
+						.then((r) => r.json())
+						.then((data) => {
+							const store = (data?.raises ?? []).reduce((acc, curr) => {
+								acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
+								return acc
+							}, {} as Record<string, number>)
+							const chart = []
+							for (const date in store) {
+								chart.push([+date * 1e3, store[date] * 1e6])
+							}
+							return chart
+						})
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isRaisesEnabled
+	})
+
+	const isChainIncentivesEnabled = toggledCharts.includes('Token Incentives') ? true : false
+	const { data: chainIncentivesData = null, isLoading: fetchingChainIncentives } = useQuery({
+		queryKey: ['chainIncentives', selectedChain, isChainIncentivesEnabled],
+		queryFn: () =>
+			isChainIncentivesEnabled
+				? getProtocolEmissons(slug(selectedChain))
+						.then((data) => data?.unlockUsdChart ?? null)
+						.catch(() => null)
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isChainIncentivesEnabled
+	})
+
+	const { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled } = useMemo(() => {
+		const toggledTvlSettings = Object.entries(tvlSettings)
+			.filter(([key, value]) => value)
+			.map(([key]) => key)
+
+		if (toggledTvlSettings.length === 0) {
+			const totalValueUSD = getPrevTvlFromChart(tvlChart, 0)
+			const tvlPrevDay = getPrevTvlFromChart(tvlChart, 1)
+			const valueChange24hUSD = totalValueUSD - tvlPrevDay
+			const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
+			return { finalTvlChart: tvlChart, totalValueUSD, valueChange24hUSD, change24h }
+		}
+
+		const store: Record<string, number> = {}
+		for (const [date, tvl] of tvlChart) {
+			let sum = tvl
+			for (const toggledTvlSetting of toggledTvlSettings) {
+				sum += extraTvlCharts[toggledTvlSetting]?.[date] ?? 0
+			}
+			store[date] = sum
+		}
+
+		// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you dont add twice
+		if (toggledTvlSettings.includes('liquidstaking') && toggledTvlSettings.includes('doublecounted')) {
+			for (const date in store) {
+				store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
+			}
+		}
+
+		const finalTvlChart = []
+		for (const date in store) {
+			finalTvlChart.push([+date, store[date]])
+		}
+
+		const totalValueUSD = getPrevTvlFromChart(finalTvlChart, 0)
+		const tvlPrevDay = getPrevTvlFromChart(finalTvlChart, 1)
+		const valueChange24hUSD = totalValueUSD - tvlPrevDay
+		const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
+		const isGovTokensEnabled = tvlSettings?.govtokens ? true : false
+		return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
+	}, [tvlChart, extraTvlCharts, tvlSettings])
+
+	const chartData = useMemo(() => {
+		const charts: { [key in ChainChartLabels]?: Array<[number, number]> } = {}
+
+		const loadingCharts = []
+
+		if (fetchingDenominationPriceHistory) {
+			loadingCharts.push('Denomination Price')
+		}
+
+		if (fetchingChainFees) {
+			loadingCharts.push('Chain Fees')
+		}
+
+		if (fetchingChainRevenue) {
+			loadingCharts.push('Chain Revenue')
+		}
+
+		if (fetchingDexVolume) {
+			loadingCharts.push('DEXs Volume')
+		}
+		if (fetchingPerpVolume) {
+			loadingCharts.push('Perps Volume')
+		}
+
+		if (fetchingChainAppFees) {
+			loadingCharts.push('App Fees')
+		}
+
+		if (fetchingChainAppRevenue) {
+			loadingCharts.push('App Revenue')
+		}
+
+		if (fetchingInflowsChartData) {
+			loadingCharts.push('Net Inflows')
+		}
+
+		if (fetchingStablecoinsChartDataByChain) {
+			loadingCharts.push('Stablecoins Mcap')
+		}
+
+		if (fetchingActiveAddresses) {
+			loadingCharts.push('Active Addresses')
+		}
+
+		if (fetchingNewAddresses) {
+			loadingCharts.push('New Addresses')
+		}
+
+		if (fetchingTransactions) {
+			loadingCharts.push('Transactions')
+		}
+
+		if (fetchingBridgedTvlData) {
+			loadingCharts.push('Bridged TVL')
+		}
+
+		if (fetchingRaises) {
+			loadingCharts.push('Raises')
+		}
+
+		if (fetchingChainIncentives) {
+			loadingCharts.push('Token Incentives')
+		}
+
+		if (loadingCharts.length > 0) {
+			return {
+				finalCharts: {} as Record<string, Array<[string | number, number]>>,
+				valueSymbol: denomination === 'USD' ? '$' : denomination,
+				loadingCharts: loadingCharts.join(', ').toLowerCase()
+			}
+		}
+
+		if (toggledCharts.includes('TVL')) {
+			const chartName: ChainChartLabels = 'TVL' as const
+			charts[chartName] = formatLineChart({
+				data: finalTvlChart,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices,
+				dateInMs: true
 			})
-			return [data[0], sum]
-		})
+		}
 
-		return globalChart
-	}, [chart, extraTvlsEnabled, extraTvlCharts])
+		if (chainFeesData) {
+			const chartName: ChainChartLabels = 'Chain Fees' as const
+			charts[chartName] = formatBarChart({
+				data: chainFeesData.totalDataChart,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices
+			})
+		}
 
-	const chartDatasets = useMemo(() => {
-		const isNonUSDDenomination = denomination !== 'USD' && denominationPriceHistory && chainGeckoId
+		if (chainRevenueData) {
+			const chartName: ChainChartLabels = 'Chain Revenue' as const
+			charts[chartName] = formatBarChart({
+				data: chainRevenueData.totalDataChart,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices
+			})
+		}
 
-		const deduplicateTimestamps = (data) => {
-			const seenTimestamps = new Set()
-			return data?.reduce((acc, [date, value]) => {
-				const timestamp = dayjs(Math.floor(date)).utc().startOf('day').unix()
-				if (!seenTimestamps.has(timestamp)) {
-					seenTimestamps.add(timestamp)
-					acc.push([timestamp, value])
+		if (dexVolumeData) {
+			const chartName: ChainChartLabels = 'DEXs Volume' as const
+			charts[chartName] = formatBarChart({
+				data: dexVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices
+			})
+		}
+
+		if (perpsVolumeData) {
+			const chartName: ChainChartLabels = 'Perps Volume' as const
+			charts[chartName] = formatBarChart({
+				data: perpsVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices
+			})
+		}
+
+		if (chainAppFeesData) {
+			const chartName: ChainChartLabels = 'App Fees' as const
+			charts[chartName] = formatBarChart({
+				data: chainAppFeesData.totalDataChart,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices
+			})
+		}
+
+		if (chainAppRevenueData) {
+			const chartName: ChainChartLabels = 'App Revenue' as const
+			charts[chartName] = formatBarChart({
+				data: chainAppRevenueData.totalDataChart,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices
+			})
+		}
+
+		if (isTokenPriceEnabled && denominationPriceHistory?.prices) {
+			const chartName: ChainChartLabels = 'Token Price' as const
+			const priceData = []
+			for (const date in denominationPriceHistory.prices) {
+				priceData.push([+date, denominationPriceHistory.prices[date]])
+			}
+			charts[chartName] = formatLineChart({
+				data: priceData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (isTokenMcapEnabled && denominationPriceHistory?.mcaps) {
+			const chartName: ChainChartLabels = 'Token Mcap' as const
+			charts[chartName] = formatLineChart({
+				data: denominationPriceHistory?.mcaps,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (isTokenVolumeEnabled && denominationPriceHistory?.volumes) {
+			const chartName: ChainChartLabels = 'Token Volume' as const
+			charts[chartName] = formatBarChart({
+				data: denominationPriceHistory?.volumes,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (inflowsChartData) {
+			const chartName: ChainChartLabels = 'Net Inflows' as const
+			charts[chartName] = formatBarChart({
+				data: inflowsChartData,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices
+			})
+		}
+
+		if (stablecoinsChartData) {
+			const chartName: ChainChartLabels = 'Stablecoins Mcap' as const
+			charts[chartName] = formatLineChart({
+				data: stablecoinsChartData,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices,
+				dateInMs: true
+			})
+		}
+
+		if (activeAddressesData) {
+			const chartName: ChainChartLabels = 'Active Addresses' as const
+			charts[chartName] = formatBarChart({
+				data: activeAddressesData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (newAddressesData) {
+			const chartName: ChainChartLabels = 'New Addresses' as const
+			charts[chartName] = formatBarChart({
+				data: newAddressesData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (transactionsData) {
+			const chartName: ChainChartLabels = 'Transactions' as const
+			charts[chartName] = formatBarChart({
+				data: transactionsData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (bridgedTvlData) {
+			const finalChainAssetsChart = []
+			for (const item of bridgedTvlData) {
+				if (!item) continue
+				const ts = Math.floor(
+					dayjs(item.timestamp * 1000)
+						.utc()
+						.set('hour', 0)
+						.set('minute', 0)
+						.set('second', 0)
+						.toDate()
+						.getTime() / 1000
+				)
+				if (isGovTokensEnabled && item.data.ownTokens) {
+					finalChainAssetsChart.push([ts, +item.data.total + +item.data.ownTokens])
 				}
-				return acc
-			}, [])
+				finalChainAssetsChart.push([ts * 1e3, +item.data.total])
+			}
+			const chartName: ChainChartLabels = 'Bridged TVL' as const
+			charts[chartName] = formatLineChart({
+				data: finalChainAssetsChart,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices,
+				dateInMs: true
+			})
 		}
 
-		const normalizedDenomination = []
-		if (isNonUSDDenomination) {
-			for (const [timestamp, price] of denominationPriceHistory.prices) {
-				const date = dayjs(timestamp).utc().startOf('day').unix()
-				normalizedDenomination[date] = price
-			}
+		if (raisesData) {
+			const chartName: ChainChartLabels = 'Raises' as const
+			charts[chartName] = formatBarChart({
+				data: raisesData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
 		}
 
-		const finalTvlChart = isNonUSDDenomination
-			? globalChart.map(([date, tvl]) => [date, tvl / normalizedDenomination[date]])
-			: globalChart
+		if (chainIncentivesData) {
+			const chartName: ChainChartLabels = 'Token Incentives' as const
+			charts[chartName] = formatLineChart({
+				data: chainIncentivesData,
+				groupBy,
+				denominationPriceHistory: denominationPriceHistory?.prices
+			})
+		}
 
-		const finalDexsChart = isNonUSDDenomination
-			? dexsChart?.map(([date, volume]) => [date, volume / normalizedDenomination[date]])
-			: dexsChart
-
-		const finalPriceChart = isNonUSDDenomination ? null : deduplicateTimestamps(denominationPriceHistory?.prices)
-
-		const finalMcapChart = isNonUSDDenomination ? null : deduplicateTimestamps(denominationPriceHistory?.mcaps)
-
-		const finalTokenVolumeChart = isNonUSDDenomination ? null : deduplicateTimestamps(denominationPriceHistory?.volumes)
-
-		const finalPerpsChart = isNonUSDDenomination ? null : perpsChart?.totalDataChart
-
-		const finalFeesAndRevenueChart = isNonUSDDenomination
-			? feesAndRevenueChart?.map(([date, fees, revenue]) => [
-					date,
-					fees / normalizedDenomination[date],
-					revenue / normalizedDenomination[date]
-			  ])
-			: feesAndRevenueChart
-
-		const finalAppRevenueChart = isNonUSDDenomination
-			? appRevenueChart?.map(([date, revenue]) => [date, revenue / normalizedDenomination[date]])
-			: appRevenueChart
-
-		const finalAppFeesChart = isNonUSDDenomination
-			? appFeesChart?.map(([date, fees]) => [date, fees / normalizedDenomination[date]])
-			: appFeesChart
-
-		const finalDevsChart = devMetricsData?.report?.monthly_devs?.map(({ k, v }) => [
-			Math.floor(nearestUtcZeroHour(dayjs(k).toDate().getTime()) / 1000),
-			v
-		])
-
-		const finalCommitsChart = devMetricsData?.report?.monthly_devs?.map(({ k, cc }) => [
-			Math.floor(nearestUtcZeroHour(dayjs(k).toDate().getTime()) / 1000),
-			cc
-		])
-		const finalChainAssetsChart = chainAssetsChart?.filter(Boolean).map(({ data, timestamp }) => {
-			const ts = Math.floor(
-				dayjs(timestamp * 1000)
-					.utc()
-					.set('hour', 0)
-					.set('minute', 0)
-					.set('second', 0)
-					.toDate()
-					.getTime() / 1000
-			)
-			if (!extraTvlsEnabled?.govtokens && data.ownTokens) {
-				return [ts, data.total]
-			}
-			return [ts, data.total + data.ownTokens]
-		})
-
-		const finalChainIncentivesChart =
-			isNonUSDDenomination && chainIncentives?.incentivesChart
-				? chainIncentives.incentivesChart.map(([date, value]) => [date, value / normalizedDenomination[date]])
-				: chainIncentives?.incentivesChart ?? null
-
-		const chartDatasets = [
-			{
-				feesChart: finalFeesAndRevenueChart,
-				appRevenueChart: finalAppRevenueChart,
-				appFeesChart: finalAppFeesChart,
-				dexsChart: finalDexsChart,
-				globalChart: finalTvlChart,
-				raisesData: raisesChart,
-				totalStablesData: stablecoinsChartData,
-				bridgeData: inflowsChartData,
-				usersData,
-				developersChart: finalDevsChart,
-				commitsChart: finalCommitsChart,
-				txsData,
-				chainTokenPriceData: finalPriceChart?.length ? finalPriceChart : null,
-				chainTokenMcapData: finalMcapChart?.length ? finalMcapChart : null,
-				chainTokenVolumeData: finalTokenVolumeChart?.length ? finalTokenVolumeChart : null,
-				perpsChart: finalPerpsChart,
-				chainAssetsData: finalChainAssetsChart,
-				chainIncentivesChart: finalChainIncentivesChart
-			}
-		]
-
-		return chartDatasets
+		return {
+			finalCharts: charts,
+			valueSymbol: denomination === 'USD' ? '$' : denomination,
+			loadingCharts: ''
+		}
 	}, [
-		denomination,
+		toggledCharts,
+		isGovTokensEnabled,
+		fetchingDenominationPriceHistory,
 		denominationPriceHistory,
-		globalChart,
-		dexsChart,
-		perpsChart?.totalDataChart,
-		feesAndRevenueChart,
-		appRevenueChart,
-		appFeesChart,
-		devMetricsData?.report?.monthly_devs,
-		chainAssetsChart,
-		raisesChart,
-		stablecoinsChartData,
+		fetchingChainFees,
+		chainFeesData,
+		fetchingChainRevenue,
+		chainRevenueData,
+		fetchingDexVolume,
+		dexVolumeData,
+		fetchingPerpVolume,
+		perpsVolumeData,
+		fetchingChainAppFees,
+		chainAppFeesData,
+		fetchingChainAppRevenue,
+		chainAppRevenueData,
+		isTokenPriceEnabled,
+		isTokenMcapEnabled,
+		isTokenVolumeEnabled,
+		fetchingInflowsChartData,
 		inflowsChartData,
-		usersData,
-		txsData,
-		extraTvlsEnabled?.govtokens,
-		chainGeckoId,
-		chainIncentives
+		fetchingStablecoinsChartDataByChain,
+		stablecoinsChartData,
+		fetchingActiveAddresses,
+		activeAddressesData,
+		fetchingNewAddresses,
+		newAddressesData,
+		fetchingTransactions,
+		transactionsData,
+		fetchingBridgedTvlData,
+		bridgedTvlData,
+		fetchingRaises,
+		raisesData,
+		fetchingChainIncentives,
+		chainIncentivesData,
+		finalTvlChart
 	])
 
-	const totalValueUSD = getPrevTvlFromChart(globalChart, 0)
-	const tvlPrevDay = getPrevTvlFromChart(globalChart, 1)
-	const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
-
 	return {
-		isFetchingChartData: Object.values(router.query ?? {}).some((q) => q === 'true') && isFetchingChartData,
-		chartDatasets,
+		isFetchingChartData: chartData.loadingCharts ? true : false,
+		finalCharts: chartData.finalCharts,
+		valueSymbol: chartData.valueSymbol,
 		totalValueUSD,
-		valueChange24hUSD: totalValueUSD - tvlPrevDay,
+		valueChange24hUSD,
 		change24h
 	}
 }
+
+const formatBarChart = ({
+	data,
+	groupBy,
+	dateInMs = false,
+	denominationPriceHistory
+}: {
+	data: Array<[string | number, number]>
+	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	dateInMs?: boolean
+	hasNoPrice?: boolean
+	denominationPriceHistory: Record<string, number> | null
+}): Array<[number, number]> => {
+	if (['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
+		const store = {}
+		let total = 0
+		const isWeekly = groupBy === 'weekly'
+		const isMonthly = groupBy === 'monthly'
+		const isCumulative = groupBy === 'cumulative'
+		for (const [date, value] of data) {
+			const dateKey = isWeekly
+				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
+				: isMonthly
+				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
+				: dateInMs
+				? +date / 1e3
+				: +date
+			// sum up values as it is bar chart
+			if (denominationPriceHistory) {
+				const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+				store[dateKey] = (store[dateKey] ?? 0) + (price ? value / price : 0) + total
+				if (isCumulative && price) {
+					total += value / price
+				}
+			} else {
+				store[dateKey] = (store[dateKey] ?? 0) + value + total
+				if (isCumulative) {
+					total += value
+				}
+			}
+		}
+		const finalChart = []
+		for (const date in store) {
+			finalChart.push([+date * 1e3, store[date]])
+		}
+		return finalChart
+	}
+	if (denominationPriceHistory) {
+		return data.map(([date, value]) => {
+			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
+		})
+	} else {
+		return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
+	}
+}
+
+const formatLineChart = ({
+	data,
+	groupBy,
+	dateInMs = false,
+	denominationPriceHistory
+}: {
+	data: Array<[string | number, number]>
+	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	dateInMs?: boolean
+	denominationPriceHistory: Record<string, number> | null
+}): Array<[number, number]> => {
+	if (['weekly', 'monthly'].includes(groupBy)) {
+		const store = {}
+		const isWeekly = groupBy === 'weekly'
+		const isMonthly = groupBy === 'monthly'
+		for (const [date, value] of data) {
+			const dateKey = isWeekly
+				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
+				: isMonthly
+				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
+				: dateInMs
+				? +date / 1e3
+				: +date
+			// do not sum up values, just use the last value for each date
+			const finalValue = denominationPriceHistory
+				? denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+					? value / denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+					: null
+				: value
+			store[dateKey] = finalValue
+		}
+		const finalChart = []
+		for (const date in store) {
+			finalChart.push([+date * 1e3, store[date]])
+		}
+		return finalChart
+	}
+	if (denominationPriceHistory) {
+		return data.map(([date, value]) => {
+			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
+			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
+		})
+	} else {
+		return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
+	}
+}
+
+// todo dev metrics, commits charts
