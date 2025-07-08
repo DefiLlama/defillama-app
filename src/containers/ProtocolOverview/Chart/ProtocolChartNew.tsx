@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
@@ -75,49 +75,61 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 		return JSON.stringify(router.query ?? {})
 	}, [router.query])
 
-	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy } = useMemo(() => {
+	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
 		const chartsByStaus = {}
 		for (const pchart in protocolCharts) {
 			const chartKey = protocolCharts[pchart]
 			chartsByStaus[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
 		}
+
+		const defaultToggledCharts: ProtocolChartsLabels[] = ['TVL', 'Events' as any]
+
 		const toggled = {
-			...chartsByStaus,
-			...((!props.metrics.tvl
-				? props.metrics.dexs
-					? { dexVolume: queryParams.dexVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.perps
-					? { perpVolume: queryParams.perpVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.options
-					? {
-							optionsPremiumVolume: queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true',
-							optionsNotionalVolume: queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
-					  }
-					: props.metrics.dexAggregators
-					? { dexAggregatorVolume: queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.bridgeAggregators
-					? { bridgeAggregatorVolume: queryParams.bridgeAggregatorVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.perpsAggregators
-					? { perpAggregatorVolume: queryParams.perpAggregatorVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.bridge
-					? { bridgeVolume: queryParams.bridgeVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.fees
-					? {
-							fees: queryParams.fees === 'false' ? 'false' : 'true'
-					  }
-					: props.metrics.revenue
-					? {
-							revenue: queryParams.revenue === 'false' ? 'false' : 'true',
-							holdersRevenue: queryParams.holdersRevenue === 'false' ? 'false' : 'true'
-					  }
-					: props.metrics.unlocks
-					? { unlocks: queryParams.unlocks === 'false' ? 'false' : 'true' }
-					: props.metrics.treasury
-					? { treasury: queryParams.treasury === 'false' ? 'false' : 'true' }
-					: {}
-				: {}) as Record<string, 'true' | 'false'>)
+			...chartsByStaus
 		} as Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'>
+
+		if (!props.metrics.tvl) {
+			if (props.metrics.dexs) {
+				defaultToggledCharts.push('DEX Volume')
+				toggled.dexVolume = queryParams.dexVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.perps) {
+				defaultToggledCharts.push('Perp Volume')
+				toggled.perpVolume = queryParams.perpVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.options) {
+				defaultToggledCharts.push('Options Premium Volume')
+				defaultToggledCharts.push('Options Notional Volume')
+				toggled.optionsPremiumVolume = queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true'
+				toggled.optionsNotionalVolume = queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.dexAggregators) {
+				defaultToggledCharts.push('DEX Aggregator Volume')
+				toggled.dexAggregatorVolume = queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.bridgeAggregators) {
+				defaultToggledCharts.push('Bridge Aggregator Volume')
+				toggled.bridgeAggregatorVolume = queryParams.bridgeAggregatorVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.perpsAggregators) {
+				defaultToggledCharts.push('Perp Aggregator Volume')
+				toggled.perpAggregatorVolume = queryParams.perpAggregatorVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.fees) {
+				defaultToggledCharts.push('Fees')
+				toggled.fees = queryParams.fees === 'false' ? 'false' : 'true'
+			} else if (props.metrics.revenue) {
+				defaultToggledCharts.push('Revenue')
+				defaultToggledCharts.push('Holders Revenue')
+				toggled.revenue = queryParams.revenue === 'false' ? 'false' : 'true'
+				toggled.holdersRevenue = queryParams.holdersRevenue === 'false' ? 'false' : 'true'
+			} else if (props.metrics.unlocks) {
+				defaultToggledCharts.push('Unlocks')
+				toggled.unlocks = queryParams.unlocks === 'false' ? 'false' : 'true'
+			} else if (props.metrics.treasury) {
+				defaultToggledCharts.push('Treasury')
+				toggled.treasury = queryParams.treasury === 'false' ? 'false' : 'true'
+			} else {
+				// if (props.metrics.bridge) {
+				// 	 toggled.bridgeVolume = queryParams.bridgeVolume === 'false' ? 'false' : 'true'
+				// }
+			}
+		}
 
 		const toggledMetrics = {
 			...toggled,
@@ -138,7 +150,8 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 				? typeof queryParams.groupBy === 'string' && groupByOptions.includes(queryParams.groupBy as any)
 					? (queryParams.groupBy as any)
 					: 'daily'
-				: 'daily'
+				: 'daily',
+			defaultToggledCharts
 		}
 	}, [queryParamsString, props.availableCharts, props.metrics])
 
@@ -154,8 +167,6 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 	})
 
 	const metricsDialogStore = Ariakit.useDialogStore()
-
-	const [isDownloading, setIsDownloading] = useState(false)
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -179,7 +190,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 														router.asPath,
 														protocolCharts[chart],
 														toggledMetrics[protocolCharts[chart]] === 'true'
-															? chart === 'TVL'
+															? defaultToggledCharts.includes(chart)
 																? 'false'
 																: null
 															: 'true'
@@ -252,7 +263,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 									updateQueryParamInUrl(
 										router.asPath,
 										protocolCharts[tchart],
-										['TVL', 'Events'].includes(tchart) ? 'false' : null
+										defaultToggledCharts.includes(tchart) ? 'false' : null
 									),
 									undefined,
 									{
