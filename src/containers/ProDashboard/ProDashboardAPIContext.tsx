@@ -55,7 +55,8 @@ interface ProDashboardContextType {
 			| 'aggregators'
 			| 'options'
 			| 'bridge-aggregators'
-			| 'trending-contracts',
+			| 'trending-contracts'
+			| 'chains',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean
@@ -346,7 +347,8 @@ export function ProDashboardAPIProvider({
 			| 'aggregators'
 			| 'options'
 			| 'bridge-aggregators'
-			| 'trending-contracts',
+			| 'trending-contracts'
+			| 'chains',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean

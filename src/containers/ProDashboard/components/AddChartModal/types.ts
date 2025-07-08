@@ -8,7 +8,22 @@ export interface AddChartModalProps {
 
 export type MainTabType = 'chart' | 'composer' | 'table' | 'text'
 export type ChartTabType = 'chain' | 'protocol'
-export type CombinedTableType = 'protocols' | 'cex' | 'stablecoins' | 'revenue' | 'holders-revenue' | 'earnings' | 'token-usage' | 'yields' | 'aggregators' | 'perps' | 'options' | 'dexs' | 'bridge-aggregators' | 'trending-contracts'
+export type CombinedTableType =
+	| 'protocols'
+	| 'cex'
+	| 'stablecoins'
+	| 'revenue'
+	| 'holders-revenue'
+	| 'earnings'
+	| 'token-usage'
+	| 'yields'
+	| 'aggregators'
+	| 'perps'
+	| 'options'
+	| 'dexs'
+	| 'bridge-aggregators'
+	| 'trending-contracts'
+	| 'chains'
 
 export interface ModalState {
 	selectedMainTab: MainTabType

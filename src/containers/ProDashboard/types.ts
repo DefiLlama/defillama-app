@@ -89,6 +89,7 @@ export interface ProtocolsTableConfig {
 		| 'dexs'
 		| 'bridge-aggregators'
 		| 'trending-contracts'
+		| 'chains'
 	datasetChain?: string
 	tokenSymbols?: string[]
 	includeCex?: boolean

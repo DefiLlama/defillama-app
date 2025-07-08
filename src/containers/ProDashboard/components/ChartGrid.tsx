@@ -17,7 +17,8 @@ import {
 	OptionsDataset,
 	DexsDataset,
 	BridgeAggregatorsDataset,
-	TrendingContractsDataset
+	TrendingContractsDataset,
+	ChainsDataset
 } from './datasets'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
@@ -112,6 +113,15 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							onTimeframeChange={(newTimeframe) => {
 								handleEditItem(item.id, { ...item, datasetTimeframe: newTimeframe })
 							}}
+						/>
+					)
+				if (item.datasetType === 'chains')
+					return (
+						<ChainsDataset
+							category={item.datasetChain}
+							tableId={item.id}
+							columnOrder={item.columnOrder}
+							columnVisibility={item.columnVisibility}
 						/>
 					)
 				return <StablecoinsDataset chain={item.datasetChain || 'All'} />

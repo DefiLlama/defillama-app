@@ -297,6 +297,15 @@ export function useModalActions(
 						datasetTimeframe: state.selectedDatasetTimeframe || '1d',
 						chains: [state.selectedDatasetChain]
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'chains') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'chains',
+						datasetChain: state.selectedDatasetChain,
+						chains: []
+					} as ProtocolsTableConfig
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
@@ -364,6 +373,8 @@ export function useModalActions(
 					handleAddTable(state.selectedChains, 'dataset', 'bridge-aggregators')
 				} else if (state.selectedTableType === 'trending-contracts' && state.selectedDatasetChain) {
 					handleAddTable([state.selectedDatasetChain], 'dataset', 'trending-contracts', state.selectedDatasetChain)
+				} else if (state.selectedTableType === 'chains') {
+					handleAddTable([], 'dataset', 'chains', state.selectedDatasetChain)
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())

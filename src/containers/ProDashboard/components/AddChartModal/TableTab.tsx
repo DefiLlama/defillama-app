@@ -44,6 +44,12 @@ const tableTypeOptions = [
 		icon: '🏦'
 	},
 	{
+		value: 'chains',
+		label: 'Chains',
+		description: 'Blockchain metrics including TVL, users, volume, and fees',
+		icon: '⛓️'
+	},
+	{
 		value: 'stablecoins',
 		label: 'Stablecoins',
 		description: 'Stablecoin market caps, price stability, and chains',
@@ -263,11 +269,30 @@ export function TableTab({
 					placeholder="All chains..."
 					itemType="chain"
 				/>
+			) : selectedTableType === 'chains' ? (
+				<ItemSelect
+					label="Select Category (optional)"
+					options={[
+						{ value: 'All', label: 'All Chains' },
+						{ value: 'EVM', label: 'EVM Chains' },
+						{ value: 'non-EVM', label: 'Non-EVM Chains' },
+						{ value: 'Layer 1', label: 'Layer 1' },
+						{ value: 'Layer 2', label: 'Layer 2' },
+						{ value: 'Rollup', label: 'Rollups' },
+						{ value: 'Parachain', label: 'Parachains' },
+						{ value: 'Cosmos', label: 'Cosmos' }
+					]}
+					selectedValue={selectedDatasetChain}
+					onChange={onDatasetChainChange}
+					isLoading={false}
+					placeholder="All chains..."
+					itemType="text"
+				/>
 			) : selectedTableType === 'trending-contracts' ? (
 				<>
 					<ItemSelect
 						label="Select Chain"
-						options={chainOptions.filter(opt => 
+						options={chainOptions.filter((opt) =>
 							['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'].includes(opt.label)
 						)}
 						selectedValue={selectedDatasetChain}
@@ -284,7 +309,19 @@ export function TableTab({
 								{ value: '7d', label: '7 Days' },
 								{ value: '30d', label: '30 Days' }
 							]}
-							value={selectedDatasetTimeframe ? { value: selectedDatasetTimeframe, label: selectedDatasetTimeframe === '1d' ? '1 Day' : selectedDatasetTimeframe === '7d' ? '7 Days' : '30 Days' } : null}
+							value={
+								selectedDatasetTimeframe
+									? {
+											value: selectedDatasetTimeframe,
+											label:
+												selectedDatasetTimeframe === '1d'
+													? '1 Day'
+													: selectedDatasetTimeframe === '7d'
+													? '7 Days'
+													: '30 Days'
+									  }
+									: null
+							}
 							onChange={(option: any) => onDatasetTimeframeChange(option?.value || '1d')}
 							placeholder="Select time period..."
 							className="w-full text-sm md:text-base"
