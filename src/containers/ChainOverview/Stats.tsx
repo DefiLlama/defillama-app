@@ -43,17 +43,17 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 		const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
-		const hasAtleasOneBarChart = props.charts.reduce((acc, curr) => {
-			if (BAR_CHARTS.includes(curr) && router.query[curr] === 'true') {
+		const toggledCharts = props.charts.filter((tchart) =>
+			tchart === 'TVL' ? router.query[chainCharts[tchart]] !== 'false' : router.query[chainCharts[tchart]] === 'true'
+		)
+
+		const hasAtleasOneBarChart = toggledCharts.reduce((acc, curr) => {
+			if (BAR_CHARTS.includes(curr) && router.query[chainCharts[curr]] === 'true') {
 				acc = true
 			}
 
 			return acc
 		}, false)
-
-		const toggledCharts = props.charts.filter((tchart) =>
-			tchart === 'TVL' ? router.query[chainCharts[tchart]] !== 'false' : router.query[chainCharts[tchart]] === 'true'
-		)
 
 		return {
 			DENOMINATIONS,
