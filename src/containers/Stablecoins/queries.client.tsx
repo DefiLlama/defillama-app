@@ -29,14 +29,21 @@ export const useGetStabelcoinsChartDataByChain = (chain?: string) => {
 								doublecountedIds: data?.doublecountedIds
 							})
 
-							return peggedAreaTotalData
+							const finalData = []
+							for (const { date, Mcap } of peggedAreaTotalData) {
+								finalData.push([+date * 1e3, Mcap])
+							}
+
+							return finalData
 						})
 						.catch((err) => {
 							console.log(err)
 							return null
 						})
 			: () => null,
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: !!chain
 	})
 
 	return { data: data ?? null, error, isLoading }

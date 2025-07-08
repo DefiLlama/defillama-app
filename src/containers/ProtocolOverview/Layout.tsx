@@ -75,6 +75,7 @@ export function ProtocolOverviewLayout({
 						href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/6163"
 						target="_blank"
 						rel="noreferrer noopener"
+						className="underline"
 					>
 						here
 					</a>

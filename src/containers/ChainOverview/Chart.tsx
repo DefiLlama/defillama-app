@@ -1,587 +1,114 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
-import uniq from 'lodash/uniq'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
-import { useRouter } from 'next/router'
-import { primaryColor } from '~/constants/colors'
-import { toK } from '~/utils'
-import { cumulativeSum, groupByTimeFrame } from './utils'
-import { chainCharts, chainOverviewChartColors } from './constants'
+import { formattedNum } from '~/utils'
+import {
+	ChainChartLabels,
+	BAR_CHARTS,
+	yAxisByChart,
+	DISABLED_CUMULATIVE_CHARTS,
+	chainOverviewChartColors
+} from './constants'
 
-const groupableCharts = [
-	'feesChart',
-	'dexsChart',
-	'aggregatorsData',
-	'perpsChart',
-	'chainTokenVolumeData',
-	'appRevenueChart',
-	'appFeesChart',
-	'addresses',
-	'transactions',
-	'inflows',
-	'chainIncentivesChart',
-	'chainFees',
-	'chainRevenue'
-]
+const customOffsets = {}
 
-const colorsArray = [
-	...Object.values(chainOverviewChartColors),
-	'#00ffff',
-	'#ffff00',
-	'#8000ff',
-	'#00ff00',
-	'#00ff80',
-	'#0080ff',
-	'#ff8000',
-	'#0000ff',
-	'#ff0000',
-	'#ff00ff',
-	'#80ff00',
-	'#ff0080'
-]
-
-const getAreaColor = (color, isThemeDark) => ({
-	color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-		{
-			offset: 0,
-			color
-		},
-		{
-			offset: 1,
-			color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-		}
-	])
-})
-
-const initGetColor = () => {
-	let colorOffset = 0
-
-	return (isCompare) => (isCompare ? colorsArray[colorOffset++] : null)
-}
-
-export function ChainChart({
-	title,
-	tooltipSort = true,
-	height = '360px',
-	width = null,
-	expandTo100Percent = false,
-	denomination,
-	datasets,
-	hideTooltip,
+export default function ChainLineBarChart({
+	chartData,
+	valueSymbol = '',
+	color,
+	chartOptions,
+	height,
+	unlockTokenSymbol = '',
 	isThemeDark,
-	chartType,
-	isFirstChart = false,
-	compareMode = false,
-	showLegend = false,
+	groupBy,
 	...props
 }) {
 	const id = useId()
-	const { query: routerRoute, pathname } = useRouter()
-	const period = Number((routerRoute.period as string)?.replace('d', ''))
-	const { groupBy } = routerRoute
-
-	const route = useMemo(
-		() => (chartType ? { tvl: 'false', [chartType]: 'true' } : routerRoute),
-		[chartType, routerRoute]
-	)
-
-	const isCompare = pathname?.includes('compare') || compareMode
-
-	let atleastOneBarChart = false
-	for (const chartType in datasets[0]) {
-		if (datasets[0][chartType] && groupableCharts.includes(chartType)) {
-			atleastOneBarChart = true
-		}
-	}
+	const isCumulative = groupBy === 'cumulative'
 
 	const defaultChartSettings = useDefaults({
-		color: primaryColor,
-		title,
-		valueSymbol: denomination || 'USD',
-		tooltipSort,
+		color,
+		valueSymbol,
+		tooltipSort: false,
 		hideLegend: true,
+		unlockTokenSymbol,
 		isThemeDark,
 		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy) && atleastOneBarChart
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
 				? (groupBy as 'daily' | 'weekly' | 'monthly')
 				: 'daily'
 	})
 
-	const [series, activeSeries] = useMemo(() => {
-		const getColor = initGetColor()
-		const series = []
-		datasets.forEach((chartData, i) => {
-			let data = chartData
-			if (groupBy && groupBy !== 'daily') {
-				const groupedData = {}
-				Object.entries(chartData).forEach(([key, val]: [string, Array<[number, number]>]) => {
-					if (val) {
-						if (groupableCharts.includes(key)) {
-							if (Array.isArray(val?.[0])) {
-								const periodData = period ? val?.slice(-period) : val
-								groupedData[key] =
-									groupBy === 'cumulative' ? cumulativeSum(periodData) : groupByTimeFrame(periodData, groupBy)
+	const { series, allYAxis } = useMemo(() => {
+		const uniqueYAxis = new Set()
+
+		const stacks = Object.keys(chartData) as any
+
+		for (const stack of stacks) {
+			uniqueYAxis.add(yAxisByChart[stack])
+		}
+
+		const indexByYAxis = Object.fromEntries(
+			Array.from(uniqueYAxis).map((yAxis, index) => [yAxis, index === 0 ? undefined : index])
+		) as Record<ChainChartLabels, number | undefined>
+
+		const series = stacks.map((stack, index) => {
+			const stackColor = chainOverviewChartColors[stack]
+
+			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
+			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
+
+			const options = {
+				yAxisIndex: indexByYAxis[yAxisByChart[stack]]
+			}
+
+			return {
+				name: stack,
+				type,
+				...options,
+				scale: true,
+				large: true,
+				largeThreshold: 0,
+				emphasis: {
+					focus: 'series',
+					shadowBlur: 10
+				},
+				symbol: 'none',
+				itemStyle: {
+					color: stackColor || null
+				},
+				...(type === 'line'
+					? {
+							areaStyle: {
+								color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+									{
+										offset: 0,
+										color: stackColor ? stackColor : index === 0 ? chainOverviewChartColors[stack] : 'transparent'
+									},
+									{
+										offset: 1,
+										color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+									}
+								])
 							}
-						} else {
-							groupedData[key] = val
-						}
-					}
-				})
-				data = groupedData
-			}
-
-			const namePrefix = isCompare ? data?.chain + ' ' : ''
-
-			if (route[chainCharts['TVL']] !== 'false') {
-				const color = getColor(isCompare) || chainOverviewChartColors.tvl
-				const areaColor = getAreaColor(color, isThemeDark)
-
-				series.push({
-					name: namePrefix + 'TVL',
-					chartId: 'TVL',
-					type: 'line',
-					yAxisIndex: 0,
-					symbol: 'none',
-					emphasis: {
-						focus: 'series',
-						shadowBlur: 10
-					},
-
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor,
-					data: [],
-					show: true
-				} as Record<string, any>)
-				data?.globalChart?.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-			if (route[chainCharts['DEXs Volume']] === 'true' && data?.dexsChart) {
-				const color = getColor(isCompare) || chainOverviewChartColors.dexsVolume
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'DEXs Volume',
-					chartId: 'DEXs Volume',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 1,
-					show: route[chainCharts['DEXs Volume']] === 'true',
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.dexsChart.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['Chain Fees']] === 'true' && data?.feesChart) {
-				const color = getColor(isCompare) || chainOverviewChartColors.chainFees
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Chain Fees',
-					chartId: 'Chain Fees',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 2,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.feesChart.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['Chain Revenue']] === 'true' && data?.feesChart) {
-				const color = getColor(isCompare) || chainOverviewChartColors.chainRevenue
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Chain Revenue',
-					chartId: 'Chain Revenue',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 3,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.feesChart.forEach(([date, _, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['App Revenue']] === 'true' && data?.appRevenueChart) {
-				const color = getColor(isCompare) || chainOverviewChartColors.appRevenue
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'App Revenue',
-					chartId: 'App Revenue',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 4,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.appRevenueChart.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['App Fees']] === 'true' && data?.appFeesChart) {
-				const color = getColor(isCompare) || chainOverviewChartColors.appFees
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'App Fees',
-					chartId: 'App Fees',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 5,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.appFeesChart.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['Active Addresses']] === 'true' && data?.usersData?.length > 0) {
-				const color1 = getColor(isCompare) || chainOverviewChartColors.activeAddresses
-				const color2 = getColor(isCompare) || chainOverviewChartColors.newAddresses
-
-				const areaColor = getAreaColor(color1, isThemeDark)
-				series.push({
-					name: namePrefix + 'Active Addresses',
-					chartId: 'Active Addresses',
-					stack: 'Active Addresses',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 6,
-					itemStyle: {
-						color: color1
-					},
-					areaStyle: areaColor
-				})
-				data?.usersData.forEach(([date, value, value2]) => {
-					series[series.length - 1].data.push([+date * 1e3, (value ?? 0) - (value2 ?? 0)])
-				})
-				series.push({
-					name: namePrefix + 'New Addresses',
-					chartId: 'Addresses',
-					stack: 'Addresses',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 6,
-					itemStyle: {
-						color: color2
-					},
-					areaStyle: areaColor
-				})
-				data?.usersData.forEach(([date, value, value2]) => {
-					series[series.length - 1].data.push([+date * 1e3, value2 ?? 0])
-				})
-			}
-
-			if (route[chainCharts['Raises']] === 'true' && data?.raisesData) {
-				const color = getColor(isCompare) || chainOverviewChartColors.raises
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: 'Raises',
-					chartId: 'Raises',
-					type: 'bar',
-					symbol: 'none',
-					data: [],
-					yAxisIndex: 7,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-
-				data?.globalChart?.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, (data?.raisesData[date] || 0) * 1e6])
-				})
-			}
-
-			if (route[chainCharts['Stablecoins Mcap']] === 'true' && data?.totalStablesData) {
-				const color = getColor(isCompare) || chainOverviewChartColors.stablecoinsMcap
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Stablecoins Mcap',
-					chartId: 'Stablecoins Mcap',
-					symbol: 'none',
-					type: 'line',
-					data: [],
-					yAxisIndex: 8,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.totalStablesData.forEach((data) => {
-					series[series.length - 1].data.push([+data.date * 1e3, data.Mcap])
-				})
-			}
-
-			if (route[chainCharts['Transactions']] === 'true' && data?.txsData?.length > 0) {
-				const color = getColor(isCompare) || chainOverviewChartColors.transactions
-				const areaColor = getAreaColor(color, isThemeDark)
-
-				series.push({
-					name: namePrefix + 'Transactions',
-					chartId: 'Transactions',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 9,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.txsData.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['Net Inflows']] === 'true' && data?.bridgeData && data?.bridgeData?.length > 0) {
-				const color = getColor(isCompare) || chainOverviewChartColors.netInflows
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Net Inflows',
-					chartId: 'Inflows',
-					type: 'bar',
-					stack: 'Net Inflows',
-					symbol: 'none',
-					data: [],
-					yAxisIndex: 10,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.bridgeData.forEach(([date, inflow, outflow]) => {
-					series[series.length - 1].data.push([+date * 1e3, outflow + inflow || 0])
-				})
-			}
-
-			if (
-				route[chainCharts['Core Developers']] === 'true' &&
-				data?.developersChart &&
-				data?.developersChart?.length > 0
-			) {
-				const color = getColor(isCompare) || chainOverviewChartColors.devsMetrics
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Core Developers',
-					chartId: 'Core Developers',
-					type: 'bar',
-					stack: 'Core Developers',
-					symbol: 'none',
-					data: [],
-					yAxisIndex: 11,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.developersChart?.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['Devs Commits']] === 'true' && data?.commitsChart && data?.commitsChart?.length > 0) {
-				const color = getColor(isCompare) || chainOverviewChartColors.devsCommits
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Devs Commits',
-					chartId: 'Devs Commits',
-					type: 'bar',
-					stack: 'Devs Commits',
-					data: [],
-					yAxisIndex: 12,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.commitsChart?.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['Token Price']] === 'true' && data?.chainTokenPriceData && denomination === 'USD') {
-				const color = getColor(isCompare) || chainOverviewChartColors.chainTokenPrice
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Token Price',
-					chartId: 'Token Price',
-					symbol: 'none',
-					type: 'line',
-					data: [],
-					yAxisIndex: 13,
-					itemStyle: {
-						color: color
-					},
-					areaStyle: areaColor
-				})
-				data?.chainTokenPriceData.forEach(([date, value]) => {
-					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['Token Mcap']] === 'true' && data?.chainTokenMcapData) {
-				const color = getColor(isCompare) || chainOverviewChartColors.chainTokenMcap
-				const areaColor = getAreaColor(color, isThemeDark)
-
-				series.push({
-					name: namePrefix + 'Token Mcap',
-					chartId: 'Token Mcap',
-					symbol: 'none',
-					type: 'line',
-					data: [],
-					yAxisIndex: 14,
-					itemStyle: {
-						color: color
-					},
-					areaStyle: areaColor
-				})
-				data?.chainTokenMcapData.forEach(([date, value]) => {
-					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['Perps Volume']] === 'true' && data?.perpsChart) {
-				const color = getColor(isCompare) || chainOverviewChartColors.perpsVolume
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Perps Volume',
-					chartId: 'Perps Volume',
-					symbol: 'none',
-					type: 'bar',
-					data: [],
-					yAxisIndex: 15,
-					itemStyle: {
-						color: color
-					},
-					areaStyle: areaColor
-				})
-				data?.perpsChart.forEach(([date, value]) => {
-					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-			if (route[chainCharts['Bridged TVL']] === 'true' && data?.chainAssetsData) {
-				const color = getColor(isCompare) || chainOverviewChartColors.bridgedTVL
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Bridged TVL',
-					chartId: 'Bridged TVL',
-					symbol: 'none',
-					type: 'line',
-					data: [],
-					yAxisIndex: 16,
-					itemStyle: {
-						color: color
-					},
-					areaStyle: areaColor
-				})
-				data?.chainAssetsData.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-			if (route[chainCharts['Token Volume']] === 'true' && data?.chainTokenVolumeData) {
-				const color = getColor(isCompare) || chainOverviewChartColors.chainTokenVolume
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Token Volume',
-					chartId: 'Token Volume',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 17,
-					itemStyle: {
-						color: color
-					},
-					areaStyle: areaColor
-				})
-				data?.chainTokenVolumeData.forEach(([date, value]) => {
-					if (data?.globalChart?.[0]?.[0] ? Number(date) > Number(data?.globalChart[0][0]) : true)
-						series[series.length - 1].data.push([+date * 1e3, value])
-				})
-			}
-
-			if (route[chainCharts['Token Incentives']] === 'true' && data?.chainIncentivesChart) {
-				const color = getColor(isCompare) || chainOverviewChartColors.tokenIncentives
-				const areaColor = getAreaColor(color, isThemeDark)
-				series.push({
-					name: namePrefix + 'Token Incentives',
-					chartId: 'Token Incentives',
-					symbol: 'none',
-					type: groupBy === 'cumulative' ? 'line' : 'bar',
-					data: [],
-					yAxisIndex: 18,
-					itemStyle: {
-						color
-					},
-					areaStyle: areaColor
-				})
-				data?.chainIncentivesChart.forEach(([date, value]) => {
-					series[series.length - 1].data.push([+date * 1e3, value])
-				})
+					  }
+					: {}),
+				markLine: {},
+				data: chartData[stack] ?? []
 			}
 		})
-		return [
-			period
-				? series.reverse().map(({ data, ...rest }) => ({ ...rest, data: data.slice(-Number(period)) }))
-				: series.reverse(),
-			uniq(series.map((val) => val.chartId))
-		]
-	}, [
-		datasets,
-		period,
-		groupBy,
-		isCompare,
-		route[chainCharts['TVL']],
-		route[chainCharts['DEXs Volume']],
-		route[chainCharts['Chain Fees']],
-		route[chainCharts['Chain Revenue']],
-		route[chainCharts['Token Price']],
-		route[chainCharts['Active Addresses']],
-		route[chainCharts['Raises']],
-		route[chainCharts['Stablecoins Mcap']],
-		route[chainCharts['Transactions']],
-		route[chainCharts['Net Inflows']],
-		route[chainCharts['Core Developers']],
-		route[chainCharts['Devs Commits']],
-		route[chainCharts['Token Mcap']],
-		route[chainCharts['Perps Volume']],
-		route[chainCharts['Bridged TVL']],
-		route[chainCharts['Token Volume']],
-		route[chainCharts['Token Incentives']],
-		route[chainCharts['App Revenue']],
-		route[chainCharts['App Fees']],
-		denomination,
-		isThemeDark
-	])
+
+		for (const seriesItem of series) {
+			if (seriesItem.data.length === 0) {
+				seriesItem.large = false
+			}
+		}
+
+		return {
+			series,
+			allYAxis: Object.entries(indexByYAxis) as Array<[ChainChartLabels, number | undefined]>
+		}
+	}, [chartData, color, isThemeDark, isCumulative])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -593,267 +120,246 @@ export function ChainChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
-		dataZoom[1] = {
-			...dataZoom[1],
-			left: grid.left,
-			right: grid.right
-		} as any
-
-		const offsets = {
-			TVL: 60,
-			'DEXs Volume': 60,
-			'Chain Fees': 55,
-			'Chain Revenue': 65,
-			'App Revenue': 65,
-			Raises: 65,
-			'Active Addresses': 60,
-			'Stablecoins Mcap': 60,
-			Transactions: 65,
-			'Net Inflows': 55,
-			'Core Developers': 55,
-			'Devs Commits': 60,
-			'Token Price': 55,
-			'Token Mcap': 55,
-			'Perps Volume': 55,
-			'Bridged TVL': 60,
-			'Token Volume': 60,
-			'Token Incentives': 60
+		for (const option in chartOptions) {
+			if (defaultChartSettings[option]) {
+				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+			} else {
+				defaultChartSettings[option] = { ...chartOptions[option] }
+			}
 		}
-		let offsetAcc = -60
 
-		chartInstance.setOption({
-			graphic: { ...graphic },
-			legend: {
-				...legend,
-				left: 75,
-				show: showLegend
-			},
-			tooltip: {
-				...(hideTooltip
-					? {}
-					: {
-							...tooltip,
-							zIndex: 0,
-							position: isFirstChart ? [400, 0] : [100, 0],
-							backgroundColor: 'none',
-							borderWidth: '0',
-							padding: 15,
-							textStyle: {
-								color: isThemeDark ? 'white' : 'black'
-							},
-							extraCssText: 'box-shadow: none;'
-					  })
-			},
-			title: {
-				...titleDefaults
-			},
-			grid: {
-				...grid
-			},
-			xAxis: {
-				...xAxis
-			},
-			yAxis: [
-				{
-					...yAxis,
-					id: 'TVL',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : !isThemeDark ? 'rgba(0, 0, 0, 1)' : 'rgba(255, 255, 255, 1)')
+		const finalYAxis = []
+
+		const noOffset = allYAxis.length < 3
+
+		allYAxis.forEach(([type, index]) => {
+			const options = {
+				...yAxis,
+				name: '',
+				type: 'value',
+				alignTicks: true,
+				offset:
+					noOffset || index < 2 ? 0 : (finalYAxis[finalYAxis.length - 1]?.offset ?? 0) + (customOffsets[type] || 40)
+			}
+
+			if (type === 'TVL') {
+				finalYAxis.push(yAxis)
+			}
+
+			if (type === 'Stablecoins Mcap') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Stablecoins Mcap']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'DEXs Volume',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.dexsVolume)
+				})
+			}
+
+			if (type === 'Chain Fees') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chartData['Chain Fees']
+								? chainOverviewChartColors['Chain Fees']
+								: chartData['Chain Revenue']
+								? chainOverviewChartColors['Chain Revenue']
+								: chartData['App Fees']
+								? chainOverviewChartColors['App Fees']
+								: chainOverviewChartColors['App Revenue']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'Chain Fees',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.chainFees)
+				})
+			}
+
+			if (type === 'DEXs Volume') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['DEXs Volume']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'Chain Revenue',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.chainRevenue)
+				})
+			}
+
+			if (type === 'Perps Volume') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Perps Volume']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'App Revenue',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.appRevenue)
+				})
+			}
+
+			if (type === 'Token Incentives') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Token Incentives']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'App Fees',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.appFees)
+				})
+			}
+
+			if (type === 'Bridged TVL') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Bridged TVL']
+						}
 					}
-				},
-				{
-					...yAxis,
+				})
+			}
+
+			if (type === 'Active Addresses') {
+				finalYAxis.push({
+					...options,
 					axisLabel: {
-						formatter: (value) => toK(value) + ' ' + 'Active Addresses',
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.activeAddresses)
+						formatter: (value) => formattedNum(value)
 					},
-					id: 'Active Addresses'
-				},
-				{
-					...yAxis,
-					id: 'Raises',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.raises)
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chartData['Active Addresses']
+								? chainOverviewChartColors['Active Addresses']
+								: chartData['New Addresses']
+								? chainOverviewChartColors['New Addresses']
+								: isThemeDark
+								? '#fff'
+								: '#000'
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'Stablecoins Mcap',
+				})
+			}
+
+			if (type === 'Transactions') {
+				finalYAxis.push({
+					...options,
 					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.stablecoinsMcap)
-					}
-				},
-				{
-					...yAxis,
-					axisLabel: {
-						formatter: (value) => toK(value) + ' ' + 'TXs',
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.transactions)
+						formatter: (value) => formattedNum(value)
 					},
-					id: 'Transactions'
-				},
-				{
-					...yAxis,
-					id: 'Net Inflows',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.netInflows)
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Transactions']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'Core Developers',
-					axisLabel: {
-						...yAxis.axisLabel,
-						formatter: (value) => value + ' devs',
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.devsMetrics)
+				})
+			}
+
+			if (type === 'Net Inflows') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Net Inflows']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'Devs Commits',
+				})
+			}
+
+			if (type === 'Core Developers') {
+				finalYAxis.push({
+					...options,
 					axisLabel: {
-						...yAxis.axisLabel,
-						formatter: (value) => value + ' commits',
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.devsCommits)
+						formatter: (value) => `${value} devs`
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Core Developers']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'Token Price',
+				})
+			}
+
+			if (type === 'Devs Commits') {
+				finalYAxis.push({
+					...options,
 					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.chainTokenPrice)
+						formatter: (value) => `${value} commits`
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Devs Commits']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'Token Mcap',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.chainTokenMcap)
+				})
+			}
+
+			if (type === 'Token Mcap') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Token Mcap']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'Perps Volume',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.perpsVolume)
+				})
+			}
+
+			if (type === 'Token Price') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Token Price']
+						}
 					}
-				},
-				{
-					...yAxis,
-					min: 0,
-					id: 'Bridged TVL',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.bridgedTVL)
+				})
+			}
+
+			if (type === 'Token Volume') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chainOverviewChartColors['Token Volume']
+						}
 					}
-				},
-				{
-					...yAxis,
-					id: 'Token Volume',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.chainTokenVolume)
-					}
-				},
-				{
-					...yAxis,
-					id: 'Token Incentives',
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: () => (isCompare ? '#fff' : chainOverviewChartColors.tokenIncentives)
-					}
-				}
-			].map((yAxis: any, i) => {
-				const isActive = activeSeries?.findIndex((id) => id === yAxis.id) !== -1
-				const defaultOffset = offsets[yAxis.id] || 40
-				const offset = isActive && defaultOffset ? offsetAcc + defaultOffset : 0
-				offsetAcc = isActive && i !== 0 ? offsetAcc + defaultOffset : offsetAcc
-				return {
-					...yAxis,
-					offset,
-					axisLabel: {
-						...yAxis.axisLabel,
-						color: yAxis.axisLabel.color
-					}
-				}
-			}),
-			dataZoom: [...dataZoom],
-			series
+				})
+			}
 		})
 
-		if (hideTooltip) {
-			chartInstance.dispatchAction({
-				type: 'showTip',
-				// index of series, which is optional when trigger of tooltip is axis
-				seriesIndex: 0,
-				// data index; could assign by name attribute when not defined
-				dataIndex: (series[0]?.data?.length ?? 1) - 1,
-				// Position of tooltip. Only works in this action.
-				// Use tooltip.position in option by default.
-				position: [100, 0]
-			})
-
-			chartInstance.on('globalout', () => {
-				chartInstance.dispatchAction({
-					type: 'showTip',
-					// index of series, which is optional when trigger of tooltip is axis
-					seriesIndex: 0,
-					// data index; could assign by name attribute when not defined
-					dataIndex: (series[0]?.data?.length ?? 1) - 1,
-					// Position of tooltip. Only works in this action.
-					// Use tooltip.position in option by default.
-					position: [100, 0]
-				})
-			})
+		if (allYAxis.length === 0) {
+			finalYAxis.push(yAxis)
 		}
+
+		chartInstance.setOption({
+			graphic,
+			tooltip,
+			grid: {
+				left: 12,
+				bottom: 68,
+				top: 12,
+				right: 12,
+				containLabel: true
+			},
+			xAxis,
+			yAxis: finalYAxis,
+			dataZoom,
+			series
+		})
 
 		function resize() {
 			chartInstance.resize()
@@ -865,23 +371,13 @@ export function ChainChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [
-		createInstance,
-		defaultChartSettings,
-		series,
-		expandTo100Percent,
-		route,
-		activeSeries,
-		hideTooltip,
-		isCompare,
-		isThemeDark,
-		isFirstChart,
-		showLegend
-	])
+	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis])
 
 	return (
-		<div className="relative" {...props}>
-			<div id={id} className="my-auto min-h-[360px]" style={height ? { minHeight: height } : undefined} />
-		</div>
+		<div
+			id={id}
+			className="min-h-[360px]"
+			style={height || props.style ? { height, ...(props.style ?? {}) } : undefined}
+		/>
 	)
 }

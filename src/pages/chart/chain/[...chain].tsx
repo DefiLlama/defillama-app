@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useEffect } from 'react'
-import { getChainPageData } from '~/api/categories/chains'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { LocalLoader } from '~/components/LocalLoader'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
@@ -9,9 +8,14 @@ import { useIsClient } from '~/hooks'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadata from '~/utils/metadata'
 import { slug } from '~/utils'
+import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
+import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
+import { maxAgeForNext } from '~/api'
 const { chainMetadata } = metadata
 
-const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart').then((m) => ({ default: m.ChainChart })))
+const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
+
+const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative']
 
 export const getStaticProps = withPerformanceLogging(
 	'chart/chain/[...chain]',
@@ -20,9 +24,20 @@ export const getStaticProps = withPerformanceLogging(
 			chain: [chain]
 		}
 	}) => {
-		const data = await getChainPageData(chain === 'All' ? null : chain)
-		data.props.noContext = true
-		return data
+		if (typeof chain !== 'string') {
+			return { notFound: true }
+		}
+
+		const data = await getChainOverviewData({ chain })
+
+		if (!data) {
+			return { notFound: true }
+		}
+
+		return {
+			props: data,
+			revalidate: maxAgeForNext([22])
+		}
 	}
 )
 
@@ -30,65 +45,70 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function ChainChartPage({
-	chain,
-	chart,
-	extraTvlCharts = {},
-	raisesChart,
-	volumeData,
-	feesAndRevenueData,
-	stablecoinsData,
-	inflowsData,
-	userData,
-	devMetricsData,
-	perpsData,
-	chainAssets
-}) {
+export default function ChainChartPage(props) {
 	const router = useRouter()
-	const selectedChain = chain ?? 'All'
+	const selectedChain = props.metadata.name
+	const queryParamsString = useMemo(() => {
+		return JSON.stringify(router.query ?? {})
+	}, [router.query])
 
-	const { denomination, theme } = router.query
+	const { toggledCharts, chainGeckoId, groupBy, denomination, tvlSettings, isThemeDark } = useMemo(() => {
+		const queryParams = JSON.parse(queryParamsString)
 
-	const extraTvlsEnabled = {}
+		let chainGeckoId = null
 
-	for (const setting in DEFI_SETTINGS) {
-		extraTvlsEnabled[DEFI_SETTINGS[setting]] = router.query[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
-	}
+		if (selectedChain !== 'All') {
+			const cmetadata = chainMetadata[slug(selectedChain)]
+			let chainDenomination = cmetadata?.gecko_id ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.geckoId ?? null
 
-	let chainGeckoId = null
+			chainGeckoId = chainDenomination ?? null
+		}
 
-	if (selectedChain !== 'All') {
-		const cmetadata = chainMetadata[slug(selectedChain)]
-		let chainDenomination = cmetadata?.gecko_id ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.geckoId ?? null
+		const tvlSettings = {}
 
-		chainGeckoId = chainDenomination ?? null
-	}
+		for (const setting in DEFI_SETTINGS) {
+			tvlSettings[DEFI_SETTINGS[setting]] = queryParams[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
+		}
 
-	const { chartDatasets, isFetchingChartData } = useFetchChainChartData({
-		denomination: typeof denomination === 'string' ? denomination : 'USD',
+		const toggledCharts = props.charts.filter((tchart) =>
+			tchart === 'TVL' ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
+		) as ChainChartLabels[]
+
+		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
+
+		const groupBy =
+			hasAtleasOneBarChart && queryParams?.groupBy
+				? groupByOptions.includes(queryParams.groupBy as any)
+					? (queryParams.groupBy as any)
+					: 'daily'
+				: 'daily'
+
+		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
+
+		const isThemeDark = queryParams.theme === 'dark' ? true : false
+
+		return {
+			chainGeckoId,
+			toggledCharts,
+			groupBy,
+			denomination,
+			tvlSettings,
+			isThemeDark
+		}
+	}, [queryParamsString])
+
+	const { finalCharts, valueSymbol, isFetchingChartData } = useFetchChainChartData({
+		denomination,
 		selectedChain,
+		tvlChart: props.tvlChart,
+		extraTvlCharts: props.extraTvlChart,
+		tvlSettings,
 		chainGeckoId,
-		dexsData: { total24h: volumeData?.totalVolume24h },
-		feesData: { total24h: feesAndRevenueData?.totalFees24h },
-		revenueData: { total24h: feesAndRevenueData?.totalRevenue24h },
-		appFeesData: { total24h: feesAndRevenueData?.totalAppRevenue24h },
-		appRevenueData: { total24h: feesAndRevenueData?.totalAppRevenue24h },
-		stablecoinsData: { stablecoinsData: stablecoinsData?.totalMcapCurrent },
-		inflowsData,
-		userData,
-		raisesChart,
-		chart,
-		extraTvlCharts,
-		extraTvlsEnabled,
-		devMetricsData,
-		perpsData: { total24h: perpsData.totalVolume24h },
-		chainAssets,
-		chainIncentives: null // TODO: update getStaticProps to include chainIncentives
+		toggledCharts,
+		groupBy
 	})
 
 	const isClient = useIsClient()
-
-	const isThemeDark = theme === 'dark' ? true : false
 
 	useEffect(() => {
 		if (!isThemeDark) {
@@ -110,8 +130,8 @@ export default function ChainChartPage({
 					<LocalLoader />
 				</div>
 			) : (
-				<Suspense fallback={<></>}>
-					<ChainChart datasets={chartDatasets} title="" denomination={denomination} isThemeDark={isThemeDark} />
+				<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+					<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={isThemeDark} groupBy={groupBy} />
 				</Suspense>
 			)}
 		</>

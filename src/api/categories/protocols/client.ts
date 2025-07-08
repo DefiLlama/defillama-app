@@ -89,7 +89,9 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
 						.then((values) => {
-							return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
+							return values && values.length > 0
+								? values.map(([date, val]) => [date, +val]).sort((a, b) => a[0] - b[0])
+								: null
 						})
 						.catch((err) => [])
 			: () => null,
@@ -107,62 +109,12 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 					fetch(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
 						.then((values) => {
-							return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
+							return values && values.length > 0
+								? values.map(([date, val]) => [date, +val]).sort((a, b) => a[0] - b[0])
+								: null
 						})
 						.catch((err) => [])
 			: () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
-const getProtocolUsers = async (protocolId: number | string) => {
-	const [activeUsers, newUsers] = await Promise.all([
-		fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-			.then((res) => res.json())
-			.then((values) => {
-				return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
-			})
-			.catch(() => null),
-		fetch(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-			.then((res) => res.json())
-			.then((values) => {
-				return values && values.length > 0 ? values.sort((a, b) => a[0] - b[0]) : null
-			})
-			.catch(() => null)
-	])
-
-	const users: { [date: number]: { activeUsers: number | null; newUsers: number | null } } = {}
-
-	if (activeUsers) {
-		activeUsers.forEach(([date, value]) => {
-			if (!users[date]) {
-				users[date] = { activeUsers: null, newUsers: null }
-			}
-
-			users[date]['activeUsers'] = value
-		})
-	}
-
-	if (newUsers) {
-		newUsers.forEach(([date, value]) => {
-			if (!users[date]) {
-				users[date] = { activeUsers: null, newUsers: null }
-			}
-
-			users[date]['newUsers'] = value
-		})
-	}
-
-	return Object.entries(users).map(([date, { activeUsers, newUsers }]) => [date, activeUsers, newUsers])
-}
-
-export const useFetchProtocolUsers = (protocolId: number | string | null) => {
-	const isEnabled = !!protocolId
-	return useQuery({
-		queryKey: ['protocolUsers', protocolId, isEnabled],
-		queryFn: isEnabled ? () => getProtocolUsers(protocolId) : () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -178,7 +130,9 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((res) => res.json())
 						.then((values) => {
-							return values && values.length > 0 ? values : null
+							return values && values.length > 0
+								? values.map(([date, val]) => [date, +val]).sort((a, b) => a[0] - b[0])
+								: null
 						})
 						.catch((err) => [])
 			: () => null,
