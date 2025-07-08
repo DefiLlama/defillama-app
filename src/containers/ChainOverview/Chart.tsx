@@ -141,7 +141,9 @@ export default function ChainLineBarChart({
 				type: 'value',
 				alignTicks: true,
 				offset:
-					noOffset || index < 2 ? 0 : (finalYAxis[finalYAxis.length - 1]?.offset ?? 0) + (customOffsets[type] || 40)
+					noOffset || index == null || index < 2
+						? 0
+						: (finalYAxis[finalYAxis.length - 1]?.offset ?? 0) + (customOffsets[type] || 40)
 			}
 
 			if (type === 'TVL') {
