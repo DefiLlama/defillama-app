@@ -654,7 +654,14 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 												}
 												className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 											>
-												<span>{tchart}</span>
+												<span>
+													{tchart.includes('Token')
+														? tchart.replace(
+																'Token',
+																props.chainTokenInfo?.token_symbol ? `$${props.chainTokenInfo?.token_symbol}` : 'Token'
+														  )
+														: tchart}
+												</span>
 												{chainCharts[tchart] === 'tvl' ? (
 													router.query[chainCharts[tchart]] === 'false' ? (
 														<Icon name="plus" className="h-[14px] w-[14px]" />
@@ -702,7 +709,14 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										borderColor: chainOverviewChartColors[tchart]
 									}}
 								>
-									<span>{tchart}</span>
+									<span>
+										{tchart.includes('Token')
+											? tchart.replace(
+													'Token',
+													props.chainTokenInfo?.token_symbol ? `$${props.chainTokenInfo?.token_symbol}` : 'Token'
+											  )
+											: tchart}
+									</span>
 									<Icon name="x" className="h-[14px] w-[14px]" />
 								</span>
 							</label>

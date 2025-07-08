@@ -240,8 +240,6 @@ export const useFetchChainChartData = ({
 		enabled: isRaisesEnabled
 	})
 
-	console.log({ raisesData })
-
 	const isChainIncentivesEnabled = toggledCharts.includes('Token Incentives') ? true : false
 	const { data: chainIncentivesData = null, isLoading: fetchingChainIncentives } = useQuery({
 		queryKey: ['chainIncentives', selectedChain, isChainIncentivesEnabled],
@@ -438,7 +436,7 @@ export const useFetchChainChartData = ({
 			const chartName: ChainChartLabels = 'Token Price' as const
 			const priceData = []
 			for (const date in denominationPriceHistory.prices) {
-				priceData.push([date, denominationPriceHistory.prices[date]])
+				priceData.push([+date, denominationPriceHistory.prices[date]])
 			}
 			charts[chartName] = formatLineChart({
 				data: priceData,
