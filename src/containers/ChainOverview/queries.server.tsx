@@ -493,9 +493,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		if (activeUsers != null) {
 			charts.push('Active Addresses')
 		}
-		if (newUsers != null) {
-			charts.push('New Addresses')
-		}
+		// if (newUsers != null) {
+		// 	charts.push('New Addresses')
+		// }
 		if (transactions != null) {
 			charts.push('Transactions')
 		}
