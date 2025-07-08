@@ -18,9 +18,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const fetch = fetchWithErrorLogging
 
-const ChainChart: any = React.lazy(() =>
-	import('~/containers/ChainOverview/Chart').then((m) => ({ default: m.ChainChart }))
-)
+const ChainChart: any = React.lazy(() => import('~/containers/ChainOverview/Chart'))
 
 const CustomOption = ({ innerProps, label, data }) => (
 	<div {...innerProps} style={{ display: 'flex', margin: '8px', cursor: 'pointer' }}>
