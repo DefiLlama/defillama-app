@@ -240,6 +240,8 @@ export const useFetchChainChartData = ({
 		enabled: isRaisesEnabled
 	})
 
+	console.log({ raisesData })
+
 	const isChainIncentivesEnabled = toggledCharts.includes('Token Incentives') ? true : false
 	const { data: chainIncentivesData = null, isLoading: fetchingChainIncentives } = useQuery({
 		queryKey: ['chainIncentives', selectedChain, isChainIncentivesEnabled],
@@ -638,7 +640,9 @@ const formatBarChart = ({
 				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
 				: isMonthly
 				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
-				: date
+				: dateInMs
+				? +date / 1e3
+				: +date
 			// sum up values as it is bar chart
 			if (denominationPriceHistory) {
 				const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
@@ -689,7 +693,9 @@ const formatLineChart = ({
 				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
 				: isMonthly
 				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
-				: date
+				: dateInMs
+				? +date / 1e3
+				: +date
 			// do not sum up values, just use the last value for each date
 			const finalValue = denominationPriceHistory
 				? denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
