@@ -897,7 +897,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Active Addresses')
 
 			for (const [dateS, noOfUsers] of activeAddressesData) {
-				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(dateS) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -910,7 +910,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('New Addresses')
 
 			for (const [dateS, noOfUsers] of newAddressesData) {
-				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(dateS) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }
@@ -923,7 +923,7 @@ export function useFetchAndFormatChartData({
 			chartsUnique.push('Transactions')
 
 			for (const [dateS, noOfTxs] of transactionsData) {
-				const date = Math.floor(nearestUtcZeroHour(+dateS * 1000) / 1000)
+				const date = Math.floor(nearestUtcZeroHour(dateS) / 1000)
 
 				if (!chartData[date]) {
 					chartData[date] = { date }

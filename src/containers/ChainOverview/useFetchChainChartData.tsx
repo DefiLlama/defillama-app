@@ -205,8 +205,6 @@ export const useFetchChainChartData = ({
 		toggledCharts.includes('Transactions') ? `chain$${selectedChain}` : null
 	)
 
-	console.log({ transactionsData })
-
 	const isBridgedTvlEnabled = toggledCharts.includes('Bridged TVL') ? true : false
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
 		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
@@ -492,7 +490,8 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: activeAddressesData,
 				groupBy,
-				denominationPriceHistory: null
+				denominationPriceHistory: null,
+				dateInMs: true
 			})
 		}
 
@@ -501,7 +500,8 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: newAddressesData,
 				groupBy,
-				denominationPriceHistory: null
+				denominationPriceHistory: null,
+				dateInMs: true
 			})
 		}
 
@@ -510,7 +510,8 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: transactionsData,
 				groupBy,
-				denominationPriceHistory: null
+				denominationPriceHistory: null,
+				dateInMs: true
 			})
 		}
 
@@ -603,7 +604,7 @@ export const useFetchChainChartData = ({
 		chainIncentivesData,
 		finalTvlChart
 	])
-	console.log(chartData)
+
 	return {
 		isFetchingChartData: chartData.loadingCharts ? true : false,
 		finalCharts: chartData.finalCharts,

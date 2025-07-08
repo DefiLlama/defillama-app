@@ -90,7 +90,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0
-								? values.map(([date, val]) => [date, +val]).sort((a, b) => a[0] - b[0])
+								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
 								: null
 						})
 						.catch((err) => [])
@@ -110,7 +110,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0
-								? values.map(([date, val]) => [date, +val]).sort((a, b) => a[0] - b[0])
+								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
 								: null
 						})
 						.catch((err) => [])
@@ -131,7 +131,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 						.then((res) => res.json())
 						.then((values) => {
 							return values && values.length > 0
-								? values.map(([date, val]) => [date, +val]).sort((a, b) => a[0] - b[0])
+								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
 								: null
 						})
 						.catch((err) => [])

@@ -1378,7 +1378,8 @@ export const useFetchAndFormatChartData = ({
 			charts[chartName] = formatLineChart({
 				data: activeAddressesData,
 				groupBy,
-				denominationPriceHistory: null
+				denominationPriceHistory: null,
+				dateInMs: true
 			})
 		}
 
@@ -1387,7 +1388,8 @@ export const useFetchAndFormatChartData = ({
 			charts[chartName] = formatLineChart({
 				data: newAddressesData,
 				groupBy,
-				denominationPriceHistory: null
+				denominationPriceHistory: null,
+				dateInMs: true
 			})
 		}
 
@@ -1396,7 +1398,8 @@ export const useFetchAndFormatChartData = ({
 			charts[chartName] = formatLineChart({
 				data: transactionsData,
 				groupBy,
-				denominationPriceHistory: null
+				denominationPriceHistory: null,
+				dateInMs: true
 			})
 		}
 
