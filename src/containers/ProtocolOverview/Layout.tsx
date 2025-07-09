@@ -98,6 +98,11 @@ export function ProtocolOverviewLayout({
 					and the other side here: prnt.sc/HspPo_049Lzk. On rehold.io. Made on 26/09/2024.
 				</p>
 			)}
+			{['DeSyn Liquid Strategy', 'YieldNest', 'DeSyn Safe', 'Sumer.Money', 'Bullbaswap', 'Zircuit Staking', 'Magpie Ecosystem'].includes(name) && (
+				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
+					This protocol includes unproductive positions that may contribute to inflated metrics. Be safe
+				</p>
+			)}
 
 			<div className="flex flex-col gap-2 isolate">
 				<div className="w-full flex overflow-x-auto text-xs font-medium">
