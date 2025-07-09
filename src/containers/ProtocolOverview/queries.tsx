@@ -872,23 +872,6 @@ export const getProtocolOverviewPageData = async ({
 		chartColors[chart] = allColors[index]
 	})
 
-	if (!availableCharts.includes('DEX Volume')) {
-		const sameColorCharts = [
-			'Perp Volume',
-			'Options Premium Volume',
-			'Options Notional Volume',
-			'DEX Aggregator Volume',
-			'Perp Aggregator Volume',
-			'Bridge Aggregator Volume'
-		] as ProtocolChartsLabels[]
-
-		const volumeCharts = sameColorCharts.filter((chart) => availableCharts.includes(chart))
-
-		if (volumeCharts.length > 0) {
-			chartColors['DEX Volume'] = chartColors[volumeCharts[0]]
-		}
-	}
-
 	const hallmarks = {}
 	for (const hack of hacks ?? []) {
 		hallmarks[hack.date] = `Hack: ${hack.classification ?? ''}`
@@ -1168,3 +1151,16 @@ const governanceApis = (governanceID) =>
 				: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|' |')/g, '/')}.json`
 		) ?? []
 	).map((g) => g.toLowerCase())
+
+export async function getProtocolIncomeStatement({
+	protocolId,
+	metadata
+}: {
+	protocolId: string
+	metadata: IProtocolMetadata
+}) {
+	if (!metadata.fees && !metadata.revenue) {
+		return null
+	}
+	return null
+}

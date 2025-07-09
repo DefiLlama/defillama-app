@@ -752,7 +752,10 @@ export const useFetchAndFormatChartData = ({
 			enabled: isBridgeAggregatorsVolumeEnabled
 		})
 
-	const isUnlocksEnabled = toggledMetrics.unlocks === 'true' && metrics.unlocks && isRouterReady ? true : false
+	const isUnlocksEnabled =
+		(toggledMetrics.unlocks === 'true' || toggledMetrics.incentives === 'true') && metrics.unlocks && isRouterReady
+			? true
+			: false
 	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
 		queryKey: ['unlocks', name, isUnlocksEnabled],
 		queryFn: () => (isUnlocksEnabled ? getProtocolEmissons(slug(name)) : Promise.resolve(null)),
@@ -1262,7 +1265,7 @@ export const useFetchAndFormatChartData = ({
 			})
 		}
 
-		if (unlocksAndIncentivesData?.chartData?.documented.length > 0) {
+		if (toggledMetrics.unlocks === 'true' && unlocksAndIncentivesData?.chartData?.documented.length > 0) {
 			const isWeekly = groupBy === 'weekly'
 			const isMonthly = groupBy === 'monthly'
 			const store = {}
@@ -1284,7 +1287,7 @@ export const useFetchAndFormatChartData = ({
 			charts[chartName] = finalChart
 		}
 
-		if (unlocksAndIncentivesData?.unlockUsdChart) {
+		if (toggledMetrics.incentives === 'true' && unlocksAndIncentivesData?.unlockUsdChart) {
 			const chartName: ProtocolChartsLabels = 'Incentives' as const
 			charts[chartName] = formatBarChart({
 				data: unlocksAndIncentivesData.unlockUsdChart,

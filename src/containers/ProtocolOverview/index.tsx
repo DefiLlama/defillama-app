@@ -2,7 +2,7 @@ import { SEO } from '~/components/SEO'
 import { ProtocolOverviewLayout } from './Layout'
 import { IProtocolOverviewPageData } from './types'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import { useMemo } from 'react'
+import { Suspense, useMemo } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Bookmark } from '~/components/Bookmark'
 import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -158,7 +158,9 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					) : null}
 				</div>
 				<AdditionalInfo {...props} />
-				{/* <IncomeStatement {...props} /> */}
+				{/* <Suspense fallback={<></>}>
+					<IncomeStatement {...props} />
+				</Suspense> */}
 			</div>
 		</ProtocolOverviewLayout>
 	)
