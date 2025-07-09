@@ -141,13 +141,20 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 		)
 	}
 
+	const sortedProtocols = React.useMemo(() => {
+		const selectedSet = new Set(selectedProtocols)
+		const unselectedProtocols = protocols.filter((protocol) => !selectedSet.has(protocol))
+
+		return [...selectedProtocols, ...unselectedProtocols]
+	}, [selectedProtocols, protocols])
+
 	return (
 		<Layout title={`Compare Protocols - DefiLlama`} defaultSEO>
 			<div className="bg-(--cards-bg) rounded-md isolate">
 				<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 					<h1 className="text-lg font-semibold mr-auto">Compare Protocols</h1>
 					<SelectWithCombobox
-						allValues={protocols}
+						allValues={sortedProtocols}
 						selectedValues={selectedProtocols}
 						setSelectedValues={setSelectedProtocols}
 						label="Selected Protocols"
