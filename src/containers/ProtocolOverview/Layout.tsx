@@ -142,8 +142,8 @@ export function ProtocolOverviewLayout({
 										>
 											{i !== 0 && (
 												<>
-													<span className="w-[1px] h-full group-last:h-[50%] absolute top-0 bottom-0 left-0 block bg-(--form-control-border)" />
-													<span className="w-3 h-[1px] bg-(--form-control-border) -mr-2" />
+													<span className="w-[2px] h-full group-last:h-[50%] absolute top-0 bottom-0 left-0 block bg-(--form-control-border)" />
+													<span className="w-3 h-[2px] bg-(--form-control-border) -mr-2" />
 												</>
 											)}
 											<TokenLogo logo={tokenIconUrl(value)} size={24} />
