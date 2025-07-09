@@ -50,7 +50,7 @@ export function ProtocolOverviewLayout({
 		| 'forks'
 }) {
 	return (
-		<Layout title={`${name} - DefiLlama`} style={defaultProtocolPageStyles}>
+		<Layout title={`${name} - DefiLlama`} style={defaultProtocolPageStyles} className="gap-2">
 			<ProtocolsChainsSearch options={toggleOptions} />
 			{scams.includes(name) && (
 				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
@@ -98,7 +98,15 @@ export function ProtocolOverviewLayout({
 					and the other side here: prnt.sc/HspPo_049Lzk. On rehold.io. Made on 26/09/2024.
 				</p>
 			)}
-			{['DeSyn Liquid Strategy', 'YieldNest', 'DeSyn Safe', 'Sumer.Money', 'Bullbaswap', 'Zircuit Staking', 'Magpie Ecosystem'].includes(name) && (
+			{[
+				'DeSyn Liquid Strategy',
+				'YieldNest',
+				'DeSyn Safe',
+				'Sumer.Money',
+				'Bullbaswap',
+				'Zircuit Staking',
+				'Magpie Ecosystem'
+			].includes(name) && (
 				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
 					This protocol includes unproductive positions that may contribute to inflated metrics. Be safe
 				</p>
@@ -110,7 +118,7 @@ export function ProtocolOverviewLayout({
 						<Ariakit.MenuProvider>
 							<Ariakit.MenuButton className="mr-4 flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-[#e6e6e6] dark:border-[#222324]">
 								<TokenLogo logo={tokenIconUrl(name)} size={16} />
-								<span className="whitespace-nowrap">{name === otherProtocols[0] ? 'Combined View' : 'Split View'}</span>
+								<span className="whitespace-nowrap">{name === otherProtocols[0] ? `${name} (Combined)` : name}</span>
 								<Ariakit.MenuButtonArrow />
 							</Ariakit.MenuButton>
 							<Ariakit.Menu
@@ -119,7 +127,7 @@ export function ProtocolOverviewLayout({
 								wrapperProps={{
 									className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 								}}
-								className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
+								className="text-sm font-medium flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
 								portal
 							>
 								{otherProtocols.map((value, i) => {
@@ -138,8 +146,15 @@ export function ProtocolOverviewLayout({
 													<span className="w-3 h-[1px] bg-(--form-control-border) -mr-2" />
 												</>
 											)}
-											<TokenLogo logo={tokenIconUrl(value)} size={16} />
-											<span>{value}</span>
+											<TokenLogo logo={tokenIconUrl(value)} size={24} />
+											{i === 0 ? (
+												<span className="flex flex-col">
+													<span>{`${name} (Combined)`}</span>
+													<span className="text-[10px] text-[#666] dark:text-[#919296]">Aggregated view</span>
+												</span>
+											) : (
+												<span>{value}</span>
+											)}
 										</Ariakit.MenuItem>
 									)
 								})}

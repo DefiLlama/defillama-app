@@ -838,7 +838,6 @@ export const useFetchAndFormatChartData = ({
 		retry: 0,
 		enabled: isBridgeVolumeEnabled
 	})
-	console.log({ bridgeVolumeData })
 
 	const { data: medianAPYData = null, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
 		isRouterReady && toggledMetrics.medianApy === 'true' && metrics.yields && !protocolId.startsWith('parent#')
