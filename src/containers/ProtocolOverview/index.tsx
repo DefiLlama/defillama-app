@@ -158,6 +158,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					) : null}
 				</div>
 				<AdditionalInfo {...props} />
+				{/* <IncomeStatement {...props} /> */}
 			</div>
 		</ProtocolOverviewLayout>
 	)
@@ -249,7 +250,16 @@ const KeyMetrics = (props: IKeyMetricsProps) => {
 	if (!props.hasKeyMetrics) return null
 	return (
 		<div className="flex flex-col flex-1 gap-2">
-			<h2 className="text-base xl:text-sm font-semibold">Key Metrics</h2>
+			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="key-metrics">
+				Key Metrics
+				<a
+					aria-hidden="true"
+					tabIndex={-1}
+					href="#key-metrics"
+					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+				/>
+				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+			</h2>
 			<div className="flex flex-col">
 				<Fees formatPrice={props.formatPrice} {...props} />
 				<Revenue formatPrice={props.formatPrice} {...props} />
@@ -315,7 +325,16 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
 			<div className="flex items-center justify-between">
-				<h3 className="font-semibold">Latest from DL News</h3>
+				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="dl-news">
+					Latest from DL News
+					<a
+						aria-hidden="true"
+						tabIndex={-1}
+						href="#dl-news"
+						className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					/>
+					<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				</h2>
 				<a href="https://www.dlnews.com">
 					<DLNewsLogo width={72} height={18} />
 				</a>
@@ -1484,7 +1503,16 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
-			<h2 className="text-base font-semibold">Protocol Information</h2>
+			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="protocol-information">
+				Protocol Information
+				<a
+					aria-hidden="true"
+					tabIndex={-1}
+					href="#protocol-information"
+					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+				/>
+				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+			</h2>
 			{props.description ? <p>{props.description}</p> : null}
 			{props.category ? (
 				<p className="flex items-center gap-1">
@@ -1558,7 +1586,16 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 const Methodology = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4 col-span-1">
-			<h2 className="text-base font-semibold">Methodology</h2>
+			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="methodology">
+				Methodology
+				<a
+					aria-hidden="true"
+					tabIndex={-1}
+					href="#methodology"
+					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+				/>
+				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+			</h2>
 			{props.methodologyURL ? (
 				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 					<span className="font-medium">TVL:</span> <span>{props.methodology ?? ''}</span>
@@ -1672,7 +1709,16 @@ function Unlocks(props: IProtocolOverviewPageData) {
 	if (!unlocks) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Unlocks</h2>
+			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="unlocks">
+				Unlocks
+				<a
+					aria-hidden="true"
+					tabIndex={-1}
+					href="#unlocks"
+					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+				/>
+				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+			</h2>
 			<div className="flex flex-col">
 				{unlocks.recent ? (
 					<div className="flex flex-col gap-1">
@@ -1706,7 +1752,16 @@ function Governance(props: IProtocolOverviewPageData) {
 	if (!governance) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Governance</h2>
+			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="governance">
+				Governance
+				<a
+					aria-hidden="true"
+					tabIndex={-1}
+					href="#governance"
+					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+				/>
+				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+			</h2>
 			<div className="flex flex-col gap-1">
 				<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last proposal</h3>
 				<p className="flex items-center justify-between gap-4">
@@ -1729,7 +1784,16 @@ function Yields(props: IProtocolOverviewPageData) {
 	if (!yields) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Yields</h2>
+			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="yields">
+				Yields
+				<a
+					aria-hidden="true"
+					tabIndex={-1}
+					href="#yields"
+					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+				/>
+				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+			</h2>
 			<div>
 				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
 					<span className="text-[#545757] dark:text-[#cccccc]">Pools Tracked</span>
@@ -1759,7 +1823,16 @@ function DevActivity(props: IProtocolOverviewPageData) {
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
 			<div>
-				<h2 className="text-base font-semibold">Development Activity</h2>
+				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="dev-activity">
+					Development Activity
+					<a
+						aria-hidden="true"
+						tabIndex={-1}
+						href="#dev-activity"
+						className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					/>
+					<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				</h2>
 				{devActivity.updatedAt != null ? (
 					<p className="text-xs text-[#545757] dark:text-[#cccccc]">
 						Updated at {dayjs(devActivity.updatedAt).format('MMM D, YYYY')}
@@ -1808,7 +1881,16 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 	if (!props.hacks?.length) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Hacks</h2>
+			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="hacks">
+				Hacks
+				<a
+					aria-hidden="true"
+					tabIndex={-1}
+					href="#hacks"
+					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+				/>
+				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+			</h2>
 			<div className="flex flex-col">
 				{props.hacks.map((hack) => (
 					<div
@@ -1877,7 +1959,16 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 	if (!props.competitors?.length) return null
 	return (
 		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<h2 className="text-base font-semibold">Competitors</h2>
+			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="competitors">
+				Competitors
+				<a
+					aria-hidden="true"
+					tabIndex={-1}
+					href="#competitors"
+					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+				/>
+				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+			</h2>
 			<div className="flex items-center gap-4 flex-wrap">
 				{props.competitors.map((similarProtocol) => (
 					<a
@@ -1893,8 +1984,23 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 	)
 }
 
+const IncomeStatement = (props: IProtocolOverviewPageData) => {
+	return (
+		<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
+			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="income-statement">
+				Income Statement
+				<a
+					aria-hidden="true"
+					tabIndex={-1}
+					href="#income-statement"
+					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+				/>
+				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+			</h2>
+		</div>
+	)
+}
+
 // unlocks
 // governance
-// newly listed protocol data
-// all stats denominated in another currency
 // % change tvl, mcap, token price, etc.
