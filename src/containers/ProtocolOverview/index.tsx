@@ -2006,7 +2006,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				quarterlyRevenueByMonth[dateKey] =
 					(quarterlyRevenueByMonth[dateKey] ?? 0) + (props.incomeStatement.revenueByMonth[date] ?? 0)
 				quarterlyIncentivesByMonth[dateKey] =
-					(quarterlyIncentivesByMonth[dateKey] ?? 0) + (props.incomeStatement.incentivesByMonth[date] ?? 0)
+					(quarterlyIncentivesByMonth[dateKey] ?? 0) + (props.incomeStatement.incentivesByMonth?.[date] ?? 0)
 			}
 			return {
 				monthDates: Array.from(quarterlyDates)
@@ -2033,7 +2033,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				yearlyRevenueByMonth[yearKey] =
 					(yearlyRevenueByMonth[yearKey] ?? 0) + (props.incomeStatement.revenueByMonth[date] ?? 0)
 				yearlyIncentivesByMonth[yearKey] =
-					(yearlyIncentivesByMonth[yearKey] ?? 0) + (props.incomeStatement.incentivesByMonth[date] ?? 0)
+					(yearlyIncentivesByMonth[yearKey] ?? 0) + (props.incomeStatement.incentivesByMonth?.[date] ?? 0)
 			}
 			return {
 				monthDates: Array.from(yearlyDates)
