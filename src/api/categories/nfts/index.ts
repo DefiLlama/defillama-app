@@ -398,7 +398,7 @@ export const getNFTCollection = async (slug: string) => {
 		// sort on timestamp
 		const X = salesExOutliers.sort((a, b) => a[0] - b[0])
 
-		// calc 1d-rolling median at at the end of every x-hours
+		// calc 1d-rolling median at the end of every x-hours
 		const x = 6
 		const u = 3600 * x * 1000
 
