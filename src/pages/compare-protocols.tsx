@@ -6,11 +6,12 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { PROTOCOL_API } from '~/constants'
 import { slug, tokenIconPaletteUrl } from '~/utils'
-import { getColor } from '~/utils/getColor'
+import { getColor, getGeneratedColor } from '~/utils/getColor'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { useQueries } from '@tanstack/react-query'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { primaryColor } from '~/constants/colors'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -108,17 +109,22 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 		}
 
 		const charts = {}
+		let chartIndex = 0
 		for (const protocol in chartsByProtocol) {
+			const color = stackColors[protocol] === primaryColor ? getGeneratedColor(chartIndex) : stackColors[protocol]
+
 			charts[protocol] = {
 				name: protocol,
 				stack: protocol,
 				type: 'line',
-				color: stackColors[protocol],
+				color,
 				data: []
 			}
 			for (const date in chartsByProtocol[protocol]) {
 				charts[protocol].data.push([+date * 1e3, chartsByProtocol[protocol][date]])
 			}
+
+			chartIndex++
 		}
 
 		return {
