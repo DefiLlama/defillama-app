@@ -320,7 +320,8 @@ export function ProDashboardAPIProvider({
 		} else {
 			newChart = {
 				...newChartBase,
-				chain: item
+				chain: item,
+				geckoId
 			} as ChartConfig
 		}
 
