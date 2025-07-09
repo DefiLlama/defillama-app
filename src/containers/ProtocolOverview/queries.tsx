@@ -122,7 +122,7 @@ export const getProtocolMetrics = ({
 		perpsAggregators: metadata.perpsAggregators ? true : false,
 		bridgeAggregators: metadata.bridgeAggregators ? true : false,
 		stablecoins: protocolData.stablecoins?.length > 0,
-		bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain',
+		bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain Bridge',
 		treasury: metadata.treasury && !protocolData.misrepresentedTokens ? true : false,
 		unlocks: metadata.emissions ? true : false,
 		yields: metadata.yields ? true : false,
@@ -471,8 +471,6 @@ export const getProtocolOverviewPageData = async ({
 			.then((res) => res.json().then((data) => data.dailyVolumes || null))
 			.catch(() => null)
 	])
-
-	console.log(bridgeVolumeData)
 
 	const feesData = formatAdapterData({
 		data: feesProtocols,
