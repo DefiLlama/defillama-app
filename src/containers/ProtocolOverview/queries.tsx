@@ -1,4 +1,4 @@
-import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
+import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
@@ -27,12 +27,14 @@ import {
 	IProtocolExpenses,
 	IHack
 } from './types'
-import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
+import { getAdapterChainOverview, getAdapterProtocolSummary, IAdapterOverview } from '../DimensionAdapters/queries'
 import { cg_volume_cexs } from '~/pages/cexs'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import metadata from '~/utils/metadata'
 import { allColors, ProtocolChartsLabels } from './Chart/constants'
+import dayjs from 'dayjs'
+import { getProtocolEmissons } from '~/api/categories/protocols'
 const { chainMetadata } = metadata
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
@@ -171,7 +173,8 @@ export const getProtocolOverviewPageData = async ({
 		liquidityInfo,
 		liteProtocolsData,
 		hacksData,
-		bridgeVolumeData
+		bridgeVolumeData,
+		incomeStatement
 	]: [
 		IUpdatedProtocol & {
 			tokenCGData?: {
@@ -229,7 +232,8 @@ export const getProtocolOverviewPageData = async ({
 		any,
 		any,
 		Array<IHack>,
-		any
+		any,
+		IProtocolOverviewPageData['incomeStatement']
 	] = await Promise.all([
 		getProtocol(metadata.name).then(async (data) => {
 			try {
@@ -469,7 +473,8 @@ export const getProtocolOverviewPageData = async ({
 			.catch(() => ({ hacks: [] })),
 		fetchWithErrorLogging(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.name)}`)
 			.then((res) => res.json().then((data) => data.dailyVolumes || null))
-			.catch(() => null)
+			.catch(() => null),
+		getProtocolIncomeStatement({ protocolId, metadata })
 	])
 
 	const feesData = formatAdapterData({
@@ -975,7 +980,8 @@ export const getProtocolOverviewPageData = async ({
 		extraTvlCharts,
 		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string]),
 		geckoId: protocolData.gecko_id ?? null,
-		governanceApis: governanceApis(protocolData.governanceID) ?? null
+		governanceApis: governanceApis(protocolData.governanceID) ?? null,
+		incomeStatement
 	}
 }
 
@@ -1158,9 +1164,73 @@ export async function getProtocolIncomeStatement({
 }: {
 	protocolId: string
 	metadata: IProtocolMetadata
-}) {
-	if (!metadata.fees && !metadata.revenue) {
+}): Promise<{
+	feesByMonth: Record<string, number>
+	revenueByMonth: Record<string, number>
+	incentivesByMonth: Record<string, number> | null
+	monthDates: Array<[number, string]>
+} | null> {
+	try {
+		if (!metadata.fees && !metadata.revenue) {
+			return null
+		}
+
+		const [fees, revenue, incentives] = await Promise.all([
+			getAdapterProtocolSummary({
+				adapterType: 'fees',
+				protocol: metadata.name,
+				excludeTotalDataChart: false,
+				excludeTotalDataChartBreakdown: true
+			}),
+			getAdapterProtocolSummary({
+				adapterType: 'fees',
+				protocol: metadata.name,
+				excludeTotalDataChart: false,
+				excludeTotalDataChartBreakdown: true,
+				dataType: 'dailyRevenue'
+			}),
+			getProtocolEmissons(metadata.name)
+				.then((data) => data.unlockUsdChart ?? [])
+				.then((chart) => {
+					const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
+					return chart.slice(nonZeroIndex)
+				})
+				.catch(() => [])
+		])
+
+		const feesByMonth: Record<string, number> = {}
+		const revenueByMonth: Record<string, number> = {}
+		const incentivesByMonth: Record<string, number> = {}
+		const monthDates = new Set<number>()
+
+		for (const [date, value] of fees.totalDataChart ?? []) {
+			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			feesByMonth[dateKey] = (feesByMonth[dateKey] ?? 0) + value
+			monthDates.add(dateKey)
+		}
+
+		for (const [date, value] of revenue.totalDataChart ?? []) {
+			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			revenueByMonth[dateKey] = (revenueByMonth[dateKey] ?? 0) + value
+			monthDates.add(dateKey)
+		}
+
+		for (const [date, value] of incentives ?? []) {
+			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			incentivesByMonth[dateKey] = (incentivesByMonth[dateKey] ?? 0) + value
+			monthDates.add(dateKey)
+		}
+
+		return {
+			feesByMonth,
+			revenueByMonth,
+			incentivesByMonth: incentives.length > 0 ? incentivesByMonth : null,
+			monthDates: Array.from(monthDates)
+				.sort((a, b) => b - a)
+				.map((date) => [date, dayjs(date).format('MMM YYYY')] as [number, string])
+		}
+	} catch (err) {
+		console.log(err)
 		return null
 	}
-	return null
 }

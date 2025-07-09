@@ -236,6 +236,12 @@ export interface IProtocolOverviewPageData {
 	hallmarks: Array<[number, string]>
 	geckoId: string | null
 	governanceApis: Array<string> | null
+	incomeStatement?: {
+		feesByMonth: Record<string, number>
+		revenueByMonth: Record<string, number>
+		incentivesByMonth: Record<string, number> | null
+		monthDates: Array<[number, string]>
+	} | null
 }
 
 export interface IHack {

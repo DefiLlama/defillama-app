@@ -572,6 +572,13 @@ export function firstDayOfMonth(dateString) {
 	const date = new Date(dateString)
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 }
+
+export function firstDayOfQuarter(dateString) {
+	const date = new Date(dateString)
+	const month = date.getUTCMonth()
+	const quarterStartMonth = Math.floor(month / 3) * 3
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), quarterStartMonth, 1) / 1000)
+}
 // TODO params & return value should be in seconds
 export function lastDayOfWeek(dateString) {
 	const date = new Date(dateString)

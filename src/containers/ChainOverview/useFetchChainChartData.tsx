@@ -247,6 +247,11 @@ export const useFetchChainChartData = ({
 			isChainIncentivesEnabled
 				? getProtocolEmissons(slug(selectedChain))
 						.then((data) => data?.unlockUsdChart ?? null)
+						.then((chart) => {
+							if (!chart) return null
+							const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
+							return chart.slice(nonZeroIndex)
+						})
 						.catch(() => null)
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,

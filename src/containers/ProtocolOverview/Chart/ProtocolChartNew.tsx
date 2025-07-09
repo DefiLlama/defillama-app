@@ -213,7 +213,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 										data-active={toggledMetrics[protocolCharts[chart]] === 'true'}
 										className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
-										<span>{chart}</span>
+										<span>{chart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
 										{toggledMetrics[protocolCharts[chart]] === 'true' ? (
 											<Icon name="x" className="h-[14px] w-[14px]" />
 										) : (
@@ -285,7 +285,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 								borderColor: props.chartColors[tchart]
 							}}
 						>
-							<span>{tchart}</span>
+							<span>{tchart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
 							<Icon name="x" className="h-[14px] w-[14px]" />
 						</span>
 					</label>
@@ -1289,8 +1289,10 @@ export const useFetchAndFormatChartData = ({
 
 		if (toggledMetrics.incentives === 'true' && unlocksAndIncentivesData?.unlockUsdChart) {
 			const chartName: ProtocolChartsLabels = 'Incentives' as const
+			const nonZeroIndex = unlocksAndIncentivesData.unlockUsdChart.findIndex(([_, value]) => value > 0)
+			const finalUnlocksChart = unlocksAndIncentivesData.unlockUsdChart.slice(nonZeroIndex)
 			charts[chartName] = formatBarChart({
-				data: unlocksAndIncentivesData.unlockUsdChart,
+				data: finalUnlocksChart,
 				groupBy,
 				denominationPriceHistory
 			})
