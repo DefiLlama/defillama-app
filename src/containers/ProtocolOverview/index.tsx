@@ -158,9 +158,11 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					) : null}
 				</div>
 				<AdditionalInfo {...props} />
-				<Suspense fallback={<></>}>
-					<IncomeStatement {...props} />
-				</Suspense>
+				{props.incomeStatement ? (
+					<Suspense fallback={<></>}>
+						<IncomeStatement {...props} />
+					</Suspense>
+				) : null}
 			</div>
 		</ProtocolOverviewLayout>
 	)
@@ -1989,7 +1991,6 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as const
 
 const IncomeStatement = (props: IProtocolOverviewPageData) => {
-	if (!props.incomeStatement) return null
 	const [groupBy, setGroupBy] = useState<typeof incomeStatementGroupByOptions[number]>('Quarterly')
 	const { monthDates, feesByMonth, revenueByMonth, incentivesByMonth } = useMemo(() => {
 		if (groupBy === 'Quarterly') {
