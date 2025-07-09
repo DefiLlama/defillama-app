@@ -41,7 +41,10 @@ export function toFilterPool({
 		}
 	})
 
-	toFilter = toFilter && selectedProjects.includes(curr.projectName)
+	// Accept both the display name ('Project Name') and the slug ('project-name')
+	// when matching selected projects (used by the “View All Yields” view
+	// in ProtocolOverview).
+	toFilter = toFilter && (selectedProjects.includes(curr.projectName) || selectedProjects.includes(curr.project))
 
 	toFilter = toFilter && selectedCategories.includes(curr.category)
 
