@@ -2264,7 +2264,7 @@ const PerformanceTooltipContent = ({
 }) => {
 	if (previousValue == null) return null
 	const valueChange = currentValue - previousValue
-	const percentageChange = (valueChange / previousValue) * 100
+	const percentageChange = previousValue !== 0 ? (valueChange / Math.abs(previousValue)) * 100 : 0
 	const percentageChangeText =
 		percentageChange > 0
 			? `+${percentageChange.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`
