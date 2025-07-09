@@ -2050,7 +2050,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	}, [groupBy, props.incomeStatement.monthDates])
 	return (
 		<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md p-2 xl:p-4">
-			<div className="flex items-center justify-between">
+			<div className="flex flex-wrap items-center justify-between gap-1">
 				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="income-statement">
 					Income Statement for {props.name}
 					<a
@@ -2077,7 +2077,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				</div>
 			</div>
 			<div className="overflow-x-auto">
-				<table className="border-collapse">
+				<table className="border-collapse w-full">
 					<thead>
 						<tr>
 							<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold"></th>
@@ -2097,7 +2097,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								{props.fees?.methodology ? (
 									<Tooltip
 										content={props.fees?.methodology ?? ''}
-										className="underline decoration-dotted flex justify-start"
+										className="underline decoration-dotted flex justify-center"
 									>
 										Fees
 									</Tooltip>
@@ -2108,20 +2108,24 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							{monthDates.map((month, i) => (
 								<td
 									key={`${props.name}-${groupBy}-fees-${month[0]}`}
-									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal"
+									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 								>
-									<Tooltip
-										content={
-											<PerformanceTooltipContent
-												currentValue={feesByMonth[month[0]]}
-												previousValue={monthDates[i + 1] ? feesByMonth[monthDates[i + 1][0]] : null}
-												groupBy={groupBy}
-											/>
-										}
-										className="underline decoration-dotted"
-									>
-										{formattedNum(feesByMonth[month[0]], true)}
-									</Tooltip>
+									{monthDates[i + 1] ? (
+										<Tooltip
+											content={
+												<PerformanceTooltipContent
+													currentValue={feesByMonth[month[0]]}
+													previousValue={monthDates[i + 1] ? feesByMonth[monthDates[i + 1][0]] : null}
+													groupBy={groupBy}
+												/>
+											}
+											className="underline decoration-dotted justify-center"
+										>
+											{formattedNum(feesByMonth[month[0]], true)}
+										</Tooltip>
+									) : (
+										<>{formattedNum(feesByMonth[month[0]], true)}</>
+									)}
 								</td>
 							))}
 						</tr>
@@ -2130,7 +2134,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								{props.revenue?.methodology ? (
 									<Tooltip
 										content={props.revenue?.methodology}
-										className="underline decoration-dotted flex justify-start"
+										className="underline decoration-dotted flex justify-center"
 									>
 										Revenue
 									</Tooltip>
@@ -2141,20 +2145,24 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							{monthDates.map((month, i) => (
 								<td
 									key={`${props.name}-${groupBy}-revenue-${month[0]}`}
-									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal"
+									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 								>
-									<Tooltip
-										content={
-											<PerformanceTooltipContent
-												currentValue={revenueByMonth[month[0]]}
-												previousValue={monthDates[i + 1] ? revenueByMonth[monthDates[i + 1][0]] : null}
-												groupBy={groupBy}
-											/>
-										}
-										className="underline decoration-dotted"
-									>
-										{formattedNum(revenueByMonth[month[0]], true)}
-									</Tooltip>
+									{monthDates[i + 1] ? (
+										<Tooltip
+											content={
+												<PerformanceTooltipContent
+													currentValue={revenueByMonth[month[0]]}
+													previousValue={monthDates[i + 1] ? revenueByMonth[monthDates[i + 1][0]] : null}
+													groupBy={groupBy}
+												/>
+											}
+											className="underline decoration-dotted justify-center"
+										>
+											{formattedNum(revenueByMonth[month[0]], true)}
+										</Tooltip>
+									) : (
+										<span>{formattedNum(revenueByMonth[month[0]], true)}</span>
+									)}
 								</td>
 							))}
 						</tr>
@@ -2164,7 +2172,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 									{props.incentives?.methodology ? (
 										<Tooltip
 											content={props.incentives?.methodology ?? ''}
-											className="underline decoration-dotted flex justify-start"
+											className="underline decoration-dotted flex justify-center"
 										>
 											Incentives
 										</Tooltip>
@@ -2175,20 +2183,24 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								{monthDates.map((month, i) => (
 									<td
 										key={`${props.name}-${groupBy}-incentives-${month[0]}`}
-										className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal"
+										className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 									>
-										<Tooltip
-											content={
-												<PerformanceTooltipContent
-													currentValue={incentivesByMonth[month[0]]}
-													previousValue={monthDates[i + 1] ? incentivesByMonth[monthDates[i + 1][0]] : null}
-													groupBy={groupBy}
-												/>
-											}
-											className="underline decoration-dotted"
-										>
-											{formattedNum(incentivesByMonth[month[0]], true)}
-										</Tooltip>
+										{monthDates[i + 1] ? (
+											<Tooltip
+												content={
+													<PerformanceTooltipContent
+														currentValue={incentivesByMonth[month[0]]}
+														previousValue={monthDates[i + 1] ? incentivesByMonth[monthDates[i + 1][0]] : null}
+														groupBy={groupBy}
+													/>
+												}
+												className="underline decoration-dotted justify-center"
+											>
+												{formattedNum(incentivesByMonth[month[0]], true)}
+											</Tooltip>
+										) : (
+											<span>{formattedNum(incentivesByMonth[month[0]], true)}</span>
+										)}
 									</td>
 								))}
 							</tr>
@@ -2197,7 +2209,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold">
 								<Tooltip
 									content="Revenue of the protocol minus the incentives distributed to users"
-									className="underline decoration-dotted flex justify-start"
+									className="underline decoration-dotted flex justify-center"
 								>
 									Earnings
 								</Tooltip>
@@ -2214,18 +2226,22 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 											earnings > 0 ? 'text-(--pct-green)' : earnings < 0 ? 'text-(--pct-red)' : ''
 										}`}
 									>
-										<Tooltip
-											content={
-												<PerformanceTooltipContent
-													currentValue={earnings}
-													previousValue={previousEarnings}
-													groupBy={groupBy}
-												/>
-											}
-											className="underline decoration-dotted"
-										>
-											{formattedNum(earnings, true)}
-										</Tooltip>
+										{monthDates[i + 1] ? (
+											<Tooltip
+												content={
+													<PerformanceTooltipContent
+														currentValue={earnings}
+														previousValue={previousEarnings}
+														groupBy={groupBy}
+													/>
+												}
+												className="underline decoration-dotted justify-center"
+											>
+												{formattedNum(earnings, true)}
+											</Tooltip>
+										) : (
+											<span>{formattedNum(earnings, true)}</span>
+										)}
 									</td>
 								)
 							})}
