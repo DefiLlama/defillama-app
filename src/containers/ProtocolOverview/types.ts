@@ -148,6 +148,7 @@ export interface IProtocolOverviewPageData {
 	bridgeAggregatorVolume: IAdapterOverview | null
 	optionsPremiumVolume: IAdapterOverview | null
 	optionsNotionalVolume: IAdapterOverview | null
+	bridgeVolume: Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
 	incentives?: {
 		emissions24h: number
 		emissions7d: number

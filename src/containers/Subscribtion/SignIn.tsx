@@ -79,15 +79,20 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 		} catch (error: any) {
 			console.error('Error signing up:', error)
 
+			if (typeof error?.error === 'string') {
+				setEmailError(`${error.error}. Please reset your password or use another email.`)
+				return
+			}
+
 			if (error?.error) {
 				if (error.error.email?.message) {
 					setEmailError(error.error.email.message)
 				}
-				if (error.data.password?.message) {
-					setPasswordError(error.data.password.message)
+				if (error.error.password?.message) {
+					setPasswordError(error.error.password.message)
 				}
-				if (error.data.passwordConfirm?.message) {
-					setConfirmPasswordError(error.data.passwordConfirm.message)
+				if (error.error.passwordConfirm?.message) {
+					setConfirmPasswordError(error.error.passwordConfirm.message)
 				}
 			}
 		}

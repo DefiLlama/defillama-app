@@ -6,7 +6,13 @@ import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
 import { download, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug, toNiceCsvDate } from '~/utils'
-import { CACHE_SERVER, NFT_MARKETPLACES_VOLUME_API, PROTOCOL_TREASURY_API, TOKEN_LIQUIDITY_API } from '~/constants'
+import {
+	BRIDGEVOLUME_API_SLUG,
+	CACHE_SERVER,
+	NFT_MARKETPLACES_VOLUME_API,
+	PROTOCOL_TREASURY_API,
+	TOKEN_LIQUIDITY_API
+} from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
@@ -808,6 +814,32 @@ export const useFetchAndFormatChartData = ({
 		enabled: isUsdInflowsEnabled
 	})
 
+	const isBridgeVolumeEnabled = toggledMetrics.bridgeVolume === 'true' && isRouterReady ? true : false
+	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery({
+		queryKey: ['bridgeVolume', name, isBridgeVolumeEnabled],
+		queryFn: () =>
+			isBridgeVolumeEnabled
+				? fetch(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
+						.then((res) => res.json())
+						.then((data) => {
+							const store = {}
+							for (const item of data.dailyVolumes) {
+								store[item.date] = (store[item.date] ?? 0) + (item.depositUSD + item.withdrawUSD) / 2
+							}
+							const finalChart = []
+							for (const date in store) {
+								finalChart.push([+date * 1e3, store[date]])
+							}
+							return finalChart
+						})
+						.catch(() => null)
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isBridgeVolumeEnabled
+	})
+	console.log({ bridgeVolumeData })
+
 	const { data: medianAPYData = null, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
 		isRouterReady && toggledMetrics.medianApy === 'true' && metrics.yields && !protocolId.startsWith('parent#')
 			? slug(name)
@@ -974,7 +1006,9 @@ export const useFetchAndFormatChartData = ({
 		if (fetchingTransactions) {
 			loadingCharts.push('Transactions')
 		}
-
+		if (fetchingBridgeVolume) {
+			loadingCharts.push('Bridge Volume')
+		}
 		if (loadingCharts.length > 0) {
 			return {
 				finalCharts: {} as Record<string, Array<[string | number, number]>>,
@@ -1434,6 +1468,15 @@ export const useFetchAndFormatChartData = ({
 			})
 		}
 
+		if (bridgeVolumeData && toggledMetrics.bridgeVolume === 'true') {
+			charts['Bridge Volume'] = formatBarChart({
+				data: bridgeVolumeData,
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory
+			})
+		}
+
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
 	}, [
 		toggledMetrics,
@@ -1490,6 +1533,8 @@ export const useFetchAndFormatChartData = ({
 		devMetricsData,
 		fetchingNftVolume,
 		nftVolumeData,
+		fetchingBridgeVolume,
+		bridgeVolumeData,
 		groupBy,
 		extraTvlCharts,
 		valueSymbol

@@ -80,6 +80,7 @@ const BRIDGES_SERVER_URL = process.env.BRIDGES_SERVER_URL ?? 'https://bridges.ll
 export const BRIDGEDAYSTATS_API = `${BRIDGES_SERVER_URL}/bridgedaystats`
 export const BRIDGES_API = `${BRIDGES_SERVER_URL}/bridges`
 export const BRIDGEVOLUME_API = `${BRIDGES_SERVER_URL}/bridgevolume`
+export const BRIDGEVOLUME_API_SLUG = `${BRIDGES_SERVER_URL}/bridgevolume/slug`
 export const BRIDGELARGETX_API = `${BRIDGES_SERVER_URL}/largetransactions`
 export const BRIDGETX_API = `${BRIDGES_SERVER_URL}/transactions`
 export const BRIDGEINFLOWS_API = `${SERVER_URL}/chain-assets/historical-flows`

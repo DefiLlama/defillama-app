@@ -20,7 +20,6 @@ import { useRouter } from 'next/router'
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
-
 	const { tvl, tvlByChain, toggleOptions } = useMemo(() => {
 		let tvl = 0
 		let toggleOptions = []
@@ -262,6 +261,7 @@ const KeyMetrics = (props: IKeyMetricsProps) => {
 				<PerpVolume formatPrice={props.formatPrice} {...props} />
 				<PerpAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<BridgeAggregatorVolume formatPrice={props.formatPrice} {...props} />
+				<BridgeVolume formatPrice={props.formatPrice} {...props} />
 				<OptionsPremiumVolume formatPrice={props.formatPrice} {...props} />
 				<OptionsNotionalVolume formatPrice={props.formatPrice} {...props} />
 				<TokenCGData formatPrice={props.formatPrice} {...props} />
@@ -822,6 +822,66 @@ function BridgeAggregatorVolume(props: IKeyMetricsProps) {
 			name: 'Cumulative Bridge Aggregator Volume',
 			tooltipContent: null,
 			value: props.bridgeAggregatorVolume.totalAllTime
+		})
+	}
+
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+		/>
+	)
+}
+
+function BridgeVolume(props: IKeyMetricsProps) {
+	if (!props.bridgeVolume || props.bridgeVolume.length === 0) return null
+
+	const metrics = []
+
+	const now = Date.now()
+	const oneDayAgo = now - 24 * 60 * 60 * 1000
+	const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
+
+	let total24h = 0
+	let total30d = 0
+	let totalAllTime = 0
+
+	props.bridgeVolume.forEach((item) => {
+		const volume = (item.depositUSD + item.withdrawUSD) / 2
+		const timestamp = new Date(+item.date * 1000).getTime()
+
+		totalAllTime += volume
+
+		if (timestamp >= thirtyDaysAgo) {
+			total30d += volume
+		}
+
+		if (timestamp >= oneDayAgo) {
+			total24h += volume
+		}
+	})
+
+	if (total30d > 0) {
+		metrics.push({
+			name: 'Bridge Volume 30d',
+			tooltipContent: null,
+			value: total30d
+		})
+	}
+	if (total24h > 0) {
+		metrics.push({
+			name: 'Bridge Volume 24h',
+			tooltipContent: null,
+			value: total24h
+		})
+	}
+	if (totalAllTime > 0) {
+		metrics.push({
+			name: 'Cumulative Bridge Volume',
+			tooltipContent: null,
+			value: totalAllTime
 		})
 	}
 

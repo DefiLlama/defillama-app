@@ -2,6 +2,7 @@ import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/ut
 import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
+	BRIDGEVOLUME_API_SLUG,
 	DEV_METRICS_API,
 	HACKS_API,
 	HOURLY_PROTOCOL_API,
@@ -169,7 +170,8 @@ export const getProtocolOverviewPageData = async ({
 		yieldsConfig,
 		liquidityInfo,
 		liteProtocolsData,
-		hacksData
+		hacksData,
+		bridgeVolumeData
 	]: [
 		IUpdatedProtocol & {
 			tokenCGData?: {
@@ -226,7 +228,8 @@ export const getProtocolOverviewPageData = async ({
 		any,
 		any,
 		any,
-		Array<IHack>
+		Array<IHack>,
+		any
 	] = await Promise.all([
 		getProtocol(metadata.name).then(async (data) => {
 			try {
@@ -463,8 +466,13 @@ export const getProtocolOverviewPageData = async ({
 			.catch(() => ({ protocols: [] })),
 		fetchWithErrorLogging(HACKS_API)
 			.then((res) => res.json())
-			.catch(() => ({ hacks: [] }))
+			.catch(() => ({ hacks: [] })),
+		fetchWithErrorLogging(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.name)}`)
+			.then((res) => res.json().then((data) => data.dailyVolumes || null))
+			.catch(() => null)
 	])
+
+	console.log(bridgeVolumeData)
 
 	const feesData = formatAdapterData({
 		data: feesProtocols,
@@ -797,6 +805,10 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Bridge Aggregator Volume')
 	}
 
+	if (bridgeVolumeData) {
+		availableCharts.push('Bridge Volume')
+	}
+
 	if (metadata.emissions) {
 		availableCharts.push('Unlocks')
 	}
@@ -935,6 +947,7 @@ export const getProtocolOverviewPageData = async ({
 		bridgeAggregatorVolume: bridgeAggregatorVolumeData,
 		optionsPremiumVolume: optionsPremiumVolumeData,
 		optionsNotionalVolume: optionsNotionalVolumeData,
+		bridgeVolume: bridgeVolumeData || null,
 		treasury,
 		unlocks: null,
 		governance: null,
