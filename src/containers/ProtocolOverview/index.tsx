@@ -2222,7 +2222,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								return (
 									<td
 										key={`${props.name}-${groupBy}-earnings-${month[0]}`}
-										className={`py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal ${
+										className={`py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center ${
 											earnings > 0 ? 'text-(--pct-green)' : earnings < 0 ? 'text-(--pct-red)' : ''
 										}`}
 									>
