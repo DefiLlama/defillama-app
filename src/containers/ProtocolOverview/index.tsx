@@ -2270,9 +2270,9 @@ const PerformanceTooltipContent = ({
 			? `+${percentageChange.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`
 			: `${percentageChange.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`
 	return (
-		<p className="text-xs flex flex-col">
+		<p className="text-xs">
 			<span className={`${percentageChange > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}>
-				{`${formattedNum(valueChange, true)} (${percentageChangeText})`}
+				{`${percentageChangeText}`}
 			</span>{' '}
 			<span>from previous {groupBy === 'Yearly' ? 'year' : groupBy === 'Quarterly' ? 'quarter' : 'month'}</span>
 		</p>
