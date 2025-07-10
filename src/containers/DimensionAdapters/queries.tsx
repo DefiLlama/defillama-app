@@ -6,7 +6,7 @@ import {
 	PROTOCOLS_API,
 	REV_PROTOCOLS
 } from '~/constants'
-import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
+import { fetchWithErrorLogging, handleFetchResponse, postRuntimeLogs } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE, ADAPTER_DATA_TYPES } from './constants'
 import metadataCache from '~/utils/metadata'
@@ -911,6 +911,7 @@ export const getChainsByAdapterPageData = async ({
 				...(tokenTaxesByChain[c.chain] ? { tokenTax: tokenTaxesByChain[c.chain] } : {})
 			}))
 			.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+
 		return {
 			adapterType,
 			dataType: dataType ?? null,
@@ -918,7 +919,10 @@ export const getChainsByAdapterPageData = async ({
 			chains,
 			allChains: chains.map((c) => c.name)
 		}
-	} catch (error) {}
+	} catch (error) {
+		console.log(error)
+		throw error
+	}
 }
 
 export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> => {
@@ -965,17 +969,8 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 		})
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
-	} catch (error) {}
-}
-
-async function handleFetchResponse(res: Response) {
-	try {
-		const response = await res.json()
-		return response
-	} catch (e) {
-		postRuntimeLogs(
-			`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`
-		)
-		return {}
+	} catch (error) {
+		console.log(error)
+		throw error
 	}
 }

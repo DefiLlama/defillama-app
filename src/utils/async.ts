@@ -149,3 +149,48 @@ export function postRuntimeLogs(log) {
 
 	console.log(log)
 }
+
+export async function handleFetchResponse(res: Response) {
+	try {
+		if (res.status === 200) {
+			const response = await res.json()
+			return response
+		}
+
+		// Handle non-200 status codes
+		let errorMessage = `Failed to fetch data from ${res.url}, with status ${res.status}`
+
+		// Try to get error message from statusText first
+		if (res.statusText) {
+			errorMessage += `: ${res.statusText}`
+		}
+
+		// Read response body only once
+		const responseText = await res.text()
+
+		if (responseText) {
+			// Try to parse as JSON first
+			try {
+				const errorResponse = JSON.parse(responseText)
+				if (errorResponse.error) {
+					errorMessage = errorResponse.error
+				} else if (errorResponse.message) {
+					errorMessage = errorResponse.message
+				} else {
+					// If JSON parsing succeeded but no error/message field, use the text
+					errorMessage = responseText
+				}
+			} catch (jsonError) {
+				// If JSON parsing fails, use the text response
+				errorMessage = responseText
+			}
+		}
+
+		throw new Error(errorMessage)
+	} catch (e) {
+		postRuntimeLogs(
+			`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`
+		)
+		throw e // Re-throw the error instead of returning empty object
+	}
+}

@@ -257,7 +257,7 @@ export function SelectWithCombobox({
 														e.stopPropagation()
 														selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
 													}}
-													className="font-medium text-xs text-(--link) underline hidden group-hover:inline-block group-focus-visible:inline-block"
+													className="font-medium text-xs text-(--link) underline invisible group-hover:visible group-focus-visible:visible"
 												>
 													Only
 												</button>

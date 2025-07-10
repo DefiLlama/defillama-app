@@ -262,7 +262,7 @@ const KeyMetrics = (props: IKeyMetricsProps) => {
 					href="#key-metrics"
 					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				<Fees formatPrice={props.formatPrice} {...props} />
@@ -337,7 +337,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 						href="#dl-news"
 						className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 					/>
-					<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+					<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 				</h2>
 				<a href="https://www.dlnews.com">
 					<DLNewsLogo width={72} height={18} />
@@ -1515,7 +1515,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 					href="#protocol-information"
 					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			{props.description ? <p>{props.description}</p> : null}
 			{props.category ? (
@@ -1598,7 +1598,7 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					href="#methodology"
 					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			{props.methodologyURL ? (
 				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
@@ -1721,7 +1721,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 					href="#unlocks"
 					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				{unlocks.recent ? (
@@ -1764,7 +1764,7 @@ function Governance(props: IProtocolOverviewPageData) {
 					href="#governance"
 					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col gap-1">
 				<h3 className="py-1 border-b border-[#e6e6e6] dark:border-[#222324]">Last proposal</h3>
@@ -1796,7 +1796,7 @@ function Yields(props: IProtocolOverviewPageData) {
 					href="#yields"
 					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div>
 				<p className="flex flex-wrap justify-between gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1 first:pt-0 last:pb-0">
@@ -1835,7 +1835,7 @@ function DevActivity(props: IProtocolOverviewPageData) {
 						href="#dev-activity"
 						className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 					/>
-					<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+					<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 				</h2>
 				{devActivity.updatedAt != null ? (
 					<p className="text-xs text-[#545757] dark:text-[#cccccc]">
@@ -1893,7 +1893,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 					href="#hacks"
 					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				{props.hacks.map((hack) => (
@@ -1971,7 +1971,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 					href="#competitors"
 					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex items-center gap-4 flex-wrap">
 				{props.competitors.map((similarProtocol) => (
@@ -2059,7 +2059,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						href="#income-statement"
 						className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
 					/>
-					<Icon name="link" className="w-[14px] h-[14px] hidden group-hover:block group-focus-visible:block" />
+					<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 				</h2>
 				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 					{incomeStatementGroupByOptions.map((groupOption) => (

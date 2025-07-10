@@ -154,7 +154,7 @@ export function Select({
 							<Ariakit.SelectItem
 								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 								value={valuesAreAnArrayOfStrings ? option : option.key}
-								className="group flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+								className="group flex items-center gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
 							>
 								{valuesAreAnArrayOfStrings ? (
 									<span>{option}</span>
@@ -172,12 +172,12 @@ export function Select({
 											e.stopPropagation()
 											selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
 										}}
-										className="font-medium text-xs text-(--link) underline hidden group-hover:inline-block group-focus-visible:inline-block"
+										className="font-medium text-xs text-(--link) underline invisible group-hover:visible group-focus-visible:visible"
 									>
 										Only
 									</button>
 								) : null}
-								<Ariakit.SelectItemCheck className="h-3 w-3 flex items-center justify-center rounded-xs shrink-0 border border-[#28a2b5]" />
+								<Ariakit.SelectItemCheck className="ml-auto h-3 w-3 flex items-center justify-center rounded-xs shrink-0 border border-[#28a2b5]" />
 							</Ariakit.SelectItem>
 						))}
 
