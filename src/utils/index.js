@@ -188,37 +188,27 @@ export function chainIconPaletteUrl(chain) {
 
 export function tokenIconUrl(name) {
 	const x = name ?? ''
-	return `${ICONS_CDN}/protocols/${x
-		.trim()
-		.toLowerCase()
-		.split(' ')
-		.join('-')
-		.split('(')
-		.join('')
-		.split(')')
-		.join('')
-		.split("'")
-		.join('')
-		.split('')
-		.join('')}?w=48&h=48`
+	return `${ICONS_CDN}/protocols/${
+		x
+			.trim()
+			.toLowerCase()
+			.replace(/[()'"]/g, '') // Remove parentheses and quotes
+			.replace(/\s+/g, '-') // Replace spaces with hyphens
+			.replace(/[^\w-]/g, '') // Remove any other non-word chars except hyphens
+	}?w=48&h=48`
 }
 
 export function tokenIconPaletteUrl(name) {
 	if (!name) return null
 
-	return `${ICONS_PALETTE_CDN}/protocols/${name
-		.trim()
-		.toLowerCase()
-		.split(' ')
-		.join('-')
-		.split('(')
-		.join('')
-		.split(')')
-		.join('')
-		.split("'")
-		.join('')
-		.split('')
-		.join('')}`
+	return `${ICONS_PALETTE_CDN}/protocols/${
+		name
+			.trim()
+			.toLowerCase()
+			.replace(/[()'"]/g, '') // Remove parentheses and quotes
+			.replace(/\s+/g, '-') // Replace spaces with hyphens
+			.replace(/[^\w-]/g, '') // Remove any other non-word chars except hyphens
+	}`
 }
 
 /**
@@ -330,7 +320,12 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 
 export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
 
-export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
+export const slug = (name = '') =>
+	name
+		?.toLowerCase()
+		.replace(/[()'"]/g, '') // Remove parentheses and quotes
+		.replace(/\s+/g, '-') // Replace spaces with hyphens
+		.replace(/[^\w-]/g, '') // Remove other special chars
 
 export function getRandomColor() {
 	var letters = '0123456789ABCDEF'
