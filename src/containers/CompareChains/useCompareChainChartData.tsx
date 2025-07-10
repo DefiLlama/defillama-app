@@ -101,7 +101,7 @@ export const useCompareChainChartData = ({ datasets, router }: { datasets: Array
 					data: chainData.volumeChart,
 					groupBy,
 					chartType: 'bar',
-					dateInMs: false
+					dateInMs: true
 				})
 				if (formattedData.length > 0) {
 					finalCharts[`${chainName} - DEXs Volume`] = formattedData
@@ -114,7 +114,7 @@ export const useCompareChainChartData = ({ datasets, router }: { datasets: Array
 					data: chainData.feesChart,
 					groupBy,
 					chartType: 'bar',
-					dateInMs: false
+					dateInMs: true
 				})
 				if (formattedData.length > 0) {
 					finalCharts[`${chainName} - Chain Fees`] = formattedData
@@ -127,7 +127,7 @@ export const useCompareChainChartData = ({ datasets, router }: { datasets: Array
 					data: chainData.feesChart,
 					groupBy,
 					chartType: 'bar',
-					dateInMs: false
+					dateInMs: true
 				})
 				if (formattedData.length > 0) {
 					finalCharts[`${chainName} - Chain Revenue`] = formattedData
@@ -140,7 +140,7 @@ export const useCompareChainChartData = ({ datasets, router }: { datasets: Array
 					data: chainData.appRevenueChart,
 					groupBy,
 					chartType: 'bar',
-					dateInMs: false
+					dateInMs: true
 				})
 				if (formattedData.length > 0) {
 					finalCharts[`${chainName} - App Revenue`] = formattedData
