@@ -239,6 +239,7 @@ export interface IProtocolOverviewPageData {
 	incomeStatement?: {
 		feesByMonth: Record<string, number>
 		revenueByMonth: Record<string, number>
+		holdersRevenueByMonth: Record<string, number> | null
 		incentivesByMonth: Record<string, number> | null
 		monthDates: Array<[number, string]>
 	} | null

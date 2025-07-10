@@ -1148,6 +1148,7 @@ export async function getProtocolIncomeStatement({
 }): Promise<{
 	feesByMonth: Record<string, number>
 	revenueByMonth: Record<string, number>
+	holdersRevenueByMonth: Record<string, number> | null
 	incentivesByMonth: Record<string, number> | null
 	monthDates: Array<[number, string]>
 } | null> {
@@ -1156,7 +1157,7 @@ export async function getProtocolIncomeStatement({
 			return null
 		}
 
-		const [fees, revenue, incentives] = await Promise.all([
+		const [fees, revenue, holdersRevenue, incentives] = await Promise.all([
 			getAdapterProtocolSummary({
 				adapterType: 'fees',
 				protocol: metadata.name,
@@ -1170,6 +1171,15 @@ export async function getProtocolIncomeStatement({
 				excludeTotalDataChartBreakdown: true,
 				dataType: 'dailyRevenue'
 			}),
+			metadata.holdersRevenue
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						protocol: metadata.name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyHoldersRevenue'
+				  })
+				: Promise.resolve(null),
 			getProtocolEmissons(metadata.name)
 				.then((data) => data.unlockUsdChart ?? [])
 				.then((chart) => {
@@ -1181,6 +1191,7 @@ export async function getProtocolIncomeStatement({
 
 		const feesByMonth: Record<string, number> = {}
 		const revenueByMonth: Record<string, number> = {}
+		const holdersRevenueByMonth: Record<string, number> = {}
 		const incentivesByMonth: Record<string, number> = {}
 		const monthDates = new Set<number>()
 
@@ -1196,6 +1207,12 @@ export async function getProtocolIncomeStatement({
 			monthDates.add(dateKey)
 		}
 
+		for (const [date, value] of holdersRevenue?.totalDataChart ?? []) {
+			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			holdersRevenueByMonth[dateKey] = (holdersRevenueByMonth[dateKey] ?? 0) + value
+			monthDates.add(dateKey)
+		}
+
 		for (const [date, value] of incentives ?? []) {
 			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
 			incentivesByMonth[dateKey] = (incentivesByMonth[dateKey] ?? 0) + value
@@ -1205,6 +1222,7 @@ export async function getProtocolIncomeStatement({
 		return {
 			feesByMonth,
 			revenueByMonth,
+			holdersRevenueByMonth: holdersRevenue ? holdersRevenueByMonth : null,
 			incentivesByMonth: incentives.length > 0 ? incentivesByMonth : null,
 			monthDates: Array.from(monthDates)
 				.sort((a, b) => b - a)
