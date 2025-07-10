@@ -157,6 +157,7 @@ export default function ChainLineBarChart({
 			if (type === 'TVL') {
 				finalYAxis.push(yAxis)
 			}
+
 			if (type === 'Stablecoins Mcap') {
 				finalYAxis.push({
 					...options,
@@ -168,6 +169,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Chain Fees') {
 				finalYAxis.push({
 					...options,
@@ -185,6 +187,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'DEXs Volume') {
 				finalYAxis.push({
 					...options,
@@ -196,6 +199,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Perps Volume') {
 				finalYAxis.push({
 					...options,
@@ -207,6 +211,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Token Incentives') {
 				finalYAxis.push({
 					...options,
@@ -218,6 +223,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Bridged TVL') {
 				finalYAxis.push({
 					...options,
@@ -229,6 +235,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Active Addresses') {
 				finalYAxis.push({
 					...options,
@@ -249,6 +256,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Transactions') {
 				finalYAxis.push({
 					...options,
@@ -263,6 +271,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Net Inflows') {
 				finalYAxis.push({
 					...options,
@@ -274,6 +283,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Core Developers') {
 				finalYAxis.push({
 					...options,
@@ -288,6 +298,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Devs Commits') {
 				finalYAxis.push({
 					...options,
@@ -302,6 +313,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Token Mcap') {
 				finalYAxis.push({
 					...options,
@@ -313,6 +325,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Token Price') {
 				finalYAxis.push({
 					...options,
@@ -324,6 +337,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Token Volume') {
 				finalYAxis.push({
 					...options,
@@ -335,6 +349,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
+
 			if (type === 'Raises') {
 				finalYAxis.push({
 					...options,
