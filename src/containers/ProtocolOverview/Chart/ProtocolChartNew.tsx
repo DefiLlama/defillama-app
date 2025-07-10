@@ -22,7 +22,7 @@ import {
 	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
-import { fetchWithTimeout } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
@@ -432,18 +432,16 @@ export const useFetchAndFormatChartData = ({
 	>({
 		queryKey: ['priceHistory', denominationGeckoId],
 		queryFn: () =>
-			fetch(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`)
-				.then((r) => r.json())
-				.then((res) => {
-					if (!res.data?.prices?.length) return null
+			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then((res) => {
+				if (!res.data?.prices?.length) return null
 
-					const store = {}
-					for (const [date, value] of res.data.prices) {
-						store[date] = value
-					}
+				const store = {}
+				for (const [date, value] of res.data.prices) {
+					store[date] = value
+				}
 
-					return store
-				}),
+				return store
+			}),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: denominationGeckoId ? true : false
@@ -453,9 +451,9 @@ export const useFetchAndFormatChartData = ({
 	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory>({
 		queryKey: ['priceHistory', geckoId],
 		queryFn: () =>
-			fetch(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`)
-				.then((r) => r.json())
-				.then((res) => (res.data.prices.length > 0 ? res.data : { prices: [], mcaps: [], volumes: [] })),
+			fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res) =>
+				res.data.prices.length > 0 ? res.data : { prices: [], mcaps: [], volumes: [] }
+			),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled:
@@ -471,10 +469,7 @@ export const useFetchAndFormatChartData = ({
 
 	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery({
 		queryKey: ['tokenSupply', geckoId],
-		queryFn: () =>
-			fetch(`${CACHE_SERVER}/supply/${geckoId}`)
-				.then((res) => res.json())
-				.then((res) => res.data?.['total_supply']),
+		queryFn: () => fetchJson(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.data?.['total_supply']),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: geckoId && toggledMetrics.fdv === 'true' && isRouterReady ? true : false
@@ -482,10 +477,7 @@ export const useFetchAndFormatChartData = ({
 
 	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery({
 		queryKey: ['tokenLiquidity', protocolId],
-		queryFn: () =>
-			fetch(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`)
-				.then((res) => res.json())
-				.catch(() => null),
+		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`).catch(() => null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isRouterReady && metrics.liquidity && toggledMetrics.tokenLiquidity === 'true' ? true : false
@@ -769,22 +761,20 @@ export const useFetchAndFormatChartData = ({
 		queryKey: ['treasury', name, isTreasuryEnabled],
 		queryFn: () =>
 			isTreasuryEnabled
-				? fetch(`${PROTOCOL_TREASURY_API}/${slug(name)}`)
-						.then((res) => res.json())
-						.then((data) => {
-							const store = {}
-							for (const chain in data.chainTvls) {
-								if (chain.includes('-')) continue
-								for (const item of data.chainTvls[chain].tvl ?? []) {
-									store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
-								}
+				? fetchJson(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then((data) => {
+						const store = {}
+						for (const chain in data.chainTvls) {
+							if (chain.includes('-')) continue
+							for (const item of data.chainTvls[chain].tvl ?? []) {
+								store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
 							}
-							const finalChart = []
-							for (const date in store) {
-								finalChart.push([+date * 1e3, store[date]])
-							}
-							return finalChart
-						})
+						}
+						const finalChart = []
+						for (const date in store) {
+							finalChart.push([+date * 1e3, store[date]])
+						}
+						return finalChart
+				  })
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -796,21 +786,19 @@ export const useFetchAndFormatChartData = ({
 		queryKey: ['usdInflows', name, isUsdInflowsEnabled],
 		queryFn: () =>
 			isUsdInflowsEnabled
-				? fetch(`https://api.llama.fi/protocol/${slug(name)}`)
-						.then((res) => res.json())
-						.then((data) => {
-							const store = {}
-							for (const item of data.tokensInUsd) {
-								for (const token in item.tokens) {
-									store[item.date] = (store[item.date] ?? 0) + (item.tokens?.[token] ?? 0)
-								}
+				? fetchJson(`https://api.llama.fi/protocol/${slug(name)}`).then((data) => {
+						const store = {}
+						for (const item of data.tokensInUsd) {
+							for (const token in item.tokens) {
+								store[item.date] = (store[item.date] ?? 0) + (item.tokens?.[token] ?? 0)
 							}
-							const finalChart = []
-							for (const date in store) {
-								finalChart.push([+date * 1e3, store[date]])
-							}
-							return finalChart
-						})
+						}
+						const finalChart = []
+						for (const date in store) {
+							finalChart.push([+date * 1e3, store[date]])
+						}
+						return finalChart
+				  })
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -822,8 +810,7 @@ export const useFetchAndFormatChartData = ({
 		queryKey: ['bridgeVolume', name, isBridgeVolumeEnabled],
 		queryFn: () =>
 			isBridgeVolumeEnabled
-				? fetch(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
-						.then((res) => res.json())
+				? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
 						.then((data) => {
 							const store = {}
 							for (const item of data.dailyVolumes) {
@@ -889,8 +876,7 @@ export const useFetchAndFormatChartData = ({
 		queryKey: ['nftVolume', name, isNftVolumeEnabled],
 		queryFn: () =>
 			isNftVolumeEnabled
-				? fetchWithTimeout(NFT_MARKETPLACES_VOLUME_API, 10_000)
-						.then((r) => r.json())
+				? fetchJson(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })
 						.then((r) => {
 							const chartByDate = r
 								.filter((r) => slug(r.exchangeName) === slug(name))

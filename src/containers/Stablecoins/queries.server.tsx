@@ -10,33 +10,29 @@ import {
 	PEGGEDCHART_DOMINANCE_ALL_API,
 	PEGGEDCHART_COINS_RECENT_DATA_API
 } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import {
 	getPrevStablecoinTotalFromChart,
 	formatPeggedAssetsData,
 	formatPeggedChainsData
 } from '~/containers/Stablecoins/utils'
 
-const fetch = fetchWithErrorLogging
-
 export const getPeggedAssets = () =>
-	fetch(PEGGEDS_API)
-		.then((res) => res.json())
-		.then(({ peggedAssets, chains }) => ({
-			protocolsDict: peggedAssets.reduce((acc, curr) => {
-				acc[slug(curr.name)] = curr
-				return acc
-			}, {}),
-			peggedAssets,
-			chains
-		}))
+	fetchJson(PEGGEDS_API).then(({ peggedAssets, chains }) => ({
+		protocolsDict: peggedAssets.reduce((acc, curr) => {
+			acc[slug(curr.name)] = curr
+			return acc
+		}, {}),
+		peggedAssets,
+		chains
+	}))
 
-export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((res) => res.json())
-export const getPeggedRates = () => fetch(PEGGEDRATES_API).then((res) => res.json())
-export const getConfigData = () => fetch(CONFIG_API).then((res) => res.json())
+export const getPeggedPrices = () => fetchJson(PEGGEDPRICES_API)
+export const getPeggedRates = () => fetchJson(PEGGEDRATES_API)
+export const getConfigData = () => fetchJson(CONFIG_API)
 
 export const getPeggedBridgeInfo = () =>
-	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((res) => res.json())
+	fetchJson('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json')
 
 let globalData: any
 
@@ -79,7 +75,7 @@ function fetchGlobalData({ peggedAssets, chains }: any) {
 export async function getPeggedOverviewPageData(chain) {
 	const { peggedAssets, chains } = await getPeggedAssets()
 	const chainLabel = chain ?? 'all-llama-app' // custom key to fetch limited data to reduce page size
-	const chainData = await fetch(`${PEGGEDCHART_API}/${chainLabel}`).then((res) => res.json())
+	const chainData = await fetchJson(`${PEGGEDCHART_API}/${chainLabel}`)
 	const breakdown = chainData?.breakdown
 	if (!breakdown) {
 		return { notFound: true }
@@ -156,8 +152,8 @@ export async function getPeggedChainsPageData() {
 	const { peggedAssets, chains } = await getPeggedAssets()
 	const { chainCoingeckoIds } = await getConfigData()
 
-	const { aggregated: chartData } = await fetch(`${PEGGEDCHART_API}/all`).then((res) => res.json())
-	const { dominanceMap, chainChartMap } = await fetch(PEGGEDCHART_DOMINANCE_ALL_API).then((res) => res.json())
+	const { aggregated: chartData } = await fetchJson(`${PEGGEDCHART_API}/all`)
+	const { dominanceMap, chainChartMap } = await fetchJson(PEGGEDCHART_DOMINANCE_ALL_API)
 	const { chainList, chainsTVLData } = fetchGlobalData({ peggedAssets, chains })
 
 	let chainsGroupbyParent = {}
@@ -218,17 +214,15 @@ export async function getPeggedChainsPageData() {
 }
 
 export const getPeggedAssetPageData = async (peggedasset: string) => {
-	const peggedNameToPeggedIDMapping = await fetch(PEGGEDCONFIG_API).then((res) => res.json())
+	const peggedNameToPeggedIDMapping = await fetchJson(PEGGEDCONFIG_API)
 	const peggedID = peggedNameToPeggedIDMapping[peggedasset]
 	const [res, { chainCoingeckoIds }, recentCoinsData] = await Promise.all([
-		fetch(`${PEGGED_API}/${peggedID}`)
-			.then((res) => res.json())
-			.catch((e) => {
-				console.error(`Failed to fetch ${PEGGED_API}/${peggedID}: ${e}`)
-				return null
-			}),
+		fetchJson(`${PEGGED_API}/${peggedID}`).catch((e) => {
+			console.error(`Failed to fetch ${PEGGED_API}/${peggedID}: ${e}`)
+			return null
+		}),
 		getConfigData(),
-		fetch(PEGGEDCHART_COINS_RECENT_DATA_API).then((res) => res.json())
+		fetchJson(PEGGEDCHART_COINS_RECENT_DATA_API)
 	])
 
 	const peggedChart = recentCoinsData[peggedID]

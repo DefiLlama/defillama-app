@@ -6,7 +6,7 @@ import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import metadataCache from '~/utils/metadata'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { TMetric } from '~/components/Metrics'
@@ -26,10 +26,9 @@ export const getStaticPaths = async () => {
 		}
 	}
 
-	const chains = await fetchWithErrorLogging(
+	const chains = await fetchJson(
 		`${DIMENISIONS_OVERVIEW_API}/${adapterType}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=${dataType}`
 	)
-		.then((res) => res.json())
 		.then((res) => (res.allChains ?? []).slice(0, 10))
 		.catch(() => [])
 

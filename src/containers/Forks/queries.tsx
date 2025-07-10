@@ -1,12 +1,12 @@
 import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { FORK_API, PROTOCOLS_API } from '~/constants'
 import { getColorFromNumber } from '~/utils'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 
 export async function getForkPageData(fork = null) {
 	try {
 		const [{ chart = {}, forks = {} }, { protocols }] = await Promise.all(
-			[FORK_API, PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
+			[FORK_API, PROTOCOLS_API].map((url) => fetchJson(url))
 		)
 
 		const forkExists = !fork || forks[fork]

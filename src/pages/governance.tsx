@@ -16,17 +16,15 @@ import { GOVERNANCE_SNAPSHOT_API, GOVERNANCE_COMPOUND_API, GOVERNANCE_TALLY_API 
 import { capitalizeFirstLetter } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { Icon } from '~/components/Icon'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
-const fetch = fetchWithErrorLogging
-
 export const getStaticProps = withPerformanceLogging('governance', async () => {
 	const [snapshot, compound, tally] = await Promise.all([
-		fetch(GOVERNANCE_SNAPSHOT_API).then((res) => res.json()),
-		fetch(GOVERNANCE_COMPOUND_API).then((res) => res.json()),
-		fetch(GOVERNANCE_TALLY_API).then((res) => res.json())
+		fetchJson(GOVERNANCE_SNAPSHOT_API),
+		fetchJson(GOVERNANCE_COMPOUND_API),
+		fetchJson(GOVERNANCE_TALLY_API)
 	])
 
 	return {

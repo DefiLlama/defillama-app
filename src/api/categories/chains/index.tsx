@@ -16,7 +16,7 @@ import {
 } from '~/constants'
 import { formatProtocolsData } from '../protocols/utils'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { maxAgeForNext } from '~/api'
 import { getPercentChange, slug } from '~/utils'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
@@ -89,8 +89,8 @@ export async function getChainPageData(chain?: string) {
 		chainAssets,
 		{ totalAppRevenue24h }
 	] = await Promise.all([
-		fetchWithErrorLogging(CHART_API + (chainMetadata ? `/${chainMetadata.name}` : '')).then((r) => r.json()),
-		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
+		fetchJson(CHART_API + (chainMetadata ? `/${chainMetadata.name}` : '')),
+		fetchJson(PROTOCOLS_API),
 		!chain || (chain !== 'All' && chainMetadata?.dexs)
 			? getDexVolumeByChain({
 					chain: chainName,
@@ -158,47 +158,40 @@ export async function getChainPageData(chain?: string) {
 					.catch(() => null),
 		!chain || chain === 'All' || !chainMetadata?.activeUsers
 			? null
-			: fetchWithErrorLogging(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chainName}`)
-					.then((res) => res.json())
+			: fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/chain$${chainName}`)
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 		!chain || chain === 'All' || !chainMetadata?.activeUsers
 			? null
-			: fetchWithErrorLogging(`${PROTOCOL_TRANSACTIONS_API}/chain$${chainName}`)
-					.then((res) => res.json())
+			: fetchJson(`${PROTOCOL_TRANSACTIONS_API}/chain$${chainName}`)
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
 
 		!chain || chain === 'All' || !chainMetadata?.activeUsers
 			? null
-			: fetchWithErrorLogging(`${PROTOCOL_NEW_USERS_API}/chain$${chainName}`)
-					.then((res) => res.json())
+			: fetchJson(`${PROTOCOL_NEW_USERS_API}/chain$${chainName}`)
 					.then((data) => data?.[data?.length - 1]?.[1] ?? null)
 					.catch(() => null),
-		fetchWithErrorLogging(RAISES_API).then((r) => r.json()),
+		fetchJson(RAISES_API),
 		!chain || chain === 'All' || !chainMetadata?.github
 			? null
-			: fetchWithErrorLogging(`${DEV_METRICS_API}/chain/${chainName?.toLowerCase()}.json`)
-					.then((r) => r.json())
-					.catch(() => null),
-		!chain || chain === 'All' ? null : fetchWithErrorLogging(PROTOCOLS_TREASURY).then((r) => r.json()),
+			: fetchJson(`${DEV_METRICS_API}/chain/${chainName?.toLowerCase()}.json`).catch(() => null),
+		!chain || chain === 'All' ? null : fetchJson(PROTOCOLS_TREASURY),
 		chainMetadata?.gecko_id
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`https://pro-api.coingecko.com/api/v3/coins/${chainMetadata?.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
 					{
 						headers: {
 							'x-cg-pro-api-key': process.env.CG_KEY
 						}
 					}
-			  ).then((res) => res.json())
+			  )
 			: {},
 		chain && chain !== 'All' && chainMetadata?.derivatives
 			? getOverview('derivatives', chainName?.toLowerCase(), undefined, false, false)
 			: null,
-		chain && chain !== 'All' ? fetchWithErrorLogging(TEMP_CHAIN_NFTS).then((res) => res.json()) : null,
-		fetchWithErrorLogging(CHAINS_ASSETS)
-			.then((res) => res.json())
-			.catch(() => ({})),
+		chain && chain !== 'All' ? fetchJson(TEMP_CHAIN_NFTS) : null,
+		fetchJson(CHAINS_ASSETS).catch(() => ({})),
 		chain && chain !== 'All' && chainMetadata?.fees
 			? getAppRevenueByChain({ chain: chainName, excludeTotalDataChart: true })
 			: { totalAppRevenue24h: null }

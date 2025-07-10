@@ -5,7 +5,7 @@ export * from './blockExplorers'
 import { colord, extend } from 'colord'
 import lchPlugin from 'colord/plugins/lch'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { fetchWithErrorLogging } from './async'
+import { fetchJson } from './async'
 
 extend([lchPlugin])
 dayjs.extend(utc)
@@ -649,9 +649,9 @@ export async function batchFetchHistoricalPrices(priceReqs, batchSize = 15) {
 
 	for (const batch of batches) {
 		const batchReqs = Object.fromEntries(batch)
-		const response = await fetchWithErrorLogging(
+		const response = await fetchJson(
 			`https://coins.llama.fi/batchHistorical?coins=${JSON.stringify(batchReqs)}&searchWidth=6h`
-		).then((res) => res.json())
+		)
 
 		for (const coinId of batch) {
 			if (response.coins[coinId]?.prices) {

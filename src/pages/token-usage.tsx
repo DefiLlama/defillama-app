@@ -14,6 +14,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
+import { fetchJson } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	const searchData = await getAllCGTokensList()
@@ -139,7 +140,7 @@ export default function Tokens({ searchData }) {
 const fetchProtocols = async (tokenSymbol) => {
 	if (!tokenSymbol) return null
 	try {
-		const data = await fetch(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`).then((res) => res.json())
+		const data = await fetchJson(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`)
 		return (
 			data?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ??
 			[]

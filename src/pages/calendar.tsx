@@ -18,13 +18,11 @@ import { formatPercentage } from '~/utils'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import * as Ariakit from '@ariakit/react'
 
 export const getStaticProps = withPerformanceLogging('calendar', async () => {
-	const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API)
-		.then((res) => res.json())
-		.catch(() => [])
+	const res = await fetchJson(PROTOCOL_EMISSIONS_API).catch(() => [])
 
 	const emissions = res.map((protocol) => {
 		const unlocksByDate = {}

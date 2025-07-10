@@ -11,6 +11,7 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { useQueries } from '@tanstack/react-query'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { fetchJson } from '~/utils/async'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -32,7 +33,7 @@ const fetchProtocol = async (selectedProtocol: string | null) => {
 
 	try {
 		const data = await Promise.allSettled([
-			fetch(`${PROTOCOL_API}/${slug(selectedProtocol)}`).then((res) => res.json()),
+			fetchJson(`${PROTOCOL_API}/${slug(selectedProtocol)}`),
 			getColor(tokenIconPaletteUrl(selectedProtocol))
 		])
 

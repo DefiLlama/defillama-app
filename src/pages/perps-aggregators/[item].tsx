@@ -5,7 +5,7 @@ import { GetStaticPropsContext } from 'next'
 import { slug } from '~/utils'
 import metadataCache from '~/utils/metadata'
 import { maxAgeForNext } from '~/api'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 const protocolMetadata = metadataCache.protocolMetadata
 
@@ -22,10 +22,9 @@ export const getStaticPaths = async () => {
 		}
 	}
 
-	const protocols = await fetchWithErrorLogging(
+	const protocols = await fetchJson(
 		`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 	)
-		.then((res) => res.json())
 		.then((res) => (res.protocols ?? []).sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)).slice(0, 20))
 		.catch(() => [])
 

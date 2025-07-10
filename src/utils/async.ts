@@ -27,7 +27,7 @@ export async function fetchWithErrorLogging(
 	const start = Date.now()
 	try {
 		const res = await fetchOverCache(url, options)
-		if (res.status >= 400) {
+		if (res.status !== 200) {
 			const end = Date.now()
 			postRuntimeLogs(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
 		}
@@ -64,45 +64,6 @@ export async function fetchWithErrorLogging(
 	}
 }
 
-export async function fetchWithTimeout(url, ms, options = {}) {
-	const controller = new AbortController()
-	const promise = fetchWithErrorLogging(url, { signal: controller.signal, ...options })
-	const timeout = setTimeout(() => controller.abort(), ms)
-	return promise.finally(() => clearTimeout(timeout))
-}
-
-const dataCache: {
-	[key: string]: any
-} = {}
-
-export async function wrappedFetch(
-	endpoint: string,
-	{ retries = 0, cache = false }: { retries?: number; cache?: boolean } = {}
-): Promise<any> {
-	if (cache) {
-		retries++
-		if (!dataCache[endpoint]) {
-			dataCache[endpoint] = _getData(retries)
-		}
-		return dataCache[endpoint]
-	}
-	return _getData(retries)
-
-	async function _getData(retiresLeft = 0, attempts = 0) {
-		try {
-			const res = await fetchWithErrorLogging(endpoint).then((res) => res.json())
-			return res
-		} catch (error) {
-			if (retiresLeft > 0) {
-				attempts++
-				await sleep(attempts * 30 * 1000) // retry after 30 seconds * attempts
-				return _getData(retiresLeft - 1, attempts)
-			}
-			throw error
-		}
-	}
-}
-
 export async function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -110,26 +71,7 @@ export async function sleep(ms: number): Promise<void> {
 export const fetchApi = async (url: string | Array<string>) => {
 	if (!url) return null
 	try {
-		const data =
-			typeof url === 'string'
-				? await fetchWithErrorLogging(url).then(async (res) => {
-						if (!res.ok) {
-							throw new Error(res.statusText ?? `Failed to fetch ${url}`)
-						}
-						const data = await res.json()
-						return data
-				  })
-				: await Promise.all(
-						url.map((u) =>
-							fetchWithErrorLogging(u).then(async (res) => {
-								if (!res.ok) {
-									throw new Error(res.statusText ?? `Failed to fetch ${u}`)
-								}
-								const data = await res.json()
-								return data
-							})
-						)
-				  )
+		const data = typeof url === 'string' ? await fetchJson(url) : await Promise.all(url.map((u) => fetchJson(u)))
 		return data
 	} catch (error) {
 		throw new Error(
@@ -146,11 +88,10 @@ export function postRuntimeLogs(log) {
 			headers: { 'Content-Type': 'application/json' }
 		})
 	}
-
 	console.log(log)
 }
 
-export async function handleFetchResponse(res: Response) {
+async function handleFetchResponse(res: Response) {
 	try {
 		if (res.status === 200) {
 			const response = await res.json()
@@ -193,4 +134,13 @@ export async function handleFetchResponse(res: Response) {
 		)
 		throw e // Re-throw the error instead of returning empty object
 	}
+}
+
+export async function fetchJson(
+	url: RequestInfo | URL,
+	options?: FetchOverCacheOptions,
+	retry: boolean = false
+): Promise<any> {
+	const res = await fetchWithErrorLogging(url, options, retry).then(handleFetchResponse)
+	return res
 }

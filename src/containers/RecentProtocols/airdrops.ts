@@ -1,8 +1,10 @@
+import { fetchJson } from '~/utils/async'
+
 export async function airdropsEligibilityCheck({ addresses }: { addresses: Array<string> }) {
 	try {
 		const [others, config] = await Promise.all([
-			fetch(`https://airdrops.llama.fi/check/${addresses.join(',').toLowerCase()}`).then((r) => r.json()),
-			fetch('https://airdrops.llama.fi/config').then((res) => res.json())
+			fetchJson(`https://airdrops.llama.fi/check/${addresses.join(',').toLowerCase()}`),
+			fetchJson('https://airdrops.llama.fi/config')
 		])
 
 		const allAirdrops: Array<

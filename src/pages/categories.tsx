@@ -11,7 +11,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { tvlOptions } from '~/components/Filters/options'
@@ -22,7 +22,7 @@ const LineAndBarChart = React.lazy(
 
 export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const [{ protocols }, revenueData, { chart, categories: protocolsByCategory }] = await Promise.all([
-		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
+		fetchJson(PROTOCOLS_API),
 		getAdapterChainOverview({
 			adapterType: 'fees',
 			chain: 'All',
@@ -30,7 +30,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			excludeTotalDataChart: true,
 			excludeTotalDataChartBreakdown: true
 		}),
-		fetchWithErrorLogging(CATEGORY_API).then((r) => r.json())
+		fetchJson(CATEGORY_API)
 	])
 
 	const categories = {}

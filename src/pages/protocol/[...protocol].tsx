@@ -6,7 +6,7 @@ import { maxAgeForNext } from '~/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { PROTOCOLS_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
@@ -36,7 +36,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 export async function getStaticPaths() {
-	const res = await fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
+	const res = await fetchJson(PROTOCOLS_API)
 
 	const paths: string[] = res.protocols.slice(0, 30).map(({ name }) => ({
 		params: { protocol: [slug(name)] }

@@ -5,10 +5,8 @@ import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutr
 import { ECBasicOption } from 'echarts/types/dist/shared'
 import type { ISearchItem } from '~/components/Search/types'
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { liquidationsIconUrl } from '~/utils'
-
-const fetch = fetchWithErrorLogging
 
 /**
  * Format the URL to the liquidations data payload
@@ -23,8 +21,8 @@ const getDataUrl = (symbol: string, timestamp: number) => {
 }
 
 const getAvailability = async () => {
-	const res = await fetch(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/availability.json`)
-	const data = await res.json()
+	const res = await fetchJson(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/availability.json`)
+	const data = res
 	return data as { availability: { [symbol: string]: number }; time: number }
 }
 
@@ -197,12 +195,12 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 
 	let data: LiquidationsData
 	try {
-		const res = await fetch(LIQUIDATIONS_DATA_URL)
-		data = await res.json()
+		const res = await fetchJson(LIQUIDATIONS_DATA_URL)
+		data = res
 	} catch (e) {
 		// fallback to current
-		const res = await fetch(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/latest.json`)
-		data = await res.json()
+		const res = await fetchJson(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/latest.json`)
+		data = res
 	}
 
 	const currentPrice = data.currentPrice
@@ -313,8 +311,8 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 	const now = Math.round(Date.now() / 1000) // in seconds
 	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now)
 
-	const res = await fetch(LIQUIDATIONS_DATA_URL)
-	const data = (await res.json()) as LiquidationsData
+	const res = await fetchJson(LIQUIDATIONS_DATA_URL)
+	const data = res as LiquidationsData
 
 	const timestamp = data.time
 	const positions = data.positions

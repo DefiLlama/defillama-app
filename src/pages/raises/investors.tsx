@@ -15,7 +15,7 @@ import { RAISES_API } from '~/constants'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { TagGroup } from '~/components/TagGroup'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
@@ -40,13 +40,11 @@ const findMedian = (arr) => {
 	}
 }
 
-const fetch = fetchWithErrorLogging
-
 const getRaisesByPeriod = (data, days) =>
 	data.filter((raise) => raise.date && raise.date * 1000 >= Date.now() - days * 24 * 60 * 60 * 1000)
 
 export const getStaticProps = withPerformanceLogging('raises/active-investors', async () => {
-	const data = await fetch(RAISES_API).then((r) => r.json())
+	const data = await fetchJson(RAISES_API)
 
 	return {
 		props: {

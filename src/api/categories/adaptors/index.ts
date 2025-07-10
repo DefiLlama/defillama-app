@@ -18,7 +18,7 @@ import {
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 
-import { fetchWithErrorLogging, handleFetchResponse, postRuntimeLogs } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
 import metadataCache from '~/utils/metadata'
 import { getCexVolume } from '~/containers/DimensionAdapters/queries'
@@ -44,16 +44,14 @@ export const VOLUME_TYPE_ADAPTORS = [
 	'bridge-aggregators'
 ]
 
-const fetch = fetchWithErrorLogging
-
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
-	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
+	await fetchJson(`${DEX_BASE_API}/${dexName}`)
 
-export const getDexs = (): Promise<IGetDexsResponseBody> => fetch(`${DEXS_API}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`).then((r) => r.json()) */
+export const getDexs = (): Promise<IGetDexsResponseBody> => fetchJson(`${DEXS_API}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`) */
 
 // - used in /[dex]
 /* export async function getDexPageData(dex: string) {
-	const dexResponse = await fetch(`${DEX_BASE_API}/${dex}`).then((r) => r.json())
+	const dexResponse = await fetchJson(`${DEX_BASE_API}/${dex}`)
 
 	return {
 		props: dexResponse
@@ -66,11 +64,11 @@ export const getOverviewItem = (
 	excludeTotalDataChart?: boolean,
 	excludeTotalDataChartBreakdown?: boolean
 ): Promise<ProtocolAdaptorSummaryResponse> => {
-	return fetch(
+	return fetchJson(
 		`${DIMENISIONS_SUMMARY_BASE_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type}/${slug(
 			protocolName
 		)}${dataType ? `?dataType=${dataType}` : ''}`
-	).then(handleFetchResponse)
+	)
 }
 export const getOverview = (
 	type: string,
@@ -79,7 +77,7 @@ export const getOverview = (
 	includeTotalDataChart?: boolean,
 	fullChart?: boolean
 ): Promise<IGetOverviewResponseBody> =>
-	fetch(getAPIUrl(type, chain, !includeTotalDataChart, true, dataType, fullChart)).then(handleFetchResponse)
+	fetchJson(getAPIUrl(type, chain, !includeTotalDataChart, true, dataType, fullChart))
 
 export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
 	type: string
@@ -229,23 +227,23 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 		IGetOverviewResponseBody,
 		IGetOverviewResponseBody
 	] = await Promise.all([
-		fetch(getAPIUrl(type, chain, type === 'fees', true)).then(handleFetchResponse),
-		fetch(PROTOCOLS_API).then(handleFetchResponse),
+		fetchJson(getAPIUrl(type, chain, type === 'fees', true)),
+		fetchJson(PROTOCOLS_API),
 		type === 'options'
-			? fetch(getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')).then(handleFetchResponse)
+			? fetchJson(getAPIUrl(type, chain, false, true, 'dailyPremiumVolume'))
 			: type === 'fees'
-			? fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue') + '&a=19').then(handleFetchResponse)
+			? fetchJson(getAPIUrl(type, chain, true, true, 'dailyRevenue') + '&a=19')
 			: Promise.resolve({}),
 		type === 'dexs' ? getCexVolume() : Promise.resolve(0),
-		fetch(EMISSION_BREAKDOWN_API).then(handleFetchResponse),
+		fetchJson(EMISSION_BREAKDOWN_API),
 		type === 'fees'
-			? fetch(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue')).then(handleFetchResponse)
+			? fetchJson(getAPIUrl(type, chain, true, true, 'dailyBribesRevenue'))
 			: Promise.resolve({ protocols: [] }),
 		type === 'fees'
-			? fetch(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue')).then(handleFetchResponse)
+			? fetchJson(getAPIUrl(type, chain, true, true, 'dailyHoldersRevenue'))
 			: Promise.resolve({ protocols: [] }),
 		type === 'fees'
-			? fetch(getAPIUrl(type, chain, true, true, 'dailyTokenTaxes')).then(handleFetchResponse)
+			? fetchJson(getAPIUrl(type, chain, true, true, 'dailyTokenTaxes'))
 			: Promise.resolve({ protocols: [] })
 	])
 
@@ -270,18 +268,16 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 		.map((e) => [e.name, chainMetadata[slug(e.name)]?.gecko_id ?? null])
 		.filter((e) => (e[1] ? true : false))
 
-	const chainMcaps = await fetch(MCAPS_API, {
+	const chainMcaps = await fetchJson(MCAPS_API, {
 		method: 'POST',
 		body: JSON.stringify({
 			coins: chains.map(([_, geckoId]) => `coingecko:${geckoId}`)
 		})
+	}).catch((err) => {
+		console.log('Failed to fetch mcaps by chain')
+		console.log(err)
+		return {}
 	})
-		.then((r) => r.json())
-		.catch((err) => {
-			console.log('Failed to fetch mcaps by chain')
-			console.log(err)
-			return {}
-		})
 
 	const chainMcap =
 		chains?.reduce((acc, [chain, geckoId]) => {
@@ -685,12 +681,10 @@ export const getDimensionsAdaptersChainsPageData = async (type: string, dataType
 	const { allChains, total24h: allChainsTotal24h } = await getOverview(type)
 
 	const [protocolsData, ...dataByChain] = await Promise.all([
-		fetch(PROTOCOLS_API)
-			.then(handleFetchResponse)
-			.catch((err) => {
-				console.log(PROTOCOLS_API, err)
-				return {}
-			}),
+		fetchJson(PROTOCOLS_API).catch((err) => {
+			console.log(PROTOCOLS_API, err)
+			return {}
+		}),
 		...allChains.map(
 			(
 				chain // TODO: replace this with single endpoint
@@ -837,32 +831,16 @@ export const getFeesAndRevenueByChain = async ({
 
 	const [fees, revenue] = await Promise.all([
 		apiUrl
-			? fetchWithErrorLogging(apiUrl)
-					.then((res) => {
-						if (res.status === 200) {
-							return res.json()
-						} else {
-							return null
-						}
-					})
-					.catch((err) => {
-						console.log('Error at ', apiUrl, err)
-						return null
-					})
+			? fetchJson(apiUrl).catch((err) => {
+					console.log('Error at ', apiUrl, err)
+					return null
+			  })
 			: null,
 		apiUrl
-			? fetchWithErrorLogging(`${apiUrl}&dataType=dailyRevenue`)
-					.then((res) => {
-						if (res.status === 200) {
-							return res.json()
-						} else {
-							return null
-						}
-					})
-					.catch((err) => {
-						console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
-						return null
-					})
+			? fetchJson(`${apiUrl}&dataType=dailyRevenue`).catch((err) => {
+					console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
+					return null
+			  })
 			: null
 	])
 
@@ -882,18 +860,10 @@ export const getAppRevenueByChain = async ({
 		chain && chain !== 'All' ? '/' + slug(chain) : ''
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}&dataType=dailyAppRevenue`
 
-	const revenue = await fetchWithErrorLogging(apiUrl)
-		.then((res) => {
-			if (res.status === 200) {
-				return res.json()
-			} else {
-				return null
-			}
-		})
-		.catch((err) => {
-			console.log('Error at ', apiUrl, err)
-			return null
-		})
+	const revenue = await fetchJson(apiUrl).catch((err) => {
+		console.log('Error at ', apiUrl, err)
+		return null
+	})
 
 	return {
 		totalAppRevenue24h: revenue?.total24h ?? null,
@@ -916,18 +886,10 @@ export const getAppFeesByChain = async ({
 		chain && chain !== 'All' ? '/' + slug(chain) : ''
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}&dataType=dailyAppFees`
 
-	const fees = await fetchWithErrorLogging(apiUrl)
-		.then((res) => {
-			if (res.status === 200) {
-				return res.json()
-			} else {
-				return null
-			}
-		})
-		.catch((err) => {
-			console.log('Error at ', apiUrl, err)
-			return null
-		})
+	const fees = await fetchJson(apiUrl).catch((err) => {
+		console.log('Error at ', apiUrl, err)
+		return null
+	})
 
 	return {
 		totalAppFees24h: fees?.total24h ?? null,
@@ -944,26 +906,11 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 
 	const [fees, revenue, holdersRevenue] = await Promise.all([
-		fetchWithErrorLogging(apiUrl)
-			.then((res) => {
-				if (res.status === 200) {
-					return res.json()
-				} else {
-					return null
-				}
-			})
-			.catch((err) => {
-				console.log('Error at ', apiUrl, err)
-				return null
-			}),
-		fetchWithErrorLogging(`${apiUrl}&dataType=dailyRevenue`)
-			.then((res) => {
-				if (res.status === 200) {
-					return res.json()
-				} else {
-					return null
-				}
-			})
+		fetchJson(apiUrl).catch((err) => {
+			console.log('Error at ', apiUrl, err)
+			return null
+		}),
+		fetchJson(`${apiUrl}&dataType=dailyRevenue`)
 			.then((res) => {
 				return (
 					res?.protocols?.reduce((acc, protocol) => {
@@ -978,14 +925,7 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 				console.log('Error at ', apiUrl + '&dataType=dailyRevenue', err)
 				return null
 			}),
-		fetchWithErrorLogging(`${apiUrl}&dataType=dailyHoldersRevenue`)
-			.then((res) => {
-				if (res.status === 200) {
-					return res.json()
-				} else {
-					return null
-				}
-			})
+		fetchJson(`${apiUrl}&dataType=dailyHoldersRevenue`)
 			.then((res) => {
 				return (
 					res?.protocols?.reduce((acc, protocol) => {
@@ -1037,22 +977,14 @@ export const getDexVolumeByChain = async ({
 	excludeTotalDataChart: boolean
 	excludeTotalDataChartBreakdown: boolean
 }) => {
-	const data = await fetchWithErrorLogging(
+	const data = await fetchJson(
 		`${DIMENISIONS_OVERVIEW_API}/dexs${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
-	)
-		.then((res) => {
-			if (res.status === 200) {
-				return res.json()
-			} else {
-				return null
-			}
-		})
-		.catch((err) => {
-			console.log(err)
-			return null
-		})
+	).catch((err) => {
+		console.log(err)
+		return null
+	})
 
 	return data
 }

@@ -5,11 +5,9 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { VirtualTable } from '~/components/Table/Table'
 import { formattedPercent } from '~/utils'
 
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { TagGroup } from '~/components/TagGroup'
 import { useQuery } from '@tanstack/react-query'
-
-const fetch = fetchWithErrorLogging
 
 const valueToFilter = {
 	'1d': 'day',
@@ -29,44 +27,40 @@ interface ITrendingContracts {
 }
 
 async function getContracts(chain: string, time: string) {
-	return await fetch(
+	return await fetchJson(
 		`https://trending-contracts-api.onrender.com/${chain}_tc/${valueToFilter[time] || valueToFilter['1d']}`
-	)
-		.then((res) => res.json())
-		.then(async (r) => {
-			return {
-				results: await Promise.all(
-					r.map(async (contract) => {
-						let name = contract.name ? { name: contract.name } : undefined
-						if (!name) {
+	).then(async (r) => {
+		return {
+			results: await Promise.all(
+				r.map(async (contract) => {
+					let name = contract.name ? { name: contract.name } : undefined
+					if (!name) {
+						try {
+							name = await fetchJson(
+								`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
+							)
+							if (name.name === undefined) {
+								throw new Error('RolodETH: No name')
+							}
+						} catch (e) {
 							try {
-								name = await fetch(
-									`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
-								).then((r) => r.json())
-								if (name.name === undefined) {
-									throw new Error('RolodETH: No name')
+								name = await fetchJson(`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`)
+								if (name.name === '') {
+									throw new Error('Etherescan: Contract not verified')
 								}
 							} catch (e) {
-								try {
-									name = await fetch(
-										`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`
-									).then((r) => r.json())
-									if (name.name === '') {
-										throw new Error('Etherescan: Contract not verified')
-									}
-								} catch (e) {
-									name = undefined
-								}
+								name = undefined
 							}
 						}
-						return {
-							...contract,
-							name: name?.name
-						}
-					})
-				)
-			}
-		})
+					}
+					return {
+						...contract,
+						name: name?.name
+					}
+				})
+			)
+		}
+	})
 }
 
 export default function TrendingContracts() {

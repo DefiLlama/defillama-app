@@ -16,12 +16,10 @@ import { formatGovernanceData } from '~/api/categories/protocols'
 import { GovernanceTable } from '~/containers/ProtocolOverview/Governance'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-
-const fetch = fetchWithErrorLogging
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -37,9 +35,9 @@ export const getStaticProps = withPerformanceLogging(
 			{ [key: string]: { name: string; id: string } },
 			{ [key: string]: { name: string; id: string } }
 		] = await Promise.all([
-			fetch(GOVERNANCE_SNAPSHOT_API).then((res) => res.json()),
-			fetch(GOVERNANCE_COMPOUND_API).then((res) => res.json()),
-			fetch(GOVERNANCE_TALLY_API).then((res) => res.json())
+			fetchJson(GOVERNANCE_SNAPSHOT_API),
+			fetchJson(GOVERNANCE_COMPOUND_API),
+			fetchJson(GOVERNANCE_TALLY_API)
 		])
 
 		const snapshotProjectId = Object.values(snapshot).find((p) => slug(p.name) === project)?.id
@@ -76,7 +74,7 @@ export const getStaticProps = withPerformanceLogging(
 					[month: string]: { total: number; successful: number; proposals: Array<string> }
 				}
 			}
-		} = await fetch(api).then((res) => res.json())
+		} = await fetchJson(api)
 
 		const recentMonth = Object.keys(data.stats.months).sort().pop()
 		const missingMonths = getDateRange(recentMonth)

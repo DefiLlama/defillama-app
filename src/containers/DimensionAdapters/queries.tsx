@@ -6,13 +6,11 @@ import {
 	PROTOCOLS_API,
 	REV_PROTOCOLS
 } from '~/constants'
-import { fetchWithErrorLogging, handleFetchResponse, postRuntimeLogs } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE, ADAPTER_DATA_TYPES } from './constants'
 import metadataCache from '~/utils/metadata'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
-
-const fetch = fetchWithErrorLogging
 
 export interface IAdapterOverview {
 	totalDataChart: Array<[number, number]> // date, value
@@ -120,9 +118,7 @@ async function getChainMapping() {
 	}
 
 	try {
-		const mapping = await fetchWithErrorLogging('https://api.llama.fi/overview/_internal/chain-name-id-map').then(
-			handleFetchResponse
-		)
+		const mapping = await fetchJson('https://api.llama.fi/overview/_internal/chain-name-id-map')
 		chainMappingCache = mapping
 		return mapping
 	} catch (error) {
@@ -161,7 +157,7 @@ export async function getAdapterChainOverview({
 			url += `&dataType=${dataType}`
 		}
 
-		const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
+		const data = await fetchJson(url)
 
 		return data as IAdapterOverview
 	} else {
@@ -175,7 +171,7 @@ export async function getAdapterChainOverview({
 		}
 
 		const [data, emissionsData, chainMapping] = await Promise.all([
-			fetchWithErrorLogging(url).then(handleFetchResponse),
+			fetchJson(url),
 			getEmissionsData(),
 			getChainMapping()
 		])
@@ -296,23 +292,23 @@ export async function getAdapterProtocolSummary({
 		url += `&dataType=${dataType}`
 	}
 
-	const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
+	const data = await fetchJson(url)
 
 	return data as IAdapterSummary
 }
 
 export async function getCexVolume() {
 	const [cexs, btcPriceRes] = await Promise.all([
-		fetch(
+		fetchJson(
 			`${BASE_API}cachedExternalResponse?url=${encodeURIComponent(
 				'https://api.coingecko.com/api/v3/exchanges?per_page=250'
 			)}`
-		).then(handleFetchResponse),
-		fetch(
+		),
+		fetchJson(
 			`${BASE_API}cachedExternalResponse?url=${encodeURIComponent(
 				'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
 			)}`
-		).then(handleFetchResponse)
+		)
 	])
 	const btcPrice = btcPriceRes?.bitcoin?.usd
 	if (!btcPrice || !cexs || typeof cexs.filter !== 'function') return undefined
@@ -322,9 +318,7 @@ export async function getCexVolume() {
 }
 
 async function getEmissionsData() {
-	const data = await fetchWithErrorLogging('https://api.llama.fi/emissionsBreakdownAggregated').then(
-		handleFetchResponse
-	)
+	const data = await fetchJson('https://api.llama.fi/emissionsBreakdownAggregated')
 	return data
 }
 
@@ -523,7 +517,7 @@ export const getAdapterByChainPageData = async ({
 			excludeTotalDataChart: false,
 			excludeTotalDataChartBreakdown: true
 		}),
-		fetch(PROTOCOLS_API).then(handleFetchResponse),
+		fetchJson(PROTOCOLS_API),
 		adapterType === 'fees'
 			? getAdapterChainOverview({
 					adapterType,
@@ -549,18 +543,16 @@ export const getAdapterByChainPageData = async ({
 		.map((e) => [e.name, metadataCache.chainMetadata[slug(e.name)]?.gecko_id ?? null])
 		.filter((e) => (e[1] ? true : false))
 
-	const chainMcaps = await fetch(MCAPS_API, {
+	const chainMcaps = await fetchJson(MCAPS_API, {
 		method: 'POST',
 		body: JSON.stringify({
 			coins: chains.map(([_, geckoId]) => `coingecko:${geckoId}`)
 		})
+	}).catch((err) => {
+		console.log('Failed to fetch mcaps by chain')
+		console.log(err)
+		return {}
 	})
-		.then((r) => r.json())
-		.catch((err) => {
-			console.log('Failed to fetch mcaps by chain')
-			console.log(err)
-			return {}
-		})
 
 	const chainsMcap =
 		chains?.reduce((acc, [chain, geckoId]) => {

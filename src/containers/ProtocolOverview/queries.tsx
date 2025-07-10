@@ -1,5 +1,5 @@
 import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
-import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
@@ -40,9 +40,7 @@ const { chainMetadata } = metadata
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
 	try {
-		const data: IUpdatedProtocol = await fetchWithErrorLogging(`${PROTOCOL_API}/${protocolName}`).then((res) =>
-			res.json()
-		)
+		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${protocolName}`)
 
 		if (!data || (data as any).statusCode === 400) {
 			throw new Error((data as any).body)
@@ -61,7 +59,7 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		// }
 
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
-			const hourlyData = await fetchWithErrorLogging(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((res) => res.json())
+			const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${protocolName}`)
 
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
@@ -243,17 +241,14 @@ export const getProtocolOverviewPageData = async ({
 
 				const [tokenCGData, devActivity] = await Promise.all([
 					data.gecko_id
-						? fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
-								.then((res) => res.json())
+						? fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
 								.then(({ data }) => data)
 								.catch(() => null as any)
 						: Promise.resolve(null),
 					data.github
-						? await fetchWithTimeout(devMetricsProtocolUrl, 3_000)
-								.then((r) => r.json())
-								.catch((e) => {
-									return null
-								})
+						? await fetchJson(devMetricsProtocolUrl, { timeout: 3_000 }).catch((e) => {
+								return null
+						  })
 						: Promise.resolve(null)
 				])
 
@@ -377,8 +372,7 @@ export const getProtocolOverviewPageData = async ({
 			  })
 			: Promise.resolve(null),
 		metadata.treasury
-			? fetchWithErrorLogging(PROTOCOLS_TREASURY)
-					.then((res) => res.json())
+			? fetchJson(PROTOCOLS_TREASURY)
 					.then((res) => res.find((item) => item.id === `${protocolId}-treasury`)?.tokenBreakdowns ?? null)
 					.then((res) => {
 						return res
@@ -394,20 +388,17 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		metadata.yields
-			? fetchWithErrorLogging(YIELD_POOLS_API)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', metadata.name, err instanceof Error ? err.message : '')
-						return {}
-					})
+			? fetchJson(YIELD_POOLS_API).catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', metadata.name, err instanceof Error ? err.message : '')
+					return {}
+			  })
 			: null,
 		fetchArticles({ tags: metadata.name }).catch((err) => {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', metadata.name, err instanceof Error ? err.message : '')
 			return []
 		}),
 		metadata?.emissions
-			? fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
-					.then((res) => res.json())
+			? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
 					.then((data) => {
 						const protocolEmissionsData = data.protocols.find((item) =>
 							protocolId.startsWith('parent#') ? item.name === metadata.displayName : item.defillamaId === protocolId
@@ -428,8 +419,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		metadata.activeUsers
-			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
-					.then((res) => res.json())
+			? fetchJson(ACTIVE_USERS_API, { timeout: 10_000 })
 					.then((data) => data?.[protocolId] ?? null)
 					.then((data) => {
 						return data?.users?.value || data?.newUsers?.value || data?.txs?.value || data?.gasUsd?.value
@@ -444,35 +434,26 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		metadata.expenses
-			? fetchWithErrorLogging(PROTOCOLS_EXPENSES_API)
-					.then((res) => res.json())
+			? fetchJson(PROTOCOLS_EXPENSES_API)
 					.then((data) => data.find((item) => item.protocolId === protocolId))
 					.catch(() => {
 						return null
 					})
 			: null,
 		metadata.liquidity
-			? fetchWithErrorLogging(YIELD_CONFIG_API)
-					.then((res) => res.json())
-					.catch(() => {
-						return null
-					})
+			? fetchJson(YIELD_CONFIG_API).catch(() => {
+					return null
+			  })
 			: null,
 		metadata?.liquidity
-			? fetchWithErrorLogging(LIQUIDITY_API)
-					.then((res) => res.json())
-					.catch(() => {
-						return []
-					})
+			? fetchJson(LIQUIDITY_API).catch(() => {
+					return []
+			  })
 			: [],
-		fetchWithErrorLogging(PROTOCOLS_API)
-			.then((res) => res.json())
-			.catch(() => ({ protocols: [] })),
-		fetchWithErrorLogging(HACKS_API)
-			.then((res) => res.json())
-			.catch(() => ({ hacks: [] })),
-		fetchWithErrorLogging(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.name)}`)
-			.then((res) => res.json().then((data) => data.dailyVolumes || null))
+		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
+		fetchJson(HACKS_API).catch(() => ({ hacks: [] })),
+		fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.name)}`)
+			.then((data) => data.dailyVolumes || null)
 			.catch(() => null),
 		getProtocolIncomeStatement({ protocolId, metadata })
 	])
@@ -1083,12 +1064,12 @@ const commonMethodology = {
 }
 
 export const fetchArticles = async ({ tags = '', size = 2 }) => {
-	const articlesRes: IArticlesResponse = await fetchWithTimeout(`https://api.llama.fi/news/articles`, 10_000)
-		.then((res) => res.json())
-		.catch((err) => {
-			console.log(err)
-			return {}
-		})
+	const articlesRes: IArticlesResponse = await fetchJson(`https://api.llama.fi/news/articles`, {
+		timeout: 10_000
+	}).catch((err) => {
+		console.log(err)
+		return {}
+	})
 
 	const target = tags.toLowerCase()
 

@@ -89,8 +89,6 @@ setInterval(async () => {
 		fetchJson(PROTOCOLS_DATA_URL),
 		fetchJson(CHAINS_DATA_URL),
 		fetchJson(TOTAL_TRACKED_BY_METRIC_DATA_URL)
-			.then((res) => res)
-			.catch(() => ({}))
 	])
 
 	const protocolKeys = Object.keys(protocols)

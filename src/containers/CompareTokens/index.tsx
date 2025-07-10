@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { fetchJson } from '~/utils/async'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()
@@ -35,11 +36,9 @@ export default function CompareFdv({ coinsData, protocols }) {
 			coins.length == 2
 				? () =>
 						Promise.all([
-							fetch(`${COINS_PRICES_API}/current/${coins.map((c) => 'coingecko:' + c).join(',')}`).then((res) =>
-								res.json()
-							),
-							fetch(`${CACHE_SERVER}/supply/${coins[0]}`).then((res) => res.json()),
-							fetch(`${CACHE_SERVER}/supply/${coins[1]}`).then((res) => res.json())
+							fetchJson(`${COINS_PRICES_API}/current/${coins.map((c) => 'coingecko:' + c).join(',')}`),
+							fetchJson(`${CACHE_SERVER}/supply/${coins[0]}`),
+							fetchJson(`${CACHE_SERVER}/supply/${coins[1]}`)
 						])
 				: () => null,
 		staleTime: 60 * 60 * 1000
