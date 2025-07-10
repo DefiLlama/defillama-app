@@ -118,6 +118,7 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 					className:
 						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C]'
 				}}
+				placement="bottom-end"
 			/>
 		</>
 	)
