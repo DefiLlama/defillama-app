@@ -157,7 +157,7 @@ export async function getAdapterChainOverview({
 			url += `&dataType=${dataType}`
 		}
 
-		const data = await fetchJson(url)
+		const data = await fetchJson(url, { timeout: 30_000 })
 
 		return data as IAdapterOverview
 	} else {
