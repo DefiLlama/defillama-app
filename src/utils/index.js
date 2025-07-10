@@ -194,7 +194,7 @@ export function tokenIconUrl(name) {
 			.toLowerCase()
 			.replace(/[()'"]/g, '') // Remove parentheses and quotes
 			.replace(/\s+/g, '-') // Replace spaces with hyphens
-			.replace(/[^\w-]/g, '') // Remove any other non-word chars except hyphens
+			.replace(/[^\w.-]/g, '') // Remove any other non-word chars except hyphens and dots
 	}?w=48&h=48`
 }
 
@@ -207,7 +207,7 @@ export function tokenIconPaletteUrl(name) {
 			.toLowerCase()
 			.replace(/[()'"]/g, '') // Remove parentheses and quotes
 			.replace(/\s+/g, '-') // Replace spaces with hyphens
-			.replace(/[^\w-]/g, '') // Remove any other non-word chars except hyphens
+			.replace(/[^\w.-]/g, '') // Remove any other non-word chars except hyphens and dots
 	}`
 }
 
@@ -325,7 +325,7 @@ export const slug = (name = '') =>
 		?.toLowerCase()
 		.replace(/[()'"]/g, '') // Remove parentheses and quotes
 		.replace(/\s+/g, '-') // Replace spaces with hyphens
-		.replace(/[^\w-]/g, '') // Remove other special chars
+		.replace(/[^\w.-]/g, '') // Remove any other non-word chars except hyphens and dots
 
 export function getRandomColor() {
 	var letters = '0123456789ABCDEF'
