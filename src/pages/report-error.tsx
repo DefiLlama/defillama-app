@@ -42,7 +42,7 @@ function ReportError() {
 
 	return (
 		<Layout title="Report Error - DefiLlama" defaultSEO>
-			<div className="flex flex-col gap-4 w-full max-w-lg mx-auto xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11">
+			<div className="flex flex-col gap-4 w-full max-w-lg mx-auto lg:mt-4 xl:mt-11">
 				<form onSubmit={onSubmit} className="flex flex-col gap-4 p-3 w-full bg-(--cards-bg) rounded-md">
 					<h1 className="text-xl font-semibold text-center mb-3">Report Error</h1>
 					<label className="flex flex-col gap-1">
