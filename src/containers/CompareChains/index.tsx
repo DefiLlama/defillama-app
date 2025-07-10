@@ -240,25 +240,6 @@ export function CompareChains() {
 								false
 							)
 						)}
-
-						{/* GroupBy Controls */}
-						{Object.keys(finalCharts).length > 0 && (
-							<div className="flex items-center gap-1 ml-auto">
-								<span className="text-sm text-[#545757] dark:text-[#cccccc]">Group by:</span>
-								<div className="flex items-center">
-									{['daily', 'weekly', 'monthly', 'cumulative'].map((period) => (
-										<button
-											key={period}
-											className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text) capitalize"
-											data-active={router.query?.groupBy === period || (!router.query?.groupBy && period === 'daily')}
-											onClick={() => updateRoute('groupBy', period, router)}
-										>
-											{period === 'cumulative' ? 'Cumulative' : period.charAt(0).toUpperCase()}
-										</button>
-									))}
-								</div>
-							</div>
-						)}
 					</div>
 					{data.isLoading || !router.isReady || isFetchingChartData ? (
 						<div className="flex items-center justify-center m-auto min-h-[360px]">
