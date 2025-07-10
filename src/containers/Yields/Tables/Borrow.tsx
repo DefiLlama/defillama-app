@@ -39,7 +39,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: ({ row }) => (
 			<NameYield
 				project={row.original.project}
-				projectslug={row.original.projectslug}
+				projectslug={row.original.project}
 				airdrop={row.original.airdrop}
 				borrow={true}
 			/>
