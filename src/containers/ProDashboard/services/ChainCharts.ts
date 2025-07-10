@@ -16,8 +16,8 @@ const CHART_METADATA = {
 	tvl: { type: 'tvl' },
 
 	volume: { type: 'dimensions', endpoint: 'dexs' },
-	fees: { type: 'dimensions', endpoint: 'fees' },
-	revenue: { type: 'dimensions', endpoint: 'fees', dataType: 'dailyRevenue' },
+	fees: { type: 'dimensions', endpoint: 'fees', dataType: 'dailyAppFees' },
+	revenue: { type: 'dimensions', endpoint: 'fees', dataType: 'dailyAppRevenue' },
 	bribes: { type: 'dimensions', endpoint: 'fees', dataType: 'dailyBribesRevenue' },
 	tokenTax: { type: 'dimensions', endpoint: 'fees', dataType: 'dailyTokenTaxes' },
 	aggregators: { type: 'dimensions', endpoint: 'aggregators' },

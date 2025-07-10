@@ -105,7 +105,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 
 	return (
 		<div className="p-4 h-full flex flex-col">
-			<div className="flex justify-between items-center mb-2 pr-28">
+			<div className="flex justify-between items-center mb-2 pr-20">
 				<div className="flex items-center gap-2">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
@@ -126,7 +126,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 								<button
 									key={option}
 									onClick={() => handleGroupingChange(chart.id, option)}
-									className={`px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
+									className={`px-2 xl:px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
 										${index > 0 ? 'border-l border-(--form-control-border)' : ''}
 										${
 											chart.grouping === option
@@ -134,7 +134,8 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
 										}`}
 								>
-									{option.charAt(0).toUpperCase() + option.slice(1)}
+									<span className="xl:hidden">{option.charAt(0).toUpperCase()}</span>
+									<span className="hidden xl:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
 								</button>
 							))}
 						</div>
