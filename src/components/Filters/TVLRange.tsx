@@ -3,10 +3,12 @@ import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function TVLRange({
 	variant = 'primary',
-	nestedMenu
+	nestedMenu,
+	triggerClassName
 }: {
 	variant?: 'primary' | 'secondary' | 'third'
 	nestedMenu?: boolean
+	triggerClassName?: string
 }) {
 	const router = useRouter()
 
@@ -60,6 +62,7 @@ export function TVLRange({
 			nestedMenu={nestedMenu}
 			min={min}
 			max={max}
+			triggerClassName={triggerClassName}
 		/>
 	)
 }
