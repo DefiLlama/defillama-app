@@ -714,7 +714,7 @@ export const useFetchAndFormatChartData = ({
 			queryFn: () =>
 				isPerpsAggregatorsVolumeEnabled
 					? getAdapterProtocolSummary({
-							adapterType: 'derivatives-aggregator',
+							adapterType: 'aggregator-derivatives',
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true

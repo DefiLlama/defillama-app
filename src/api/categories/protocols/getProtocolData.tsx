@@ -339,7 +339,7 @@ export const getProtocolData = async (
 			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  ).catch((err) => {
-					console.log(`Couldn't fetch derivatives-aggregators protocols list at path: ${protocol}`, 'Error:', err)
+					console.log(`Couldn't fetch aggregator-derivatives protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 			  })
 			: {},

@@ -382,7 +382,7 @@ export function useFetchAndFormatChartData({
 			isRouterReady && perpsAggregators === 'true' && metrics.perpsAggregators
 				? () =>
 						getAdapterProtocolSummary({
-							adapterType: 'derivatives-aggregator',
+							adapterType: 'aggregator-derivatives',
 							protocol,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true

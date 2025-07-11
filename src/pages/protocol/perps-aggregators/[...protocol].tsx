@@ -8,7 +8,7 @@ import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/q
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 
 export const getStaticProps = withPerformanceLogging(
-	'protocol/derivatives-aggregator/[...protocol]',
+	'protocol/perps-aggregators/[...protocol]',
 	async ({
 		params: {
 			protocol: [protocol]
@@ -32,7 +32,7 @@ export const getStaticProps = withPerformanceLogging(
 		const [protocolData, adapterData] = await Promise.all([
 			getProtocol(protocol),
 			getAdapterProtocolSummary({
-				adapterType: 'derivatives-aggregator',
+				adapterType: 'aggregator-derivatives',
 				protocol: metadata[1].name,
 				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
@@ -73,20 +73,20 @@ export default function Protocols(props) {
 					<DimensionProtocolChartByType
 						chartType="overview"
 						protocolName={slug(props.name)}
-						adapterType="derivatives-aggregator"
+						adapterType="aggregator-derivatives"
 					/>
 					{props.hasMultipleChain ? (
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
-							adapterType="derivatives-aggregator"
+							adapterType="aggregator-derivatives"
 						/>
 					) : null}
 					{props.hasMultipleVersions ? (
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}
-							adapterType="derivatives-aggregator"
+							adapterType="aggregator-derivatives"
 						/>
 					) : null}
 				</div>

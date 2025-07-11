@@ -337,7 +337,7 @@ export const getProtocolOverviewPageData = async ({
 			: Promise.resolve(null),
 		metadata.perpsAggregators
 			? getAdapterChainOverview({
-					adapterType: 'derivatives-aggregator',
+					adapterType: 'aggregator-derivatives',
 					chain: 'All',
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true

@@ -146,9 +146,7 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let url = `${DIMENISIONS_OVERVIEW_API}/${
-			adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
-		}${
+		let url = `${DIMENISIONS_OVERVIEW_API}/${adapterType}${
 			chain && chain !== 'All' ? `/${slug(chain)}` : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
@@ -161,9 +159,7 @@ export async function getAdapterChainOverview({
 		return data as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let url = `${DIMENISIONS_OVERVIEW_API}/${
-			adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
-		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		let url = `${DIMENISIONS_OVERVIEW_API}/${adapterType}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 		if (dataType) {
 			url += `&dataType=dailyRevenue`
@@ -281,9 +277,7 @@ export async function getAdapterProtocolSummary({
 	excludeTotalDataChartBreakdown: boolean
 	dataType?: `${ADAPTER_DATA_TYPES}`
 }) {
-	let url = `${DIMENISIONS_SUMMARY_BASE_API}/${
-		adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
-	}${
+	let url = `${DIMENISIONS_SUMMARY_BASE_API}/${adapterType}${
 		protocol && protocol !== 'All' ? `/${slug(protocol)}` : ''
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
@@ -814,7 +808,10 @@ export const getChainsByAdapterPageData = async ({
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const allChains = []
 		for (const chain in metadataCache.chainMetadata) {
-			if (metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]) {
+			if (
+				ADAPTER_TYPES_TO_METADATA_TYPE[adapterType] &&
+				metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]
+			) {
 				allChains.push(chain)
 			}
 		}
