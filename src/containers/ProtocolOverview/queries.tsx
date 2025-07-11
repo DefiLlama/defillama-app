@@ -108,7 +108,7 @@ export const getProtocolMetrics = ({
 		}
 	}
 
-	const tvlTab = inflowsExist || multipleChains || tokenBreakdownExist
+	const tvlTab = metadata.tvl && (inflowsExist || multipleChains || tokenBreakdownExist)
 
 	return {
 		tvl: metadata.tvl ? true : false,
