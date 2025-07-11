@@ -1,13 +1,11 @@
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-import metadata from '~/utils/metadata'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { maxAgeForNext } from '~/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
-import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { PROTOCOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
-const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[...protocol]',
@@ -17,7 +15,15 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const normalizedName = slug(protocol)
-		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (protocolMetadata[key].name === normalizedName) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
 
 		if (!metadata) {
 			return { notFound: true, props: null }

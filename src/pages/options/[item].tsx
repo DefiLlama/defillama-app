@@ -3,11 +3,10 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolByAdapter } from '~/containers/DimensionAdapters/ProtocolByAdapter'
 import { GetStaticPropsContext } from 'next'
 import { slug } from '~/utils'
-import metadataCache from '~/utils/metadata'
 import { maxAgeForNext } from '~/api'
 import { fetchJson } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
-const protocolMetadata = metadataCache.protocolMetadata
+import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 
 const ADAPTOR_TYPE = ADAPTOR_TYPES.OPTIONS
 
@@ -43,8 +42,15 @@ export const getStaticProps = withPerformanceLogging(
 	`${ADAPTOR_TYPE}/[item]`,
 	async ({ params }: GetStaticPropsContext<{ item: string }>) => {
 		const protocol = slug(params.item)
-
-		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (protocolMetadata[key].name === protocol) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
 
 		if (!metadata?.[1]?.[ADAPTOR_TYPE]) {
 			return { notFound: true, props: null }

@@ -67,6 +67,8 @@ export default function PeggedContainer(props) {
 	)
 }
 
+const totalChartTooltipLabel = ['Circulating']
+
 export const PeggedAssetInfo = ({
 	chainsUnique,
 	chainCirculatings,
@@ -102,8 +104,6 @@ export const PeggedAssetInfo = ({
 	const chainsData: any[] = chainsUnique.map((elem: string) => {
 		return peggedAssetData.chainBalances[elem].tokens
 	})
-
-	const totalChartTooltipLabel = ['Circulating']
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = React.useMemo(
 		() =>

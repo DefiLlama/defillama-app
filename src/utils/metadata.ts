@@ -1,10 +1,8 @@
 import chainMetadata from '../../.cache/chains.json'
 import protocolMetadata from '../../.cache/protocols.json'
-import totalTrackedByMetric from '../../.cache/totalTrackedByMetric.json'
 
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
-const TOTAL_TRACKED_BY_METRIC_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
 interface IChainMetadata {
 	stablecoins?: boolean
@@ -55,41 +53,18 @@ interface IProtocolMetadata {
 	tokenTax?: boolean
 }
 
-interface ITotalTrackedByMetric {
-	tvl: { protocols: number; chains: number }
-	stablecoins: { protocols: number; chains: number }
-	fees: { protocols: number; chains: number }
-	revenue: { protocols: number; chains: number }
-	holdersRevenue: { protocols: number; chains: number }
-	dexs: { protocols: number; chains: number }
-	dexAggregators: { protocols: number; chains: number }
-	perps: { protocols: number; chains: number }
-	perpAggregators: { protocols: number; chains: number }
-	options: { protocols: number; chains: number }
-	bridgeAggregators: { protocols: number; chains: number }
-	lending: { protocols: number; chains: number }
-	treasury: { protocols: number; chains: number }
-	emissions: { protocols: number; chains: number }
-}
-
 const metadataCache: {
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
-	totalTrackedByMetric: ITotalTrackedByMetric
 } = {
 	chainMetadata,
-	protocolMetadata,
-	totalTrackedByMetric
+	protocolMetadata
 }
 
 setInterval(async () => {
 	const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
-	const [protocols, chains, totalTrackedByMetric] = await Promise.all([
-		fetchJson(PROTOCOLS_DATA_URL),
-		fetchJson(CHAINS_DATA_URL),
-		fetchJson(TOTAL_TRACKED_BY_METRIC_DATA_URL)
-	])
+	const [protocols, chains] = await Promise.all([fetchJson(PROTOCOLS_DATA_URL), fetchJson(CHAINS_DATA_URL)])
 
 	const protocolKeys = Object.keys(protocols)
 	const chainKeys = Object.keys(chains)
@@ -113,8 +88,6 @@ setInterval(async () => {
 	chainKeys.forEach((key) => {
 		metadataCache.chainMetadata[key] = chains[key]
 	})
-
-	metadataCache.totalTrackedByMetric = totalTrackedByMetric
 }, 60 * 60 * 1000)
 
 export default metadataCache

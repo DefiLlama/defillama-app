@@ -2,9 +2,11 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import metadataCache from '~/utils/metadata'
 import { useEffect, useMemo, useState } from 'react'
 import { matchSorter } from 'match-sorter'
+import { useQuery } from '@tanstack/react-query'
+import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
 
 export interface ITotalTrackedByMetric {
 	tvl: { protocols: number; chains: number }
@@ -18,6 +20,9 @@ export interface ITotalTrackedByMetric {
 	perpAggregators: { protocols: number; chains: number }
 	options: { protocols: number; chains: number }
 	bridgeAggregators: { protocols: number; chains: number }
+	lending: { protocols: number; chains: number }
+	treasury: { protocols: number; chains: number }
+	emissions: { protocols: number; chains: number }
 }
 
 export type TMetric =
@@ -87,6 +92,12 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 			router.events.off('routeChangeComplete', handleRouteChange)
 		}
 	}, [router, dialogStore])
+
+	const { data: totalTrackedByMetric } = useQuery({
+		queryKey: ['totalTrackedByMetric'],
+		queryFn: () => fetchJson(TOTAL_TRACKED_BY_METRIC_API),
+		staleTime: 60 * 60 * 1000
+	})
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
@@ -189,8 +200,10 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 								>
 									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 										<span className="font-medium">{metric.name}</span>
-										{metric.chainsTracked ? (
-											<span className="text-xs text-(--link)">{metric.chainsTracked} tracked</span>
+										{totalTrackedByMetric && metric.chainsTracked(totalTrackedByMetric) ? (
+											<span className="text-xs text-(--link)">
+												{metric.chainsTracked(totalTrackedByMetric)} tracked
+											</span>
 										) : null}
 									</span>
 									<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
@@ -209,8 +222,10 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 								>
 									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 										<span className="font-medium">{metric.name}</span>
-										{metric.protocolsTracked ? (
-											<span className="text-xs text-(--link)">{metric.protocolsTracked} tracked</span>
+										{totalTrackedByMetric && metric.protocolsTracked(totalTrackedByMetric) ? (
+											<span className="text-xs text-(--link)">
+												{metric.protocolsTracked(totalTrackedByMetric)} tracked
+											</span>
 										) : null}
 									</span>
 									<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
@@ -228,28 +243,28 @@ export const protocolsMetrics: Array<{
 	name: TMetric
 	mainRoute: string
 	chainRoute: string
-	protocolsTracked: number
+	protocolsTracked: (totalTrackedByMetric: ITotalTrackedByMetric) => number
 	description: string
 }> = [
 	{
 		name: 'TVL',
 		mainRoute: '/',
 		chainRoute: `/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.tvl.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.tvl?.protocols ?? 0,
 		description: 'Total value of all coins held in smart contracts of the protocols'
 	},
 	{
 		name: 'Fees',
 		mainRoute: '/fees',
 		chainRoute: `/fees/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.fees.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.protocols ?? 0,
 		description: 'Total fees paid by users when using the protocol'
 	},
 	{
 		name: 'Revenue',
 		mainRoute: '/revenue',
 		chainRoute: `/revenue/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.revenue.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.protocols ?? 0,
 		description:
 			"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
 	},
@@ -257,7 +272,7 @@ export const protocolsMetrics: Array<{
 		name: 'Holders Revenue',
 		mainRoute: '/holders-revenue',
 		chainRoute: `/holders-revenue/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.holdersRevenue.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.holdersRevenue?.protocols ?? 0,
 		description:
 			'Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers'
 	},
@@ -265,105 +280,105 @@ export const protocolsMetrics: Array<{
 		name: 'Stablecoin Supply',
 		mainRoute: '/stablecoins',
 		chainRoute: `/stablecoins/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.stablecoins.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.stablecoins?.protocols ?? 0,
 		description: 'Total market cap of stable assets currently deployed on the chain'
 	},
 	{
 		name: 'DEX Volume',
 		mainRoute: '/dexs',
 		chainRoute: `/dexs/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.dexs.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.dexs?.protocols ?? 0,
 		description: 'Volume of all spot token swaps that go through a DEX'
 	},
 	{
 		name: 'Total Borrowed',
 		mainRoute: '/total-borrowed',
 		chainRoute: `/total-borrowed/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.lending.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.lending?.protocols ?? 0,
 		description: 'Sum of value currently borrowed across all active loans on a Lending protocol'
 	},
 	{
 		name: 'Net Project Treasury',
 		mainRoute: '/net-project-treasury',
 		chainRoute: null,
-		protocolsTracked: metadataCache.totalTrackedByMetric.treasury.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.treasury?.protocols ?? 0,
 		description: "Value of tokens owned by a protocol, excluding it's own token"
 	},
 	{
 		name: 'Perp Volume',
 		mainRoute: '/perps',
 		chainRoute: `/perps/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.perps.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perps?.protocols ?? 0,
 		description: 'Notional volume of all trades in a perp exchange, includes leverage'
 	},
 	{
 		name: 'Total Raised',
 		mainRoute: '/raises',
 		chainRoute: `/raises?chain={chain}`,
-		protocolsTracked: 0,
+		protocolsTracked: () => 0,
 		description: 'Total amount of capital raised by a protocol'
 	},
 	{
 		name: 'Oracle TVS',
 		mainRoute: '/oracles',
 		chainRoute: `/oracles/chain/{chain}`,
-		protocolsTracked: 0,
+		protocolsTracked: () => 0,
 		description: 'Total Value Secured by an oracle, where oracle failure would lead to a loss equal to TVS'
 	},
 	{
 		name: 'TVL in forks',
 		mainRoute: '/forks',
 		chainRoute: null,
-		protocolsTracked: 0,
+		protocolsTracked: () => 0,
 		description: 'Sum of TVL across all forks of a protocol'
 	},
 	{
 		name: 'DEX Aggregator Volume',
 		mainRoute: '/dex-aggregators',
 		chainRoute: `/dex-aggregators/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.dexAggregators.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.dexAggregators?.protocols ?? 0,
 		description: 'Volume of spot token swaps that go through a DEX aggregator'
 	},
 	{
 		name: 'CEX Assets',
 		mainRoute: '/cexs',
 		chainRoute: null,
-		protocolsTracked: 0,
+		protocolsTracked: () => 0,
 		description: 'Sum of assets held on a centralized exchange such as Binance'
 	},
 	{
 		name: 'Options Premium Volume',
 		mainRoute: '/options/premium-volume',
 		chainRoute: `/options/premium-volume/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.options.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.options?.protocols ?? 0,
 		description: 'Sum of value paid buying and selling options'
 	},
 	{
 		name: 'Options Notional Volume',
 		mainRoute: '/options/notional-volume',
 		chainRoute: `/options/notional-volume/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.options.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.options?.protocols ?? 0,
 		description: 'Sum of the notional value of all options that have been traded on an options exchange'
 	},
 	{
 		name: 'Bridge Aggregator Volume',
 		mainRoute: '/bridge-aggregators',
 		chainRoute: `/bridge-aggregators/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.bridgeAggregators.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.bridgeAggregators?.protocols ?? 0,
 		description: 'Sum of value of all assets that were bridged through the Bridge Aggregators'
 	},
 	{
 		name: 'Perp Aggregator Volume',
 		mainRoute: '/perps-aggregators',
 		chainRoute: `/perps-aggregators/chain/{chain}`,
-		protocolsTracked: metadataCache.totalTrackedByMetric.perpAggregators.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perpAggregators?.protocols ?? 0,
 		description: 'Notional volume of all trades in a perp aggregator, includes leverage'
 	},
 	{
 		name: 'Unlocks',
 		mainRoute: '/unlocks',
 		chainRoute: null,
-		protocolsTracked: metadataCache.totalTrackedByMetric.emissions.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.emissions?.protocols ?? 0,
 		description:
 			'Tracks the release of locked tokens into circulation according to tokenomics schedules. Includes team, investor, ecosystem, and other vesting-based unlocks'
 	},
@@ -371,7 +386,7 @@ export const protocolsMetrics: Array<{
 		name: 'Earnings',
 		mainRoute: '/earnings',
 		chainRoute: null,
-		protocolsTracked: metadataCache.totalTrackedByMetric.revenue.protocols,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.protocols ?? 0,
 		description:
 			'Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself.'
 	}
@@ -380,74 +395,74 @@ export const protocolsMetrics: Array<{
 export const chainsMetrics: Array<{
 	name: string
 	route: string
-	chainsTracked: number
+	chainsTracked: (totalTrackedByMetric: ITotalTrackedByMetric) => number
 	description: string
 }> = [
 	{
 		name: 'TVL',
 		route: `/chains`,
-		chainsTracked: metadataCache.totalTrackedByMetric.tvl.chains,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.tvl?.chains ?? 0,
 		description: 'Total value of all coins held in smart contracts of the protocols'
 	},
 	{
 		name: 'Fees',
 		route: '/fees/chains',
-		chainsTracked: metadataCache.totalTrackedByMetric.fees.chains,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.chains ?? 0,
 		description: 'Total fees paid by users when using the protocol'
 	},
 	{
 		name: 'Revenue',
 		route: '/revenue/chains',
-		chainsTracked: metadataCache.totalTrackedByMetric.revenue.chains,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.chains ?? 0,
 		description:
 			"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
 	},
 	{
 		name: 'REV',
 		route: '/rev/chains',
-		chainsTracked: metadataCache.totalTrackedByMetric.fees.chains,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.chains ?? 0,
 		description: 'Sum of chain fees and MEV tips'
 	},
 	{
 		name: 'Bridged TVL',
 		route: '/bridged',
-		chainsTracked: 0,
+		chainsTracked: () => 0,
 		description: 'Value of all tokens held on the chain'
 	},
 	{
 		name: 'App Revenue',
 		route: '/app-revenue/chains',
-		chainsTracked: metadataCache.totalTrackedByMetric.fees.chains,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.chains ?? 0,
 		description: 'Total revenue earned by the apps on the chain. Excludes liquid staking apps and gas fees'
 	},
 	{
 		name: 'Stablecoin Supply',
 		route: `/stablecoins/chains`,
-		chainsTracked: metadataCache.totalTrackedByMetric.stablecoins.chains,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.stablecoins?.chains ?? 0,
 		description: 'Total market cap of stable assets currently deployed on all chains'
 	},
 	{
 		name: 'DEX Volume',
 		route: '/dexs/chains',
-		chainsTracked: metadataCache.totalTrackedByMetric.dexs.chains,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.dexs?.chains ?? 0,
 		description: 'Volume of all spot token swaps that go through a DEX'
 	},
 	{
 		name: 'Perp Volume',
 		route: '/perps/chains',
-		chainsTracked: metadataCache.totalTrackedByMetric.perps.chains,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perps?.chains ?? 0,
 		description: 'Notional volume of all trades in a perp exchange, includes leverage'
 	},
 	{
 		name: 'NFT Volume',
 		route: '/nfts/chains',
-		chainsTracked: 0,
+		chainsTracked: () => 0,
 		description: 'Sum of volume across all NFT exchanges'
 	},
 	{
 		name: 'Total Raised',
 		route: '/raises',
-		chainsTracked: 0,
+		chainsTracked: () => 0,
 		description: 'Total amount of capital raised by a protocol'
 	}
 ]

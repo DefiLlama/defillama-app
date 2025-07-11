@@ -20,10 +20,8 @@ import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdapto
 
 import { fetchJson } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
-import metadataCache from '~/utils/metadata'
 import { getCexVolume } from '~/containers/DimensionAdapters/queries'
 import { ILiteProtocol } from '~/containers/ChainOverview/types'
-const { chainMetadata } = metadataCache
 
 export enum ADAPTOR_TYPES {
 	DEXS = 'dexs',
@@ -204,6 +202,9 @@ function getTVLData(protocolsData: { protocols: Array<ILiteProtocol> }, chain?: 
 
 // - used in /[type] and /[type]/chain/[chain]
 export const getDimensionAdapterChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const { chainMetadata } = metadataCache
+
 	if (chain && !chainMetadata[slug(chain)][type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type]) {
 		return null
 	}

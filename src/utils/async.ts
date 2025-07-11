@@ -88,10 +88,10 @@ export function postRuntimeLogs(log) {
 			headers: { 'Content-Type': 'application/json' }
 		})
 	}
-	console.log(log)
+	console.log(`\n${log}\n`)
 }
 
-async function handleFetchResponse(res: Response) {
+async function handleFetchResponse(res: Response, url: RequestInfo | URL, options?: FetchOverCacheOptions) {
 	try {
 		if (res.status === 200) {
 			const response = await res.json()
@@ -99,7 +99,7 @@ async function handleFetchResponse(res: Response) {
 		}
 
 		// Handle non-200 status codes
-		let errorMessage = `Failed to fetch data from ${res.url}, with status ${res.status}`
+		let errorMessage = `[HTTP] [error] [${res.status}] < ${res.url} >`
 
 		// Try to get error message from statusText first
 		if (res.statusText) {
@@ -129,9 +129,8 @@ async function handleFetchResponse(res: Response) {
 
 		throw new Error(errorMessage)
 	} catch (e) {
-		postRuntimeLogs(
-			`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`
-		)
+		postRuntimeLogs(`[HTTP] [parse] [error] [${e.message}] < ${url} > \n${JSON.stringify(options)}`)
+
 		throw e // Re-throw the error instead of returning empty object
 	}
 }
@@ -141,6 +140,6 @@ export async function fetchJson(
 	options?: FetchOverCacheOptions,
 	retry: boolean = false
 ): Promise<any> {
-	const res = await fetchWithErrorLogging(url, options, retry).then(handleFetchResponse)
+	const res = await fetchWithErrorLogging(url, options, retry).then((res) => handleFetchResponse(res, url, options))
 	return res
 }

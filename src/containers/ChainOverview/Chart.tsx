@@ -108,7 +108,7 @@ export default function ChainLineBarChart({
 			series,
 			allYAxis: Object.entries(indexByYAxis) as Array<[ChainChartLabels, number | undefined]>
 		}
-	}, [chartData, color, isThemeDark, isCumulative])
+	}, [chartData, isThemeDark, isCumulative])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

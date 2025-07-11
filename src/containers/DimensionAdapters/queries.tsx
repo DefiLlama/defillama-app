@@ -9,7 +9,6 @@ import {
 import { fetchJson } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE, ADAPTER_DATA_TYPES } from './constants'
-import metadataCache from '~/utils/metadata'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
 
 export interface IAdapterOverview {
@@ -538,6 +537,8 @@ export const getAdapterByChainPageData = async ({
 			: Promise.resolve(null)
 	])
 
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 	const chains = data.protocols
 		.filter((e) => e.protocolType === 'chain')
 		.map((e) => [e.name, metadataCache.chainMetadata[slug(e.name)]?.gecko_id ?? null])
@@ -810,6 +811,7 @@ export const getChainsByAdapterPageData = async ({
 	route: string
 }): Promise<IChainsByAdapterPageData> => {
 	try {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const allChains = []
 		for (const chain in metadataCache.chainMetadata) {
 			if (metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]) {
@@ -919,6 +921,8 @@ export const getChainsByAdapterPageData = async ({
 
 export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> => {
 	try {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 		const allChains = []
 		for (const chain in metadataCache.chainMetadata) {
 			if (metadataCache.chainMetadata[chain]['chainFees']) {
