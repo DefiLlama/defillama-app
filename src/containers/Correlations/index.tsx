@@ -90,9 +90,13 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 
 export default function Correlations({ coinsData }) {
 	const router = useRouter()
-	const queryCoins = router.query?.coin || ([] as Array<string>)
-	const selectedCoins = useMemo<Record<string, IResponseCGMarketsAPI>>(
-		() =>
+	const queryParamString = JSON.stringify(router.query ?? {})
+	const queryCoins = useMemo(() => {
+		const routerQuery = JSON.parse(queryParamString)
+		return routerQuery?.coin || ([] as Array<string>)
+	}, [queryParamString])
+	const selectedCoins = useMemo<Record<string, IResponseCGMarketsAPI>>(() => {
+		return (
 			(queryCoins &&
 				Object.fromEntries(
 					coinsData
@@ -101,9 +105,10 @@ export default function Correlations({ coinsData }) {
 						)
 						.map((coin) => [coin.id, coin])
 				)) ||
-			{},
-		[queryCoins]
-	)
+			{}
+		)
+	}, [queryCoins])
+
 	const [period, setPeriod] = useState(365)
 	const { data: priceChart, isLoading } = usePriceCharts(Object.keys(selectedCoins))
 	const coins = Object.values(selectedCoins).filter(Boolean)
@@ -150,9 +155,7 @@ export default function Correlations({ coinsData }) {
 	const isClient = useIsClient()
 
 	if (!isClient) {
-		return (
-			<h1 className="bg-(--cards-bg) rounded-md p-3 text-center text-xl font-semibold">Correlations Matrix</h1>
-		)
+		return <h1 className="bg-(--cards-bg) rounded-md p-3 text-center text-xl font-semibold">Correlations Matrix</h1>
 	}
 
 	return (
