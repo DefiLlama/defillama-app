@@ -186,7 +186,7 @@ export async function getChainPageData(chain?: string) {
 					}
 			  )
 			: {},
-		chain && chain !== 'All' && chainMetadata?.derivatives
+		chain && chain !== 'All' && chainMetadata?.perps
 			? getOverview('derivatives', chainName?.toLowerCase(), undefined, false, false)
 			: null,
 		chain && chain !== 'All' ? fetchJson(TEMP_CHAIN_NFTS) : null,

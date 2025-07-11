@@ -51,7 +51,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata?.[1]?.[ADAPTOR_TYPE]) {
+		if (!metadata?.[1]?.dexs) {
 			return { notFound: true, props: null }
 		}
 

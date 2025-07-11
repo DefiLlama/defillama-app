@@ -11,11 +11,11 @@ interface IChainMetadata {
 	activeUsers?: boolean
 	fees?: boolean
 	chainFees?: boolean
-	derivatives?: boolean
-	aggregators?: boolean
+	perps?: boolean
+	dexAggregators?: boolean
 	options?: boolean
-	'aggregator-derivatives'?: boolean
-	'bridge-aggregators'?: boolean
+	perpsAggregators?: boolean
+	bridgeAggregators?: boolean
 	inflows?: boolean
 	chainAssets?: boolean
 	gecko_id?: string
@@ -36,7 +36,7 @@ interface IProtocolMetadata {
 	holdersRevenue?: boolean
 	dexs?: boolean
 	perps?: boolean
-	aggregator?: boolean
+	dexAggregators?: boolean
 	options?: boolean
 	perpsAggregators?: boolean
 	bridgeAggregators?: boolean
@@ -51,6 +51,8 @@ interface IProtocolMetadata {
 	emissions?: boolean
 	bribeRevenue?: boolean
 	tokenTax?: boolean
+	bridges?: boolean
+	stablecoins?: boolean
 }
 
 const metadataCache: {

@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata || !metadata[1].aggregator) {
+		if (!metadata || !metadata[1].dexAggregators) {
 			return { notFound: true, props: null }
 		}
 

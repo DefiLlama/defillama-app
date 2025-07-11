@@ -278,7 +278,7 @@ export const getProtocolData = async (
 			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  ).catch((err) => {
-					console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
+					console.log(`Couldn't fetch dexs protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 			  })
 			: {},
@@ -286,7 +286,7 @@ export const getProtocolData = async (
 			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  ).catch((err) => {
-					console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
+					console.log(`Couldn't fetch perps protocols list at path: ${protocol}`, 'Error:', err)
 					return {}
 			  })
 			: {},
@@ -311,7 +311,7 @@ export const getProtocolData = async (
 					return null
 			  })
 			: null,
-		protocolMetadata[protocolData.id]?.aggregator && !isCpusHot
+		protocolMetadata[protocolData.id]?.dexAggregators && !isCpusHot
 			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 			  ).catch((err) => {
