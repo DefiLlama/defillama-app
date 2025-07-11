@@ -24,17 +24,13 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata) {
+		if (!metadata || !metadata[1].bridges) {
 			return { notFound: true, props: null }
 		}
 
 		const protocolData = await getProtocol(protocol)
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
-
-		if (!metrics.bridge) {
-			return { notFound: true, props: null }
-		}
 
 		return {
 			props: {

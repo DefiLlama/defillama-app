@@ -45,7 +45,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const metadata: IChainMetadata =
 		chain === 'All'
-			? { name: 'All', stablecoins: true, fees: true, dexs: true, derivatives: true, id: 'all' }
+			? { name: 'All', stablecoins: true, fees: true, dexs: true, perps: true, id: 'all' }
 			: metadataCache.chainMetadata[slug(chain)]
 
 	if (!metadata) return null
@@ -257,7 +257,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						return null
 				  })
 				: Promise.resolve(null),
-			metadata.derivatives
+			metadata.perps
 				? getAdapterChainOverview({
 						adapterType: 'derivatives',
 						chain: metadata.name,
@@ -640,7 +640,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			return null
 		})
 	])
-
+	console.log(protocols.filter((p) => ['Bridge', 'Cross Chain Bridge'].includes(p.category ?? '')).length)
 	const dimensionProtocols = {}
 
 	for (const protocol of fees?.protocols ?? []) {

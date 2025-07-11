@@ -31,9 +31,9 @@ export const VOLUME_TYPE_ADAPTERS = [
 export const ADAPTER_TYPES_TO_METADATA_TYPE = {
 	[ADAPTER_TYPES.DEXS]: 'dexs',
 	[ADAPTER_TYPES.FEES]: 'fees',
-	[ADAPTER_TYPES.AGGREGATORS]: 'aggregators',
-	[ADAPTER_TYPES.PERPS]: 'derivatives',
-	[ADAPTER_TYPES.PERPS_AGGREGATOR]: 'aggregator-derivatives',
+	[ADAPTER_TYPES.AGGREGATORS]: 'dexAggregators',
+	[ADAPTER_TYPES.PERPS]: 'perps',
+	[ADAPTER_TYPES.PERPS_AGGREGATOR]: 'perpsAggregators',
 	[ADAPTER_TYPES.OPTIONS]: 'options',
-	[ADAPTER_TYPES.BRIDGE_AGGREGATORS]: 'bridge-aggregators'
+	[ADAPTER_TYPES.BRIDGE_AGGREGATORS]: 'bridgeAggregators'
 }

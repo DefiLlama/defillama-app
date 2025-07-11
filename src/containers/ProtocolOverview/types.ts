@@ -12,7 +12,7 @@ export interface IProtocolMetadata {
 	holdersRevenue?: boolean
 	dexs?: boolean
 	perps?: boolean
-	aggregator?: boolean
+	dexAggregators?: boolean
 	options?: boolean
 	perpsAggregators?: boolean
 	bridgeAggregators?: boolean
@@ -27,6 +27,8 @@ export interface IProtocolMetadata {
 	emissions?: boolean
 	bribeRevenue?: boolean
 	tokenTax?: boolean
+	bridges?: boolean
+	stablecoins?: boolean
 }
 
 export interface IProtocolPageMetrics {

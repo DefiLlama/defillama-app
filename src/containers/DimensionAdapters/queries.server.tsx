@@ -1,4 +1,4 @@
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
 import { getAdapterChainOverview } from './queries'
 import { postRuntimeLogs } from '~/utils/async'
 
@@ -11,11 +11,10 @@ export async function getDimensionAdapterChainsOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}`
 }) {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const { chainMetadata } = metadataCache
 
 	const chains = []
 	for (const chain in metadataCache.chainMetadata) {
-		if (metadataCache.chainMetadata[chain][adapterType]) {
+		if (metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]) {
 			chains.push(chain)
 		}
 	}

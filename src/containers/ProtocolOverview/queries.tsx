@@ -116,12 +116,12 @@ export const getProtocolMetrics = ({
 		dexs: metadata.dexs ? true : false,
 		perps: metadata.perps ? true : false,
 		options: metadata.options ? true : false,
-		dexAggregators: metadata.aggregator ? true : false,
+		dexAggregators: metadata.dexAggregators ? true : false,
 		perpsAggregators: metadata.perpsAggregators ? true : false,
 		bridgeAggregators: metadata.bridgeAggregators ? true : false,
-		stablecoins: protocolData.stablecoins?.length > 0,
-		bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain Bridge',
-		treasury: metadata.treasury && !protocolData.misrepresentedTokens ? true : false,
+		stablecoins: metadata.stablecoins ? true : false,
+		bridge: metadata.bridges ? true : false,
+		treasury: metadata.treasury ? true : false,
 		unlocks: metadata.emissions ? true : false,
 		yields: metadata.yields ? true : false,
 		fees: metadata.fees ? true : false,
@@ -129,7 +129,7 @@ export const getProtocolMetrics = ({
 		bribes: metadata.bribeRevenue ? true : false,
 		tokenTax: metadata.tokenTax ? true : false,
 		forks: metadata.forks ? true : false,
-		governance: protocolData.governanceID ? true : false,
+		governance: metadata.governance ? true : false,
 		nfts: metadata.nfts ? true : false,
 		dev: protocolData.github ? true : false,
 		inflows: inflowsExist,
@@ -319,7 +319,7 @@ export const getProtocolOverviewPageData = async ({
 					excludeTotalDataChartBreakdown: true
 			  })
 			: Promise.resolve(null),
-		metadata.aggregator
+		metadata.dexAggregators
 			? getAdapterChainOverview({
 					adapterType: 'aggregators',
 					chain: 'All',

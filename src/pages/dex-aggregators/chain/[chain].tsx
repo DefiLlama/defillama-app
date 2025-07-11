@@ -44,7 +44,7 @@ export const getStaticProps = withPerformanceLogging(
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-		if (!metadataCache.chainMetadata[chain]?.aggregators) {
+		if (!metadataCache.chainMetadata[chain]?.dexAggregators) {
 			return { notFound: true }
 		}
 
