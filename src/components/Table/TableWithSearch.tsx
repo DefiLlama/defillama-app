@@ -25,7 +25,9 @@ export function TableWithSearch({
 	renderSubComponent = null,
 	columnSizes = null,
 	columnOrders = null,
-	defaultSorting = null
+	defaultSorting = null,
+	rowSize = null,
+	compact = false
 }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>(defaultSorting ?? [])
@@ -109,7 +111,7 @@ export function TableWithSearch({
 
 	return (
 		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
-			<div className="flex items-center justify-end gap-2 p-3">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 				{header ? <h1 className="text-lg font-semibold mr-auto">{header}</h1> : null}
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
@@ -129,7 +131,7 @@ export function TableWithSearch({
 				</div>
 				{customFilters}
 			</div>
-			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} />
+			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} rowSize={rowSize} compact={compact} />
 		</div>
 	)
 }

@@ -108,7 +108,7 @@ export const getProtocolMetrics = ({
 		}
 	}
 
-	const tvlTab = inflowsExist || multipleChains || tokenBreakdownExist
+	const tvlTab = metadata.tvl && (inflowsExist || multipleChains || tokenBreakdownExist)
 
 	return {
 		tvl: metadata.tvl ? true : false,
@@ -337,7 +337,7 @@ export const getProtocolOverviewPageData = async ({
 			: Promise.resolve(null),
 		metadata.perpsAggregators
 			? getAdapterChainOverview({
-					adapterType: 'derivatives-aggregator',
+					adapterType: 'aggregator-derivatives',
 					chain: 'All',
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
@@ -1154,7 +1154,7 @@ export async function getProtocolIncomeStatement({
 	monthDates: Array<[number, string]>
 } | null> {
 	try {
-		if (!metadata.fees && !metadata.revenue) {
+		if (!metadata.fees || !metadata.revenue) {
 			return null
 		}
 

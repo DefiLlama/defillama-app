@@ -3,7 +3,7 @@ export enum ADAPTER_TYPES {
 	FEES = 'fees',
 	AGGREGATORS = 'aggregators',
 	PERPS = 'derivatives',
-	PERPS_AGGREGATOR = 'derivatives-aggregator',
+	PERPS_AGGREGATOR = 'aggregator-derivatives',
 	OPTIONS = 'options',
 	BRIDGE_AGGREGATORS = 'bridge-aggregators'
 }
@@ -24,7 +24,7 @@ export const VOLUME_TYPE_ADAPTERS = [
 	'derivatives',
 	'options',
 	'aggregators',
-	'derivatives-aggregator',
+	'aggregator-derivatives',
 	'bridge-aggregators'
 ]
 

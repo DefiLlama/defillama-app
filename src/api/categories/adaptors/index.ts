@@ -22,13 +22,14 @@ import { fetchJson } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
 import { getCexVolume } from '~/containers/DimensionAdapters/queries'
 import { ILiteProtocol } from '~/containers/ChainOverview/types'
+import { ADAPTER_TYPES_TO_METADATA_TYPE } from '~/containers/DimensionAdapters/constants'
 
 export enum ADAPTOR_TYPES {
 	DEXS = 'dexs',
 	FEES = 'fees',
 	AGGREGATORS = 'aggregators',
 	PERPS = 'derivatives',
-	PERPS_AGGREGATOR = 'derivatives-aggregator',
+	PERPS_AGGREGATOR = 'aggregator-derivatives',
 	OPTIONS = 'options',
 	BRIDGE_AGGREGATORS = 'bridge-aggregators'
 }
@@ -38,7 +39,7 @@ export const VOLUME_TYPE_ADAPTORS = [
 	'derivatives',
 	'options',
 	'aggregators',
-	'derivatives-aggregator',
+	'aggregator-derivatives',
 	'bridge-aggregators'
 ]
 
@@ -63,9 +64,7 @@ export const getOverviewItem = (
 	excludeTotalDataChartBreakdown?: boolean
 ): Promise<ProtocolAdaptorSummaryResponse> => {
 	return fetchJson(
-		`${DIMENISIONS_SUMMARY_BASE_API}/${type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type}/${slug(
-			protocolName
-		)}${dataType ? `?dataType=${dataType}` : ''}`
+		`${DIMENISIONS_SUMMARY_BASE_API}/${type}/${slug(protocolName)}${dataType ? `?dataType=${dataType}` : ''}`
 	)
 }
 export const getOverview = (
@@ -117,7 +116,7 @@ export const getDimensionProtocolPageData = async ({
 		getOverviewItem(adapterType, protocolName, dataType)
 	]
 	if (adapterType === 'fees') {
-		promises.push(getOverviewItem(adapterType, protocolName, 'dailyRevenue'))
+		if (metadata?.revenue) promises.push(getOverviewItem(adapterType, protocolName, 'dailyRevenue'))
 		if (metadata?.bribeRevenue) promises.push(getOverviewItem(adapterType, protocolName, 'dailyBribesRevenue'))
 		if (metadata?.tokenTax) promises.push(getOverviewItem(adapterType, protocolName, 'dailyTokenTaxes'))
 		secondLabel = 'Revenue'
@@ -205,7 +204,11 @@ export const getDimensionAdapterChainPageData = async (type: string, chain?: str
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const { chainMetadata } = metadataCache
 
-	if (chain && !chainMetadata[slug(chain)][type === 'derivatives-aggregator' ? 'aggregator-derivatives' : type]) {
+	if (
+		chain &&
+		ADAPTER_TYPES_TO_METADATA_TYPE[type] &&
+		!chainMetadata[slug(chain)][ADAPTER_TYPES_TO_METADATA_TYPE[type]]
+	) {
 		return null
 	}
 
