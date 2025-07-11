@@ -9,7 +9,7 @@ import { slug } from '~/utils'
 import { Metrics } from '~/components/Metrics'
 
 export const getStaticProps = withPerformanceLogging('forks', async ({ params: { fork } }) => {
-	const normalizedName = slug(protocol)
+	const normalizedName = slug(fork)
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const { protocolMetadata } = metadataCache
 	let metadata
