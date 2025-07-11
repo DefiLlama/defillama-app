@@ -91,7 +91,7 @@ export function postRuntimeLogs(log) {
 	console.log(`\n${log}\n`)
 }
 
-async function handleFetchResponse(res: Response) {
+async function handleFetchResponse(res: Response, url: RequestInfo | URL, options?: FetchOverCacheOptions) {
 	try {
 		if (res.status === 200) {
 			const response = await res.json()
@@ -129,7 +129,7 @@ async function handleFetchResponse(res: Response) {
 
 		throw new Error(errorMessage)
 	} catch (e) {
-		postRuntimeLogs(`[parse] [${e.message}] < ${res.url} >`)
+		postRuntimeLogs(`[HTTP] [parse] [error] [${e.message}] < ${url} > \n${JSON.stringify(options)}`)
 
 		throw e // Re-throw the error instead of returning empty object
 	}
@@ -140,6 +140,6 @@ export async function fetchJson(
 	options?: FetchOverCacheOptions,
 	retry: boolean = false
 ): Promise<any> {
-	const res = await fetchWithErrorLogging(url, options, retry).then(handleFetchResponse)
+	const res = await fetchWithErrorLogging(url, options, retry).then((res) => handleFetchResponse(res, url, options))
 	return res
 }
