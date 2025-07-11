@@ -1,15 +1,111 @@
 {
-	"short_name": "DefiLlama",
-	"name": "DefiLlama",
+	"short_name": "DeFiLlama",
+	"name": "DeFiLlama - DeFi Analytics Dashboard",
+	"description": "Track DeFi protocols, TVL, yields, and comprehensive blockchain analytics",
 	"icons": [
 		{
 			"src": "favicon.ico",
 			"sizes": "64x64 32x32 24x24 16x16",
 			"type": "image/x-icon"
+		},
+		{
+			"src": "android-chrome-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable any"
+		},
+		{
+			"src": "apple-touch-icon.png",
+			"sizes": "180x180",
+			"type": "image/png"
+		},
+		{
+			"src": "favicon-32x32.png",
+			"sizes": "32x32",
+			"type": "image/png"
+		},
+		{
+			"src": "favicon-16x16.png",
+			"sizes": "16x16",
+			"type": "image/png"
 		}
 	],
-	"start_url": ".",
+	"start_url": "/",
 	"display": "standalone",
-	"theme_color": "#000000",
-	"background_color": "#ffffff"
+	"orientation": "portrait-primary",
+	"theme_color": "#445ed0",
+	"background_color": "#090b0c",
+	"categories": ["finance", "productivity", "business"],
+	"lang": "en",
+	"scope": "/",
+	"display_override": ["window-controls-overlay", "minimal-ui"],
+	"edge_side_panel": {
+		"preferred_width": 400
+	},
+	"screenshots": [
+		{
+			"src": "android-chrome-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"form_factor": "narrow",
+			"label": "DeFiLlama mobile interface"
+		},
+		{
+			"src": "android-chrome-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "DeFiLlama desktop interface"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "Protocols",
+			"short_name": "Protocols",
+			"description": "View all DeFi protocols",
+			"url": "/protocols",
+			"icons": [
+				{
+					"src": "favicon-32x32.png",
+					"sizes": "32x32"
+				}
+			]
+		},
+		{
+			"name": "Chains",
+			"short_name": "Chains",
+			"description": "View blockchain analytics",
+			"url": "/chains",
+			"icons": [
+				{
+					"src": "favicon-32x32.png",
+					"sizes": "32x32"
+				}
+			]
+		},
+		{
+			"name": "Yields",
+			"short_name": "Yields",
+			"description": "Explore yield opportunities",
+			"url": "/yields",
+			"icons": [
+				{
+					"src": "favicon-32x32.png",
+					"sizes": "32x32"
+				}
+			]
+		},
+		{
+			"name": "Stablecoins",
+			"short_name": "Stablecoins",
+			"description": "Track stablecoin metrics",
+			"url": "/stablecoins",
+			"icons": [
+				{
+					"src": "favicon-32x32.png",
+					"sizes": "32x32"
+				}
+			]
+		}
+	]
 }
