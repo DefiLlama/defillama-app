@@ -69,7 +69,7 @@ const DefiSearch = memo(function DefiSearch() {
 							refine(e.target.value)
 						}}
 						autoFocus
-						className="absolute top-2 left-2 right-2 p-3 rounded-t-md text-base bg-(--cards-bg) text-(--text1)"
+						className="absolute top-2 left-2 right-2 p-3 rounded-t-md text-base bg-(--cards-bg) text-(--text1) mobile-form-input mobile-no-tap-highlight"
 					/>
 					<button onClick={() => setDisplay(false)} className="absolute z-10 top-5 right-5">
 						<span className="sr-only">Close Search</span>
@@ -99,7 +99,10 @@ const DefiSearch = memo(function DefiSearch() {
 					</div>
 				</>
 			) : (
-				<button onClick={() => setDisplay(true)} className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px]">
+				<button 
+					onClick={() => setDisplay(true)} 
+					className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px] mobile-button-feedback mobile-touch-target"
+				>
 					<span className="sr-only">Search</span>
 					<Icon name="search" height={16} width={16} />
 				</button>
@@ -193,7 +196,10 @@ const MobileSearchV1 = memo(function MobileSearchV1() {
 					</div>
 				</>
 			) : (
-				<button onClick={() => setDisplay(true)} className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px]">
+				<button 
+					onClick={() => setDisplay(true)} 
+					className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px] mobile-button-feedback mobile-touch-target"
+				>
 					<span className="sr-only">Search</span>
 					<Icon name="search" height={16} width={16} />
 				</button>
