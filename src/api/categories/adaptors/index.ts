@@ -117,7 +117,7 @@ export const getDimensionProtocolPageData = async ({
 		getOverviewItem(adapterType, protocolName, dataType)
 	]
 	if (adapterType === 'fees') {
-		promises.push(getOverviewItem(adapterType, protocolName, 'dailyRevenue'))
+		if (metadata?.revenue) promises.push(getOverviewItem(adapterType, protocolName, 'dailyRevenue'))
 		if (metadata?.bribeRevenue) promises.push(getOverviewItem(adapterType, protocolName, 'dailyBribesRevenue'))
 		if (metadata?.tokenTax) promises.push(getOverviewItem(adapterType, protocolName, 'dailyTokenTaxes'))
 		secondLabel = 'Revenue'
