@@ -1154,7 +1154,7 @@ export async function getProtocolIncomeStatement({
 	monthDates: Array<[number, string]>
 } | null> {
 	try {
-		if (!metadata.fees && !metadata.revenue) {
+		if (!metadata.fees || !metadata.revenue) {
 			return null
 		}
 

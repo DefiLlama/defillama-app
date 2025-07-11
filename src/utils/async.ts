@@ -19,7 +19,7 @@ export function withErrorLogging<T extends any[], R>(
 	}
 }
 
-export async function fetchWithErrorLogging(
+async function fetchWithErrorLogging(
 	url: RequestInfo | URL,
 	options?: FetchOverCacheOptions,
 	retry: boolean = false
@@ -28,8 +28,8 @@ export async function fetchWithErrorLogging(
 	try {
 		const res = await fetchOverCache(url, options)
 		if (res.status !== 200) {
-			const end = Date.now()
-			postRuntimeLogs(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
+			// const end = Date.now()
+			// postRuntimeLogs(`[HTTP] [error] [${res.status}] [${end - start}ms] < ${url} >`)
 		}
 		return res
 	} catch (error) {
@@ -38,7 +38,7 @@ export async function fetchWithErrorLogging(
 				const res = await fetchOverCache(url, options)
 				if (res.status >= 400) {
 					const end = Date.now()
-					postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] <${url}>`)
+					postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] < ${url} >`)
 				}
 				return res
 			} catch (error) {
@@ -46,7 +46,7 @@ export async function fetchWithErrorLogging(
 					const res = await fetchOverCache(url, options)
 					if (res.status >= 400) {
 						const end = Date.now()
-						postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] <${url}>`)
+						postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] < ${url} >`)
 					}
 					return res
 				} catch (error) {
@@ -54,7 +54,7 @@ export async function fetchWithErrorLogging(
 					postRuntimeLogs(
 						`[HTTP] [3] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${
 							end - start
-						}ms] <${url}>`
+						}ms] < ${url} >`
 					)
 					return null
 				}
@@ -91,7 +91,12 @@ export function postRuntimeLogs(log) {
 	console.log(`\n${log}\n`)
 }
 
-async function handleFetchResponse(res: Response, url: RequestInfo | URL, options?: FetchOverCacheOptions) {
+async function handleFetchResponse(
+	res: Response,
+	url: RequestInfo | URL,
+	options?: FetchOverCacheOptions,
+	callerInfo?: string
+) {
 	try {
 		if (res.status === 200) {
 			const response = await res.json()
@@ -129,7 +134,12 @@ async function handleFetchResponse(res: Response, url: RequestInfo | URL, option
 
 		throw new Error(errorMessage)
 	} catch (e) {
-		postRuntimeLogs(`[HTTP] [parse] [error] [${e.message}] < ${url} > \n${JSON.stringify(options)}`)
+		// Log with caller info if available
+		const logMessage = callerInfo
+			? `[fetchJson] [error] [caller: ${callerInfo}] [${e.message}] < ${url} >`
+			: `[HTTP] [parse] [error] [${e.message}] < ${url} > \n${JSON.stringify(options)}`
+
+		postRuntimeLogs(logMessage)
 
 		throw e // Re-throw the error instead of returning empty object
 	}
@@ -140,6 +150,59 @@ export async function fetchJson(
 	options?: FetchOverCacheOptions,
 	retry: boolean = false
 ): Promise<any> {
-	const res = await fetchWithErrorLogging(url, options, retry).then((res) => handleFetchResponse(res, url, options))
-	return res
+	// Capture caller information at the time of call
+	const callerInfo = getCallerInfo(new Error().stack)
+
+	try {
+		const res = await fetchWithErrorLogging(url, options, retry).then((res) =>
+			handleFetchResponse(res, url, options, callerInfo)
+		)
+		return res
+	} catch (error) {
+		// Only log here if the error didn't come from handleFetchResponse
+		if (!error.message.includes('[HTTP]')) {
+			postRuntimeLogs(
+				`[fetchJson] [error] [caller: ${callerInfo}] [${
+					error instanceof Error ? error.message : 'Unknown error'
+				}] < ${url} >`
+			)
+		}
+
+		throw error
+	}
+}
+
+// Helper function to extract caller information from stack trace
+function getCallerInfo(stack?: string): string {
+	if (!stack) return 'unknown'
+
+	const lines = stack.split('\n')
+	// Look for the first line that contains a file path and function name
+	// Skip lines that contain fetchJson, handleFetchResponse, etc.
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i].trim()
+		// Match patterns like "at functionName (file:line:column)" or "at file:line:column"
+		const match = line.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)|at\s+(.+?):(\d+):(\d+)/)
+		if (match) {
+			const functionName = match[1] || 'anonymous'
+			const filePath = match[2] || match[5]
+			const lineNumber = match[3] || match[6]
+
+			// Skip if this is fetchJson, handleFetchResponse, or other internal functions
+			if (
+				functionName.includes('fetchJson') ||
+				functionName.includes('handleFetchResponse') ||
+				functionName.includes('fetchWithErrorLogging') ||
+				functionName.includes('getCallerInfo')
+			) {
+				continue
+			}
+
+			// Extract just the filename from the full path
+			const fileName = filePath.split('/').pop()?.split('\\').pop() || 'unknown'
+			return `${functionName} (${fileName}:${lineNumber})`
+		}
+	}
+
+	return 'unknown'
 }
