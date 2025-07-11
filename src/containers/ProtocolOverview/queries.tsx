@@ -31,11 +31,9 @@ import { getAdapterChainOverview, getAdapterProtocolSummary, IAdapterOverview } 
 import { cg_volume_cexs } from '~/pages/cexs'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import metadata from '~/utils/metadata'
 import { allColors, ProtocolChartsLabels } from './Chart/constants'
 import dayjs from 'dayjs'
 import { getProtocolEmissons } from '~/api/categories/protocols'
-const { chainMetadata } = metadata
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
@@ -708,6 +706,9 @@ export const getProtocolOverviewPageData = async ({
 	for (const date in tvlChart) {
 		tvlChartData.push([date, tvlChart[date]])
 	}
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const { chainMetadata } = metadataCache
 
 	const chains = []
 	for (const chain in protocolData.currentChainTvls ?? {}) {

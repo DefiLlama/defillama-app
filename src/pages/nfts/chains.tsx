@@ -8,10 +8,11 @@ import Layout from '~/layout'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
-import metadataCache from '~/utils/metadata'
 import { TEMP_CHAIN_NFTS } from '~/constants'
 
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 	const data = (await fetchJson(TEMP_CHAIN_NFTS)) as Promise<Record<string, number>>
 
 	if (!data) return { notFound: true }

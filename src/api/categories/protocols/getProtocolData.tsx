@@ -21,12 +21,10 @@ import {
 } from '~/constants'
 import { sluggify } from '~/utils/cache-client'
 import { fetchJson } from '~/utils/async'
-import metadata from '~/utils/metadata'
 import { fetchArticles, getProtocolMetrics, getTokenCGData } from '~/containers/ProtocolOverview/queries'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { IArticle } from '~/containers/ProtocolOverview/types'
 import { oldBlue } from '~/constants/colors'
-const { chainMetadata, protocolMetadata } = metadata
 
 const chartTypes = [
 	'TVL',
@@ -98,6 +96,9 @@ export const getProtocolData = async (
 	if (!protocolRes) {
 		return { notFound: true, props: null }
 	}
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const { chainMetadata, protocolMetadata } = metadataCache
 
 	const metrics = getProtocolMetrics({
 		protocolData: protocolRes as any,

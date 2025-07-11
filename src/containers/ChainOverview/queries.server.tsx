@@ -22,7 +22,6 @@ import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.serv
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import metadataCache from '~/utils/metadata'
 import type {
 	IChainMetadata,
 	IChainOverviewData,
@@ -43,6 +42,7 @@ import { tvlOptions } from '~/components/Filters/options'
 import { ChainChartLabels } from './constants'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const metadata: IChainMetadata =
 		chain === 'All'
 			? { name: 'All', stablecoins: true, fees: true, dexs: true, derivatives: true, id: 'all' }
@@ -592,6 +592,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 }
 
 export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; metadata: IChainMetadata }) => {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const [{ protocols, chains, parentProtocols }, fees, revenue, dexs, emissionsData]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
 		IAdapterOverview | null,

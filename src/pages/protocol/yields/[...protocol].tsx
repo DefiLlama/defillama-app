@@ -1,5 +1,4 @@
 import { withPerformanceLogging } from '~/utils/perf'
-import metadata from '~/utils/metadata'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { ProtocolPools } from '~/containers/ProtocolOverview/Yields'
@@ -7,7 +6,7 @@ import { maxAgeForNext } from '~/api'
 import { YIELD_POOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { slug } from '~/utils'
-const { protocolMetadata } = metadata
+import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/yields/[...protocol]',
@@ -17,9 +16,17 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const normalizedName = slug(protocol)
-		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (protocolMetadata[key].name === normalizedName) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
 
-		if (!metadata || !metadata.yields) {
+		if (!metadata || !metadata[1].yields) {
 			return { notFound: true, props: null }
 		}
 
@@ -35,13 +42,13 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const metrics = getProtocolMetrics({ protocolData, metadata })
+		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
 		const otherProtocols = protocolData?.otherProtocols?.map((p) => slug(p)) ?? []
 
 		const projectYields = yields?.data?.filter(
 			({ project }) =>
-				project === metadata.name || (protocolData.parentProtocol ? false : otherProtocols.includes(project))
+				project === metadata[1].name || (protocolData.parentProtocol ? false : otherProtocols.includes(project))
 		)
 
 		return {

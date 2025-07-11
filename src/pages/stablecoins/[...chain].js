@@ -6,7 +6,6 @@ import { getPeggedAssets, getPeggedOverviewPageData } from '~/containers/Stablec
 import { primaryColor } from '~/constants/colors'
 import { peggedAssetIconPalleteUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-import metadataCache from '~/utils/metadata'
 import { slug } from '~/utils'
 
 export const getStaticProps = withPerformanceLogging(
@@ -16,6 +15,8 @@ export const getStaticProps = withPerformanceLogging(
 			chain: [chain]
 		}
 	}) => {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 		const metadata = metadataCache.chainMetadata[slug(chain)]
 
 		if (!metadata)

@@ -21,12 +21,9 @@ import { maxAgeForNext } from '~/api'
 import { getPercentChange, slug } from '~/utils'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
-import metadataCache from '~/utils/metadata'
 import { getOverview, getDexVolumeByChain, getAppRevenueByChain, getFeesAndRevenueByChain } from '../adaptors'
 import { getCexVolume } from '~/containers/DimensionAdapters/queries'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
-
-const chainsMetadata = metadataCache.chainMetadata
 
 const getExtraTvlCharts = (data) => {
 	const {
@@ -62,8 +59,10 @@ const getExtraTvlCharts = (data) => {
 
 // - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 	const chainName = slug(chain)
-	const chainMetadata = chain && chain !== 'All' ? chainsMetadata[chainName] ?? null : null
+	const chainMetadata = chain && chain !== 'All' ? metadataCache.chainMetadata[chainName] ?? null : null
 
 	if (chain && chain !== 'All' && !chainMetadata) {
 		return { notFound: true, props: null }

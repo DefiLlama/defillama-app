@@ -1,11 +1,10 @@
 import { withPerformanceLogging } from '~/utils/perf'
-import metadata from '~/utils/metadata'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { ForksData } from '~/containers/ProtocolOverview/Forks'
 import { slug } from '~/utils'
-const { protocolMetadata } = metadata
+import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/forks/[...protocol]',
@@ -15,15 +14,23 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const normalizedName = slug(protocol)
-		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (protocolMetadata[key].name === normalizedName) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
 
-		if (!metadata || !metadata.forks) {
+		if (!metadata || !metadata[1].forks) {
 			return { notFound: true, props: null }
 		}
 
 		const protocolData = await getProtocol(protocol)
 
-		const metrics = getProtocolMetrics({ protocolData, metadata })
+		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
 		return {
 			props: {

@@ -2,14 +2,12 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
-import metadata from '~/utils/metadata'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { slug } from '~/utils'
-import { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
+import { IProtocolMetadata, IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
 import { maxAgeForNext } from '~/api'
 import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChartNew'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
-const { protocolMetadata } = metadata
 
 const ProtocolLineBarChart = lazy(() => import('~/containers/ProtocolOverview/Chart/Chart2')) as React.FC<any>
 
@@ -23,7 +21,15 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const normalizedName = slug(protocol)
-		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (protocolMetadata[key].name === normalizedName) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
 
 		if (!metadata) {
 			return { notFound: true, props: null }

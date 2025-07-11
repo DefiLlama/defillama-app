@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import metadataCache from '~/utils/metadata'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES
@@ -9,9 +8,10 @@ const dataType = 'dailyHoldersRevenue'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const { chains } = req.query
 		const chainList = typeof chains === 'string' ? [chains] : chains || []
-		
+
 		if (chainList.length === 0) {
 			// No chains selected, return all protocols
 			const data = await getAdapterChainOverview({
@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			})
 
 			const protocols = data.protocols || []
-			
+
 			// Sort by total24h holders revenue descending
 			const sortedProtocols = protocols
 				.filter((p: any) => p.total24h > 0)
@@ -33,15 +33,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		} else {
 			// Fetch data for specific chains and aggregate
 			const allProtocolsMap = new Map()
-			
+
 			for (const chainName of chainList) {
 				const chainSlug = slug(chainName)
 				const chainData = metadataCache.chainMetadata[chainSlug]
-				
+
 				if (!chainData?.fees) {
 					continue
 				}
-				
+
 				const data = await getAdapterByChainPageData({
 					adapterType,
 					dataType,
@@ -51,11 +51,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					console.info(`Chain page data not found ${adapterType}:${dataType} : chain:${chainSlug}`, e)
 					return null
 				})
-				
+
 				if (!data || !data.protocols) {
 					continue
 				}
-				
+
 				// Aggregate protocols across chains
 				data.protocols.forEach((protocol: any) => {
 					const key = protocol.defillamaId || protocol.name
@@ -76,9 +76,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					}
 				})
 			}
-			
+
 			const aggregatedProtocols = Array.from(allProtocolsMap.values())
-			
+
 			// Sort by total24h holders revenue descending
 			const sortedProtocols = aggregatedProtocols
 				.filter((p: any) => p.total24h > 0)

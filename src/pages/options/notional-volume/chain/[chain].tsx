@@ -5,7 +5,6 @@ import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/querie
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-import metadataCache from '~/utils/metadata'
 import { fetchJson } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
@@ -44,7 +43,9 @@ export const getStaticProps = withPerformanceLogging(
 	`${type}/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
-		if (!metadataCache.chainMetadata[chain].options) {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+		if (!metadataCache.chainMetadata[chain]?.options) {
 			return { notFound: true }
 		}
 
