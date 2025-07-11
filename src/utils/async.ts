@@ -88,7 +88,7 @@ export function postRuntimeLogs(log) {
 			headers: { 'Content-Type': 'application/json' }
 		})
 	}
-	console.log(log)
+	console.log(`\n${log}\n`)
 }
 
 async function handleFetchResponse(res: Response) {
@@ -99,7 +99,7 @@ async function handleFetchResponse(res: Response) {
 		}
 
 		// Handle non-200 status codes
-		let errorMessage = `Failed to fetch data from ${res.url}, with status ${res.status}`
+		let errorMessage = `[HTTP] [error] [${res.status}] < ${res.url} >`
 
 		// Try to get error message from statusText first
 		if (res.statusText) {
@@ -129,9 +129,8 @@ async function handleFetchResponse(res: Response) {
 
 		throw new Error(errorMessage)
 	} catch (e) {
-		postRuntimeLogs(
-			`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`
-		)
+		postRuntimeLogs(`[parse] [${e.message}] < ${res.url} >`)
+
 		throw e // Re-throw the error instead of returning empty object
 	}
 }
