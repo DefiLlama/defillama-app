@@ -78,7 +78,7 @@ export default function Chains({ data, columns, uniqueCategories }) {
 				<h1 className="text-xl font-semibold mr-auto">Top Protocols by Chain</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>
-			<div className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-248px)] overflow-x-auto mx-auto text-(--text1) bg-(--cards-bg) h-[85vh]">
+			<div className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-248px)] overflow-x-auto mx-auto text-(--text1) bg-(--cards-bg) h-[85vh] lg:h-full">
 				<div className="grid" style={{ gridTemplateColumns: `repeat(${uniqueCategories.length + 1}, 200px)` }}>
 					<div
 						className="col-span-full grid sticky top-0 z-1"
@@ -124,10 +124,7 @@ export default function Chains({ data, columns, uniqueCategories }) {
 									key={`uniq-cat-${cat}-${item.chain}`}
 								>
 									{item[cat] ? (
-										<BasicLink
-											href={`/protocol/${slug(item[cat])}`}
-											className="text-sm font-medium text-(--link-text)"
-										>
+										<BasicLink href={`/protocol/${slug(item[cat])}`} className="text-sm font-medium text-(--link-text)">
 											{item[cat]}
 										</BasicLink>
 									) : null}
