@@ -392,7 +392,7 @@ export const ChainProtocolsTable = ({
 	}
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md border border-[#e6e6e6] dark:border-[#222324] isolate">
+		<div className="bg-(--cards-bg) rounded-md border border-(cards-border) isolate">
 			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 				<h3 className="text-lg font-semibold mr-auto">Protocol Rankings</h3>
 				<TagGroup

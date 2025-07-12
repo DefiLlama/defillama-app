@@ -289,7 +289,7 @@ export const UnlocksTable = ({
 	})
 
 	return (
-		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+		<div className="bg-(--cards-bg) border border-(cards-border) rounded-md">
 			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
 				<h1 className="text-xl font-semibold mr-auto">Token Unlocks</h1>
 

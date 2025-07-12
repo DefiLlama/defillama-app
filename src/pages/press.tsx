@@ -4,7 +4,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const PressPanel = ({ imageFilename }) => (
-	<div className="border border-[#e6e6e6] dark:border-[#222324] rounded-md text-center p-4">
+	<div className="border border-(cards-border) rounded-md text-center p-4">
 		<TokenLogo logo={`/press/${imageFilename}`} size={150} />
 	</div>
 )

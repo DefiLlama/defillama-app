@@ -39,7 +39,7 @@ export function DefiWatchlistContainer() {
 		<>
 			<ProtocolsChainsSearch />
 			<WatchListTabs />
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(cards-border) rounded-md">
 				<h1 className="text-xl font-semibold p-3">Saved Protocols</h1>
 
 				<span className="flex items-center flex-wrap gap-4 p-3">
