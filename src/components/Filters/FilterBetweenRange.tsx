@@ -1,6 +1,7 @@
 import { FormEventHandler, ReactNode } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { NestedMenu } from '~/components/NestedMenu'
+import { cn } from '~/utils/cn'
 
 interface IFilterBetweenRange {
 	name: string
@@ -10,6 +11,18 @@ interface IFilterBetweenRange {
 	min: string | null
 	max: string | null
 	variant?: 'primary' | 'secondary' | 'third'
+	triggerClassName?: string
+}
+
+const getVariantClasses = (variant: string) => {
+	switch (variant) {
+		case 'third':
+			return 'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+		case 'secondary':
+			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-(--text1) text-xs flex-nowrap'
+		default:
+			return 'bg-(--btn2-bg)  hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-(--text1) flex-nowrap relative'
+	}
 }
 
 export function FilterBetweenRange({
@@ -19,7 +32,8 @@ export function FilterBetweenRange({
 	nestedMenu,
 	min,
 	max,
-	variant = 'primary'
+	variant = 'primary',
+	triggerClassName
 }: IFilterBetweenRange) {
 	if (nestedMenu) {
 		return (
@@ -53,18 +67,9 @@ export function FilterBetweenRange({
 
 	return (
 		<Ariakit.PopoverProvider>
-			<Ariakit.PopoverDisclosure
-				data-variant={variant}
-				className={
-					variant === 'third'
-						? 'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						: variant === 'secondary'
-						? 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-(--text1) text-xs flex-nowrap'
-						: 'bg-(--btn2-bg)  hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-(--text1) flex-nowrap relative'
-				}
-			>
+			<Ariakit.PopoverDisclosure data-variant={variant} className={cn(getVariantClasses(variant), triggerClassName)}>
 				{trigger}
-				<Ariakit.PopoverDisclosureArrow className="h-3 w-3" />
+				<Ariakit.PopoverDisclosureArrow className="h-3 w-3 shrink-0" />
 			</Ariakit.PopoverDisclosure>
 			<Ariakit.Popover
 				unmountOnHide

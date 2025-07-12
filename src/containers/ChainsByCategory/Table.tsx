@@ -160,8 +160,8 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 
 	return (
 		<div className="bg-(--cards-bg) rounded-md isolate border border-[#e6e6e6] dark:border-[#222324]">
-			<div className="flex items-center justify-end flex-wrap gap-2 p-2">
-				<div className="relative w-full sm:max-w-[280px] mr-auto">
+			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
+				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
 						height={16}
@@ -177,38 +177,43 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
-				<SelectWithCombobox
-					allValues={DEFI_CHAINS_SETTINGS}
-					selectedValues={selectedAggregateTypes}
-					setSelectedValues={addAggrOption}
-					selectOnlyOne={addOnlyOneAggrOption}
-					toggleAll={toggleAllAggrOptions}
-					clearAll={clearAllAggrOptions}
-					nestedMenu={false}
-					label={'Group Chains'}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
-				/>
-				<SelectWithCombobox
-					allValues={columnOptions}
-					selectedValues={selectedColumns}
-					setSelectedValues={addColumn}
-					selectOnlyOne={addOnlyOneColumn}
-					toggleAll={toggleAllColumns}
-					clearAll={clearAllColumns}
-					nestedMenu={false}
-					label={'Columns'}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
-				/>
 
-				<TVLRange variant="third" />
+				<div className="flex items-center gap-2 max-sm:w-full max-sm:flex-col">
+					<div className="flex items-center gap-2 w-full sm:w-auto">
+						<SelectWithCombobox
+							allValues={DEFI_CHAINS_SETTINGS}
+							selectedValues={selectedAggregateTypes}
+							setSelectedValues={addAggrOption}
+							selectOnlyOne={addOnlyOneAggrOption}
+							toggleAll={toggleAllAggrOptions}
+							clearAll={clearAllAggrOptions}
+							nestedMenu={false}
+							label={'Group Chains'}
+							labelType="smol"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+							}}
+						/>
+						<SelectWithCombobox
+							allValues={columnOptions}
+							selectedValues={selectedColumns}
+							setSelectedValues={addColumn}
+							selectOnlyOne={addOnlyOneColumn}
+							toggleAll={toggleAllColumns}
+							clearAll={clearAllColumns}
+							nestedMenu={false}
+							label={'Columns'}
+							labelType="smol"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+							}}
+						/>
+					</div>
+
+					<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+				</div>
 			</div>
 			<VirtualTable instance={instance} />
 		</div>
