@@ -12,16 +12,32 @@ interface ITooltip {
 	fontSize?: string
 	className?: string
 	placement?: 'top' | 'bottom' | 'left' | 'right'
+	showOnTap?: boolean
 }
 
-export function Tooltip({ content, children, color, fontSize, placement, className, ...props }: ITooltip) {
+export function Tooltip({
+	content,
+	children,
+	color,
+	fontSize,
+	placement,
+	className,
+	showOnTap,
+	onClick,
+	...props
+}: ITooltip) {
 	if (!content || content === '') return <>{children}</>
 
+	const tooltip = Ariakit.useTooltipStore()
+
 	return (
-		<Ariakit.TooltipProvider>
+		<Ariakit.TooltipProvider store={tooltip}>
 			<Ariakit.TooltipAnchor
 				className={`flex items-center overflow-hidden text-ellipsis whitespace-nowrap shrink-0 ${className ?? ''}`}
 				render={<span />}
+				onClick={onClick ?? (showOnTap ? tooltip.toggle : undefined)}
+				onMouseEnter={showOnTap ? undefined : tooltip.show}
+				onMouseLeave={showOnTap ? undefined : tooltip.hide}
 				{...props}
 			>
 				{children}
