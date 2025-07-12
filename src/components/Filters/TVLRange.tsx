@@ -32,6 +32,21 @@ export function TVLRange({
 		)
 	}
 
+	const handleClear = () => {
+		const { minTvl, maxTvl, ...restQuery } = router.query
+
+		router.push(
+			{
+				pathname: router.pathname,
+				query: restQuery
+			},
+			undefined,
+			{
+				shallow: true
+			}
+		)
+	}
+
 	const { minTvl, maxTvl } = router.query
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl).toLocaleString() : null
 	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl).toLocaleString() : null
@@ -56,6 +71,7 @@ export function TVLRange({
 				)
 			}
 			onSubmit={handleSubmit}
+			onClear={handleClear}
 			variant={variant}
 			nestedMenu={nestedMenu}
 			min={min}

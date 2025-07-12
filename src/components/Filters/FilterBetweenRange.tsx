@@ -6,6 +6,7 @@ interface IFilterBetweenRange {
 	name: string
 	trigger: ReactNode
 	onSubmit: FormEventHandler<HTMLFormElement>
+	onClear?: () => void
 	nestedMenu?: boolean
 	min: string | null
 	max: string | null
@@ -16,11 +17,16 @@ export function FilterBetweenRange({
 	name,
 	trigger,
 	onSubmit,
+	onClear,
 	nestedMenu,
 	min,
 	max,
 	variant = 'primary'
 }: IFilterBetweenRange) {
+	const handleReset = () => {
+		onClear?.()
+	}
+
 	if (nestedMenu) {
 		return (
 			<NestedMenu label={name}>
@@ -78,7 +84,7 @@ export function FilterBetweenRange({
 				className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 			>
 				<div className="w-full sm:w-[260px] mx-auto">
-					<form onSubmit={onSubmit} className="flex flex-col gap-3 p-3">
+					<form onSubmit={onSubmit} onReset={handleReset} className="flex flex-col gap-3 p-3">
 						<label className="flex flex-col gap-1">
 							<span>Min</span>
 							<input
@@ -100,10 +106,16 @@ export function FilterBetweenRange({
 						</label>
 
 						<div className="mt-3 flex gap-2">
-							<button className="inline-flex h-9.5 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-white/10 text-white rounded-md hover:bg-white/20 focus-visible:bg-white/20 disabled:opacity-50 transition-colors w-full">
+							<button
+								type="reset"
+								className="inline-flex h-9.5 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-white/10 text-white rounded-md hover:bg-white/20 focus-visible:bg-white/20 disabled:opacity-50 transition-colors w-full"
+							>
 								Clear
 							</button>
-							<button className="inline-flex h-9.5 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50 transition-colors w-full">
+							<button
+								type="submit"
+								className="inline-flex h-9.5 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50 transition-colors w-full"
+							>
 								Apply Filter
 							</button>
 						</div>
