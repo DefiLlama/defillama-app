@@ -15,6 +15,7 @@ import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { useCompareChainChartData } from './useCompareChainChartData'
 
 const ChainChart: any = React.lazy(() => import('~/containers/ChainOverview/Chart'))
 
@@ -160,6 +161,11 @@ export function CompareChains() {
 
 	const data = useCompare({ extraTvlsEnabled, chains: router.query?.chains ? [router.query?.chains].flat() : [] })
 
+	const { finalCharts, valueSymbol, isFetchingChartData } = useCompareChainChartData({
+		datasets: data?.data?.filter(Boolean) || [],
+		router
+	})
+
 	const components = React.useMemo(
 		() => ({
 			Option: CustomOption
@@ -230,13 +236,18 @@ export function CompareChains() {
 							)
 						)}
 					</div>
-					{data.isLoading || !router.isReady ? (
+					{data.isLoading || !router.isReady || isFetchingChartData ? (
 						<div className="flex items-center justify-center m-auto min-h-[360px]">
 							<LocalLoader />
 						</div>
 					) : (
 						<React.Suspense fallback={<></>}>
-							<ChainChart title="" datasets={data?.data} isThemeDark={isDark} />
+							<ChainChart
+								chartData={finalCharts}
+								valueSymbol={valueSymbol}
+								isThemeDark={isDark}
+								groupBy={(router.query?.groupBy as any) || 'daily'}
+							/>
 						</React.Suspense>
 					)}
 				</div>

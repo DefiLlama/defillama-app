@@ -12,6 +12,12 @@ import {
 
 const customOffsets = {}
 
+// Helper to extract metric from key
+const extractMetric = (key: string): string => {
+	const parts = key.split(' - ')
+	return parts.length > 1 ? parts[parts.length - 1] : key
+}
+
 export default function ChainLineBarChart({
 	chartData,
 	valueSymbol = '',
@@ -42,10 +48,11 @@ export default function ChainLineBarChart({
 	const { series, allYAxis } = useMemo(() => {
 		const uniqueYAxis = new Set()
 
-		const stacks = Object.keys(chartData) as any
+		const stacks = Object.keys(chartData ?? {}) as any
 
 		for (const stack of stacks) {
-			uniqueYAxis.add(yAxisByChart[stack])
+			const metric = extractMetric(stack) as ChainChartLabels
+			uniqueYAxis.add(yAxisByChart[metric])
 		}
 
 		const indexByYAxis = Object.fromEntries(
@@ -53,13 +60,14 @@ export default function ChainLineBarChart({
 		) as Record<ChainChartLabels, number | undefined>
 
 		const series = stacks.map((stack, index) => {
-			const stackColor = chainOverviewChartColors[stack]
+			const metric = extractMetric(stack) as ChainChartLabels
+			const stackColor = chainOverviewChartColors[metric]
 
-			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
-			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
+			let type = BAR_CHARTS.includes(metric) && !isCumulative ? 'bar' : 'line'
+			type = DISABLED_CUMULATIVE_CHARTS.includes(metric) ? 'bar' : type
 
 			const options = {
-				yAxisIndex: indexByYAxis[yAxisByChart[stack]]
+				yAxisIndex: indexByYAxis[yAxisByChart[metric]]
 			}
 
 			return {
@@ -75,7 +83,7 @@ export default function ChainLineBarChart({
 				},
 				symbol: 'none',
 				itemStyle: {
-					color: stackColor || null
+					color: stackColor || (isThemeDark ? '#fff' : '#000')
 				},
 				...(type === 'line'
 					? {
@@ -83,7 +91,7 @@ export default function ChainLineBarChart({
 								color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 									{
 										offset: 0,
-										color: stackColor ? stackColor : index === 0 ? chainOverviewChartColors[stack] : 'transparent'
+										color: stackColor || (isThemeDark ? '#fff' : '#000')
 									},
 									{
 										offset: 1,
@@ -94,7 +102,7 @@ export default function ChainLineBarChart({
 					  }
 					: {}),
 				markLine: {},
-				data: chartData[stack] ?? []
+				data: (chartData[stack] ?? []).map(([timestamp, value]) => [timestamp * 1000, value])
 			}
 		})
 
