@@ -130,5 +130,3 @@ const linksToOtherLlamaApps = [
 		)
 	}
 ]
-
-// #5C5CF9
