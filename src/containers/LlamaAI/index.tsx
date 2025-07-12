@@ -168,7 +168,11 @@ export function LlamaAI({ searchData }: { searchData: ISearchData }) {
 		return stored
 	})
 	const [conversationHistory, setConversationHistory] = useState<
-		Array<{ question: string; answer: string; timestamp: number }>
+		Array<{
+			question: string
+			response: { answer: string; chartData?: any; metadata?: any; suggestions?: any[] }
+			timestamp: number
+		}>
 	>([])
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
@@ -255,7 +259,12 @@ export function LlamaAI({ searchData }: { searchData: ISearchData }) {
 				...prev,
 				{
 					question: variables.userQuestion,
-					answer: data?.response?.answer || finalContent,
+					response: {
+						answer: data?.response?.answer || finalContent,
+						chartData: data?.response?.chartData,
+						metadata: data?.response?.metadata,
+						suggestions: data?.response?.suggestions
+					},
 					timestamp: Date.now()
 				}
 			])
@@ -400,8 +409,49 @@ export function LlamaAI({ searchData }: { searchData: ISearchData }) {
 										</div>
 										<div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
 											<div className="prose prose-sm max-w-none dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2">
-												<ReactMarkdown remarkPlugins={[remarkGfm]}>{item.answer}</ReactMarkdown>
+												<ReactMarkdown remarkPlugins={[remarkGfm]}>{item.response.answer}</ReactMarkdown>
 											</div>
+
+											{item.response.suggestions && item.response.suggestions.length > 0 && (
+												<div className="space-y-3 mt-4">
+													<h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Suggested actions:</h4>
+													<div className="grid gap-2">
+														{item.response.suggestions.map((suggestion, suggestionIndex) => (
+															<button
+																key={suggestionIndex}
+																onClick={() => handleSuggestionClick(suggestion)}
+																className="text-left p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group"
+															>
+																<div className="flex items-start justify-between gap-3">
+																	<div className="flex-1 min-w-0">
+																		<div className="font-medium text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+																			{suggestion.title}
+																		</div>
+																		<div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+																			{suggestion.description}
+																		</div>
+																	</div>
+																	<Icon
+																		name="arrow-right"
+																		height={16}
+																		width={16}
+																		className="text-gray-400 group-hover:text-blue-500 shrink-0"
+																	/>
+																</div>
+															</button>
+														))}
+													</div>
+												</div>
+											)}
+
+											{item.response.metadata && (
+												<details className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mt-4">
+													<summary className="text-sm font-medium cursor-pointer">Query Metadata</summary>
+													<pre className="text-xs mt-2 overflow-auto">
+														{JSON.stringify(item.response.metadata, null, 2)}
+													</pre>
+												</details>
+											)}
 										</div>
 									</div>
 								))}
