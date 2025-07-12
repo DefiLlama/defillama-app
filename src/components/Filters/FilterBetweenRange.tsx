@@ -11,6 +11,7 @@ interface IFilterBetweenRange {
 	min: string | null
 	max: string | null
 	variant?: 'primary' | 'secondary' | 'third'
+	placement?: Ariakit.PopoverStoreProps['placement']
 }
 
 export function FilterBetweenRange({
@@ -21,10 +22,21 @@ export function FilterBetweenRange({
 	nestedMenu,
 	min,
 	max,
-	variant = 'primary'
+	variant = 'primary',
+	placement = 'bottom-end'
 }: IFilterBetweenRange) {
+	const popover = Ariakit.usePopoverStore({
+		placement
+	})
+
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		onSubmit(e)
+		popover.hide()
+	}
+
 	const handleReset = () => {
 		onClear?.()
+		popover.hide()
 	}
 
 	if (nestedMenu) {
@@ -58,7 +70,7 @@ export function FilterBetweenRange({
 	}
 
 	return (
-		<Ariakit.PopoverProvider>
+		<Ariakit.PopoverProvider store={popover}>
 			<Ariakit.PopoverDisclosure
 				data-variant={variant}
 				className={
@@ -84,7 +96,7 @@ export function FilterBetweenRange({
 				className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 			>
 				<div className="w-full sm:w-[260px] mx-auto">
-					<form onSubmit={onSubmit} onReset={handleReset} className="flex flex-col gap-3 p-3">
+					<form onSubmit={handleSubmit} onReset={handleReset} className="flex flex-col gap-3 p-3">
 						<label className="flex flex-col gap-1">
 							<span>Min</span>
 							<input

@@ -1,12 +1,15 @@
 import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import * as Ariakit from '@ariakit/react'
 
 export function TVLRange({
 	variant = 'primary',
-	nestedMenu
+	nestedMenu,
+	placement
 }: {
 	variant?: 'primary' | 'secondary' | 'third'
 	nestedMenu?: boolean
+	placement?: Ariakit.PopoverStoreProps['placement']
 }) {
 	const router = useRouter()
 
@@ -76,6 +79,7 @@ export function TVLRange({
 			nestedMenu={nestedMenu}
 			min={min}
 			max={max}
+			placement={placement}
 		/>
 	)
 }
