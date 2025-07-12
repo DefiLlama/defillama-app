@@ -15,6 +15,7 @@ import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTa
 import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
 import { fetchJson } from '~/utils/async'
+import { useMedia } from '~/hooks/useMedia'
 
 export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	const searchData = await getAllCGTokensList()
@@ -37,6 +38,7 @@ export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 
 export default function Tokens({ searchData }) {
 	const router = useRouter()
+	const isSmall = useMedia(`(max-width: 639px)`)
 
 	const { token, includecex } = router.query
 
@@ -81,13 +83,16 @@ export default function Tokens({ searchData }) {
 	return (
 		<Layout title="Token Usage - DefiLlama" defaultSEO>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
+
 			<DesktopSearch
 				data={searchData}
 				placeholder="Search tokens..."
 				data-alwaysdisplay
 				onItemClick={onItemClick}
 				customSearchRoute="/token-usage?token="
+				variant={isSmall ? 'secondary' : 'primary'}
 			/>
+
 			<div className="bg-(--cards-bg) rounded-md w-full">
 				{isLoading ? (
 					<div className="flex items-center justify-center mx-auto w-full my-32">
