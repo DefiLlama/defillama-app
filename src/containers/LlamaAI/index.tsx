@@ -453,6 +453,21 @@ export function LlamaAI({ searchData }: { searchData: ISearchData }) {
 												</details>
 											)}
 										</div>
+
+										{item.response.chartData?.charts &&
+											item.response.chartData.charts.length > 0 &&
+											(item.response.chartData.charts.length > 1 ? (
+												<ChartNavigation charts={item.response.chartData.charts} />
+											) : (
+												<ChartRenderer chart={item.response.chartData.charts[0]} />
+											))}
+
+										{item.response.chartData && (
+											<details className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+												<summary className="text-sm font-medium cursor-pointer">Raw Chart Data</summary>
+												<pre className="text-xs mt-2 overflow-auto">{JSON.stringify(item.response.chartData, null, 2)}</pre>
+											</details>
+										)}
 									</div>
 								))}
 							</div>
@@ -790,21 +805,6 @@ const PromptResponse = ({
 
 	return (
 		<div className="space-y-4">
-			{response?.chartData?.charts &&
-				response.chartData.charts.length > 0 &&
-				(response.chartData.charts.length > 1 ? (
-					<ChartNavigation charts={response.chartData.charts} />
-				) : (
-					<ChartRenderer chart={response.chartData.charts[0]} />
-				))}
-
-			{response?.chartData && (
-				<details className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-					<summary className="text-sm font-medium cursor-pointer">Raw Chart Data</summary>
-					<pre className="text-xs mt-2 overflow-auto">{JSON.stringify(response.chartData, null, 2)}</pre>
-				</details>
-			)}
-
 			{response?.suggestions && response.suggestions.length > 0 && (
 				<div className="space-y-3">
 					<h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Suggested actions:</h4>
