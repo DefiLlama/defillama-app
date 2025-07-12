@@ -67,9 +67,9 @@ export const getStaticProps = withPerformanceLogging(
 					...data,
 					type: ADAPTOR_TYPE
 				},
+				metadata: metadata[1],
 				title: `${data.name} Volume - DefiLlama`
 			},
-			metadata: metadata[1],
 			revalidate: maxAgeForNext([22])
 		}
 	}
