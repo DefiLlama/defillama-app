@@ -29,7 +29,47 @@ paths:
       summary: List all protocols on defillama along with their tvl
       responses:
         '200':
-          description: successful operation
+          description: Array of all protocols with their TVL data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "2269"
+                    name:
+                      type: string
+                      example: "Aave"
+                    symbol:
+                      type: string
+                      example: "AAVE"
+                    category:
+                      type: string
+                      example: "Lending"
+                    chains:
+                      type: array
+                      items:
+                        type: string
+                      example: ["Ethereum", "Polygon"]
+                    tvl:
+                      type: number
+                      example: 5200000000
+                    chainTvls:
+                      type: object
+                      additionalProperties:
+                        type: number
+                      example:
+                        Ethereum: 3200000000
+                        Polygon: 2000000000
+                    change_1d:
+                      type: number
+                      example: 2.1
+                    change_7d:
+                      type: number
+                      example: -5.3
   /protocol/{protocol}:
     get:
       tags:
@@ -45,7 +85,69 @@ paths:
             example: aave
       responses:
         '200':
-          description: successful operation
+          description: Protocol details with historical TVL data and chain breakdowns
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "parent#aave"
+                  name:
+                    type: string
+                    example: "AAVE"
+                  symbol:
+                    type: string
+                    example: "AAVE"
+                  category:
+                    type: string
+                    example: "Lending"
+                  chains:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Ethereum", "Polygon", "Avalanche"]
+                  currentChainTvls:
+                    type: object
+                    additionalProperties:
+                      type: number
+                    example:
+                      Ethereum: 3200000000
+                      Polygon: 1500000000
+                  chainTvls:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        tvl:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: number
+                                example: 1609459200
+                              totalLiquidityUSD:
+                                type: number
+                                example: 1000000
+                        tokens:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: number
+                                example: 1609459200
+                              tokens:
+                                type: object
+                                additionalProperties:
+                                  type: number
+                                example:
+                                  USDC: 1000000
+                                  USDT: 800000
+        '404':
+          description: Protocol not found
   /v2/historicalChainTvl:
     get:
       tags:
@@ -53,7 +155,22 @@ paths:
       summary: Get historical TVL (excludes liquid staking and double counted tvl) of DeFi on all chains
       responses:
         '200':
-          description: successful operation
+          description: Historical TVL data for all chains combined
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: number
+                      description: Unix timestamp
+                      example: 1609459200
+                    tvl:
+                      type: number
+                      description: Total Value Locked in USD across all chains
+                      example: 15000000000
   /v2/historicalChainTvl/{chain}:
     get:
       tags:
@@ -69,7 +186,24 @@ paths:
             example: Ethereum
       responses:
         '200':
-          description: successful operation
+          description: Historical TVL data for the specified chain
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: number
+                      description: Unix timestamp
+                      example: 1609459200
+                    tvl:
+                      type: number
+                      description: Total Value Locked in USD for this chain
+                      example: 45000000000
+        '404':
+          description: Chain not found
   /tvl/{protocol}:
     get:
       tags:
@@ -86,7 +220,15 @@ paths:
             example: uniswap
       responses:
         '200':
-          description: successful operation
+          description: Current TVL of the protocol in USD
+          content:
+            application/json:
+              schema:
+                type: number
+                description: Total Value Locked in USD
+                example: 4962012809.795062
+        '404':
+          description: Protocol not found
   /v2/chains:
     get:
       tags:
@@ -94,7 +236,42 @@ paths:
       summary: Get current TVL of all chains
       responses:
         '200':
-          description: successful operation
+          description: Array of all chains with their TVL data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    gecko_id:
+                      type: string
+                      nullable: true
+                      description: CoinGecko ID for the chain's native token
+                      example: "ethereum"
+                    tvl:
+                      type: number
+                      description: Total Value Locked in USD
+                      example: 65998652431.40251
+                    tokenSymbol:
+                      type: string
+                      nullable: true
+                      description: Native token symbol
+                      example: "ETH"
+                    cmcId:
+                      type: string
+                      nullable: true
+                      description: CoinMarketCap ID
+                      example: "1027"
+                    name:
+                      type: string
+                      description: Chain name
+                      example: "Ethereum"
+                    chainId:
+                      type: number
+                      nullable: true
+                      description: Chain ID number
+                      example: 1
   /prices/current/{coins}:
     get:
       tags:
@@ -530,7 +707,57 @@ paths:
             example: true
       responses:
         '200':
-          description: successful operation
+          description: Array of all stablecoins with their circulation data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  peggedAssets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "1"
+                        name:
+                          type: string
+                          example: "Tether"
+                        symbol:
+                          type: string
+                          example: "USDT"
+                        pegType:
+                          type: string
+                          example: "peggedUSD"
+                        pegMechanism:
+                          type: string
+                          example: "fiat-backed"
+                        circulating:
+                          type: object
+                          properties:
+                            peggedUSD:
+                              type: number
+                              example: 159510682147.76874
+                        chains:
+                          type: array
+                          items:
+                            type: string
+                          example: ["Ethereum", "Tron", "BSC"]
+                        chainCirculating:
+                          type: object
+                          additionalProperties:
+                            type: object
+                            properties:
+                              current:
+                                type: object
+                                properties:
+                                  peggedUSD:
+                                    type: number
+                                    example: 50000000000
+                        price:
+                          type: number
+                          example: 1.001
   /stablecoincharts/all:
     get:
       tags:
@@ -548,7 +775,23 @@ paths:
             example: 1
       responses:
         '200':
-          description: successful operation
+          description: Historical market cap data for all stablecoins
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: number
+                      example: 1609459200
+                    totalCirculating:
+                      type: object
+                      properties:
+                        peggedUSD:
+                          type: number
+                          example: 45000000000
   /stablecoincharts/{chain}:
     get:
       tags:
@@ -573,7 +816,23 @@ paths:
             example: 1
       responses:
         '200':
-          description: successful operation
+          description: Historical market cap data for stablecoins on specified chain
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: number
+                      example: 1609459200
+                    totalCirculating:
+                      type: object
+                      properties:
+                        peggedUSD:
+                          type: number
+                          example: 12000000000
   /stablecoin/{asset}:
     get:
       tags:
@@ -591,7 +850,45 @@ paths:
             example: 1
       responses:
         '200':
-          description: successful operation
+          description: Historical market cap and chain distribution for specific stablecoin
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "1"
+                  name:
+                    type: string
+                    example: "Tether"
+                  symbol:
+                    type: string
+                    example: "USDT"
+                  totalCirculating:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: number
+                          example: 1609459200
+                        totalCirculating:
+                          type: number
+                          example: 50000000000
+                  chainCirculating:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          date:
+                            type: number
+                            example: 1609459200
+                          circulating:
+                            type: number
+                            example: 20000000000
   /stablecoinchains:
     get:
       tags:
@@ -601,7 +898,23 @@ paths:
         - url: https://stablecoins.llama.fi
       responses:
         '200':
-          description: successful operation
+          description: Current market cap of stablecoins by chain
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "Ethereum"
+                    totalCirculating:
+                      type: object
+                      properties:
+                        peggedUSD:
+                          type: number
+                          example: 75000000000
   /stablecoinprices:
     get:
       tags:
@@ -611,7 +924,25 @@ paths:
         - url: https://stablecoins.llama.fi
       responses:
         '200':
-          description: successful operation
+          description: Historical prices for all stablecoins
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: number
+                      example: 1609459200
+                    prices:
+                      type: object
+                      additionalProperties:
+                        type: number
+                      example:
+                        USDT: 1.001
+                        USDC: 0.999
+                        DAI: 1.002
   /pools:
     get:
       tags:
@@ -621,7 +952,72 @@ paths:
         - url: https://yields.llama.fi
       responses:
         '200':
-          description: successful operation
+          description: Array of all yield farming pools with their data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        pool:
+                          type: string
+                          example: "747c1d2a-c668-4682-b9f9-296708a3dd90"
+                        chain:
+                          type: string
+                          example: "Ethereum"
+                        project:
+                          type: string
+                          example: "Aave"
+                        symbol:
+                          type: string
+                          example: "USDC"
+                        tvlUsd:
+                          type: number
+                          example: 1500000000
+                        apy:
+                          type: number
+                          example: 5.2
+                        apyBase:
+                          type: number
+                          example: 3.1
+                        apyReward:
+                          type: number
+                          example: 2.1
+                        rewardTokens:
+                          type: array
+                          items:
+                            type: string
+                          example: ["COMP", "AAVE"]
+                        underlyingTokens:
+                          type: array
+                          items:
+                            type: string
+                          example: ["USDC"]
+                        poolMeta:
+                          type: string
+                          example: "Lending pool"
+                        url:
+                          type: string
+                          example: "https://app.aave.com/reserve-overview/USDC"
+                        predictions:
+                          type: object
+                          properties:
+                            predictedClass:
+                              type: string
+                              example: "Stable"
+                            predictedProbability:
+                              type: number
+                              example: 0.95
+                            binnedConfidence:
+                              type: number
+                              example: 1
   /chart/{pool}:
     get:
       tags:
@@ -639,7 +1035,35 @@ paths:
             example: '747c1d2a-c668-4682-b9f9-296708a3dd90'
       responses:
         '200':
-          description: successful operation
+          description: Historical APY and TVL data for specified pool
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: string
+                          example: "2024-01-01T00:00:00.000Z"
+                        tvlUsd:
+                          type: number
+                          example: 1500000000
+                        apy:
+                          type: number
+                          example: 5.2
+                        apyBase:
+                          type: number
+                          example: 3.1
+                        apyReward:
+                          type: number
+                          example: 2.1
   /overview/dexs:
     get:
       tags:
@@ -662,10 +1086,56 @@ paths:
           schema:
             type: boolean
             example: true
-
       responses:
         '200':
-          description: successful operation
+          description: Overview of all DEXs with volume data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  protocols:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "Uniswap"
+                        displayName:
+                          type: string
+                          example: "Uniswap V3"
+                        total24h:
+                          type: number
+                          example: 1500000000
+                        total7d:
+                          type: number
+                          example: 10000000000
+                        change_1d:
+                          type: number
+                          example: 5.2
+                        change_7d:
+                          type: number
+                          example: -2.1
+                        chains:
+                          type: array
+                          items:
+                            type: string
+                          example: ["Ethereum", "Polygon"]
+                  totalDataChart:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        oneOf:
+                          - type: number
+                          - type: object
+                      example: [1640995200, 2500000000]
+                  allChains:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Ethereum", "BSC", "Polygon"]
   /overview/dexs/{chain}:
     get:
       tags:
@@ -695,10 +1165,33 @@ paths:
           schema:
             type: boolean
             example: true
-
       responses:
         '200':
-          description: successful operation
+          description: Overview of DEXs on specified chain with volume data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  protocols:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "Uniswap"
+                        total24h:
+                          type: number
+                          example: 800000000
+                        change_1d:
+                          type: number
+                          example: 3.2
+                  totalDataChart:
+                    type: array
+                    items:
+                      type: array
+                      example: [1640995200, 1200000000]
   /summary/dexs/{protocol}:
     get:
       tags:
@@ -728,10 +1221,38 @@ paths:
           schema:
             type: boolean
             example: true
-
       responses:
         '200':
-          description: successful operation
+          description: DEX protocol volume summary with historical data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "Uniswap"
+                  total24h:
+                    type: number
+                    example: 1500000000
+                  totalAllTime:
+                    type: number
+                    example: 500000000000
+                  totalDataChart:
+                    type: array
+                    items:
+                      type: array
+                      example: [1640995200, 1500000000]
+                  totalDataChartBreakdown:
+                    type: array
+                    items:
+                      type: array
+                      example: [1640995200, {"Uniswap V3": 1200000000, "Uniswap V2": 300000000}]
+                  chains:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Ethereum", "Polygon"]
   /overview/options:
     get:
       tags:
@@ -764,7 +1285,31 @@ paths:
             example: dailyPremiumVolume
       responses:
         '200':
-          description: successful operation
+          description: Overview of all options DEXs with volume data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  protocols:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "Deribit"
+                        total24h:
+                          type: number
+                          example: 500000000
+                        change_1d:
+                          type: number
+                          example: 8.5
+                  totalDataChart:
+                    type: array
+                    items:
+                      type: array
+                      example: [1640995200, 750000000]
   /overview/options/{chain}:
     get:
       tags:
@@ -863,7 +1408,44 @@ paths:
             example: dailyFees
       responses:
         '200':
-          description: successful operation
+          description: Overview of all protocols with fees and revenue data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  protocols:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "Uniswap"
+                        total24h:
+                          type: number
+                          example: 5000000
+                        revenue24h:
+                          type: number
+                          example: 2000000
+                        change_1d:
+                          type: number
+                          example: 12.5
+                        chains:
+                          type: array
+                          items:
+                            type: string
+                          example: ["Ethereum", "Polygon"]
+                  totalDataChart:
+                    type: array
+                    items:
+                      type: array
+                      example: [1640995200, 25000000]
+                  totalDataChartBreakdown:
+                    type: array
+                    items:
+                      type: array
+                      example: [1640995200, {"Uniswap": 5000000, "Compound": 3000000}]
   /overview/fees/{chain}:
     get:
       tags:
