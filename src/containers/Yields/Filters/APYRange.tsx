@@ -1,11 +1,13 @@
 import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import * as Ariakit from '@ariakit/react'
 
 interface IAPYRange {
 	nestedMenu?: boolean
+	placement?: Ariakit.PopoverStoreProps['placement']
 }
 
-export function APYRange({ nestedMenu }: IAPYRange) {
+export function APYRange({ nestedMenu, placement }: IAPYRange) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -22,6 +24,21 @@ export function APYRange({ nestedMenu }: IAPYRange) {
 					minApy,
 					maxApy
 				}
+			},
+			undefined,
+			{
+				shallow: true
+			}
+		)
+	}
+
+	const handleClear = () => {
+		const { minApy, maxApy, ...restQuery } = router.query
+
+		router.push(
+			{
+				pathname: router.pathname,
+				query: restQuery
 			},
 			undefined,
 			{
@@ -51,9 +68,11 @@ export function APYRange({ nestedMenu }: IAPYRange) {
 			}
 			variant="secondary"
 			onSubmit={handleSubmit}
+			onClear={handleClear}
 			nestedMenu={nestedMenu}
 			min={min}
 			max={max}
+			placement={placement}
 		/>
 	)
 }

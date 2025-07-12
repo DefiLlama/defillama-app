@@ -23,7 +23,7 @@ export function FilterBetweenRange({
 	min,
 	max,
 	variant = 'primary',
-	placement = 'bottom-end'
+	placement = 'bottom'
 }: IFilterBetweenRange) {
 	const popover = Ariakit.usePopoverStore({
 		placement
@@ -42,29 +42,7 @@ export function FilterBetweenRange({
 	if (nestedMenu) {
 		return (
 			<NestedMenu label={name}>
-				<form onSubmit={onSubmit} className="flex flex-col gap-2">
-					<label className="flex flex-col gap-1 m-3 mb-0">
-						<span>Min</span>
-						<input
-							type="number"
-							name="min"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
-							value={min || ''}
-						/>
-					</label>
-					<label className="flex flex-col gap-1 m-3 mb-0">
-						<span>Max</span>
-						<input
-							type="number"
-							name="max"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
-							value={max || ''}
-						/>
-					</label>
-					<button className="p-3 m-3 bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50">
-						Apply Filter
-					</button>
-				</form>
+				<NestedMenuForm onSubmit={onSubmit} onClear={onClear} min={min} max={max} />
 			</NestedMenu>
 		)
 	}
@@ -135,5 +113,67 @@ export function FilterBetweenRange({
 				</div>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
+	)
+}
+
+function NestedMenuForm({
+	onSubmit,
+	onClear,
+	min,
+	max
+}: {
+	onSubmit: FormEventHandler<HTMLFormElement>
+	onClear?: () => void
+	min: string | null
+	max: string | null
+}) {
+	const menu = Ariakit.useMenuContext()
+
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		onSubmit(e)
+		menu.hide()
+	}
+
+	const handleReset = () => {
+		onClear?.()
+		menu.hide()
+	}
+
+	return (
+		<form onSubmit={handleSubmit} onReset={handleReset} className="flex flex-col gap-3 p-3">
+			<label className="flex flex-col gap-1">
+				<span>Min</span>
+				<input
+					type="number"
+					name="min"
+					className="h-9 w-full px-3 py-1 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+					defaultValue={min || ''}
+				/>
+			</label>
+			<label className="flex flex-col gap-1">
+				<span>Max</span>
+				<input
+					type="number"
+					name="max"
+					className="h-9 w-full px-3 py-1 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+					defaultValue={max || ''}
+				/>
+			</label>
+
+			<div className="mt-3 flex gap-2 flex-col">
+				<button
+					type="submit"
+					className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50 transition-colors w-full"
+				>
+					Apply Filter
+				</button>
+				<button
+					type="reset"
+					className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-white/10 text-white rounded-md hover:bg-white/20 focus-visible:bg-white/20 disabled:opacity-50 transition-colors w-full"
+				>
+					Clear
+				</button>
+			</div>
+		</form>
 	)
 }
