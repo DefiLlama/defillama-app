@@ -109,16 +109,5 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 			align: 'end',
 			headerHelperText: '7day rolling trades'
 		}
-	},
-	{
-		header: '% Wash Volume 7d',
-		accessorKey: 'washVolume7DPct',
-		size: 190,
-		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + '%' : null}</>,
-		meta: {
-			align: 'end',
-			headerHelperText:
-				'% of inorganic trades relative to organic ones over last 7days rolling. All our values are exclusive of wash trades'
-		}
 	}
 ]
