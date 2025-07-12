@@ -926,10 +926,14 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				  }
 				: null
 
+			const chilsProtocolCategories = Array.from(
+				new Set(parentStore[parentProtocol.id].filter((p) => p.category).map((p) => p.category))
+			)
+
 			protocolsStore[parentProtocol.id] = {
 				name: metadataCache.protocolMetadata[parentProtocol.id].displayName,
 				slug: metadataCache.protocolMetadata[parentProtocol.id].name,
-				category: null,
+				category: chilsProtocolCategories.length > 1 ? null : chilsProtocolCategories[0],
 				childProtocols: parentStore[parentProtocol.id],
 				chains: Array.from(new Set(...parentStore[parentProtocol.id].map((p) => p.chains ?? []))),
 				tvl: parentTvl,
