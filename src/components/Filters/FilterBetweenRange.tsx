@@ -90,7 +90,7 @@ export function FilterBetweenRange({
 							<input
 								type="number"
 								name="min"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+								className="h-9 w-full px-3 py-1 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 								defaultValue={min || ''}
 							/>
 						</label>
@@ -100,7 +100,7 @@ export function FilterBetweenRange({
 							<input
 								type="number"
 								name="max"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+								className="h-9 w-full px-3 py-1 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
 								defaultValue={max || ''}
 							/>
 						</label>
@@ -108,13 +108,13 @@ export function FilterBetweenRange({
 						<div className="mt-3 flex gap-2">
 							<button
 								type="reset"
-								className="inline-flex h-9.5 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-white/10 text-white rounded-md hover:bg-white/20 focus-visible:bg-white/20 disabled:opacity-50 transition-colors w-full"
+								className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-white/10 text-white rounded-md hover:bg-white/20 focus-visible:bg-white/20 disabled:opacity-50 transition-colors w-full"
 							>
 								Clear
 							</button>
 							<button
 								type="submit"
-								className="inline-flex h-9.5 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50 transition-colors w-full"
+								className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50 transition-colors w-full"
 							>
 								Apply Filter
 							</button>
