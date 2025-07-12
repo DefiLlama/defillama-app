@@ -16,6 +16,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
 import { fetchJson } from '~/utils/async'
 import { useMedia } from '~/hooks/useMedia'
+import { Switch } from '~/components/Switch'
 
 export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	const searchData = await getAllCGTokensList()
@@ -102,12 +103,12 @@ export default function Tokens({ searchData }) {
 					<></>
 				) : (
 					<>
-						<div className="flex items-center flex-wrap gap-4 justify-end p-3">
-							<h1 className="text-xl font-medium mr-auto">{`${tokenSymbol.toUpperCase()} usage in protocols`}</h1>
-							<CSVDownloadButton onClick={downloadCSV} />
-							<label className="flex items-center gap-2 cursor-pointer">
-								<input
-									type="checkbox"
+						<div className="flex items-center justify-between flex-wrap gap-2 p-3">
+							<div className="text-lg font-semibold flex grow w-full sm:w-auto">{`${tokenSymbol.toUpperCase()} usage in protocols`}</div>
+
+							<div className="flex items-center gap-2 max-sm:w-full">
+								<Switch
+									label="Include CEXs"
 									value="includeCentraliseExchanges"
 									checked={includeCentraliseExchanges}
 									onChange={() =>
@@ -121,8 +122,8 @@ export default function Tokens({ searchData }) {
 										)
 									}
 								/>
-								<span>Include CEXs</span>
-							</label>
+								<CSVDownloadButton onClick={downloadCSV} />
+							</div>
 						</div>
 
 						<Suspense
