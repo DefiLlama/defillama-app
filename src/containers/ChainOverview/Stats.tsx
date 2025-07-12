@@ -1,6 +1,6 @@
 import { TokenLogo } from '~/components/TokenLogo'
 import { IChainOverviewData } from './types'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { chainIconUrl, download, formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -779,14 +779,11 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					<EmbedChart />
 					<CSVDownloadButton
 						onClick={() => {
-							window.open(
-								`https://api.llama.fi/simpleChainDataset/${
-									chainsNamesMap[props.metadata.name] || props.metadata.name
-								}?${Object.entries(tvlSettings)
-									.filter((t) => t[1] === true)
-									.map((t) => `${t[0]}=true`)
-									.join('&')}`.replaceAll(' ', '%20')
-							)
+							try {
+								downloadChart(finalCharts, `${props.chain}.csv`)
+							} catch (error) {
+								console.error('Error generating CSV:', error)
+							}
 						}}
 						smol
 						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
@@ -822,4 +819,34 @@ const updateRoute = (key, val, router) => {
 
 const chainsNamesMap = {
 	'OP Mainnet': 'Optimism'
+}
+
+function downloadChart(data: Record<string, Array<[string | number, number]>>, filename: string) {
+	let rows = []
+	const charts = []
+	const dateStore = {}
+	for (const chartName in data) {
+		charts.push(chartName)
+		for (const [date, value] of data[chartName]) {
+			if (!dateStore[date]) {
+				dateStore[date] = {}
+			}
+			dateStore[date][chartName] = value
+		}
+	}
+	rows.push(['Timestamp', 'Date', ...charts])
+	for (const date in dateStore) {
+		const values = []
+		for (const chartName in data) {
+			values.push(dateStore[date]?.[chartName] ?? '')
+		}
+		rows.push([date, toNiceCsvDate(+date / 1000), ...values])
+	}
+	download(
+		filename,
+		rows
+			.sort((a, b) => a[0] - b[0])
+			.map((r) => r.join(','))
+			.join('\n')
+	)
 }

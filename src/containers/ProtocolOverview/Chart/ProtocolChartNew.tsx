@@ -70,7 +70,13 @@ function downloadChart(data: Record<string, Array<[string | number, number]>>, f
 		}
 		rows.push([date, toNiceCsvDate(+date / 1000), ...values])
 	}
-	download(filename, rows.map((r) => r.join(',')).join('\n'))
+	download(
+		filename,
+		rows
+			.sort((a, b) => a[0] - b[0])
+			.map((r) => r.join(','))
+			.join('\n')
+	)
 }
 
 export function ProtocolChart2(props: IProtocolOverviewPageData) {
