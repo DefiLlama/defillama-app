@@ -276,7 +276,7 @@ export const DimensionProtocolChartByType = ({
 	protocolName: string
 	adapterType: `${ADAPTER_TYPES}`
 	chartType: 'overview' | 'chain' | 'version'
-	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
+	metadata?: { revenue?: boolean; bribeRevenue?: boolean; tokenTax?: boolean }
 }) => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['dimension-adapter-chart', adapterType, protocolName, JSON.stringify(metadata)],

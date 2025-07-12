@@ -76,14 +76,22 @@ export default function Protocols(props) {
 						chartType="overview"
 						protocolName={slug(props.name)}
 						adapterType="fees"
-						metadata={{ bribeRevenue: props.metrics.bribes, tokenTax: props.metrics.tokenTax }}
+						metadata={{
+							revenue: props.metrics.revenue,
+							bribeRevenue: props.metrics.bribes,
+							tokenTax: props.metrics.tokenTax
+						}}
 					/>
 					{props.hasMultipleChain ? (
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
 							adapterType="fees"
-							metadata={{ bribeRevenue: props.metrics.bribes, tokenTax: props.metrics.tokenTax }}
+							metadata={{
+								revenue: props.metrics.revenue,
+								bribeRevenue: props.metrics.bribes,
+								tokenTax: props.metrics.tokenTax
+							}}
 						/>
 					) : null}
 					{props.hasMultipleVersions ? (
@@ -91,7 +99,11 @@ export default function Protocols(props) {
 							chartType="version"
 							protocolName={slug(props.name)}
 							adapterType="fees"
-							metadata={{ bribeRevenue: props.metrics.bribes, tokenTax: props.metrics.tokenTax }}
+							metadata={{
+								revenue: props.metrics.revenue,
+								bribeRevenue: props.metrics.bribes,
+								tokenTax: props.metrics.tokenTax
+							}}
 						/>
 					) : null}
 				</div>

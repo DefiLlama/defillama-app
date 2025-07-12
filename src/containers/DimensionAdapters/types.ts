@@ -4,6 +4,11 @@ import { ADAPTER_TYPES, ADAPTER_DATA_TYPES } from './constants'
 export interface IProtocolContainerProps {
 	protocolSummary: ProtocolAdaptorSummaryProps
 	title: string
+	metadata?: {
+		revenue?: boolean
+		bribeRevenue?: boolean
+		tokenTax?: boolean
+	}
 }
 
 export interface IDimensionChainChartProps {

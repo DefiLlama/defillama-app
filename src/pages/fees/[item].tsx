@@ -76,6 +76,7 @@ export const getStaticProps = withPerformanceLogging(
 					...feesData,
 					type: ADAPTOR_TYPE
 				},
+				metadata: pmetadata?.[1] ?? cmetadata,
 				title: `${feesData.name} Fees - DefiLlama`
 			},
 			revalidate: maxAgeForNext([22])
