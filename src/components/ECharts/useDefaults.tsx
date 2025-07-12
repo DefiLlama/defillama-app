@@ -66,6 +66,7 @@ interface IUseDefaultsProps {
 	hideOthersInTooltip?: boolean
 	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
 	alwaysShowTooltip?: boolean
+	showAggregateInTooltip?: boolean
 }
 
 export function useDefaults({
@@ -81,7 +82,8 @@ export function useDefaults({
 	isThemeDark,
 	hideOthersInTooltip,
 	groupBy,
-	alwaysShowTooltip
+	alwaysShowTooltip,
+	showAggregateInTooltip = false
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -264,6 +266,68 @@ export function useDefaults({
 			}
 		}
 
+		const aggregateTooltip = {
+			trigger: 'axis',
+			confine: true,
+			formatter: function (params) {
+				if (Array.isArray(params) && params.length > 1) {
+					const chartdate = formatTooltipChartDate(params[0].value[0], groupBy)
+
+					let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1])
+
+					filteredParams.sort((a, b) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+
+					const vals = filteredParams.reduce((prev, curr) => {
+						return (prev +=
+							'<li style="list-style:none">' +
+							curr.marker +
+							curr.seriesName +
+							'&nbsp;&nbsp;' +
+							formatTooltipValue(curr.value[1], valueSymbol) +
+							'</li>')
+					}, '')
+
+					const total = filteredParams.reduce((acc, curr) => acc + curr.value[1], 0)
+
+					const totalLine =
+						'<li style="list-style:none;font-weight:600">' +
+						'Total' +
+						'&nbsp;&nbsp;' +
+						formatTooltipValue(total, valueSymbol) +
+						'</li>'
+
+					return chartdate + vals + totalLine
+				} else if (params && !Array.isArray(params)) {
+					const chartdate = formatTooltipChartDate(params.value[0], groupBy)
+					const value = formatTooltipValue(params.value[1], valueSymbol)
+
+					return (
+						chartdate +
+						'<li style="list-style:none">' +
+						params.marker +
+						params.seriesName +
+						'&nbsp;&nbsp;' +
+						value +
+						'</li>'
+					)
+				}
+
+				return ''
+			},
+			...(alwaysShowTooltip
+				? {
+						position: [60, 0],
+						backgroundColor: 'none',
+						borderWidth: '0',
+						padding: 0,
+						boxShadow: 'none',
+						textStyle: {
+							color: isThemeDark ? 'white' : 'black'
+						}
+				  }
+				: {})
+		}
+
 		const xAxis = {
 			type: 'time',
 			boundaryGap: false,
@@ -371,7 +435,7 @@ export function useDefaults({
 			}
 		]
 
-		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom, inflowsTooltip }
+		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom, inflowsTooltip, aggregateTooltip }
 	}, [
 		color,
 		isThemeDark,
@@ -385,7 +449,9 @@ export function useDefaults({
 		unlockTokenSymbol,
 		hideOthersInTooltip,
 		tooltipValuesRelative,
-		groupBy
+		groupBy,
+		alwaysShowTooltip,
+		showAggregateInTooltip
 	])
 
 	return defaults
@@ -405,7 +471,11 @@ const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 
 // timestamps in monthly chart date is 1st of every month
 // timestamps in weekly chart date is last day of week i.e., sunday
-export function formatTooltipChartDate(value: number, groupBy: 'daily' | 'weekly' | 'monthly' | 'quarterly', hideTime?: boolean) {
+export function formatTooltipChartDate(
+	value: number,
+	groupBy: 'daily' | 'weekly' | 'monthly' | 'quarterly',
+	hideTime?: boolean
+) {
 	const date = new Date(value)
 
 	return groupBy === 'monthly'
@@ -462,8 +532,8 @@ function getQuarterDateRange(value: number) {
 	const year = date.getUTCFullYear()
 	const quarterStartMonth = Math.floor(month / 3) * 3
 	const quarterEndMonth = quarterStartMonth + 2
-	
+
 	const quarterEndDate = new Date(year, quarterEndMonth + 1, 0).getUTCDate()
-	
+
 	return `${monthNames[quarterStartMonth]} 1 - ${monthNames[quarterEndMonth]} ${quarterEndDate}, ${year}`
 }
