@@ -1,7 +1,14 @@
 import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import * as Ariakit from '@ariakit/react'
 
-export function McapRange({ nestedMenu }: { nestedMenu?: boolean }) {
+export function McapRange({
+	nestedMenu,
+	placement
+}: {
+	nestedMenu?: boolean
+	placement?: Ariakit.PopoverStoreProps['placement']
+}) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -26,9 +33,24 @@ export function McapRange({ nestedMenu }: { nestedMenu?: boolean }) {
 		)
 	}
 
+	const handleClear = () => {
+		const { minMcap, maxMcap, ...restQuery } = router.query
+
+		router.push(
+			{
+				pathname: router.pathname,
+				query: restQuery
+			},
+			undefined,
+			{
+				shallow: true
+			}
+		)
+	}
+
 	const { minMcap, maxMcap } = router.query
-	const min = typeof minMcap === 'string' && minMcap !== '' ? Number(minMcap).toLocaleString() : null
-	const max = typeof maxMcap === 'string' && maxMcap !== '' ? Number(maxMcap).toLocaleString() : null
+	const min = typeof minMcap === 'string' && minMcap !== '' ? Number(minMcap) : null
+	const max = typeof maxMcap === 'string' && maxMcap !== '' ? Number(maxMcap) : null
 
 	return (
 		<FilterBetweenRange
@@ -38,7 +60,9 @@ export function McapRange({ nestedMenu }: { nestedMenu?: boolean }) {
 					{min || max ? (
 						<>
 							<span>Mcap: </span>
-							<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
+							<span className="text-(--link)">{`${min?.toLocaleString() ?? 'min'} - ${
+								max?.toLocaleString() ?? 'max'
+							}`}</span>
 						</>
 					) : (
 						'Mcap'
@@ -46,10 +70,12 @@ export function McapRange({ nestedMenu }: { nestedMenu?: boolean }) {
 				</>
 			}
 			onSubmit={handleSubmit}
+			onClear={handleClear}
 			variant={'secondary'}
 			nestedMenu={nestedMenu}
 			min={min}
 			max={max}
+			placement={placement}
 		/>
 	)
 }

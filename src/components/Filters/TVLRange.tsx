@@ -1,12 +1,15 @@
 import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import * as Ariakit from '@ariakit/react'
 
 export function TVLRange({
 	variant = 'primary',
-	nestedMenu
+	nestedMenu,
+	placement
 }: {
 	variant?: 'primary' | 'secondary' | 'third'
 	nestedMenu?: boolean
+	placement?: Ariakit.PopoverStoreProps['placement']
 }) {
 	const router = useRouter()
 
@@ -32,9 +35,24 @@ export function TVLRange({
 		)
 	}
 
+	const handleClear = () => {
+		const { minTvl, maxTvl, ...restQuery } = router.query
+
+		router.push(
+			{
+				pathname: router.pathname,
+				query: restQuery
+			},
+			undefined,
+			{
+				shallow: true
+			}
+		)
+	}
+
 	const { minTvl, maxTvl } = router.query
-	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl).toLocaleString() : null
-	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl).toLocaleString() : null
+	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null
+	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl) : null
 
 	return (
 		<FilterBetweenRange
@@ -45,7 +63,9 @@ export function TVLRange({
 						{min || max ? (
 							<>
 								<span>TVL: </span>
-								<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
+								<span className="text-(--link)">{`${min?.toLocaleString() ?? 'min'} - ${
+									max?.toLocaleString() ?? 'max'
+								}`}</span>
 							</>
 						) : (
 							<span>TVL Range</span>
@@ -56,10 +76,12 @@ export function TVLRange({
 				)
 			}
 			onSubmit={handleSubmit}
+			onClear={handleClear}
 			variant={variant}
 			nestedMenu={nestedMenu}
 			min={min}
 			max={max}
+			placement={placement}
 		/>
 	)
 }
