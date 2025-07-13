@@ -35,7 +35,6 @@ function Marketplaces({
 }) {
 	const [dominanceChart, setDominanceChart] = React.useState(false)
 
-	//x
 	return (
 		<Layout title="NFT Marketplaces - DefiLlama" defaultSEO>
 			<NFTsSearch />
