@@ -124,7 +124,7 @@ export function BridgeChainsTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="flex items-center gap-2 justify-end p-3">
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon

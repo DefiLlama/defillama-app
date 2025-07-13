@@ -6,12 +6,9 @@ export function useProtocolsFilterState(options) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const [extraFeesEnabled] = useLocalStorageSettingsManager('fees')
 
-	const { selectedValues } = useMemo(() => {
-		const fitlers = options.map((o) => o.key)
-
-		const selectedValues = fitlers.filter((key) => extraTvlsEnabled[key] || extraFeesEnabled[key])
-
-		return { selectedValues }
+	const selectedValues = useMemo(() => {
+		const filters = options.map((o) => o.key)
+		return filters.filter((key) => extraTvlsEnabled[key] || extraFeesEnabled[key])
 	}, [extraTvlsEnabled, extraFeesEnabled, options])
 
 	const setSelectedValues = (values) => {
@@ -28,9 +25,9 @@ export function useProtocolsFilterState(options) {
 export function useFeesFilterState(props?: { [key: string]: any }) {
 	const [extraTvlsEnabled, updater] = useLocalStorageSettingsManager('fees')
 
-	const fitlers = feesOptions.map((o) => o.key)
+	const filters = feesOptions.map((o) => o.key)
 
-	const selectedValues = fitlers.filter((key) => extraTvlsEnabled[key])
+	const selectedValues = filters.filter((key) => extraTvlsEnabled[key])
 
 	const setSelectedValues = (values) => {
 		const newValues = {}
@@ -54,9 +51,9 @@ export function useTvlAndFeesFilterState({
 }) {
 	const [toggledKeys] = useLocalStorageSettingsManager('tvl_fees')
 
-	const fitlers = options.map((o) => o.key)
+	const filters = options.map((o) => o.key)
 
-	const selectedValues = fitlers.filter((key) => toggledKeys[key])
+	const selectedValues = filters.filter((key) => toggledKeys[key])
 
 	const setSelectedValues = (values) => {
 		const newValues = {}

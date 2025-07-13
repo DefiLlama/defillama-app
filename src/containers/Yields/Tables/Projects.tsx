@@ -4,7 +4,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import type { IYieldsProjectsTableRow } from './types'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { formattedNum, formattedPercent, slug } from '~/utils'
+import { formattedNum, formattedPercent } from '~/utils'
 import { YieldsProject } from './Name'
 import { Tooltip } from '~/components/Tooltip'
 
@@ -14,7 +14,7 @@ const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			return <YieldsProject project={getValue() as string} projectslug={slug(getValue() as string)} />
+			return <YieldsProject project={getValue() as string} projectslug={getValue() as string} />
 		}
 	},
 	{

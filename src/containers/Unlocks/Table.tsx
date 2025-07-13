@@ -86,6 +86,21 @@ export const UnlocksTable = ({
 		)
 	}
 
+	const handleUnlockValueClear = () => {
+		const { minUnlockValue, maxUnlockValue, ...restQuery } = router.query
+
+		router.push(
+			{
+				pathname: router.pathname,
+				query: restQuery
+			},
+			undefined,
+			{
+				shallow: true
+			}
+		)
+	}
+
 	const handleUnlockPercSubmit = (e) => {
 		e.preventDefault()
 		const form = e.target
@@ -102,6 +117,21 @@ export const UnlocksTable = ({
 			},
 			undefined,
 			{ shallow: true }
+		)
+	}
+
+	const handleUnlockPercClear = () => {
+		const { minUnlockPerc, maxUnlockPerc, ...restQuery } = router.query
+
+		router.push(
+			{
+				pathname: router.pathname,
+				query: restQuery
+			},
+			undefined,
+			{
+				shallow: true
+			}
 		)
 	}
 
@@ -289,7 +319,7 @@ export const UnlocksTable = ({
 	})
 
 	return (
-		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
 				<h1 className="text-xl font-semibold mr-auto">Token Unlocks</h1>
 
@@ -305,18 +335,22 @@ export const UnlocksTable = ({
 					name="Unlock Value"
 					trigger={<span>Unlock Value</span>}
 					onSubmit={handleUnlockValueSubmit}
-					min={min ? min.toString() : ''}
-					max={max ? max.toString() : ''}
+					onClear={handleUnlockValueClear}
+					min={min ?? ''}
+					max={max ?? ''}
 					variant="third"
+					placement="bottom-start"
 				/>
 
 				<FilterBetweenRange
 					name="Unlock % of Market Cap"
 					trigger={<span>Unlock Perc.</span>}
 					onSubmit={handleUnlockPercSubmit}
-					min={minPerc ? minPerc.toString() : ''}
-					max={maxPerc ? maxPerc.toString() : ''}
+					onClear={handleUnlockPercClear}
+					min={minPerc ?? ''}
+					max={maxPerc ?? ''}
 					variant="third"
+					placement="bottom-start"
 				/>
 
 				<SelectWithCombobox

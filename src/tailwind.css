@@ -370,6 +370,8 @@
 		--old-blue: #1f67d2;
 		--pct-green: #008a13;
 		--pct-red: #e60d02;
+
+		--cards-border: #e6e6e6;
 	}
 
 	* {
@@ -423,6 +425,8 @@
 		--cards-bg: #131516;
 		--pct-green: #3fb84f;
 		--pct-red: #e24a42;
+
+		--cards-border: #222324;
 	}
 
 	body {

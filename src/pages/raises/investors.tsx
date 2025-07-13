@@ -15,7 +15,7 @@ import { RAISES_API } from '~/constants'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { TagGroup } from '~/components/TagGroup'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
@@ -40,13 +40,11 @@ const findMedian = (arr) => {
 	}
 }
 
-const fetch = fetchWithErrorLogging
-
 const getRaisesByPeriod = (data, days) =>
 	data.filter((raise) => raise.date && raise.date * 1000 >= Date.now() - days * 24 * 60 * 60 * 1000)
 
 export const getStaticProps = withPerformanceLogging('raises/active-investors', async () => {
-	const data = await fetch(RAISES_API).then((r) => r.json())
+	const data = await fetchJson(RAISES_API)
 
 	return {
 		props: {
@@ -151,7 +149,7 @@ const ActiveInvestors = ({ data }) => {
 				</a>
 			</Announcement> */}
 
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center gap-2 justify-end flex-wrap p-3">
 					<h1 className="text-xl font-semibold mr-auto">Investors</h1>
 					<div className="relative w-full sm:max-w-[280px]">

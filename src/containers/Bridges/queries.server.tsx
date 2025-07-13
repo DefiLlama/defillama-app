@@ -2,24 +2,20 @@ import { slug, chainIconUrl, tokenIconUrl, getRandomColor } from '~/utils'
 import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
 import { CONFIG_API, BRIDGEDAYSTATS_API, BRIDGES_API, BRIDGEVOLUME_API, BRIDGELARGETX_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
+import { fetchJson } from '~/utils/async'
 
 export const getBridges = () =>
-	fetch(BRIDGES_API + '?includeChains=true')
-		.then((r) => r.json())
-		.then(({ bridges, chains }) => ({
-			bridges,
-			chains
-		}))
+	fetchJson(BRIDGES_API + '?includeChains=true').then(({ bridges, chains }) => ({
+		bridges,
+		chains
+	}))
 
 const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 	if (chain) {
 		if (chainCoingeckoIds[chain]) {
 			for (let i = 0; i < 5; i++) {
 				try {
-					const chart = await fetch(`${BRIDGEVOLUME_API}/${chain}`).then((resp) => resp.json())
+					const chart = await fetchJson(`${BRIDGEVOLUME_API}/${chain}`)
 					const formattedChart = chart.map((chart) => {
 						// This is confusing, stats from the endpoint use "deposit" to mean deposit in bridge contract,
 						// i.e., a withdrawal from the chain. Will eventually change that.
@@ -35,7 +31,7 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 			throw new Error(`${BRIDGEVOLUME_API}/${chain} is broken`)
 		} else return null
 	} else {
-		const chart = await fetch(BRIDGEVOLUME_API + '/all').then((resp) => resp.json())
+		const chart = await fetchJson(BRIDGEVOLUME_API + '/all')
 		const formattedChart = chart.map((chart) => {
 			return {
 				date: chart.date,
@@ -51,13 +47,11 @@ const getLargeTransactionsData = async (chain: string, startTimestamp: number, e
 	for (let i = 0; i < 5; i++) {
 		try {
 			if (chain) {
-				return await fetch(
+				return await fetchJson(
 					`${BRIDGELARGETX_API}/${chain}?starttimestamp=${startTimestamp}&endtimestamp=${endTimestamp}`
-				).then((resp) => resp.json())
+				)
 			} else {
-				return await fetch(
-					`${BRIDGELARGETX_API}/all?starttimestamp=${startTimestamp}&endtimestamp=${endTimestamp}`
-				).then((resp) => resp.json())
+				return await fetchJson(`${BRIDGELARGETX_API}/all?starttimestamp=${startTimestamp}&endtimestamp=${endTimestamp}`)
 			}
 		} catch (e) {}
 	}
@@ -65,10 +59,7 @@ const getLargeTransactionsData = async (chain: string, startTimestamp: number, e
 }
 
 export async function getBridgeOverviewPageData(chain) {
-	const [{ bridges, chains }, { chainCoingeckoIds }] = await Promise.all([
-		getBridges(),
-		fetch(CONFIG_API).then((r) => r.json())
-	])
+	const [{ bridges, chains }, { chainCoingeckoIds }] = await Promise.all([getBridges(), fetchJson(CONFIG_API)])
 
 	let chartDataByBridge = []
 	let bridgeNames: string[] = []
@@ -81,9 +72,9 @@ export async function getBridgeOverviewPageData(chain) {
 				try {
 					let charts = []
 					if (!chain) {
-						charts = await fetch(`${BRIDGEVOLUME_API}/all?id=${elem.id}`).then((resp) => resp.json())
+						charts = await fetchJson(`${BRIDGEVOLUME_API}/all?id=${elem.id}`)
 					} else {
-						charts = await fetch(`${BRIDGEVOLUME_API}/${chain}?id=${elem.id}`).then((resp) => resp.json())
+						charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain}?id=${elem.id}`)
 					}
 					// can format differently here if needed
 					let formattedCharts
@@ -127,9 +118,7 @@ export async function getBridgeOverviewPageData(chain) {
 	if (chain) {
 		for (let i = 0; i < 5; i++) {
 			try {
-				bridgeStatsCurrentDay = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`).then((resp) =>
-					resp.json()
-				)
+				bridgeStatsCurrentDay = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`)
 				// can format differently here if needed
 			} catch (e) {}
 		}
@@ -185,7 +174,7 @@ export async function getBridgeChainsPageData() {
 			chainToChartDataIndex[chain.name] = i
 			for (let i = 0; i < 5; i++) {
 				try {
-					const charts = await fetch(`${BRIDGEVOLUME_API}/${chain.name}`).then((resp) => resp.json())
+					const charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain.name}`)
 					return charts
 				} catch (e) {}
 			}
@@ -221,9 +210,7 @@ export async function getBridgeChainsPageData() {
 			chains.map(async (chain) => {
 				for (let i = 0; i < 5; i++) {
 					try {
-						const charts = await fetchWithErrorLogging(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`).then(
-							(res) => res.json()
-						)
+						const charts = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`)
 						return { ...charts, name: chain.name }
 					} catch (e) {}
 				}
@@ -266,7 +253,7 @@ export async function getBridgePageData(bridge: string) {
 			chainToChartDataIndex[chain] = i
 			for (let i = 0; i < 5; i++) {
 				try {
-					const charts = await fetch(`${BRIDGEVOLUME_API}/${chain}?id=${id}`).then((resp) => resp.json())
+					const charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain}?id=${id}`)
 					return charts
 				} catch (e) {}
 			}
@@ -282,9 +269,7 @@ export async function getBridgePageData(bridge: string) {
 		chains.map(async (chain) => {
 			for (let i = 0; i < 5; i++) {
 				try {
-					const charts = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}?id=${id}`).then((resp) =>
-						resp.json()
-					)
+					const charts = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}?id=${id}`)
 					// can format differently here if needed
 					return charts
 				} catch (e) {}
@@ -323,7 +308,7 @@ export async function getBridgePageDatanew(bridge: string) {
 		chains.map(async (chain) => {
 			for (let i = 0; i < 5; i++) {
 				try {
-					const charts = await fetch(`${BRIDGEVOLUME_API}/${chain}?id=${id}`).then((resp) => resp.json())
+					const charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain}?id=${id}`)
 					return charts
 				} catch (e) {}
 			}
@@ -372,9 +357,7 @@ export async function getBridgePageDatanew(bridge: string) {
 		chains.map(async (chain) => {
 			for (let i = 0; i < 5; i++) {
 				try {
-					const charts = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}?id=${id}`).then((resp) =>
-						resp.json()
-					)
+					const charts = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}?id=${id}`)
 					// can format differently here if needed
 					return charts
 				} catch (e) {}

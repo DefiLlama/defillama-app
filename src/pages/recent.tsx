@@ -4,14 +4,11 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API } from '~/constants'
 import { withPerformanceLogging } from '~/utils/perf'
-
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
+import { fetchJson } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging('recent', async () => {
 	const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls'])
-	const { forks } = await fetch(FORK_API).then((r) => r.json())
+	const { forks } = await fetchJson(FORK_API)
 
 	const protocols = protocolsRaw.protocols.filter((p) => p.listedAt).sort((a, b) => b.listedAt - a.listedAt)
 	const forkedList: { [name: string]: boolean } = {}

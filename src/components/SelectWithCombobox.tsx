@@ -152,9 +152,9 @@ export function SelectWithCombobox({
 				>
 					{labelType === 'smol' ? (
 						<span className="flex items-center gap-1">
-							<span className="text-[10px] -my-2 rounded-full min-w-4 flex items-center justify-center border border-(--form-control-border) p-px">
+							<div className="text-[10px] rounded-full min-w-4 flex items-center justify-center border border-(--form-control-border) py-0.5 px-1 leading-none">
 								{selectedValues.length}
-							</span>
+							</div>
 							<span>{label}</span>
 						</span>
 					) : labelType === 'regular' && selectedValues.length > 0 ? (
@@ -257,7 +257,7 @@ export function SelectWithCombobox({
 														e.stopPropagation()
 														selectOnlyOne(valuesAreAnArrayOfStrings ? option : option.key)
 													}}
-													className="font-medium text-xs text-(--link) underline hidden group-hover:inline-block group-focus-visible:inline-block"
+													className="font-medium text-xs text-(--link) underline invisible group-hover:visible group-focus-visible:visible"
 												>
 													Only
 												</button>

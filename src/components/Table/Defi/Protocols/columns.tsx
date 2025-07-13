@@ -274,15 +274,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 120
 			}),
-			// columnHelper.accessor('average_revenue_1y', {
-			// 	header: 'Monthly Avg 1Y Rev',
-			// 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			// 	sortUndefined: 'last',
-			// 	meta: {
-			// 		align: 'end'
-			// 	},
-			// 	size: 180
-			// }),
+			columnHelper.accessor('average_revenue_1y', {
+				header: 'Monthly Avg 1Y Rev',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
+				},
+				size: 180
+			}),
 			columnHelper.accessor('holdersRevenue30d', {
 				header: 'Holders Revenue 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,

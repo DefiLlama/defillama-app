@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
+import { fetchJson } from '~/utils/async'
 
 const valueToFilter = {
 	'1d': 'day',
@@ -21,44 +19,40 @@ interface ITrendingContracts {
 }
 
 async function getContracts(chain: string, time: string) {
-	return await fetch(
+	return await fetchJson(
 		`https://trending-contracts-api.onrender.com/${chain}_tc/${valueToFilter[time] || valueToFilter['1d']}`
-	)
-		.then((res) => res.json())
-		.then(async (r) => {
-			return {
-				results: await Promise.all(
-					r.map(async (contract) => {
-						let name = contract.name ? { name: contract.name } : undefined
-						if (!name) {
+	).then(async (r) => {
+		return {
+			results: await Promise.all(
+				r.map(async (contract) => {
+					let name = contract.name ? { name: contract.name } : undefined
+					if (!name) {
+						try {
+							name = await fetchJson(
+								`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
+							)
+							if (name.name === undefined) {
+								throw new Error('RolodETH: No name')
+							}
+						} catch (e) {
 							try {
-								name = await fetch(
-									`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
-								).then((r) => r.json())
-								if (name.name === undefined) {
-									throw new Error('RolodETH: No name')
+								name = await fetchJson(`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`)
+								if (name.name === '') {
+									throw new Error('Etherescan: Contract not verified')
 								}
 							} catch (e) {
-								try {
-									name = await fetch(
-										`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`
-									).then((r) => r.json())
-									if (name.name === '') {
-										throw new Error('Etherescan: Contract not verified')
-									}
-								} catch (e) {
-									name = undefined
-								}
+								name = undefined
 							}
 						}
-						return {
-							...contract,
-							name: name?.name
-						}
-					})
-				)
-			}
-		})
+					}
+					return {
+						...contract,
+						name: name?.name
+					}
+				})
+			)
+		}
+	})
 }
 
 export function useTrendingContractsData(chain: string = 'ethereum', timeframe: string = '1d') {

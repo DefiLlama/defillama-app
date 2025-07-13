@@ -5,10 +5,7 @@ import {
 	getDimensionProtocolPageData,
 	getDimensionAdapterChainPageData
 } from '~/api/categories/adaptors'
-
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
+import { fetchJson } from '~/utils/async'
 
 export const fetchChain = async ({ chain }) => {
 	const [data, volumeData, feesData, usersData, txsData, bridgeData, stablecoinsData] = await Promise.all([
@@ -16,12 +13,10 @@ export const fetchChain = async ({ chain }) => {
 		getDimensionsAdaptersChainsPageData('dexs').catch(() => null),
 		getDimensionAdapterChainPageData('dexs', chain).catch(() => null),
 		getDimensionProtocolPageData({ adapterType: 'fees', protocolName: chain }).catch(() => null),
-		fetch(`https://api.llama.fi/userData/users/chain$${chain}`)
-			.then((r) => r.json())
+		fetchJson(`https://api.llama.fi/userData/users/chain$${chain}`)
 			.then((r) => JSON.parse(r?.body || null))
 			.catch(() => null),
-		fetch(`https://api.llama.fi/userData/txs/chain$${chain}`)
-			.then((r) => r.json())
+		fetchJson(`https://api.llama.fi/userData/txs/chain$${chain}`)
 			.then((r) => JSON.parse(r?.body || null))
 			.catch(() => null),
 		getDimensionAdapterChainPageData('fees', chain)

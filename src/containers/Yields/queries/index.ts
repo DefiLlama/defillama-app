@@ -251,7 +251,7 @@ export async function getLendBorrowData() {
 				borrowFactor: x.borrowFactor,
 				// note re morpho: they build on top of compound. if the total supply is being used by borrowers
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
-				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
+				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to suppress
 				// liq values (cause some of them are negative)
 				totalAvailableUsd,
 				apyBorrow,

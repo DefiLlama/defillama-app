@@ -1,10 +1,6 @@
 import Head from 'next/head'
 import * as React from 'react'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 const Game = () => {
 	React.useEffect(() => {
 		const startGame = async () => {

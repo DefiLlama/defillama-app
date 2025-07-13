@@ -3,10 +3,6 @@ import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
 import { Announcement } from '~/components/Announcement'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
-
 export default function Roundup({ messages }: { messages: Array<string | Array<string>> }) {
 	return (
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>

@@ -14,6 +14,9 @@ import { VirtualTable } from '~/components/Table/Table'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
+import { fetchJson } from '~/utils/async'
+import { useMedia } from '~/hooks/useMedia'
+import { Switch } from '~/components/Switch'
 
 export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	const searchData = await getAllCGTokensList()
@@ -36,6 +39,7 @@ export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 
 export default function Tokens({ searchData }) {
 	const router = useRouter()
+	const isSmall = useMedia(`(max-width: 639px)`)
 
 	const { token, includecex } = router.query
 
@@ -80,13 +84,16 @@ export default function Tokens({ searchData }) {
 	return (
 		<Layout title="Token Usage - DefiLlama" defaultSEO>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
+
 			<DesktopSearch
 				data={searchData}
 				placeholder="Search tokens..."
 				data-alwaysdisplay
 				onItemClick={onItemClick}
 				customSearchRoute="/token-usage?token="
+				variant={isSmall ? 'secondary' : 'primary'}
 			/>
+
 			<div className="bg-(--cards-bg) rounded-md w-full">
 				{isLoading ? (
 					<div className="flex items-center justify-center mx-auto w-full my-32">
@@ -96,12 +103,12 @@ export default function Tokens({ searchData }) {
 					<></>
 				) : (
 					<>
-						<div className="flex items-center flex-wrap gap-4 justify-end p-3">
-							<h1 className="text-xl font-medium mr-auto">{`${tokenSymbol.toUpperCase()} usage in protocols`}</h1>
-							<CSVDownloadButton onClick={downloadCSV} />
-							<label className="flex items-center gap-2 cursor-pointer">
-								<input
-									type="checkbox"
+						<div className="flex items-center justify-between flex-wrap gap-2 p-3">
+							<div className="text-lg font-semibold flex grow w-full sm:w-auto">{`${tokenSymbol.toUpperCase()} usage in protocols`}</div>
+
+							<div className="flex items-center gap-2 max-sm:w-full">
+								<Switch
+									label="Include CEXs"
 									value="includeCentraliseExchanges"
 									checked={includeCentraliseExchanges}
 									onChange={() =>
@@ -115,15 +122,15 @@ export default function Tokens({ searchData }) {
 										)
 									}
 								/>
-								<span>Include CEXs</span>
-							</label>
+								<CSVDownloadButton onClick={downloadCSV} />
+							</div>
 						</div>
 
 						<Suspense
 							fallback={
 								<div
 									style={{ minHeight: `${filteredProtocols.length * 50 + 200}px` }}
-									className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md"
+									className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
 								/>
 							}
 						>
@@ -139,7 +146,7 @@ export default function Tokens({ searchData }) {
 const fetchProtocols = async (tokenSymbol) => {
 	if (!tokenSymbol) return null
 	try {
-		const data = await fetch(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`).then((res) => res.json())
+		const data = await fetchJson(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`)
 		return (
 			data?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ??
 			[]

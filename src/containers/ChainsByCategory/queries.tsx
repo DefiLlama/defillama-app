@@ -1,7 +1,7 @@
 import { getColorFromNumber, slug } from '~/utils'
 import { ACTIVE_USERS_API, CHAINS_ASSETS, TEMP_CHAIN_NFTS } from '~/constants'
 import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
 import { IChainAssets } from '~/containers/ChainOverview/types'
 import { IChainsByCategory, IChainsByCategoryData } from './types'
@@ -25,9 +25,7 @@ export const getChainsByCategory = async ({
 		chainNftsVolume,
 		appRevenue
 	] = await Promise.all([
-		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) =>
-			res.json()
-		) as Promise<IChainsByCategory>,
+		fetchJson(`https://api.llama.fi/chains2/${category}`) as Promise<IChainsByCategory>,
 		getDimensionAdapterChainsOverview({ adapterType: 'dexs' }),
 		getAdapterChainOverview({
 			adapterType: 'fees',
@@ -49,9 +47,7 @@ export const getChainsByCategory = async ({
 			return null
 		}) as Promise<IAdapterOverview | null>,
 		getPeggedAssets() as any,
-		fetchWithErrorLogging(ACTIVE_USERS_API)
-			.then((res) => res.json())
-			.catch(() => ({})) as Promise<
+		fetchJson(ACTIVE_USERS_API).catch(() => ({})) as Promise<
 			Record<
 				string,
 				{
@@ -62,8 +58,8 @@ export const getChainsByCategory = async ({
 				}
 			>
 		>,
-		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()) as Promise<IChainAssets>,
-		fetchWithErrorLogging(TEMP_CHAIN_NFTS).then((res) => res.json()) as Promise<Record<string, number>>,
+		fetchJson(CHAINS_ASSETS) as Promise<IChainAssets>,
+		fetchJson(TEMP_CHAIN_NFTS) as Promise<Record<string, number>>,
 		getDimensionAdapterChainsOverview({ adapterType: 'fees', dataType: 'dailyAppRevenue' })
 	])
 

@@ -3,11 +3,10 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolByAdapter } from '~/containers/DimensionAdapters/ProtocolByAdapter'
 import { GetStaticPropsContext } from 'next'
 import { slug } from '~/utils'
-import metadataCache from '~/utils/metadata'
 import { maxAgeForNext } from '~/api'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
-const protocolMetadata = metadataCache.protocolMetadata
+import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 
 const ADAPTOR_TYPE = ADAPTOR_TYPES.BRIDGE_AGGREGATORS
 
@@ -22,10 +21,9 @@ export const getStaticPaths = async () => {
 		}
 	}
 
-	const protocols = await fetchWithErrorLogging(
+	const protocols = await fetchJson(
 		`${DIMENISIONS_OVERVIEW_API}/${ADAPTOR_TYPE}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 	)
-		.then((res) => res.json())
 		.then((res) => (res.protocols ?? []).sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)).slice(0, 20))
 		.catch(() => [])
 
@@ -44,10 +42,17 @@ export const getStaticProps = withPerformanceLogging(
 	`${ADAPTOR_TYPE}/[item]`,
 	async ({ params }: GetStaticPropsContext<{ item: string }>) => {
 		const protocol = slug(params.item)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (protocolMetadata[key].name === protocol) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
 
-		const metadata = Object.entries(protocolMetadata).find((p) => (p[1] as any).name === protocol)?.[1]
-
-		if (!metadata?.bridgeAggregators) {
+		if (!metadata || !metadata[1].bridgeAggregators) {
 			return { notFound: true, props: null }
 		}
 
@@ -63,6 +68,7 @@ export const getStaticProps = withPerformanceLogging(
 					...data,
 					type: ADAPTOR_TYPE
 				},
+				metadata: metadata[1],
 				title: `${data.name} Volume - DefiLlama`
 			},
 			revalidate: maxAgeForNext([22])

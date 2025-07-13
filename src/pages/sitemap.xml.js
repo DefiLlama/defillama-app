@@ -2,9 +2,7 @@ import { chainsMetrics, protocolsMetrics } from '~/components/Metrics'
 import { PROTOCOLS_API } from '~/constants/index'
 import { slug } from '~/utils'
 
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
+import { fetchJson } from '~/utils/async'
 
 const baseUrl = `https://defillama.com`
 const singleUrls = ['about', 'press', 'yields', 'subscription', 'airdrops', 'recent']
@@ -46,7 +44,7 @@ function SiteMap() {
 }
 
 export async function getServerSideProps({ res }) {
-	const { protocols, chains, protocolCategories, parentProtocols } = await fetch(PROTOCOLS_API).then((r) => r.json())
+	const { protocols, chains, protocolCategories, parentProtocols } = await fetchJson(PROTOCOLS_API)
 
 	const sitemap = generateSiteMap(
 		protocols.map(({ name }) => slug(name)),

@@ -7,7 +7,7 @@ import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 export const getStaticProps = withPerformanceLogging('protocols', async () => {
 	const protocols = await getProtocolsByChain({
 		chain: 'All',
-		metadata: { name: 'All', stablecoins: true, fees: true, dexs: true, derivatives: true, id: 'all' }
+		metadata: { name: 'All', stablecoins: true, fees: true, dexs: true, perps: true, id: 'all' }
 	}).then((data) => data.protocols)
 
 	return {

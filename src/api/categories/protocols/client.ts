@@ -12,7 +12,7 @@ import {
 	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
-import { fetchApi } from '~/utils/async'
+import { fetchApi, fetchJson } from '~/utils/async'
 import { getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
@@ -66,13 +66,11 @@ export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
 		queryKey: ['treasury', protocolName, includeTreasury, isEnabled],
 		queryFn: isEnabled
 			? () =>
-					fetch(`${PROTOCOL_TREASURY_API}/${protocolName}`)
-						.then((res) => res.json())
-						.then((data: any) => {
-							if (!includeTreasury) {
-								return { ...data, chainTvls: { ...data.chainTvls, OwnTokens: {} } }
-							} else return data
-						})
+					fetchJson(`${PROTOCOL_TREASURY_API}/${protocolName}`).then((data: any) => {
+						if (!includeTreasury) {
+							return { ...data, chainTvls: { ...data.chainTvls, OwnTokens: {} } }
+						} else return data
+					})
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -86,8 +84,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 		queryKey: ['activeUsers', protocolId, isEnabled],
 		queryFn: isEnabled
 			? () =>
-					fetch(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-						.then((res) => res.json())
+					fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((values) => {
 							return values && values.length > 0
 								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
@@ -106,8 +103,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 		queryKey: ['newUsers', protocolId, isEnabled],
 		queryFn: isEnabled
 			? () =>
-					fetch(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-						.then((res) => res.json())
+					fetchJson(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((values) => {
 							return values && values.length > 0
 								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
@@ -127,8 +123,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 		queryKey: ['protocolTransactions', protocolId, isEnabled],
 		queryFn: isEnabled
 			? () =>
-					fetch(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
-						.then((res) => res.json())
+					fetchJson(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((values) => {
 							return values && values.length > 0
 								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
@@ -148,8 +143,7 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 		queryKey: ['protocolGasUsed', protocolId, isEnabled],
 		queryFn: isEnabled
 			? () =>
-					fetch(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
-						.then((res) => res.json())
+					fetchJson(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
 						.then((values) => {
 							return values && values.length > 0 ? values : null
 						})
@@ -165,11 +159,7 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	return useQuery({
 		queryKey: ['tokenLiquidity', token, isEnabled],
 		queryFn: isEnabled
-			? () =>
-					fetch(`${TOKEN_LIQUIDITY_API}/${token.replaceAll('#', '$')}`)
-						.then((res) => res.json())
-
-						.catch((err) => null)
+			? () => fetchJson(`${TOKEN_LIQUIDITY_API}/${token.replaceAll('#', '$')}`).catch((err) => null)
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -182,8 +172,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 		queryKey: ['medianApy', protocolName, isEnabled],
 		queryFn: isEnabled
 			? () =>
-					fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
-						.then((res) => res.json())
+					fetchJson(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
 						.then((values) => {
 							return values && values.data.length > 0
 								? values.data.map((item) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))

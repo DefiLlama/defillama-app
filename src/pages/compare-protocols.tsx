@@ -5,12 +5,13 @@ import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { PROTOCOL_API } from '~/constants'
-import { slug, tokenIconPaletteUrl } from '~/utils'
-import { getColor } from '~/utils/getColor'
+import { slug, getNDistinctColors } from '~/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { useQueries } from '@tanstack/react-query'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { fetchJson } from '~/utils/async'
+import { oldBlue } from '~/constants/colors'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -31,14 +32,10 @@ const fetchProtocol = async (selectedProtocol: string | null) => {
 	if (!selectedProtocol) return null
 
 	try {
-		const data = await Promise.allSettled([
-			fetch(`${PROTOCOL_API}/${slug(selectedProtocol)}`).then((res) => res.json()),
-			getColor(tokenIconPaletteUrl(selectedProtocol))
-		])
-
+		const data = await fetchJson(`${PROTOCOL_API}/${slug(selectedProtocol)}`)
 		return {
-			protocolData: data[0].status === 'fulfilled' ? data[0].value : null,
-			color: data[1].status === 'fulfilled' ? data[1].value : null
+			protocolData: data,
+			protocolName: data.name
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
@@ -68,21 +65,18 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 	const isLoading = results.some((r) => r.isLoading)
 
 	const { charts } = React.useMemo(() => {
-		const stackColors = {}
-
 		const formattedData =
 			results
 				.filter((r) => r.data)
-				.map((res: any) => {
-					if (res.data.color) {
-						stackColors[res.data.protocolData.name] = res.data.color
-					}
+				.map((res: any) => ({
+					protocolChartData: res.data.protocolData.chainTvls ?? {},
+					protocolName: res.data.protocolData.name
+				})) ?? []
 
-					return {
-						protocolChartData: res.data.protocolData.chainTvls ?? {},
-						protocolName: res.data.protocolData.name
-					}
-				}) ?? []
+		// Generate distinct colors for all protocols
+		const protocolNames = formattedData.map((p) => p.protocolName)
+		const distinctColors = getNDistinctColors(protocolNames.length, oldBlue)
+		const stackColors = Object.fromEntries(protocolNames.map((name, index) => [name, distinctColors[index]]))
 
 		const chartsByProtocol = {}
 
@@ -108,17 +102,22 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 		}
 
 		const charts = {}
+		let chartIndex = 0
 		for (const protocol in chartsByProtocol) {
+			const color = stackColors[protocol]
+
 			charts[protocol] = {
 				name: protocol,
 				stack: protocol,
 				type: 'line',
-				color: stackColors[protocol],
+				color,
 				data: []
 			}
 			for (const date in chartsByProtocol[protocol]) {
 				charts[protocol].data.push([+date * 1e3, chartsByProtocol[protocol][date]])
 			}
+
+			chartIndex++
 		}
 
 		return {
@@ -141,18 +140,24 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 		)
 	}
 
+	const sortedProtocols = React.useMemo(() => {
+		const selectedSet = new Set(selectedProtocols)
+		const unselectedProtocols = protocols.filter((protocol) => !selectedSet.has(protocol))
+
+		return [...selectedProtocols, ...unselectedProtocols]
+	}, [selectedProtocols, protocols])
+
 	return (
 		<Layout title={`Compare Protocols - DefiLlama`} defaultSEO>
 			<div className="bg-(--cards-bg) rounded-md isolate">
 				<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 					<h1 className="text-lg font-semibold mr-auto">Compare Protocols</h1>
 					<SelectWithCombobox
-						allValues={protocols}
+						allValues={sortedProtocols}
 						selectedValues={selectedProtocols}
 						setSelectedValues={setSelectedProtocols}
 						label="Selected Protocols"
 						clearAll={() => setSelectedProtocols([])}
-						toggleAll={() => setSelectedProtocols(protocols)}
 						labelType="smol"
 						triggerProps={{
 							className:

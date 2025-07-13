@@ -4,21 +4,27 @@ import { ForksByProtocol } from '~/containers/Forks'
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import metadata from '~/utils/metadata'
 import { maxAgeForNext } from '~/api'
 import { slug } from '~/utils'
 import { Metrics } from '~/components/Metrics'
-const { protocolMetadata } = metadata
 
 export const getStaticProps = withPerformanceLogging('forks', async ({ params: { fork } }) => {
 	const normalizedName = slug(fork)
-	const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const { protocolMetadata } = metadataCache
+	let metadata
+	for (const key in protocolMetadata) {
+		if (protocolMetadata[key].name === normalizedName) {
+			metadata = [key, protocolMetadata[key]]
+			break
+		}
+	}
 
-	if (!metadata || !metadata.forks) {
+	if (!metadata || !metadata[1].forks) {
 		return { notFound: true, props: null }
 	}
 
-	const data = await getForkPageData(metadata.displayName)
+	const data = await getForkPageData(metadata[1].displayName)
 
 	if (!data) return { notFound: true, props: null }
 

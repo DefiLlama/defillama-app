@@ -1,6 +1,6 @@
 import { TokenLogo } from '~/components/TokenLogo'
 import { IChainOverviewData } from './types'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { chainIconUrl, download, formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -99,7 +99,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 	return (
 		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 				{props.metadata.name !== 'All' && (
 					<h1 className="flex items-center flex-nowrap gap-2">
 						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
@@ -144,7 +144,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					<div className="flex flex-col">
 						{props.stablecoins?.mcap ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 									<Tooltip
 										content={
 											props.metadata.name === 'All'
@@ -165,7 +165,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								</summary>
 								<div className="flex flex-col mb-3">
 									{props.stablecoins.change7d != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Change (7d)</span>
 											<Tooltip
 												content={`${formattedNum(props.stablecoins.change7dUsd, true)}`}
@@ -178,7 +178,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.stablecoins.dominance != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">
 												{props.stablecoins.topToken.symbol} Dominance
 											</span>
@@ -189,7 +189,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</details>
 						) : null}
 						{props.chainFees?.total24h != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<Tooltip
 									content="Total fees paid by users when using the chain"
 									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -200,7 +200,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainRevenue?.total24h != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<Tooltip
 									content="Subset of fees that the chain collects for itself"
 									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -211,7 +211,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainFees?.totalREV24h != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<Tooltip
 									content="REV is the sum of chain fees and MEV tips"
 									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -222,7 +222,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainIncentives?.emissions24h != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<Tooltip
 									content="Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms."
 									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -235,7 +235,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.appRevenue?.total24h != null && props.appRevenue?.total24h > 1e3 ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<Tooltip
 									content={
 										'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
@@ -248,7 +248,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.appFees?.total24h != null && props.appFees?.total24h > 1e3 ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<Tooltip
 									content={
 										'Total fees paid by users when using the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
@@ -262,7 +262,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.dexs?.total24h != null ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 									<Tooltip
 										content={
 											props.metadata.name === 'All'
@@ -283,13 +283,13 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								</summary>
 								<div className="flex flex-col mb-3">
 									{props.dexs.total7d != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Volume (7d)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total7d, true)}</span>
 										</p>
 									) : null}
 									{props.dexs.change_7dover7d != null && (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Weekly Change</span>
 											<span
 												className={`font-jetbrains ml-auto ${
@@ -301,7 +301,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									)}
 									{props.dexs.dexsDominance != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">DEX vs CEX dominance</span>
 											<span className="font-jetbrains ml-auto">{props.dexs.dexsDominance}%</span>
 										</p>
@@ -311,7 +311,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.perps?.total24h != null ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 									<Tooltip
 										content="Sum of volume on all perpetual exchanges on the chain"
 										className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -328,13 +328,13 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								</summary>
 								<div className="flex flex-col mb-3">
 									{props.perps.total7d != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Perps Volume (7d)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total7d, true)}</span>
 										</p>
 									) : null}
 									{props.perps.change_7dover7d != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Weekly Change</span>
 											<span
 												className={`font-jetbrains ml-auto ${
@@ -349,7 +349,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</details>
 						) : null}
 						{props.inflows?.netInflows != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<Tooltip
 									content="Net money bridged to the chain within the last 24h"
 									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -361,7 +361,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.users.activeUsers != null ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 									<Tooltip
 										content={
 											<p>
@@ -388,13 +388,13 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								</summary>
 								<div className="flex flex-col mb-3">
 									{props.users.newUsers != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">New Addresses (24h)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.users.newUsers, false)}</span>
 										</p>
 									) : null}
 									{props.users.transactions != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Transactions (24h)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.users.transactions, false)}</span>
 										</p>
@@ -404,7 +404,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.treasury ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 									<span className="text-[#545757] dark:text-[#cccccc]">Treasury</span>
 									<Icon
 										name="chevron-down"
@@ -416,7 +416,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								</summary>
 								<div className="flex flex-col mb-3">
 									{props.treasury.tokenBreakdowns?.stablecoins != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Stablecoins</span>
 											<span className="font-jetbrains ml-auto">
 												{formattedNum(props.treasury.tokenBreakdowns?.stablecoins, true)}
@@ -424,7 +424,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.treasury.tokenBreakdowns?.majors != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Major Tokens (ETH, BTC)</span>
 											<span className="font-jetbrains ml-auto">
 												{formattedNum(props.treasury.tokenBreakdowns?.majors, true)}
@@ -432,7 +432,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.treasury.tokenBreakdowns?.others != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Other Tokens</span>
 											<span className="font-jetbrains ml-auto">
 												{formattedNum(props.treasury.tokenBreakdowns?.others, true)}
@@ -440,7 +440,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.treasury.tokenBreakdowns?.ownTokens != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<span className="text-[#545757] dark:text-[#cccccc]">Own Tokens</span>
 											<span className="font-jetbrains ml-auto">
 												{formattedNum(props.treasury.tokenBreakdowns?.ownTokens, true)}
@@ -452,7 +452,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.chainRaises && props.chainRaises.length > 0 && (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 									<Tooltip
 										content="Sum of all money raised by the chain, including VC funding rounds, public sales and ICOs."
 										className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -474,7 +474,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										.sort((a, b) => a.date - b.date)
 										.map((raise) => (
 											<p
-												className="flex flex-col gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] group-last:border-none py-1"
+												className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
 												key={`${raise.date}-${raise.amount}-${raise.source}-${raise.round}`}
 											>
 												<span className="flex flex-wrap justify-between">
@@ -506,7 +506,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						)}
 						{props.chainAssets ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 									<span className="text-[#545757] dark:text-[#cccccc]">Bridged TVL</span>
 									<Icon
 										name="chevron-down"
@@ -524,7 +524,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 								</summary>
 								<div className="flex flex-col mb-3">
 									{props.chainAssets.native?.total ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<Tooltip
 												content="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)"
 												className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -537,7 +537,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.chainAssets.ownTokens?.total ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<Tooltip
 												content="Marketcap of the governance token of the chain"
 												className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -550,7 +550,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.chainAssets.canonical?.total ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<Tooltip
 												content="Tokens that were bridged to the chain through the canonical bridge"
 												className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -563,7 +563,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.chainAssets.thirdParty?.total ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 											<Tooltip
 												content="Tokens that were bridged to the chain through third party bridges"
 												className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -579,7 +579,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</details>
 						) : null}
 						{props.nfts ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<Tooltip
 									content="Volume of Non Fungible Tokens traded in the last 24 hours"
 									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -590,7 +590,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainTokenInfo?.token_symbol ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<span className="text-[#545757] dark:text-[#cccccc]">${props.chainTokenInfo.token_symbol} Price</span>
 								<span className="font-jetbrains ml-auto">
 									{formattedNum(props.chainTokenInfo?.current_price, true)}
@@ -598,7 +598,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainTokenInfo?.token_symbol ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<span className="text-[#545757] dark:text-[#cccccc]">
 									${props.chainTokenInfo.token_symbol} Market Cap
 								</span>
@@ -608,7 +608,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainTokenInfo?.token_symbol ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 								<span className="text-[#545757] dark:text-[#cccccc]">${props.chainTokenInfo.token_symbol} FDV</span>
 								<span className="font-jetbrains ml-auto">
 									{formattedNum(props.chainTokenInfo?.fully_diluted_valuation ?? 0, true)}
@@ -618,12 +618,12 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					</div>
 				</div>
 			</div>
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md flex flex-col col-span-2">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-2">
 					<div className="flex items-center flex-wrap gap-2 mr-auto">
 						{props.charts.length > 0 ? (
 							<Ariakit.DialogProvider store={metricsDialogStore}>
-								<Ariakit.DialogDisclosure className="flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-[#e6e6e6] dark:border-[#222324]">
+								<Ariakit.DialogDisclosure className="flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-(--cards-border)">
 									<span>Add Metrics</span>
 									<Icon name="plus" className="h-[14px] w-[14px]" />
 								</Ariakit.DialogDisclosure>
@@ -779,14 +779,11 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					<EmbedChart />
 					<CSVDownloadButton
 						onClick={() => {
-							window.open(
-								`https://api.llama.fi/simpleChainDataset/${
-									chainsNamesMap[props.metadata.name] || props.metadata.name
-								}?${Object.entries(tvlSettings)
-									.filter((t) => t[1] === true)
-									.map((t) => `${t[0]}=true`)
-									.join('&')}`.replaceAll(' ', '%20')
-							)
+							try {
+								downloadChart(finalCharts, `${props.chain}.csv`)
+							} catch (error) {
+								console.error('Error generating CSV:', error)
+							}
 						}}
 						smol
 						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
@@ -822,4 +819,34 @@ const updateRoute = (key, val, router) => {
 
 const chainsNamesMap = {
 	'OP Mainnet': 'Optimism'
+}
+
+function downloadChart(data: Record<string, Array<[string | number, number]>>, filename: string) {
+	let rows = []
+	const charts = []
+	const dateStore = {}
+	for (const chartName in data) {
+		charts.push(chartName)
+		for (const [date, value] of data[chartName]) {
+			if (!dateStore[date]) {
+				dateStore[date] = {}
+			}
+			dateStore[date][chartName] = value
+		}
+	}
+	rows.push(['Timestamp', 'Date', ...charts])
+	for (const date in dateStore) {
+		const values = []
+		for (const chartName in data) {
+			values.push(dateStore[date]?.[chartName] ?? '')
+		}
+		rows.push([date, toNiceCsvDate(+date / 1000), ...values])
+	}
+	download(
+		filename,
+		rows
+			.sort((a, b) => a[0] - b[0])
+			.map((r) => r.join(','))
+			.join('\n')
+	)
 }

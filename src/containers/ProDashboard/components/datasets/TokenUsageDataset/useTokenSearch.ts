@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { fetchJson } from '~/utils/async'
 
 interface TokenOption {
 	value: string
@@ -9,14 +10,7 @@ interface TokenOption {
 export function useTokenSearch(searchQuery: string) {
 	return useQuery<TokenOption[]>({
 		queryKey: ['token-search', searchQuery],
-		queryFn: async () => {
-			const response = await fetch(`/api/tokens/search?query=${encodeURIComponent(searchQuery || '')}`)
-			if (!response.ok) {
-				throw new Error('Failed to search tokens')
-			}
-
-			return response.json()
-		},
+		queryFn: async () => fetchJson(`/api/tokens/search?query=${encodeURIComponent(searchQuery || '')}`),
 		staleTime: 5 * 60 * 1000,
 		placeholderData: []
 	})

@@ -7,10 +7,8 @@ import { LazyChart } from '~/components/LazyChart'
 import type { IChartProps } from '~/components/ECharts/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-
-const fetch = fetchWithErrorLogging
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -48,7 +46,7 @@ function formatDataForChart(langs) {
 }
 
 export const getStaticProps = withPerformanceLogging('languages', async () => {
-	const data = await fetch(LANGS_API).then((r) => r.json())
+	const data = await fetchJson(LANGS_API)
 
 	const { unique: langsUnique, formatted: formattedLangs, dominance: langsDominance } = formatDataForChart(data.chart)
 
