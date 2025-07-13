@@ -67,6 +67,18 @@ export const groupData = (
 	return Object.entries(groupedData).sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
 }
 
+export const convertToCumulative = (data: [string, number][] | undefined): [string, number][] => {
+	if (!data || data.length === 0) return []
+
+	const sorted = [...data].sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+	let cumulative = 0
+
+	return sorted.map(([timestamp, value]) => {
+		cumulative += value
+		return [timestamp, cumulative]
+	})
+}
+
 // Icon URL helper functions
 export const getItemIconUrl = (itemType: 'chain' | 'protocol', itemInfo: any, itemIdentifier: string): string => {
 	if (itemType === 'chain') {

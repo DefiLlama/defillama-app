@@ -8,7 +8,7 @@ export const LargeTxsTable = (props: { data: LargeTxsData[]; chain: string }) =>
 		<>
 			<div className="flex items-center gap-2 justify-end flex-wrap -mb-5">
 				<p className="text-right italic opacity-60">
-					Displaying {props.data.length} transactions from the the past {props.chain === 'All' ? '1d' : '7d'}
+					Displaying {props.data.length} transactions from the past {props.chain === 'All' ? '1d' : '7d'}
 				</p>
 				<LargeTxDownloadButton data={props.data} />
 			</div>

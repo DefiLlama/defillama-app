@@ -20,13 +20,11 @@ import {
 	PROTOCOLS_API
 } from '~/constants'
 import { sluggify } from '~/utils/cache-client'
-import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
-import metadata from '~/utils/metadata'
+import { fetchJson } from '~/utils/async'
 import { fetchArticles, getProtocolMetrics, getTokenCGData } from '~/containers/ProtocolOverview/queries'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { IArticle } from '~/containers/ProtocolOverview/types'
 import { oldBlue } from '~/constants/colors'
-const { chainMetadata, protocolMetadata } = metadata
 
 const chartTypes = [
 	'TVL',
@@ -73,8 +71,7 @@ const fetchGovernanceData = async (apis: Array<string>) => {
 	const governanceData = await Promise.all(
 		apis.map((gapi) =>
 			gapi
-				? fetchWithErrorLogging(gapi)
-						.then((res) => res.json())
+				? fetchJson(gapi)
 						.then((data) => {
 							return Object.values(data.proposals)
 								.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
@@ -99,6 +96,9 @@ export const getProtocolData = async (
 	if (!protocolRes) {
 		return { notFound: true, props: null }
 	}
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const { chainMetadata, protocolMetadata } = metadataCache
 
 	const metrics = getProtocolMetrics({
 		protocolData: protocolRes as any,
@@ -185,149 +185,120 @@ export const getProtocolData = async (
 			  })
 			: [],
 		protocolMetadata[protocolData.id]?.expenses && !isCpusHot
-			? fetchWithErrorLogging(PROTOCOLS_EXPENSES_API)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log('[HTTP]:[ERROR]:[PROTOCOL_EXPENSES]:', protocol, err instanceof Error ? err.message : '')
-						return []
-					})
+			? fetchJson(PROTOCOLS_EXPENSES_API).catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_EXPENSES]:', protocol, err instanceof Error ? err.message : '')
+					return []
+			  })
 			: [],
 		protocolMetadata[protocolData.id]?.treasury && !isCpusHot
-			? fetchWithErrorLogging(PROTOCOLS_TREASURY)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log('[HTTP]:[ERROR]:[PROTOCOL_TREASURY]:', protocol, err instanceof Error ? err.message : '')
-						return []
-					})
+			? fetchJson(PROTOCOLS_TREASURY).catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_TREASURY]:', protocol, err instanceof Error ? err.message : '')
+					return []
+			  })
 			: [],
 		protocolMetadata[protocolData.id]?.yields && !isCpusHot
-			? fetchWithErrorLogging(YIELD_POOLS_API)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
-						return {}
-					})
+			? fetchJson(YIELD_POOLS_API).catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
+					return {}
+			  })
 			: {},
 		!isCpusHot
-			? fetchWithErrorLogging(YIELD_CONFIG_API)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELDCONFIG]:', protocol, err instanceof Error ? err.message : '')
-						return null
-					})
+			? fetchJson(YIELD_CONFIG_API).catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELDCONFIG]:', protocol, err instanceof Error ? err.message : '')
+					return null
+			  })
 			: null,
 		protocolMetadata[protocolData.id]?.liquidity && !isCpusHot
-			? fetchWithErrorLogging(LIQUIDITY_API)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log('[HTTP]:[ERROR]:[PROTOCOL_LIQUIDITYINFO]:', protocol, err instanceof Error ? err.message : '')
-						return []
-					})
+			? fetchJson(LIQUIDITY_API).catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_LIQUIDITYINFO]:', protocol, err instanceof Error ? err.message : '')
+					return []
+			  })
 			: [],
 		protocolMetadata[protocolData.id]?.hacks && !isCpusHot
-			? fetchWithErrorLogging(HACKS_API)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log('[HTTP]:[ERROR]:[PROTOCOL_HACKS]:', protocol, err instanceof Error ? err.message : '')
-						return []
-					})
+			? fetchJson(HACKS_API).catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_HACKS]:', protocol, err instanceof Error ? err.message : '')
+					return []
+			  })
 			: [],
 		protocolMetadata[protocolData.id]?.raises && !isCpusHot
-			? fetchWithErrorLogging(RAISES_API)
-					.then((res) => res.json())
+			? fetchJson(RAISES_API)
 					.then((r) => r.raises)
 					.catch((err) => {
 						console.log('[HTTP]:[ERROR]:[PROTOCOL_RAISES]:', protocol, err instanceof Error ? err.message : '')
 						return []
 					})
 			: [],
-		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
+		fetchJson(PROTOCOLS_API),
 		protocolMetadata[protocolData.id]?.activeUsers && !isCpusHot
-			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
-					.then((res) => res.json())
+			? fetchJson(ACTIVE_USERS_API, { timeout: 10_000 })
 					.then((data) => data?.[protocolData.id] ?? null)
 					.catch(() => null)
 			: null,
 		protocolMetadata[protocolData.id]?.fees && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch fees protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch fees protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: [],
 		protocolMetadata[protocolData.id]?.revenue && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyRevenue`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch revenue protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch revenue protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		protocolMetadata[protocolData.id]?.revenue && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyHoldersRevenue`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch holders revenue protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch holders revenue protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		protocolMetadata[protocolData.id]?.bribeRevenue && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyBribesRevenue`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch bribes revenue protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch bribes revenue protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		protocolMetadata[protocolData.id]?.tokenTax && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyTokenTaxes`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch token taxes protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch token taxes protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		protocolMetadata[protocolData.id]?.dexs && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch dex protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch dexs protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		protocolMetadata[protocolData.id]?.perps && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch derivates protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch perps protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		/* protocolMetadata[protocolData.id]?.yields && !isCpusHot
-				? fetchWithErrorLogging(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
-						.then((res) => res.json())
+				? fetchJson(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
+						
 						.catch(() => {
 							return { data: [] }
 						})
 				: { data: [] }, */
 		protocolData.gecko_id && !isCpusHot
-			? fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
-					.then((res) => res.json())
+			? fetchJson(`https://fe-cache.llama.fi/cgchart/${protocolData.gecko_id}?fullChart=true`)
 					.then(({ data }) => data)
 					.catch(() => null as any)
 			: null,
@@ -336,57 +307,46 @@ export const getProtocolData = async (
 				: { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }, */
 		{ chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } },
 		protocolData.github && !isCpusHot
-			? fetchWithTimeout(devMetricsProtocolUrl, 10_000)
-					.then((r) => r.json())
-					.catch((e) => {
-						return null
-					})
+			? fetchJson(devMetricsProtocolUrl, { timeout: 10_000 }).catch((e) => {
+					return null
+			  })
 			: null,
-		protocolMetadata[protocolData.id]?.aggregator && !isCpusHot
-			? fetchWithErrorLogging(
+		protocolMetadata[protocolData.id]?.dexAggregators && !isCpusHot
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/aggregators?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch options protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch options protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		protocolMetadata[protocolData.id]?.options && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyPremiumVolume`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch options premium volume protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch options premium volume protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		protocolMetadata[protocolData.id]?.options && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/options?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=dailyNotionalVolume`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch options notional volume protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch options notional volume protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		protocolMetadata[protocolData.id]?.perpsAggregators && !isCpusHot
-			? fetchWithErrorLogging(
+			? fetchJson(
 					`${DIMENISIONS_OVERVIEW_API}/aggregator-derivatives?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
-			  )
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log(`Couldn't fetch derivatives-aggregators protocols list at path: ${protocol}`, 'Error:', err)
-						return {}
-					})
+			  ).catch((err) => {
+					console.log(`Couldn't fetch aggregator-derivatives protocols list at path: ${protocol}`, 'Error:', err)
+					return {}
+			  })
 			: {},
 		// fetchGovernanceData(!isCpusHot ? governanceApis : [])
 		fetchGovernanceData([]),
 		protocolMetadata[protocolData.id]?.emissions && !isCpusHot
-			? fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
-					.then((res) => res.json())
+			? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
 					.then(async (data) => {
 						const protocolEmissionsData = data.protocols.find((item) =>
 							protocolData.id.startsWith('parent#')
@@ -412,8 +372,7 @@ export const getProtocolData = async (
 	let nftVolumeData = []
 
 	if (nftDataExist && !isCpusHot) {
-		nftVolumeData = await fetchWithTimeout(NFT_MARKETPLACES_VOLUME_API, 10_000)
-			.then((r) => r.json())
+		nftVolumeData = await fetchJson(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })
 			.then((r) => {
 				const chartByDate = r
 					.filter((r) => slug(r.exchangeName) === slug(protocol))

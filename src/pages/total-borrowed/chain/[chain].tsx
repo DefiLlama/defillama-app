@@ -5,8 +5,7 @@ import { BorrowedByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
 import { getTotalBorrowedByChain } from '~/containers/TotalBorrowed/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
-import { fetchWithErrorLogging } from '~/utils/async'
-import metadataCache from '~/utils/metadata'
+import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticPaths = async () => {
@@ -20,8 +19,7 @@ export const getStaticPaths = async () => {
 		}
 	}
 
-	const chains = await fetchWithErrorLogging(PROTOCOLS_API)
-		.then((res) => res.json())
+	const chains = await fetchJson(PROTOCOLS_API)
 		.then((res) => (res.chains ?? []).slice(0, 10))
 		.catch(() => [])
 
@@ -37,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(
 	`total-borrowed/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
-
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		if (!metadataCache.chainMetadata[chain]) {
 			return { notFound: true }
 		}

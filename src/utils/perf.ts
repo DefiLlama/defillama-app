@@ -136,13 +136,3 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		return new Response(blob, responseInit)
 	}
 }
-
-async function handleServerResponse(res: Response, url: string) {
-	const data = await res.json()
-
-	if (res.status !== 200 || data.error) {
-		postRuntimeLogs(`[ERROR] Failed to fetch ${url} : ${data.message ?? data.error ?? res.statusText ?? '-'}`)
-		throw new Error(data.message ?? data.error ?? res.statusText ?? `Failed to fetch ${url}`)
-	}
-	return data
-}

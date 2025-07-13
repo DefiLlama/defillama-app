@@ -11,7 +11,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { tvlOptions } from '~/components/Filters/options'
@@ -22,7 +22,7 @@ const LineAndBarChart = React.lazy(
 
 export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const [{ protocols }, revenueData, { chart, categories: protocolsByCategory }] = await Promise.all([
-		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
+		fetchJson(PROTOCOLS_API),
 		getAdapterChainOverview({
 			adapterType: 'fees',
 			chain: 'All',
@@ -30,7 +30,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			excludeTotalDataChart: true,
 			excludeTotalDataChartBreakdown: true
 		}),
-		fetchWithErrorLogging(CATEGORY_API).then((r) => r.json())
+		fetchJson(CATEGORY_API)
 	])
 
 	const categories = {}
@@ -433,7 +433,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch options={finalTvlOptions} />
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
 					<h1 className="text-xl font-semibold mr-auto">Categories</h1>
 					<SelectWithCombobox
@@ -458,7 +458,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 				fallback={
 					<div
 						style={{ minHeight: `${categories.length * 50 + 200}px` }}
-						className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md"
+						className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
 					/>
 				}
 			>

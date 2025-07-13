@@ -153,7 +153,7 @@ const BridgeInfo = ({
 					</LazyChart>
 				</div>
 			</div>
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-end justify-between flex-wrap gap-2 p-3">
 					<AddressesTableSwitch />
 					<p className="opacity-60 text-sm italic">All stats in table are for the previous day.</p>

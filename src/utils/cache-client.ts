@@ -1,4 +1,5 @@
-let redis = null as null | import('ioredis').Redis
+// let redis = null as null | import('ioredis').Redis
+let redis = null
 const REDIS_URL = process.env.REDIS_URL as string
 const USE_REDIS = !!process.env.USE_REDIS
 const EXT_REDIS_URL = process.env.EXT_REDIS_URL as string | undefined

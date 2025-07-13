@@ -3,6 +3,7 @@ import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { BRIDGETX_API } from '~/constants'
 import { download, toNiceCsvDate } from '~/utils'
+import { fetchJson } from '~/utils/async'
 
 type BridgeTransaction = {
 	tx_hash: string
@@ -61,9 +62,9 @@ const downloadTxs = async ({ bridges, startDate, endDate, selectedBridge }) => {
 		let iterations = 0
 
 		do {
-			const transactions = await fetch(
+			const transactions = await fetchJson(
 				`${BRIDGETX_API}/${bridgeId}?starttimestamp=${startTimestamp}&endtimestamp=${endTimestampParam}`
-			).then((resp) => resp.json())
+			)
 			numberTxsReturned = transactions?.length
 			if (numberTxsReturned) {
 				const earliestTx = transactions[transactions.length - 1]

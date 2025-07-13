@@ -1,5 +1,5 @@
 import { CATEGORY_API, CHART_API, PROTOCOLS_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
@@ -34,7 +34,7 @@ export async function getProtocolsByCategory({
 		Record<string, Array<[string, number]>>,
 		{ chart: Record<string, Record<string, { tvl: number }>> }
 	] = await Promise.all([
-		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
+		fetchJson(PROTOCOLS_API),
 		getAdapterChainOverview({
 			chain: chain ?? 'All',
 			adapterType: 'fees',
@@ -60,8 +60,8 @@ export async function getProtocolsByCategory({
 			excludeTotalDataChart: true,
 			excludeTotalDataChartBreakdown: true
 		}),
-		fetchWithErrorLogging(`${CHART_API}/categories/${category.toLowerCase().replace(' ', '_')}`).then((r) => r.json()),
-		fetchWithErrorLogging(`${CATEGORY_API}`).then((r) => r.json())
+		fetchJson(`${CHART_API}/categories/${category.toLowerCase().replace(' ', '_')}`),
+		fetchJson(`${CATEGORY_API}`)
 	])
 
 	const chains = []

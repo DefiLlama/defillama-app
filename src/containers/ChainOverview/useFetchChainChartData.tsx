@@ -19,6 +19,7 @@ import {
 } from '~/containers/DimensionAdapters/queries'
 import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
+import { fetchJson } from '~/utils/async'
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -61,18 +62,16 @@ export const useFetchChainChartData = ({
 	}>({
 		queryKey: ['priceHistory', denominationGeckoId],
 		queryFn: () =>
-			fetch(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`)
-				.then((r) => r.json())
-				.then((res) => {
-					if (!res.data?.prices?.length) return null
+			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then((res) => {
+				if (!res.data?.prices?.length) return null
 
-					const store = {}
-					for (const [date, value] of res.data.prices) {
-						store[date] = value
-					}
+				const store = {}
+				for (const [date, value] of res.data.prices) {
+					store[date] = value
+				}
 
-					return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
-				}),
+				return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
+			}),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: denominationGeckoId ? true : false
@@ -208,9 +207,7 @@ export const useFetchChainChartData = ({
 	const isBridgedTvlEnabled = toggledCharts.includes('Bridged TVL') ? true : false
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
 		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
-		queryFn: isBridgedTvlEnabled
-			? () => fetch(`${CHAINS_ASSETS_CHART}/${selectedChain}`).then((r) => r.json())
-			: () => null,
+		queryFn: isBridgedTvlEnabled ? () => fetchJson(`${CHAINS_ASSETS_CHART}/${selectedChain}`) : () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isBridgedTvlEnabled
@@ -221,19 +218,17 @@ export const useFetchChainChartData = ({
 		queryKey: ['raisesChart', selectedChain, isRaisesEnabled],
 		queryFn: () =>
 			isRaisesEnabled
-				? fetch(`${RAISES_API}`)
-						.then((r) => r.json())
-						.then((data) => {
-							const store = (data?.raises ?? []).reduce((acc, curr) => {
-								acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
-								return acc
-							}, {} as Record<string, number>)
-							const chart = []
-							for (const date in store) {
-								chart.push([+date * 1e3, store[date] * 1e6])
-							}
-							return chart
-						})
+				? fetchJson(`${RAISES_API}`).then((data) => {
+						const store = (data?.raises ?? []).reduce((acc, curr) => {
+							acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
+							return acc
+						}, {} as Record<string, number>)
+						const chart = []
+						for (const date in store) {
+							chart.push([+date * 1e3, store[date] * 1e6])
+						}
+						return chart
+				  })
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,

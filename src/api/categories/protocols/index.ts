@@ -26,7 +26,7 @@ import {
 	COINS_PRICES_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
 
 export const getAllProtocolEmissionsWithHistory = async ({
@@ -37,13 +37,13 @@ export const getAllProtocolEmissionsWithHistory = async ({
 	endDate?: number
 } = {}) => {
 	try {
-		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
-		const coins = await fetchWithErrorLogging(
+		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
+		const coins = await fetchJson(
 			`${COINS_PRICES_API}/current/${res
 				.filter((p) => p.gecko_id)
 				.map((p) => 'coingecko:' + p.gecko_id)
 				.join(',')}`
-		).then((res) => res.json())
+		)
 
 		return res
 			.map((protocol) => {
@@ -89,7 +89,7 @@ export const getAllProtocolEmissionsWithHistory = async ({
 
 export const getProtocolEmissionsList = async () => {
 	try {
-		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
+		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
 		return res.map((protocol) => ({
 			name: protocol.name,
 			token: protocol.token
@@ -110,13 +110,13 @@ export const getAllProtocolEmissions = async ({
 	getHistoricalPrices?: boolean
 } = {}) => {
 	try {
-		const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((res) => res.json())
-		const coins = await fetchWithErrorLogging(
+		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
+		const coins = await fetchJson(
 			`https://coins.llama.fi/prices/current/${res
 				.filter((p) => p.gecko_id)
 				.map((p) => 'coingecko:' + p.gecko_id)
 				.join(',')}`
-		).then((res) => res.json())
+		)
 
 		const parsedRes = res
 
@@ -244,15 +244,13 @@ export const getAllProtocolEmissions = async ({
 
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
-		const list = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json())
+		const list = await fetchJson(PROTOCOL_EMISSIONS_LIST_API)
 		if (!list.includes(protocolName))
 			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
 
-		const allEmmisions = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API).then((r) => r.json())
+		const allEmmisions = await fetchJson(PROTOCOL_EMISSIONS_API)
 
-		const res = await fetchWithErrorLogging(`${PROTOCOL_EMISSION_API}/${protocolName}`)
-			.then((r) => r.json())
-			.then((r) => JSON.parse(r.body))
+		const res = await fetchJson(`${PROTOCOL_EMISSION_API}/${protocolName}`).then((r) => JSON.parse(r.body))
 
 		const { metadata, name, futures } = res
 
@@ -262,12 +260,12 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const protocolEmissions = { documented: {}, realtime: {} }
 		const emissionCategories = { documented: [], realtime: [] }
 
-		const prices = await fetchWithErrorLogging(`https://coins.llama.fi/prices/current/${metadata.token}?searchWidth=4h`)
-			.then((res) => res.json())
-			.catch((err) => {
+		const prices = await fetchJson(`https://coins.llama.fi/prices/current/${metadata.token}?searchWidth=4h`).catch(
+			(err) => {
 				console.log(err)
 				return {}
-			})
+			}
+		)
 
 		const tokenPrice = prices?.coins?.[metadata.token] ?? {}
 
@@ -442,7 +440,7 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 
 // - used in /airdrops, /protocols, /recent, /top-gainers-and-losers, /top-protocols, /watchlist
 export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep) {
-	const { protocols, chains, parentProtocols } = await fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
+	const { protocols, chains, parentProtocols } = await fetchJson(PROTOCOLS_API)
 
 	const filteredProtocols = formatProtocolsData({
 		protocols,
@@ -454,12 +452,10 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 
 // - used in /lsd
 export async function getLSDPageData() {
-	const [{ protocols }] = await Promise.all(
-		[PROTOCOLS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
-	)
-	const pools = (await fetchWithErrorLogging(YIELD_POOLS_API).then((r) => r.json())).data
+	const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetchJson(url)))
+	const pools = (await fetchJson(YIELD_POOLS_API)).data
 
-	const lsdRates = await fetchWithErrorLogging(LSD_RATES_API).then((r) => r.json())
+	const lsdRates = await fetchJson(LSD_RATES_API)
 
 	// filter for LSDs
 	const lsdProtocols = protocols
@@ -470,9 +466,7 @@ export async function getLSDPageData() {
 
 	// get historical data
 	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
-	const history = await Promise.all(
-		lsdProtocolsSlug.map((p) => fetchWithErrorLogging(`${PROTOCOL_API}/${p}`).then((r) => r.json()))
-	)
+	const history = await Promise.all(lsdProtocolsSlug.map((p) => fetchJson(`${PROTOCOL_API}/${p}`)))
 
 	let lsdApy = pools
 		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
@@ -537,9 +531,7 @@ interface AssetTotals {
 }
 
 export async function getETFData() {
-	const [snapshot, flows] = await Promise.all(
-		[ETF_SNAPSHOT_API, ETF_FLOWS_API].map((url) => fetchWithErrorLogging(url).then((r) => r.json()))
-	)
+	const [snapshot, flows] = await Promise.all([ETF_SNAPSHOT_API, ETF_FLOWS_API].map((url) => fetchJson(url)))
 
 	const maxDate = Math.max(...flows.map((item) => new Date(item.day).getTime()))
 
@@ -583,7 +575,7 @@ export async function getETFData() {
 }
 
 export async function getAirdropDirectoryData() {
-	const airdrops = await fetchWithErrorLogging('https://airdrops.llama.fi/config').then((r) => r.json())
+	const airdrops = await fetchJson('https://airdrops.llama.fi/config')
 
 	const now = Date.now()
 	return Object.values(airdrops).filter((i: { endTime?: number; isActive: boolean; page?: string }) => {
@@ -644,11 +636,10 @@ export function formatGovernanceData(data: {
 
 export async function getChainsBridged(chain?: string) {
 	const [assets, flows1d, inflows] = await Promise.all([
-		fetchWithErrorLogging(CHAINS_ASSETS).then((r) => r.json()),
-		fetchWithErrorLogging(CHAIN_ASSETS_FLOWS + '/24h').then((r) => r.json()),
+		fetchJson(CHAINS_ASSETS),
+		fetchJson(CHAIN_ASSETS_FLOWS + '/24h'),
 		chain
-			? fetchWithErrorLogging(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
-					.then((res) => res.json())
+			? fetchJson(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
 					.then((data) => data.data.map((item) => ({ ...item.data, date: item.timestamp })))
 					.catch(() => [])
 			: []
@@ -683,9 +674,7 @@ export async function getChainsBridged(chain?: string) {
 }
 
 export async function getCategoryInfo() {
-	const data = await fetchWithErrorLogging(CATEGORY_INFO_API)
-		.then((r) => r.json())
-		.catch(() => [])
+	const data = await fetchJson(CATEGORY_INFO_API).catch(() => [])
 	return data
 }
 
@@ -694,16 +683,12 @@ export async function getCategoryPerformance() {
 		await Promise.all(
 			['7', '30', 'ytd', '365'].map(async (period) => [
 				period,
-				await fetchWithErrorLogging(`${CATEGORY_PERFORMANCE_API}/${period}`)
-					.then((r) => r.json())
-					.catch(() => [])
+				await fetchJson(`${CATEGORY_PERFORMANCE_API}/${period}`).catch(() => [])
 			])
 		)
 	)
 
-	const info = await fetchWithErrorLogging(CATEGORY_INFO_API)
-		.then((r) => r.json())
-		.catch(() => [])
+	const info = await fetchJson(CATEGORY_INFO_API).catch(() => [])
 	const getCumulativeChangeOfPeriod = (period, name) => performanceTimeSeries[period].slice(-1)?.[0]?.[name] ?? null
 	const pctChanges = info.map((i) => ({
 		...i,
@@ -774,8 +759,8 @@ export async function getCoinPerformance(categoryId) {
 		}))
 	}
 
-	const prices = await fetchWithErrorLogging(`${CATEGORY_COIN_PRICES_API}/${categoryId}`).then((r) => r.json())
-	const coinInfo = await fetchWithErrorLogging(`${COINS_INFO_API}/${categoryId}`).then((r) => r.json())
+	const prices = await fetchJson(`${CATEGORY_COIN_PRICES_API}/${categoryId}`)
+	const coinInfo = await fetchJson(`${COINS_INFO_API}/${categoryId}`)
 
 	const coinsInCategory = coinInfo.map((c) => [c.id, c.name])
 

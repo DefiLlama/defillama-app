@@ -2,10 +2,9 @@ import ProtocolContainer from '~/containers/ProtocolOverview/index-old'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolData } from '~/api/categories/protocols/getProtocolData'
 import { isCpusHot } from '~/utils/cache-client'
-import metadata from '~/utils/metadata'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import { slug } from '~/utils'
-const { protocolMetadata } = metadata
+import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/tvl/[...protocol]',
@@ -22,10 +21,22 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const normalizedName = slug(protocol)
-		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (protocolMetadata[key].name === normalizedName) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
+
+		if (!metadata || !metadata[1].tvl) {
+			return { notFound: true, props: null }
+		}
 
 		const protocolData = await getProtocol(protocol)
-		const data = await getProtocolData(protocol, protocolData as any, isHot, metadata)
+		const data = await getProtocolData(protocol, protocolData as any, isHot, metadata[1])
 		return data
 	}
 )

@@ -4,13 +4,14 @@ import { BarChart } from 'echarts/charts'
 import { CanvasRenderer } from 'echarts/renderers'
 import { TooltipComponent, GridComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { slug, toK } from '~/utils'
+import { toK } from '~/utils'
 import { capitalize } from 'lodash'
 import { useQuery } from '@tanstack/react-query'
 import { TagGroup } from '~/components/TagGroup'
 import { NETFLOWS_API } from '~/constants'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import { fetchJson } from '~/utils/async'
 
 echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 
@@ -29,10 +30,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 
 	const { data = [] } = useQuery({
 		queryKey: ['netflowData', period],
-		queryFn: () =>
-			fetch(`${NETFLOWS_API}/${period}`)
-				.then((res) => res.json())
-				.catch(() => [])
+		queryFn: () => fetchJson(`${NETFLOWS_API}/${period}`).catch(() => [])
 	})
 
 	const { positiveData, negativeData, chains } = useMemo(() => {

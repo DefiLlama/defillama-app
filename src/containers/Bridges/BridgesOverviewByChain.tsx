@@ -337,7 +337,7 @@ export function BridgesOverviewByChain({
 				</div>
 			</div>
 
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center justify-between p-3">
 					<div className="flex items-center">
 						<button

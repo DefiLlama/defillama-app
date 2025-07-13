@@ -3,12 +3,10 @@ import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants/index'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { descriptions } from '../categories'
 import { ProtocolsByCategory } from '~/containers/ProtocolsByCategory'
 import { getProtocolsByCategory } from '~/containers/ProtocolsByCategory/queries'
-
-const fetch = fetchWithErrorLogging
 
 export const getStaticProps = withPerformanceLogging(
 	'protocols/[...category]',
@@ -40,9 +38,9 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const res = await fetch(PROTOCOLS_API)
+	const res = await fetchJson(PROTOCOLS_API)
 
-	const paths = (await res.json()).protocolCategories.map((category) => ({
+	const paths = res.protocolCategories.map((category) => ({
 		params: { category: [slug(category)] }
 	}))
 

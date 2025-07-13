@@ -86,7 +86,7 @@ export function PeggedAssetsTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="p-3 flex items-center justify-between">
 				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
@@ -176,7 +176,7 @@ export function PeggedAssetByChainTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="p-3 flex items-center justify-between">
 				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
@@ -236,7 +236,7 @@ export function PeggedChainsTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="p-3 flex items-center justify-between">
 				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon

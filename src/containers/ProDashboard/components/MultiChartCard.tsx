@@ -1,5 +1,5 @@
 import { CHART_TYPES, MultiChartConfig } from '../types'
-import { generateChartColor } from '../utils'
+import { generateChartColor, convertToCumulative } from '../utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { Icon } from '~/components/Icon'
 import { memo, useState, useMemo, lazy, Suspense } from 'react'
@@ -11,9 +11,10 @@ interface MultiChartCardProps {
 }
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { getProtocolInfo, handleGroupingChange } = useProDashboard()
+	const { getProtocolInfo, handleGroupingChange, handleCumulativeChange } = useProDashboard()
 	const [showPercentage, setShowPercentage] = useState(false)
 	const [showStacked, setShowStacked] = useState(true)
+	const showCumulative = multi.showCumulative || false
 
 	// Filter valid items and create series data
 	const validItems = multi.items.filter((cfg) => {
@@ -37,7 +38,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			const meta = CHART_TYPES[cfg.type]
 			const name = cfg.protocol ? getProtocolInfo(cfg.protocol)?.name || cfg.protocol : cfg.chain
 
-			const data: [number, number][] = rawData.map(([timestamp, value]) => [
+			// Apply cumulative transformation if enabled
+			const processedData = showCumulative ? convertToCumulative(rawData) : rawData
+
+			const data: [number, number][] = processedData.map(([timestamp, value]) => [
 				typeof timestamp === 'string' && !isNaN(Number(timestamp))
 					? Number(timestamp)
 					: Math.floor(new Date(timestamp).getTime()),
@@ -48,7 +52,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			return {
 				name: `${name} ${meta?.title || cfg.type}`,
-				type: (meta?.chartType === 'bar' ? 'bar' : 'line') as 'bar' | 'line',
+				type: (meta?.chartType === 'bar' && !showCumulative ? 'bar' : 'line') as 'bar' | 'line',
 				data,
 				color: generateChartColor(itemIdentifier, meta?.color || '#8884d8'),
 				metricType: cfg.type
@@ -70,7 +74,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				return chartType?.chartType === 'area'
 			})
 
-		if ((allBarType || allAreaType) && showStacked) {
+		if ((allBarType || allAreaType) && showStacked && !showCumulative) {
 			const allTimestamps = new Set<number>()
 			baseSeries.forEach((serie) => {
 				serie.data.forEach(([timestamp]) => allTimestamps.add(timestamp))
@@ -103,6 +107,15 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		if (!showPercentage) {
 			return baseSeries.map((serie) => {
 				const { stack, ...rest } = serie as any
+				// Add area style for cumulative view
+				if (showCumulative) {
+					return {
+						...rest,
+						areaStyle: {
+							opacity: 0.2
+						}
+					}
+				}
 				return rest
 			})
 		}
@@ -177,7 +190,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				}
 			}
 		})
-	}, [validItems, showPercentage, showStacked, getProtocolInfo])
+	}, [validItems, showPercentage, showStacked, showCumulative, getProtocolInfo])
 
 	const hasAnyData = validItems.length > 0
 	const isAllLoading = loadingItems.length === multi.items.length
@@ -248,7 +261,22 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						)}
 						{hasAnyData && !hasMultipleMetrics && (
 							<>
-								{canStack && (
+								{allChartsAreBarType && (
+									<button
+										onClick={() => {
+											handleCumulativeChange(multi.id, !showCumulative)
+											if (!showCumulative) {
+												setShowStacked(false)
+											}
+										}}
+										className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
+										title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
+									>
+										<Icon name="trending-up" height={12} width={12} />
+										<span className="hidden sm:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
+									</button>
+								)}
+								{canStack && !showCumulative && (
 									<button
 										onClick={() => {
 											setShowStacked(!showStacked)

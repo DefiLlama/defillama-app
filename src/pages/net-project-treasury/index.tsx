@@ -8,6 +8,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOLS_TREASURY } from '~/constants'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 interface INetProjectTreasuryByChain {
@@ -15,7 +16,7 @@ interface INetProjectTreasuryByChain {
 }
 
 export const getStaticProps = withPerformanceLogging(`net-project-treasury/index`, async () => {
-	const treasuries = await fetch(PROTOCOLS_TREASURY).then((res) => res.json())
+	const treasuries = await fetchJson(PROTOCOLS_TREASURY)
 
 	const protocols = treasuries
 		.map((t) => {

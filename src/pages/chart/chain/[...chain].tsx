@@ -6,12 +6,9 @@ import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChain
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { withPerformanceLogging } from '~/utils/perf'
-import metadata from '~/utils/metadata'
-import { slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { maxAgeForNext } from '~/api'
-const { chainMetadata } = metadata
 
 const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
@@ -58,8 +55,8 @@ export default function ChainChartPage(props) {
 		let chainGeckoId = null
 
 		if (selectedChain !== 'All') {
-			const cmetadata = chainMetadata[slug(selectedChain)]
-			let chainDenomination = cmetadata?.gecko_id ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.geckoId ?? null
+			let chainDenomination =
+				props.chainTokenInfo?.gecko_id ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.geckoId ?? null
 
 			chainGeckoId = chainDenomination ?? null
 		}

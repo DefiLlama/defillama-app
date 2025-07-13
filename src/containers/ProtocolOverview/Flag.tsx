@@ -2,9 +2,7 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import * as Ariakit from '@ariakit/react'
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
+import { fetchJson } from '~/utils/async'
 
 export function Flag({
 	protocol,
@@ -30,7 +28,7 @@ export function Flag({
 
 		const form = e.target as HTMLFormElement
 
-		const data = await fetch('https://api.llama.fi/reportError', {
+		const data = await fetchJson('https://api.llama.fi/reportError', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -41,7 +39,6 @@ export function Flag({
 				contact: form.contact?.value ?? ''
 			})
 		})
-			.then((res) => res.json())
 			.then((data) => {
 				setLoading(false)
 

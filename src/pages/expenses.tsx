@@ -3,7 +3,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 import type { ColumnDef } from '@tanstack/react-table'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -11,13 +11,11 @@ import { BasicLink } from '~/components/Link'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { PROTOCOLS_API } from '~/constants'
 
-const fetch = fetchWithErrorLogging
-
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
-	const { protocols, parentProtocols } = await fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
-	const expenses = await fetch(
+	const { protocols, parentProtocols } = await fetchJson(PROTOCOLS_API)
+	const expenses = await fetchJson(
 		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
-	).then((r) => r.json())
+	)
 
 	return {
 		props: {

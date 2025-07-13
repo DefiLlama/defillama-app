@@ -60,11 +60,11 @@ export default class ProtocolCharts {
 	}
 
 	static async fees(protocol: string): Promise<[number, number][]> {
-		return this.summary(protocol, 'fees')
+		return this.summary(protocol, 'fees', 'dailyAppFees')
 	}
 
 	static async revenue(protocol: string): Promise<[number, number][]> {
-		return this.summary(protocol, 'fees', 'dailyRevenue')
+		return this.summary(protocol, 'fees', 'dailyAppRevenue')
 	}
 
 	static async getTokenData(geckoId: string) {

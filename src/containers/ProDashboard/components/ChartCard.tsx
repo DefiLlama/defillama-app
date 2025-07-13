@@ -1,9 +1,9 @@
 import { Icon } from '~/components/Icon'
 import { ChartConfig, CHART_TYPES, Chain, Protocol } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
-import { getItemIconUrl, generateChartColor } from '../utils'
+import { getItemIconUrl, generateChartColor, convertToCumulative } from '../utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
-import { lazy, memo, Suspense } from 'react'
+import { lazy, memo, Suspense, useState } from 'react'
 import { IChartProps, IBarChartProps } from '~/components/ECharts/types'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -56,8 +56,9 @@ const ChartRenderer = memo(function ChartRenderer({
 	}
 
 	const chartType = CHART_TYPES[chart.type]
+	const showCumulative = chart.showCumulative || false
 
-	if (chartType.chartType === 'bar') {
+	if (chartType.chartType === 'bar' && !showCumulative) {
 		return (
 			<Suspense fallback={<></>}>
 				<BarChart chartData={data} valueSymbol="$" height="300px" color={color} hideDataZoom hideDownloadButton />
@@ -73,10 +74,12 @@ const ChartRenderer = memo(function ChartRenderer({
 })
 
 export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
-	const { getChainInfo, getProtocolInfo, handleGroupingChange } = useProDashboard()
+	const { getChainInfo, getProtocolInfo, handleGroupingChange, handleCumulativeChange } = useProDashboard()
 	const { data, isLoading, hasError, refetch } = chart
 	const chartTypeDetails = CHART_TYPES[chart.type]
 	const isGroupable = chartTypeDetails?.groupable
+	const isBarChart = chartTypeDetails?.chartType === 'bar'
+	const showCumulative = chart.showCumulative || false
 
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
@@ -98,9 +101,11 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 
 	const chartColor = generateChartColor(itemIdentifier, chartTypeDetails?.color)
 
+	const processedData = showCumulative && data ? convertToCumulative(data) : data
+
 	return (
 		<div className="p-4 h-full flex flex-col">
-			<div className="flex justify-between items-center mb-2 pr-28">
+			<div className="flex justify-between items-center mb-2 pr-20">
 				<div className="flex items-center gap-2">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
@@ -121,7 +126,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 								<button
 									key={option}
 									onClick={() => handleGroupingChange(chart.id, option)}
-									className={`px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
+									className={`px-2 xl:px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
 										${index > 0 ? 'border-l border-(--form-control-border)' : ''}
 										${
 											chart.grouping === option
@@ -129,10 +134,21 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
 										}`}
 								>
-									{option.charAt(0).toUpperCase() + option.slice(1)}
+									<span className="xl:hidden">{option.charAt(0).toUpperCase()}</span>
+									<span className="hidden xl:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
 								</button>
 							))}
 						</div>
+					)}
+					{isBarChart && (
+						<button
+							onClick={() => handleCumulativeChange(chart.id, !showCumulative)}
+							className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
+							title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
+						>
+							<Icon name="trending-up" height={12} width={12} />
+							<span className="hidden sm:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
+						</button>
 					)}
 				</div>
 			</div>
@@ -140,7 +156,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 			<div style={{ height: '300px', flexGrow: 1 }}>
 				<ChartRenderer
 					chart={chart}
-					data={data}
+					data={processedData}
 					isLoading={isLoading}
 					hasError={hasError}
 					refetch={refetch}

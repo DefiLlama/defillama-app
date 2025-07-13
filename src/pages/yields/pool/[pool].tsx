@@ -279,7 +279,9 @@ const PageView = (props) => {
 							<span className="text-base text-[#545757] dark:text-[#cccccc]">Total Risk Rating</span>
 							<span className="flex items-center gap-2 flex-nowrap">
 								<span
-									className="w-7 h-7 rounded-full flex items-center justify-center text-base font-bold"
+									className={`w-7 h-7 rounded-full flex items-center justify-center text-base font-bold ${
+										riskData?.pool_rating ? 'text-base' : 'text-sm'
+									}`}
 									style={getRatingColor(riskData?.pool_rating_color)}
 								>
 									{riskData?.pool_rating || 'N/A'}
@@ -417,7 +419,9 @@ const PageView = (props) => {
 								<div className="flex items-center justify-between rounded-xl min-w-[160px] mb-4 p-3">
 									<h3 className="flex items-center gap-1 text-base font-bold">
 										<span
-											className="w-7 h-7 rounded-full flex items-center justify-center"
+											className={`w-7 h-7 rounded-full flex items-center justify-center ${
+												riskData?.pool_rating ? 'text-base' : 'text-sm'
+											}`}
 											style={getRatingColor(riskData?.pool_rating_color)}
 										>
 											{riskData?.pool_rating || 'N/A'}
