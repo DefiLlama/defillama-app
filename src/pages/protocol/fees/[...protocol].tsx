@@ -70,20 +70,28 @@ export default function Protocols(props) {
 			tab="fees"
 			toggleOptions={feesOptions}
 		>
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
 					<DimensionProtocolChartByType
 						chartType="overview"
 						protocolName={slug(props.name)}
 						adapterType="fees"
-						metadata={{ bribeRevenue: props.metrics.bribes, tokenTax: props.metrics.tokenTax }}
+						metadata={{
+							revenue: props.metrics.revenue,
+							bribeRevenue: props.metrics.bribes,
+							tokenTax: props.metrics.tokenTax
+						}}
 					/>
 					{props.hasMultipleChain ? (
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
 							adapterType="fees"
-							metadata={{ bribeRevenue: props.metrics.bribes, tokenTax: props.metrics.tokenTax }}
+							metadata={{
+								revenue: props.metrics.revenue,
+								bribeRevenue: props.metrics.bribes,
+								tokenTax: props.metrics.tokenTax
+							}}
 						/>
 					) : null}
 					{props.hasMultipleVersions ? (
@@ -91,7 +99,11 @@ export default function Protocols(props) {
 							chartType="version"
 							protocolName={slug(props.name)}
 							adapterType="fees"
-							metadata={{ bribeRevenue: props.metrics.bribes, tokenTax: props.metrics.tokenTax }}
+							metadata={{
+								revenue: props.metrics.revenue,
+								bribeRevenue: props.metrics.bribes,
+								tokenTax: props.metrics.tokenTax
+							}}
 						/>
 					) : null}
 				</div>

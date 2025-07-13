@@ -159,9 +159,9 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 	}, [groupTvls])
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md isolate border border-[#e6e6e6] dark:border-[#222324]">
-			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
-				<div className="relative w-full sm:max-w-[280px]">
+		<div className="bg-(--cards-bg) rounded-md isolate border border-(--cards-border)">
+			<div className="flex items-center justify-end flex-wrap gap-2 p-2">
+				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
 						name="search"
 						height={16}

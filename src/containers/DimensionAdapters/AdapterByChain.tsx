@@ -362,7 +362,7 @@ export function AdapterByChain(props: IProps) {
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' ? (
 				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-					<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{props.chain !== 'All' && (
 							<h1 className="flex items-center flex-nowrap gap-2">
 								<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
@@ -383,13 +383,13 @@ export function AdapterByChain(props: IProps) {
 
 						<div className="flex flex-col">
 							{props.total30d != null ? (
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 									<span className="text-[#545757] dark:text-[#cccccc]">{metricName} (30d)</span>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.total30d, true)}</span>
 								</p>
 							) : null}
 							{props.change_7dover7d != null ? (
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 									<Tooltip
 										content="Change of last 7d volume over the previous 7d volume"
 										className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -416,7 +416,7 @@ export function AdapterByChain(props: IProps) {
 					/>
 				</div>
 			) : null}
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center justify-end flex-wrap gap-4 p-2">
 					<div className="relative w-full sm:max-w-[280px] mr-auto">
 						<Icon

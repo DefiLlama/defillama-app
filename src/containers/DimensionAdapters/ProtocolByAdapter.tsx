@@ -282,8 +282,9 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 								protocolName={pSlug}
 								chartType="version"
 								metadata={{
-									bribeRevenue: totalAllTimeBribes ? true : false,
-									tokenTax: totalAllTimeTokenTaxes ? true : false
+									revenue: props.metadata?.revenue ? true : false,
+									bribeRevenue: props.metadata?.bribeRevenue ? true : false,
+									tokenTax: props.metadata?.tokenTax ? true : false
 								}}
 							/>
 						)}
@@ -293,8 +294,9 @@ export function ProtocolByAdapter(props: IProtocolContainerProps) {
 								protocolName={pSlug}
 								chartType="chain"
 								metadata={{
-									bribeRevenue: totalAllTimeBribes ? true : false,
-									tokenTax: totalAllTimeTokenTaxes ? true : false
+									revenue: props.metadata?.revenue ? true : false,
+									bribeRevenue: props.metadata?.bribeRevenue ? true : false,
+									tokenTax: props.metadata?.tokenTax ? true : false
 								}}
 							/>
 						)}

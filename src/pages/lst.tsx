@@ -77,7 +77,7 @@ const PageView = ({
 	return (
 		<>
 			<ProtocolsChainsSearch />
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap p-3">
 					<span>Total Value Locked ETH LSTs</span>
 					<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
