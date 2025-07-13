@@ -1,13 +1,36 @@
 import React from 'react'
 import AreaChart from '../ECharts/AreaChart'
 import CustomBarChart from './CustomBarChart'
+import ClusteredBarChart from './ClusteredBarChart'
+import ComparisonChart from './ComparisonChart'
+import MixedChart from './MixedChart'
 
-interface ChartConfig {
+interface ChartDataFormat {
+	single?: Array<{
+		date: string
+		[metric: string]: number | string
+	}>
+
+	multi?: {
+		entities: string[]
+		metrics: string[]
+		series: Array<{
+			entity: string
+			metric: string
+			data: Array<{
+				date: string
+				value: number
+			}>
+		}>
+	}
+}
+
+export interface ChartConfig {
 	id: string
-	type: 'line' | 'bar' | 'pie' | 'scatter' | 'stacked-bar' | 'table' | 'mixed'
-	title: string
+	type: 'line' | 'bar' | 'pie' | 'scatter' | 'stacked-bar' | 'clustered-bar' | 'comparison' | 'mixed' | 'table'
+	title?: string
 	description?: string
-	data: any[]
+	data: ChartDataFormat
 	config: {
 		xAxis: string
 		yAxis: string
@@ -15,6 +38,24 @@ interface ChartConfig {
 		valueSymbol?: string
 		isStacked?: boolean
 		yAxisScale?: 'linear' | 'logarithmic'
+	}
+	advancedConfig?: {
+		clustered?: {
+			groupBy: string
+			groupLimit: number
+			othersCategory: boolean
+		}
+		comparison?: {
+			entities: string[]
+			baseline?: 'category_average' | 'market_total' | 'previous_period'
+			showDifference: boolean
+			showPercentage: boolean
+		}
+		mixed?: {
+			primaryAxis: string
+			secondaryAxis: string
+			dualYAxis: boolean
+		}
 	}
 }
 
@@ -31,101 +72,52 @@ interface ChartRendererProps {
 }
 
 const ChartRenderer: React.FC<ChartRendererProps> = ({ chart }) => {
-	const { type, title, description, data, config } = chart
-
-	const formatDataForAreaChart = () => {
-		if (!config.series || config.series.length <= 1) {
-			const dataKey = config.series?.[0]?.dataKey || 'value'
-			return data.map((item) => [Math.floor(new Date(item.date).getTime() / 1000), item[dataKey] || 0])
-		}
-
-		const result: Array<{ date: number; [key: string]: number }> = []
-
-		const dataByDate = new Map<string, Record<string, number>>()
-
-		data.forEach((item) => {
-			const dateStr = item.date
-			if (!dataByDate.has(dateStr)) {
-				dataByDate.set(dateStr, {})
-			}
-
-			const dateData = dataByDate.get(dateStr)!
-
-			if (item.name && typeof item.value === 'number') {
-				dateData[item.name] = item.value
-			} else {
-				config.series.forEach((series) => {
-					const seriesValue = item[series.dataKey] || 0
-					dateData[series.name] = seriesValue
-				})
-			}
-		})
-
-		Array.from(dataByDate.keys())
-			.sort()
-			.forEach((dateStr) => {
-				const timestamp = Math.floor(new Date(dateStr).getTime() / 1000)
-				const dataPoint: { date: number; [key: string]: number } = { date: timestamp }
-
-				const dateData = dataByDate.get(dateStr)!
-				Object.keys(dateData).forEach((key) => {
-					dataPoint[key] = dateData[key]
-				})
-
-				result.push(dataPoint)
-			})
-
-		return result
-	}
-
-	const formatDataForBarChart = () => {
-		const hasMultipleSeries = config.series && config.series.length > 1
-
-		if (!hasMultipleSeries) {
-			const dataKey = config.series?.[0]?.dataKey || config.yAxis || 'value'
-			return data.map((item) => {
-				const name = String(item.name || item.entity || 'Unknown')
-				const value = Number(item[dataKey] || item.value || 0)
-				return [name, value] as [string, number]
-			})
-		}
-
-		return {
-			categories: data.map((item) => String(item.name || item.entity || 'Unknown')),
-			series: config.series.map((seriesConfig) => ({
-				name: seriesConfig.name,
-				type: seriesConfig.type,
-				color: seriesConfig.color,
-				data: data.map((item) => Number(item[seriesConfig.dataKey] || 0))
-			}))
-		}
-	}
-
-	const shouldUseMixedChart = () => {
-		if (!config.series || config.series.length <= 1) return false
-		const types = new Set(config.series.map((s) => s.type))
-		return types.size > 1
-	}
+	const { type, title, description, data, config, advancedConfig } = chart
 
 	const renderChart = () => {
 		switch (type) {
 			case 'line':
-				const lineData = formatDataForAreaChart()
+				const lineData = convertToAreaChartData(data, config)
 
-				const isSingleSeries = !config.series || config.series.length <= 1
-				const stacks = isSingleSeries ? [] : config.series?.map((s) => s.name) || []
-				const stackColors =
-					config.series?.reduce((acc, s) => {
-						acc[s.name] = s.color
+				let stacks: string[] = []
+				let stackColors: Record<string, string> = {}
+
+				if (data.multi) {
+					stacks = data.multi.entities
+					stackColors = data.multi.entities.reduce((acc, entity, index) => {
+						const colors = [
+							'#1f77b4',
+							'#ff7f0e',
+							'#2ca02c',
+							'#d62728',
+							'#9467bd',
+							'#8c564b',
+							'#e377c2',
+							'#7f7f7f',
+							'#bcbd22',
+							'#17becf'
+						]
+						acc[entity] = colors[index % colors.length]
 						return acc
-					}, {} as Record<string, string>) || {}
+					}, {} as Record<string, string>)
+				} else {
+					stacks = config.series?.map((s) => s.name) || []
+					stackColors =
+						config.series?.reduce((acc, s) => {
+							acc[s.name] = s.color
+							return acc
+						}, {} as Record<string, string>) || {}
+				}
+
+				const finalStacks = Array.isArray(lineData[0]) ? [] : stacks
+				const finalStackColors = Array.isArray(lineData[0]) ? {} : stackColors
 
 				return (
 					<AreaChart
 						title={title}
 						chartData={lineData}
-						stacks={stacks}
-						stackColors={stackColors}
+						stacks={finalStacks}
+						stackColors={finalStackColors}
 						valueSymbol={config.valueSymbol || '$'}
 						height="400px"
 						hideDownloadButton={false}
@@ -136,65 +128,62 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ chart }) => {
 
 			case 'bar':
 			case 'stacked-bar':
-			case 'mixed':
-				const barData = formatDataForBarChart()
-				const isMultiSeries = config.series && config.series.length > 1
-				const effectiveType = shouldUseMixedChart() ? 'mixed' : type
-
 				return (
 					<CustomBarChart
 						title={title}
-						chartData={barData}
+						chartData={data}
+						config={config}
 						valueSymbol={config.valueSymbol || '$'}
 						height="400px"
-						color={isMultiSeries ? undefined : '#2172E5'}
-						isMultiSeries={isMultiSeries}
-						chartType={effectiveType}
 						isStacked={config.isStacked}
+						chartType={type}
+					/>
+				)
+
+			case 'clustered-bar':
+				return (
+					<ClusteredBarChart
+						title={title}
+						data={data}
+						config={config}
+						advancedConfig={advancedConfig?.clustered}
+						valueSymbol={config.valueSymbol || '$'}
+						height="400px"
+					/>
+				)
+
+			case 'comparison':
+				return (
+					<ComparisonChart
+						title={title}
+						data={data}
+						config={config}
+						advancedConfig={advancedConfig?.comparison}
+						valueSymbol={config.valueSymbol || '$'}
+						height="400px"
+					/>
+				)
+
+			case 'mixed':
+				return (
+					<MixedChart
+						title={title}
+						data={data}
+						config={config}
+						advancedConfig={advancedConfig?.mixed}
+						valueSymbol={config.valueSymbol || '$'}
+						height="400px"
 					/>
 				)
 
 			case 'pie':
-				return (
-					<div className="flex items-center justify-center h-64 bg-gray-100 dark:bg-gray-700 rounded">
-						<p className="text-gray-500">Pie chart rendering coming soon</p>
-					</div>
-				)
+				return renderPieChart()
 
 			case 'scatter':
-				return (
-					<div className="flex items-center justify-center h-64 bg-gray-100 dark:bg-gray-700 rounded">
-						<p className="text-gray-500">Scatter plot rendering coming soon</p>
-					</div>
-				)
+				return renderScatterChart()
 
 			case 'table':
-				return (
-					<div className="overflow-auto">
-						<table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
-							<thead>
-								<tr className="bg-gray-100 dark:bg-gray-800">
-									{Object.keys(data[0] || {}).map((key) => (
-										<th key={key} className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
-											{key}
-										</th>
-									))}
-								</tr>
-							</thead>
-							<tbody>
-								{data.map((row, index) => (
-									<tr key={index} className="border-b">
-										{Object.values(row).map((value, idx) => (
-											<td key={idx} className="border border-gray-300 dark:border-gray-600 px-3 py-2">
-												{typeof value === 'number' ? value.toLocaleString() : String(value)}
-											</td>
-										))}
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				)
+				return renderTable()
 
 			default:
 				return (
@@ -213,9 +202,134 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ chart }) => {
 		}
 	}
 
+	const convertToAreaChartData = (data: ChartDataFormat, config: any) => {
+		if (data.single && Array.isArray(data.single)) {
+			if (data.single.length === 0) return []
+
+			if (!config.series || config.series.length <= 1) {
+				const dataKey = config.series?.[0]?.dataKey || Object.keys(data.single[0]).find((k) => k !== 'date') || 'value'
+
+				return data.single.map((item) => {
+					const timestamp = Math.floor(new Date(item.date).getTime() / 1000)
+					const value = (item as any)[dataKey] || 0
+					return [timestamp, value]
+				})
+			}
+
+			return data.single.map((item) => ({
+				date: Math.floor(new Date(item.date).getTime() / 1000),
+				...config.series.reduce((acc: any, series: any) => {
+					acc[series.name] = (item as any)[series.dataKey] || 0
+					return acc
+				}, {})
+			}))
+		}
+
+		if (data.multi) {
+			const { entities, series } = data.multi
+
+			const dateMap = new Map<string, any>()
+
+			series.forEach(({ entity, data: seriesData }) => {
+				seriesData.forEach(({ date, value }) => {
+					if (!dateMap.has(date)) {
+						dateMap.set(date, { date })
+					}
+					const dateEntry = dateMap.get(date)!
+
+					dateEntry[entity] = value
+				})
+			})
+
+			return Array.from(dateMap.values())
+				.sort((a, b) => a.date.localeCompare(b.date))
+				.map((item) => ({
+					date: Math.floor(new Date(item.date).getTime() / 1000),
+					...entities.reduce((acc: any, entity) => {
+						acc[entity] = item[entity] || 0
+						return acc
+					}, {})
+				}))
+		}
+
+		return []
+	}
+
+	const renderPieChart = () => (
+		<div className="flex items-center justify-center h-64 bg-gray-100 dark:bg-gray-700 rounded">
+			<p className="text-gray-500">Pie chart rendering coming soon</p>
+		</div>
+	)
+
+	const renderScatterChart = () => (
+		<div className="flex items-center justify-center h-64 bg-gray-100 dark:bg-gray-700 rounded">
+			<p className="text-gray-500">Scatter plot rendering coming soon</p>
+		</div>
+	)
+
+	const renderTable = () => {
+		let tableData: any[] = []
+
+		if (data.single && Array.isArray(data.single)) {
+			tableData = data.single
+		} else if (data.multi) {
+			const { series } = data.multi
+			const dateMap = new Map<string, any>()
+
+			series.forEach(({ entity, metric, data: seriesData }) => {
+				seriesData.forEach(({ date, value }) => {
+					const key = `${date}_${entity}`
+					if (!dateMap.has(key)) {
+						dateMap.set(key, { date, entity })
+					}
+					const row = dateMap.get(key)!
+					row[metric] = value
+				})
+			})
+
+			tableData = Array.from(dateMap.values()).sort((a, b) => {
+				const dateCompare = a.date.localeCompare(b.date)
+				return dateCompare !== 0 ? dateCompare : a.entity.localeCompare(b.entity)
+			})
+		}
+
+		if (tableData.length === 0) {
+			return <div className="text-center p-4">No data available</div>
+		}
+
+		const headers = Object.keys(tableData[0])
+
+		return (
+			<div className="overflow-auto">
+				<table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
+					<thead>
+						<tr className="bg-gray-100 dark:bg-gray-800">
+							{headers.map((key) => (
+								<th key={key} className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
+									{key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+								</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{tableData.map((row, index) => (
+							<tr key={index} className="border-b">
+								{headers.map((header) => (
+									<td key={header} className="border border-gray-300 dark:border-gray-600 px-3 py-2">
+										{typeof row[header] === 'number' ? row[header].toLocaleString() : String(row[header] || '')}
+									</td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		)
+	}
+
 	return (
 		<div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-4">
-			<h3 className="text-lg font-semibold mb-2">{title}</h3>
+			{title && <h3 className="text-lg font-semibold mb-2">{title}</h3>}
 			{description && <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{description}</p>}
 			<div className="min-h-[400px]">{renderChart()}</div>
 		</div>

@@ -1,21 +1,5 @@
 import React, { useState } from 'react'
-import ChartRenderer from './index'
-
-interface ChartConfig {
-	id: string
-	type: 'line' | 'bar' | 'pie' | 'scatter' | 'stacked-bar' | 'table'
-	title: string
-	description?: string
-	data: any[]
-	config: {
-		xAxis: string
-		yAxis: string
-		series: any[]
-		valueSymbol?: string
-		isStacked?: boolean
-		yAxisScale?: 'linear' | 'logarithmic'
-	}
-}
+import ChartRenderer, { ChartConfig } from './index'
 
 interface ChartNavigationProps {
 	charts: ChartConfig[]
