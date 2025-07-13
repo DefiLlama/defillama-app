@@ -65,6 +65,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 				/>
 
 				<Ariakit.ComboboxPopover
+					data-testid="search-results"
 					unmountOnHide
 					hideOnInteractOutside
 					gutter={6}
@@ -158,6 +159,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange, varia
 			) : null}
 
 			<Ariakit.Combobox
+				data-testid="search-input"
 				placeholder={placeholder}
 				autoSelect
 				ref={inputField}
@@ -188,6 +190,7 @@ const Row = ({ data, onItemClick, setOpen }: IRowProps) => {
 
 	return (
 		<Ariakit.ComboboxItem
+			data-testid="search-result-item"
 			value={data.name}
 			onClick={(e) => {
 				if (onItemClick) {

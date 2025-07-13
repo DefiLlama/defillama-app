@@ -159,6 +159,7 @@ export function VirtualTable({
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
+			data-testid="protocols-table"
 			className="isolate relative w-full max-w-[calc(100vw-8px)] rounded-md lg:max-w-[calc(100vw-248px)] overflow-x-auto mx-auto bg-(--cards-bg)"
 		>
 			<div
@@ -255,7 +256,7 @@ export function VirtualTable({
 
 					return (
 						<React.Fragment key={rowTorender.id}>
-							<div style={trStyle}>
+							<div data-testid="protocol-row" style={trStyle}>
 								{rowTorender.getVisibleCells().map((cell) => {
 									// get header text alignment
 									const textAlign = cell.column.columnDef.meta?.align ?? 'start'

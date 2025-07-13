@@ -29,3 +29,6 @@ yarn-error.log*
 *.log
 
 .cache
+
+e2e/test-results/
+e2e/.playwright/

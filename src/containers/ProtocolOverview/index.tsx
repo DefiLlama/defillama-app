@@ -104,7 +104,10 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				isCEX={props.isCEX}
 			/>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
-				<div className="hidden xl:flex flex-col gap-6 col-span-1 row-[2/3] xl:row-[1/2] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:min-h-[360px]">
+				<div
+					data-testid="protocol-detail-header"
+					className="hidden xl:flex flex-col gap-6 col-span-1 row-[2/3] xl:row-[1/2] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:min-h-[360px]"
+				>
 					<h1 className="flex items-center flex-wrap gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">

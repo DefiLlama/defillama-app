@@ -360,7 +360,7 @@ const ProtocolChart = React.memo(function ProtocolChart({
 		)
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2">
+		<div data-testid="protocol-detail-chart" className="bg-(--cards-bg) rounded-md flex flex-col col-span-2">
 			{chartOptions.length > 0 ? (
 				<div className="flex items-center gap-2 flex-wrap m-3">
 					{chartOptions.map((coption) => (
