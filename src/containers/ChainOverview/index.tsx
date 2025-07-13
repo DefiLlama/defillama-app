@@ -53,7 +53,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				fallback={
 					<div
 						style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
-						className="bg-(--cards-bg) border border-(cards-border) rounded-md"
+						className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
 					/>
 				}
 			>

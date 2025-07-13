@@ -75,7 +75,7 @@ function RaisesTable({ raises, downloadCsv }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(cards-border) rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
 				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon

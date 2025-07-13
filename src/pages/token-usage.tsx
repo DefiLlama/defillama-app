@@ -124,7 +124,7 @@ export default function Tokens({ searchData }) {
 							fallback={
 								<div
 									style={{ minHeight: `${filteredProtocols.length * 50 + 200}px` }}
-									className="bg-(--cards-bg) border border-(cards-border) rounded-md"
+									className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
 								/>
 							}
 						>

@@ -75,7 +75,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 	return (
 		<>
 			<WatchListTabs />
-			<div className="bg-(--cards-bg) border border-(cards-border) rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<h1 className="text-xl font-semibold p-3">Saved Pools</h1>
 
 				<div className="flex items-center flex-wrap gap-4 p-3">

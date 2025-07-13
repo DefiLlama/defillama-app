@@ -68,7 +68,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="bridge-aggregators"
 		>
-			<div className="bg-(--cards-bg) border border-(cards-border) rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
 					<DimensionProtocolChartByType
 						chartType="overview"

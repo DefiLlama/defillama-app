@@ -164,7 +164,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange, varia
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="w-full text-sm rounded-md border border-(cards-border) text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-8"
+				className="w-full text-sm rounded-md border border-(--cards-border) text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-8"
 			/>
 
 			{!hideIcon ? (

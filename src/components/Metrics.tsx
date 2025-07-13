@@ -195,7 +195,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							{chains.map((metric) => (
 								<BasicLink
 									key={`chain-metric-${metric.name}`}
-									className="p-[10px] rounded-md bg-(--cards-bg) border border-(cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
 									href={metric.route}
 								>
 									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
@@ -215,7 +215,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							{protocols.map((metric) => (
 								<BasicLink
 									key={`protocol-metric-${metric.name}`}
-									className="p-[10px] rounded-md bg-(--cards-bg) border border-(cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
 									href={
 										chain && metric.chainRoute ? `${metric.chainRoute.replace('{chain}', chain)}` : metric.mainRoute
 									}
