@@ -24,6 +24,7 @@ interface ITooltip {
 		| 'right'
 		| 'right-start'
 		| 'right-end'
+	showOnTap?: boolean
 }
 
 export function Tooltip({
@@ -33,9 +34,12 @@ export function Tooltip({
 	fontSize,
 	placement = 'top-start',
 	className,
+	showOnTap,
+	onClick,
 	...props
 }: ITooltip) {
 	const store = Ariakit.useTooltipStore({ placement })
+
 	if (!content || content === '') return <>{children}</>
 
 	return (
@@ -44,6 +48,9 @@ export function Tooltip({
 				store={store}
 				className={`flex items-center overflow-hidden text-ellipsis whitespace-nowrap shrink-0 ${className ?? ''}`}
 				render={<span />}
+				onClick={onClick ?? (showOnTap ? store.toggle : undefined)}
+				onMouseEnter={showOnTap ? undefined : store.show}
+				onMouseLeave={showOnTap ? undefined : store.hide}
 				{...props}
 			>
 				{children}
