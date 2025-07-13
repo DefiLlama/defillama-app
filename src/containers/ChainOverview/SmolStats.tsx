@@ -160,6 +160,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 					{rwaTvl ? (
 						<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col gap-1">
 							<Tooltip
+								placement="top-start"
 								render={
 									<BasicLink
 										href={props.metadata.name === 'All' ? '/protocols/rwa' : `/protocols/RWA/${props.metadata.name}`}
@@ -253,6 +254,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 			{props.stablecoins?.mcapChartData?.length > 0 ? (
 				<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col gap-1">
 					<Tooltip
+						placement="top-start"
 						render={
 							<BasicLink
 								href={props.metadata.name === 'All' ? '/stablecoins' : `/stablecoins/${props.metadata.name}`}
