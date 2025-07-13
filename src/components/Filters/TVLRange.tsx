@@ -5,10 +5,12 @@ import * as Ariakit from '@ariakit/react'
 export function TVLRange({
 	variant = 'primary',
 	nestedMenu,
+	triggerClassName,
 	placement
 }: {
 	variant?: 'primary' | 'secondary' | 'third'
 	nestedMenu?: boolean
+	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
 }) {
 	const router = useRouter()
@@ -81,6 +83,7 @@ export function TVLRange({
 			nestedMenu={nestedMenu}
 			min={min}
 			max={max}
+			triggerClassName={triggerClassName}
 			placement={placement}
 		/>
 	)

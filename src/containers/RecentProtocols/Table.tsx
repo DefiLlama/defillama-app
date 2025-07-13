@@ -161,22 +161,28 @@ export function RecentlyListedProtocolsTable({
 						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
 				</div>
-				<SelectWithCombobox
-					label="Chains"
-					allValues={chainList}
-					clearAll={clearAllChains}
-					toggleAll={toggleAllChains}
-					selectOnlyOne={selectOnlyOneChain}
-					selectedValues={selectedChains}
-					setSelectedValues={selectChain}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
-				/>
-				<TVLRange variant="third" />
-				{forkedList ? <HideForkedProtocols /> : null}
+
+				<div className="flex items-start sm:items-center gap-2 max-sm:w-full max-sm:flex-col">
+					<div className="flex items-center gap-2 w-full sm:w-auto">
+						<SelectWithCombobox
+							label="Chains"
+							allValues={chainList}
+							clearAll={clearAllChains}
+							toggleAll={toggleAllChains}
+							selectOnlyOne={selectOnlyOneChain}
+							selectedValues={selectedChains}
+							setSelectedValues={selectChain}
+							labelType="smol"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+							}}
+						/>
+						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+					</div>
+
+					{forkedList ? <HideForkedProtocols /> : null}
+				</div>
 			</div>
 			<VirtualTable instance={instance} />
 		</div>
