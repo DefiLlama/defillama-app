@@ -7,7 +7,7 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 
 export function Settings() {
-	const [darkMode] = useDarkModeManager()
+	const [darkMode, toggleDarkMode] = useDarkModeManager()
 
 	const { options, dashboardType } = useAppSettings()
 
@@ -18,8 +18,11 @@ export function Settings() {
 		.filter((key) => enabledOptions[key])
 		.concat(darkMode ? [DARK_MODE] : [])
 
-	const onChange = (values) => {
-		if (values.length < selectedOptions.length) {
+	const onChange = (values: string[]) => {
+		const isDarkMode = values.includes(DARK_MODE)
+		if (isDarkMode !== darkMode) {
+			toggleDarkMode()
+		} else if (values.length < selectedOptions.length) {
 			const off = selectedOptions.find((o) => !values.includes(o))
 			updater(off)
 		} else {
