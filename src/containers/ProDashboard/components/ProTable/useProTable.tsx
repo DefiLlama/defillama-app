@@ -547,7 +547,10 @@ export function useProTable(
 		const headers = table
 			.getVisibleFlatColumns()
 			.filter((col) => col.id !== 'expand')
-			.map((col) => col.columnDef.header || col.id)
+			.map((col) => {
+				const hdr = col.columnDef.header
+				return typeof hdr === 'string' ? hdr : col.id
+			})
 
 		const rows = table.getRowModel().rows.map((row) => {
 			return table

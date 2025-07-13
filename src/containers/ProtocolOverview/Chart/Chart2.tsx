@@ -136,7 +136,7 @@ export default function ProtocolLineBarChart({
 			series,
 			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>
 		}
-	}, [chartData, chartColors, color, hallmarks, isThemeDark, isCumulative])
+	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

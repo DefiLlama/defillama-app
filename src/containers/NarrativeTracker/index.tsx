@@ -120,7 +120,7 @@ export const CategoryPerformanceContainer = ({
 		<>
 			<ProtocolsChainsSearch />
 
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<h1 className="text-xl font-semibold p-3">
 					{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
 				</h1>

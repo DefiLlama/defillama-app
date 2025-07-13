@@ -5,9 +5,7 @@ import { maxAgeForNext } from '~/api'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const get = (url) => fetchWithErrorLogging(url).then((r) => r.json())
+import { fetchJson } from '~/utils/async'
 
 interface VC {
 	name: string
@@ -21,8 +19,8 @@ interface VC {
 
 async function generateVCList(): Promise<VC[]> {
 	const [raises, protocolsCategoryById] = await Promise.all([
-		get('https://api.llama.fi/raises').then((r) => r.raises),
-		get('https://api.llama.fi/protocols').then((protocols) =>
+		fetchJson('https://api.llama.fi/raises').then((r) => r.raises),
+		fetchJson('https://api.llama.fi/protocols').then((protocols) =>
 			protocols.reduce((acc, p) => {
 				acc[p.id] = p.category
 				return acc

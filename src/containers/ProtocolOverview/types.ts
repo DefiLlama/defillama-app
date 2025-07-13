@@ -12,7 +12,7 @@ export interface IProtocolMetadata {
 	holdersRevenue?: boolean
 	dexs?: boolean
 	perps?: boolean
-	aggregator?: boolean
+	dexAggregators?: boolean
 	options?: boolean
 	perpsAggregators?: boolean
 	bridgeAggregators?: boolean
@@ -27,6 +27,8 @@ export interface IProtocolMetadata {
 	emissions?: boolean
 	bribeRevenue?: boolean
 	tokenTax?: boolean
+	bridges?: boolean
+	stablecoins?: boolean
 }
 
 export interface IProtocolPageMetrics {
@@ -239,6 +241,7 @@ export interface IProtocolOverviewPageData {
 	incomeStatement?: {
 		feesByMonth: Record<string, number>
 		revenueByMonth: Record<string, number>
+		holdersRevenueByMonth: Record<string, number> | null
 		incentivesByMonth: Record<string, number> | null
 		monthDates: Array<[number, string]>
 	} | null

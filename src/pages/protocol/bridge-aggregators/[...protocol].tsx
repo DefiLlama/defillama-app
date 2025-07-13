@@ -1,12 +1,11 @@
 import { withPerformanceLogging } from '~/utils/perf'
-import metadata from '~/utils/metadata'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-const { protocolMetadata } = metadata
+import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/bridge-aggregators/[...protocol]',
@@ -16,9 +15,17 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const normalizedName = slug(protocol)
-		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (protocolMetadata[key].name === normalizedName) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
 
-		if (!metadata || !metadata.bridgeAggregators) {
+		if (!metadata || !metadata[1].bridgeAggregators) {
 			return { notFound: true, props: null }
 		}
 
@@ -26,13 +33,13 @@ export const getStaticProps = withPerformanceLogging(
 			getProtocol(protocol),
 			getAdapterProtocolSummary({
 				adapterType: 'bridge-aggregators',
-				protocol: metadata.name,
+				protocol: metadata[1].name,
 				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
 			})
 		])
 
-		const metrics = getProtocolMetrics({ protocolData, metadata })
+		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
 		return {
 			props: {
@@ -61,7 +68,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="bridge-aggregators"
 		>
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
 					<DimensionProtocolChartByType
 						chartType="overview"

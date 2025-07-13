@@ -68,6 +68,7 @@ interface ProDashboardContextType {
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
 	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => void
 	handleColSpanChange: (chartId: string, newColSpan: 1 | 2) => void
+	handleCumulativeChange: (itemId: string, showCumulative: boolean) => void
 	handleTableFiltersChange: (tableId: string, filters: TableFilters) => void
 	handleTableColumnsChange: (
 		tableId: string,
@@ -484,6 +485,24 @@ export function ProDashboardAPIProvider({
 		[autoSave]
 	)
 
+	const handleCumulativeChange = useCallback(
+		(itemId: string, showCumulative: boolean) => {
+			setItems((prev) => {
+				const newItems = prev.map((item) => {
+					if (item.id === itemId && item.kind === 'chart') {
+						return { ...item, showCumulative }
+					} else if (item.id === itemId && item.kind === 'multi') {
+						return { ...item, showCumulative }
+					}
+					return item
+				})
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[autoSave]
+	)
+
 	const handleTableFiltersChange = useCallback(
 		(tableId: string, filters: TableFilters) => {
 			setItems((prev) => {
@@ -554,6 +573,7 @@ export function ProDashboardAPIProvider({
 		handleChartsReordered,
 		handleGroupingChange,
 		handleColSpanChange,
+		handleCumulativeChange,
 		handleTableFiltersChange,
 		handleTableColumnsChange,
 		getChainInfo,

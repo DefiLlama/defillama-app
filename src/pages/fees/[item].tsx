@@ -3,11 +3,11 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolByAdapter } from '~/containers/DimensionAdapters/ProtocolByAdapter'
 import { GetStaticPropsContext } from 'next'
 import { slug } from '~/utils'
-import metadataCache from '~/utils/metadata'
 import { maxAgeForNext } from '~/api'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
-const { chainMetadata, protocolMetadata } = metadataCache
+import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
+import { IChainMetadata } from '~/containers/ChainOverview/types'
 
 const ADAPTOR_TYPE = ADAPTOR_TYPES.FEES
 
@@ -22,10 +22,9 @@ export const getStaticPaths = async () => {
 		}
 	}
 
-	const protocols = await fetchWithErrorLogging(
+	const protocols = await fetchJson(
 		`${DIMENISIONS_OVERVIEW_API}/${ADAPTOR_TYPE}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`
 	)
-		.then((res) => res.json())
 		.then((res) => (res.protocols ?? []).sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)).slice(0, 20))
 		.catch(() => [])
 
@@ -44,17 +43,29 @@ export const getStaticProps = withPerformanceLogging(
 	async ({ params }: GetStaticPropsContext<{ item: string }>) => {
 		const protocol = slug(params.item)
 
-		const normalizedName = slug(protocol)
-		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-		if (!metadata?.[ADAPTOR_TYPE] && !chainMetadata[protocol]?.chainFees) {
+		let pmetadata: [string, IProtocolMetadata] | undefined
+		for (const key in metadataCache.protocolMetadata) {
+			if (metadataCache.protocolMetadata[key].name === protocol) {
+				pmetadata = [key, metadataCache.protocolMetadata[key]]
+				break
+			}
+		}
+
+		let cmetadata: IChainMetadata
+		if (!pmetadata) {
+			cmetadata = metadataCache.chainMetadata[protocol]
+		}
+
+		if (!pmetadata?.[1]?.[ADAPTOR_TYPE] && !cmetadata?.chainFees) {
 			return { notFound: true, props: null }
 		}
 
 		const feesData = await getDimensionProtocolPageData({
 			adapterType: ADAPTOR_TYPE,
 			protocolName: protocol,
-			metadata
+			metadata: pmetadata?.[1] ?? cmetadata
 		}).catch((e) => console.info(`Item page data not found ${ADAPTOR_TYPE} ${protocol}`, e))
 
 		if (!feesData || !feesData.name) return { notFound: true }
@@ -65,6 +76,7 @@ export const getStaticProps = withPerformanceLogging(
 					...feesData,
 					type: ADAPTOR_TYPE
 				},
+				metadata: pmetadata?.[1] ?? cmetadata,
 				title: `${feesData.name} Fees - DefiLlama`
 			},
 			revalidate: maxAgeForNext([22])

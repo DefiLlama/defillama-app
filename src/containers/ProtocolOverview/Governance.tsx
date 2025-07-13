@@ -12,13 +12,10 @@ import {
 import { VirtualTable } from '~/components/Table/Table'
 import { formatGovernanceData } from '~/api/categories/protocols'
 
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
-import { transparentize } from 'polished'
 import { Switch } from '~/components/Switch'
-
-const fetch = fetchWithErrorLogging
 
 export function GovernanceTable({ data, governanceType }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -55,7 +52,7 @@ export function GovernanceTable({ data, governanceType }) {
 	}, [proposalname, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="flex items-center gap-2 flex-wrap justify-end p-3">
 				<h1 className="text-xl font-semibold mr-auto">Proposals</h1>
 				<Switch
@@ -119,21 +116,19 @@ export const fetchAndFormatGovernanceData = async (
 
 	const data = await Promise.allSettled(
 		apis.map((gapi) =>
-			fetch(gapi)
-				.then((res) => res.json())
-				.then((data) => {
-					const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
+			fetchJson(gapi).then((data) => {
+				const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
 
-					return {
-						...data,
-						proposals,
-						controversialProposals: proposals
-							.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
-							.slice(0, 10),
-						activity,
-						maxVotes
-					}
-				})
+				return {
+					...data,
+					proposals,
+					controversialProposals: proposals
+						.sort((a, b) => (b['score_curve'] || 0) - (a['score_curve'] || 0))
+						.slice(0, 10),
+					activity,
+					maxVotes
+				}
+			})
 		)
 	)
 

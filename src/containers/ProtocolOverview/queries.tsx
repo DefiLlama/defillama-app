@@ -1,5 +1,5 @@
 import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
-import { fetchWithErrorLogging, fetchWithTimeout } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
@@ -31,18 +31,14 @@ import { getAdapterChainOverview, getAdapterProtocolSummary, IAdapterOverview } 
 import { cg_volume_cexs } from '~/pages/cexs'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import metadata from '~/utils/metadata'
 import { allColors, ProtocolChartsLabels } from './Chart/constants'
 import dayjs from 'dayjs'
 import { getProtocolEmissons } from '~/api/categories/protocols'
-const { chainMetadata } = metadata
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
 	try {
-		const data: IUpdatedProtocol = await fetchWithErrorLogging(`${PROTOCOL_API}/${protocolName}`).then((res) =>
-			res.json()
-		)
+		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${protocolName}`)
 
 		if (!data || (data as any).statusCode === 400) {
 			throw new Error((data as any).body)
@@ -61,7 +57,7 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		// }
 
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
-			const hourlyData = await fetchWithErrorLogging(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((res) => res.json())
+			const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${protocolName}`)
 
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
@@ -112,7 +108,7 @@ export const getProtocolMetrics = ({
 		}
 	}
 
-	const tvlTab = inflowsExist || multipleChains || tokenBreakdownExist
+	const tvlTab = metadata.tvl && (inflowsExist || multipleChains || tokenBreakdownExist)
 
 	return {
 		tvl: metadata.tvl ? true : false,
@@ -120,12 +116,12 @@ export const getProtocolMetrics = ({
 		dexs: metadata.dexs ? true : false,
 		perps: metadata.perps ? true : false,
 		options: metadata.options ? true : false,
-		dexAggregators: metadata.aggregator ? true : false,
+		dexAggregators: metadata.dexAggregators ? true : false,
 		perpsAggregators: metadata.perpsAggregators ? true : false,
 		bridgeAggregators: metadata.bridgeAggregators ? true : false,
-		stablecoins: protocolData.stablecoins?.length > 0,
-		bridge: protocolData.category === 'Bridge' || protocolData.category === 'Cross Chain Bridge',
-		treasury: metadata.treasury && !protocolData.misrepresentedTokens ? true : false,
+		stablecoins: metadata.stablecoins ? true : false,
+		bridge: metadata.bridges ? true : false,
+		treasury: metadata.treasury ? true : false,
 		unlocks: metadata.emissions ? true : false,
 		yields: metadata.yields ? true : false,
 		fees: metadata.fees ? true : false,
@@ -133,7 +129,7 @@ export const getProtocolMetrics = ({
 		bribes: metadata.bribeRevenue ? true : false,
 		tokenTax: metadata.tokenTax ? true : false,
 		forks: metadata.forks ? true : false,
-		governance: protocolData.governanceID ? true : false,
+		governance: metadata.governance ? true : false,
 		nfts: metadata.nfts ? true : false,
 		dev: protocolData.github ? true : false,
 		inflows: inflowsExist,
@@ -243,17 +239,14 @@ export const getProtocolOverviewPageData = async ({
 
 				const [tokenCGData, devActivity] = await Promise.all([
 					data.gecko_id
-						? fetchWithErrorLogging(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
-								.then((res) => res.json())
+						? fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
 								.then(({ data }) => data)
 								.catch(() => null as any)
 						: Promise.resolve(null),
 					data.github
-						? await fetchWithTimeout(devMetricsProtocolUrl, 3_000)
-								.then((r) => r.json())
-								.catch((e) => {
-									return null
-								})
+						? await fetchJson(devMetricsProtocolUrl, { timeout: 3_000 }).catch((e) => {
+								return null
+						  })
 						: Promise.resolve(null)
 				])
 
@@ -326,7 +319,7 @@ export const getProtocolOverviewPageData = async ({
 					excludeTotalDataChartBreakdown: true
 			  })
 			: Promise.resolve(null),
-		metadata.aggregator
+		metadata.dexAggregators
 			? getAdapterChainOverview({
 					adapterType: 'aggregators',
 					chain: 'All',
@@ -344,7 +337,7 @@ export const getProtocolOverviewPageData = async ({
 			: Promise.resolve(null),
 		metadata.perpsAggregators
 			? getAdapterChainOverview({
-					adapterType: 'derivatives-aggregator',
+					adapterType: 'aggregator-derivatives',
 					chain: 'All',
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
@@ -377,8 +370,7 @@ export const getProtocolOverviewPageData = async ({
 			  })
 			: Promise.resolve(null),
 		metadata.treasury
-			? fetchWithErrorLogging(PROTOCOLS_TREASURY)
-					.then((res) => res.json())
+			? fetchJson(PROTOCOLS_TREASURY)
 					.then((res) => res.find((item) => item.id === `${protocolId}-treasury`)?.tokenBreakdowns ?? null)
 					.then((res) => {
 						return res
@@ -394,20 +386,17 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		metadata.yields
-			? fetchWithErrorLogging(YIELD_POOLS_API)
-					.then((res) => res.json())
-					.catch((err) => {
-						console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', metadata.name, err instanceof Error ? err.message : '')
-						return {}
-					})
+			? fetchJson(YIELD_POOLS_API).catch((err) => {
+					console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', metadata.name, err instanceof Error ? err.message : '')
+					return {}
+			  })
 			: null,
 		fetchArticles({ tags: metadata.name }).catch((err) => {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', metadata.name, err instanceof Error ? err.message : '')
 			return []
 		}),
 		metadata?.emissions
-			? fetchWithErrorLogging(`https://api.llama.fi/emissionsBreakdownAggregated`)
-					.then((res) => res.json())
+			? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
 					.then((data) => {
 						const protocolEmissionsData = data.protocols.find((item) =>
 							protocolId.startsWith('parent#') ? item.name === metadata.displayName : item.defillamaId === protocolId
@@ -428,8 +417,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		metadata.activeUsers
-			? fetchWithTimeout(ACTIVE_USERS_API, 10_000)
-					.then((res) => res.json())
+			? fetchJson(ACTIVE_USERS_API, { timeout: 10_000 })
 					.then((data) => data?.[protocolId] ?? null)
 					.then((data) => {
 						return data?.users?.value || data?.newUsers?.value || data?.txs?.value || data?.gasUsd?.value
@@ -444,35 +432,26 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		metadata.expenses
-			? fetchWithErrorLogging(PROTOCOLS_EXPENSES_API)
-					.then((res) => res.json())
+			? fetchJson(PROTOCOLS_EXPENSES_API)
 					.then((data) => data.find((item) => item.protocolId === protocolId))
 					.catch(() => {
 						return null
 					})
 			: null,
 		metadata.liquidity
-			? fetchWithErrorLogging(YIELD_CONFIG_API)
-					.then((res) => res.json())
-					.catch(() => {
-						return null
-					})
+			? fetchJson(YIELD_CONFIG_API).catch(() => {
+					return null
+			  })
 			: null,
 		metadata?.liquidity
-			? fetchWithErrorLogging(LIQUIDITY_API)
-					.then((res) => res.json())
-					.catch(() => {
-						return []
-					})
+			? fetchJson(LIQUIDITY_API).catch(() => {
+					return []
+			  })
 			: [],
-		fetchWithErrorLogging(PROTOCOLS_API)
-			.then((res) => res.json())
-			.catch(() => ({ protocols: [] })),
-		fetchWithErrorLogging(HACKS_API)
-			.then((res) => res.json())
-			.catch(() => ({ hacks: [] })),
-		fetchWithErrorLogging(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.name)}`)
-			.then((res) => res.json().then((data) => data.dailyVolumes || null))
+		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
+		fetchJson(HACKS_API).catch(() => ({ hacks: [] })),
+		fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.name)}`)
+			.then((data) => data.dailyVolumes || null)
 			.catch(() => null),
 		getProtocolIncomeStatement({ protocolId, metadata })
 	])
@@ -727,6 +706,9 @@ export const getProtocolOverviewPageData = async ({
 	for (const date in tvlChart) {
 		tvlChartData.push([date, tvlChart[date]])
 	}
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const { chainMetadata } = metadataCache
 
 	const chains = []
 	for (const chain in protocolData.currentChainTvls ?? {}) {
@@ -1083,12 +1065,12 @@ const commonMethodology = {
 }
 
 export const fetchArticles = async ({ tags = '', size = 2 }) => {
-	const articlesRes: IArticlesResponse = await fetchWithTimeout(`https://api.llama.fi/news/articles`, 10_000)
-		.then((res) => res.json())
-		.catch((err) => {
-			console.log(err)
-			return {}
-		})
+	const articlesRes: IArticlesResponse = await fetchJson(`https://api.llama.fi/news/articles`, {
+		timeout: 10_000
+	}).catch((err) => {
+		console.log(err)
+		return {}
+	})
 
 	const target = tags.toLowerCase()
 
@@ -1167,15 +1149,16 @@ export async function getProtocolIncomeStatement({
 }): Promise<{
 	feesByMonth: Record<string, number>
 	revenueByMonth: Record<string, number>
+	holdersRevenueByMonth: Record<string, number> | null
 	incentivesByMonth: Record<string, number> | null
 	monthDates: Array<[number, string]>
 } | null> {
 	try {
-		if (!metadata.fees && !metadata.revenue) {
+		if (!metadata.fees || !metadata.revenue) {
 			return null
 		}
 
-		const [fees, revenue, incentives] = await Promise.all([
+		const [fees, revenue, holdersRevenue, incentives] = await Promise.all([
 			getAdapterProtocolSummary({
 				adapterType: 'fees',
 				protocol: metadata.name,
@@ -1189,6 +1172,15 @@ export async function getProtocolIncomeStatement({
 				excludeTotalDataChartBreakdown: true,
 				dataType: 'dailyRevenue'
 			}),
+			metadata.holdersRevenue
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						protocol: metadata.name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyHoldersRevenue'
+				  })
+				: Promise.resolve(null),
 			getProtocolEmissons(metadata.name)
 				.then((data) => data.unlockUsdChart ?? [])
 				.then((chart) => {
@@ -1200,6 +1192,7 @@ export async function getProtocolIncomeStatement({
 
 		const feesByMonth: Record<string, number> = {}
 		const revenueByMonth: Record<string, number> = {}
+		const holdersRevenueByMonth: Record<string, number> = {}
 		const incentivesByMonth: Record<string, number> = {}
 		const monthDates = new Set<number>()
 
@@ -1215,6 +1208,12 @@ export async function getProtocolIncomeStatement({
 			monthDates.add(dateKey)
 		}
 
+		for (const [date, value] of holdersRevenue?.totalDataChart ?? []) {
+			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			holdersRevenueByMonth[dateKey] = (holdersRevenueByMonth[dateKey] ?? 0) + value
+			monthDates.add(dateKey)
+		}
+
 		for (const [date, value] of incentives ?? []) {
 			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
 			incentivesByMonth[dateKey] = (incentivesByMonth[dateKey] ?? 0) + value
@@ -1224,6 +1223,7 @@ export async function getProtocolIncomeStatement({
 		return {
 			feesByMonth,
 			revenueByMonth,
+			holdersRevenueByMonth: holdersRevenue ? holdersRevenueByMonth : null,
 			incentivesByMonth: incentives.length > 0 ? incentivesByMonth : null,
 			monthDates: Array.from(monthDates)
 				.sort((a, b) => b - a)

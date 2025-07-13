@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { PEGGEDS_API, PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
-
-const fetch = fetchWithErrorLogging
 
 export function useStablecoinsData(chain: string) {
 	return useQuery({
@@ -11,10 +9,10 @@ export function useStablecoinsData(chain: string) {
 		queryFn: async () => {
 			// Fetch all required data in parallel
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([
-				fetch(PEGGEDS_API).then(res => res.json()),
-				fetch(`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`).then(res => res.json()),
-				fetch(PEGGEDPRICES_API).then(res => res.json()),
-				fetch(PEGGEDRATES_API).then(res => res.json())
+				fetchJson(PEGGEDS_API),
+				fetchJson(`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`),
+				fetchJson(PEGGEDPRICES_API),
+				fetchJson(PEGGEDRATES_API)
 			])
 
 			const { peggedAssets } = peggedData
@@ -38,11 +36,11 @@ export function useStablecoinsData(chain: string) {
 						mcap: chart.totalCirculatingUSD
 					}))
 					.filter((i: any) => i.mcap !== undefined)
-				
+
 				if (formattedCharts.length > 0) {
 					lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
 				}
-				
+
 				return formattedCharts
 			})
 
@@ -50,7 +48,7 @@ export function useStablecoinsData(chain: string) {
 			chartDataByPeggedAsset.forEach((chart: any) => {
 				const last = chart[chart.length - 1]
 				if (!last) return
-				
+
 				let lastDate = Number(last.date)
 				while (lastDate < lastTimestamp) {
 					lastDate += 24 * 3600

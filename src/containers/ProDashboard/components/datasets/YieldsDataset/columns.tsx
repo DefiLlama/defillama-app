@@ -64,7 +64,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		cell: ({ getValue, row }) => {
 			const value = getValue() as string
 			return (
-				<BasicLink href={`/yields?project=${row.original.projectslug}`} className="text-sm text-(--link-text)">
+				<BasicLink href={`/yields?project=${row.original.project}`} className="text-sm text-(--link-text)">
 					{value}
 				</BasicLink>
 			)

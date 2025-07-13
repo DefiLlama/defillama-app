@@ -39,7 +39,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'project',
 		enableSorting: false,
 		cell: ({ row }) => (
-			<NameYield project={row.original.project} projectslug={row.original.projectslug} airdrop={row.original.airdrop} />
+			<NameYield project={row.original.project} projectslug={row.original.project} airdrop={row.original.airdrop} />
 		),
 		size: 200
 	},
@@ -207,11 +207,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			const configID = row.original.configID
 			if (!configID) return null
 			return (
-				<BasicLink
-					href={`/yields/pool/${configID}`}
-					target="_blank"
-					className="text-sm font-medium text-(--link-text)"
-				>
+				<BasicLink href={`/yields/pool/${configID}`} target="_blank" className="text-sm font-medium text-(--link-text)">
 					<ImageWithFallback
 						src={`https://yield-charts.llama.fi/yield-chart/${configID}`}
 						alt=""

@@ -8,6 +8,8 @@ import { formattedNum } from '~/utils'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { COINS_CHART_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
+import { debounce } from 'lodash'
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''
@@ -18,6 +20,32 @@ const unixToDateString = (unixTimestamp) => {
 const dateStringToUnix = (dateString) => {
 	if (!dateString) return ''
 	return Math.floor(new Date(dateString).getTime() / 1000)
+}
+
+const DateInput = ({ label, value, onChange, min, max }) => {
+	const debouncedShowPicker = useCallback(
+		debounce((event: React.FocusEvent<HTMLInputElement, Element>) => {
+			try {
+				event.target.showPicker()
+			} catch (error) {}
+		}, 200),
+		[]
+	)
+
+	return (
+		<label className="flex flex-col gap-1 text-sm">
+			<span>{label}:</span>
+			<input
+				type="date"
+				className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border) outline-0"
+				value={value}
+				onChange={onChange}
+				min={min}
+				max={max}
+				onFocus={debouncedShowPicker}
+			/>
+		</label>
+	)
 }
 
 export default function TokenPnl({ coinsData }) {
@@ -47,9 +75,7 @@ export default function TokenPnl({ coinsData }) {
 		if (!id) return null
 		const key = `coingecko:${id}`
 		const spanInDays = Math.ceil((end - start) / (24 * 60 * 60))
-		const chartRes = await fetch(`${COINS_CHART_API}/${key}?start=${start}&span=${spanInDays}&searchWidth=600`).then(
-			(r) => r.json()
-		)
+		const chartRes = await fetchJson(`${COINS_CHART_API}/${key}?start=${start}&span=${spanInDays}&searchWidth=600`)
 
 		const selectedCoin = coinsData.find((coin) => coin.id === id)
 
@@ -119,39 +145,21 @@ export default function TokenPnl({ coinsData }) {
 			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-(--cards-bg) p-3">
 				<h1 className="text-xl font-semibold text-center">Token Holder Profit and Loss</h1>
 				<div className="flex flex-col gap-3 w-full">
-					<label className="flex flex-col gap-1 text-sm">
-						<span>Start Date:</span>
-						<input
-							type="date"
-							className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
-							value={unixToDateString(start)}
-							onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
-							min={unixToDateString(0)}
-							max={unixToDateString(now)}
-							onFocus={async (e) => {
-								try {
-									e.target.showPicker()
-								} catch (error) {}
-							}}
-						/>
-					</label>
+					<DateInput
+						label="Start Date"
+						value={unixToDateString(start)}
+						onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
+						min={unixToDateString(0)}
+						max={unixToDateString(now)}
+					/>
 
-					<label className="flex flex-col gap-1 text-sm">
-						<span>End Date:</span>
-						<input
-							type="date"
-							className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
-							value={unixToDateString(end)}
-							onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
-							min={unixToDateString(start)}
-							max={new Date().toISOString().split('T')[0]}
-							onFocus={async (e) => {
-								try {
-									e.target.showPicker()
-								} catch (error) {}
-							}}
-						/>
-					</label>
+					<DateInput
+						label="End Date"
+						value={unixToDateString(end)}
+						onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
+						min={unixToDateString(start)}
+						max={new Date().toISOString().split('T')[0]}
+					/>
 
 					<label className="flex flex-col gap-1 text-sm">
 						<span>Token:</span>

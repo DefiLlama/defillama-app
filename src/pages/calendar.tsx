@@ -18,13 +18,11 @@ import { formatPercentage } from '~/utils'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import * as Ariakit from '@ariakit/react'
 
 export const getStaticProps = withPerformanceLogging('calendar', async () => {
-	const res = await fetchWithErrorLogging(PROTOCOL_EMISSIONS_API)
-		.then((res) => res.json())
-		.catch(() => [])
+	const res = await fetchJson(PROTOCOL_EMISSIONS_API).catch(() => [])
 
 	const emissions = res.map((protocol) => {
 		const unlocksByDate = {}
@@ -137,7 +135,7 @@ export default function Protocols({ emissions }) {
 		<Layout title={`Calendar - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>
 
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center gap-4 flex-wrap *:last:ml-auto p-3">
 					<h1 className="text-xl font-semibold">Crypto Calendar</h1>
 

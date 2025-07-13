@@ -43,7 +43,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			<NameYield
 				withoutLink
 				project={row.original.projectName}
-				projectslug={row.original.projectslug}
+				projectslug={row.original.project}
 				airdrop={row.original.airdrop}
 				borrow={true}
 			/>

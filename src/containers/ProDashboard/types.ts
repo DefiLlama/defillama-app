@@ -15,6 +15,7 @@ export interface MultiChartConfig {
 	items: ChartConfig[]
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	colSpan?: 1 | 2
+	showCumulative?: boolean
 }
 
 export interface TextConfig {
@@ -40,6 +41,7 @@ export interface ChartConfig {
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	geckoId?: string | null
 	colSpan?: 1 | 2
+	showCumulative?: boolean
 }
 
 export interface TableFilters {

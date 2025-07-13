@@ -46,6 +46,16 @@ const Search = ({ hideFilters = false, options, ...props }: IProtocolsChainsSear
 		[refine]
 	)
 
+	const sortedResults = results.hits.sort((a, b) => {
+		if (a.deprecated && !b.deprecated) {
+			return 1
+		}
+		if (b.deprecated && !a.deprecated) {
+			return -1
+		}
+		return 0
+	})
+
 	const memoizedFilters = useMemo(
 		() => (hideFilters || (options && options.length === 0) ? null : <TvlOptions options={options} />),
 		[hideFilters, options]
@@ -55,15 +65,7 @@ const Search = ({ hideFilters = false, options, ...props }: IProtocolsChainsSear
 		<>
 			<DesktopSearch
 				{...props}
-				data={results.hits.sort((a, b) => {
-					if (a.deprecated && !b.deprecated) {
-						return 1
-					}
-					if (b.deprecated && !a.deprecated) {
-						return -1
-					}
-					return 0
-				})}
+				data={sortedResults}
 				loading={status !== 'idle'}
 				filters={memoizedFilters}
 				onSearchTermChange={onSearchTermChange}
@@ -122,15 +124,3 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 		</>
 	)
 }
-
-// const { selectedValues, setSelectedValues } = useTvlAndFeesFilterState({ options })
-// <Select
-// allValues={options}
-// selectedValues={selectedValues}
-// setSelectedValues={setSelectedValues}
-// label="Include in Stats"
-// triggerProps={{
-// 	className:
-// 		'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C]'
-// }}
-// />

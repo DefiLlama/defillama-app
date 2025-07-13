@@ -163,6 +163,8 @@ export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
 export const AUTH_SERVER = 'https://auth.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
 
+export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
+
 export const scams = [
 	'SyncDEX Finance',
 	'Avatr',

@@ -1,10 +1,8 @@
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { IChainTvl } from '~/api/types'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { cexData as cexList } from '~/pages/cexs'
 import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
-
-const fetch = fetchWithErrorLogging
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
 const hour7dms = ((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
@@ -38,17 +36,17 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 
 	try {
 		const [spotData, derivsData, priceData] = await Promise.all([
-			fetch(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
+			fetchJson(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
 				headers: {
 					'x-cg-pro-api-key': process.env.CG_KEY
 				}
-			}).then((res) => res.json()),
-			fetch(`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`, {
+			}),
+			fetchJson(`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`, {
 				headers: {
 					'x-cg-pro-api-key': process.env.CG_KEY
 				}
-			}).then((res) => res.json()),
-			fetch(`${COINS_PRICES_API}/current/coingecko:bitcoin`).then((res) => res.json())
+			}),
+			fetchJson(`${COINS_PRICES_API}/current/coingecko:bitcoin`)
 		])
 
 		spot = spotData
@@ -66,10 +64,10 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 
 			try {
 				const [protocolData, inflows24h, inflows7d, inflows1m] = await Promise.all([
-					fetch(`${PROTOCOL_API}/${c.slug}`).then((r) => r.json()),
-					fetch(`${INFLOWS_API}/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) => r.json()),
-					fetch(`${INFLOWS_API}/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`).then((r) => r.json()),
-					fetch(`${INFLOWS_API}/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`).then((r) => r.json())
+					fetchJson(`${PROTOCOL_API}/${c.slug}`),
+					fetchJson(`${INFLOWS_API}/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`),
+					fetchJson(`${INFLOWS_API}/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`),
+					fetchJson(`${INFLOWS_API}/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`)
 				])
 
 				const { chainTvls = {} } = protocolData

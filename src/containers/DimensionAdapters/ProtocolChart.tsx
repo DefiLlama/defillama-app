@@ -276,9 +276,9 @@ export const DimensionProtocolChartByType = ({
 	protocolName: string
 	adapterType: `${ADAPTER_TYPES}`
 	chartType: 'overview' | 'chain' | 'version'
-	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
+	metadata?: { revenue?: boolean; bribeRevenue?: boolean; tokenTax?: boolean }
 }) => {
-	const { data, isLoading } = useQuery({
+	const { data, isLoading, error } = useQuery({
 		queryKey: ['dimension-adapter-chart', adapterType, protocolName, JSON.stringify(metadata)],
 		queryFn: () =>
 			getDimensionProtocolPageData({ protocolName, adapterType, metadata }).then((data) => {
@@ -291,6 +291,14 @@ export const DimensionProtocolChartByType = ({
 
 	if (isLoading) {
 		return <div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[418px]" />
+	}
+
+	if (error) {
+		return (
+			<div className="bg-(--cards-bg) rounded-md flex flex-col items-center justify-center col-span-2 min-h-[418px]">
+				<p className="text-sm text-(--pct-red) p-3">Error : {error.message}</p>
+			</div>
+		)
 	}
 
 	if (chartType === 'overview') {

@@ -5,7 +5,7 @@ export * from './blockExplorers'
 import { colord, extend } from 'colord'
 import lchPlugin from 'colord/plugins/lch'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { fetchWithErrorLogging } from './async'
+import { fetchJson } from './async'
 
 extend([lchPlugin])
 dayjs.extend(utc)
@@ -188,37 +188,27 @@ export function chainIconPaletteUrl(chain) {
 
 export function tokenIconUrl(name) {
 	const x = name ?? ''
-	return `${ICONS_CDN}/protocols/${x
-		.trim()
-		.toLowerCase()
-		.split(' ')
-		.join('-')
-		.split('(')
-		.join('')
-		.split(')')
-		.join('')
-		.split("'")
-		.join('')
-		.split('')
-		.join('')}?w=48&h=48`
+	return `${ICONS_CDN}/protocols/${
+		x
+			.trim()
+			.toLowerCase()
+			.replace(/[()'"]/g, '') // Remove parentheses and quotes
+			.replace(/\s+/g, '-') // Replace spaces with hyphens
+			.replace(/[^\w.-]/g, '') // Remove any other non-word chars except hyphens and dots
+	}?w=48&h=48`
 }
 
 export function tokenIconPaletteUrl(name) {
 	if (!name) return null
 
-	return `${ICONS_PALETTE_CDN}/protocols/${name
-		.trim()
-		.toLowerCase()
-		.split(' ')
-		.join('-')
-		.split('(')
-		.join('')
-		.split(')')
-		.join('')
-		.split("'")
-		.join('')
-		.split('')
-		.join('')}`
+	return `${ICONS_PALETTE_CDN}/protocols/${
+		name
+			.trim()
+			.toLowerCase()
+			.replace(/[()'"]/g, '') // Remove parentheses and quotes
+			.replace(/\s+/g, '-') // Replace spaces with hyphens
+			.replace(/[^\w.-]/g, '') // Remove any other non-word chars except hyphens and dots
+	}`
 }
 
 /**
@@ -330,7 +320,12 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 
 export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
 
-export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
+export const slug = (name = '') =>
+	name
+		?.toLowerCase()
+		.replace(/[()'"]/g, '') // Remove parentheses and quotes
+		.replace(/\s+/g, '-') // Replace spaces with hyphens
+		.replace(/[^\w.-]/g, '') // Remove any other non-word chars except hyphens and dots
 
 export function getRandomColor() {
 	var letters = '0123456789ABCDEF'
@@ -654,9 +649,9 @@ export async function batchFetchHistoricalPrices(priceReqs, batchSize = 15) {
 
 	for (const batch of batches) {
 		const batchReqs = Object.fromEntries(batch)
-		const response = await fetchWithErrorLogging(
+		const response = await fetchJson(
 			`https://coins.llama.fi/batchHistorical?coins=${JSON.stringify(batchReqs)}&searchWidth=6h`
-		).then((res) => res.json())
+		)
 
 		for (const coinId of batch) {
 			if (response.coins[coinId]?.prices) {

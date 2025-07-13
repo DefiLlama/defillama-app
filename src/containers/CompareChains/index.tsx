@@ -5,7 +5,7 @@ import type { NextRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { LocalLoader } from '~/components/LocalLoader'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { PROTOCOLS_API } from '~/constants'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
@@ -15,8 +15,6 @@ import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-
-const fetch = fetchWithErrorLogging
 
 const ChainChart: any = React.lazy(() => import('~/containers/ChainOverview/Chart'))
 
@@ -32,7 +30,7 @@ const CustomOption = ({ innerProps, label, data }) => (
 )
 
 export const getChainData = async (chain: string, extraTvlsEnabled: Record<string, boolean>) => {
-	const data = await fetch(`https://defillama.com/api/cache/chain/${chain}`).then((r) => r.json())
+	const data = await fetchJson(`https://defillama.com/api/cache/chain/${chain}`)
 
 	const {
 		chart,
@@ -130,10 +128,7 @@ export const useCompare = ({
 
 	const chainsData = useQuery({
 		queryKey: ['chains'],
-		queryFn: () =>
-			fetch(PROTOCOLS_API)
-				.then((r) => r.json())
-				.then((pData) => pData?.chains?.map((val) => ({ value: val, label: val }))),
+		queryFn: () => fetchJson(PROTOCOLS_API).then((pData) => pData?.chains?.map((val) => ({ value: val, label: val }))),
 		staleTime: 60 * 60 * 1000
 	})
 	return {

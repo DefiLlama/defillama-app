@@ -1,5 +1,5 @@
 import { BRIDGES_API, BRIDGEVOLUME_API } from '~/constants'
-import { fetchApi } from '~/utils/async'
+import { fetchApi, fetchJson } from '~/utils/async'
 import { getBridgeOverviewPageData } from './queries.server'
 import { useQuery } from '@tanstack/react-query'
 
@@ -38,7 +38,7 @@ export const useGetBridgeChartDataByChain = (chain?: string) => {
 export const useFetchBridgeVolume = (chain: string = 'all') => {
 	return useQuery({
 		queryKey: ['bridgeVolume', chain],
-		queryFn: () => fetch(`${BRIDGEVOLUME_API}/${chain}`).then((res) => res.json()),
+		queryFn: () => fetchJson(`${BRIDGEVOLUME_API}/${chain}`),
 		staleTime: 60 * 60 * 1000
 	})
 }

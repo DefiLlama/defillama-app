@@ -1,13 +1,12 @@
 import { withPerformanceLogging } from '~/utils/perf'
-import metadata from '~/utils/metadata'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { ProtocolPools } from '~/containers/ProtocolOverview/Yields'
 import { maxAgeForNext } from '~/api'
 import { YIELD_POOLS_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { slug } from '~/utils'
-const { protocolMetadata } = metadata
+import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/yields/[...protocol]',
@@ -17,33 +16,39 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const normalizedName = slug(protocol)
-		const metadata = Object.entries(protocolMetadata).find((p) => p[1].name === normalizedName)?.[1]
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (protocolMetadata[key].name === normalizedName) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
 
-		if (!metadata || !metadata.yields) {
+		if (!metadata || !metadata[1].yields) {
 			return { notFound: true, props: null }
 		}
 
 		const [protocolData, yields] = await Promise.all([
 			getProtocol(protocol),
-			fetchWithErrorLogging(YIELD_POOLS_API)
-				.then((res) => res.json())
-				.catch((err) => {
-					console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
-					return {}
-				})
+			fetchJson(YIELD_POOLS_API).catch((err) => {
+				console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
+				return {}
+			})
 		])
 
 		if (!protocolData) {
 			return { notFound: true, props: null }
 		}
 
-		const metrics = getProtocolMetrics({ protocolData, metadata })
+		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
 		const otherProtocols = protocolData?.otherProtocols?.map((p) => slug(p)) ?? []
 
 		const projectYields = yields?.data?.filter(
 			({ project }) =>
-				project === metadata.name || (protocolData.parentProtocol ? false : otherProtocols.includes(project))
+				project === metadata[1].name || (protocolData.parentProtocol ? false : otherProtocols.includes(project))
 		)
 
 		return {
@@ -79,7 +84,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="yields"
 		>
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<ProtocolPools
 					data={props.yields}
 					protocol={slug(props.name)}

@@ -1,11 +1,11 @@
 import { primaryColor } from '~/constants/colors'
-import { fetchWithErrorLogging } from './async'
+import { fetchJson } from './async'
 
 export const getColor = async (path: string) => {
 	try {
 		if (!path) return primaryColor
 
-		const color = await fetchWithErrorLogging(path).then((res) => res.text())
+		const color = await fetchJson(path)
 
 		if (!color.startsWith('#')) {
 			console.log(path, color)

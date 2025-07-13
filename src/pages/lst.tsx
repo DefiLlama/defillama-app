@@ -9,6 +9,7 @@ import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/E
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
 import { COINS_PRICES_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -76,7 +77,7 @@ const PageView = ({
 	return (
 		<>
 			<ProtocolsChainsSearch />
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap p-3">
 					<span>Total Value Locked ETH LSTs</span>
 					<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
@@ -238,8 +239,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	// Fetch ETH price from API
 	const fetchEthPrice = async () => {
 		try {
-			const response = await fetch(`${COINS_PRICES_API}/current/ethereum:0x0000000000000000000000000000000000000000`)
-			const data = await response.json()
+			const data = await fetchJson(`${COINS_PRICES_API}/current/ethereum:0x0000000000000000000000000000000000000000`)
 			return data.coins['ethereum:0x0000000000000000000000000000000000000000'].price
 		} catch (error) {
 			console.error('Error fetching ETH price:', error)
