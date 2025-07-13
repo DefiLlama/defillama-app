@@ -8,8 +8,8 @@ interface IFilterBetweenRange {
 	onSubmit: FormEventHandler<HTMLFormElement>
 	onClear: () => void
 	nestedMenu?: boolean
-	min: string | null
-	max: string | null
+	min: number | string | null
+	max: number | string | null
 	variant?: 'primary' | 'secondary' | 'third'
 	placement?: Ariakit.PopoverStoreProps['placement']
 }
@@ -79,8 +79,8 @@ function Form({
 }: {
 	onSubmit: FormEventHandler<HTMLFormElement>
 	onClear: () => void
-	min: string | null
-	max: string | null
+	min: number | string | null
+	max: number | string | null
 }) {
 	return (
 		<form onSubmit={onSubmit} onReset={onClear} className="flex flex-col gap-3 p-3">

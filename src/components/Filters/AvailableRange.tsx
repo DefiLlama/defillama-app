@@ -51,8 +51,8 @@ export function AvailableRange({
 	}
 
 	const { minAvailable, maxAvailable } = router.query
-	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable).toLocaleString() : null
-	const max = typeof maxAvailable === 'string' && maxAvailable !== '' ? Number(maxAvailable).toLocaleString() : null
+	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable) : null
+	const max = typeof maxAvailable === 'string' && maxAvailable !== '' ? Number(maxAvailable) : null
 
 	return (
 		<FilterBetweenRange
@@ -63,7 +63,9 @@ export function AvailableRange({
 						{min || max ? (
 							<>
 								<span>Available: </span>
-								<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
+								<span className="text-(--link)">{`${min?.toLocaleString() ?? 'min'} - ${
+									max?.toLocaleString() ?? 'max'
+								}`}</span>
 							</>
 						) : (
 							'Available'

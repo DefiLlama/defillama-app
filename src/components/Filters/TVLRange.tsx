@@ -51,8 +51,8 @@ export function TVLRange({
 	}
 
 	const { minTvl, maxTvl } = router.query
-	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl).toLocaleString() : null
-	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl).toLocaleString() : null
+	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null
+	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl) : null
 
 	return (
 		<FilterBetweenRange
@@ -63,7 +63,9 @@ export function TVLRange({
 						{min || max ? (
 							<>
 								<span>TVL: </span>
-								<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
+								<span className="text-(--link)">{`${min?.toLocaleString() ?? 'min'} - ${
+									max?.toLocaleString() ?? 'max'
+								}`}</span>
 							</>
 						) : (
 							<span>TVL Range</span>

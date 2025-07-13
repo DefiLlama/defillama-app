@@ -336,8 +336,8 @@ export const UnlocksTable = ({
 					trigger={<span>Unlock Value</span>}
 					onSubmit={handleUnlockValueSubmit}
 					onClear={handleUnlockValueClear}
-					min={min ? min.toString() : ''}
-					max={max ? max.toString() : ''}
+					min={min ?? ''}
+					max={max ?? ''}
 					variant="third"
 					placement="bottom-start"
 				/>
@@ -347,8 +347,8 @@ export const UnlocksTable = ({
 					trigger={<span>Unlock Perc.</span>}
 					onSubmit={handleUnlockPercSubmit}
 					onClear={handleUnlockPercClear}
-					min={minPerc ? minPerc.toString() : ''}
-					max={maxPerc ? maxPerc.toString() : ''}
+					min={minPerc ?? ''}
+					max={maxPerc ?? ''}
 					variant="third"
 					placement="bottom-start"
 				/>

@@ -49,8 +49,8 @@ export function McapRange({
 	}
 
 	const { minMcap, maxMcap } = router.query
-	const min = typeof minMcap === 'string' && minMcap !== '' ? Number(minMcap).toLocaleString() : null
-	const max = typeof maxMcap === 'string' && maxMcap !== '' ? Number(maxMcap).toLocaleString() : null
+	const min = typeof minMcap === 'string' && minMcap !== '' ? Number(minMcap) : null
+	const max = typeof maxMcap === 'string' && maxMcap !== '' ? Number(maxMcap) : null
 
 	return (
 		<FilterBetweenRange
@@ -60,7 +60,9 @@ export function McapRange({
 					{min || max ? (
 						<>
 							<span>Mcap: </span>
-							<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
+							<span className="text-(--link)">{`${min?.toLocaleString() ?? 'min'} - ${
+								max?.toLocaleString() ?? 'max'
+							}`}</span>
 						</>
 					) : (
 						'Mcap'

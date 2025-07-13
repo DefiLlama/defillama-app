@@ -51,8 +51,8 @@ export function RaisedRange({
 	}
 
 	const { minRaised, maxRaised } = router.query
-	const min = typeof minRaised === 'string' && minRaised !== '' ? Number(minRaised).toLocaleString() : null
-	const max = typeof maxRaised === 'string' && maxRaised !== '' ? Number(maxRaised).toLocaleString() : null
+	const min = typeof minRaised === 'string' && minRaised !== '' ? Number(minRaised) : null
+	const max = typeof maxRaised === 'string' && maxRaised !== '' ? Number(maxRaised) : null
 
 	return (
 		<FilterBetweenRange
@@ -62,7 +62,9 @@ export function RaisedRange({
 					{min || max ? (
 						<>
 							<span>Amount Raised: </span>
-							<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
+							<span className="text-(--link)">{`${min?.toLocaleString() ?? 'min'} - ${
+								max?.toLocaleString() ?? 'max'
+							}`}</span>
 						</>
 					) : (
 						<span>Amount Raised</span>

@@ -48,8 +48,8 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 	}
 
 	const { minApy, maxApy } = router.query
-	const min = typeof minApy === 'string' && minApy !== '' ? Number(minApy).toLocaleString() : null
-	const max = typeof maxApy === 'string' && maxApy !== '' ? Number(maxApy).toLocaleString() : null
+	const min = typeof minApy === 'string' && minApy !== '' ? Number(minApy) : null
+	const max = typeof maxApy === 'string' && maxApy !== '' ? Number(maxApy) : null
 
 	return (
 		<FilterBetweenRange
@@ -59,7 +59,9 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 					{min || max ? (
 						<>
 							<span>APY: </span>
-							<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
+							<span className="text-(--link)">{`${min?.toLocaleString() ?? 'min'} - ${
+								max?.toLocaleString() ?? 'max'
+							}`}</span>
 						</>
 					) : (
 						<span>APY</span>
