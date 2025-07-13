@@ -6,7 +6,7 @@ interface IFilterBetweenRange {
 	name: string
 	trigger: ReactNode
 	onSubmit: FormEventHandler<HTMLFormElement>
-	onClear?: () => void
+	onClear: () => void
 	nestedMenu?: boolean
 	min: string | null
 	max: string | null
@@ -23,26 +23,16 @@ export function FilterBetweenRange({
 	min,
 	max,
 	variant = 'primary',
-	placement = 'bottom'
+	placement = 'bottom-end'
 }: IFilterBetweenRange) {
 	const popover = Ariakit.usePopoverStore({
 		placement
 	})
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-		onSubmit(e)
-		popover.hide()
-	}
-
-	const handleReset = () => {
-		onClear?.()
-		popover.hide()
-	}
-
 	if (nestedMenu) {
 		return (
 			<NestedMenu label={name}>
-				<NestedMenuForm onSubmit={onSubmit} onClear={onClear} min={min} max={max} />
+				<Form onSubmit={onSubmit} onClear={onClear} min={min} max={max} />
 			</NestedMenu>
 		)
 	}
@@ -67,80 +57,33 @@ export function FilterBetweenRange({
 				unmountOnHide
 				hideOnInteractOutside
 				gutter={6}
-				overflowPadding={28} // distance from the boundary edges
+				overflowPadding={16} // distance from the boundary edges
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
 				className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 			>
 				<div className="w-full sm:w-[260px] mx-auto">
-					<form onSubmit={handleSubmit} onReset={handleReset} className="flex flex-col gap-3 p-3">
-						<label className="flex flex-col gap-1">
-							<span>Min</span>
-							<input
-								type="number"
-								name="min"
-								className="h-9 w-full px-3 py-1 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
-								defaultValue={min || ''}
-							/>
-						</label>
-
-						<label className="flex flex-col gap-1">
-							<span>Max</span>
-							<input
-								type="number"
-								name="max"
-								className="h-9 w-full px-3 py-1 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
-								defaultValue={max || ''}
-							/>
-						</label>
-
-						<div className="mt-3 flex gap-2">
-							<button
-								type="reset"
-								className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-white/10 text-white rounded-md hover:bg-white/20 focus-visible:bg-white/20 disabled:opacity-50 transition-colors w-full"
-							>
-								Clear
-							</button>
-							<button
-								type="submit"
-								className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50 transition-colors w-full"
-							>
-								Apply Filter
-							</button>
-						</div>
-					</form>
+					<Form min={min} max={max} onSubmit={onSubmit} onClear={onClear} />
 				</div>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
 	)
 }
 
-function NestedMenuForm({
+function Form({
 	onSubmit,
 	onClear,
 	min,
 	max
 }: {
 	onSubmit: FormEventHandler<HTMLFormElement>
-	onClear?: () => void
+	onClear: () => void
 	min: string | null
 	max: string | null
 }) {
-	const menu = Ariakit.useMenuContext()
-
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-		onSubmit(e)
-		menu.hide()
-	}
-
-	const handleReset = () => {
-		onClear?.()
-		menu.hide()
-	}
-
 	return (
-		<form onSubmit={handleSubmit} onReset={handleReset} className="flex flex-col gap-3 p-3">
+		<form onSubmit={onSubmit} onReset={onClear} className="flex flex-col gap-3 p-3">
 			<label className="flex flex-col gap-1">
 				<span>Min</span>
 				<input
@@ -160,18 +103,18 @@ function NestedMenuForm({
 				/>
 			</label>
 
-			<div className="mt-3 flex gap-2 flex-col">
-				<button
-					type="submit"
-					className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50 transition-colors w-full"
-				>
-					Apply Filter
-				</button>
+			<div className="mt-3 flex gap-2 flex-col-reverse sm:flex-row">
 				<button
 					type="reset"
 					className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-white/10 text-white rounded-md hover:bg-white/20 focus-visible:bg-white/20 disabled:opacity-50 transition-colors w-full"
 				>
 					Clear
+				</button>
+				<button
+					type="submit"
+					className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50 transition-colors w-full"
+				>
+					Apply Filter
 				</button>
 			</div>
 		</form>
