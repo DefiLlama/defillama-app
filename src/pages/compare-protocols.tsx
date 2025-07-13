@@ -11,6 +11,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { useQueries } from '@tanstack/react-query'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { fetchJson } from '~/utils/async'
+import { oldBlue } from '~/constants/colors'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -74,7 +75,7 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 
 		// Generate distinct colors for all protocols
 		const protocolNames = formattedData.map((p) => p.protocolName)
-		const distinctColors = getNDistinctColors(protocolNames.length)
+		const distinctColors = getNDistinctColors(protocolNames.length, oldBlue)
 		const stackColors = Object.fromEntries(protocolNames.map((name, index) => [name, distinctColors[index]]))
 
 		const chartsByProtocol = {}
@@ -157,7 +158,6 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 						setSelectedValues={setSelectedProtocols}
 						label="Selected Protocols"
 						clearAll={() => setSelectedProtocols([])}
-						toggleAll={() => setSelectedProtocols(protocols)}
 						labelType="smol"
 						triggerProps={{
 							className:
