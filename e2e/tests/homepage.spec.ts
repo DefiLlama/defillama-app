@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Homepage - Ultra Simple MVP Tests', () => {
+test.describe('Homepage - Core Functionality Tests', () => {
 	test('page loads successfully', async ({ page }) => {
 		await page.goto('/', { timeout: 90000 })
 

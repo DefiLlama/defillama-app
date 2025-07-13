@@ -17,7 +17,8 @@
 		"ts": "tsc --noEmit",
 		"e2e": "playwright test",
 		"e2e:headed": "playwright test --headed",
-		"e2e:debug": "playwright test --debug"
+		"e2e:debug": "playwright test --debug",
+		"e2e:clean": "node scripts/clean-e2e-results.js"
 	},
 	"dependencies": {
 		"@ariakit/react": "0.4.16",
