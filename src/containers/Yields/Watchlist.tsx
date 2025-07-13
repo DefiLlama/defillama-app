@@ -243,7 +243,7 @@ export const WatchListTabs = () => {
 			<BasicLink
 				href={'/watchlist'}
 				data-active={router.pathname === '/watchlist'}
-				className="shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border-b-2 border-transparent data-[active=true]:border-(--old-blue) relative bottom-[-2px] z-10"
+				className="shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border-b-2 border-transparent data-[active=true]:border-(--old-blue) relative bottom-[-2px]"
 			>
 				DeFi
 			</BasicLink>
@@ -251,7 +251,7 @@ export const WatchListTabs = () => {
 			<BasicLink
 				href={'/yields/watchlist'}
 				data-active={router.pathname === '/yields/watchlist'}
-				className="shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border-b-2 border-transparent data-[active=true]:border-(--old-blue) relative bottom-[-2px] z-10"
+				className="shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border-b-2 border-transparent data-[active=true]:border-(--old-blue) relative bottom-[-2px]"
 			>
 				Yields
 			</BasicLink>
