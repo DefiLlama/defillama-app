@@ -19,7 +19,7 @@ export function PeggedFiltersDropdowns({
 			<Attribute pathname={pathname} nestedMenu={nestedMenu} />
 			<BackingType pathname={pathname} nestedMenu={nestedMenu} />
 			<PegType pathname={pathname} nestedMenu={nestedMenu} />
-			<McapRange nestedMenu={nestedMenu} />
+			<McapRange nestedMenu={nestedMenu} placement="bottom-start" />
 			<ResetAllStablecoinFilters pathname={pathname} nestedMenu={nestedMenu} />
 			<CSVDownloadButton onClick={downloadCsv} className="ml-auto" />
 		</>
