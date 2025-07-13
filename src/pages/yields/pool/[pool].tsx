@@ -21,6 +21,7 @@ import { Icon } from '~/components/Icon'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { defaultPageStyles } from '~/containers/ProtocolOverview/queries'
+import { YieldPoolSkeleton } from 'src/components/Skeleton/YieldPoolSkeleton'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -246,11 +247,7 @@ const PageView = (props) => {
 			riskData?.chain?.underlying?.some((c) => c?.rating))
 
 	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center h-full rounded-md bg-[var(--cards-bg)]">
-				<p className="text-center">Loading...</p>
-			</div>
-		)
+		return <YieldPoolSkeleton />
 	}
 
 	return (

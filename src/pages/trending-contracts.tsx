@@ -9,6 +9,7 @@ import { formattedPercent } from '~/utils'
 import { fetchWithErrorLogging } from '~/utils/async'
 import { TagGroup } from '~/components/TagGroup'
 import { useQuery } from '@tanstack/react-query'
+import { TableSkeleton } from '~/components/Skeleton/TableSkeleton'
 
 const fetch = fetchWithErrorLogging
 
@@ -113,7 +114,7 @@ export default function TrendingContracts() {
 					/>
 				</div>
 				{isLoading ? (
-					<p className="text-center p-3">Loading...</p>
+					<TableSkeleton columns={7} rows={20} />
 				) : error ? (
 					<p className="text-center p-3">Sorry, couldn't fetch trending contracts.</p>
 				) : (
