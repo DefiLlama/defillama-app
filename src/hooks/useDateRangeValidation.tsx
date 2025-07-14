@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 
 interface DateRangeValidationOptions {
 	initialStartDate?: string
@@ -15,31 +16,27 @@ export const useDateRangeValidation = (options?: DateRangeValidationOptions) => 
 
 		if (endDate && value && new Date(endDate) < new Date(value)) {
 			setEndDate('')
-			setDateError('')
 		}
 	}
 
 	const handleEndDateChange = (value: string) => {
 		setEndDate(value)
 		if (dateError) {
-			setDateError('')
 		}
 	}
 
 	const validateDateRange = (startDateValue: string, endDateValue: string): boolean => {
 		if (startDateValue && endDateValue && new Date(endDateValue) < new Date(startDateValue)) {
-			setDateError('End date cannot be before start date')
+			toast.error('End date cannot be before start date')
 			return false
 		}
 
-		setDateError('')
 		return true
 	}
 
 	const reset = () => {
 		setStartDate('')
 		setEndDate('')
-		setDateError('')
 	}
 
 	return {
