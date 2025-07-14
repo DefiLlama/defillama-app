@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
-import { useIsCoarsePointer } from '~/hooks/useIsCoarsePointer'
 
 export const QuestionHelper = React.memo(function QuestionHelper({
 	text,
@@ -12,10 +11,8 @@ export const QuestionHelper = React.memo(function QuestionHelper({
 	disabled?: boolean
 	className?: string
 }) {
-	const isCoarsePointer = useIsCoarsePointer()
-
 	return (
-		<Tooltip content={disabled ? null : text} showOnTap={isCoarsePointer}>
+		<Tooltip content={disabled ? null : text}>
 			<Icon name="help-circle" height={16} width={16} {...props} />
 		</Tooltip>
 	)
