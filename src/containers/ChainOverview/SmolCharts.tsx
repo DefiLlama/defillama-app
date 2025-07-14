@@ -6,7 +6,7 @@ import { SVGRenderer } from 'echarts/renderers'
 import { LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
-import { oldBlue } from '~/constants/colors'
+import { oldBlue, purple } from '~/constants/colors'
 
 echarts.use([SVGRenderer, LineChart, BarChart, TooltipComponent, GridComponent])
 
@@ -320,7 +320,11 @@ export function SmolBarChart({
 				},
 				data: series,
 				symbol: 'none',
-				color: oldBlue
+				itemStyle: {
+					color: function(params) {
+						return params.value[1] >= 0 ? oldBlue : purple;
+					}
+				}
 			}
 		})
 
