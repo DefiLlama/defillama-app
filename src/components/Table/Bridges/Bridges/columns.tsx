@@ -8,7 +8,8 @@ import {
 	toNiceDayAndHour,
 	getBlockExplorer,
 	slug,
-	tokenIconUrl
+	tokenIconUrl,
+	formatUsdWithSign
 } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formatColumnOrder } from '../../utils'
@@ -135,11 +136,8 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue() as any
 			if (value) {
 				return (
-					<span
-						className="text-(--color)"
-						style={{ '--color': (value as number) > 0 ? '#3fb950' : '#f85149' } as any}
-					>
-						${formattedNum(info.getValue())}
+					<span className="text-(--color)" style={{ '--color': (value as number) > 0 ? '#3fb950' : '#f85149' } as any}>
+						{formatUsdWithSign(value)}
 					</span>
 				)
 			}
@@ -175,11 +173,8 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue() as any
 			if (value) {
 				return (
-					<span
-						className="text-(--color)"
-						style={{ '--color': (value as number) > 0 ? '#3fb950' : '#f85149' } as any}
-					>
-						${formattedNum(info.getValue())}
+					<span className="text-(--color)" style={{ '--color': (value as number) > 0 ? '#3fb950' : '#f85149' } as any}>
+						{formatUsdWithSign(value)}
 					</span>
 				)
 			}

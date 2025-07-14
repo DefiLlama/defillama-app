@@ -711,3 +711,8 @@ export function formatValue(value, formatType = 'auto') {
 	if (formatType === 'number') return formattedNum(value)
 	return String(value)
 }
+
+export function formatUsdWithSign(value) {
+	const absValue = Math.abs(value)
+	return value < 0 ? `-$${formattedNum(absValue)}` : `$${formattedNum(value)}`
+}
