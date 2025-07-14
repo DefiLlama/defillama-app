@@ -407,7 +407,7 @@ export const DemoPreview = () => {
 					</div>
 
 					<div className="flex items-center justify-center">
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-6 pro-dashboard">
+						<div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-2 lg:gap-6 pro-dashboard">
 							{features.map((feature, index) => (
 								<div
 									key={index}
