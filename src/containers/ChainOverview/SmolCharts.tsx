@@ -367,35 +367,29 @@ export function UpcomingUnlocksChart({
 	}, [id])
 
 	const series = useMemo(() => {
-		const series = {}
+		// Calculate totals for each date and include breakdown info
+		const seriesData = data.map(([date, tokensInDate]) => {
+			const total = tokens.reduce((sum, [token]) => sum + (tokensInDate[token] || 0), 0)
+			return [date, total, tokensInDate] // Store the breakdown in the third element
+		})
 
-		for (const [token, color] of tokens) {
-			series[token] = {
-				name: token,
-				type: 'bar',
-				large: true,
-				largeThreshold: 0,
-				emphasis: {
-					focus: 'series',
-					shadowBlur: 10
-				},
-				stack: 'upcomingUnlock',
-				itemStyle: {
-					color
-				},
-				symbol: 'none',
-				data: []
-			}
-		}
-
-		for (const [date, tokensInDate] of data) {
-			for (const [token] of tokens) {
-				series[token]?.data?.push([date, tokensInDate[token] || 0])
-			}
-		}
-
-		return Object.values(series)
-	}, [data, tokens])
+		return [{
+			name: name,
+			type: 'bar',
+			large: true,
+			largeThreshold: 0,
+			emphasis: {
+				focus: 'series',
+				shadowBlur: 10
+			},
+			itemStyle: {
+				color: oldBlue
+			},
+			symbol: 'none',
+			data: seriesData
+		}]
+	}, [data, tokens, name])
+	console.log(series)
 
 	useEffect(() => {
 		// create instance
@@ -435,25 +429,38 @@ export function UpcomingUnlocksChart({
 				trigger: 'axis',
 				confine: false,
 				formatter: function (params) {
+					console.log(params)
 					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
+					const total = params[0].value[1]
+					const breakdown = params[0].value[2]
 
-					return (
-						chartdate +
-						params
-							.sort((a, b) => b.value[1] - a.value[1])
-							.reduce((prev, curr) => {
-								if (curr.value[1] === 0) return prev
-								return (
-									(prev +=
-										'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
-										curr.marker +
-										curr.seriesName +
-										'&nbsp;&nbsp;' +
-										'$' +
-										formattedNum(curr.value[1])) + '</li>'
-								)
-							}, '')
-					)
+					// Calculate percentages and sort by value
+					const tokenBreakdown = tokens
+						.map(([token, color]) => ({
+							token,
+							color,
+							value: breakdown[token] || 0
+						}))
+						.filter(item => item.value > 0)
+						.sort((a, b) => b.value - a.value)
+
+					const tooltipContent = chartdate + 
+						`<div style="font-weight:bold;margin-bottom:4px;">Total: $${formattedNum(total)}</div>` +
+						tokenBreakdown.reduce((prev, curr) => {
+							const percentage = ((curr.value / total) * 100).toFixed(2)
+							return (
+								prev +
+								'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
+								curr.token +
+								'&nbsp;&nbsp;' +
+								'$' +
+								formattedNum(curr.value) +
+								` (${percentage}%)` +
+								'</li>'
+							)
+						}, '')
+
+					return tooltipContent
 				}
 			},
 			series
