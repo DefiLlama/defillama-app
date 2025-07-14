@@ -68,28 +68,8 @@ setInterval(async () => {
 
 	const [protocols, chains] = await Promise.all([fetchJson(PROTOCOLS_DATA_URL), fetchJson(CHAINS_DATA_URL)])
 
-	const protocolKeys = Object.keys(protocols)
-	const chainKeys = Object.keys(chains)
-	const protocolKeySet = new Set(protocolKeys)
-	const chainKeySet = new Set(chainKeys)
-
-	// Remove any keys that are no longer in the new data
-	for (const key in metadataCache.protocolMetadata) {
-		if (!protocolKeySet.has(key)) delete metadataCache.protocolMetadata[key]
-	}
-
-	for (const key in metadataCache.chainMetadata) {
-		if (!chainKeySet.has(key)) delete metadataCache.chainMetadata[key]
-	}
-
-	// Add any new keys that are in the new data
-	protocolKeys.forEach((key) => {
-		metadataCache.protocolMetadata[key] = protocols[key]
-	})
-
-	chainKeys.forEach((key) => {
-		metadataCache.chainMetadata[key] = chains[key]
-	})
+	metadataCache.protocolMetadata = protocols
+	metadataCache.chainMetadata = chains
 }, 60 * 60 * 1000)
 
 export default metadataCache
