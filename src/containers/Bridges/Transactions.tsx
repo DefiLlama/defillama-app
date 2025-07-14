@@ -84,6 +84,10 @@ const downloadTxs = async ({ bridges, startDate, endDate, selectedBridge }) => {
 export const BridgeTransactionsPage = ({ bridges }) => {
 	const { mutate, isPending, error } = useMutation({ mutationFn: downloadTxs })
 
+	const defaultEndDate = new Date()
+	const defaultStartDate = new Date(defaultEndDate)
+	defaultStartDate.setMonth(defaultEndDate.getMonth() - 1)
+
 	return (
 		<>
 			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-(--cards-bg) p-3">
@@ -110,6 +114,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 							<input
 								type="date"
 								name="startDate"
+								defaultValue={defaultStartDate.toISOString().split('T')[0]}
 								required
 								className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
 							/>
@@ -119,6 +124,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 							<input
 								type="date"
 								name="endDate"
+								defaultValue={defaultEndDate.toISOString().split('T')[0]}
 								required
 								className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
 							/>
