@@ -178,7 +178,7 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		accessorKey: 'chains',
 		enableSorting: false,
 		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
-		size: 60
+		size: 80
 	},
 	{
 		header: 'Other Investors',
@@ -506,12 +506,12 @@ export const activeInvestorsColumns: ColumnDef<{
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return (
-					<BasicLink
-						href={`/raises/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string}
-					</BasicLink>
+				<BasicLink
+					href={`/raises/${slug(getValue() as string)}`}
+					className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+				>
+					{getValue() as string}
+				</BasicLink>
 			)
 		},
 		size: 200
