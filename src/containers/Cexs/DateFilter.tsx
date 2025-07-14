@@ -1,88 +1,54 @@
-import DatePicker from 'react-datepicker'
-import { Icon } from '~/components/Icon'
-
-export const formatDate = (date) =>
-	new Intl.DateTimeFormat('en-US', {
-		year: '2-digit',
-		month: '2-digit',
-		day: '2-digit'
-	}).format(date)
-
-export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hours, setHours }) => {
+export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hours, setHours, dateError }) => {
 	const [startHour, endHour] = hours
 
+	const isSameDate = startDate === endDate
+	const startHourNum = Number(startHour || 0)
+	const endHourNum = Number(endHour || 0)
+
 	return (
-		<div className="flex items-center gap-2 relative">
-			<label>From</label>
-			<div className="flex items-center gap-1">
-				<div className="relative">
-					<Icon
-						name="calendar"
-						width={16}
-						height={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
-					/>
-					<input
-						value={startDate && `${formatDate(startDate)}`}
-						onClick={() => onStartChange(null)}
-						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
-					/>
-				</div>
-				<div style={{ position: 'absolute', zIndex: 100, top: 0, display: startDate ? 'none' : 'block' }}>
-					{/* @ts-ignore */}
-					<DatePicker
-						showIcon
-						onChange={onStartChange}
-						onCalendarOpen={() => onStartChange(null)}
-						selected={startDate}
-						inline
-						shouldCloseOnSelect={true}
-					/>
-				</div>
-				<label className="flex items-center gap-1">
-					<input
-						value={startHour}
-						onChange={(e) => setHours([e.target?.value, endHour])}
-						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-(--form-control-border) w-10"
-					/>
-					<span>h</span>
-				</label>
+		<div className="flex items-center flex-wrap gap-y-2">
+			<div className="flex items-center gap-2 text-sm">
+				<span className="w-12 text-right">From</span>
+				<input
+					type="date"
+					value={startDate}
+					onChange={(e) => onStartChange(e.target.value)}
+					className="py-1 px-2 text-sm bg-white dark:bg-black text-black dark:text-white rounded border border-(--form-control-border)"
+				/>
+				<input
+					type="number"
+					min="0"
+					max={isSameDate ? endHourNum : 23}
+					value={startHour}
+					onChange={(e) => setHours([e.target.value, endHour])}
+					className="py-1 px-2 text-sm bg-white dark:bg-black text-black dark:text-white rounded border border-(--form-control-border) w-16"
+				/>
+				<span>h</span>
 			</div>
-			<label>to</label>
-			<div className="flex items-center gap-1">
-				<div className="relative">
-					<Icon
-						name="calendar"
-						width={16}
-						height={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
-					/>
-					<input
-						value={endDate && `${formatDate(endDate)}`}
-						onClick={() => onEndChange(null)}
-						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm max-w-[120px]"
-					/>
-				</div>
-				<div style={{ position: 'absolute', top: 0, zIndex: 100, display: endDate ? 'none' : 'block' }}>
-					{/* @ts-ignore */}
-					<DatePicker
-						showIcon
-						onChange={onEndChange}
-						onCalendarOpen={() => onEndChange(null)}
-						selected={endDate}
-						inline
-						shouldCloseOnSelect={true}
-					/>
-				</div>
-				<label className="flex items-center gap-1">
-					<input
-						value={endHour}
-						onChange={(e) => setHours([startHour, e.target?.value])}
-						className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white border border-(--form-control-border) w-10"
-					/>
-					<span>h</span>
-				</label>
+
+			<div className="flex items-center gap-2 text-sm">
+				<span className="w-12 text-right">to</span>
+				<input
+					type="date"
+					value={endDate}
+					onChange={(e) => onEndChange(e.target.value)}
+					min={startDate}
+					className={`py-1 px-2 text-sm bg-white dark:bg-black text-black dark:text-white rounded ${
+						dateError ? 'border-2 border-red-500' : 'border border-(--form-control-border)'
+					}`}
+				/>
+				<input
+					type="number"
+					min={isSameDate ? startHourNum : 0}
+					max="23"
+					value={endHour}
+					onChange={(e) => setHours([startHour, e.target.value])}
+					className="py-1 px-2 text-sm bg-white dark:bg-black text-black dark:text-white rounded border border-(--form-control-border) w-16"
+				/>
+				<span>h</span>
 			</div>
+
+			{dateError && <p className="text-red-500 text-sm">{dateError}</p>}
 		</div>
 	)
 }

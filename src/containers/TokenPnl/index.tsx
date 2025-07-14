@@ -10,6 +10,7 @@ import * as Ariakit from '@ariakit/react'
 import { COINS_CHART_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { debounce } from 'lodash'
+import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''
@@ -17,12 +18,11 @@ const unixToDateString = (unixTimestamp) => {
 	return date.toISOString().split('T')[0]
 }
 
-const dateStringToUnix = (dateString) => {
-	if (!dateString) return ''
+const dateStringToUnix = (dateString: string) => {
 	return Math.floor(new Date(dateString).getTime() / 1000)
 }
 
-const DateInput = ({ label, value, onChange, min, max }) => {
+const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
 	const debouncedShowPicker = useCallback(
 		debounce((event: React.FocusEvent<HTMLInputElement, Element>) => {
 			try {
@@ -37,7 +37,9 @@ const DateInput = ({ label, value, onChange, min, max }) => {
 			<span>{label}:</span>
 			<input
 				type="date"
-				className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border) outline-0"
+				className={`p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white outline-0 ${
+					hasError ? 'border-2 border-red-500' : 'border border-(--form-control-border)'
+				}`}
 				value={value}
 				onChange={onChange}
 				min={min}
@@ -53,8 +55,12 @@ export default function TokenPnl({ coinsData }) {
 	const now = Math.floor(Date.now() / 1000) - 1000
 
 	const [isModalOpen, setModalOpen] = useState(0)
-	const [start, setstart] = useState(now - 7 * 24 * 60 * 60)
-	const [end, setend] = useState(now)
+
+	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange, validateDateRange } =
+		useDateRangeValidation({
+			initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
+			initialEndDate: unixToDateString(now)
+		})
 
 	const { selectedCoins, coins } = useMemo(() => {
 		const queryCoins = router.query?.coin || (['bitcoin'] as Array<string>)
@@ -70,6 +76,9 @@ export default function TokenPnl({ coinsData }) {
 	const id = useMemo(() => {
 		return coins.length > 0 ? coins[0] : ''
 	}, [coins])
+
+	const start = dateStringToUnix(startDate)
+	const end = dateStringToUnix(endDate)
 
 	const fetchPnlData = useCallback(async () => {
 		if (!id) return null
@@ -117,12 +126,16 @@ export default function TokenPnl({ coinsData }) {
 
 	const updateDateAndFetchPnl = (newDate, isStart) => {
 		const unixTimestamp = dateStringToUnix(newDate)
-		if (unixTimestamp !== '') {
+		const currentStartDate = isStart ? newDate : startDate
+		const currentEndDate = isStart ? endDate : newDate
+
+		if (validateDateRange(currentStartDate, currentEndDate)) {
 			if (isStart) {
-				setstart(unixTimestamp)
+				handleStartDateChange(newDate)
 			} else {
-				setend(unixTimestamp)
+				handleEndDateChange(newDate)
 			}
+
 			router.push(
 				{
 					pathname: router.pathname,
@@ -147,7 +160,7 @@ export default function TokenPnl({ coinsData }) {
 				<div className="flex flex-col gap-3 w-full">
 					<DateInput
 						label="Start Date"
-						value={unixToDateString(start)}
+						value={startDate}
 						onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
 						min={unixToDateString(0)}
 						max={unixToDateString(now)}
@@ -155,11 +168,14 @@ export default function TokenPnl({ coinsData }) {
 
 					<DateInput
 						label="End Date"
-						value={unixToDateString(end)}
+						value={endDate}
 						onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
-						min={unixToDateString(start)}
+						min={startDate}
 						max={new Date().toISOString().split('T')[0]}
+						hasError={!!dateError}
 					/>
+
+					{dateError && <p className="text-red-500 text-sm text-center">{dateError}</p>}
 
 					<label className="flex flex-col gap-1 text-sm">
 						<span>Token:</span>
@@ -218,12 +234,17 @@ export default function TokenPnl({ coinsData }) {
 								) : (
 									pnlData && (
 										<div className="flex flex-col items-center gap-3">
-											<h2
-												className="font-bold text-2xl flex flex-col items-center"
-												style={{ color: parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red' }}
-											>
-												<span>{parseFloat(pnlData.pnl) >= 0 ? 'Profit' : 'Loss'}</span>
-												<span>{pnlData.pnl}</span>
+											<h2 className="font-bold text-2xl flex flex-col items-center">
+												{pnlData.pnl === 'No data' ? (
+													<span className="text-red-500">No data</span>
+												) : (
+													<>
+														<span style={{ color: parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red' }}>
+															{parseFloat(pnlData.pnl) >= 0 ? 'Profit' : 'Loss'}
+														</span>
+														<span style={{ color: parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red' }}>{pnlData.pnl}</span>
+													</>
+												)}
 											</h2>
 
 											{pnlData.coinInfo && (
