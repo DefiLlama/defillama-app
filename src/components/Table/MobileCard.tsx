@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, formattedPercent } from '~/utils'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { ICONS_CDN } from '~/constants'
 
 interface MobileCardProps {
 	data: any
@@ -33,11 +34,10 @@ export function MobileCard({ data, columns, onRowClick, href, className = '' }: 
 			{/* Header with name and primary metric */}
 			<div className="flex items-center justify-between mb-3">
 				<div className="flex items-center gap-3 flex-1 min-w-0">
-					{data.logo && (
+					{data.slug && (
 						<TokenLogo 
-							logo={data.logo} 
-							fallbackLogo={data.fallbackLogo}
-							className="w-8 h-8 flex-shrink-0"
+							logo={`${ICONS_CDN}/protocols/${data.slug}?w=48&h=48`}
+							size={32}
 						/>
 					)}
 					<div className="min-w-0 flex-1">
@@ -142,18 +142,49 @@ export function MobileCard({ data, columns, onRowClick, href, className = '' }: 
 }
 
 function renderCell(column: any, data: any) {
-	if (column.cell) {
-		return column.cell({ getValue: () => data[column.accessorKey], row: { original: data } })
+	let value;
+	
+	// Get value using accessor function if available, otherwise use accessorKey
+	if (column.accessorFn && typeof column.accessorFn === 'function') {
+		value = column.accessorFn(data)
+	} else if (column.accessorKey) {
+		value = data[column.accessorKey]
+	} else {
+		value = null
 	}
 	
-	const value = data[column.accessorKey]
+	// Use the original cell function if available with proper context
+	if (column.cell && typeof column.cell === 'function') {
+		try {
+			return column.cell({ 
+				getValue: () => value, 
+				row: { original: data },
+				renderValue: () => value,
+				cell: { getContext: () => ({ getValue: () => value, row: { original: data } }) }
+			})
+		} catch (error) {
+			// Fall back to simple value rendering if cell function fails
+			console.warn('Mobile card cell rendering error:', error)
+		}
+	}
+	
+	// Fallback: Format the value based on column type
+	if (value === null || value === undefined) {
+		return '-'
+	}
 	
 	// Auto-format common data types
 	if (typeof value === 'number') {
-		if (column.accessorKey.includes('percent') || column.accessorKey.includes('change')) {
-			return formattedPercent(value)
+		// Handle percentage changes
+		if (column.id?.includes('change') || column.id?.includes('percent')) {
+			return (
+				<span className={value >= 0 ? 'text-green-600' : 'text-red-600'}>
+					{formattedPercent(value)}
+				</span>
+			)
 		}
-		if (column.accessorKey.includes('tvl') || column.accessorKey.includes('volume')) {
+		// Handle currency values (TVL, fees, revenue)
+		if (column.id?.includes('tvl') || column.id?.includes('fees') || column.id?.includes('revenue')) {
 			return formattedNum(value, true)
 		}
 		return formattedNum(value)
@@ -166,7 +197,7 @@ function renderCell(column: any, data: any) {
 export function useMobileView() {
 	const [isMobile, setIsMobile] = useState(false)
 	
-	useState(() => {
+	useEffect(() => {
 		const checkMobile = () => {
 			setIsMobile(window.innerWidth < 768)
 		}

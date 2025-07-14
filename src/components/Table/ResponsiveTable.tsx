@@ -2,10 +2,18 @@ import { useState } from 'react'
 import { useMedia } from '~/hooks/useMedia'
 import { MobileCard } from './MobileCard'
 import { VirtualTable } from './Table'
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getSortedRowModel,
+	useReactTable,
+	type SortingState
+} from '@tanstack/react-table'
 
 interface ResponsiveTableProps {
-	data: any[]
-	columns: any[]
+	data?: any[]
+	columns?: any[]
+	instance?: any
 	onRowClick?: (data: any) => void
 	getRowHref?: (data: any) => string
 	className?: string
@@ -18,6 +26,7 @@ interface ResponsiveTableProps {
 export function ResponsiveTable({
 	data,
 	columns,
+	instance,
 	onRowClick,
 	getRowHref,
 	className = '',
@@ -27,8 +36,40 @@ export function ResponsiveTable({
 	pageSize = 20
 }: ResponsiveTableProps) {
 	const isMobile = useMedia('(max-width: 768px)')
+	const [sorting, setSorting] = useState<SortingState>([])
 	
-	if (!data || data.length === 0) {
+	// Use instance data if provided (for existing table compatibility)
+	const tableData = data || (instance ? instance.getRowModel().rows.map(row => row.original) : [])
+	const tableColumns = columns || (instance ? instance.getAllLeafColumns().map(col => ({
+		id: col.id,
+		accessorKey: col.columnDef.accessorKey,
+		accessorFn: col.columnDef.accessorFn,
+		header: typeof col.columnDef.header === 'function' ? col.id : col.columnDef.header,
+		cell: col.columnDef.cell
+	})) : [])
+	
+	// Create table instance for desktop if not provided
+	let tableInstance = instance
+	if (!instance && data && columns) {
+		const reactTableColumns = columns.map(col => ({
+			id: col.accessorKey,
+			accessorKey: col.accessorKey,
+			header: col.header,
+			cell: col.cell || (({ getValue }) => getValue()),
+			enableSorting: col.enableSorting !== false
+		}))
+		
+		tableInstance = useReactTable({
+			data: data,
+			columns: reactTableColumns,
+			state: { sorting },
+			onSortingChange: setSorting,
+			getCoreRowModel: getCoreRowModel(),
+			getSortedRowModel: getSortedRowModel(),
+		})
+	}
+	
+	if (!tableData || tableData.length === 0) {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<p className="text-(--text3) text-center">{emptyMessage}</p>
@@ -39,8 +80,8 @@ export function ResponsiveTable({
 	if (isMobile) {
 		return (
 			<MobileCardList 
-				data={data}
-				columns={columns}
+				data={tableData}
+				columns={tableColumns}
 				onRowClick={onRowClick}
 				getRowHref={getRowHref}
 				cardClassName={cardClassName}
@@ -52,9 +93,7 @@ export function ResponsiveTable({
 	
 	return (
 		<VirtualTable
-			data={data}
-			columns={columns}
-			className={className}
+			instance={tableInstance}
 		/>
 	)
 }
