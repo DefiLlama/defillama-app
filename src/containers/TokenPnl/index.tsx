@@ -9,7 +9,6 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { COINS_CHART_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
-import { debounce } from 'lodash'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 
 const unixToDateString = (unixTimestamp) => {
@@ -23,15 +22,6 @@ const dateStringToUnix = (dateString: string) => {
 }
 
 const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
-	const debouncedShowPicker = useCallback(
-		debounce((event: React.FocusEvent<HTMLInputElement, Element>) => {
-			try {
-				event.target.showPicker()
-			} catch (error) {}
-		}, 200),
-		[]
-	)
-
 	return (
 		<label className="flex flex-col gap-1 text-sm">
 			<span>{label}:</span>
@@ -44,7 +34,6 @@ const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
 				onChange={onChange}
 				min={min}
 				max={max}
-				onFocus={debouncedShowPicker}
 			/>
 		</label>
 	)
