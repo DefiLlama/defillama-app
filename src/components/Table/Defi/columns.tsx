@@ -438,24 +438,26 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 					className="flex items-center gap-2 relative"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
-					<button
-						className="absolute -left-[2px]"
-						{...{
-							onClick: row.getToggleExpandedHandler()
-						}}
-					>
-						{row.getIsExpanded() ? (
-							<>
-								<Icon name="chevron-down" height={16} width={16} />
-								<span className="sr-only">View child protocols</span>
-							</>
-						) : (
-							<>
-								<Icon name="chevron-right" height={16} width={16} />
-								<span className="sr-only">Hide child protocols</span>
-							</>
-						)}
-					</button>
+					{row.subRows?.length > 0 ? (
+						<button
+							className="absolute -left-[2px]"
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? (
+								<>
+									<Icon name="chevron-down" height={16} width={16} />
+									<span className="sr-only">View child protocols</span>
+								</>
+							) : (
+								<>
+									<Icon name="chevron-right" height={16} width={16} />
+									<span className="sr-only">Hide child protocols</span>
+								</>
+							)}
+						</button>
+					) : null}
 					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
