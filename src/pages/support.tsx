@@ -34,7 +34,6 @@ function Support() {
 
 		mutateAsync(formData)
 			.then((data) => {
-				console.log({ data })
 				if (data?.message === 'success') {
 					toast.success('Support request submitted successfully', { position: 'bottom-right' })
 					form.reset()
