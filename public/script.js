@@ -46,12 +46,14 @@ window.fathom = function() {
   var scriptUrl, trackerUrl = "https://cdn.usefathom.com/";
   function encodeParameters(params) {
       return params.cid = Math.floor(1e8 * Math.random()) + 1,
-      "?v=" + encodeURIComponent(btoa(JSON.stringify(params)))
+      "?" + Object.keys(params).map(function(k) {
+          return encodeURIComponent(k) + "=" + encodeURIComponent(params[k])
+      }).join("&")
   }
   function qs() {
       for (var pair, data = {}, pairs = window.location.search.substring(window.location.search.indexOf("?") + 1).split("&"), i = 0; i < pairs.length; i++)
           pairs[i] && (pair = pairs[i].split("="),
-          -1 < ["keyword", "q", "ref", "s", "utm_campaign", "utm_content", "utm_medium", "utm_source", "utm_term", "action", "name", "pagename", "tab"].indexOf(decodeURIComponent(pair[0])) && (data[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1])));
+          -1 < ["keyword", "q", "ref", "s", "utm_campaign", "utm_content", "utm_medium", "utm_source", "utm_term", "action", "name", "pagename", "tab", "via"].indexOf(decodeURIComponent(pair[0])) && (data[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1])));
       return data
   }
   function trackingEnabled() {
@@ -62,7 +64,8 @@ window.fathom = function() {
       var prerender = "visibilityState"in document && "prerender" === document.visibilityState
         , isExcludedDomain = -1 < excludedDomains.indexOf(window.location.hostname)
         , isAllowedDomain = !(0 < allowedDomains.length) || -1 < allowedDomains.indexOf(window.location.hostname);
-      return !(fathomIsBlocked || prerender || honorDNT || isExcludedDomain) && isAllowedDomain
+      if (!fathomIsBlocked && !prerender && !honorDNT && !isExcludedDomain && isAllowedDomain)
+          return !0
   }
   function getLocation(params) {
       var a, location = window.location;
@@ -71,7 +74,7 @@ window.fathom = function() {
       location
   }
   return fathomScript.src.indexOf("cdn.usefathom.com") < 0 && ((scriptUrl = document.createElement("a")).href = fathomScript.src,
-  trackerUrl = "https://" + 'gold-six.llama.fi' + "/"),
+  trackerUrl = "https://" + "cdn.usefathom.com" + "/"),
   auto && setTimeout(function() {
       window.fathom.trackPageview()
   }),
@@ -104,7 +107,7 @@ window.fathom = function() {
               p: pathnameToSend,
               r: params.referrer || (document.referrer.indexOf(hostname) < 0 ? document.referrer : ""),
               sid: this.siteId,
-              qs: qs()
+              qs: JSON.stringify(qs())
           }))
       },
       trackGoal: function(code, cents) {
@@ -113,7 +116,7 @@ window.fathom = function() {
           this.beacon({
               gcode: code,
               gval: cents,
-              qs: qs(),
+              qs: JSON.stringify(qs()),
               p: location.pathname || "/",
               h: hostname,
               r: document.referrer.indexOf(hostname) < 0 ? document.referrer : "",
@@ -130,7 +133,7 @@ window.fathom = function() {
               h: hostname,
               r: document.referrer.indexOf(hostname) < 0 ? document.referrer : "",
               sid: this.siteId,
-              qs: qs()
+              qs: JSON.stringify(qs())
           })
       },
       setSite(siteId) {
@@ -143,6 +146,9 @@ window.fathom = function() {
       enableTrackingForMe: function() {
           window.localStorage && (window.localStorage.removeItem("blockFathomTracking"),
           alert("Fathom has been enabled for this website."))
+      },
+      isTrackingEnabled: function() {
+          return !0 === trackingEnabled()
       }
   }
 }();
