@@ -156,7 +156,7 @@ export const navLinks: ILinks = {
 			{ name: 'Top Protocols', path: '/top-protocols' },
 			{ name: 'Compare Protocols', path: '/compare-protocols?protocol=Sky&protocol=Curve+DEX' },
 			{ name: 'Protocol Expenses', path: '/expenses' },
-			{ name: 'Token Usage', path: '/tokenUsage?token=ETH' },
+			{ name: 'Token Usage', path: '/token-usage?token=ETH' },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },
 			{ name: 'Languages', path: '/languages' },
