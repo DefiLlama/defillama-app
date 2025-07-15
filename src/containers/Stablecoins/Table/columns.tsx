@@ -398,8 +398,8 @@ function formattedPeggedPercent(percent, noSign = false) {
 		return null
 	}
 
-	let up = '#3fb950'
-	let down = '#f85149'
+	let up = 'green'
+	let down = 'red'
 
 	if (noSign) {
 		up = down = ''
@@ -463,7 +463,10 @@ function formattedPeggedPercent(percent, noSign = false) {
 	}
 
 	return (
-		<span className="font-(--weight) text-(--color)" style={{ '--weight': weight, '--color': color } as any}>
+		<span
+			className={`${noSign ? '' : color === 'green' ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}
+			style={{ fontWeight: weight }}
+		>
 			{finalValue}
 		</span>
 	)

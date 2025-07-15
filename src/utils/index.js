@@ -712,11 +712,6 @@ export function formatValue(value, formatType = 'auto') {
 	return String(value)
 }
 
-export function formatUsdWithSign(value) {
-	const absValue = Math.abs(value)
-	return value < 0 ? `-$${formattedNum(absValue)}` : `$${formattedNum(value)}`
-}
-
 export const encodeChartKey = (chain, chart) => {
 	return `${chain} - ${chart}`
 }

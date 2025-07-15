@@ -355,7 +355,9 @@ export function useDefaults({
 			axisLabel: {
 				formatter: (value) =>
 					valueSymbol === '$'
-						? valueSymbol + toK(value)
+						? value < 0
+							? `-$${toK(Math.abs(value))}`
+							: `$${toK(value)}`
 						: (valueSymbol === '%' ? value : toK(value)) + ' ' + valueSymbol
 			},
 			axisLine: {

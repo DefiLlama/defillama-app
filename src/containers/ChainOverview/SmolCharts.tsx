@@ -304,8 +304,7 @@ export function SmolBarChart({
 								(prev +=
 									'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
 									curr.marker +
-									'$' +
-									formattedNum(curr.value[1])) + '</li>'
+									formattedNum(curr.value[1], true)) + '</li>'
 							)
 						}, '')
 					)

@@ -32,7 +32,6 @@ import type {
 	ILSDRow
 } from './types'
 import * as Ariakit from '@ariakit/react'
-import { primaryColor } from '~/constants/colors'
 
 const UnconstrainedSmolLineChart = lazy(() =>
 	import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
@@ -760,14 +759,13 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		cell: (info) => (
 			<span
-				className="text-(--text1)"
-				style={
+				className={`${
 					(info.getValue() as number) < 0
-						? ({ '--text1': '#f85149' } as any)
+						? 'text-(--pct-red)'
 						: (info.getValue() as number) > 0
-						? { '--text1': '#3fb950' }
-						: {}
-				}
+						? 'text-(--pct-green)'
+						: ''
+				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
@@ -784,14 +782,13 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		cell: (info) => (
 			<span
-				className="text-(--text1)"
-				style={
+				className={`${
 					(info.getValue() as number) < 0
-						? ({ '--text1': '#f85149' } as any)
+						? 'text-(--pct-red)'
 						: (info.getValue() as number) > 0
-						? { '--text1': '#3fb950' }
-						: {}
-				}
+						? 'text-(--pct-green)'
+						: ''
+				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
@@ -808,14 +805,13 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		cell: (info) => (
 			<span
-				className="text-(--text1)"
-				style={
+				className={`${
 					(info.getValue() as number) < 0
-						? ({ '--text1': '#f85149' } as any)
+						? 'text-(--pct-red)'
 						: (info.getValue() as number) > 0
-						? { '--text1': '#3fb950' }
-						: {}
-				}
+						? 'text-(--pct-green)'
+						: ''
+				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
@@ -832,14 +828,13 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 200,
 		cell: (info) => (
 			<span
-				className="text-(--text1)"
-				style={
+				className={`${
 					(info.getValue() as number) < 0
-						? ({ '--text1': '#f85149' } as any)
+						? 'text-(--pct-red)'
 						: (info.getValue() as number) > 0
-						? { '--text1': '#3fb950' }
-						: {}
-				}
+						? 'text-(--pct-green)'
+						: ''
+				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
