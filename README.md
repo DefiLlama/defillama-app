@@ -10,7 +10,7 @@ Check it out live at [https://defillama.com](https://defillama.com)
 yarn
 ```
 
-###### Running locally
+###### Running locally 
 
 ```bash
 yarn dev
