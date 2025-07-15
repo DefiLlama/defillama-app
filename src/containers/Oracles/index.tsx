@@ -165,7 +165,7 @@ const columns: ColumnDef<IOraclesRow>[] = [
 	{
 		header: 'TVS',
 		accessorKey: 'tvs',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total Value Secured by the Oracle. Excludes CeFi'

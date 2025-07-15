@@ -91,7 +91,7 @@ const columns: ColumnDef<any>[] = [
 		header: 'Annual Expenses',
 		accessorKey: 'sumAnnualUsdExpenses',
 		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
+			return <>{getValue() ? formattedNum(getValue(), true) : ''}</>
 		},
 		meta: {
 			align: 'end'

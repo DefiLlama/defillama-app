@@ -186,7 +186,7 @@ export const columns: ColumnDef<any>[] = [
 		accessorKey: 'stablecoins',
 		id: 'stablecoins',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
+			return <>{formattedNum(info.getValue(), true)}</>
 		},
 		size: 115,
 		meta: {
@@ -198,7 +198,7 @@ export const columns: ColumnDef<any>[] = [
 		accessorKey: 'majors',
 		id: 'majors',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
+			return <>{formattedNum(info.getValue(), true)}</>
 		},
 		size: 160,
 		meta: {
@@ -209,7 +209,7 @@ export const columns: ColumnDef<any>[] = [
 		header: 'Own Tokens',
 		accessorKey: 'ownTokens',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
+			return <>{formattedNum(info.getValue(), true)}</>
 		},
 		size: 120,
 		meta: {
@@ -221,7 +221,7 @@ export const columns: ColumnDef<any>[] = [
 		accessorKey: 'others',
 		id: 'others',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
+			return <>{formattedNum(info.getValue(), true)}</>
 		},
 		size: 100,
 		meta: {
@@ -233,7 +233,7 @@ export const columns: ColumnDef<any>[] = [
 		accessorKey: 'coreTvl',
 		id: 'coreTvl',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
+			return <>{formattedNum(info.getValue(), true)}</>
 		},
 		size: 185,
 		meta: {
@@ -245,7 +245,7 @@ export const columns: ColumnDef<any>[] = [
 		accessorKey: 'tvl',
 		id: 'total-treasury',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
+			return <>{formattedNum(info.getValue(), true)}</>
 		},
 		size: 135,
 		meta: {
@@ -257,7 +257,7 @@ export const columns: ColumnDef<any>[] = [
 		accessorKey: 'mcap',
 		id: 'mcap',
 		cell: (info) => {
-			return <>{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}</>
+			return <>{info.getValue() === null ? null : formattedNum(info.getValue(), true)}</>
 		},
 		size: 128,
 		meta: {

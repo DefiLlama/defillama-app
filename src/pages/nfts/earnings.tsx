@@ -113,7 +113,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 		header: 'Mint Earnings',
 		accessorKey: 'totalMintEarnings',
 		cell: (info) => {
-			return <>{info.getValue() ? '$' + formattedNum(info.getValue()) : null}</>
+			return <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -124,7 +124,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 		header: 'Lifetime Royalty Earnings',
 		accessorKey: 'totalRoyaltyEarnings',
 		cell: (info) => {
-			return <>{info.getValue() ? '$' + formattedNum(info.getValue()) : null}</>
+			return <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -135,7 +135,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 		header: 'Royalties 30d',
 		accessorKey: 'total30d',
 		cell: (info) => {
-			return <>{info.getValue() ? '$' + formattedNum(info.getValue()) : null}</>
+			return <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -146,7 +146,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 		header: 'Total Lifetime Earnings',
 		accessorKey: 'totalEarnings',
 		cell: (info) => {
-			return <>{info.getValue() ? '$' + formattedNum(info.getValue()) : null}</>
+			return <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>
 		},
 		meta: {
 			align: 'end',

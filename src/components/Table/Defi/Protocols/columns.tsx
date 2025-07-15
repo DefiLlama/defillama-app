@@ -917,7 +917,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'TVL',
 		accessorKey: 'tvl',
 		cell: ({ getValue }) => {
-			return <>{'$' + formattedNum(getValue())}</>
+			return <>{formattedNum(getValue(), true)}</>
 		},
 		sortUndefined: 'last',
 		meta: {
@@ -1125,7 +1125,7 @@ const Tvl = ({ value, rowValues }) => {
 					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 				}}
 			>
-				{value || value === 0 ? '$' + formattedNum(value || 0) : null}
+				{value || value === 0 ? formattedNum(value || 0, true) : null}
 			</span>
 		</span>
 	)

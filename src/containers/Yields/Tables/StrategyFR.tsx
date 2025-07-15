@@ -157,7 +157,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{value === null ? null : '$' + formattedNum(value)}
+					{value === null ? null : formattedNum(value, true)}
 				</span>
 			)
 		},
@@ -179,7 +179,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{value === null ? null : '$' + formattedNum(value * indexPrice)}
+					{value === null ? null : formattedNum(value * indexPrice, true)}
 				</span>
 			)
 		},

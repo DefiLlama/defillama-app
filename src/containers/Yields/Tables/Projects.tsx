@@ -55,7 +55,7 @@ const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 		header: 'Combined TVL',
 		accessorKey: 'tvl',
 		cell: ({ getValue }) => {
-			return <>{'$' + formattedNum(getValue())}</>
+			return <>{formattedNum(getValue(), true)}</>
 		},
 		meta: {
 			align: 'end'

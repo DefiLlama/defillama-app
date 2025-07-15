@@ -31,7 +31,7 @@ const banksTableColumns = [
 		header: 'Assets',
 		accessorKey: '6',
 		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + formattedNum(getValue() * 1e6) : ''}</>
+			return <>{getValue() ? formattedNum(getValue() * 1e6, true) : ''}</>
 		},
 		meta: {
 			align: 'end'
@@ -41,7 +41,7 @@ const banksTableColumns = [
 		header: 'Assets (inflation adjusted)',
 		accessorKey: '7',
 		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + formattedNum(getValue() * 1e6) : ''}</>
+			return <>{getValue() ? formattedNum(getValue() * 1e6, true) : ''}</>
 		},
 		meta: {
 			align: 'end'
