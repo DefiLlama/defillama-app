@@ -321,8 +321,8 @@ export function SmolBarChart({
 				data: series,
 				symbol: 'none',
 				itemStyle: {
-					color: function(params) {
-						return params.value[1] >= 0 ? oldBlue : purple;
+					color: function (params) {
+						return params.value[1] >= 0 ? oldBlue : purple
 					}
 				}
 			}
@@ -373,21 +373,23 @@ export function UpcomingUnlocksChart({
 			return [date, total, tokensInDate] // Store the breakdown in the third element
 		})
 
-		return [{
-			name: name,
-			type: 'bar',
-			large: true,
-			largeThreshold: 0,
-			emphasis: {
-				focus: 'series',
-				shadowBlur: 10
-			},
-			itemStyle: {
-				color: oldBlue
-			},
-			symbol: 'none',
-			data: seriesData
-		}]
+		return [
+			{
+				name: name,
+				type: 'bar',
+				large: true,
+				largeThreshold: 0,
+				emphasis: {
+					focus: 'series',
+					shadowBlur: 10
+				},
+				itemStyle: {
+					color: oldBlue
+				},
+				symbol: 'none',
+				data: seriesData
+			}
+		]
 	}, [data, tokens, name])
 	console.log(series)
 
@@ -428,6 +430,7 @@ export function UpcomingUnlocksChart({
 			tooltip: {
 				trigger: 'axis',
 				confine: false,
+				appendToBody: true,
 				formatter: function (params) {
 					console.log(params)
 					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
@@ -441,10 +444,11 @@ export function UpcomingUnlocksChart({
 							color,
 							value: breakdown[token] || 0
 						}))
-						.filter(item => item.value > 0)
+						.filter((item) => item.value > 0)
 						.sort((a, b) => b.value - a.value)
 
-					const tooltipContent = chartdate + 
+					const tooltipContent =
+						chartdate +
 						`<div style="font-weight:bold;margin-bottom:4px;">Total: $${formattedNum(total)}</div>` +
 						tokenBreakdown.reduce((prev, curr) => {
 							const percentage = ((curr.value / total) * 100).toFixed(2)
