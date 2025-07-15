@@ -716,3 +716,17 @@ export function formatUsdWithSign(value) {
 	const absValue = Math.abs(value)
 	return value < 0 ? `-$${formattedNum(absValue)}` : `$${formattedNum(value)}`
 }
+
+export const encodeChartKey = (chain, chart) => {
+	return `${chain} - ${chart}`
+}
+
+export const decodeChartKey = (key) => {
+	const result = key.split(' - ')
+
+	if (result.length === 1) {
+		return result[0]
+	}
+
+	return result[result.length - 1]
+}
