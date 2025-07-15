@@ -1506,11 +1506,11 @@ export const groupDataByDays = (data, groupBy: string | null, chartsUnique: Arra
 			let date = +defaultDate
 
 			if (groupBy === 'monthly') {
-				date = firstDayOfMonth(+defaultDate * 1000)
+				date = firstDayOfMonth(+defaultDate)
 			}
 
 			if (groupBy === 'weekly') {
-				date = lastDayOfWeek(+defaultDate * 1000)
+				date = lastDayOfWeek(+defaultDate)
 			}
 
 			if (!currentDate || (groupBy === 'weekly' ? currentDate + oneWeek <= +date : true)) {

@@ -637,9 +637,9 @@ const formatBarChart = ({
 		const isCumulative = groupBy === 'cumulative'
 		for (const [date, value] of data) {
 			const dateKey = isWeekly
-				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
+				? lastDayOfWeek(dateInMs ? +date / 1e3 : +date)
 				: isMonthly
-				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
+				? firstDayOfMonth(dateInMs ? +date / 1e3 : +date)
 				: dateInMs
 				? +date / 1e3
 				: +date
@@ -690,9 +690,9 @@ const formatLineChart = ({
 		const isMonthly = groupBy === 'monthly'
 		for (const [date, value] of data) {
 			const dateKey = isWeekly
-				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
+				? lastDayOfWeek(dateInMs ? +date / 1e3 : +date)
 				: isMonthly
-				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
+				? firstDayOfMonth(dateInMs ? +date / 1e3 : +date)
 				: dateInMs
 				? +date / 1e3
 				: +date

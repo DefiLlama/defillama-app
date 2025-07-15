@@ -562,9 +562,14 @@ export function nearestUtcZeroHour(dateString) {
 		: Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
 }
 
-// TODO params & return value should be in seconds
-export function firstDayOfMonth(dateString) {
-	const date = new Date(dateString)
+/**
+ * Returns the Unix timestamp (in seconds) for the first day of the month.
+ *
+ * @param {number} dateInSeconds - Unix timestamp in seconds.
+ * @returns {number} Unix timestamp (in seconds) for the first day of the month.
+ */
+export function firstDayOfMonth(dateInSeconds) {
+	const date = new Date(dateInSeconds * 1000)
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 }
 
@@ -574,9 +579,16 @@ export function firstDayOfQuarter(dateString) {
 	const quarterStartMonth = Math.floor(month / 3) * 3
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), quarterStartMonth, 1) / 1000)
 }
-// TODO params & return value should be in seconds
-export function lastDayOfWeek(dateString) {
-	const date = new Date(dateString)
+
+/**
+ * Returns the Unix timestamp (in seconds) for the last day of the week (Sunday),
+ * based on a given date in seconds.
+ *
+ * @param {number} dateInSeconds - Unix timestamp in seconds.
+ * @returns {number} Unix timestamp (in seconds) for the last day of the week.
+ */
+export function lastDayOfWeek(dateInSeconds) {
+	const date = new Date(dateInSeconds * 1000)
 	const weekDay = date.getUTCDay()
 	// Calculate days to add to get to the end of the week (Sunday)
 	const daysToAdd = weekDay === 0 ? 0 : 7 - weekDay

@@ -29,9 +29,9 @@ export const DimensionProtocolOverviewChart = ({
 	const mainChartData = React.useMemo(() => {
 		const formatDate = (date) =>
 			chartInterval === 'Weekly'
-				? lastDayOfWeek(+date * 1e3) * 1e3
+				? lastDayOfWeek(+date) * 1e3
 				: chartInterval === 'Monthly'
-				? firstDayOfMonth(+date * 1e3) * 1e3
+				? firstDayOfMonth(+date) * 1e3
 				: +date * 1e3
 
 		if (totalDataChart[1].includes('Fees')) {
@@ -355,9 +355,9 @@ const ChartByType = ({
 			for (const [date, chains] of totalDataChartBreakdown) {
 				const finalDate =
 					chartInterval === 'Weekly'
-						? lastDayOfWeek(+date * 1e3) * 1e3
+						? lastDayOfWeek(+date) * 1e3
 						: chartInterval === 'Monthly'
-						? firstDayOfMonth(+date * 1e3) * 1e3
+						? firstDayOfMonth(+date) * 1e3
 						: +date * 1e3
 
 				const dataByVersion = {}
@@ -387,9 +387,9 @@ const ChartByType = ({
 			for (const [date, chains] of totalDataChartBreakdown) {
 				const finalDate =
 					chartInterval === 'Weekly'
-						? lastDayOfWeek(+date * 1e3) * 1e3
+						? lastDayOfWeek(+date) * 1e3
 						: chartInterval === 'Monthly'
-						? firstDayOfMonth(+date * 1e3) * 1e3
+						? firstDayOfMonth(+date) * 1e3
 						: +date * 1e3
 
 				const dataByChain = {}

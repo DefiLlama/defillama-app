@@ -51,7 +51,7 @@ const PageView = ({
 		const totalByToken = {}
 		for (const date in inflowsChartData) {
 			for (const token in inflowsChartData[date]) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
 				if (!store[dateKey]) {
 					store[dateKey] = {}
 				}
