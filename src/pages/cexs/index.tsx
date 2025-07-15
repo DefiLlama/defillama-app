@@ -2,7 +2,6 @@ import { maxAgeForNext } from '~/api'
 import type { IChainTvl } from '~/api/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import 'react-datepicker/dist/react-datepicker.css'
 import { Cexs } from '~/containers/Cexs'
 import { fetchJson } from '~/utils/async'
 import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
@@ -777,5 +776,3 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 export default function Protocols({ cexs }) {
 	return <Cexs cexs={cexs} />
 }
-
-//trigger server gogo

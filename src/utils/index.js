@@ -45,7 +45,7 @@ export const toNiceHour = (date) => {
 	return dayjs.utc(dayjs.unix(date)).format('HH:mm')
 }
 export const toNiceDayMonthAndYear = (date) => {
-	return dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY, HH:mm')
+	return dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY')
 }
 
 export const toNiceDayMonthAndYearAndTime = (date) => {
