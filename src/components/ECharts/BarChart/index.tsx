@@ -6,7 +6,7 @@ import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download, toNiceCsvDate, slug } from '~/utils'
+import { download, toNiceCsvDate, slug, formatUsdWithSign } from '~/utils'
 
 export default function BarChart({
 	chartData,
@@ -165,7 +165,11 @@ export default function BarChart({
 				...xAxis
 			},
 			yAxis: {
-				...yAxis
+				...yAxis,
+				axisLabel: {
+					...(yAxis?.axisLabel || {}),
+					formatter: (value) => formatUsdWithSign(value)
+				}
 			},
 			...(!hideLegend && {
 				legend: {

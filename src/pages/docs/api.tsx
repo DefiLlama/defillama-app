@@ -81,9 +81,9 @@ export function ApiDocs({ spec }: { spec: any }) {
 					if (response.url.includes('https://api.llama.fi/protocols')) {
 						const data = response.body.slice(0, 10)
 						response.body = data
-						// response.data = JSON.stringify(data)
-						// response.text = JSON.stringify(data)
-						// response.obj = data
+						response.data = JSON.stringify(data)
+						response.text = JSON.stringify(data)
+						response.obj = data
 						return response
 					}
 
@@ -115,9 +115,9 @@ export function ApiDocs({ spec }: { spec: any }) {
 							data.chainTvls = chainTvls
 
 							response.body = data
-							// response.data = JSON.stringify(data)
-							// response.text = JSON.stringify(data)
-							// response.obj = data
+							response.data = JSON.stringify(data)
+							response.text = JSON.stringify(data)
+							response.obj = data
 							return response
 						} catch (e) {
 							console.warn('Could not process response for size limiting:', e)

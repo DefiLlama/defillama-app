@@ -94,7 +94,7 @@ const ActiveInvestors = ({ data }) => {
 						.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
 						.map((val) => val[0])
 
-					const medianAmount = findMedian(raises.map((r) => r?.amount))?.toFixed(2)
+					const medianAmount = findMedian(raises.map((r) => r?.amount).filter(Boolean))?.toFixed(2)
 
 					const totalAmount = sumBy(normalizedRaises, 'amount')
 					const averageAmount = totalAmount / normalizedRaises?.length || 0

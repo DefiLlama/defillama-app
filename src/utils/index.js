@@ -45,7 +45,7 @@ export const toNiceHour = (date) => {
 	return dayjs.utc(dayjs.unix(date)).format('HH:mm')
 }
 export const toNiceDayMonthAndYear = (date) => {
-	return dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY, HH:mm')
+	return dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY')
 }
 
 export const toNiceDayMonthAndYearAndTime = (date) => {
@@ -710,4 +710,23 @@ export function formatValue(value, formatType = 'auto') {
 	}
 	if (formatType === 'number') return formattedNum(value)
 	return String(value)
+}
+
+export function formatUsdWithSign(value) {
+	const absValue = Math.abs(value)
+	return value < 0 ? `-$${formattedNum(absValue)}` : `$${formattedNum(value)}`
+}
+
+export const encodeChartKey = (chain, chart) => {
+	return `${chain} - ${chart}`
+}
+
+export const decodeChartKey = (key) => {
+	const result = key.split(' - ')
+
+	if (result.length === 1) {
+		return result[0]
+	}
+
+	return result[result.length - 1]
 }

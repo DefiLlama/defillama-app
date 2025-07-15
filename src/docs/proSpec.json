@@ -55,7 +55,9 @@
 	"paths": {
 		"/api/tokenProtocols/{symbol}": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Lists the amount of a certain token within all protocols. Data for the Token Usage page",
 				"parameters": [
 					{
@@ -78,7 +80,9 @@
 		},
 		"/api/inflows/{protocol}/{timestamp}": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Lists the amount of inflows and outflows for a protocol at a given date",
 				"parameters": [
 					{
@@ -111,7 +115,9 @@
 		},
 		"/api/chainAssets": {
 			"get": {
-				"tags": ["TVL"],
+				"tags": [
+					"TVL"
+				],
 				"summary": "Get assets of all chains",
 				"responses": {
 					"200": {
@@ -122,7 +128,9 @@
 		},
 		"/stablecoins/stablecoindominance/{chain}": {
 			"get": {
-				"tags": ["stablecoins"],
+				"tags": [
+					"stablecoins"
+				],
 				"summary": "Get stablecoin dominance per chain along with the info about the larges coin in a chain",
 				"parameters": [
 					{
@@ -155,7 +163,9 @@
 		},
 		"/api/activeUsers": {
 			"get": {
-				"tags": ["active users"],
+				"tags": [
+					"active users"
+				],
 				"summary": "Get active users on our chains and protocols pages",
 				"responses": {
 					"200": {
@@ -166,7 +176,9 @@
 		},
 		"/api/userData/{type}/{protocolId}": {
 			"get": {
-				"tags": ["active users"],
+				"tags": [
+					"active users"
+				],
 				"summary": "Get user data by type and protocol",
 				"parameters": [
 					{
@@ -199,7 +211,9 @@
 		},
 		"/api/emissions": {
 			"get": {
-				"tags": ["Unlocks"],
+				"tags": [
+					"Unlocks"
+				],
 				"summary": "List of all tokens along with basic info for each",
 				"responses": {
 					"200": {
@@ -210,7 +224,9 @@
 		},
 		"/api/emission/{protocol}": {
 			"get": {
-				"tags": ["Unlocks"],
+				"tags": [
+					"Unlocks"
+				],
 				"summary": "Unlocks data for a given token/protocol. You can find a list of available slugs to query by querying /emissions and then extracting the key `gecko_id`",
 				"parameters": [
 					{
@@ -233,7 +249,9 @@
 		},
 		"/api/categories": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all categories accross all protocols",
 				"responses": {
 					"200": {
@@ -244,7 +262,9 @@
 		},
 		"/api/forks": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all categories accross all protocols",
 				"responses": {
 					"200": {
@@ -255,7 +275,9 @@
 		},
 		"/api/oracles": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all categories accross all protocols",
 				"responses": {
 					"200": {
@@ -266,7 +288,9 @@
 		},
 		"/api/hacks": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all hacks on our Hacks dashboard",
 				"responses": {
 					"200": {
@@ -277,7 +301,9 @@
 		},
 		"/api/raises": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "Overview of all raises on our Raises dashboard",
 				"responses": {
 					"200": {
@@ -288,7 +314,9 @@
 		},
 		"/api/treasuries": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "List all protocols on our Treasuries dashboard",
 				"responses": {
 					"200": {
@@ -299,7 +327,9 @@
 		},
 		"/api/entities": {
 			"get": {
-				"tags": ["main page"],
+				"tags": [
+					"main page"
+				],
 				"summary": "List all entities",
 				"responses": {
 					"200": {
@@ -310,7 +340,9 @@
 		},
 		"/api/historicalLiquidity/{token}": {
 			"get": {
-				"tags": ["token liquidity"],
+				"tags": [
+					"token liquidity"
+				],
 				"summary": "Provides the name of contracts on a determined chain",
 				"parameters": [
 					{
@@ -448,7 +480,9 @@
 		},
 		"/etfs/overview": {
 			"get": {
-				"tags": ["ETFs"],
+				"tags": [
+					"ETFs"
+				],
 				"summary": "Get BTC ETFs and their metrics (aum, price, fees...)",
 				"responses": {
 					"200": {
@@ -459,7 +493,9 @@
 		},
 		"/etfs/overviewEth": {
 			"get": {
-				"tags": ["ETFs"],
+				"tags": [
+					"ETFs"
+				],
 				"summary": "Get ETH ETFs",
 				"responses": {
 					"200": {
@@ -470,7 +506,9 @@
 		},
 		"/etfs/history": {
 			"get": {
-				"tags": ["ETFs"],
+				"tags": [
+					"ETFs"
+				],
 				"summary": "Historical AUM of all BTC ETFs",
 				"responses": {
 					"200": {
@@ -481,7 +519,9 @@
 		},
 		"/etfs/historyEth": {
 			"get": {
-				"tags": ["ETFs"],
+				"tags": [
+					"ETFs"
+				],
 				"summary": "Historical AUM of all BTC ETFs",
 				"responses": {
 					"200": {
@@ -492,7 +532,9 @@
 		},
 		"/fdv/performance/{period}": {
 			"get": {
-				"tags": ["narratives"],
+				"tags": [
+					"narratives"
+				],
 				"summary": "Get chart of narratives based on category performance (with individual coins weighted by mcap)",
 				"parameters": [
 					{
@@ -515,7 +557,9 @@
 		},
 		"/api/overview/derivatives": {
 			"get": {
-				"tags": ["perps"],
+				"tags": [
+					"perps"
+				],
 				"summary": "Lists all derivatives along summaries of their volumes filtering by chain",
 				"parameters": [
 					{
@@ -546,7 +590,9 @@
 		},
 		"/api/summary/derivatives/{protocol}": {
 			"get": {
-				"tags": ["perps"],
+				"tags": [
+					"perps"
+				],
 				"summary": "Volume Details about a specific perp protocol",
 				"parameters": [
 					{
@@ -585,9 +631,176 @@
 				}
 			}
 		},
+		"/overview/fees": {
+			"get": {
+				"tags": [
+					"fees and revenue"
+				],
+				"summary": "List all protocols along with summaries of their fees and revenue and dataType history data",
+				"servers": [
+					{
+						"url": "https://api.llama.fi"
+					}
+				],
+				"parameters": [
+					{
+						"name": "excludeTotalDataChart",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude aggregated chart from response",
+						"schema": {
+							"type": "boolean",
+							"example": true
+						}
+					},
+					{
+						"name": "excludeTotalDataChartBreakdown",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude broken down chart from response",
+						"schema": {
+							"type": "boolean",
+							"example": true
+						}
+					},
+					{
+						"name": "dataType",
+						"in": "query",
+						"required": false,
+						"description": "Desired data type, dailyFees by default.",
+						"schema": {
+							"type": "string",
+							"enum": [
+								"dailyFees",
+								"dailyRevenue",
+								"dailyHoldersRevenue"
+							],
+							"example": "dailyFees"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/overview/fees/{chain}": {
+			"get": {
+				"tags": [
+					"fees and revenue"
+				],
+				"summary": "List all protocols along with summaries of their fees and revenue and dataType history data by chain",
+				"servers": [
+					{
+						"url": "https://api.llama.fi"
+					}
+				],
+				"parameters": [
+					{
+						"name": "chain",
+						"in": "path",
+						"required": true,
+						"description": "chain name, list of all supported chains can be found under allChains attribute in /overview/fees response",
+						"schema": {
+							"type": "string",
+							"example": "ethereum"
+						}
+					},
+					{
+						"name": "excludeTotalDataChart",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude aggregated chart from response",
+						"schema": {
+							"type": "boolean",
+							"example": true
+						}
+					},
+					{
+						"name": "excludeTotalDataChartBreakdown",
+						"in": "query",
+						"required": false,
+						"description": "true to exclude broken down chart from response",
+						"schema": {
+							"type": "boolean",
+							"example": true
+						}
+					},
+					{
+						"name": "dataType",
+						"in": "query",
+						"required": false,
+						"description": "Desired data type, dailyFees by default.",
+						"schema": {
+							"type": "string",
+							"enum": [
+								"dailyFees",
+								"dailyRevenue",
+								"dailyHoldersRevenue"
+							],
+							"example": "dailyFees"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/summary/fees/{protocol}": {
+			"get": {
+				"tags": [
+					"fees and revenue"
+				],
+				"summary": "Get summary of protocol fees and revenue with historical data",
+				"servers": [
+					{
+						"url": "https://api.llama.fi"
+					}
+				],
+				"parameters": [
+					{
+						"name": "protocol",
+						"in": "path",
+						"required": true,
+						"description": "protocol slug",
+						"schema": {
+							"type": "string",
+							"example": "lyra"
+						}
+					},
+					{
+						"name": "dataType",
+						"in": "query",
+						"required": false,
+						"description": "Desired data type, dailyFees by default.",
+						"schema": {
+							"type": "string",
+							"enum": [
+								"dailyFees",
+								"dailyRevenue",
+								"dailyHoldersRevenue"
+							],
+							"example": "dailyFees"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
 		"/bridges": {
 			"get": {
-				"tags": ["bridges"],
+				"tags": [
+					"bridges"
+				],
 				"summary": "List all bridges along with summaries of recent bridge volumes.",
 				"servers": [
 					{
@@ -615,7 +828,9 @@
 		},
 		"/bridge/{id}": {
 			"get": {
-				"tags": ["bridges"],
+				"tags": [
+					"bridges"
+				],
 				"summary": "Get summary of bridge volume and volume breakdown by chain",
 				"servers": [
 					{
@@ -643,7 +858,9 @@
 		},
 		"/bridgevolume/{chain}": {
 			"get": {
-				"tags": ["bridges"],
+				"tags": [
+					"bridges"
+				],
 				"summary": "Get historical volumes for a bridge, chain, or bridge on a particular chain",
 				"servers": [
 					{
@@ -668,7 +885,7 @@
 						"description": "bridge ID, you can get these from /bridges",
 						"schema": {
 							"type": "integer",
-							"example": 1
+							"example": 5
 						}
 					}
 				],
@@ -681,7 +898,9 @@
 		},
 		"/bridgedaystats/{timestamp}/{chain}": {
 			"get": {
-				"tags": ["bridges"],
+				"tags": [
+					"bridges"
+				],
 				"summary": "Get a 24hr token and address volume breakdown for a bridge",
 				"servers": [
 					{
@@ -716,7 +935,7 @@
 						"description": "bridge ID, you can get these from /bridges",
 						"schema": {
 							"type": "integer",
-							"example": 1
+							"example": 5
 						}
 					}
 				],
@@ -729,7 +948,9 @@
 		},
 		"/transactions/{id}": {
 			"get": {
-				"tags": ["bridges"],
+				"tags": [
+					"bridges"
+				],
 				"summary": "Get all transactions for a bridge within a date range",
 				"servers": [
 					{
@@ -805,156 +1026,11 @@
 				}
 			}
 		},
-		"/overview/fees": {
-			"get": {
-				"tags": ["fees and revenue"],
-				"summary": "List all protocols along with summaries of their fees and revenue and dataType history data",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
-				"parameters": [
-					{
-						"name": "excludeTotalDataChart",
-						"in": "query",
-						"required": false,
-						"description": "true to exclude aggregated chart from response",
-						"schema": {
-							"type": "boolean",
-							"example": true
-						}
-					},
-					{
-						"name": "excludeTotalDataChartBreakdown",
-						"in": "query",
-						"required": false,
-						"description": "true to exclude broken down chart from response",
-						"schema": {
-							"type": "boolean",
-							"example": true
-						}
-					},
-					{
-						"name": "dataType",
-						"in": "query",
-						"required": false,
-						"description": "Desired data type, dailyFees by default.",
-						"schema": {
-							"type": "string",
-							"enum": ["dailyFees", "dailyRevenue", "dailyHoldersRevenue"],
-							"example": "dailyFees"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "successful operation"
-					}
-				}
-			}
-		},
-		"/overview/fees/{chain}": {
-			"get": {
-				"tags": ["fees and revenue"],
-				"summary": "List all protocols along with summaries of their fees and revenue and dataType history data by chain",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
-				"parameters": [
-					{
-						"name": "chain",
-						"in": "path",
-						"required": true,
-						"description": "chain name, list of all supported chains can be found under allChains attribute in /overview/fees response",
-						"schema": {
-							"type": "string",
-							"example": "ethereum"
-						}
-					},
-					{
-						"name": "excludeTotalDataChart",
-						"in": "query",
-						"required": false,
-						"description": "true to exclude aggregated chart from response",
-						"schema": {
-							"type": "boolean",
-							"example": true
-						}
-					},
-					{
-						"name": "excludeTotalDataChartBreakdown",
-						"in": "query",
-						"required": false,
-						"description": "true to exclude broken down chart from response",
-						"schema": {
-							"type": "boolean",
-							"example": true
-						}
-					},
-					{
-						"name": "dataType",
-						"in": "query",
-						"required": false,
-						"description": "Desired data type, dailyFees by default.",
-						"schema": {
-							"type": "string",
-							"enum": ["dailyFees", "dailyRevenue", "dailyHoldersRevenue"],
-							"example": "dailyFees"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "successful operation"
-					}
-				}
-			}
-		},
-		"/summary/fees/{protocol}": {
-			"get": {
-				"tags": ["fees and revenue"],
-				"summary": "Get summary of protocol fees and revenue with historical data",
-				"servers": [
-					{
-						"url": "https://api.llama.fi"
-					}
-				],
-				"parameters": [
-					{
-						"name": "protocol",
-						"in": "path",
-						"required": true,
-						"description": "protocol slug",
-						"schema": {
-							"type": "string",
-							"example": "lyra"
-						}
-					},
-					{
-						"name": "dataType",
-						"in": "query",
-						"required": false,
-						"description": "Desired data type, dailyFees by default.",
-						"schema": {
-							"type": "string",
-							"enum": ["dailyFees", "dailyRevenue", "dailyHoldersRevenue"],
-							"example": "dailyFees"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "successful operation"
-					}
-				}
-			}
-		},
 		"/usage/APIKEY": {
 			"get": {
-				"tags": ["meta"],
+				"tags": [
+					"meta"
+				],
 				"summary": "Get amount of credits left in the api key, these reset on the 1st of each month",
 				"servers": [
 					{

@@ -178,7 +178,7 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		accessorKey: 'chains',
 		enableSorting: false,
 		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
-		size: 60
+		size: 80
 	},
 	{
 		header: 'Other Investors',
@@ -438,24 +438,26 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 					className="flex items-center gap-2 relative"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
-					<button
-						className="absolute -left-[2px]"
-						{...{
-							onClick: row.getToggleExpandedHandler()
-						}}
-					>
-						{row.getIsExpanded() ? (
-							<>
-								<Icon name="chevron-down" height={16} width={16} />
-								<span className="sr-only">View child protocols</span>
-							</>
-						) : (
-							<>
-								<Icon name="chevron-right" height={16} width={16} />
-								<span className="sr-only">Hide child protocols</span>
-							</>
-						)}
-					</button>
+					{row.subRows?.length > 0 ? (
+						<button
+							className="absolute -left-[2px]"
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? (
+								<>
+									<Icon name="chevron-down" height={16} width={16} />
+									<span className="sr-only">View child protocols</span>
+								</>
+							) : (
+								<>
+									<Icon name="chevron-right" height={16} width={16} />
+									<span className="sr-only">Hide child protocols</span>
+								</>
+							)}
+						</button>
+					) : null}
 					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
@@ -506,12 +508,12 @@ export const activeInvestorsColumns: ColumnDef<{
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return (
-					<BasicLink
-						href={`/raises/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-					>
-						{getValue() as string}
-					</BasicLink>
+				<BasicLink
+					href={`/raises/${slug(getValue() as string)}`}
+					className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+				>
+					{getValue() as string}
+				</BasicLink>
 			)
 		},
 		size: 200

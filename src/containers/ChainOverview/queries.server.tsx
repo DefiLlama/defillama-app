@@ -640,7 +640,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			return null
 		})
 	])
-	console.log(protocols.filter((p) => ['Bridge', 'Cross Chain Bridge'].includes(p.category ?? '')).length)
+
 	const dimensionProtocols = {}
 
 	for (const protocol of fees?.protocols ?? []) {

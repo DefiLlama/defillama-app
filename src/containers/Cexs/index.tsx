@@ -9,6 +9,7 @@ import Layout from '~/layout'
 import { Metrics } from '~/components/Metrics'
 import { INFLOWS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
+import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 
 const getOutflowsByTimerange = async (startTime, endTime) => {
 	if (startTime && endTime) {
@@ -30,30 +31,55 @@ const getOutflowsByTimerange = async (startTime, endTime) => {
 
 const SECONDS_IN_HOUR = 3600
 
+const dateStringToUnix = (dateString) => {
+	if (!dateString) return 0
+	return Math.floor(new Date(dateString).getTime() / 1000)
+}
+
+const unixToDateString = (unixTimestamp) => {
+	if (!unixTimestamp) return ''
+	const date = new Date(unixTimestamp * 1000)
+	return date.toISOString().split('T')[0]
+}
+
 export const Cexs = ({ cexs }) => {
-	const [startDate, setStartDate] = useState(() => {
+	// Initialize with date strings instead of Date objects
+	const initialStartDate = (() => {
 		const date = new Date()
 		date.setMonth(date.getMonth() - 1)
-		return date
-	})
-	const [endDate, setEndDate] = useState(() => {
+		return unixToDateString(Math.floor(date.getTime() / 1000))
+	})()
+
+	const initialEndDate = (() => {
 		const date = new Date()
 		date.setDate(date.getDate() - 1)
-		return date
-	})
+		return unixToDateString(Math.floor(date.getTime() / 1000))
+	})()
+
 	const [hours, setHours] = useState([12, 12])
-	const startTs = (startDate?.getTime() / 1000 + Number(hours[0] || 0) * SECONDS_IN_HOUR).toFixed(0)
-	const endTs = (endDate?.getTime() / 1000 + Number(hours[1] || 0) * SECONDS_IN_HOUR).toFixed(0)
 
-	const onStartChange = (date) => {
-		if (date?.getTime() > endDate?.getTime() && date !== null) return
-		setStartDate(date)
+	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange, validateDateRange } =
+		useDateRangeValidation({
+			initialStartDate,
+			initialEndDate
+		})
+
+	const handleStartChange = (value: string) => {
+		handleStartDateChange(value)
+		if (endDate && value && new Date(value) > new Date(endDate)) {
+			handleEndDateChange(value)
+		}
 	}
 
-	const onEndChange = (date) => {
-		if (date?.getTime() < startDate?.getTime() && date !== null) return
-		setEndDate(date)
+	const handleEndChange = (value: string) => {
+		handleEndDateChange(value)
+		if (startDate && value && new Date(startDate) > new Date(value)) {
+			handleStartDateChange(value)
+		}
 	}
+
+	const startTs = (dateStringToUnix(startDate) + Number(hours[0] || 0) * SECONDS_IN_HOUR).toFixed(0)
+	const endTs = (dateStringToUnix(endDate) + Number(hours[1] || 0) * SECONDS_IN_HOUR).toFixed(0)
 
 	const { data: customRangeInflows = {} } = useQuery({
 		queryKey: ['cexs', startTs, endTs],
@@ -71,10 +97,14 @@ export const Cexs = ({ cexs }) => {
 			.map((hour) => (hour === '' ? 0 : hour))
 			.every((hour) => /^([01]?[0-9]|2[0-3])$/.test(hour) || hour === '')
 
-		if (hours[0] > hours[1] && startTs > endTs) return
-		if (hours[1] < hours[0] && startTs > endTs) return
+		if (isValid) {
+			const newStartTs = (dateStringToUnix(startDate) + Number(hours[0] || 0) * SECONDS_IN_HOUR).toFixed(0)
+			const newEndTs = (dateStringToUnix(endDate) + Number(hours[1] || 0) * SECONDS_IN_HOUR).toFixed(0)
 
-		if (isValid) setHours(hours)
+			if (Number(newStartTs) <= Number(newEndTs)) {
+				setHours(hours)
+			}
+		}
 	}
 
 	return (
@@ -90,10 +120,11 @@ export const Cexs = ({ cexs }) => {
 					<DateFilter
 						startDate={startDate}
 						endDate={endDate}
-						onStartChange={onStartChange}
-						onEndChange={onEndChange}
+						onStartChange={handleStartChange}
+						onEndChange={handleEndChange}
 						hours={hours}
 						setHours={onHourChange}
+						dateError={dateError}
 					/>
 				}
 			/>

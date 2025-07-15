@@ -617,6 +617,20 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 					</div>
 				</div>
+				<CSVDownloadButton
+					onClick={() => {
+						window.open(
+							`https://api.llama.fi/simpleChainDataset/${
+								chainsNamesMap[props.metadata.name] || props.metadata.name
+							}?${Object.entries(tvlSettings)
+								.filter((t) => t[1] === true)
+								.map((t) => `${t[0]}=true`)
+								.join('&')}`.replaceAll(' ', '%20')
+						)
+					}}
+					smol
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+				/>
 			</div>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-2">
