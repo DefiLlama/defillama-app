@@ -391,7 +391,6 @@ export function UpcomingUnlocksChart({
 			}
 		]
 	}, [data, tokens, name])
-	console.log(series)
 
 	useEffect(() => {
 		// create instance
@@ -432,7 +431,6 @@ export function UpcomingUnlocksChart({
 				confine: false,
 				appendToBody: true,
 				formatter: function (params) {
-					console.log(params)
 					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
 					const total = params[0].value[1]
 					const breakdown = params[0].value[2]
