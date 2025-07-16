@@ -58,16 +58,33 @@ const ChartRenderer = memo(function ChartRenderer({
 	const chartType = CHART_TYPES[chart.type]
 	const showCumulative = chart.showCumulative || false
 
+	const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
+	const valueSymbol = userMetricTypes.includes(chart.type) ? '' : '$'
+
 	if (chartType.chartType === 'bar' && !showCumulative) {
 		return (
 			<Suspense fallback={<></>}>
-				<BarChart chartData={data} valueSymbol="$" height="300px" color={color} hideDataZoom hideDownloadButton />
+				<BarChart
+					chartData={data}
+					valueSymbol={valueSymbol}
+					height="300px"
+					color={color}
+					hideDataZoom
+					hideDownloadButton
+				/>
 			</Suspense>
 		)
 	} else {
 		return (
 			<Suspense fallback={<></>}>
-				<AreaChart chartData={data} valueSymbol="$" color={color} height="300px" hideDataZoom hideDownloadButton />
+				<AreaChart
+					chartData={data}
+					valueSymbol={valueSymbol}
+					color={color}
+					height="300px"
+					hideDataZoom
+					hideDownloadButton
+				/>
 			</Suspense>
 		)
 	}
