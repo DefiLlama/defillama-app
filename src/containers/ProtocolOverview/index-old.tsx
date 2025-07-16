@@ -1721,11 +1721,13 @@ const ProtocolContainer = ({
 											<span>:</span>
 											<span>{hack.technique}</span>
 										</p>
-										<p className="flex items-center gap-2">
-											<span>Chain</span>
-											<span>:</span>
-											<span>{hack.chain.join(', ')}</span>
-										</p>
+										{hack.chain ? (
+											<p className="flex items-center gap-2">
+												<span>Chain</span>
+												<span>:</span>
+												<span>{hack.chain.join(', ')}</span>
+											</p>
+										) : null}
 										<p className="flex items-center gap-2">
 											<span>Returned Funds</span>
 											<span>:</span>

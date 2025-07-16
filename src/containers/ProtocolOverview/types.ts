@@ -253,7 +253,7 @@ export interface IHack {
 	classification: string
 	technique: string
 	amount: number
-	chain: Array<string>
+	chain?: Array<string>
 	bridgeHack: boolean
 	targetType: string
 	source: string

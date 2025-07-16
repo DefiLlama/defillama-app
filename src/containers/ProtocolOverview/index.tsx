@@ -231,7 +231,7 @@ const ProtocolTVL = ({
 				</span>
 			</summary>
 			<div className="flex flex-col my-3 max-h-[50vh] overflow-auto">
-				<h2 className="font-semibold">TVL by Chain</h2>
+				<h2 className="font-semibold">{isCEX ? 'Total Assets by Chain' : 'TVL by Chain'}</h2>
 				{tvlByChain.map(([chain, tvl]) => (
 					<p
 						key={`${chain}-${tvl}-${name}`}
@@ -1921,7 +1921,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 						) : null}
 						{hack.classification ? <p>Classification: {hack.classification}</p> : null}
 						{hack.technique ? <p>Technique: {hack.technique}</p> : null}
-						{hack.chain.length ? (
+						{hack.chain?.length ? (
 							<p>
 								<span>Chains: </span>
 								<span>{hack.chain.join(', ')}</span>
