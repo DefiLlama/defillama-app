@@ -794,7 +794,7 @@ export const useFetchAndFormatChartData = ({
 
 	const isUsdInflowsEnabled = toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady ? true : false
 	const { data: usdInflowsData = null, isLoading: fetchingUsdInflows } = useQuery({
-		queryKey: ['usdInflows', name, isUsdInflowsEnabled],
+		queryKey: ['usdInflows', name, isUsdInflowsEnabled, JSON.stringify(tvlSettings)],
 		queryFn: () =>
 			isUsdInflowsEnabled
 				? fetchJson(`https://api.llama.fi/protocol/${slug(name)}`).then((data) => {
