@@ -1227,7 +1227,7 @@ export async function getProtocolIncomeStatement({
 			incentivesByMonth: incentives.length > 0 ? incentivesByMonth : null,
 			monthDates: Array.from(monthDates)
 				.sort((a, b) => b - a)
-				.map((date) => [date, dayjs(date).format('MMM YYYY')] as [number, string])
+				.map((date) => [date, dayjs.utc(date).format('MMM YYYY')] as [number, string])
 		}
 	} catch (err) {
 		console.log(err)

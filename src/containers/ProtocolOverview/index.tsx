@@ -362,7 +362,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 					<div className="flex flex-col gap-3 justify-between">
 						<p className="text-sm font-medium whitespace-pre-wrap break-keep">{article.headline}</p>
 						<div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
-							<p className="text-xs">{dayjs(article.date).format('MMMM D, YYYY')}</p>
+							<p className="text-xs">{dayjs.utc(article.date).format('MMMM D, YYYY')}</p>
 							<p className="flex items-center justify-between flex-nowrap font-semibold rounded-md">
 								<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</p>
@@ -1053,7 +1053,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 				{props.expenses?.lastUpdate ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
 						<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
-						<span>{dayjs(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
+						<span>{dayjs.utc(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
 					</p>
 				) : null}
 			</div>
@@ -1447,7 +1447,7 @@ const Raises = (props: IProtocolOverviewPageData) => {
 					>
 						<span className="flex flex-wrap justify-between">
 							<span className="text-[#545757] dark:text-[#cccccc]">
-								{dayjs(raise.date * 1000).format('MMM D, YYYY')}
+								{dayjs.utc(raise.date * 1000).format('MMM D, YYYY')}
 							</span>
 							<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
 						</span>
@@ -1837,7 +1837,7 @@ function DevActivity(props: IProtocolOverviewPageData) {
 				</h2>
 				{devActivity.updatedAt != null ? (
 					<p className="text-xs text-[#545757] dark:text-[#cccccc]">
-						Updated at {dayjs(devActivity.updatedAt).format('MMM D, YYYY')}
+						Updated at {dayjs.utc(devActivity.updatedAt).format('MMM D, YYYY')}
 					</p>
 				) : null}
 			</div>
@@ -1869,9 +1869,9 @@ function DevActivity(props: IProtocolOverviewPageData) {
 				{devActivity.lastCommit != null ? (
 					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Last commit</span>
-						<span className="font-jetbrains">{`${dayjs(devActivity.lastCommit).format('DD/MM/YY')} (${dayjs(
-							devActivity.lastCommit
-						).fromNow()})`}</span>
+						<span className="font-jetbrains">{`${dayjs.utc(devActivity.lastCommit).format('DD/MM/YY')} (${dayjs
+							.utc(devActivity.lastCommit)
+							.fromNow()})`}</span>
 					</p>
 				) : null}
 			</div>
@@ -1902,7 +1902,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 						{hack.date ? (
 							<p>
 								<span>Date: </span>
-								<span>{dayjs(hack.date * 1e3).format('MMM D, YYYY')}</span>
+								<span>{dayjs.utc(hack.date * 1e3).format('MMM D, YYYY')}</span>
 							</p>
 						) : null}
 						{props.id.startsWith('parent#') ? (
@@ -2013,8 +2013,9 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				monthDates: Array.from(quarterlyDates)
 					.sort((a, b) => b - a)
 					.map((date) => {
-						const quarter = Math.ceil((dayjs(date).month() + 1) / 3)
-						const year = dayjs(date).year()
+						const dateObj = new Date(date)
+						const quarter = Math.ceil((dateObj.getUTCMonth() + 1) / 3)
+						const year = dateObj.getUTCFullYear()
 						return [date, `Q${quarter} ${year}`]
 					}),
 				feesByMonth: quarterlyFeesByMonth,
@@ -2030,7 +2031,8 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			const yearlyHoldersRevenueByMonth = {}
 			const yearlyIncentivesByMonth = {}
 			for (const [date] of props.incomeStatement.monthDates) {
-				const yearKey = +dayjs(date).year()
+				const dateObj = new Date(date)
+				const yearKey = dateObj.getUTCFullYear()
 				yearlyDates.add(yearKey)
 				yearlyFeesByMonth[yearKey] = (yearlyFeesByMonth[yearKey] ?? 0) + (props.incomeStatement.feesByMonth[date] ?? 0)
 				yearlyRevenueByMonth[yearKey] =
