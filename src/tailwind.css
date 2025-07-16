@@ -311,11 +311,11 @@
 	}
 }
 
-/* @utility pro-hover-bg {
+@utility pro-hover-bg {
 	.pro-dashboard &:hover {
 		background-color: var(--pro-bg3);
 	}
-} */
+}
 
 @utility pro-info-card {
 	.pro-dashboard & {
