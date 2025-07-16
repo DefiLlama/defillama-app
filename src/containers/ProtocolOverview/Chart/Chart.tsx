@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
-import { stringToColour } from '~/components/ECharts/utils'
-import type { IChartProps } from '~/components/ECharts/types'
 import { useDefaults } from '~/components/ECharts/useDefaults'
-import { toK } from '~/utils'
-import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS } from './utils'
-import { useRouter } from 'next/router'
+import { formattedNum } from '~/utils'
+import { ProtocolChartsLabels, BAR_CHARTS, yAxisByChart, DISABLED_CUMULATIVE_CHARTS } from './constants'
 
 const customOffsets = {
 	Contributers: 60,
@@ -14,33 +11,26 @@ const customOffsets = {
 	'NFT Volume': 65
 }
 
-export default function AreaBarChart({
+export default function ProtocolLineBarChart({
 	chartData,
-	stacks,
-	stackColors = {},
+	chartColors,
 	valueSymbol = '',
-	title,
 	color,
 	hallmarks,
-	customLegendName,
-	customLegendOptions,
-	tooltipSort = true,
 	chartOptions,
 	height,
 	unlockTokenSymbol = '',
 	isThemeDark,
+	groupBy,
 	...props
-}: IChartProps) {
+}) {
 	const id = useId()
-	const router = useRouter()
-	const { groupBy } = router.query
-	const isCumulative = router.isReady && groupBy === 'cumulative' ? true : false
+	const isCumulative = groupBy === 'cumulative'
 
 	const defaultChartSettings = useDefaults({
 		color,
-		title,
 		valueSymbol,
-		tooltipSort,
+		tooltipSort: false,
 		hideLegend: true,
 		unlockTokenSymbol,
 		isThemeDark,
@@ -50,135 +40,27 @@ export default function AreaBarChart({
 				: 'daily'
 	})
 
-	const { series, yAxisByIndex } = useMemo(() => {
-		const chartColor = color || stringToColour()
+	const { series, allYAxis } = useMemo(() => {
+		const uniqueYAxis = new Set()
 
-		const yAxisByIndex = {}
+		const stacks = Object.keys(chartData) as any
 
-		if (
-			stacks.includes('TVL') ||
-			stacks.includes('Mcap') ||
-			stacks.includes('FDV') ||
-			stacks.includes('Borrowed') ||
-			stacks.includes('Staking')
-		) {
-			yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
+		for (const stack of stacks) {
+			uniqueYAxis.add(yAxisByChart[stack])
 		}
 
-		if (stacks.includes('Token Price')) {
-			yAxisByIndex['Token Price'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Token Volume')) {
-			yAxisByIndex['Token Volume'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Token Liquidity')) {
-			yAxisByIndex['Token Liquidity'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Bridge Deposits') || stacks.includes('Bridge Withdrawals')) {
-			yAxisByIndex['Bridge Deposits+Bridge Withdrawals'] =
-				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (
-			stacks.includes('DEX Volume') ||
-			stacks.includes('Perps Volume') ||
-			stacks.includes('Fees') ||
-			stacks.includes('Revenue') ||
-			stacks.includes('Holders Revenue') ||
-			stacks.includes('Incentives')
-		) {
-			yAxisByIndex['DEX Volume+Perps Volume+Fees+Revenue+Holders Revenue+Incentives'] =
-				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Unlocks')) {
-			yAxisByIndex['Unlocks'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Active Addresses') || stacks.includes('New Addresses')) {
-			yAxisByIndex['Active Addresses+New Addresses'] =
-				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Transactions')) {
-			yAxisByIndex['Transactions'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Gas Used')) {
-			yAxisByIndex['Gas Used'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Median APY')) {
-			yAxisByIndex['Median APY'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('USD Inflows')) {
-			yAxisByIndex['USD Inflows'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Total Proposals') || stacks.includes('Successful Proposals')) {
-			yAxisByIndex['Total Proposals+Successful Proposals'] =
-				stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Max Votes')) {
-			yAxisByIndex['Max Votes'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Treasury')) {
-			yAxisByIndex['Treasury'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Tweets')) {
-			yAxisByIndex['Tweets'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Developers')) {
-			yAxisByIndex['Developers'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Contributers')) {
-			yAxisByIndex['Contributers'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Devs Commits')) {
-			yAxisByIndex['Devs Commits'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Contributers Commits')) {
-			yAxisByIndex['Contributers Commits'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('NFT Volume')) {
-			yAxisByIndex['NFT Volume'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
-
-		if (stacks.includes('Premium Volume')) {
-			yAxisByIndex['Premium Volume'] = stacks.length === 1 ? undefined : Object.keys(yAxisByIndex).length
-		}
+		const indexByYAxis = Object.fromEntries(
+			Array.from(uniqueYAxis).map((yAxis, index) => [yAxis, index === 0 ? undefined : index])
+		) as Record<ProtocolChartsLabels, number | undefined>
 
 		const series = stacks.map((stack, index) => {
-			const stackColor = stackColors[stack]
+			const stackColor = chartColors[stack]
 
 			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
 			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
 
-			const options = {}
-			if (['TVL', 'Mcap', 'FDV', 'Borrowed', 'Staking'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['TVL+Mcap+FDV+Borrowed+Staking']
-			} else if (['Bridge Deposits', 'Bridge Withdrawals'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['Bridge Deposits+Bridge Withdrawals']
-			} else if (['DEX Volume', 'Perps Volume', 'Fees', 'Revenue', 'Holders Revenue', 'Incentives'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['DEX Volume+Perps Volume+Fees+Revenue+Holders Revenue+Incentives']
-			} else if (['Active Addresses', 'New Addresses'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['Active Addresses+New Addresses']
-			} else if (['Total Proposals', 'Successful Proposals'].includes(stack)) {
-				options['yAxisIndex'] = yAxisByIndex['Total Proposals+Successful Proposals']
-			} else {
-				options['yAxisIndex'] = yAxisByIndex[stack]
+			const options = {
+				yAxisIndex: indexByYAxis[yAxisByChart[stack]]
 			}
 
 			return {
@@ -199,40 +81,32 @@ export default function AreaBarChart({
 				...(type === 'line'
 					? {
 							areaStyle: {
-								color: !customLegendName
-									? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-											{
-												offset: 0,
-												color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
-											},
-											{
-												offset: 1,
-												color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-											}
-									  ])
-									: null
+								color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+									{
+										offset: 0,
+										color: stackColor ? stackColor : index === 0 ? chartColors[stack] : 'transparent'
+									},
+									{
+										offset: 1,
+										color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+									}
+								])
 							}
 					  }
 					: {}),
 				markLine: {},
-				data: []
+				data: chartData[stack] ?? []
 			}
 		})
 
-		for (const { date, ...item } of chartData) {
-			for (const stack of stacks) {
-				series.find((t) => t.name === stack)?.data.push([+date * 1e3, item[stack] || (stack === 'TVL' ? 0 : '-')])
-			}
-		}
-
-		if (series.length > 0 && hallmarks) {
+		if (series.length > 0 && hallmarks?.length > 0) {
 			series[0] = {
 				...series[0],
 				markLine: {
 					data: hallmarks.map(([date, event], index) => [
 						{
 							name: event,
-							xAxis: +date * 1e3,
+							xAxis: date,
 							yAxis: 0,
 							label: {
 								color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -243,7 +117,7 @@ export default function AreaBarChart({
 						},
 						{
 							name: 'end',
-							xAxis: +date * 1e3,
+							xAxis: date,
 							yAxis: 'max',
 							y: Math.max(hallmarks.length * 20 - index * 20, 20)
 						}
@@ -258,8 +132,11 @@ export default function AreaBarChart({
 			}
 		}
 
-		return { series, yAxisByIndex }
-	}, [chartData, stacks, color, customLegendName, hallmarks, isThemeDark, stackColors, isCumulative])
+		return {
+			series,
+			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>
+		}
+	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -271,7 +148,7 @@ export default function AreaBarChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -281,131 +158,182 @@ export default function AreaBarChart({
 			}
 		}
 
-		delete dataZoom[1].right
+		const finalYAxis = []
 
-		const yAxiss = []
+		const noOffset = allYAxis.length < 3
 
-		const noOffset = Object.entries(yAxisByIndex).length < 3
-
-		Object.entries(yAxisByIndex).forEach(([type, index]: [string, number]) => {
+		allYAxis.forEach(([type, index]) => {
 			const options = {
 				...yAxis,
 				name: '',
 				type: 'value',
 				alignTicks: true,
-				offset: noOffset || index < 2 ? 0 : (yAxiss[yAxiss.length - 1]?.offset ?? 0) + (customOffsets[type] || 40)
+				offset:
+					noOffset || index == null || index < 2
+						? 0
+						: (finalYAxis[finalYAxis.length - 1]?.offset ?? 0) + (customOffsets[type] || 40)
 			}
 
-			if (type === 'TVL+Mcap+FDV+Borrowed+Staking') {
-				yAxiss.push(yAxis)
+			if (type === 'TVL') {
+				finalYAxis.push(yAxis)
 			}
 
 			if (type === 'Token Price') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Token Price']
+							color: chartColors['Token Price']
 						}
 					}
 				})
 			}
 
 			if (type === 'Token Volume') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Token Volume']
+							color: chartColors['Token Volume']
 						}
 					}
 				})
 			}
 
 			if (type === 'Token Liquidity') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Token Liquidity']
+							color: chartColors['Token Liquidity']
 						}
 					}
 				})
 			}
 
-			if (type === 'Bridge Deposits+Bridge Withdrawals') {
-				yAxiss.push({
+			if (type === 'Bridge Deposits') {
+				finalYAxis.push({
 					...options,
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Bridge Deposits']
+							color: chartColors['Bridge Deposits']
 						}
 					}
 				})
 			}
 
-			if (type === 'DEX Volume+Perps Volume+Fees+Revenue+Holders Revenue+Incentives') {
-				yAxiss.push({
-					...options
+			if (type === 'Fees') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chartData['Fees']
+								? chartColors['Fees']
+								: chartData['Revenue']
+								? chartColors['Revenue']
+								: chartData['Holders Revenue']
+								? chartColors['Holders Revenue']
+								: chartData['Incentives']
+								? chartColors['Incentives']
+								: chartColors['Fees']
+						}
+					}
+				})
+			}
+
+			if (type === 'DEX Volume') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chartData['DEX Volume']
+								? chartColors['DEX Volume']
+								: chartData['Perp Volume']
+								? chartColors['Perp Volume']
+								: chartData['Options Premium Volume']
+								? chartColors['Options Premium Volume']
+								: chartData['Options Notional Volume']
+								? chartColors['Options Notional Volume']
+								: chartData['Perp Aggregator Volume']
+								? chartColors['Perp Aggregator Volume']
+								: chartData['Bridge Aggregator Volume']
+								? chartColors['Bridge Aggregator Volume']
+								: chartData['DEX Aggregator Volume']
+								? chartColors['DEX Aggregator Volume']
+								: chartColors['DEX Volume']
+						}
+					}
 				})
 			}
 
 			if (type === 'Unlocks') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => toK(value) + ' ' + unlockTokenSymbol
+						formatter: (value) => `${formattedNum(value)} ${unlockTokenSymbol}`
 					},
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Unlocks']
+							color: chartColors['Unlocks']
 						}
 					}
 				})
 			}
 
-			if (type === 'Active Addresses+New Addresses') {
-				yAxiss.push({
+			if (type === 'Active Addresses') {
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => toK(value)
+						formatter: (value) => formattedNum(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							color: chartData['Active Addresses']
+								? chartColors['Active Addresses']
+								: chartData['New Addresses']
+								? chartColors['New Addresses']
+								: chartColors['Active Addresses']
+						}
 					}
 				})
 			}
 
 			if (type === 'Transactions') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => toK(value)
+						formatter: (value) => formattedNum(value)
 					},
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Transactions']
+							color: chartColors['Transactions']
 						}
 					}
 				})
 			}
 
 			if (type === 'Gas Used') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Gas Used']
+							color: chartColors['Gas Used']
 						}
 					}
 				})
 			}
 			if (type === 'Median APY') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLabel: {
 						formatter: (value) => `${value}%`
@@ -413,166 +341,154 @@ export default function AreaBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Median APY']
+							color: chartColors['Median APY']
 						}
 					}
 				})
 			}
 
 			if (type === 'USD Inflows') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['USD Inflows']
+							color: chartColors['USD Inflows']
 						}
 					}
 				})
 			}
 
-			if (type === 'Total Proposals+Successful Proposals') {
-				yAxiss.push({
+			if (type === 'Total Proposals') {
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => toK(value)
+						formatter: (value) => formattedNum(value)
 					},
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Total Proposals']
+							color: chartColors['Total Proposals']
 						}
 					}
 				})
 			}
 
 			if (type === 'Max Votes') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => toK(value)
+						formatter: (value) => formattedNum(value)
 					},
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Max Votes']
+							color: chartColors['Max Votes']
 						}
 					}
 				})
 			}
 
 			if (type === 'Treasury') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Treasury']
+							color: chartColors['Treasury']
 						}
 					}
 				})
 			}
 
 			if (type === 'Tweets') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => value + ' tweets'
+						formatter: (value) => `${value} tweets`
 					},
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Tweets']
+							color: chartColors['Tweets']
 						}
 					}
 				})
 			}
 
 			if (type === 'Developers') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => value + ' devs'
+						formatter: (value) => `${value} devs`
 					},
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Developers']
+							color: chartColors['Developers']
 						}
 					}
 				})
 			}
 			if (type === 'Contributers') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => value + ' contributers'
+						formatter: (value) => `${value} contributers`
 					},
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Contributers']
+							color: chartColors['Contributers']
 						}
 					}
 				})
 			}
 
 			if (type === 'Devs Commits') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => value + ' commits'
+						formatter: (value) => `${value} commits`
 					},
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Devs Commits']
+							color: chartColors['Devs Commits']
 						}
 					}
 				})
 			}
 			if (type === 'Contributers Commits') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLabel: {
-						formatter: (value) => value + ' commits'
+						formatter: (value) => `${value} commits`
 					},
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Contributers Commits']
+							color: chartColors['Contributers Commits']
 						}
 					}
 				})
 			}
 
 			if (type === 'NFT Volume') {
-				yAxiss.push({
-					...options,
-
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: stackColors['NFT Volume']
-						}
-					}
-				})
-			}
-			if (type === 'Premium Volume') {
-				yAxiss.push({
+				finalYAxis.push({
 					...options,
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: stackColors['Premium Volume']
+							color: chartColors['NFT Volume']
 						}
 					}
 				})
 			}
 		})
 
-		if (Object.entries(yAxisByIndex).length === 0) {
-			yAxiss.push(yAxis)
+		if (allYAxis.length === 0) {
+			finalYAxis.push(yAxis)
 		}
 
 		chartInstance.setOption({
@@ -586,7 +502,7 @@ export default function AreaBarChart({
 				containLabel: true
 			},
 			xAxis,
-			yAxis: yAxiss,
+			yAxis: finalYAxis,
 			dataZoom,
 			series
 		})
@@ -601,16 +517,7 @@ export default function AreaBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [
-		createInstance,
-		defaultChartSettings,
-		series,
-		stacks.length,
-		chartOptions,
-		unlockTokenSymbol,
-		stackColors,
-		yAxisByIndex
-	])
+	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, chartColors, allYAxis])
 
 	return (
 		<div

@@ -14,7 +14,7 @@ import { DLNewsLogo } from '~/components/News/Logo'
 import dayjs from 'dayjs'
 import { feesOptions, tvlOptions } from '~/components/Filters/options'
 import { Menu } from '~/components/Menu'
-import { ProtocolChart2 } from './Chart/ProtocolChartNew'
+import { ProtocolChart } from './Chart/ProtocolChart'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
 import { useRouter } from 'next/router'
 
@@ -149,7 +149,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								tvlByChain={tvlByChain}
 							/>
 						</div>
-						<ProtocolChart2 {...props} />
+						<ProtocolChart {...props} />
 					</div>
 					{props.hasKeyMetrics ? (
 						<div className="col-span-full flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:hidden">

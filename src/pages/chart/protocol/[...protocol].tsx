@@ -6,10 +6,10 @@ import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queri
 import { slug } from '~/utils'
 import { IProtocolMetadata, IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
 import { maxAgeForNext } from '~/api'
-import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChartNew'
+import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
 
-const ProtocolLineBarChart = lazy(() => import('~/containers/ProtocolOverview/Chart/Chart2')) as React.FC<any>
+const ProtocolLineBarChart = lazy(() => import('~/containers/ProtocolOverview/Chart/Chart')) as React.FC<any>
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
