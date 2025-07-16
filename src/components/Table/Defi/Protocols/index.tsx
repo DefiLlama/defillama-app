@@ -13,6 +13,8 @@ import {
 	ColumnDef
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
+import { Pagination } from '~/components/Pagination'
+import { usePagination } from '~/hooks/usePagination'
 import {
 	columnOrders,
 	columnSizes,
@@ -149,6 +151,8 @@ const ProtocolsTable = ({ data, columnsInStorage }: { data: Array<IProtocolRow>;
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
+
+	console.log(sorting, 'sorting state')
 
 	const instance = useReactTable({
 		data,
@@ -344,7 +348,8 @@ export function ProtocolsTableWithSearch({
 		[addlColumns, removeColumns, columnsToUse]
 	)
 
-	const instance = useReactTable({
+	// Create a table instance first to get filtered data
+	const preInstance = React.useMemo(() => useReactTable({
 		data,
 		columns: columnsData,
 		state: {
@@ -365,7 +370,48 @@ export function ProtocolsTableWithSearch({
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
+	}), [data, columnsData, sorting, expanded, columnOrder, columnSizing, columnFilters])
+
+	// Get filtered and sorted data from the table instance
+	const filteredData = preInstance.getFilteredRowModel().rows.map((row) => row.original)
+
+	// Initialize pagination with filtered data count
+	const pagination = usePagination(filteredData.length, {
+		defaultPageSize: 50,
+		resetOnChange: true
 	})
+
+	// Get paginated data from filtered data
+	const paginatedData = pagination.getPaginatedData(filteredData)
+
+	const instance = React.useMemo(() => useReactTable({
+		data: paginatedData,
+		columns: columnsData,
+		state: {
+			sorting,
+			expanded,
+			columnOrder,
+			columnSizing
+		},
+		filterFromLeafRows: true,
+		onExpandedChange: setExpanded,
+		getSubRows: (row: IProtocolRow) => row.subRows,
+		onSortingChange: (updater) => {
+			setSorting((old) => {
+				const newSorting = updater instanceof Function ? updater(old) : updater
+				// Only reset pagination if sorting actually changed
+				if (JSON.stringify(newSorting) !== JSON.stringify(old)) {
+					pagination.resetToPage1()
+				}
+				return newSorting
+			})
+		},
+		onColumnOrderChange: setColumnOrder,
+		onColumnSizingChange: setColumnSizing,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getExpandedRowModel: getExpandedRowModel()
+	}), [paginatedData, columnsData, sorting, expanded, columnOrder, columnSizing, pagination])
 
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
@@ -384,16 +430,22 @@ export function ProtocolsTableWithSearch({
 	}, [windowSize, instance])
 
 	const [projectName, setProjectName] = React.useState('')
+	const prevProjectNameRef = React.useRef(projectName)
 
 	React.useEffect(() => {
-		const columns = instance.getColumn('name')
+		const columns = preInstance.getColumn('name')
 
 		const id = setTimeout(() => {
 			columns.setFilterValue(projectName)
+			// Only reset pagination if search actually changed
+			if (projectName !== prevProjectNameRef.current) {
+				pagination.resetToPage1()
+				prevProjectNameRef.current = projectName
+			}
 		}, 200)
 
 		return () => clearTimeout(id)
-	}, [projectName, instance])
+	}, [projectName, preInstance, pagination])
 
 	return (
 		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
@@ -417,6 +469,15 @@ export function ProtocolsTableWithSearch({
 				</div>
 			</div>
 			<VirtualTable instance={instance} />
+			<Pagination
+				currentPage={pagination.currentPage}
+				totalPages={pagination.totalPages}
+				onPageChange={pagination.onPageChange}
+				pageSize={pagination.pageSize}
+				onPageSizeChange={pagination.onPageSizeChange}
+				totalItems={pagination.totalItems}
+				showPageSizeSelector
+			/>
 		</div>
 	)
 }

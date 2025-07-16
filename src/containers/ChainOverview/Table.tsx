@@ -1,9 +1,10 @@
 import { TagGroup } from '~/components/TagGroup'
 import type { IProtocol } from './types'
-import { useMemo, useState, useSyncExternalStore } from 'react'
+import { useMemo, useState, useSyncExternalStore, useCallback } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { VirtualTable } from '~/components/Table/Table'
+import { Pagination } from '~/components/Pagination'
 import {
 	type ColumnDef,
 	type ColumnSizingState,
@@ -12,7 +13,9 @@ import {
 	getCoreRowModel,
 	getExpandedRowModel,
 	getSortedRowModel,
+	getPaginationRowModel,
 	type SortingState,
+	type PaginationState,
 	useReactTable
 } from '@tanstack/react-table'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -75,94 +78,50 @@ export const ChainProtocolsTable = ({
 		() => null
 	)
 
-	const clearAllColumns = () => {
-		const ops = JSON.stringify(
-			Object.fromEntries(
-				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
-					option.key,
-					false
-				])
-			)
-		)
-		window.localStorage.setItem(tableColumnOptionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-		if (instance && instance.setColumnVisibility) {
-			instance.setColumnVisibility(JSON.parse(ops))
-		}
-	}
-	const toggleAllColumns = () => {
-		const ops = JSON.stringify(
-			Object.fromEntries(
-				[...columnOptions, ...customColumns.map((col, idx) => ({ key: `custom_formula_${idx}` }))].map((option) => [
-					option.key,
-					true
-				])
-			)
-		)
-		window.localStorage.setItem(tableColumnOptionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
-		if (instance && instance.setColumnVisibility) {
-			instance.setColumnVisibility(JSON.parse(ops))
-		}
-	}
-
+	// State declarations - must be before any conditional logic
 	const [customColumnModalEditIndex, setCustomColumnModalEditIndex] = useState<number | null>(null)
 	const [customColumnModalInitialValues, setCustomColumnModalInitialValues] = useState<
 		Partial<CustomColumnDef> | undefined
 	>(undefined)
+	const [sorting, setSorting] = useState<SortingState>([
+		{ desc: true, id: MAIN_COLUMN_BY_CATEGORY[filterState] ?? 'tvl' }
+	])
+	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
+	const [expanded, setExpanded] = useState<ExpandedState>({})
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: 50
+	}) // default page size
 
 	const customColumnDialogStore = Ariakit.useDialogStore()
-	const handleAddCustomColumn = () => {
+
+	const handleAddCustomColumn = useCallback(() => {
 		setCustomColumnModalEditIndex(null)
 		setCustomColumnModalInitialValues(undefined)
 		customColumnDialogStore.toggle()
-	}
-	const handleEditCustomColumn = (idx: number) => {
-		setCustomColumnModalEditIndex(idx)
-		setCustomColumnModalInitialValues(customColumns[idx])
-		customColumnDialogStore.toggle()
-	}
-	const handleDeleteCustomColumn = (idx: number) => {
-		const next = customColumns.filter((_, i) => i !== idx)
-		setCustomColumns(next)
-	}
-	const handleSaveCustomColumn = (def: CustomColumnDef) => {
-		let next: CustomColumnDef[]
-		let newColumnKey: string | undefined
-		if (customColumnModalEditIndex === null) {
-			next = [...customColumns, def]
-			newColumnKey = `custom_formula_${customColumns.length}`
-		} else {
-			next = customColumns.map((col, i) => (i === customColumnModalEditIndex ? def : col))
-		}
-		setCustomColumns(next)
-		customColumnDialogStore.toggle()
+	}, [customColumnDialogStore])
 
-		if (newColumnKey) {
-			const allKeys = [...columnOptions.map((c) => c.key), ...next.map((_, idx) => `custom_formula_${idx}`)]
-			let ops: Record<string, boolean> = {}
-			try {
-				ops = JSON.parse(localStorage.getItem(tableColumnOptionsKey) ?? '{}')
-			} catch {}
-			allKeys.forEach((key) => {
-				if (key === newColumnKey) {
-					ops[key] = true
-				} else if (!(key in ops)) {
-					ops[key] = false
-				}
-			})
-			localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
-			window.dispatchEvent(new Event('storage'))
-			if (instance && instance.setColumnVisibility) {
-				instance.setColumnVisibility(ops)
-			}
-		}
-	}
+	const handleEditCustomColumn = useCallback(
+		(idx: number) => {
+			setCustomColumnModalEditIndex(idx)
+			setCustomColumnModalInitialValues(customColumns[idx])
+			customColumnDialogStore.toggle()
+		},
+		[customColumns, customColumnDialogStore]
+	)
 
+	const handleDeleteCustomColumn = useCallback(
+		(idx: number) => {
+			const next = customColumns.filter((_, i) => i !== idx)
+			setCustomColumns(next)
+		},
+		[customColumns, setCustomColumns]
+	)
+	// Create column helper
 	const mergedColumns = useMemo(() => {
 		return [
 			...columnOptions,
-			...customColumns.map((col, idx) => ({
+			...(customColumns || []).map((col, idx) => ({
 				name: col.name,
 				key: `custom_formula_${idx}`,
 				isCustom: true,
@@ -173,43 +132,70 @@ export const ChainProtocolsTable = ({
 		]
 	}, [customColumns])
 
-	const addColumn = (newColumns) => {
-		const allKeys = mergedColumns.map((col) => col.key)
-		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key) ? true : false]))
-		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
-
-		if (instance && instance.setColumnVisibility) {
-			instance.setColumnVisibility(ops)
-		} else {
-			window.dispatchEvent(new Event('storage'))
-		}
-	}
-
-	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
-		)
-		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
-		if (instance && instance.setColumnVisibility) {
-			instance.setColumnVisibility(ops)
-		} else {
-			window.dispatchEvent(new Event('storage'))
-		}
-	}
-
 	const selectedColumns = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
 		return mergedColumns.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
 	}, [columnsInStorage, mergedColumns])
 
-	const [sorting, setSorting] = useState<SortingState>([
-		{ desc: true, id: MAIN_COLUMN_BY_CATEGORY[filterState] ?? 'tvl' }
-	])
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
-	const [expanded, setExpanded] = useState<ExpandedState>({})
+	const handleSaveCustomColumn = useCallback(
+		(def: CustomColumnDef) => {
+			let next: CustomColumnDef[]
+			let newColumnKey: string | undefined
+			if (customColumnModalEditIndex === null) {
+				next = [...customColumns, def]
+				newColumnKey = `custom_formula_${customColumns.length}`
+			} else {
+				next = customColumns.map((col, i) => (i === customColumnModalEditIndex ? def : col))
+			}
+			setCustomColumns(next)
+			customColumnDialogStore.toggle()
+
+			if (newColumnKey) {
+				const allKeys = [...columnOptions.map((c) => c.key), ...next.map((_, idx) => `custom_formula_${idx}`)]
+				let ops: Record<string, boolean> = {}
+				try {
+					ops = JSON.parse(localStorage.getItem(tableColumnOptionsKey) ?? '{}')
+				} catch {}
+				allKeys.forEach((key) => {
+					if (key === newColumnKey) {
+						ops[key] = true
+					} else if (!(key in ops)) {
+						ops[key] = false
+					}
+				})
+				localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
+				window.dispatchEvent(new Event('storage'))
+			}
+		},
+		[customColumns, customColumnModalEditIndex, setCustomColumns, customColumnDialogStore]
+	)
+
+	const clearAllColumns = useCallback(() => {
+		const ops = JSON.stringify(
+			Object.fromEntries(
+				[...columnOptions, ...(customColumns || []).map((col, idx) => ({ key: `custom_formula_${idx}` }))].map(
+					(option) => [option.key, false]
+				)
+			)
+		)
+		window.localStorage.setItem(tableColumnOptionsKey, ops)
+		window.dispatchEvent(new Event('storage'))
+	}, [customColumns])
+
+	const toggleAllColumns = useCallback(() => {
+		const ops = JSON.stringify(
+			Object.fromEntries(
+				[...columnOptions, ...(customColumns || []).map((col, idx) => ({ key: `custom_formula_${idx}` }))].map(
+					(option) => [option.key, true]
+				)
+			)
+		)
+		window.localStorage.setItem(tableColumnOptionsKey, ops)
+		window.dispatchEvent(new Event('storage'))
+	}, [customColumns])
 
 	const customColumnDefs = useMemo(() => {
+		if (!customColumns || !Array.isArray(customColumns)) return []
 		return customColumns.map((col, idx) => {
 			const columnId = `custom_formula_${idx}`
 
@@ -257,7 +243,7 @@ export const ChainProtocolsTable = ({
 					},
 					sortingFn: (rowA, rowB, columnId) => {
 						const usedFormat = col.determinedFormat || col.formatType
-						const desc = sorting.length ? sorting[0].desc : true
+						const desc = sorting?.length ? sorting[0]?.desc : true
 
 						let a = rowA.getValue(columnId)
 						let b = rowB.getValue(columnId)
@@ -315,11 +301,12 @@ export const ChainProtocolsTable = ({
 			sorting,
 			expanded,
 			columnSizing,
-			columnVisibility: JSON.parse(columnsInStorage)
+			columnVisibility: JSON.parse(columnsInStorage),
+			pagination
 		},
 		sortingFns: {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
+				const desc = sorting?.length ? sorting[0]?.desc : true
 
 				let a = (rowA.getValue(columnId) ?? null) as any
 				let b = (rowB.getValue(columnId) ?? null) as any
@@ -347,49 +334,66 @@ export const ChainProtocolsTable = ({
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IProtocol) => row.childProtocols,
 		onSortingChange: (updater) => {
-			setSorting((old) => {
-				const newSorting = updater instanceof Function ? updater(old) : updater
-
-				if (newSorting.length === 0 && old.length === 1) {
-					const currentDesc = old[0].desc
-					if (currentDesc === undefined) {
-						return [{ ...old[0], desc: false }]
-					} else if (currentDesc === false) {
-						return [{ ...old[0], desc: true }]
-					} else {
-						return [{ ...old[0], desc: undefined }]
-					}
-				}
-
-				return newSorting
-			})
+			setSorting(updater)
+			// Reset to first page when sorting changes
+			setPagination((prev) => ({ ...prev, pageIndex: 0 }))
 		},
 		onColumnSizingChange: setColumnSizing,
+		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
+		getExpandedRowModel: getExpandedRowModel(),
+		getPaginationRowModel: getPaginationRowModel()
 	})
 
-	const setFilter = (key) => (newState) => {
-		const newColumns = Object.fromEntries(
-			columnOptions.map((column) => [
-				column.key,
-				['name', 'category'].includes(column.key) ? true : column[key] === newState
-			])
-		)
+	const addColumn = useCallback(
+		(newColumns) => {
+			const allKeys = mergedColumns.map((col) => col.key)
+			const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key) ? true : false]))
+			window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
+			window.dispatchEvent(new Event('storage'))
+		},
+		[mergedColumns]
+	)
 
-		if (columnsInStorage === JSON.stringify(newColumns)) {
-			toggleAllColumns()
-			window.localStorage.setItem(tableFilterStateKey, null)
-			instance.setSorting([{ id: 'tvl', desc: true }])
-			// window.dispatchEvent(new Event('storage'))
-		} else {
-			window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(newColumns))
-			window.localStorage.setItem(tableFilterStateKey, newState)
-			instance.setSorting([{ id: MAIN_COLUMN_BY_CATEGORY[newState] ?? 'tvl', desc: true }])
-			// window.dispatchEvent(new Event('storage'))
-		}
-	}
+	const addOnlyOneColumn = useCallback(
+		(newOption) => {
+			const leafColumns = instance.getAllLeafColumns()
+			if (!leafColumns || leafColumns.length === 0) return
+
+			const ops = Object.fromEntries(leafColumns.map((col) => [col.id, col.id === newOption ? true : false]))
+			window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
+			window.dispatchEvent(new Event('storage'))
+		},
+		[instance]
+	)
+
+	// Reset pagination when filters change
+	const setFilter = useCallback(
+		(key) => (newState) => {
+			const newColumns = Object.fromEntries(
+				columnOptions.map((column) => [
+					column.key,
+					['name', 'category'].includes(column.key) ? true : column[key] === newState
+				])
+			)
+
+			if (columnsInStorage === JSON.stringify(newColumns)) {
+				toggleAllColumns()
+				window.localStorage.setItem(tableFilterStateKey, null)
+				instance.setSorting([{ id: 'tvl', desc: true }])
+				// window.dispatchEvent(new Event('storage'))
+			} else {
+				window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(newColumns))
+				window.localStorage.setItem(tableFilterStateKey, newState)
+				instance.setSorting([{ id: MAIN_COLUMN_BY_CATEGORY[newState] ?? 'tvl', desc: true }])
+				// window.dispatchEvent(new Event('storage'))
+			}
+			// Reset to page 1 when filter changes
+			setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+		},
+		[columnsInStorage, toggleAllColumns, instance, setPagination]
+	)
 
 	return (
 		<div className="bg-(--cards-bg) rounded-md border border-[#e6e6e6] dark:border-[#222324] isolate">
@@ -435,6 +439,15 @@ export const ChainProtocolsTable = ({
 				<TVLRange variant="third" />
 			</div>
 			<VirtualTable instance={instance} />
+			<Pagination
+				currentPage={instance.getState().pagination.pageIndex + 1}
+				totalPages={instance.getPageCount()}
+				onPageChange={(page) => instance.setPageIndex(page - 1)}
+				pageSize={instance.getState().pagination.pageSize}
+				onPageSizeChange={(size) => instance.setPageSize(size)}
+				totalItems={instance.getPrePaginationRowModel()?.rows?.length || finalProtocols.length}
+				showPageSizeSelector
+			/>
 			<CustomColumnModal
 				dialogStore={customColumnDialogStore}
 				onSave={handleSaveCustomColumn}
