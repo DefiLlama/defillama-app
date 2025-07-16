@@ -28,6 +28,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { buildProtocolAddlChartsData } from '../utils'
 
 const ProtocolLineBarChart = lazy(() => import('./Chart2')) as React.FC<any>
 
@@ -797,17 +798,10 @@ export const useFetchAndFormatChartData = ({
 		queryFn: () =>
 			isUsdInflowsEnabled
 				? fetchJson(`https://api.llama.fi/protocol/${slug(name)}`).then((data) => {
-						const store = {}
-						for (const item of data.tokensInUsd) {
-							for (const token in item.tokens) {
-								store[item.date] = (store[item.date] ?? 0) + (item.tokens?.[token] ?? 0)
-							}
-						}
-						const finalChart = []
-						for (const date in store) {
-							finalChart.push([+date * 1e3, store[date]])
-						}
-						return finalChart
+						return (
+							buildProtocolAddlChartsData({ protocolData: data as any, extraTvlsEnabled: tvlSettings })?.usdInflows ??
+							null
+						)
 				  })
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
@@ -1463,7 +1457,6 @@ export const useFetchAndFormatChartData = ({
 			charts[chartName] = formatBarChart({
 				data: usdInflowsData,
 				groupBy,
-				dateInMs: true,
 				denominationPriceHistory
 			})
 		}
