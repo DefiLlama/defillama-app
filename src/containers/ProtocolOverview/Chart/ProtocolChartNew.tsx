@@ -95,7 +95,7 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 			chartsByStaus[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
 		}
 
-		const defaultToggledCharts: ProtocolChartsLabels[] = ['TVL', 'Events' as any]
+		const defaultToggledCharts: ProtocolChartsLabels[] = [props.isCEX ? 'Total Assets' : 'TVL', 'Events' as any]
 
 		const toggled = {
 			...chartsByStaus
@@ -145,7 +145,9 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 
 		const toggledMetrics = {
 			...toggled,
-			tvl: queryParams.tvl === 'false' ? 'false' : 'true',
+			...(props.isCEX
+				? { totalAssets: queryParams.totalAssets === 'false' ? 'false' : 'true' }
+				: { tvl: queryParams.tvl === 'false' ? 'false' : 'true' }),
 			events: queryParams.events === 'false' ? 'false' : 'true',
 			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
 		} as IToggledMetrics
@@ -175,7 +177,8 @@ export function ProtocolChart2(props: IProtocolOverviewPageData) {
 		toggledMetrics,
 		groupBy: groupBy,
 		tvlSettings,
-		feesSettings
+		feesSettings,
+		isCEX: props.isCEX
 	})
 
 	const metricsDialogStore = Ariakit.useDialogStore()
@@ -418,7 +421,8 @@ export const useFetchAndFormatChartData = ({
 	chartDenominations,
 	governanceApis,
 	tvlSettings,
-	feesSettings
+	feesSettings,
+	isCEX
 }: IProtocolOverviewPageData & {
 	toggledMetrics: IToggledMetrics
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
@@ -1013,8 +1017,8 @@ export const useFetchAndFormatChartData = ({
 
 		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number]> } = {}
 
-		if (tvlChart?.length > 0 && toggledMetrics.tvl === 'true') {
-			const chartName: ProtocolChartsLabels = 'TVL' as const
+		if (tvlChart?.length > 0 && (toggledMetrics.tvl === 'true' || toggledMetrics.totalAssets === 'true')) {
+			const chartName: ProtocolChartsLabels = isCEX ? 'Total Assets' : ('TVL' as const)
 			charts[chartName] = tvlChart
 		}
 

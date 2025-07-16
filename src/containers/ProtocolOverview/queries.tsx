@@ -112,7 +112,7 @@ export const getProtocolMetrics = ({
 
 	return {
 		tvl: metadata.tvl ? true : false,
-		tvlTab,
+		tvlTab: tvlTab ? true : false,
 		dexs: metadata.dexs ? true : false,
 		perps: metadata.perps ? true : false,
 		options: metadata.options ? true : false,
@@ -140,10 +140,12 @@ export const getProtocolMetrics = ({
 
 export const getProtocolOverviewPageData = async ({
 	protocolId,
-	metadata
+	metadata,
+	isCEX = false
 }: {
 	protocolId: string
 	metadata: IProtocolMetadata
+	isCEX?: boolean
 }): Promise<IProtocolOverviewPageData> => {
 	const [
 		protocolData,
@@ -395,7 +397,7 @@ export const getProtocolOverviewPageData = async ({
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', metadata.name, err instanceof Error ? err.message : '')
 			return []
 		}),
-		metadata?.emissions
+		metadata?.emissions && protocolId
 			? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
 					.then((data) => {
 						const protocolEmissionsData = data.protocols.find((item) =>
@@ -416,7 +418,7 @@ export const getProtocolOverviewPageData = async ({
 					})
 					.catch(() => null)
 			: null,
-		metadata.activeUsers
+		metadata.activeUsers && protocolId
 			? fetchJson(ACTIVE_USERS_API, { timeout: 10_000 })
 					.then((data) => data?.[protocolId] ?? null)
 					.then((data) => {
@@ -431,7 +433,7 @@ export const getProtocolOverviewPageData = async ({
 					})
 					.catch(() => null)
 			: null,
-		metadata.expenses
+		metadata.expenses && protocolId
 			? fetchJson(PROTOCOLS_EXPENSES_API)
 					.then((data) => data.find((item) => item.protocolId === protocolId))
 					.catch(() => {
@@ -453,7 +455,7 @@ export const getProtocolOverviewPageData = async ({
 		fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.name)}`)
 			.then((data) => data.dailyVolumes || null)
 			.catch(() => null),
-		getProtocolIncomeStatement({ protocolId, metadata })
+		getProtocolIncomeStatement({ metadata })
 	])
 
 	const feesData = formatAdapterData({
@@ -667,7 +669,11 @@ export const getProtocolOverviewPageData = async ({
 	const hacks =
 		(protocolData.id
 			? hacksData
-					?.filter((hack) => [String(hack.defillamaId), String(hack.parentProtocolId)].includes(String(protocolId)))
+					?.filter((hack) =>
+						isCEX
+							? [hack.name].includes(metadata.displayName)
+							: [String(hack.defillamaId), String(hack.parentProtocolId)].includes(String(protocolId))
+					)
 					?.sort((a, b) => a.date - b.date)
 			: null) ?? null
 
@@ -720,7 +726,7 @@ export const getProtocolOverviewPageData = async ({
 	}
 	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
-	if (firstChain) {
+	if (firstChain && !isCEX) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
 
 		const cmetadata = chainMetadata?.[slug(firstChain)]
@@ -739,7 +745,7 @@ export const getProtocolOverviewPageData = async ({
 	const availableCharts: ProtocolChartsLabels[] = []
 
 	if (metadata.tvl) {
-		availableCharts.push('TVL')
+		availableCharts.push(isCEX ? 'Total Assets' : 'TVL')
 	}
 
 	if (protocolData.gecko_id) {
@@ -951,7 +957,7 @@ export const getProtocolOverviewPageData = async ({
 						note: protocolData.audit_note ?? null
 				  }
 				: null,
-		isCEX: false,
+		isCEX,
 		hasKeyMetrics,
 		competitors: Array.from(competitorsSet).map((protocolName) => competitors.find((p) => p.name === protocolName)),
 		hacks,
@@ -1140,13 +1146,7 @@ const governanceApis = (governanceID) =>
 		) ?? []
 	).map((g) => g.toLowerCase())
 
-export async function getProtocolIncomeStatement({
-	protocolId,
-	metadata
-}: {
-	protocolId: string
-	metadata: IProtocolMetadata
-}): Promise<{
+export async function getProtocolIncomeStatement({ metadata }: { metadata: IProtocolMetadata }): Promise<{
 	feesByMonth: Record<string, number>
 	revenueByMonth: Record<string, number>
 	holdersRevenueByMonth: Record<string, number> | null

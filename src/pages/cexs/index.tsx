@@ -186,7 +186,7 @@ export const cexData: Array<ICex> = [
 	*/
 	{
 		name: 'Crypto.com',
-		slug: 'Crypto-com',
+		slug: 'Crypto.com',
 		coin: 'CRO',
 		coinSymbol: 'CRO',
 		walletsLink: 'https://crypto.com/document/proof-of-reserves',

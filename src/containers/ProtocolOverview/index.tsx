@@ -1508,7 +1508,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4 col-span-1">
 			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="protocol-information">
-				Protocol Information
+				{props.isCEX ? 'Exchange Information' : 'Protocol Information'}
 				<a
 					aria-hidden="true"
 					tabIndex={-1}
@@ -1602,7 +1602,8 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 			</h2>
 			{props.methodologyURL ? (
 				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
-					<span className="font-medium">TVL:</span> <span>{props.methodology ?? ''}</span>
+					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
+					<span>{props.methodology ?? ''}</span>
 					{props.methodologyURL ? (
 						<span className="inline-block relative left-1 top-[2px]">
 							<Icon name="external-link" className="w-[14px] h-[14px]" />
@@ -1612,7 +1613,8 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 				</a>
 			) : props.methodology ? (
 				<p>
-					<span className="font-medium">TVL:</span> <span>{props.methodology ?? ''}</span>
+					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
+					<span>{props.methodology ?? ''}</span>
 				</p>
 			) : null}
 			<MethodologyByAdapter adapter={props.fees} title="Fees" />
