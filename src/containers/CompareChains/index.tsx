@@ -8,7 +8,7 @@ import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { fetchJson } from '~/utils/async'
 import { PROTOCOLS_API } from '~/constants'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { chainIconUrl, encodeChartKey, formattedNum } from '~/utils'
 import { last } from 'lodash'
 import { RowWithSubRows } from '~/containers/ProtocolOverview/RowWithSubRows'
 import { get24hChange, getNDaysChange, getTotalNDaysSum } from './utils'
@@ -139,6 +139,43 @@ export const useCompare = ({
 	}
 }
 
+const getSelectedCharts = (query: any) => {
+	const selectedCharts = []
+
+	if (query.tvl !== 'false') {
+		selectedCharts.push('tvl')
+	}
+
+	for (const key of Object.keys(query)) {
+		if (key !== 'tvl' && query[key] === 'true' && supportedCharts.find((chart) => chart.id === key)) {
+			selectedCharts.push(key)
+		}
+	}
+
+	return selectedCharts
+}
+
+const formatChartData = (chainsData: any, query: any) => {
+	if (!chainsData || !chainsData.length || !chainsData.every(Boolean)) return []
+
+	const finalCharts = {}
+
+	const selectedCharts = getSelectedCharts(query)
+
+	for (const chart of selectedCharts) {
+		const targetChart = supportedCharts.find((c) => c.id === chart)
+
+		for (const chainData of chainsData) {
+			finalCharts[encodeChartKey(chainData.chain, targetChart.name)] = chainData[targetChart.key].map((data) => [
+				Number(data[0]) * 1e3,
+				data[1]
+			])
+		}
+	}
+
+	return finalCharts
+}
+
 const updateRoute = (key, val, router: NextRouter) => {
 	router.push(
 		{
@@ -179,6 +216,10 @@ export function CompareChains() {
 
 		updateRoute('chains', selectedChains, router)
 	}
+
+	const chartData = React.useMemo(() => {
+		return formatChartData(data?.data, router.query)
+	}, [data?.data, router.query])
 
 	return (
 		<>
@@ -236,7 +277,7 @@ export function CompareChains() {
 						</div>
 					) : (
 						<React.Suspense fallback={<></>}>
-							<ChainChart title="" datasets={data?.data} isThemeDark={isDark} />
+							<ChainChart title="" chartData={chartData} isThemeDark={isDark} />
 						</React.Suspense>
 					)}
 				</div>

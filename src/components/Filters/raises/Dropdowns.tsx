@@ -47,7 +47,7 @@ export function RaisesFilterDropdowns({
 				<Rounds rounds={rounds} selectedRounds={selectedRounds || []} pathname={pathname} nestedMenu={nestedMenu} />
 			)}
 
-			<RaisedRange nestedMenu={nestedMenu} variant="secondary" />
+			<RaisedRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" />
 
 			<button
 				onClick={() => {

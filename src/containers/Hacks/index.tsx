@@ -25,7 +25,7 @@ const columnResizeMode = 'onChange'
 
 function HacksTable({ data }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(hacksColumnOrders[0][1])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [projectName, setProjectName] = React.useState('')
 	const windowSize = useWindowSize()
@@ -67,7 +67,7 @@ function HacksTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(cards-border) rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="p-3 flex items-center justify-end">
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon

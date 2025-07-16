@@ -26,6 +26,7 @@ interface IMultiSeriesChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	title?: string
+	showAggregateInTooltip?: boolean
 }
 
 export default function MultiSeriesChart({
@@ -37,7 +38,8 @@ export default function MultiSeriesChart({
 	groupBy,
 	hideDataZoom = false,
 	hideDownloadButton = false,
-	alwaysShowTooltip
+	alwaysShowTooltip,
+	showAggregateInTooltip = false
 }: IMultiSeriesChartProps) {
 	const id = useId()
 
@@ -50,7 +52,8 @@ export default function MultiSeriesChart({
 				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly')
 				: 'daily',
 		isThemeDark,
-		alwaysShowTooltip
+		alwaysShowTooltip,
+		showAggregateInTooltip
 	})
 
 	const processedSeries = useMemo(() => {
@@ -121,6 +124,12 @@ export default function MultiSeriesChart({
 			}
 		}
 
+		if (showAggregateInTooltip && !chartOptions?.tooltip?.formatter) {
+			defaultChartSettings.tooltip = {
+				...defaultChartSettings.aggregateTooltip
+			}
+		}
+
 		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
 
 		const metricTypes = new Set(processedSeries.map((s: any) => s.metricType).filter(Boolean))
@@ -152,7 +161,26 @@ export default function MultiSeriesChart({
 
 		chartInstance.setOption({
 			graphic,
-			tooltip,
+			tooltip:
+				showAggregateInTooltip && !alwaysShowTooltip
+					? {
+							...tooltip,
+							position: function (pos: [number, number], params: any, dom: any, rect: any, size: any) {
+								const tooltipWidth = size.contentSize[0]
+								const tooltipHeight = size.contentSize[1]
+								const chartWidth = size.viewSize[0]
+								const chartHeight = size.viewSize[1]
+
+								// If tooltip would be cut off at bottom, position it above the cursor
+								if (pos[1] + tooltipHeight > chartHeight - 50) {
+									return [Math.min(pos[0], chartWidth - tooltipWidth - 10), Math.max(10, pos[1] - tooltipHeight - 10)]
+								}
+
+								// Otherwise use default position
+								return pos
+							}
+					  }
+					: tooltip,
 			title: titleDefaults,
 			grid: {
 				left: gridLeftPadding,

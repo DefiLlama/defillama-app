@@ -44,7 +44,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 			{props.chain === 'All' ? (
 				<>
 					{/* {props.globalmcap?.chart?.length > 0 ? (
-						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
+						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
 									render={<h3 />}
@@ -79,7 +79,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						</div>
 					) : null} */}
 					{props.unlocks?.chart?.length > 0 ? (
-						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
+						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
 									render={<BasicLink href="/unlocks" />}
@@ -106,7 +106,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						</div>
 					) : null}
 					{props.dexs?.chart?.length > 0 ? (
-						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
+						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
 									render={
@@ -136,7 +136,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						</div>
 					) : null}
 					{props.etfs?.length > 0 ? (
-						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
+						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
 									render={<BasicLink href="/etfs" />}
@@ -158,8 +158,9 @@ export const SmolStats = (props: IChainOverviewData) => {
 						</div>
 					) : null}
 					{rwaTvl ? (
-						<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col gap-1">
+						<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col gap-1">
 							<Tooltip
+								placement="top-start"
 								render={
 									<BasicLink
 										href={props.metadata.name === 'All' ? '/protocols/rwa' : `/protocols/RWA/${props.metadata.name}`}
@@ -199,7 +200,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 					) : null}
 				</>
 			) : props.dexs?.chart?.length > 0 ? (
-				<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col gap-1">
+				<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col gap-1">
 					<Tooltip
 						render={
 							<BasicLink href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chain/${slug(props.metadata.name)}`} />
@@ -223,7 +224,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 				</div>
 			) : null}
 			{props.chainFees?.topProtocolsChart?.length > 0 ? (
-				<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col gap-1">
+				<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col gap-1">
 					<div className="flex items-start gap-4 justify-between">
 						<Tooltip
 							render={
@@ -251,8 +252,9 @@ export const SmolStats = (props: IChainOverviewData) => {
 				</div>
 			) : null}
 			{props.stablecoins?.mcapChartData?.length > 0 ? (
-				<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 flex flex-col gap-1">
+				<div className="col-span-1 h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col gap-1">
 					<Tooltip
+						placement="top-start"
 						render={
 							<BasicLink
 								href={props.metadata.name === 'All' ? '/stablecoins' : `/stablecoins/${props.metadata.name}`}

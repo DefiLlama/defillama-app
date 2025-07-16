@@ -179,7 +179,6 @@ const TokensSelect = ({
 				<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 p-3 text-base font-medium rounded-md cursor-pointer text-(--text1) flex-nowrap">
 					{tokenInSearchData ? (
 						<>
-							<TokenLogo logo={tokenInSearchData.image2} fallbackLogo={tokenInSearchData.image} />
 							<span>
 								{tokenInSearchData.symbol === 'USD_STABLES' ? tokenInSearchData.name : tokenInSearchData.symbol}
 							</span>

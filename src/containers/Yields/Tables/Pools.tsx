@@ -64,7 +64,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{'$' + formattedNum(info.getValue())}
+					{formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -229,7 +229,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'volumeUsd1d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{info.getValue() !== null ? '$' + formattedNum(info.getValue()) : null}</>
+			return <>{info.getValue() !== null ? formattedNum(info.getValue(), true) : null}</>
 		},
 		size: 140,
 		meta: {
@@ -242,7 +242,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'volumeUsd7d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{info.getValue() !== null ? '$' + formattedNum(info.getValue()) : null}</>
+			return <>{info.getValue() !== null ? formattedNum(info.getValue(), true) : null}</>
 		},
 		size: 140,
 		meta: {
@@ -375,7 +375,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
+					{info.getValue() === null ? '' : formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -395,7 +395,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
+					{info.getValue() === null ? '' : formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -419,12 +419,12 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						<QuestionHelper
 							text={`Morpho liquidity comes from the underlying lending protocol pool itself. Available P2P Liquidity: ${
 								info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd > 0
-									? '$' + formattedNum(info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd)
+									? formattedNum(info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd, true)
 									: '$0'
 							}`}
 						/>
 					) : null}
-					{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}
+					{info.getValue() === null ? null : formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},

@@ -35,12 +35,11 @@ function Marketplaces({
 }) {
 	const [dominanceChart, setDominanceChart] = React.useState(false)
 
-	//x
 	return (
 		<Layout title="NFT Marketplaces - DefiLlama" defaultSEO>
 			<NFTsSearch />
 
-			<div className="bg-(--cards-bg) border border-(cards-border) rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center gap-4 justify-between">
 					<h1 className="text-xl font-semibold p-3">NFT Marketplaces</h1>
 

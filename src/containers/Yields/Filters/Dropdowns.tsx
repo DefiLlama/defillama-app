@@ -125,11 +125,11 @@ export function YieldFilterDropdowns({
 
 			{attributes && <YieldAttributes pathname={pathname || router.pathname} nestedMenu={nestedMenu} />}
 
-			{tvlRange && <TVLRange nestedMenu={nestedMenu} variant="secondary" />}
+			{tvlRange && <TVLRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" />}
 
-			{apyRange && <APYRange nestedMenu={nestedMenu} />}
+			{apyRange && <APYRange nestedMenu={nestedMenu} placement="bottom-start" />}
 
-			{availableRange && <AvailableRange nestedMenu={nestedMenu} />}
+			{availableRange && <AvailableRange nestedMenu={nestedMenu} placement="bottom-start" />}
 
 			{(show7dBaseApy ||
 				show7dIL ||

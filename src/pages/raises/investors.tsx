@@ -94,7 +94,7 @@ const ActiveInvestors = ({ data }) => {
 						.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
 						.map((val) => val[0])
 
-					const medianAmount = findMedian(raises.map((r) => r?.amount))?.toFixed(2)
+					const medianAmount = findMedian(raises.map((r) => r?.amount).filter(Boolean))?.toFixed(2)
 
 					const totalAmount = sumBy(normalizedRaises, 'amount')
 					const averageAmount = totalAmount / normalizedRaises?.length || 0
@@ -149,7 +149,7 @@ const ActiveInvestors = ({ data }) => {
 				</a>
 			</Announcement> */}
 
-			<div className="bg-(--cards-bg) border border-(cards-border) rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center gap-2 justify-end flex-wrap p-3">
 					<h1 className="text-xl font-semibold mr-auto">Investors</h1>
 					<div className="relative w-full sm:max-w-[280px]">

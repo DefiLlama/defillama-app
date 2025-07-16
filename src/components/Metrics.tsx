@@ -23,6 +23,11 @@ export interface ITotalTrackedByMetric {
 	lending: { protocols: number; chains: number }
 	treasury: { protocols: number; chains: number }
 	emissions: { protocols: number; chains: number }
+	oracles: { protocols: number; chains: number }
+	forks: { protocols: number; chains: number }
+	cexs: { protocols: number; chains: number }
+	nfts: { protocols: number; chains: number }
+	bridgedTVL: { protocols: number; chains: number }
 }
 
 export type TMetric =
@@ -195,7 +200,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							{chains.map((metric) => (
 								<BasicLink
 									key={`chain-metric-${metric.name}`}
-									className="p-[10px] rounded-md bg-(--cards-bg) border border-(cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
 									href={metric.route}
 								>
 									<span className="flex items-center gap-2 flex-wrap justify-between w-full">
@@ -215,7 +220,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							{protocols.map((metric) => (
 								<BasicLink
 									key={`protocol-metric-${metric.name}`}
-									className="p-[10px] rounded-md bg-(--cards-bg) border border-(cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
 									href={
 										chain && metric.chainRoute ? `${metric.chainRoute.replace('{chain}', chain)}` : metric.mainRoute
 									}
@@ -322,14 +327,14 @@ export const protocolsMetrics: Array<{
 		name: 'Oracle TVS',
 		mainRoute: '/oracles',
 		chainRoute: `/oracles/chain/{chain}`,
-		protocolsTracked: () => 0,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.oracles?.protocols ?? 0,
 		description: 'Total Value Secured by an oracle, where oracle failure would lead to a loss equal to TVS'
 	},
 	{
 		name: 'TVL in forks',
 		mainRoute: '/forks',
 		chainRoute: null,
-		protocolsTracked: () => 0,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.forks?.protocols ?? 0,
 		description: 'Sum of TVL across all forks of a protocol'
 	},
 	{
@@ -343,7 +348,7 @@ export const protocolsMetrics: Array<{
 		name: 'CEX Assets',
 		mainRoute: '/cexs',
 		chainRoute: null,
-		protocolsTracked: () => 0,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.cexs?.protocols ?? 0,
 		description: 'Sum of assets held on a centralized exchange such as Binance'
 	},
 	{
@@ -426,7 +431,7 @@ export const chainsMetrics: Array<{
 	{
 		name: 'Bridged TVL',
 		route: '/bridged',
-		chainsTracked: () => 0,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.bridgedTVL?.chains ?? 0,
 		description: 'Value of all tokens held on the chain'
 	},
 	{
@@ -456,7 +461,7 @@ export const chainsMetrics: Array<{
 	{
 		name: 'NFT Volume',
 		route: '/nfts/chains',
-		chainsTracked: () => 0,
+		chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.nfts?.chains ?? 0,
 		description: 'Sum of volume across all NFT exchanges'
 	},
 	{

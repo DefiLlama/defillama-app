@@ -77,6 +77,55 @@ export function ApiDocs({ spec }: { spec: any }) {
 					request.url = request.url.replace(/%3A/g, ':').replace(/%2C/g, ',')
 					return request
 				}}
+				responseInterceptor={(response) => {
+					if (response.url.includes('https://api.llama.fi/protocols')) {
+						const data = response.body.slice(0, 10)
+						response.body = data
+						response.data = JSON.stringify(data)
+						response.text = JSON.stringify(data)
+						response.obj = data
+						return response
+					}
+
+					if (response.url.includes('https://api.llama.fi/protocol/')) {
+						try {
+							const tokens = response.body.tokens?.slice(0, 2) ?? []
+							const tokensInUsd = response.body.tokensInUsd?.slice(0, 2) ?? []
+							const tvl = response.body.tvl?.slice(0, 2) ?? []
+							const chainTvls = {}
+							for (const chain of Object.keys(response.body.chainTvls ?? {}).slice(0, 2)) {
+								chainTvls[chain] = {}
+								chainTvls[chain].tokens = response.body.chainTvls[chain].tokens?.slice(0, 2) ?? null
+								chainTvls[chain].tokensInUsd = response.body.chainTvls[chain].tokensInUsd?.slice(0, 2) ?? null
+								chainTvls[chain].tvl = response.body.chainTvls[chain].tvl?.slice(0, 2) ?? null
+							}
+
+							const data = response.body
+
+							if (data.tokens) {
+								data.tokens = tokens
+							}
+							if (data.tokensInUsd) {
+								data.tokensInUsd = tokensInUsd
+							}
+							if (data.tvl) {
+								data.tvl = tvl
+							}
+
+							data.chainTvls = chainTvls
+
+							response.body = data
+							response.data = JSON.stringify(data)
+							response.text = JSON.stringify(data)
+							response.obj = data
+							return response
+						} catch (e) {
+							console.warn('Could not process response for size limiting:', e)
+						}
+					}
+
+					return response
+				}}
 			/>
 		</>
 	)

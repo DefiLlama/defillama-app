@@ -6,7 +6,7 @@ import { SVGRenderer } from 'echarts/renderers'
 import { LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
-import { oldBlue } from '~/constants/colors'
+import { oldBlue, purple } from '~/constants/colors'
 
 echarts.use([SVGRenderer, LineChart, BarChart, TooltipComponent, GridComponent])
 
@@ -304,8 +304,7 @@ export function SmolBarChart({
 								(prev +=
 									'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
 									curr.marker +
-									'$' +
-									formattedNum(curr.value[1])) + '</li>'
+									formattedNum(curr.value[1], true)) + '</li>'
 							)
 						}, '')
 					)
@@ -320,7 +319,11 @@ export function SmolBarChart({
 				},
 				data: series,
 				symbol: 'none',
-				color: oldBlue
+				itemStyle: {
+					color: function (params) {
+						return params.value[1] >= 0 ? oldBlue : purple
+					}
+				}
 			}
 		})
 
@@ -363,11 +366,15 @@ export function UpcomingUnlocksChart({
 	}, [id])
 
 	const series = useMemo(() => {
-		const series = {}
+		// Calculate totals for each date and include breakdown info
+		const seriesData = data.map(([date, tokensInDate]) => {
+			const total = tokens.reduce((sum, [token]) => sum + (tokensInDate[token] || 0), 0)
+			return [date, total, tokensInDate] // Store the breakdown in the third element
+		})
 
-		for (const [token, color] of tokens) {
-			series[token] = {
-				name: token,
+		return [
+			{
+				name: name,
 				type: 'bar',
 				large: true,
 				largeThreshold: 0,
@@ -375,23 +382,14 @@ export function UpcomingUnlocksChart({
 					focus: 'series',
 					shadowBlur: 10
 				},
-				stack: 'upcomingUnlock',
 				itemStyle: {
-					color
+					color: oldBlue
 				},
 				symbol: 'none',
-				data: []
+				data: seriesData
 			}
-		}
-
-		for (const [date, tokensInDate] of data) {
-			for (const [token] of tokens) {
-				series[token]?.data?.push([date, tokensInDate[token] || 0])
-			}
-		}
-
-		return Object.values(series)
-	}, [data, tokens])
+		]
+	}, [data, tokens, name])
 
 	useEffect(() => {
 		// create instance
@@ -430,26 +428,40 @@ export function UpcomingUnlocksChart({
 			tooltip: {
 				trigger: 'axis',
 				confine: false,
+				appendToBody: true,
 				formatter: function (params) {
 					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
+					const total = params[0].value[1]
+					const breakdown = params[0].value[2]
 
-					return (
+					// Calculate percentages and sort by value
+					const tokenBreakdown = tokens
+						.map(([token, color]) => ({
+							token,
+							color,
+							value: breakdown[token] || 0
+						}))
+						.filter((item) => item.value > 0)
+						.sort((a, b) => b.value - a.value)
+
+					const tooltipContent =
 						chartdate +
-						params
-							.sort((a, b) => b.value[1] - a.value[1])
-							.reduce((prev, curr) => {
-								if (curr.value[1] === 0) return prev
-								return (
-									(prev +=
-										'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
-										curr.marker +
-										curr.seriesName +
-										'&nbsp;&nbsp;' +
-										'$' +
-										formattedNum(curr.value[1])) + '</li>'
-								)
-							}, '')
-					)
+						`<div style="font-weight:bold;margin-bottom:4px;">Total: $${formattedNum(total)}</div>` +
+						tokenBreakdown.reduce((prev, curr) => {
+							const percentage = ((curr.value / total) * 100).toFixed(2)
+							return (
+								prev +
+								'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
+								curr.token +
+								'&nbsp;&nbsp;' +
+								'$' +
+								formattedNum(curr.value) +
+								` (${percentage}%)` +
+								'</li>'
+							)
+						}, '')
+
+					return tooltipContent
 				}
 			},
 			series

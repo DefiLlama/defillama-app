@@ -50,6 +50,7 @@ export const useFetchChainChartData = ({
 			? chainGeckoId
 			: null
 
+	const isDenominationEnabled = denomination !== 'USD' && chainGeckoId ? true : false
 	const isTokenPriceEnabled = toggledCharts.includes('Token Price') ? true : false
 	const isTokenMcapEnabled = toggledCharts.includes('Token Mcap') ? true : false
 	const isTokenVolumeEnabled = toggledCharts.includes('Token Volume') ? true : false
@@ -373,7 +374,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatLineChart({
 				data: finalTvlChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices,
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null,
 				dateInMs: true
 			})
 		}
@@ -383,7 +384,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: chainFeesData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -392,7 +393,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: chainRevenueData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -401,7 +402,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: dexVolumeData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -410,7 +411,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: perpsVolumeData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -419,7 +420,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: chainAppFeesData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -428,7 +429,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: chainAppRevenueData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -471,7 +472,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: inflowsChartData,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -480,7 +481,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatLineChart({
 				data: stablecoinsChartData,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices,
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null,
 				dateInMs: true
 			})
 		}
@@ -537,7 +538,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatLineChart({
 				data: finalChainAssetsChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices,
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null,
 				dateInMs: true
 			})
 		}
@@ -557,7 +558,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatLineChart({
 				data: chainIncentivesData,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -570,6 +571,7 @@ export const useFetchChainChartData = ({
 		toggledCharts,
 		isGovTokensEnabled,
 		fetchingDenominationPriceHistory,
+		isDenominationEnabled,
 		denominationPriceHistory,
 		fetchingChainFees,
 		chainFeesData,

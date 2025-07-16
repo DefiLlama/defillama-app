@@ -9,6 +9,7 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { COINS_CHART_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
+import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''
@@ -16,9 +17,26 @@ const unixToDateString = (unixTimestamp) => {
 	return date.toISOString().split('T')[0]
 }
 
-const dateStringToUnix = (dateString) => {
-	if (!dateString) return ''
+const dateStringToUnix = (dateString: string) => {
 	return Math.floor(new Date(dateString).getTime() / 1000)
+}
+
+const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
+	return (
+		<label className="flex flex-col gap-1 text-sm">
+			<span>{label}:</span>
+			<input
+				type="date"
+				className={`p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white outline-0 ${
+					hasError ? 'border-2 border-red-500' : 'border border-(--form-control-border)'
+				}`}
+				value={value}
+				onChange={onChange}
+				min={min}
+				max={max}
+			/>
+		</label>
+	)
 }
 
 export default function TokenPnl({ coinsData }) {
@@ -26,8 +44,12 @@ export default function TokenPnl({ coinsData }) {
 	const now = Math.floor(Date.now() / 1000) - 1000
 
 	const [isModalOpen, setModalOpen] = useState(0)
-	const [start, setstart] = useState(now - 7 * 24 * 60 * 60)
-	const [end, setend] = useState(now)
+
+	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange, validateDateRange } =
+		useDateRangeValidation({
+			initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
+			initialEndDate: unixToDateString(now)
+		})
 
 	const { selectedCoins, coins } = useMemo(() => {
 		const queryCoins = router.query?.coin || (['bitcoin'] as Array<string>)
@@ -43,6 +65,9 @@ export default function TokenPnl({ coinsData }) {
 	const id = useMemo(() => {
 		return coins.length > 0 ? coins[0] : ''
 	}, [coins])
+
+	const start = dateStringToUnix(startDate)
+	const end = dateStringToUnix(endDate)
 
 	const fetchPnlData = useCallback(async () => {
 		if (!id) return null
@@ -90,12 +115,16 @@ export default function TokenPnl({ coinsData }) {
 
 	const updateDateAndFetchPnl = (newDate, isStart) => {
 		const unixTimestamp = dateStringToUnix(newDate)
-		if (unixTimestamp !== '') {
+		const currentStartDate = isStart ? newDate : startDate
+		const currentEndDate = isStart ? endDate : newDate
+
+		if (validateDateRange(currentStartDate, currentEndDate)) {
 			if (isStart) {
-				setstart(unixTimestamp)
+				handleStartDateChange(newDate)
 			} else {
-				setend(unixTimestamp)
+				handleEndDateChange(newDate)
 			}
+
 			router.push(
 				{
 					pathname: router.pathname,
@@ -118,39 +147,24 @@ export default function TokenPnl({ coinsData }) {
 			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-(--cards-bg) p-3">
 				<h1 className="text-xl font-semibold text-center">Token Holder Profit and Loss</h1>
 				<div className="flex flex-col gap-3 w-full">
-					<label className="flex flex-col gap-1 text-sm">
-						<span>Start Date:</span>
-						<input
-							type="date"
-							className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
-							value={unixToDateString(start)}
-							onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
-							min={unixToDateString(0)}
-							max={unixToDateString(now)}
-							onFocus={async (e) => {
-								try {
-									e.target.showPicker()
-								} catch (error) {}
-							}}
-						/>
-					</label>
+					<DateInput
+						label="Start Date"
+						value={startDate}
+						onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
+						min={unixToDateString(0)}
+						max={unixToDateString(now)}
+					/>
 
-					<label className="flex flex-col gap-1 text-sm">
-						<span>End Date:</span>
-						<input
-							type="date"
-							className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
-							value={unixToDateString(end)}
-							onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
-							min={unixToDateString(start)}
-							max={new Date().toISOString().split('T')[0]}
-							onFocus={async (e) => {
-								try {
-									e.target.showPicker()
-								} catch (error) {}
-							}}
-						/>
-					</label>
+					<DateInput
+						label="End Date"
+						value={endDate}
+						onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
+						min={startDate}
+						max={new Date().toISOString().split('T')[0]}
+						hasError={!!dateError}
+					/>
+
+					{dateError && <p className="text-red-500 text-sm text-center">{dateError}</p>}
 
 					<label className="flex flex-col gap-1 text-sm">
 						<span>Token:</span>
@@ -209,12 +223,17 @@ export default function TokenPnl({ coinsData }) {
 								) : (
 									pnlData && (
 										<div className="flex flex-col items-center gap-3">
-											<h2
-												className="font-bold text-2xl flex flex-col items-center"
-												style={{ color: parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red' }}
-											>
-												<span>{parseFloat(pnlData.pnl) >= 0 ? 'Profit' : 'Loss'}</span>
-												<span>{pnlData.pnl}</span>
+											<h2 className="font-bold text-2xl flex flex-col items-center">
+												{pnlData.pnl === 'No data' ? (
+													<span className="text-red-500">No data</span>
+												) : (
+													<>
+														<span style={{ color: parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red' }}>
+															{parseFloat(pnlData.pnl) >= 0 ? 'Profit' : 'Loss'}
+														</span>
+														<span style={{ color: parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red' }}>{pnlData.pnl}</span>
+													</>
+												)}
 											</h2>
 
 											{pnlData.coinInfo && (

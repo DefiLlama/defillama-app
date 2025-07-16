@@ -106,7 +106,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
 				<div
 					data-testid="protocol-detail-header"
-					className="hidden xl:flex flex-col gap-6 col-span-1 row-[2/3] xl:row-[1/2] bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:min-h-[360px]"
+					className="hidden xl:flex flex-col gap-6 col-span-1 row-[2/3] xl:row-[1/2] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:min-h-[360px]"
 				>
 					<h1 className="flex items-center flex-wrap gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
@@ -130,7 +130,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					<KeyMetrics {...props} formatPrice={formatPrice} />
 				</div>
 				<div className="grid grid-cols-2 gap-2 col-span-1 xl:col-[2/-1]">
-					<div className="col-span-full flex flex-col gap-6 bg-(--cards-bg) border border-(cards-border) rounded-md p-2">
+					<div className="col-span-full flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2">
 						<div className="xl:hidden flex flex-col gap-6">
 							<h1 className="flex items-center flex-wrap gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
@@ -155,7 +155,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						<ProtocolChart2 {...props} />
 					</div>
 					{props.hasKeyMetrics ? (
-						<div className="col-span-full flex flex-col gap-6 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:hidden">
+						<div className="col-span-full flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:hidden">
 							<KeyMetrics {...props} formatPrice={formatPrice} />
 						</div>
 					) : null}
@@ -283,7 +283,7 @@ const KeyMetrics = (props: IKeyMetricsProps) => {
 				<OptionsNotionalVolume formatPrice={props.formatPrice} {...props} />
 				<TokenCGData formatPrice={props.formatPrice} {...props} />
 				{props.currentTvlByChain?.staking != null ? (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
 						<Flag
 							protocol={props.name}
@@ -305,7 +305,7 @@ const KeyMetrics = (props: IKeyMetricsProps) => {
 					</p>
 				) : null}
 				{props.currentTvlByChain?.borrowed != null ? (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Borrowed</span>
 						<Flag
 							protocol={props.name}
@@ -330,7 +330,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	if (!props.articles?.length) return null
 
 	return (
-		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4 col-span-1">
+		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4 col-span-1">
 			<div className="flex items-center justify-between">
 				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="dl-news">
 					Latest from DL News
@@ -999,7 +999,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 	if (!props.expenses) return null
 	return (
 		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 				<span className="text-[#545757] dark:text-[#cccccc]">Annual Operational Expenses</span>
 				<Icon
 					name="chevron-down"
@@ -1016,13 +1016,13 @@ const Expenses = (props: IKeyMetricsProps) => {
 				<span className="font-jetbrains ml-auto">{props.formatPrice(props.expenses.total)}</span>
 			</summary>
 			<div className="flex flex-col mb-3">
-				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(cards-border) group-last:border-none py-1">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
 					<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
 					<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
 				</p>
 				{props.expenses.annualUsdCost.map(([category, amount]) => (
 					<p
-						className="flex flex-col gap-1 border-b border-dashed border-(cards-border) group-last:border-none py-1"
+						className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
 						key={`${props.name}-expenses-${category}-${amount}`}
 					>
 						<span className="flex flex-wrap justify-between">
@@ -1032,7 +1032,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 					</p>
 				))}
 				{props.expenses?.sources?.length ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
 						<span className="text-[#545757] dark:text-[#cccccc]">Sources</span>
 						{props.expenses.sources?.map((source) => (
 							<a
@@ -1048,13 +1048,13 @@ const Expenses = (props: IKeyMetricsProps) => {
 					</p>
 				) : null}
 				{props.expenses?.notes?.length ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
 						<span className="text-[#545757] dark:text-[#cccccc]">Notes</span>
 						<span>{props.expenses.notes?.join(', ') ?? ''}</span>
 					</p>
 				) : null}
 				{props.expenses?.lastUpdate ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
 						<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
 						<span>{dayjs(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
 					</p>
@@ -1068,7 +1068,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 	if (!props.tokenLiquidity) return null
 	return (
 		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 				<Tooltip
 					content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
 					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -1093,7 +1093,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 				{props.tokenLiquidity?.pools.map((pool) => (
 					<p
 						key={`${pool[0]}-${pool[1]}-${pool[2]}`}
-						className="flex items-center justify-between gap-1 border-b border-dashed border-(cards-border) group-last:border-none py-1"
+						className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
 					>
 						<span className="text-[#545757] dark:text-[#cccccc]">{pool[0]}</span>
 						<span className="font-jetbrains">{props.formatPrice(pool[2])}</span>
@@ -1109,7 +1109,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 	return (
 		<>
 			{props.tokenCGData?.marketCap?.current ? (
-				<p className="group flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 					<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
 					<Flag
 						protocol={props.name}
@@ -1123,7 +1123,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 			{props.tokenCGData?.price?.current ? (
 				props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
 					<details className="group">
-						<summary className="flex flex-wrap justify-start gap-4 border-b border-(cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+						<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 							<span className="text-[#545757] dark:text-[#cccccc]">{`${
 								props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 							} Price`}</span>
@@ -1142,7 +1142,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 							<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.price.current)}</span>
 						</summary>
 						<div className="flex flex-col mb-3">
-							<p className="flex items-center justify-between gap-1 border-b border-dashed border-(cards-border) group-last:border-none py-1">
+							<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
 								<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
 								<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.price.ath)}</span>
 							</p>
@@ -1153,7 +1153,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 						</div>
 					</details>
 				) : (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">{`${
 							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 						} Price`}</span>
@@ -1168,7 +1168,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				)
 			) : null}
 			{props.tokenCGData?.fdv?.current ? (
-				<p className="group flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 					<Tooltip
 						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
 						content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
@@ -1186,7 +1186,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 			) : null}
 			{props.tokenCGData.volume24h?.total ? (
 				<details className="group">
-					<summary className="flex flex-wrap justify-start gap-4 border-b border-(cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+					<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 						<span className="text-[#545757] dark:text-[#cccccc]">{`${
 							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 						} Volume 24h`}</span>
@@ -1205,7 +1205,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 						<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.volume24h.total)}</span>
 					</summary>
 					<div className="flex flex-col mb-3">
-						<p className="flex items-center justify-between gap-1 border-b border-dashed border-(cards-border) group-last:border-none py-1">
+						<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
 							<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
 							<span className="font-jetbrains">
 								{props.tokenCGData.volume24h.cex ? props.formatPrice(props.tokenCGData.volume24h.cex) : '-'}
@@ -1249,7 +1249,7 @@ const SmolStats = ({
 
 	if (data.length === 1) {
 		return (
-			<p className="group flex flex-wrap justify-start gap-4 border-b border-(cards-border) last:border-none py-1">
+			<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 				{data[0].tooltipContent ? (
 					<Tooltip
 						content={data[0].tooltipContent}
@@ -1273,7 +1273,7 @@ const SmolStats = ({
 
 	return (
 		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 				{data[0].tooltipContent ? (
 					<Tooltip
 						content={data[0].tooltipContent}
@@ -1301,7 +1301,7 @@ const SmolStats = ({
 			<div className="flex flex-col mb-3">
 				{data.slice(1).map((metric) => (
 					<p
-						className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(cards-border) last:border-none py-1"
+						className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1"
 						key={`${metric.name}-${metric.value}-${protocolName}`}
 					>
 						{metric.tooltipContent ? (
@@ -1327,7 +1327,7 @@ function Users(props: IProtocolOverviewPageData) {
 	if (!users) return null
 	return (
 		<div>
-			<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4">
+			<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 				<Tooltip
 					content="This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
 					className="font-semibold underline decoration-dotted mr-auto"
@@ -1337,25 +1337,25 @@ function Users(props: IProtocolOverviewPageData) {
 				</Tooltip>
 				<div className="flex flex-col">
 					{users.activeUsers != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 							<span className="text-[#545757] dark:text-[#cccccc]">Active Addresses (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.activeUsers, false)}</span>
 						</p>
 					) : null}
 					{users.newUsers != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 							<span className="text-[#545757] dark:text-[#cccccc]">New Addresses (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.newUsers, false)}</span>
 						</p>
 					) : null}
 					{users.transactions != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 							<span className="text-[#545757] dark:text-[#cccccc]">Transactions (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.transactions, false)}</span>
 						</p>
 					) : null}
 					{users.gasUsd != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 							<span className="text-[#545757] dark:text-[#cccccc]">Gas Used (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.gasUsd, true)}</span>
 						</p>
@@ -1370,7 +1370,7 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 	if (!props.treasury) return null
 	return (
 		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 				<span className="text-[#545757] dark:text-[#cccccc]">Treasury</span>
 				<Icon
 					name="chevron-down"
@@ -1388,7 +1388,7 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 			</summary>
 			<div className="flex flex-col mb-3">
 				{props.treasury.majors ? (
-					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(cards-border) group-last:border-none py-1">
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
 						<span className="text-[#545757] dark:text-[#cccccc]">
 							<Tooltip content="BTC, ETH" className="underline decoration-dotted">
 								Majors
@@ -1398,19 +1398,19 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 					</p>
 				) : null}
 				{props.treasury.stablecoins ? (
-					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(cards-border) group-last:border-none py-1">
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
 						<span className="text-[#545757] dark:text-[#cccccc]">Stablecoins</span>
 						<span className="font-jetbrains">{formattedNum(props.treasury.stablecoins, true)}</span>
 					</p>
 				) : null}
 				{props.treasury.ownTokens ? (
-					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(cards-border) group-last:border-none py-1">
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
 						<span className="text-[#545757] dark:text-[#cccccc]">Own Tokens</span>
 						<span className="font-jetbrains">{formattedNum(props.treasury.ownTokens, true)}</span>
 					</p>
 				) : null}
 				{props.treasury.others ? (
-					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(cards-border) group-last:border-none py-1">
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
 						<span className="text-[#545757] dark:text-[#cccccc]">Others</span>
 						<span className="font-jetbrains">{formattedNum(props.treasury.others, true)}</span>
 					</p>
@@ -1424,7 +1424,7 @@ const Raises = (props: IProtocolOverviewPageData) => {
 	if (!props.raises) return null
 	return (
 		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 				<span className="text-[#545757] dark:text-[#cccccc]">Total Raised</span>
 				<Icon
 					name="chevron-down"
@@ -1445,7 +1445,7 @@ const Raises = (props: IProtocolOverviewPageData) => {
 			<div className="flex flex-col mb-3">
 				{props.raises.map((raise) => (
 					<p
-						className="flex flex-col gap-1 border-b border-dashed border-(cards-border) group-last:border-none py-1"
+						className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
 						key={`${raise.date}-${raise.amount}-${props.name}`}
 					>
 						<span className="flex flex-wrap justify-between">
@@ -1509,7 +1509,7 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 
 const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 	return (
-		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4 col-span-1">
+		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4 col-span-1">
 			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="protocol-information">
 				Protocol Information
 				<a
@@ -1592,7 +1592,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 }
 const Methodology = (props: IProtocolOverviewPageData) => {
 	return (
-		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4 col-span-1">
+		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4 col-span-1">
 			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="methodology">
 				Methodology
 				<a
@@ -1715,7 +1715,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 	const unlocks = props.unlocks
 	if (!unlocks) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="unlocks">
 				Unlocks
 				<a
@@ -1729,9 +1729,9 @@ function Unlocks(props: IProtocolOverviewPageData) {
 			<div className="flex flex-col">
 				{unlocks.recent ? (
 					<div className="flex flex-col gap-1">
-						<h3 className="py-1 border-b border-(cards-border)">Last unlock event</h3>
+						<h3 className="py-1 border-b border-(--cards-border)">Last unlock event</h3>
 						<p className="flex items-center justify-between gap-4">
-							<span className="bg-(--app-bg) rounded-md px-2 py-1 border border-(cards-border)">
+							<span className="bg-(--app-bg) rounded-md px-2 py-1 border border-(--cards-border)">
 								{unlocks.recent.timestamp}
 							</span>
 							<span className="font-jetbrains">{formattedNum(unlocks.recent.amount)}</span>
@@ -1740,9 +1740,9 @@ function Unlocks(props: IProtocolOverviewPageData) {
 				) : null}
 				{unlocks.upcoming ? (
 					<div className="flex flex-col gap-1">
-						<h3 className="py-1 border-b border-(cards-border)">Upcoming unlock event</h3>
+						<h3 className="py-1 border-b border-(--cards-border)">Upcoming unlock event</h3>
 						<p className="flex items-center justify-between gap-4">
-							<span className="bg-(--app-bg) rounded-md px-2 py-1 border border-(cards-border)">
+							<span className="bg-(--app-bg) rounded-md px-2 py-1 border border-(--cards-border)">
 								{unlocks.upcoming.timestamp}
 							</span>
 							<span className="font-jetbrains">{formattedNum(unlocks.upcoming.amount)}</span>
@@ -1758,7 +1758,7 @@ function Governance(props: IProtocolOverviewPageData) {
 	const governance = props.governance
 	if (!governance) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="governance">
 				Governance
 				<a
@@ -1770,11 +1770,11 @@ function Governance(props: IProtocolOverviewPageData) {
 				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col gap-1">
-				<h3 className="py-1 border-b border-(cards-border)">Last proposal</h3>
+				<h3 className="py-1 border-b border-(--cards-border)">Last proposal</h3>
 				<p className="flex items-center justify-between gap-4">
 					<span>{governance.lastProposal.title}</span>
 					<span
-						className={`bg-(--app-bg) rounded-md text-xs px-2 py-1 border border-(cards-border) text-(--pct-green) ${
+						className={`bg-(--app-bg) rounded-md text-xs px-2 py-1 border border-(--cards-border) text-(--pct-green) ${
 							governance.lastProposal.status === 'Passed' ? 'text-(--pct-green)' : 'text-(--pct-red)'
 						}`}
 					>
@@ -1790,7 +1790,7 @@ function Yields(props: IProtocolOverviewPageData) {
 	const yields = props.yields
 	if (!yields) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="yields">
 				Yields
 				<a
@@ -1802,11 +1802,11 @@ function Yields(props: IProtocolOverviewPageData) {
 				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div>
-				<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 					<span className="text-[#545757] dark:text-[#cccccc]">Pools Tracked</span>
 					<span className="font-jetbrains">{yields.noOfPoolsTracked}</span>
 				</p>
-				<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 					<span className="text-[#545757] dark:text-[#cccccc]">Average APY</span>
 					<span className="font-jetbrains">{formattedNum(yields.averageAPY, false)}%</span>
 				</p>
@@ -1826,7 +1826,7 @@ function DevActivity(props: IProtocolOverviewPageData) {
 	const devActivity = props.devMetrics
 	if (!devActivity) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 			<div>
 				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="dev-activity">
 					Development Activity
@@ -1846,31 +1846,31 @@ function DevActivity(props: IProtocolOverviewPageData) {
 			</div>
 			<div className="flex flex-col">
 				{devActivity.weeklyCommits != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Weekly commits</span>
 						<span className="font-jetbrains">{devActivity.weeklyCommits}</span>
 					</p>
 				) : null}
 				{devActivity.monthlyCommits != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Monthly commits</span>
 						<span className="font-jetbrains">{devActivity.monthlyCommits}</span>
 					</p>
 				) : null}
 				{devActivity.weeklyDevelopers != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Weekly developers</span>
 						<span className="font-jetbrains">{devActivity.weeklyDevelopers}</span>
 					</p>
 				) : null}
 				{devActivity.monthlyDevelopers != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Monthly developers</span>
 						<span className="font-jetbrains">{devActivity.monthlyDevelopers}</span>
 					</p>
 				) : null}
 				{devActivity.lastCommit != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 						<span className="text-[#545757] dark:text-[#cccccc]">Last commit</span>
 						<span className="font-jetbrains">{`${dayjs(devActivity.lastCommit).format('DD/MM/YY')} (${dayjs(
 							devActivity.lastCommit
@@ -1885,7 +1885,7 @@ function DevActivity(props: IProtocolOverviewPageData) {
 const Hacks = (props: IProtocolOverviewPageData) => {
 	if (!props.hacks?.length) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="hacks">
 				Hacks
 				<a
@@ -1900,7 +1900,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 				{props.hacks.map((hack) => (
 					<div
 						key={`${props.name}-hack-${hack.date}`}
-						className="flex flex-col gap-1 border-b border-(cards-border) last:border-none py-2 first:pt-0 last:pb-0"
+						className="flex flex-col gap-1 border-b border-(--cards-border) last:border-none py-2 first:pt-0 last:pb-0"
 					>
 						{hack.date ? (
 							<p>
@@ -1963,7 +1963,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 const Competitors = (props: IProtocolOverviewPageData) => {
 	if (!props.competitors?.length) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4">
+		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="competitors">
 				Competitors
 				<a
@@ -2058,7 +2058,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		return props.incomeStatement
 	}, [groupBy, props.incomeStatement.monthDates])
 	return (
-		<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(cards-border) rounded-md p-2 xl:p-4">
+		<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 			<div className="flex flex-wrap items-center justify-between gap-1">
 				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="income-statement">
 					Income Statement for {props.name}

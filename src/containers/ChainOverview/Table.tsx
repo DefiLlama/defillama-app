@@ -392,47 +392,57 @@ export const ChainProtocolsTable = ({
 	}
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md border border-(cards-border) isolate">
-			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
-				<h3 className="text-lg font-semibold mr-auto">Protocol Rankings</h3>
-				<TagGroup
-					setValue={setFilter('category')}
-					selectedValue={filterState}
-					values={Object.values(TABLE_CATEGORIES) as Array<string>}
-				/>
-				<TagGroup
-					setValue={setFilter('period')}
-					selectedValue={filterState}
-					values={Object.values(TABLE_PERIODS) as Array<string>}
-				/>
-				<SelectWithCombobox
-					allValues={mergedColumns}
-					selectedValues={selectedColumns}
-					setSelectedValues={addColumn}
-					selectOnlyOne={addOnlyOneColumn}
-					toggleAll={toggleAllColumns}
-					clearAll={clearAllColumns}
-					nestedMenu={false}
-					label={'Columns'}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
-					customFooter={
-						<button
-							className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-(--btn-bg) hover:bg-(--btn-hover-bg) text-(--text1) text-xs font-medium border border-(--form-control-border)"
-							onClick={handleAddCustomColumn}
-							type="button"
-						>
-							<Icon name="plus" height={16} width={16} />
-							Add Custom Column
-						</button>
-					}
-					onEditCustomColumn={handleEditCustomColumn}
-					onDeleteCustomColumn={handleDeleteCustomColumn}
-				/>
-				<TVLRange variant="third" />
+		<div className="bg-(--cards-bg) rounded-md border border-(--cards-border) isolate">
+			<div className="flex items-center gap-2 p-3 flex-wrap">
+				<div className="text-lg font-semibold flex grow w-full md:w-auto">Protocol Rankings</div>
+
+				<div className="flex items-center gap-2 max-md:w-full max-sm:flex-col">
+					<TagGroup
+						setValue={setFilter('category')}
+						selectedValue={filterState}
+						values={Object.values(TABLE_CATEGORIES) as Array<string>}
+						className="max-sm:w-full"
+						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+					/>
+					<TagGroup
+						setValue={setFilter('period')}
+						selectedValue={filterState}
+						values={Object.values(TABLE_PERIODS) as Array<string>}
+						className="max-sm:w-full"
+						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+					/>
+
+					<div className="flex items-center gap-2 w-full sm:w-auto">
+						<SelectWithCombobox
+							allValues={mergedColumns}
+							selectedValues={selectedColumns}
+							setSelectedValues={addColumn}
+							selectOnlyOne={addOnlyOneColumn}
+							toggleAll={toggleAllColumns}
+							clearAll={clearAllColumns}
+							nestedMenu={false}
+							label={'Columns'}
+							labelType="smol"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+							}}
+							customFooter={
+								<button
+									className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-(--btn-bg) hover:bg-(--btn-hover-bg) text-(--text1) text-xs font-medium border border-(--form-control-border)"
+									onClick={handleAddCustomColumn}
+									type="button"
+								>
+									<Icon name="plus" height={16} width={16} />
+									Add Custom Column
+								</button>
+							}
+							onEditCustomColumn={handleEditCustomColumn}
+							onDeleteCustomColumn={handleDeleteCustomColumn}
+						/>
+						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+					</div>
+				</div>
 			</div>
 			<VirtualTable instance={instance} />
 			<CustomColumnModal

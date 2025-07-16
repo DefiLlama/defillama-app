@@ -464,6 +464,11 @@
 		@apply rounded-none text-inherit;
 	}
 
+	/* Dark mode calendar picker indicator */
+	html.dark input[type='date']::-webkit-calendar-picker-indicator {
+		filter: invert(1) brightness(0.8) contrast(0.8);
+	}
+
 	img,
 	picture,
 	video,
