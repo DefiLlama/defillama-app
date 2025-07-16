@@ -315,6 +315,18 @@ export async function getProtocolsByCategory({
 
 	const startIndex = chart.findIndex(([date, tvl]) => tvl != null)
 
+	let fees7d = 0
+	let revenue7d = 0
+	let dexVolume7d = 0
+	let perpVolume7d = 0
+
+	for (const protocol of finalProtocols) {
+		fees7d += protocol.fees?.total7d ?? 0
+		revenue7d += protocol.revenue?.total7d ?? 0
+		dexVolume7d += protocol.dexVolume?.total7d ?? 0
+		perpVolume7d += protocol.perpVolume?.total7d ?? 0
+	}
+
 	return {
 		charts: {
 			TVL: {
@@ -335,10 +347,10 @@ export async function getProtocolsByCategory({
 				.map((c) => c[0])
 				.map((c) => ({ label: c, to: `/protocols/${category}/${c}` }))
 		],
-		fees24h: feesData?.total24h ?? null,
-		revenue24h: revenueData?.total24h ?? null,
-		dexVolume24h: dexVolumeData?.total24h ?? null,
-		perpVolume24h: perpVolumeData?.total24h ?? null,
+		fees7d: fees7d > 0 ? fees7d : null,
+		revenue7d: revenue7d > 0 ? revenue7d : null,
+		dexVolume7d: dexVolume7d > 0 ? dexVolume7d : null,
+		perpVolume7d: perpVolume7d > 0 ? perpVolume7d : null,
 		extraTvlCharts
 	}
 }
