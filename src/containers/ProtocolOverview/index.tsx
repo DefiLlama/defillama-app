@@ -385,13 +385,16 @@ function Fees(props: IKeyMetricsProps) {
 	if (!feesExists) return null
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
+	const bribeRevenue7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
 	const bribeRevenueAllTime = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
 	const tokenTax24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
+	const tokenTax7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
 	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
 	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
 
 	const fees24h = feesExists ? (fees?.total24h ?? 0) + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
+	const fees7d = feesExists ? (fees?.total7d ?? 0) + (bribeRevenue7d ?? 0) + (tokenTax7d ?? 0) : null
 	const fees30d = feesExists ? (fees?.total30d ?? 0) + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
 	const feesAllTime = feesExists
 		? (fees?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
@@ -411,6 +414,14 @@ function Fees(props: IKeyMetricsProps) {
 			name: 'Fees 30d',
 			tooltipContent: 'Total fees paid by users in the last 30 days, updated daily at 00:00UTC',
 			value: fees30d
+		})
+	}
+
+	if (fees7d != null) {
+		metrics.push({
+			name: 'Fees 7d',
+			tooltipContent: 'Total fees paid by users in the last 7 days, updated daily at 00:00UTC',
+			value: fees7d
 		})
 	}
 
@@ -452,13 +463,16 @@ function Revenue(props: IKeyMetricsProps) {
 	if (!revenueExists) return null
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
+	const bribeRevenue7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
 	const bribeRevenueAllTime = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
 	const tokenTax24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
+	const tokenTax7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
 	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
 	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
 
 	const revenue24h = revenueExists ? (revenue?.total24h ?? 0) + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
+	const revenue7d = revenueExists ? (revenue?.total7d ?? 0) + (bribeRevenue7d ?? 0) + (tokenTax7d ?? 0) : null
 	const revenue30d = revenueExists ? (revenue?.total30d ?? 0) + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
 	const revenueAllTime = revenueExists
 		? (revenue?.totalAllTime ?? 0) + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0)
@@ -478,6 +492,14 @@ function Revenue(props: IKeyMetricsProps) {
 			name: 'Revenue 30d',
 			tooltipContent: 'Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC',
 			value: revenue30d
+		})
+	}
+
+	if (revenue7d != null) {
+		metrics.push({
+			name: 'Revenue 7d',
+			tooltipContent: 'Total revenue earned by the protocol in the last 7 days, updated daily at 00:00UTC',
+			value: revenue7d
 		})
 	}
 
@@ -518,14 +540,19 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 	if (!holdersRevenueExists) return null
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
+	const bribeRevenue7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
 	const bribeRevenueAllTime = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
 	const tokenTax24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
+	const tokenTax7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
 	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
 	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
 
 	const holdersRevenue24h = holdersRevenueExists
 		? (holdersRevenue?.total24h ?? 0) + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0)
+		: null
+	const holdersRevenue7d = holdersRevenueExists
+		? (holdersRevenue?.total7d ?? 0) + (bribeRevenue7d ?? 0) + (tokenTax7d ?? 0)
 		: null
 	const holdersRevenue30d = holdersRevenueExists
 		? (holdersRevenue?.total30d ?? 0) + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0)
@@ -549,6 +576,15 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 			tooltipContent:
 				"Total revenue that is distributed to protocol's token holders in the last 30 days, updated daily at 00:00UTC",
 			value: holdersRevenue30d
+		})
+	}
+
+	if (holdersRevenue7d != null) {
+		metrics.push({
+			name: 'Holders Revenue 7d',
+			tooltipContent:
+				"Total revenue that is distributed to protocol's token holders in the last 7 days, updated daily at 00:00UTC",
+			value: holdersRevenue7d
 		})
 	}
 
@@ -599,6 +635,14 @@ function Incentives(props: IKeyMetricsProps) {
 		})
 	}
 
+	if (props.incentives.emissions7d != null) {
+		metrics.push({
+			name: 'Incentives 7d',
+			tooltipContent: 'Total incentives distributed by the protocol in the last 7 days, updated daily at 00:00UTC',
+			value: props.incentives.emissions7d
+		})
+	}
+
 	if (props.incentives.emissions24h != null) {
 		metrics.push({
 			name: 'Incentives 24h',
@@ -634,19 +678,24 @@ function Earnings(props: IKeyMetricsProps) {
 	const incentivesData = props.incentives
 
 	const bribeRevenue24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
+	const bribeRevenue7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
 	const bribeRevenue30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
 	const bribeRevenueAllTime = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
 	const tokenTax24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
+	const tokenTax7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
 	const tokenTax30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
 	const tokenTaxAllTime = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
 
 	const revenue24h = revenue?.total24h != null ? revenue.total24h + (bribeRevenue24h ?? 0) + (tokenTax24h ?? 0) : null
+	const revenue7d = revenue?.total7d != null ? revenue.total7d + (bribeRevenue7d ?? 0) + (tokenTax7d ?? 0) : null
 	const revenue30d = revenue?.total30d != null ? revenue.total30d + (bribeRevenue30d ?? 0) + (tokenTax30d ?? 0) : null
 	const revenueAllTime =
 		revenue?.totalAllTime != null ? revenue.totalAllTime + (bribeRevenueAllTime ?? 0) + (tokenTaxAllTime ?? 0) : null
 
 	const earnings24h =
 		revenue24h != null && incentivesData?.emissions24h != null ? revenue24h - incentivesData.emissions24h : null
+	const earnings7d =
+		revenue7d != null && incentivesData?.emissions7d != null ? revenue7d - incentivesData.emissions7d : null
 	const earnings30d =
 		revenue30d != null && incentivesData?.emissions30d != null ? revenue30d - incentivesData.emissions30d : null
 	const earningsAllTime =
@@ -671,6 +720,15 @@ function Earnings(props: IKeyMetricsProps) {
 			tooltipContent:
 				'Total earnings (revenue - incentives) of the protocol in the last 30 days, updated daily at 00:00UTC',
 			value: earnings30d
+		})
+	}
+
+	if (earnings7d != null) {
+		metrics.push({
+			name: 'Earnings 7d',
+			tooltipContent:
+				'Total earnings (revenue - incentives) of the protocol in the last 7 days, updated daily at 00:00UTC',
+			value: earnings7d
 		})
 	}
 
@@ -709,6 +767,9 @@ function DexVolume(props: IKeyMetricsProps) {
 	if (props.dexVolume.total30d != null) {
 		metrics.push({ name: 'DEX Volume 30d', tooltipContent: null, value: props.dexVolume.total30d })
 	}
+	if (props.dexVolume.total7d != null) {
+		metrics.push({ name: 'DEX Volume 7d', tooltipContent: null, value: props.dexVolume.total7d })
+	}
 	if (props.dexVolume.total24h != null) {
 		metrics.push({ name: 'DEX Volume 24h', tooltipContent: null, value: props.dexVolume.total24h })
 	}
@@ -733,6 +794,9 @@ function DexAggregatorVolume(props: IKeyMetricsProps) {
 
 	if (props.dexAggregatorVolume.total30d != null) {
 		metrics.push({ name: 'DEX Aggregator Volume 30d', tooltipContent: null, value: props.dexAggregatorVolume.total30d })
+	}
+	if (props.dexAggregatorVolume.total7d != null) {
+		metrics.push({ name: 'DEX Aggregator Volume 7d', tooltipContent: null, value: props.dexAggregatorVolume.total7d })
 	}
 	if (props.dexAggregatorVolume.total24h != null) {
 		metrics.push({ name: 'DEX Aggregator Volume 24h', tooltipContent: null, value: props.dexAggregatorVolume.total24h })
@@ -762,6 +826,9 @@ function PerpVolume(props: IKeyMetricsProps) {
 
 	if (props.perpVolume.total30d != null) {
 		metrics.push({ name: 'Perp Volume 30d', tooltipContent: null, value: props.perpVolume.total30d })
+	}
+	if (props.perpVolume.total7d != null) {
+		metrics.push({ name: 'Perp Volume 7d', tooltipContent: null, value: props.perpVolume.total7d })
 	}
 	if (props.perpVolume.total24h != null) {
 		metrics.push({ name: 'Perp Volume 24h', tooltipContent: null, value: props.perpVolume.total24h })
@@ -794,6 +861,13 @@ function PerpAggregatorVolume(props: IKeyMetricsProps) {
 			name: 'Perp Aggregator Volume 30d',
 			tooltipContent: null,
 			value: props.perpAggregatorVolume.total30d
+		})
+	}
+	if (props.perpAggregatorVolume.total7d != null) {
+		metrics.push({
+			name: 'Perp Aggregator Volume 7d',
+			tooltipContent: null,
+			value: props.perpAggregatorVolume.total7d
 		})
 	}
 	if (props.perpAggregatorVolume.total24h != null) {
@@ -833,6 +907,13 @@ function BridgeAggregatorVolume(props: IKeyMetricsProps) {
 			value: props.bridgeAggregatorVolume.total30d
 		})
 	}
+	if (props.bridgeAggregatorVolume.total7d != null) {
+		metrics.push({
+			name: 'Bridge Aggregator Volume 7d',
+			tooltipContent: null,
+			value: props.bridgeAggregatorVolume.total7d
+		})
+	}
 	if (props.bridgeAggregatorVolume.total24h != null) {
 		metrics.push({
 			name: 'Bridge Aggregator Volume 24h',
@@ -865,9 +946,11 @@ function BridgeVolume(props: IKeyMetricsProps) {
 
 	const now = Date.now()
 	const oneDayAgo = now - 24 * 60 * 60 * 1000
+	const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000
 	const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
 
 	let total24h = 0
+	let total7d = 0
 	let total30d = 0
 	let totalAllTime = 0
 
@@ -881,6 +964,10 @@ function BridgeVolume(props: IKeyMetricsProps) {
 			total30d += volume
 		}
 
+		if (timestamp >= sevenDaysAgo) {
+			total7d += volume
+		}
+
 		if (timestamp >= oneDayAgo) {
 			total24h += volume
 		}
@@ -891,6 +978,13 @@ function BridgeVolume(props: IKeyMetricsProps) {
 			name: 'Bridge Volume 30d',
 			tooltipContent: null,
 			value: total30d
+		})
+	}
+	if (total7d > 0) {
+		metrics.push({
+			name: 'Bridge Volume 7d',
+			tooltipContent: null,
+			value: total7d
 		})
 	}
 	if (total24h > 0) {
@@ -930,6 +1024,13 @@ function OptionsPremiumVolume(props: IKeyMetricsProps) {
 			value: props.optionsPremiumVolume.total30d
 		})
 	}
+	if (props.optionsPremiumVolume.total7d != null) {
+		metrics.push({
+			name: 'Options Premium Volume 7d',
+			tooltipContent: null,
+			value: props.optionsPremiumVolume.total7d
+		})
+	}
 	if (props.optionsPremiumVolume.total24h != null) {
 		metrics.push({
 			name: 'Options Premium Volume 24h',
@@ -965,6 +1066,13 @@ function OptionsNotionalVolume(props: IKeyMetricsProps) {
 			name: 'Options Notional Volume 30d',
 			tooltipContent: null,
 			value: props.optionsNotionalVolume.total30d
+		})
+	}
+	if (props.optionsNotionalVolume.total7d != null) {
+		metrics.push({
+			name: 'Options Notional Volume 7d',
+			tooltipContent: null,
+			value: props.optionsNotionalVolume.total7d
 		})
 	}
 	if (props.optionsNotionalVolume.total24h != null) {

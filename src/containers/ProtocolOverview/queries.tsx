@@ -989,6 +989,7 @@ function formatAdapterData({
 	otherProtocols?: string[]
 }): {
 	total24h: number | null
+	total7d: number | null
 	total30d: number | null
 	totalAllTime: number | null
 	methodologyURLs?: Record<string, string>
@@ -1008,12 +1009,14 @@ function formatAdapterData({
 		}
 
 		let total24h = 0
+		let total7d = 0
 		let total30d = 0
 		let totalAllTime = 0
 
 		const childMethodologies = []
 		for (const childProtocol of childProtocols) {
 			total24h += childProtocol.total24h ?? 0
+			total7d += childProtocol.total7d ?? 0
 			total30d += childProtocol.total30d ?? 0
 			totalAllTime += childProtocol.totalAllTime ?? 0
 
@@ -1032,6 +1035,7 @@ function formatAdapterData({
 
 		return {
 			total24h,
+			total7d,
 			total30d,
 			totalAllTime,
 			...(areMethodologiesDifferent
@@ -1051,6 +1055,7 @@ function formatAdapterData({
 
 	return {
 		total24h: adapterProtocol.total24h ?? null,
+		total7d: adapterProtocol.total7d ?? null,
 		total30d: adapterProtocol.total30d ?? null,
 		totalAllTime: adapterProtocol.totalAllTime ?? null,
 		methodology: methodologyKey
