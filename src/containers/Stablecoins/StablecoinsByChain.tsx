@@ -413,7 +413,12 @@ const tokenColors = {
 	DAI: '#F4B731',
 	USDe: '#3A3A3A',
 	BUIDL: '#111111',
-	USD1: '#E7AC08'
+	USD1: '#D2B48C',
+	USDS: '#E67E22',
+	PYUSD: '#4A90E2',
+	USDTB: '#C0C0C0',
+	FDUSD: '#00FF00',
+	Others: '#FF1493'
 }
 
 export default PeggedAssetsOverview
