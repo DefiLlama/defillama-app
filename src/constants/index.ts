@@ -135,8 +135,6 @@ export const CG_TOKEN_API =
 
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
-export const ICONS_PALETTE_CDN = 'https://icons.llamao.fi/palette'
-// export const ICONS_PALETTE_CDN = 'https://palette.llamao.fi/palette'
 
 export const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
 export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
