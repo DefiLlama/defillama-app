@@ -26,7 +26,6 @@ const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as Re
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-// TODO: chart colors by stablecoins logo
 function PeggedAssetsOverview({
 	selectedChain = 'All',
 	chains = [],
@@ -323,6 +322,7 @@ function PeggedAssetsOverview({
 								valueSymbol="$"
 								hideDefaultLegend={true}
 								hideGradient={true}
+								stackColors={tokenColors}
 							/>
 						</React.Suspense>
 					)}
@@ -336,12 +336,13 @@ function PeggedAssetsOverview({
 								hideDefaultLegend={true}
 								hideGradient={true}
 								expandTo100Percent={true}
+								stackColors={tokenColors}
 							/>
 						</React.Suspense>
 					)}
 					{chartType === 'Pie' && (
 						<React.Suspense fallback={<></>}>
-							<PieChart chartData={chainsCirculatingValues} />
+							<PieChart chartData={chainsCirculatingValues} stackColors={tokenColors} />
 						</React.Suspense>
 					)}
 					{chartType === 'Token Inflows' && tokenInflows && (
@@ -354,6 +355,7 @@ function PeggedAssetsOverview({
 								customLegendOptions={tokenInflowNames}
 								key={tokenInflowNames} // escape hatch to rerender state in legend options
 								chartOptions={inflowsChartOptions}
+								stackColors={tokenColors}
 							/>
 						</React.Suspense>
 					)}
@@ -403,6 +405,20 @@ const inflowsChartOptions = {
 	overrides: {
 		inflow: true
 	}
+}
+
+const tokenColors = {
+	USDT: '#009393',
+	USDC: '#0B53BF',
+	DAI: '#F4B731',
+	USDe: '#3A3A3A',
+	BUIDL: '#111111',
+	USD1: '#D2B48C',
+	USDS: '#E67E22',
+	PYUSD: '#4A90E2',
+	USDTB: '#C0C0C0',
+	FDUSD: '#00FF00',
+	Others: '#FF1493'
 }
 
 export default PeggedAssetsOverview

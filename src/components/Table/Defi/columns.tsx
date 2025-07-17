@@ -32,7 +32,6 @@ import type {
 	ILSDRow
 } from './types'
 import * as Ariakit from '@ariakit/react'
-import { primaryColor } from '~/constants/colors'
 
 const UnconstrainedSmolLineChart = lazy(() =>
 	import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
@@ -71,7 +70,7 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 	{
 		header: 'TVL',
 		accessorKey: 'tvl',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		meta: {
 			align: 'end'
 		}
@@ -237,7 +236,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		sortUndefined: 'last',
 		cell: ({ getValue }) => {
 			if (!getValue()) return null
-			return <>{'$' + formattedNum(getValue())}</>
+			return <>{formattedNum(getValue(), true)}</>
 		},
 		meta: {
 			align: 'end'
@@ -339,7 +338,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 
 			return (
 				<span className="flex flex-col gap-1">
-					{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}
+					{getValue() ? formattedNum((getValue() as number).toFixed(2), true) : ''}
 				</span>
 			)
 		},
@@ -708,7 +707,7 @@ export const cexColumn: ColumnDef<any>[] = [
 					{info.getValue() === undefined ? (
 						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 					) : (
-						'$' + formattedNum(info.getValue())
+						formattedNum(info.getValue(), true)
 					)}
 				</>
 			)
@@ -740,7 +739,7 @@ export const cexColumn: ColumnDef<any>[] = [
 									text={`This excludes all TVL from ${info.row.original.coinSymbol}, which is a token issued by this CEX`}
 								/>
 							)}
-							<span>{'$' + formattedNum(info.getValue())}</span>
+							<span>{formattedNum(info.getValue(), true)}</span>
 						</>
 					)}
 				</span>
@@ -760,14 +759,13 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		cell: (info) => (
 			<span
-				className="text-(--text1)"
-				style={
+				className={`${
 					(info.getValue() as number) < 0
-						? ({ '--text1': '#f85149' } as any)
+						? 'text-(--pct-red)'
 						: (info.getValue() as number) > 0
-						? { '--text1': '#3fb950' }
-						: {}
-				}
+						? 'text-(--pct-green)'
+						: ''
+				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
@@ -784,14 +782,13 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		cell: (info) => (
 			<span
-				className="text-(--text1)"
-				style={
+				className={`${
 					(info.getValue() as number) < 0
-						? ({ '--text1': '#f85149' } as any)
+						? 'text-(--pct-red)'
 						: (info.getValue() as number) > 0
-						? { '--text1': '#3fb950' }
-						: {}
-				}
+						? 'text-(--pct-green)'
+						: ''
+				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
@@ -808,14 +805,13 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		cell: (info) => (
 			<span
-				className="text-(--text1)"
-				style={
+				className={`${
 					(info.getValue() as number) < 0
-						? ({ '--text1': '#f85149' } as any)
+						? 'text-(--pct-red)'
 						: (info.getValue() as number) > 0
-						? { '--text1': '#3fb950' }
-						: {}
-				}
+						? 'text-(--pct-green)'
+						: ''
+				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
@@ -832,14 +828,13 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 200,
 		cell: (info) => (
 			<span
-				className="text-(--text1)"
-				style={
+				className={`${
 					(info.getValue() as number) < 0
-						? ({ '--text1': '#f85149' } as any)
+						? 'text-(--pct-red)'
 						: (info.getValue() as number) > 0
-						? { '--text1': '#3fb950' }
-						: {}
-				}
+						? 'text-(--pct-green)'
+						: ''
+				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
 			</span>
@@ -871,7 +866,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		header: 'Spot Volume',
 		accessorKey: 'spotVolume',
 		accessorFn: (row) => row.spotVolume ?? undefined,
-		cell: (info) => (info.getValue() ? '$' + formattedNum(info.getValue()) : null),
+		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
 		sortUndefined: 'last',
 		size: 125,
 		meta: {
@@ -882,7 +877,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		header: '24h Open Interest',
 		accessorKey: 'oi',
 		accessorFn: (row) => row.oi ?? undefined,
-		cell: (info) => (info.getValue() ? '$' + formattedNum(info.getValue()) : null),
+		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
 		sortUndefined: 'last',
 		size: 160,
 		meta: {
@@ -989,7 +984,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: 'TVL',
 		accessorKey: 'stakedEthInUsd',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1161,7 +1156,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 		accessorKey: 'flows',
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			const formattedValue = value !== null ? '$' + formattedNum(value) : null
+			const formattedValue = value !== null ? formattedNum(value, true) : null
 
 			return (
 				<span
@@ -1179,7 +1174,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 	{
 		header: 'AUM',
 		accessorKey: 'aum',
-		cell: ({ getValue }) => <>{getValue() !== null ? '$' + formattedNum(getValue()) : null}</>,
+		cell: ({ getValue }) => <>{getValue() !== null ? formattedNum(getValue(), true) : null}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1188,7 +1183,7 @@ export const ETFColumn: ColumnDef<IETFRow>[] = [
 	{
 		header: 'Volume',
 		accessorKey: 'volume',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1321,7 +1316,7 @@ export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1330,7 +1325,7 @@ export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
 		header: '24h Volume',
 		accessorKey: 'volume1D',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1381,7 +1376,7 @@ export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	{
 		header: 'Market Cap',
 		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		meta: {
 			align: 'end'
 		},
@@ -1390,7 +1385,7 @@ export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	{
 		header: '24h Volume',
 		accessorKey: 'volume1D',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
 		meta: {
 			align: 'end'
 		},

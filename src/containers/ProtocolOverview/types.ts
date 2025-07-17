@@ -107,6 +107,7 @@ export interface IUpdatedProtocol {
 
 interface IAdapterOverview {
 	total24h: number | null
+	total7d: number | null
 	total30d: number | null
 	totalAllTime: number | null
 	methodology?: string | null
@@ -253,7 +254,7 @@ export interface IHack {
 	classification: string
 	technique: string
 	amount: number
-	chain: Array<string>
+	chain?: Array<string>
 	bridgeHack: boolean
 	targetType: string
 	source: string

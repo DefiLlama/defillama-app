@@ -1077,7 +1077,7 @@ const columns: ColumnDef<IProtocol>[] = [
 						align: 'end',
 						headerHelperText: 'Total earnings (Revenue - Incentives) earned by the protocol since it was launched'
 					},
-					size: 150
+					size: 180
 				}
 			)
 		],

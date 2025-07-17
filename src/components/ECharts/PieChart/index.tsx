@@ -100,7 +100,7 @@ export default function PieChart({
 			tooltip: {
 				trigger: 'item',
 				confine: true,
-				valueFormatter: (value) => (usdFormat ? '$' + formattedNum(value) : formattedNum(value))
+				valueFormatter: (value) => (usdFormat ? formattedNum(value, true) : formattedNum(value))
 			},
 			grid: {
 				left: 0,

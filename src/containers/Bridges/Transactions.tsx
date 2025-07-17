@@ -82,9 +82,17 @@ const downloadTxs = async ({ bridges, startDate, endDate, selectedBridge }) => {
 }
 
 export const BridgeTransactionsPage = ({ bridges }) => {
+	const defaultEndDate = new Date()
+	const defaultStartDate = new Date(defaultEndDate)
+	defaultStartDate.setMonth(defaultEndDate.getMonth() - 1)
+
 	const { mutate, isPending, error } = useMutation({ mutationFn: downloadTxs })
+
 	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange, validateDateRange } =
-		useDateRangeValidation()
+		useDateRangeValidation({
+			initialStartDate: defaultStartDate.toISOString().split('T')[0],
+			initialEndDate: defaultEndDate.toISOString().split('T')[0]
+		})
 
 	const handleSubmit = (e) => {
 		e.preventDefault()

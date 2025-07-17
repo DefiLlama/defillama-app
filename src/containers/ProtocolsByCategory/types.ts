@@ -24,9 +24,9 @@ export interface IProtocolByCategoryPageData {
 	chains: Array<{ label: string; to: string }>
 	chain: string
 	charts: ILineAndBarChartProps['charts']
-	fees24h: number | null
-	revenue24h: number | null
-	dexVolume24h: number | null
-	perpVolume24h: number | null
+	fees7d: number | null
+	revenue7d: number | null
+	dexVolume7d: number | null
+	perpVolume7d: number | null
 	extraTvlCharts: Record<string, Record<string, number>>
 }

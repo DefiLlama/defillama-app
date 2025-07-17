@@ -245,11 +245,11 @@ export const UpcomingEvent = ({
 						<div className="flex space-x-2 items-center">
 							<div className="flex justify-between items-end" style={{ width: '150px' }}>
 								<div className="flex flex-col items-start">
-									<span className="text-white text-sm font-semibold">{formattedNum(tokenValue, true)}</span>
+									<span className="text-(--text1) text-sm font-semibold">{formattedNum(tokenValue, true)}</span>
 									<span className="text-(--text3) text-xs font-medium">Unlock Value</span>
 								</div>
 								<div className="flex flex-col items-end">
-									<span className="text-white text-sm font-semibold">{formattedNum(unlockPercentFloat)}%</span>
+									<span className="text-(--text1) text-sm font-semibold">{formattedNum(unlockPercentFloat)}%</span>
 									<span className="text-(--text3) text-xs font-medium">of float</span>
 								</div>
 							</div>
