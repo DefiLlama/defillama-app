@@ -336,7 +336,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		} = chartData || {}
 
 		const tvlAndFeesOptions = tvlOptions.filter((o) => chartData?.[o.key]?.length)
-		const extraTvlChart = {
+		const extraTvlCharts = {
 			staking: {},
 			borrowed: {},
 			pool2: {},
@@ -347,41 +347,41 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			dcAndLsOverlap: {}
 		}
 		for (const [date, totalLiquidityUSD] of staking) {
-			extraTvlChart.staking[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+			extraTvlCharts.staking[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 		for (const [date, totalLiquidityUSD] of borrowed) {
-			extraTvlChart.borrowed[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+			extraTvlCharts.borrowed[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 		for (const [date, totalLiquidityUSD] of pool2) {
-			extraTvlChart.pool2[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+			extraTvlCharts.pool2[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 		for (const [date, totalLiquidityUSD] of vesting) {
-			extraTvlChart.vesting[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+			extraTvlCharts.vesting[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 		for (const [date, totalLiquidityUSD] of offers) {
-			extraTvlChart.offers[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+			extraTvlCharts.offers[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 		for (const [date, totalLiquidityUSD] of doublecounted) {
-			extraTvlChart.doublecounted[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+			extraTvlCharts.doublecounted[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 		for (const [date, totalLiquidityUSD] of liquidstaking) {
-			extraTvlChart.liquidstaking[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+			extraTvlCharts.liquidstaking[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 		for (const [date, totalLiquidityUSD] of dcAndLsOverlap) {
-			extraTvlChart.dcAndLsOverlap[+date * 1e3] = Math.trunc(totalLiquidityUSD)
+			extraTvlCharts.dcAndLsOverlap[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 
 		// by default we should not include liquidstaking and doublecounted in the tvl chart, but include overlapping tvl so you dont subtract twice
 		const tvlChart = tvl.map(([date, totalLiquidityUSD]) => {
 			let sum = Math.trunc(totalLiquidityUSD)
-			if (extraTvlChart['liquidstaking']?.[+date * 1e3]) {
-				sum -= Math.trunc(extraTvlChart['liquidstaking'][+date * 1e3])
+			if (extraTvlCharts['liquidstaking']?.[+date * 1e3]) {
+				sum -= Math.trunc(extraTvlCharts['liquidstaking'][+date * 1e3])
 			}
-			if (extraTvlChart['doublecounted']?.[+date * 1e3]) {
-				sum -= Math.trunc(extraTvlChart['doublecounted'][+date * 1e3])
+			if (extraTvlCharts['doublecounted']?.[+date * 1e3]) {
+				sum -= Math.trunc(extraTvlCharts['doublecounted'][+date * 1e3])
 			}
-			if (extraTvlChart['dcAndLsOverlap']?.[+date * 1e3]) {
-				sum += Math.trunc(extraTvlChart['dcAndLsOverlap'][+date * 1e3])
+			if (extraTvlCharts['dcAndLsOverlap']?.[+date * 1e3]) {
+				sum += Math.trunc(extraTvlCharts['dcAndLsOverlap'][+date * 1e3])
 			}
 			return [+date * 1e3, sum]
 		}) as Array<[number, number]>
@@ -510,7 +510,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			metadata,
 			protocols,
 			tvlChart,
-			extraTvlChart,
+			extraTvlCharts,
 			chainTokenInfo:
 				chain !== 'All'
 					? {

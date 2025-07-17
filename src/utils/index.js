@@ -686,17 +686,3 @@ export function formatValue(value, formatType = 'auto') {
 	if (formatType === 'number') return formattedNum(value)
 	return String(value)
 }
-
-export const encodeChartKey = (chain, chart) => {
-	return `${chain} - ${chart}`
-}
-
-export const decodeChartKey = (key) => {
-	const result = key.split(' - ')
-
-	if (result.length === 1) {
-		return result[0]
-	}
-
-	return result[result.length - 1]
-}

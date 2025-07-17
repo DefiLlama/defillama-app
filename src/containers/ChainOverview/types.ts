@@ -26,7 +26,7 @@ export interface IChainOverviewData {
 	metadata: IChainMetadata
 	protocols: Array<IProtocol>
 	tvlChart: Array<[number, number]>
-	extraTvlChart: {
+	extraTvlCharts: {
 		staking: Record<string, number>
 		borrowed: Record<string, number>
 		pool2: Record<string, number>

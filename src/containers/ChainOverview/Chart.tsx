@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
-import { decodeChartKey, formattedNum, getRandomColor } from '~/utils'
+import { formattedNum, getRandomColor } from '~/utils'
 import {
 	ChainChartLabels,
 	BAR_CHARTS,
@@ -45,7 +45,7 @@ export default function ChainLineBarChart({
 		const stacks = Object.keys(chartData) as any
 
 		for (const stack of stacks) {
-			uniqueYAxis.add(yAxisByChart[decodeChartKey(stack)])
+			uniqueYAxis.add(yAxisByChart[stack])
 		}
 
 		const indexByYAxis = Object.fromEntries(
