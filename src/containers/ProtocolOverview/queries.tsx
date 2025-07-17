@@ -1202,25 +1202,25 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		const monthDates = new Set<number>()
 
 		for (const [date, value] of fees.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			const dateKey = +firstDayOfMonth(+date) * 1e3
 			feesByMonth[dateKey] = (feesByMonth[dateKey] ?? 0) + value
 			monthDates.add(dateKey)
 		}
 
 		for (const [date, value] of revenue.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			const dateKey = +firstDayOfMonth(+date) * 1e3
 			revenueByMonth[dateKey] = (revenueByMonth[dateKey] ?? 0) + value
 			monthDates.add(dateKey)
 		}
 
 		for (const [date, value] of holdersRevenue?.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			const dateKey = +firstDayOfMonth(+date) * 1e3
 			holdersRevenueByMonth[dateKey] = (holdersRevenueByMonth[dateKey] ?? 0) + value
 			monthDates.add(dateKey)
 		}
 
 		for (const [date, value] of incentives ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			const dateKey = +firstDayOfMonth(+date) * 1e3
 			incentivesByMonth[dateKey] = (incentivesByMonth[dateKey] ?? 0) + value
 			monthDates.add(dateKey)
 		}

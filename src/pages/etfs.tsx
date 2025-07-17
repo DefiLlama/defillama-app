@@ -90,8 +90,8 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 			const date = ['daily', 'cumulative'].includes(groupBy)
 				? flowDate
 				: groupBy === 'weekly'
-				? lastDayOfWeek(+flowDate * 1000)
-				: firstDayOfMonth(+flowDate * 1000)
+				? lastDayOfWeek(+flowDate)
+				: firstDayOfMonth(+flowDate)
 
 			bitcoin[date] = (bitcoin[date] || 0) + (flows[flowDate]['Bitcoin'] ?? 0) + totalBitcoin
 			if (flows[flowDate]['Ethereum']) {

@@ -69,14 +69,18 @@ export const AdapterByChainChart = ({
 
 			let cumulative = 0
 			for (const [date, value] of chartData) {
-				const finalDate =
-					chartInterval === 'Weekly'
-						? Number(lastDayOfWeek(date)) * 1e3
-						: chartInterval === 'Monthly'
-						? Number(firstDayOfMonth(date)) * 1e3
-						: date
-				data[finalDate] = data[finalDate] || 0
-				data[finalDate] += value
+				const dateInSec = date / 1e3
+				let normalizedDateInSec: number
+				if (chartInterval === 'Weekly') {
+					normalizedDateInSec = lastDayOfWeek(dateInSec)
+				} else if (chartInterval === 'Monthly') {
+					normalizedDateInSec = firstDayOfMonth(dateInSec)
+				} else {
+					normalizedDateInSec = dateInSec
+				}
+
+				const finalDate = normalizedDateInSec * 1e3
+				data[finalDate] = (data[finalDate] || 0) + value
 
 				if (chartInterval === 'Cumulative') {
 					data[finalDate] += cumulative
@@ -352,9 +356,9 @@ const getChartDataByChainAndInterval = ({
 	for (const date in chartData) {
 		const finalDate =
 			chartInterval === 'Weekly'
-				? lastDayOfWeek(+date * 1e3) * 1e3
+				? lastDayOfWeek(+date) * 1e3
 				: chartInterval === 'Monthly'
-				? firstDayOfMonth(+date * 1e3) * 1e3
+				? firstDayOfMonth(+date) * 1e3
 				: +date * 1e3
 
 		const topByDate = {}
