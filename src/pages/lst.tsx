@@ -403,7 +403,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 			pegInfo,
 			marketRate: lsd?.marketRate ?? null,
 			expectedRate: lsd?.expectedRate ?? null,
-			mcapOverTvl: mcaptvl ? mcaptvl.toFixed(2) : null,
+			mcapOverTvl: mcaptvl ? formattedNum(mcaptvl) : null,
 			apy: lsdApy.find((m) => m.name === p.name)?.apy ?? null,
 			fee: lsd?.fee > 0 ? lsd?.fee * 100 : null
 		}

@@ -20,7 +20,7 @@ import {
 } from '~/containers/DimensionAdapters/queries'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type {
 	IChainMetadata,
@@ -785,7 +785,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				tvl: protocol.tvl != null ? tvls : null,
 				tvlChange: protocol.tvl != null ? tvlChange : null,
 				mcap: protocol.mcap ?? null,
-				mcaptvl: protocol.mcap && tvls?.default?.tvl ? +(protocol.mcap / tvls.default.tvl).toFixed(2) : null,
+				mcaptvl: protocol.mcap && tvls?.default?.tvl ? +formattedNum(protocol.mcap / tvls.default.tvl) : null,
 				strikeTvl: toStrikeTvl(protocol, {
 					liquidstaking: tvls?.liquidstaking ? true : false,
 					doublecounted: tvls?.doublecounted ? true : false
@@ -942,7 +942,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				mcap: parentProtocol.mcap ?? null,
 				mcaptvl:
 					parentProtocol.mcap && parentTvl?.default?.tvl
-						? +(parentProtocol.mcap / parentTvl.default.tvl).toFixed(2)
+						? +formattedNum(parentProtocol.mcap / parentTvl.default.tvl)
 						: null
 			}
 

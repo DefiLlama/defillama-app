@@ -1,6 +1,6 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
-import { getPercentChange } from '~/utils'
+import { formattedNum, getPercentChange } from '~/utils'
 
 function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastOnceValue) {
 	if (curr[key] || curr[key] === 0) {
@@ -137,10 +137,10 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 
 	if (tvl) {
 		if (mcap) {
-			mcaptvl = +(mcap / tvl).toFixed(2)
+			mcaptvl = +formattedNum(mcap / tvl)
 		}
 		if (parent.mcap) {
-			mcaptvl = +(parent.mcap / tvl).toFixed(2)
+			mcaptvl = +formattedNum(parent.mcap / tvl)
 		}
 	}
 

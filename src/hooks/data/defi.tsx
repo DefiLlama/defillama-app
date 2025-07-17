@@ -1,7 +1,7 @@
 import { IOverviewProps } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
 import { removedCategories } from '~/constants'
-import { getDominancePercent, getPercentChange } from '~/utils'
+import { formattedNum, getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 import { IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
 
@@ -119,7 +119,7 @@ export function formatDataWithExtraTvls({
 		let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
 		let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-		const mcaptvl = mcap && finalTvl ? +(mcap / finalTvl).toFixed(2) : null
+		const mcaptvl = mcap && finalTvl ? +formattedNum(mcap / finalTvl) : null
 
 		let assets = null
 
@@ -312,7 +312,7 @@ export const formatProtocolsList = ({
 		let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
 		let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-		const mcaptvl = mcap && finalTvl ? +(mcap / finalTvl).toFixed(2) : null
+		const mcaptvl = mcap && finalTvl ? +formattedNum(mcap / finalTvl) : null
 
 		allProtocols[name?.toLowerCase()] = {
 			...props,
@@ -425,7 +425,7 @@ export const formatProtocolsList2 = ({
 				change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
 			}
 
-			const mcaptvl = protocol.mcap != null ? +(protocol.mcap / defaultTvl.tvl).toFixed(2) : null
+			const mcaptvl = protocol.mcap != null ? +formattedNum(protocol.mcap / defaultTvl.tvl) : null
 
 			if (protocol.childProtocols) {
 				const childProtocols = []
@@ -452,7 +452,7 @@ export const formatProtocolsList2 = ({
 						change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
 					}
 
-					const mcaptvl = child.mcap != null ? +(child.mcap / defaultTvl.tvl).toFixed(2) : null
+					const mcaptvl = child.mcap != null ? +formattedNum(child.mcap / defaultTvl.tvl) : null
 
 					if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
 						childProtocols.push({ ...child, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })

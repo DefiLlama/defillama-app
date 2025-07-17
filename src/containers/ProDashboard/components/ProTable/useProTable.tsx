@@ -30,7 +30,7 @@ interface CustomColumn {
 }
 
 import { TableFilters } from '../../types'
-import { getPercentChange } from '~/utils'
+import { formattedNum, getPercentChange } from '~/utils'
 import { Icon } from '~/components/Icon'
 
 // Helper function to recalculate parent protocol metrics based on filtered children
@@ -86,7 +86,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	// Calculate mcaptvl
 	let mcaptvl = null
 	if (tvl && mcap) {
-		mcaptvl = +(mcap / tvl).toFixed(2)
+		mcaptvl = +formattedNum(mcap / tvl)
 	}
 
 	return {
