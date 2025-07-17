@@ -538,16 +538,19 @@ export const getAdapterByChainPageData = async ({
 		.map((e) => [e.name, metadataCache.chainMetadata[slug(e.name)]?.gecko_id ?? null])
 		.filter((e) => (e[1] ? true : false))
 
-	const chainMcaps = await fetchJson(MCAPS_API, {
-		method: 'POST',
-		body: JSON.stringify({
-			coins: chains.map(([_, geckoId]) => `coingecko:${geckoId}`)
-		})
-	}).catch((err) => {
-		console.log('Failed to fetch mcaps by chain')
-		console.log(err)
-		return {}
-	})
+	const chainMcaps =
+		chains.length > 0
+			? await fetchJson(MCAPS_API, {
+					method: 'POST',
+					body: JSON.stringify({
+						coins: chains.map(([_, geckoId]) => `coingecko:${geckoId}`)
+					})
+			  }).catch((err) => {
+					console.log('Failed to fetch mcaps by chain')
+					console.log(err)
+					return {}
+			  })
+			: {}
 
 	const chainsMcap =
 		chains?.reduce((acc, [chain, geckoId]) => {
