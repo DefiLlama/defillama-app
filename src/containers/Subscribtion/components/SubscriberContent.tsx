@@ -94,7 +94,7 @@ export const SubscriberContent = ({
 								</div>
 							</div>
 							<a
-								href="https://defillama.com/pro-api/docs"
+								href="https://api-docs.defillama.com/"
 								target="_blank"
 								rel="noreferrer noopener"
 								className="px-4 py-2 bg-[#5C5CF9]/10 hover:bg-[#5C5CF9]/20 text-[#5C5CF9] rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"

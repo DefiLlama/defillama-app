@@ -542,6 +542,16 @@ const nextConfig = {
 				permanent: true
 			},
 			{
+				source: '/docs/api',
+				destination: 'https://api-docs.defillama.com/',
+				permanent: true
+			},
+			{
+				source: '/pro-api/docs',
+				destination: 'https://api-docs.defillama.com/',
+				permanent: true
+			},
+			{
 				source: '/net-protocol-treasury',
 				destination: '/net-project-treasury',
 				permanent: true

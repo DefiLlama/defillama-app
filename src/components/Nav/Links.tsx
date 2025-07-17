@@ -111,7 +111,8 @@ export const defaultToolsAndFooterLinks = {
 		},
 		{
 			name: 'API Docs',
-			path: '/docs/api'
+			path: 'https://api-docs.defillama.com/',
+			external: true
 		},
 		{
 			name: 'List Your Project',
@@ -208,7 +209,8 @@ export const navLinks: ILinks = {
 			},
 			{
 				name: 'API Docs',
-				path: '/docs/api'
+				path: 'https://api-docs.defillama.com/',
+				external: true
 			},
 			{ name: 'List your protocol', path: 'https://github.com/DefiLlama/yield-server#readme', external: true },
 			{
