@@ -149,7 +149,7 @@ export function ProtocolOverviewLayout({
 											<TokenLogo logo={tokenIconUrl(value)} size={24} />
 											{i === 0 ? (
 												<span className="flex flex-col">
-													<span>{`${name} (Combined)`}</span>
+													<span>{`${value} (Combined)`}</span>
 													<span className="text-[10px] text-[#666] dark:text-[#919296]">Aggregated view</span>
 												</span>
 											) : (
