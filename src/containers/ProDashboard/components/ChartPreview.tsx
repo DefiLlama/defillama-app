@@ -18,6 +18,9 @@ interface ChartPreviewProps {
 export function ChartPreview({ data, chartType, isLoading, hasError, itemName }: ChartPreviewProps) {
 	const chartTypeDetails = CHART_TYPES[chartType]
 
+	const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
+	const valueSymbol = userMetricTypes.includes(chartType) ? '' : '$'
+
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center h-full">
@@ -48,7 +51,7 @@ export function ChartPreview({ data, chartType, isLoading, hasError, itemName }:
 			<Suspense fallback={<></>}>
 				<BarChart
 					chartData={data}
-					valueSymbol="$"
+					valueSymbol={valueSymbol}
 					height="320px"
 					color={chartTypeDetails.color}
 					hideDataZoom
@@ -63,7 +66,7 @@ export function ChartPreview({ data, chartType, isLoading, hasError, itemName }:
 			<Suspense fallback={<></>}>
 				<AreaChart
 					chartData={data}
-					valueSymbol="$"
+					valueSymbol={valueSymbol}
 					color={chartTypeDetails.color}
 					height="320px"
 					hideDataZoom

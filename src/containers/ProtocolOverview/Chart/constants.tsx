@@ -2,6 +2,7 @@ import { oldBlue } from '~/constants/colors'
 
 export const protocolCharts = {
 	TVL: 'tvl',
+	'Total Assets': 'totalAssets',
 	Mcap: 'mcap',
 	'Token Price': 'tokenPrice',
 	'Token Volume': 'tokenVolume',
@@ -50,6 +51,7 @@ export const yAxisByChart: {
 	[K in keyof typeof protocolCharts]: ProtocolChartsLabels
 } = {
 	TVL: 'TVL',
+	'Total Assets': 'TVL',
 	Mcap: 'TVL',
 	FDV: 'TVL',
 	Borrowed: 'TVL',

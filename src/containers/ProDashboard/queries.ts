@@ -254,7 +254,11 @@ export function useChains() {
 		queryFn: async () => {
 			const response = await fetch(CHAINS_API)
 			const data = await response.json()
-			return data.sort((a, b) => b.tvl - a.tvl)
+			const transformedData = data.map((chain) => ({
+				...chain,
+				name: chain.name === 'Binance' ? 'BSC' : chain.name
+			}))
+			return transformedData.sort((a, b) => b.tvl - a.tvl)
 		}
 	})
 }
@@ -273,9 +277,14 @@ export function useProtocolsAndChains() {
 			const protocolsData = await protocolsResponse.json()
 			const chainsData = await chainsResponse.json()
 
+			const transformedChains = chainsData.map((chain) => ({
+				...chain,
+				name: chain.name === 'Binance' ? 'BSC' : chain.name
+			}))
+
 			return {
 				protocols: protocolsData.protocols.map((p) => ({ ...p, slug: sluggify(p.name), geckoId: p.geckoId || null })),
-				chains: chainsData.sort((a, b) => b.tvl - a.tvl)
+				chains: transformedChains.sort((a, b) => b.tvl - a.tvl)
 			}
 		}
 	})

@@ -1,9 +1,7 @@
 import Layout from '~/layout'
 import PeggedList from '~/containers/Stablecoins/StablecoinsByChain'
-import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
-import { peggedAssetIconPalleteUrl } from '~/utils'
 import { primaryColor } from '~/constants/colors'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -11,14 +9,11 @@ export const getStaticProps = withPerformanceLogging('stablecoins', async () => 
 	const props = await getPeggedOverviewPageData(null)
 
 	props.filteredPeggedAssets = props.filteredPeggedAssets || []
-	const name = props.filteredPeggedAssets?.[0]?.name
-
-	const backgroundColor = name ? await getColor(peggedAssetIconPalleteUrl(name)) : primaryColor
 
 	return {
 		props: {
 			...props,
-			backgroundColor
+			backgroundColor: primaryColor
 		},
 		revalidate: maxAgeForNext([22])
 	}

@@ -80,28 +80,28 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 						</p>
 					)}
 					<div className="flex flex-col flex-1 gap-2 mb-auto">
-						{props.fees24h != null && (
+						{props.fees7d != null && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
 								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Fees (7d)</span>
-								<span className="text-right font-jetbrains">{formattedNum(props.fees24h, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.fees7d, true)}</span>
 							</p>
 						)}
-						{props.revenue24h != null && (
+						{props.revenue7d != null && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
 								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Revenue (7d)</span>
-								<span className="text-right font-jetbrains">{formattedNum(props.revenue24h, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.revenue7d, true)}</span>
 							</p>
 						)}
-						{props.dexVolume24h != null && ['Dexs', 'DEX Aggregators'].includes(props.category) && (
+						{props.dexVolume7d != null && ['Dexs', 'DEX Aggregators'].includes(props.category) && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
 								<span className="font-normal text-[#545757] dark:text-[#cccccc]">DEX Volume (7d)</span>
-								<span className="text-right font-jetbrains">{formattedNum(props.dexVolume24h, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 							</p>
 						)}
-						{props.perpVolume24h != null && ['Derivatives'].includes(props.category) && (
+						{props.perpVolume7d != null && ['Derivatives'].includes(props.category) && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
 								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Perp Volume (7d)</span>
-								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume24h, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume7d, true)}</span>
 							</p>
 						)}
 						<CSVDownloadButton

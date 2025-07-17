@@ -1,5 +1,6 @@
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { generateChartColor, convertToCumulative } from '../utils'
+import { EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { Icon } from '~/components/Icon'
 import { memo, useState, useMemo, lazy, Suspense } from 'react'
@@ -33,7 +34,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const loadingItems = multi.items.filter((cfg) => cfg.isLoading)
 
 	const series = useMemo(() => {
-		const baseSeries = validItems.map((cfg) => {
+		const uniqueChains = new Set(validItems.filter((item) => !item.protocol).map((item) => item.chain))
+		const isSingleChain = uniqueChains.size === 1 && validItems.every((item) => !item.protocol)
+
+		const baseSeries = validItems.map((cfg, index) => {
 			const rawData = cfg.data as [string, number][]
 			const meta = CHART_TYPES[cfg.type]
 			const name = cfg.protocol ? getProtocolInfo(cfg.protocol)?.name || cfg.protocol : cfg.chain
@@ -50,11 +54,15 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			const itemIdentifier = cfg.protocol || cfg.chain || 'unknown'
 
+			const color = isSingleChain
+				? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
+				: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
+
 			return {
 				name: `${name} ${meta?.title || cfg.type}`,
 				type: (meta?.chartType === 'bar' && !showCumulative ? 'bar' : 'line') as 'bar' | 'line',
 				data,
-				color: generateChartColor(itemIdentifier, meta?.color || '#8884d8'),
+				color,
 				metricType: cfg.type
 			}
 		})
@@ -351,7 +359,15 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 							key={`${showStacked}-${showPercentage}`}
 							series={series}
 							valueSymbol={showPercentage ? '%' : '$'}
-							groupBy={multi.grouping === 'week' ? 'weekly' : multi.grouping === 'month' ? 'monthly' : multi.grouping === 'quarter' ? 'quarterly' : 'daily'}
+							groupBy={
+								multi.grouping === 'week'
+									? 'weekly'
+									: multi.grouping === 'month'
+									? 'monthly'
+									: multi.grouping === 'quarter'
+									? 'quarterly'
+									: 'daily'
+							}
 							hideDataZoom={true}
 							chartOptions={
 								showPercentage

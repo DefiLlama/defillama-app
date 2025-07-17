@@ -384,5 +384,5 @@ export const useFetchProtocolAddlChartsData = (protocolName) => {
 		refetchInterval: 10 * 60 * 1000
 	})
 
-	return { ...data, isLoading: data.isLoading || isLoading }
+	return { ...data, historicalChainTvls: addlProtocolData?.chainTvls ?? null, isLoading: data.isLoading || isLoading }
 }
