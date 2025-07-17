@@ -29,6 +29,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { AdapterByChainChart } from './ChainChart'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
+import { chainCharts } from '../ChainOverview/constants'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<
@@ -488,7 +489,7 @@ const columnOrders = Object.entries({
 	640: ['name', 'category', 'definition', 'total24h', 'total7d', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const chartKeys: Record<IProps['type'], typeof protocolCharts[keyof typeof protocolCharts]> = {
+const protocolChartsKeys: Record<IProps['type'], typeof protocolCharts[keyof typeof protocolCharts]> = {
 	Fees: 'fees',
 	Revenue: 'revenue',
 	'Holders Revenue': 'holdersRevenue',
@@ -500,6 +501,13 @@ const chartKeys: Record<IProps['type'], typeof protocolCharts[keyof typeof proto
 	'Perp Aggregator Volume': 'perpAggregatorVolume',
 	'DEX Aggregator Volume': 'dexAggregatorVolume',
 	Earnings: 'incentives'
+}
+
+const chainChartsKeys: Partial<Record<IProps['type'], typeof chainCharts[keyof typeof chainCharts]>> = {
+	Fees: 'chainFees',
+	Revenue: 'chainRevenue',
+	'DEX Volume': 'dexsVolume',
+	'Perp Volume': 'perpsVolume'
 }
 
 const getColumnsOptions = (type) =>
@@ -570,15 +578,10 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 				</span>
 			)
 
-			const basePath = row.original.category === 'Chain' ? 'chain' : 'protocol'
-			const chartKey =
-				row.original.category === 'Chain'
-					? type === 'Fees'
-						? 'chainFees'
-						: type.includes('Revenue')
-						? 'chainRevenue'
-						: chartKeys[type]
-					: chartKeys[type]
+			const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
+			const chartKey = ['Chain', 'Rollup'].includes(row.original.category)
+				? chainChartsKeys[type] ?? protocolChartsKeys[type]
+				: protocolChartsKeys[type]
 
 			return (
 				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
