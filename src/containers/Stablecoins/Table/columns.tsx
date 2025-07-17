@@ -579,7 +579,7 @@ export const peggedChainsColumns: ColumnDef<IPeggedChain>[] = [
 
 			return (
 				<div className="w-full flex items-center justify-end gap-1">
-					<span>{`${value.name}: `}</span>
+					<span>{`${value.name}${value.value ? ':' : ''}`}</span>
 					<span>{formattedPercent(value.value, true)}</span>
 				</div>
 			)
