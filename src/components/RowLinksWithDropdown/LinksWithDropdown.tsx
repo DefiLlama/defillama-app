@@ -115,6 +115,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 export const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
 		<BasicLink
+			data-testid="chain-link"
 			href={option.to}
 			className="rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
 			data-active={option.label === activeLink}

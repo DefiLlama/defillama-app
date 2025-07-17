@@ -15,7 +15,11 @@
 		"format": "prettier --write .",
 		"lint": "next lint",
 		"ts": "tsc --noEmit",
-		"convert-spec": "node scripts/convert-spec.js"
+		"convert-spec": "node scripts/convert-spec.js",
+		"e2e": "playwright test",
+		"e2e:headed": "playwright test --headed",
+		"e2e:debug": "playwright test --debug",
+		"e2e:clean": "node scripts/clean-e2e-results.js"
 	},
 	"dependencies": {
 		"@ariakit/react": "0.4.16",
@@ -31,6 +35,7 @@
 		"clsx": "^2.1.1",
 		"colord": "2.9.3",
 		"dayjs": "1.11.3",
+		"dotenv": "^17.2.0",
 		"echarts": "5.6.0",
 		"echarts-simple-transform": "1.0.0",
 		"expr-eval": "^2.0.2",
@@ -56,6 +61,7 @@
 	},
 	"devDependencies": {
 		"@next/bundle-analyzer": "^15.3.4",
+		"@playwright/test": "^1.54.1",
 		"@tailwindcss/postcss": "^4.1.11",
 		"@types/lodash": "4.14.198",
 		"@types/node": "17.0.8",

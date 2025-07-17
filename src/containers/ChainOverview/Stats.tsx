@@ -99,7 +99,10 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 	return (
 		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div
+				data-testid="chart-container"
+				className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto"
+			>
 				{props.metadata.name !== 'All' && (
 					<h1 className="flex items-center flex-nowrap gap-2">
 						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
@@ -118,7 +121,10 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						>
 							Total Value Locked in DeFi
 						</Tooltip>
-						<span className="font-semibold text-2xl font-jetbrains min-h-8 overflow-hidden whitespace-nowrap text-ellipsis">
+						<span
+							data-testid="total-tvl"
+							className="font-semibold text-2xl font-jetbrains min-h-8 overflow-hidden whitespace-nowrap text-ellipsis"
+						>
 							{formattedNum(totalValueUSD, true)}
 						</span>
 					</h2>

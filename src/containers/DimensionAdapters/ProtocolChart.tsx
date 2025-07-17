@@ -183,7 +183,10 @@ export const DimensionProtocolOverviewChart = ({
 	}, [totalDataChart, enabledSettings, chartInterval])
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[418px]">
+		<div
+			data-testid="protocol-detail-chart"
+			className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[418px]"
+		>
 			<div className="flex items-center justify-end p-3 gap-2">
 				{title && <h2 className="text-base font-semibold mr-auto">{title}</h2>}
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
