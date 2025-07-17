@@ -63,7 +63,7 @@ export async function getTotalBorrowedByChain({
 		let totalPrevMonth: number | null = null
 
 		for (const ctvl in protocol.chainTvls) {
-			if (ctvl.includes('-borrowed') && (chain === 'All' ? true : ctvl.startsWith(chain))) {
+			if (ctvl.includes('-borrowed') && (chain === 'All' ? true : ctvl.split('-')[0] === chain)) {
 				totalBorrowed = (totalBorrowed ?? 0) + protocol.chainTvls[ctvl].tvl
 				totalPrevMonth = (totalPrevMonth ?? 0) + protocol.chainTvls[ctvl].tvlPrevMonth
 			}

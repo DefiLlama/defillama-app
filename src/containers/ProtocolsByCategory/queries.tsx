@@ -134,7 +134,7 @@ export async function getProtocolsByCategory({
 			const extraTvls: Record<string, number> = {}
 			if (chain) {
 				for (const pchain in protocol.chainTvls) {
-					if (pchain.includes('-') ? !pchain.startsWith(chain) : pchain !== chain) {
+					if (pchain.split('-')[0] !== chain) {
 						continue
 					}
 
