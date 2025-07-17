@@ -1037,7 +1037,7 @@ export const useFetchAndFormatChartData = ({
 			}
 			if (toggledMetrics.tokenVolume === 'true') {
 				const chartName: ProtocolChartsLabels = 'Token Volume' as const
-				charts[chartName] = formatLineChart({
+				charts[chartName] = formatBarChart({
 					data: protocolTokenData.volumes,
 					groupBy,
 					dateInMs: true,
@@ -1414,7 +1414,7 @@ export const useFetchAndFormatChartData = ({
 
 		if (activeAddressesData && toggledMetrics.activeAddresses === 'true') {
 			const chartName: ProtocolChartsLabels = 'Active Addresses' as const
-			charts[chartName] = formatLineChart({
+			charts[chartName] = formatBarChart({
 				data: activeAddressesData,
 				groupBy,
 				denominationPriceHistory: null,
@@ -1424,7 +1424,7 @@ export const useFetchAndFormatChartData = ({
 
 		if (newAddressesData && toggledMetrics.newAddresses === 'true') {
 			const chartName: ProtocolChartsLabels = 'New Addresses' as const
-			charts[chartName] = formatLineChart({
+			charts[chartName] = formatBarChart({
 				data: newAddressesData,
 				groupBy,
 				denominationPriceHistory: null,
@@ -1434,7 +1434,7 @@ export const useFetchAndFormatChartData = ({
 
 		if (transactionsData && toggledMetrics.transactions === 'true') {
 			const chartName: ProtocolChartsLabels = 'Transactions' as const
-			charts[chartName] = formatLineChart({
+			charts[chartName] = formatBarChart({
 				data: transactionsData,
 				groupBy,
 				denominationPriceHistory: null,
