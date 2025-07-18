@@ -33,9 +33,18 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 	const { data, isLoading, error } = useEarningsData(chains)
 	const windowSize = useWindowSize()
 
+	const columnsToUse = React.useMemo(() => {
+		if (chains && chains.length > 0) {
+			return earningsDatasetColumns.filter(
+				(col: any) => col.accessorKey !== 'change_1d' && col.accessorKey !== 'change_7d'
+			)
+		}
+		return earningsDatasetColumns
+	}, [chains])
+
 	const instance = useReactTable({
 		data: data || [],
-		columns: earningsDatasetColumns as ColumnDef<any>[],
+		columns: columnsToUse as ColumnDef<any>[],
 		state: {
 			sorting,
 			columnOrder,
@@ -91,8 +100,8 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
 						<h3 className="text-lg font-semibold pro-text1">
-						{chains && chains.length > 0 ? `${chains.join(', ')} Earnings` : 'Protocol Earnings'}
-					</h3>
+							{chains && chains.length > 0 ? `${chains.join(', ')} Earnings` : 'Protocol Earnings'}
+						</h3>
 					</div>
 				</div>
 				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4">
@@ -109,8 +118,8 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
 						<h3 className="text-lg font-semibold pro-text1">
-						{chains && chains.length > 0 ? `${chains.join(', ')} Earnings` : 'Protocol Earnings'}
-					</h3>
+							{chains && chains.length > 0 ? `${chains.join(', ')} Earnings` : 'Protocol Earnings'}
+						</h3>
 					</div>
 				</div>
 				<div className="flex-1 min-h-[500px] flex items-center justify-center">
@@ -131,22 +140,33 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 						<ProTableCSVButton
 							onClick={() => {
 								const rows = instance.getFilteredRowModel().rows
-								const csvData = rows.map(row => row.original)
-								const headers = ['Protocol', 'Category', '24h Earnings', '7d Earnings', '30d Earnings', '24h Change', '7d Change', 'Chains']
+								const csvData = rows.map((row) => row.original)
+								const headers =
+									chains && chains.length > 0
+										? ['Protocol', 'Category', '24h Earnings', '7d Earnings', '30d Earnings', 'Chains']
+										: [
+												'Protocol',
+												'Category',
+												'24h Earnings',
+												'7d Earnings',
+												'30d Earnings',
+												'24h Change',
+												'7d Change',
+												'Chains'
+										  ]
+
 								const csv = [
 									headers.join(','),
-									...csvData.map(item => [
-										item.name,
-										item.category,
-										item.total24h,
-										item.total7d,
-										item.total30d,
-										item.change_1d,
-										item.change_7d,
-										item.chains?.join(';') || ''
-									].join(','))
+									...csvData.map((item) => {
+										const values = [item.name, item.category, item.total24h, item.total7d, item.total30d]
+										if (!(chains && chains.length > 0)) {
+											values.push(item.change_1d, item.change_7d)
+										}
+										values.push(item.chains?.join(';') || '')
+										return values.join(',')
+									})
 								].join('\n')
-								
+
 								const blob = new Blob([csv], { type: 'text/csv' })
 								const url = URL.createObjectURL(blob)
 								const a = document.createElement('a')
