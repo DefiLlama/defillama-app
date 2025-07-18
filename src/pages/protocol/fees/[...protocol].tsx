@@ -121,6 +121,7 @@ export const getStaticProps = withPerformanceLogging(
 				bribeRevenue,
 				tokenTax,
 				hasKeyMetrics: true,
+				openSmolStatsSummaryByDefault: true,
 				hasMultipleChain: feesData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions: feesData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
 			},

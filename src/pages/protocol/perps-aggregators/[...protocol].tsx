@@ -57,6 +57,7 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				metrics,
 				hasKeyMetrics: true,
+				openSmolStatsSummaryByDefault: true,
 				perpAggregatorVolume,
 				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions: adapterData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false

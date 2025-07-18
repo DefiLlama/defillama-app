@@ -246,6 +246,7 @@ export interface IProtocolOverviewPageData {
 		incentivesByMonth: Record<string, number> | null
 		monthDates: Array<[number, string]>
 	} | null
+	openSmolStatsSummaryByDefault?: boolean
 }
 
 export interface IHack {

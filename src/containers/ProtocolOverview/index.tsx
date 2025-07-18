@@ -448,6 +448,7 @@ function Fees(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -527,6 +528,7 @@ function Revenue(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -614,6 +616,7 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -668,6 +671,7 @@ function Incentives(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -758,6 +762,7 @@ function Earnings(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -787,6 +792,7 @@ function DexVolume(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -820,6 +826,7 @@ function DexAggregatorVolume(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -853,6 +860,7 @@ function PerpVolume(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -898,6 +906,7 @@ function PerpAggregatorVolume(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -943,6 +952,7 @@ function BridgeAggregatorVolume(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -1016,6 +1026,7 @@ function BridgeVolume(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -1061,6 +1072,7 @@ function OptionsPremiumVolume(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -1106,6 +1118,7 @@ function OptionsNotionalVolume(props: IKeyMetricsProps) {
 			protocolName={props.name}
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
 		/>
 	)
 }
@@ -1349,7 +1362,8 @@ const SmolStats = ({
 	data,
 	protocolName,
 	category,
-	formatPrice
+	formatPrice,
+	openSmolStatsSummaryByDefault = false
 }: {
 	data: Array<{
 		name: string
@@ -1359,6 +1373,7 @@ const SmolStats = ({
 	protocolName: string
 	category: string
 	formatPrice: (value: number | string | null) => string | number | null
+	openSmolStatsSummaryByDefault?: boolean
 }) => {
 	if (data.length === 0) return null
 
@@ -1387,7 +1402,7 @@ const SmolStats = ({
 	}
 
 	return (
-		<details className="group">
+		<details className="group" open={openSmolStatsSummaryByDefault}>
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 				{data[0].tooltipContent ? (
 					<Tooltip
