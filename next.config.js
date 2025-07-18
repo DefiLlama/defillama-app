@@ -555,6 +555,11 @@ const nextConfig = {
 				source: '/net-protocol-treasury',
 				destination: '/net-project-treasury',
 				permanent: true
+			},
+			{
+				source: '/docs',
+				destination: 'https://api-docs.defillama.com/',
+				permanent: true
 			}
 		]
 	},
