@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging(
 	}) => {
 		// if cex is not string, return 404
 		const exchangeData = cexData.find(
-			(cex) => slug(cex.slug) === slug(exchangeName) || slug(cex.name) === slug(exchangeName)
+			(cex) => cex.slug && (slug(cex.slug) === slug(exchangeName) || slug(cex.name) === slug(exchangeName))
 		)
 
 		if (typeof exchangeName !== 'string' || !exchangeData) {

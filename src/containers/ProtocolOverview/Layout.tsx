@@ -111,12 +111,12 @@ export function ProtocolOverviewLayout({
 					This protocol includes unproductive positions that may contribute to inflated metrics. Be safe
 				</p>
 			)}
-{name === 'PumpBTC' && (
-  <p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-[--btn-bg] border border-[--bg-color] mb-1">
-    PumpBTC has been reported for using unbacked assets to artificially inflate its own and other protocols TVL metrics. Proceed with caution.
-  </p>
-)}
-
+			{name === 'PumpBTC' && (
+				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-[--btn-bg] border border-[--bg-color] mb-1">
+					PumpBTC has been reported for using unbacked assets to artificially inflate its own and other protocols TVL
+					metrics. Proceed with caution.
+				</p>
+			)}
 
 			<div className="flex flex-col gap-2 isolate">
 				<div className="w-full flex overflow-x-auto text-xs font-medium">
@@ -143,7 +143,7 @@ export function ProtocolOverviewLayout({
 											render={<BasicLink href={`/protocol/${slug(value)}`} />}
 											data-active={name === value}
 											className={`group flex items-center gap-2 py-2 relative ${
-												i === 0 ? 'px-3' : 'ml-5 pr-3'
+												i === 0 ? 'px-3' : 'ml-[22px] pr-3'
 											} shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) data-[active=true]:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md whitespace-nowrap overflow-hidden text-ellipsis`}
 										>
 											{i !== 0 && (
