@@ -10,6 +10,7 @@ import {
 	RevenueDataset,
 	HoldersRevenueDataset,
 	EarningsDataset,
+	FeesDataset,
 	TokenUsageDataset,
 	YieldsDataset,
 	AggregatorsDataset,
@@ -82,6 +83,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				if (item.datasetType === 'revenue') return <RevenueDataset chains={item.chains} />
 				if (item.datasetType === 'holders-revenue') return <HoldersRevenueDataset chains={item.chains} />
 				if (item.datasetType === 'earnings') return <EarningsDataset chains={item.chains} />
+				if (item.datasetType === 'fees') return <FeesDataset chains={item.chains} />
 				if (item.datasetType === 'token-usage')
 					return <TokenUsageDataset config={item} onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} />
 				if (item.datasetType === 'yields')

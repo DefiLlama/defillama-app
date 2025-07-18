@@ -83,6 +83,7 @@ export interface ProtocolsTableConfig {
 		| 'revenue'
 		| 'holders-revenue'
 		| 'earnings'
+		| 'fees'
 		| 'token-usage'
 		| 'yields'
 		| 'aggregators'

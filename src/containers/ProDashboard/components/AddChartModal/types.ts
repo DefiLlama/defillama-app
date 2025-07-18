@@ -15,6 +15,7 @@ export type CombinedTableType =
 	| 'revenue'
 	| 'holders-revenue'
 	| 'earnings'
+	| 'fees'
 	| 'token-usage'
 	| 'yields'
 	| 'aggregators'

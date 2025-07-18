@@ -237,6 +237,14 @@ export function useModalActions(
 						datasetType: 'earnings',
 						chains: state.selectedChains
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'fees') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'fees',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
 				} else if (state.selectedTableType === 'token-usage') {
 					newItem = {
 						...editItem,
@@ -368,6 +376,8 @@ export function useModalActions(
 					handleAddTable(state.selectedChains, 'dataset', 'holders-revenue')
 				} else if (state.selectedTableType === 'earnings') {
 					handleAddTable(state.selectedChains, 'dataset', 'earnings')
+				} else if (state.selectedTableType === 'fees') {
+					handleAddTable(state.selectedChains, 'dataset', 'fees')
 				} else if (state.selectedTableType === 'token-usage' && state.selectedTokens.length > 0) {
 					handleAddTable([], 'dataset', 'token-usage', undefined, state.selectedTokens, state.includeCex)
 				} else if (state.selectedTableType === 'yields') {
