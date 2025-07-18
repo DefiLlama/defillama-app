@@ -15,6 +15,7 @@ import { fetchJson } from '~/utils/async'
 import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { tvlOptions } from '~/components/Filters/options'
+import { Tooltip } from '~/components/Tooltip'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -599,7 +600,15 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Description',
 		accessorKey: 'description',
+		accessorFn: (protocol) => protocol.description ?? null,
+		cell: ({ getValue }) => (
+			<Tooltip content={getValue() as string}>
+				<span className="overflow-x-hidden text-ellipsis whitespace-normal line-clamp-1 min-w-0">
+					{getValue() as string}
+				</span>
+			</Tooltip>
+		),
 		enableSorting: false,
-		size: 1600
+		size: 400
 	}
 ]
