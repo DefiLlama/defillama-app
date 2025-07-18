@@ -34,7 +34,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata || !metadata[1].yields) {
+		if (!metadata || !metadata[1].tvl) {
 			return { notFound: true, props: null }
 		}
 
