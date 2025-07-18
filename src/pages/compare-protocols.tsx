@@ -5,24 +5,28 @@ import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { PROTOCOL_API } from '~/constants'
-import { slug, getNDistinctColors } from '~/utils'
+import { slug, getNDistinctColors, formattedNum, tokenIconUrl } from '~/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { useQueries } from '@tanstack/react-query'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { fetchJson } from '~/utils/async'
 import { oldBlue } from '~/constants/colors'
+import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Flag } from '~/containers/ProtocolOverview/Flag'
+import { IconsRow } from '~/components/IconsRow'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
 ) as React.FC<ILineAndBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('comparison', async () => {
-	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo'])
+	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'logo'])
 
 	return {
 		props: {
-			protocols: protocols.map((p) => p.name)
+			protocols
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -32,18 +36,24 @@ const fetchProtocol = async (selectedProtocol: string | null) => {
 	if (!selectedProtocol) return null
 
 	try {
-		const data = await fetchJson(`${PROTOCOL_API}/${slug(selectedProtocol)}`)
+		const protocolData = await fetchJson(`${PROTOCOL_API}/${slug(selectedProtocol)}`)
+
 		return {
-			protocolData: data,
-			protocolName: data.name
+			protocolData,
+			protocolName: protocolData.name
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
 	}
 }
 
-export default function CompareProtocolsTvls({ protocols }: { protocols: Array<string> }) {
+export default function CompareProtocolsTvls({ protocols }) {
 	const router = useRouter()
+
+	const protocolsNames = React.useMemo(() => {
+		return protocols.map((p) => p.name)
+	}, [protocols])
+
 	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { protocol } = router.query
@@ -142,9 +152,17 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 
 	const sortedProtocols = React.useMemo(() => {
 		const selectedSet = new Set(selectedProtocols)
-		const unselectedProtocols = protocols.filter((protocol) => !selectedSet.has(protocol))
+		const unselectedProtocols = protocolsNames.filter((protocol) => !selectedSet.has(protocol))
 
 		return [...selectedProtocols, ...unselectedProtocols]
+	}, [selectedProtocols, protocolsNames])
+
+	const selectedProtocolsData = React.useMemo(() => {
+		return selectedProtocols
+			.map((protocolName) => {
+				return protocols.find((p) => p.name === protocolName)
+			})
+			.filter(Boolean)
 	}, [selectedProtocols, protocols])
 
 	return (
@@ -175,6 +193,124 @@ export default function CompareProtocolsTvls({ protocols }: { protocols: Array<s
 					</React.Suspense>
 				)}
 			</div>
+			{selectedProtocolsData.length > 0 && (
+				<div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+					{selectedProtocolsData.map((protocolData) => (
+						<ProtocolInfoCard key={protocolData.name} protocolData={protocolData} extraTvlEnabled={extraTvlEnabled} />
+					))}
+				</div>
+			)}
 		</Layout>
+	)
+}
+
+const ProtocolInfoCard = ({ protocolData, extraTvlEnabled }) => {
+	const tvl = protocolData.tvl || 0
+
+	return (
+		<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
+			<div className="flex items-center flex-wrap gap-2">
+				<TokenLogo logo={tokenIconUrl(protocolData.name)} size={24} />
+				<span className="font-bold text-lg">{protocolData.name || ''}</span>
+				{protocolData.symbol && protocolData.symbol !== '-' ? (
+					<span className="font-normal">({protocolData.symbol})</span>
+				) : null}
+			</div>
+
+			<CompactProtocolTVL
+				tvl={tvl}
+				name={protocolData.name}
+				category={protocolData.category}
+				chains={protocolData.chains || []}
+			/>
+
+			<KeyMetrics protocolData={protocolData} />
+
+			{protocolData.chains.length > 0 && (
+				<div className="mt-2">
+					<h3 className="font-semibold text-sm mb-1">Chains</h3>
+					<IconsRow links={protocolData.chains} url="/chain" iconType="chain" iconsAlignment="start" />
+				</div>
+			)}
+		</div>
+	)
+}
+
+const CompactProtocolTVL = ({ tvl, name, category, chains }) => {
+	return (
+		<div className="flex flex-col">
+			<span className="flex items-center flex-nowrap gap-2">
+				<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+				<Flag
+					protocol={name}
+					dataType="TVL"
+					isLending={category === 'Lending'}
+					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+				/>
+			</span>
+			<span className="font-semibold text-xl font-jetbrains min-h-6" suppressHydrationWarning>
+				{formattedNum(tvl, true)}
+			</span>
+		</div>
+	)
+}
+
+const KeyMetrics = ({ protocolData }) => {
+	const metrics = []
+
+	if (protocolData.change_1d != null) {
+		metrics.push({
+			name: 'Change 24h',
+			value: `${protocolData.change_1d > 0 ? '+' : ''}${protocolData.change_1d.toFixed(2)}%`,
+			isPercentage: true
+		})
+	}
+
+	if (protocolData.change_7d != null) {
+		metrics.push({
+			name: 'Change 7d',
+			value: `${protocolData.change_7d > 0 ? '+' : ''}${protocolData.change_7d.toFixed(2)}%`,
+			isPercentage: true
+		})
+	}
+
+	if (protocolData.change_1m != null) {
+		metrics.push({
+			name: 'Change 30d',
+			value: `${protocolData.change_1m > 0 ? '+' : ''}${protocolData.change_1m.toFixed(2)}%`,
+			isPercentage: true
+		})
+	}
+
+	if (metrics.length === 0) {
+		return null
+	}
+
+	return (
+		<div className="flex flex-col gap-2">
+			<div className="grid grid-cols-1 gap-1">
+				{metrics.map((metric) => (
+					<div
+						key={`${metric.name}-${protocolData.name}`}
+						className="flex items-center justify-between gap-2 py-1 text-sm"
+					>
+						<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						<span
+							className={`font-jetbrains ${
+								metric.name.includes('Change')
+									? parseFloat(metric.value) > 0
+										? 'text-green-500'
+										: parseFloat(metric.value) < 0
+										? 'text-red-500'
+										: ''
+									: ''
+							}`}
+						>
+							{metric.isPercentage ? metric.value : formattedNum(metric.value, true)}
+						</span>
+					</div>
+				))}
+			</div>
+		</div>
 	)
 }
