@@ -41,34 +41,42 @@ export const getStaticProps = withPerformanceLogging(
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				}),
-				getAdapterProtocolSummary({
-					adapterType: 'fees',
-					protocol: metadata[1].name,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true,
-					dataType: 'dailyRevenue'
-				}).catch(() => null),
-				getAdapterProtocolSummary({
-					adapterType: 'fees',
-					protocol: metadata[1].name,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true,
-					dataType: 'dailyHoldersRevenue'
-				}).catch(() => null),
-				getAdapterProtocolSummary({
-					adapterType: 'fees',
-					protocol: metadata[1].name,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true,
-					dataType: 'dailyBribesRevenue'
-				}).catch(() => null),
-				getAdapterProtocolSummary({
-					adapterType: 'fees',
-					protocol: metadata[1].name,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true,
-					dataType: 'dailyTokenTaxes'
-				}).catch(() => null)
+				metadata[1].revenue
+					? getAdapterProtocolSummary({
+							adapterType: 'fees',
+							protocol: metadata[1].name,
+							excludeTotalDataChart: true,
+							excludeTotalDataChartBreakdown: true,
+							dataType: 'dailyRevenue'
+					  }).catch(() => null)
+					: Promise.resolve(null),
+				metadata[1].holdersRevenue
+					? getAdapterProtocolSummary({
+							adapterType: 'fees',
+							protocol: metadata[1].name,
+							excludeTotalDataChart: true,
+							excludeTotalDataChartBreakdown: true,
+							dataType: 'dailyHoldersRevenue'
+					  }).catch(() => null)
+					: Promise.resolve(null),
+				metadata[1].bribeRevenue
+					? getAdapterProtocolSummary({
+							adapterType: 'fees',
+							protocol: metadata[1].name,
+							excludeTotalDataChart: true,
+							excludeTotalDataChartBreakdown: true,
+							dataType: 'dailyBribesRevenue'
+					  }).catch(() => null)
+					: Promise.resolve(null),
+				metadata[1].tokenTax
+					? getAdapterProtocolSummary({
+							adapterType: 'fees',
+							protocol: metadata[1].name,
+							excludeTotalDataChart: true,
+							excludeTotalDataChartBreakdown: true,
+							dataType: 'dailyTokenTaxes'
+					  }).catch(() => null)
+					: Promise.resolve(null)
 			]
 		)
 
@@ -116,10 +124,10 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				metrics,
 				fees,
-				revenue,
-				holdersRevenue,
-				bribeRevenue,
-				tokenTax,
+				revenue: revenueData && revenueData.totalAllTime ? revenue : null,
+				holdersRevenue: holdersRevenueData && holdersRevenueData.totalAllTime ? holdersRevenue : null,
+				bribeRevenue: bribeRevenueData && bribeRevenueData.totalAllTime ? bribeRevenue : null,
+				tokenTax: tokenTaxData && tokenTaxData.totalAllTime ? tokenTax : null,
 				hasKeyMetrics: true,
 				openSmolStatsSummaryByDefault: true,
 				hasMultipleChain: feesData?.chains?.length > 1 ? true : false,

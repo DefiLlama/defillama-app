@@ -72,8 +72,8 @@ export const getStaticProps = withPerformanceLogging(
 				metrics,
 				hasKeyMetrics: true,
 				openSmolStatsSummaryByDefault: true,
-				optionsPremiumVolume,
-				optionsNotionalVolume,
+				optionsPremiumVolume: premiumVolumeData && premiumVolumeData.totalAllTime ? optionsPremiumVolume : null,
+				optionsNotionalVolume: notionalVolumeData && notionalVolumeData.totalAllTime ? optionsNotionalVolume : null,
 				hasMultipleChain: premiumVolumeData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions:
 					premiumVolumeData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
