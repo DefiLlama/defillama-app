@@ -307,10 +307,7 @@ export const DimensionProtocolChartByType = ({
 				enable
 				className="relative col-span-full min-h-[418px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
 			>
-				<DimensionProtocolOverviewChart
-					totalDataChart={data.totalDataChart}
-					title={chartTitleBy({ adapterType, chartType })}
-				/>
+				<DimensionProtocolOverviewChart totalDataChart={data.totalDataChart} />
 			</LazyChart>
 		)
 	}

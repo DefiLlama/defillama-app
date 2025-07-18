@@ -153,7 +153,7 @@ export default function Protocols(props) {
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
-				<div className="grid grid-cols-2 gap-2 col-span-1 xl:col-[2/-1] border border-(--cards-border) rounded-md xl:min-h-[360px]">
+				<div className="col-span-1 xl:col-[2/-1] border border-(--cards-border) rounded-md xl:min-h-[360px]">
 					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="fees" />
 				</div>
 			</div>
