@@ -68,15 +68,20 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="options"
 		>
+			<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
+				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="options">
+					Options Volume for {props.name}
+				</h2>
+			</div>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
 					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="options" />
-					{props.hasMultipleChain ? (
+					{/* {props.hasMultipleChain ? (
 						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} adapterType="options" />
 					) : null}
 					{props.hasMultipleVersions ? (
 						<DimensionProtocolChartByType chartType="version" protocolName={slug(props.name)} adapterType="options" />
-					) : null}
+					) : null} */}
 				</div>
 			</div>
 		</ProtocolOverviewLayout>

@@ -107,26 +107,38 @@ export const getDimensionProtocolPageData = async ({
 		promises.push(getOverviewItem(adapterType, protocolName, 'dailyNotionalVolume'))
 		secondLabel = 'Notional volume'
 	}
-	const [firstType, secondType, thirdType, fourthType] = await Promise.all(promises)
+	const [firstType, secondType, thirdType, fourthType] = await Promise.allSettled(promises)
 
-	if (firstType?.totalDataChart) allCharts.push([label, firstType.totalDataChart])
-
-	if (secondLabel && secondType?.totalDataChart) {
-		allCharts.push([secondLabel, secondType.totalDataChart])
+	if (firstType?.status === 'rejected') {
+		console.log(firstType.reason)
+		return null
 	}
 
-	if (thirdType?.totalDataChart && !(thirdType.totalDataChart.length === 1 && thirdType.totalDataChart[0][1] === 0)) {
-		allCharts.push(['Bribes', thirdType.totalDataChart])
+	if (firstType?.value?.totalDataChart) allCharts.push([label, firstType.value.totalDataChart])
+
+	if (secondLabel && secondType?.status === 'fulfilled' && secondType.value?.totalDataChart) {
+		allCharts.push([secondLabel, secondType.value.totalDataChart])
 	}
 
 	if (
-		fourthType?.totalDataChart &&
-		!(fourthType.totalDataChart.length === 1 && fourthType.totalDataChart[0][1] === 0)
+		thirdType?.status === 'fulfilled' &&
+		thirdType.value?.totalDataChart &&
+		!(thirdType.value.totalDataChart.length === 1 && thirdType.value.totalDataChart[0][1] === 0)
 	) {
-		allCharts.push(['TokenTax', fourthType.totalDataChart])
+		allCharts.push(['Bribes', thirdType.value.totalDataChart])
 	}
 
-	const blockExplorers = (firstType.allAddresses ?? (firstType.address ? [firstType.address] : [])).map((address) => {
+	if (
+		fourthType?.status === 'fulfilled' &&
+		fourthType.value?.totalDataChart &&
+		!(fourthType.value.totalDataChart.length === 1 && fourthType.value.totalDataChart[0][1] === 0)
+	) {
+		allCharts.push(['TokenTax', fourthType.value.totalDataChart])
+	}
+
+	const blockExplorers = (
+		firstType.value?.allAddresses ?? (firstType.value?.address ? [firstType.value.address] : [])
+	).map((address) => {
 		const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 		const splittedAddress = address.split(':')
 		return {
@@ -138,13 +150,13 @@ export const getDimensionProtocolPageData = async ({
 	})
 
 	return {
-		...firstType,
-		logo: getLlamaoLogo(firstType.logo),
-		dailyRevenue: secondType?.total24h ?? null,
-		dailyBribesRevenue: thirdType?.total24h ?? null,
-		dailyTokenTaxes: fourthType?.total24h ?? null,
-		totalAllTimeTokenTaxes: fourthType?.totalAllTime ?? null,
-		totalAllTimeBribes: thirdType?.totalAllTime ?? null,
+		...firstType.value,
+		logo: getLlamaoLogo(firstType.value?.logo),
+		dailyRevenue: secondType?.status === 'fulfilled' ? secondType.value?.total24h ?? null : null,
+		dailyBribesRevenue: thirdType?.status === 'fulfilled' ? thirdType.value?.total24h ?? null : null,
+		dailyTokenTaxes: fourthType?.status === 'fulfilled' ? fourthType.value?.total24h ?? null : null,
+		totalAllTimeTokenTaxes: fourthType?.status === 'fulfilled' ? fourthType.value?.totalAllTime ?? null : null,
+		totalAllTimeBribes: thirdType?.status === 'fulfilled' ? thirdType.value?.totalAllTime ?? null : null,
 		type: adapterType,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		blockExplorers

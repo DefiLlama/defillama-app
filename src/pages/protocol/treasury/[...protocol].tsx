@@ -57,6 +57,11 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			metrics={props.metrics}
 			tab="treasury"
 		>
+			<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
+				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="treasury">
+					Treasury for {props.name}
+				</h2>
+			</div>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<TreasuryChart protocolName={props.name} />
 			</div>

@@ -68,6 +68,11 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="dexs"
 		>
+			<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
+				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="options">
+					DEX Volume for {props.name}
+				</h2>
+			</div>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
 					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="dexs" />
