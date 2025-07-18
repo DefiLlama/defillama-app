@@ -76,12 +76,12 @@ export default function Protocols(props) {
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="grid grid-cols-2 rounded-md">
 					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="options" />
-					{/* {props.hasMultipleChain ? (
+					{props.hasMultipleChain ? (
 						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} adapterType="options" />
 					) : null}
 					{props.hasMultipleVersions ? (
 						<DimensionProtocolChartByType chartType="version" protocolName={slug(props.name)} adapterType="options" />
-					) : null} */}
+					) : null}
 				</div>
 			</div>
 		</ProtocolOverviewLayout>
