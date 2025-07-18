@@ -9,7 +9,6 @@ import * as Ariakit from '@ariakit/react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
 import { defaultProtocolPageStyles } from './Chart/constants'
-import { Announcement } from '~/components/Announcement'
 
 export function ProtocolOverviewLayout({
 	children,
@@ -112,12 +111,12 @@ export function ProtocolOverviewLayout({
 					This protocol includes unproductive positions that may contribute to inflated metrics. Be safe
 				</p>
 			)}
-
-			{name === 'PumpBTC' && (
-  <Announcement warning={true} notCancellable={true}>
-    This protocol has been identified using unbacked assets to artificially inflate its own and other protocols TVL metrics. Proceed with caution.
-  </Announcement>
+{name === 'PumpBTC' && (
+  <p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-[--btn-bg] border border-[--bg-color] mb-1">
+    PumpBTC has been reported for using unbacked assets to artificially inflate its own and other protocols TVL metrics. Proceed with caution.
+  </p>
 )}
+
 
 			<div className="flex flex-col gap-2 isolate">
 				<div className="w-full flex overflow-x-auto text-xs font-medium">
