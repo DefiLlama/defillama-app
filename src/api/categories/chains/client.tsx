@@ -1,11 +1,4 @@
-import {
-	getOverview,
-	getDexVolumeByChain,
-	getAppRevenueByChain,
-	getAppFeesByChain,
-	getFeesAndRevenueByChain,
-	getFeesAndRevenueProtocolsByChain
-} from '../adaptors'
+import { getDexVolumeByChain, getFeesAndRevenueProtocolsByChain } from '../adaptors'
 import { useQuery } from '@tanstack/react-query'
 
 export function useGetProtocolsVolumeByChain(chain?: string) {

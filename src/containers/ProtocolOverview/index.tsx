@@ -250,7 +250,7 @@ interface IKeyMetricsProps extends IProtocolOverviewPageData {
 	formatPrice: (value: number | string | null) => string | number | null
 }
 
-const KeyMetrics = (props: IKeyMetricsProps) => {
+export const KeyMetrics = (props: IKeyMetricsProps) => {
 	if (!props.hasKeyMetrics) return null
 	return (
 		<div className="flex flex-col flex-1 gap-2">
@@ -402,7 +402,8 @@ function Fees(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (fees30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (fees30d) {
 		metrics.push({
 			name: 'Fees (Annualized)',
 			tooltipContent:
@@ -480,7 +481,8 @@ function Revenue(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (revenue30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (revenue30d) {
 		metrics.push({
 			name: 'Revenue (Annualized)',
 			tooltipContent:
@@ -563,7 +565,8 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (holdersRevenue30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (holdersRevenue30d) {
 		metrics.push({
 			name: 'Holders Revenue (Annualized)',
 			tooltipContent:
@@ -707,7 +710,7 @@ function Earnings(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (earnings30d != null) {
+	if (earnings30d) {
 		metrics.push({
 			name: 'Earnings (Annualized)',
 			tooltipContent:
@@ -764,7 +767,8 @@ function DexVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (props.dexVolume.total30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (props.dexVolume.total30d) {
 		metrics.push({ name: 'DEX Volume 30d', tooltipContent: null, value: props.dexVolume.total30d })
 	}
 	if (props.dexVolume.total7d != null) {
@@ -792,7 +796,8 @@ function DexAggregatorVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (props.dexAggregatorVolume.total30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (props.dexAggregatorVolume.total30d) {
 		metrics.push({ name: 'DEX Aggregator Volume 30d', tooltipContent: null, value: props.dexAggregatorVolume.total30d })
 	}
 	if (props.dexAggregatorVolume.total7d != null) {
@@ -824,7 +829,8 @@ function PerpVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (props.perpVolume.total30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (props.perpVolume.total30d) {
 		metrics.push({ name: 'Perp Volume 30d', tooltipContent: null, value: props.perpVolume.total30d })
 	}
 	if (props.perpVolume.total7d != null) {
@@ -856,7 +862,8 @@ function PerpAggregatorVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (props.perpAggregatorVolume.total30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (props.perpAggregatorVolume.total30d) {
 		metrics.push({
 			name: 'Perp Aggregator Volume 30d',
 			tooltipContent: null,
@@ -900,7 +907,8 @@ function BridgeAggregatorVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (props.bridgeAggregatorVolume.total30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (props.bridgeAggregatorVolume.total30d) {
 		metrics.push({
 			name: 'Bridge Aggregator Volume 30d',
 			tooltipContent: null,
@@ -1017,7 +1025,8 @@ function OptionsPremiumVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (props.optionsPremiumVolume.total30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (props.optionsPremiumVolume.total30d) {
 		metrics.push({
 			name: 'Options Premium Volume 30d',
 			tooltipContent: null,
@@ -1061,7 +1070,8 @@ function OptionsNotionalVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	if (props.optionsNotionalVolume.total30d != null) {
+	// TODO summary/adapter doesnot return total30d
+	if (props.optionsNotionalVolume.total30d) {
 		metrics.push({
 			name: 'Options Notional Volume 30d',
 			tooltipContent: null,

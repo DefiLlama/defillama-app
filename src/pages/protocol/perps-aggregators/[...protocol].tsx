@@ -1,11 +1,13 @@
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
-import { slug } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
+import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { KeyMetrics } from '~/containers/ProtocolOverview'
+import { TokenLogo } from '~/components/TokenLogo'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/perps-aggregators/[...protocol]',
@@ -41,12 +43,21 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
+		const perpAggregatorVolume: IProtocolOverviewPageData['perpAggregatorVolume'] = {
+			total24h: adapterData.total24h ?? null,
+			total7d: adapterData.total7d ?? null,
+			total30d: adapterData.total30d ?? null,
+			totalAllTime: adapterData.totalAllTime ?? null
+		}
+
 		return {
 			props: {
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
+				hasKeyMetrics: true,
+				perpAggregatorVolume,
 				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions: adapterData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
 			},
@@ -68,33 +79,43 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="perps-aggregators"
 		>
-			<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
-				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="options">
-					Perp Aggregator Volume for {props.name}
-				</h2>
-			</div>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="grid grid-cols-2 rounded-md">
+			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
+				<div className="col-span-1 flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:min-h-[360px]">
+					<h1 className="flex items-center flex-wrap gap-2 text-xl">
+						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+						<span className="font-bold">
+							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+						</span>
+					</h1>
+					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
+				</div>
+				<div className="grid grid-cols-2 gap-2 col-span-1 xl:col-[2/-1] border border-(--cards-border) rounded-md xl:min-h-[360px]">
 					<DimensionProtocolChartByType
 						chartType="overview"
 						protocolName={slug(props.name)}
 						adapterType="aggregator-derivatives"
 					/>
-					{props.hasMultipleChain ? (
+				</div>
+			</div>
+			<div className="grid grid-cols-2 gap-2">
+				{props.hasMultipleChain ? (
+					<div className="col-span-full xl:col-span-1 xl:only:col-span-full border border-(--cards-border) rounded-md">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
 							adapterType="aggregator-derivatives"
 						/>
-					) : null}
-					{props.hasMultipleVersions ? (
+					</div>
+				) : null}
+				{props.hasMultipleVersions ? (
+					<div className="col-span-full xl:col-span-1 xl:only:col-span-full border border-(--cards-border) rounded-md">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}
 							adapterType="aggregator-derivatives"
 						/>
-					) : null}
-				</div>
+					</div>
+				) : null}
 			</div>
 		</ProtocolOverviewLayout>
 	)

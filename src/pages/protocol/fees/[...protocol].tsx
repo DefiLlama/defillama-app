@@ -1,12 +1,14 @@
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
-import { slug } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { feesOptions } from '~/components/Filters/options'
-import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
+import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { KeyMetrics } from '~/containers/ProtocolOverview'
+import { TokenLogo } from '~/components/TokenLogo'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/fees/[...protocol]',
@@ -30,17 +32,82 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const [protocolData, adapterData] = await Promise.all([
-			getProtocol(protocol),
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				protocol: metadata[1].name,
-				excludeTotalDataChart: true,
-				excludeTotalDataChartBreakdown: true
-			})
-		])
+		const [protocolData, feesData, revenueData, holdersRevenueData, bribeRevenueData, tokenTaxData] = await Promise.all(
+			[
+				getProtocol(protocol),
+				getAdapterProtocolSummary({
+					adapterType: 'fees',
+					protocol: metadata[1].name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+				}),
+				getAdapterProtocolSummary({
+					adapterType: 'fees',
+					protocol: metadata[1].name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true,
+					dataType: 'dailyRevenue'
+				}).catch(() => null),
+				getAdapterProtocolSummary({
+					adapterType: 'fees',
+					protocol: metadata[1].name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true,
+					dataType: 'dailyHoldersRevenue'
+				}).catch(() => null),
+				getAdapterProtocolSummary({
+					adapterType: 'fees',
+					protocol: metadata[1].name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true,
+					dataType: 'dailyBribesRevenue'
+				}).catch(() => null),
+				getAdapterProtocolSummary({
+					adapterType: 'fees',
+					protocol: metadata[1].name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true,
+					dataType: 'dailyTokenTaxes'
+				}).catch(() => null)
+			]
+		)
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+
+		const fees: IProtocolOverviewPageData['fees'] = {
+			total24h: feesData.total24h ?? null,
+			total7d: feesData.total7d ?? null,
+			total30d: feesData.total30d ?? null,
+			totalAllTime: feesData.totalAllTime ?? null
+		}
+
+		const revenue: IProtocolOverviewPageData['revenue'] = {
+			total24h: revenueData?.total24h ?? null,
+			total7d: revenueData?.total7d ?? null,
+			total30d: revenueData?.total30d ?? null,
+			totalAllTime: revenueData?.totalAllTime ?? null
+		}
+
+		const holdersRevenue: IProtocolOverviewPageData['holdersRevenue'] = {
+			total24h: holdersRevenueData?.total24h ?? null,
+			total7d: holdersRevenueData?.total7d ?? null,
+			total30d: holdersRevenueData?.total30d ?? null,
+			totalAllTime: holdersRevenueData?.totalAllTime ?? null
+		}
+
+		const bribeRevenue: IProtocolOverviewPageData['bribeRevenue'] = {
+			total24h: bribeRevenueData?.total24h ?? null,
+			total7d: bribeRevenueData?.total7d ?? null,
+			total30d: bribeRevenueData?.total30d ?? null,
+			totalAllTime: bribeRevenueData?.totalAllTime ?? null
+		}
+
+		const tokenTax: IProtocolOverviewPageData['tokenTax'] = {
+			total24h: tokenTaxData?.total24h ?? null,
+			total7d: tokenTaxData?.total7d ?? null,
+			total30d: tokenTaxData?.total30d ?? null,
+			totalAllTime: tokenTaxData?.totalAllTime ?? null
+		}
 
 		return {
 			props: {
@@ -48,8 +115,14 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: adapterData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
+				fees,
+				revenue,
+				holdersRevenue,
+				bribeRevenue,
+				tokenTax,
+				hasKeyMetrics: true,
+				hasMultipleChain: feesData?.chains?.length > 1 ? true : false,
+				hasMultipleVersions: feesData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -70,48 +143,31 @@ export default function Protocols(props) {
 			tab="fees"
 			toggleOptions={feesOptions}
 		>
-			<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
-				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="fees">
-					Fees and Revenue for {props.name}
-				</h2>
-			</div>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="grid grid-cols-2 rounded-md">
-					<DimensionProtocolChartByType
-						chartType="overview"
-						protocolName={slug(props.name)}
-						adapterType="fees"
-						metadata={{
-							revenue: props.metrics.revenue,
-							bribeRevenue: props.metrics.bribes,
-							tokenTax: props.metrics.tokenTax
-						}}
-					/>
-					{props.hasMultipleChain ? (
-						<DimensionProtocolChartByType
-							chartType="chain"
-							protocolName={slug(props.name)}
-							adapterType="fees"
-							metadata={{
-								revenue: props.metrics.revenue,
-								bribeRevenue: props.metrics.bribes,
-								tokenTax: props.metrics.tokenTax
-							}}
-						/>
-					) : null}
-					{props.hasMultipleVersions ? (
-						<DimensionProtocolChartByType
-							chartType="version"
-							protocolName={slug(props.name)}
-							adapterType="fees"
-							metadata={{
-								revenue: props.metrics.revenue,
-								bribeRevenue: props.metrics.bribes,
-								tokenTax: props.metrics.tokenTax
-							}}
-						/>
-					) : null}
+			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
+				<div className="col-span-1 flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:min-h-[360px]">
+					<h1 className="flex items-center flex-wrap gap-2 text-xl">
+						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+						<span className="font-bold">
+							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+						</span>
+					</h1>
+					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
+				<div className="grid grid-cols-2 gap-2 col-span-1 xl:col-[2/-1] border border-(--cards-border) rounded-md xl:min-h-[360px]">
+					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="fees" />
+				</div>
+			</div>
+			<div className="grid grid-cols-2 gap-2">
+				{props.hasMultipleChain ? (
+					<div className="col-span-full xl:col-span-1 xl:only:col-span-full border border-(--cards-border) rounded-md">
+						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} adapterType="fees" />
+					</div>
+				) : null}
+				{props.hasMultipleVersions ? (
+					<div className="col-span-full xl:col-span-1 xl:only:col-span-full border border-(--cards-border) rounded-md">
+						<DimensionProtocolChartByType chartType="version" protocolName={slug(props.name)} adapterType="fees" />
+					</div>
+				) : null}
 			</div>
 		</ProtocolOverviewLayout>
 	)
