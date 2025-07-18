@@ -110,7 +110,12 @@ export const IconsRow = ({
 	}, [links, visibleChainIndex])
 
 	return (
-		<div className={`flex items-center justify-${iconsAlignment} bg-none overflow-hidden`} ref={mainWrapEl}>
+		<div
+			className={`flex items-center ${
+				iconsAlignment === 'start' ? 'justify-start' : 'justify-end'
+			} bg-none overflow-hidden`}
+			ref={mainWrapEl}
+		>
 			{visibleChains.map((chain, i) => (
 				<ChainLogo
 					key={chain}
