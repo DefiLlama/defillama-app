@@ -38,6 +38,12 @@ function filterDataByTimePeriod(data: [number, number][], timePeriod: TimePeriod
 		case '365d':
 			cutoffDate = now.subtract(365, 'day')
 			break
+		case 'ytd':
+			cutoffDate = now.startOf('year')
+			break
+		case '3y':
+			cutoffDate = now.subtract(3, 'year')
+			break
 		default:
 			return data
 	}

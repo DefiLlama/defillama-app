@@ -20,7 +20,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDashboardAPI, useAutoSave, useDashboardPermissions } from './hooks'
 import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
 
-export type TimePeriod = '30d' | '90d' | '365d' | 'all'
+export type TimePeriod = '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
 
 interface ProDashboardContextType {
 	items: DashboardItemConfig[]

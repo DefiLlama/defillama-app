@@ -46,9 +46,11 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let fees_24h = 0
 	let fees_7d = 0
 	let fees_30d = 0
+	let fees_1y = 0
 	let revenue_24h = 0
 	let revenue_7d = 0
 	let revenue_30d = 0
+	let revenue_1y = 0
 
 	let weightedVolumeChange = 0
 	let totalVolumeWeight = 0
@@ -69,9 +71,11 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		if (child.fees_24h) fees_24h += child.fees_24h
 		if (child.fees_7d) fees_7d += child.fees_7d
 		if (child.fees_30d) fees_30d += child.fees_30d
+		if (child.fees_1y) fees_1y += child.fees_1y
 		if (child.revenue_24h) revenue_24h += child.revenue_24h
 		if (child.revenue_7d) revenue_7d += child.revenue_7d
 		if (child.revenue_30d) revenue_30d += child.revenue_30d
+		if (child.revenue_1y) revenue_1y += child.revenue_1y
 	})
 
 	const change_1d = getPercentChange(tvl, tvlPrevDay)
@@ -102,9 +106,11 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		fees_24h,
 		fees_7d,
 		fees_30d,
+		fees_1y,
 		revenue_24h,
 		revenue_7d,
 		revenue_30d,
+		revenue_1y,
 		change_1d,
 		change_7d,
 		change_1m,

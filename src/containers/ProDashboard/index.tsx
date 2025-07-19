@@ -44,6 +44,8 @@ function ProDashboardContent() {
 		{ value: '30d', label: '30d' },
 		{ value: '90d', label: '90d' },
 		{ value: '365d', label: '365d' },
+		{ value: 'ytd', label: 'YTD' },
+		{ value: '3y', label: '3Y' },
 		{ value: 'all', label: 'All' }
 	]
 
