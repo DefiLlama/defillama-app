@@ -5,7 +5,7 @@ import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { PROTOCOL_API } from '~/constants'
-import { slug, getNDistinctColors, formattedNum, tokenIconUrl } from '~/utils'
+import { slug, getNDistinctColors, formattedNum, tokenIconUrl, getPercentChange } from '~/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { useQueries } from '@tanstack/react-query'
@@ -16,6 +16,7 @@ import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Flag } from '~/containers/ProtocolOverview/Flag'
 import { IconsRow } from '~/components/IconsRow'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -74,6 +75,7 @@ export default function CompareProtocolsTvls({ protocols }) {
 
 	const isLoading = results.some((r) => r.isLoading)
 
+	// TODO handle extra tvl settings
 	const { charts } = React.useMemo(() => {
 		const formattedData =
 			results
@@ -157,17 +159,20 @@ export default function CompareProtocolsTvls({ protocols }) {
 		return [...selectedProtocols, ...unselectedProtocols]
 	}, [selectedProtocols, protocolsNames])
 
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+
 	const selectedProtocolsData = React.useMemo(() => {
 		return selectedProtocols
 			.map((protocolName) => {
 				return protocols.find((p) => p.name === protocolName)
 			})
 			.filter(Boolean)
-	}, [selectedProtocols, protocols])
+	}, [selectedProtocols, protocols, extraTvlsEnabled])
 
 	return (
-		<Layout title={`Compare Protocols - DefiLlama`} defaultSEO>
-			<div className="bg-(--cards-bg) rounded-md isolate">
+		<Layout title={`Compare Protocols - DefiLlama`} defaultSEO className="gap-2">
+			<ProtocolsChainsSearch />
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md isolate">
 				<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 					<h1 className="text-lg font-semibold mr-auto">Compare Protocols</h1>
 					<SelectWithCombobox
@@ -194,9 +199,9 @@ export default function CompareProtocolsTvls({ protocols }) {
 				)}
 			</div>
 			{selectedProtocolsData.length > 0 && (
-				<div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+				<div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">
 					{selectedProtocolsData.map((protocolData) => (
-						<ProtocolInfoCard key={protocolData.name} protocolData={protocolData} extraTvlEnabled={extraTvlEnabled} />
+						<ProtocolInfoCard key={protocolData.name} protocolData={protocolData} />
 					))}
 				</div>
 			)}
@@ -204,8 +209,26 @@ export default function CompareProtocolsTvls({ protocols }) {
 	)
 }
 
-const ProtocolInfoCard = ({ protocolData, extraTvlEnabled }) => {
-	const tvl = protocolData.tvl || 0
+const ProtocolInfoCard = ({ protocolData }) => {
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+
+	let tvl = protocolData.tvl || 0
+	let tvlPrevDay = protocolData.tvlPrevDay || 0
+	let tvlPrevWeek = protocolData.tvlPrevWeek || 0
+	let tvlPrevMonth = protocolData.tvlPrevMonth || 0
+
+	for (const tvlKey in protocolData.extraTvl) {
+		if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
+			tvl = tvl + (protocolData.extraTvl[tvlKey].tvl || 0)
+			tvlPrevDay = tvlPrevDay + (protocolData.extraTvl[tvlKey].tvlPrevDay || 0)
+			tvlPrevWeek = tvlPrevWeek + (protocolData.extraTvl[tvlKey].tvlPrevWeek || 0)
+			tvlPrevMonth = tvlPrevMonth + (protocolData.extraTvl[tvlKey].tvlPrevMonth || 0)
+		}
+	}
+
+	let change1d = getPercentChange(tvl, tvlPrevDay)
+	let change7d = getPercentChange(tvl, tvlPrevWeek)
+	let change1m = getPercentChange(tvl, tvlPrevMonth)
 
 	return (
 		<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
@@ -217,14 +240,9 @@ const ProtocolInfoCard = ({ protocolData, extraTvlEnabled }) => {
 				) : null}
 			</div>
 
-			<CompactProtocolTVL
-				tvl={tvl}
-				name={protocolData.name}
-				category={protocolData.category}
-				chains={protocolData.chains || []}
-			/>
+			<CompactProtocolTVL tvl={tvl} name={protocolData.name} category={protocolData.category} />
 
-			<KeyMetrics protocolData={protocolData} />
+			<KeyMetrics change_1d={change1d} change_7d={change7d} change_1m={change1m} protocolName={protocolData.name} />
 
 			{protocolData.chains.length > 0 && (
 				<div className="mt-2">
@@ -236,7 +254,7 @@ const ProtocolInfoCard = ({ protocolData, extraTvlEnabled }) => {
 	)
 }
 
-const CompactProtocolTVL = ({ tvl, name, category, chains }) => {
+const CompactProtocolTVL = ({ tvl, name, category }) => {
 	return (
 		<div className="flex flex-col">
 			<span className="flex items-center flex-nowrap gap-2">
@@ -255,29 +273,29 @@ const CompactProtocolTVL = ({ tvl, name, category, chains }) => {
 	)
 }
 
-const KeyMetrics = ({ protocolData }) => {
+const KeyMetrics = ({ change_1d, change_7d, change_1m, protocolName }) => {
 	const metrics = []
 
-	if (protocolData.change_1d != null) {
+	if (change_1d != null) {
 		metrics.push({
 			name: 'Change 24h',
-			value: `${protocolData.change_1d > 0 ? '+' : ''}${protocolData.change_1d.toFixed(2)}%`,
+			value: `${change_1d > 0 ? '+' : ''}${change_1d.toFixed(2)}%`,
 			isPercentage: true
 		})
 	}
 
-	if (protocolData.change_7d != null) {
+	if (change_7d != null) {
 		metrics.push({
 			name: 'Change 7d',
-			value: `${protocolData.change_7d > 0 ? '+' : ''}${protocolData.change_7d.toFixed(2)}%`,
+			value: `${change_7d > 0 ? '+' : ''}${change_7d.toFixed(2)}%`,
 			isPercentage: true
 		})
 	}
 
-	if (protocolData.change_1m != null) {
+	if (change_1m != null) {
 		metrics.push({
 			name: 'Change 30d',
-			value: `${protocolData.change_1m > 0 ? '+' : ''}${protocolData.change_1m.toFixed(2)}%`,
+			value: `${change_1m > 0 ? '+' : ''}${change_1m.toFixed(2)}%`,
 			isPercentage: true
 		})
 	}
@@ -290,18 +308,15 @@ const KeyMetrics = ({ protocolData }) => {
 		<div className="flex flex-col gap-2">
 			<div className="grid grid-cols-1 gap-1">
 				{metrics.map((metric) => (
-					<div
-						key={`${metric.name}-${protocolData.name}`}
-						className="flex items-center justify-between gap-2 py-1 text-sm"
-					>
+					<div key={`${metric.name}-${protocolName}`} className="flex items-center justify-between gap-2 py-1 text-sm">
 						<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
 						<span
 							className={`font-jetbrains ${
 								metric.name.includes('Change')
 									? parseFloat(metric.value) > 0
-										? 'text-green-500'
+										? 'text-(--pct-green)'
 										: parseFloat(metric.value) < 0
-										? 'text-red-500'
+										? 'text-(--pct-red)'
 										: ''
 									: ''
 							}`}
