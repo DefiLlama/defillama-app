@@ -13,17 +13,27 @@ import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 
 const getOutflowsByTimerange = async (startTime, endTime) => {
 	if (startTime && endTime) {
-		const cexs = await Promise.all(
+		const cexsApiResults = await Promise.allSettled(
 			cexData.map(async (c) => {
 				if (c.slug === undefined) {
 					return [null, null]
 				} else {
-					const res = await fetchJson(`${INFLOWS_API}/${c.slug}/${startTime}?end=${endTime}`)
+					const res = await fetchJson(
+						`${INFLOWS_API}/${c.slug}/${startTime}?end=${endTime}&tokensToExclude=${c.coin ?? ''}`
+					)
 
 					return [c.slug, res]
 				}
 			})
 		)
+
+		const cexs = cexsApiResults
+			.map((result) => {
+				if (result.status === 'fulfilled') {
+					return result.value
+				}
+			})
+			.filter(Boolean)
 
 		return Object.fromEntries(cexs)
 	}
