@@ -822,6 +822,39 @@ export const cexColumn: ColumnDef<any>[] = [
 		}
 	},
 	{
+		header: 'Spot Volume',
+		accessorKey: 'spotVolume',
+		accessorFn: (row) => row.spotVolume ?? undefined,
+		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
+		sortUndefined: 'last',
+		size: 125,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '24h Open Interest',
+		accessorKey: 'oi',
+		accessorFn: (row) => row.oi ?? undefined,
+		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
+		sortUndefined: 'last',
+		size: 160,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Avg Leverage',
+		accessorKey: 'leverage',
+		accessorFn: (row) => row.leverage ?? undefined,
+		cell: (info) => (info.getValue() ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
+		sortUndefined: 'last',
+		size: 130,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Custom range Inflows',
 		accessorKey: 'customRange',
 		accessorFn: (row) => row.customRange ?? undefined,
@@ -857,40 +890,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		header: 'Last audit date',
 		accessorKey: 'lastAuditDate',
 		cell: ({ getValue }) => <>{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}</>,
-		size: 128,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Spot Volume',
-		accessorKey: 'spotVolume',
-		accessorFn: (row) => row.spotVolume ?? undefined,
-		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
-		sortUndefined: 'last',
-		size: 125,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '24h Open Interest',
-		accessorKey: 'oi',
-		accessorFn: (row) => row.oi ?? undefined,
-		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
-		sortUndefined: 'last',
-		size: 160,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Avg Leverage',
-		accessorKey: 'leverage',
-		accessorFn: (row) => row.leverage ?? undefined,
-		cell: (info) => (info.getValue() ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
-		sortUndefined: 'last',
-		size: 120,
+		size: 130,
 		meta: {
 			align: 'end'
 		}
