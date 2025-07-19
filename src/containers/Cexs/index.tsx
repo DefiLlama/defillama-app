@@ -18,7 +18,9 @@ const getOutflowsByTimerange = async (startTime, endTime) => {
 				if (c.slug === undefined) {
 					return [null, null]
 				} else {
-					const res = await fetchJson(`${INFLOWS_API}/${c.slug}/${startTime}?end=${endTime}`)
+					const res = await fetchJson(
+						`${INFLOWS_API}/${c.slug}/${startTime}?end=${endTime}&tokensToExclude=${c.coin ?? ''}`
+					)
 
 					return [c.slug, res]
 				}
