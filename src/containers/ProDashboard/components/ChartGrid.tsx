@@ -24,7 +24,8 @@ import {
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
+import { ConfirmationModal } from './ConfirmationModal'
 
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
 
@@ -36,6 +37,8 @@ interface ChartGridProps {
 export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem, isReadOnly } =
 		useProDashboard()
+	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
+	
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -54,6 +57,21 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 			const newCharts = arrayMove(chartsWithData, oldIndex, newIndex)
 			handleChartsReordered(newCharts)
 		}
+	}
+
+	const handleDeleteClick = (itemId: string) => {
+		setDeleteConfirmItem(itemId)
+	}
+
+	const handleConfirmDelete = () => {
+		if (deleteConfirmItem) {
+			handleRemoveItem(deleteConfirmItem)
+			setDeleteConfirmItem(null)
+		}
+	}
+
+	const handleCancelDelete = () => {
+		setDeleteConfirmItem(null)
 	}
 
 	const getColSpanClass = (colSpan?: 1 | 2) => {
@@ -199,7 +217,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											)}
 											<button
 												className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
-												onClick={() => handleRemoveItem(item.id)}
+												onClick={() => handleDeleteClick(item.id)}
 												aria-label="Remove item"
 											>
 												<Icon name="x" height={14} width={14} />
@@ -233,6 +251,16 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 					</div>
 				</SortableContext>
 			</DndContext>
+
+			<ConfirmationModal
+				isOpen={!!deleteConfirmItem}
+				onClose={handleCancelDelete}
+				onConfirm={handleConfirmDelete}
+				title="Remove Item"
+				message="Are you sure you want to remove this item from your dashboard? This action cannot be undone."
+				confirmText="Remove"
+				cancelText="Cancel"
+			/>
 		</div>
 	)
 }
