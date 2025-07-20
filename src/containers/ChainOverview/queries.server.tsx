@@ -118,7 +118,16 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			any,
 			any
 		] = await Promise.all([
-			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`),
+			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then(async (res) => {
+				if (!res) {
+					const data = await fetchJson(`https://api.llama.fi/lite/charts${chain === 'All' ? '' : `/${metadata.name}`}`)
+					if (!data) {
+						throw new Error('Missing chart data')
+					}
+					return data
+				}
+				return res
+			}),
 			getProtocolsByChain({ chain, metadata }),
 			getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
 				.then((data) => {
