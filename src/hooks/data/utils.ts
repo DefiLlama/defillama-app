@@ -125,23 +125,19 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	const change1d: number | null = getPercentChange(tvl, tvlPrevDay)
 	const change7d: number | null = getPercentChange(tvl, tvlPrevWeek)
 	const change1m: number | null = getPercentChange(tvl, tvlPrevMonth)
-	const pf = getAnnualizedRatio(mcap, fees_30d)
-	const ps = getAnnualizedRatio(mcap, revenue_30d)
 
 	let volumeChange_7d = null
 	if (totalVolumeWeight > 0) {
 		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
 	}
 
-	let mcaptvl = null
+	const finalMcap = mcap > 0 ? mcap : parent?.mcap || 0
+	const pf = getAnnualizedRatio(finalMcap, fees_30d)
+	const ps = getAnnualizedRatio(finalMcap, revenue_30d)
 
-	if (tvl) {
-		if (mcap) {
-			mcaptvl = +formattedNum(mcap / tvl)
-		}
-		if (parent.mcap) {
-			mcaptvl = +formattedNum(parent.mcap / tvl)
-		}
+	let mcaptvl = null
+	if (tvl && finalMcap) {
+		mcaptvl = +formattedNum(finalMcap / tvl)
 	}
 
 	return {
@@ -175,7 +171,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		cumulativeVolume,
 		pf,
 		ps,
-		mcap,
+		mcap: finalMcap,
 		mcaptvl: mcaptvl ?? undefined,
 		extraTvl: {},
 		symbol: null,

@@ -11,6 +11,7 @@ const metricDescriptions: Record<string, string> = {
 	change_1d: '24-hour percentage change in TVL',
 	change_7d: '7-day percentage change in TVL',
 	change_1m: '30-day percentage change in TVL',
+	mcap: 'Market capitalization of the protocol token',
 	mcaptvl: 'Market Capitalization to TVL ratio',
 	fees_24h: 'Total fees generated in the last 24 hours',
 	fees_7d: 'Total fees generated in the last 7 days',

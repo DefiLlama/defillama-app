@@ -87,10 +87,10 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
 	}
 
-	// Calculate mcaptvl
 	let mcaptvl = null
-	if (tvl && mcap) {
-		mcaptvl = +formattedNum(mcap / tvl)
+	const finalMcap = mcap > 0 ? mcap : parent.mcap || 0
+	if (tvl && finalMcap) {
+		mcaptvl = +formattedNum(finalMcap / tvl)
 	}
 
 	return {
@@ -99,7 +99,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		tvlPrevDay,
 		tvlPrevWeek,
 		tvlPrevMonth,
-		mcap: mcap || parent.mcap, // Keep original mcap if no child has mcap
+		mcap: finalMcap,
 		volume_24h,
 		volume_7d,
 		volumeChange_7d,
@@ -457,7 +457,7 @@ export function useProTable(
 
 	const columnPresets = React.useMemo(
 		() => ({
-			essential: ['name', 'category', 'chains', 'tvl', 'change_1d', 'change_7d'],
+			essential: ['name', 'category', 'chains', 'tvl', 'change_1d', 'change_7d', 'mcap'],
 			fees: ['name', 'category', 'chains', 'tvl', 'fees_24h', 'fees_7d', 'revenue_24h', 'revenue_7d'],
 			volume: ['name', 'category', 'chains', 'tvl', 'volume_24h', 'volume_7d', 'volumeChange_7d'],
 			advanced: [
