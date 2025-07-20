@@ -293,12 +293,12 @@ export async function getAdapterProtocolSummary({
 export async function getCexVolume() {
 	const [cexs, btcPriceRes] = await Promise.all([
 		fetchJson(
-			`${BASE_API}cachedExternalResponse?url=${encodeURIComponent(
+			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
 				'https://api.coingecko.com/api/v3/exchanges?per_page=250'
 			)}`
 		),
 		fetchJson(
-			`${BASE_API}cachedExternalResponse?url=${encodeURIComponent(
+			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
 				'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
 			)}`
 		)
