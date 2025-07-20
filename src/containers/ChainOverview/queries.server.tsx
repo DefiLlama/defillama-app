@@ -505,12 +505,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			charts.push('Token Volume')
 		}
 
-		console.log('[BUILDING] [CHAIN OVERVIEW]', chain)
-
-		if (chain === 'All') {
-			console.log(tvlChart, chartData)
-		}
-
 		if (chain === 'All' && tvlChart.length === 0) {
 			throw new Error('Missing chart data')
 		}

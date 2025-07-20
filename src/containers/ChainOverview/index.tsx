@@ -11,10 +11,6 @@ import { Metrics } from '~/components/Metrics'
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
 export function ChainOverview(props: IChainOverviewData) {
-	if (props.chain === 'All' && typeof window !== 'undefined') {
-		console.log(props)
-	}
-
 	return (
 		<Layout
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
