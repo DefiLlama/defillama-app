@@ -342,7 +342,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: 'Active Addresses',
 		accessorKey: 'users',
-		cell: (info) => <>{info.getValue() === 0 || formattedNum(info.getValue())}</>,
+		cell: (info) => <>{+info?.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
 		size: 180,
 		meta: {
 			align: 'end',
