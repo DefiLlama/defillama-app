@@ -7,7 +7,6 @@ import { BasicLink } from '~/components/Link'
 import { IProtocolPageMetrics } from './types'
 import * as Ariakit from '@ariakit/react'
 import { TokenLogo } from '~/components/TokenLogo'
-import { oldBlue } from '~/constants/colors'
 import { defaultProtocolPageStyles } from './Chart/constants'
 
 export function ProtocolOverviewLayout({
@@ -144,7 +143,7 @@ export function ProtocolOverviewLayout({
 											data-active={name === value}
 											className={`group flex items-center gap-2 py-2 relative ${
 												i === 0 ? 'px-3' : 'ml-[22px] pr-3'
-											} shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) data-[active=true]:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md whitespace-nowrap overflow-hidden text-ellipsis`}
+											} shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) data-[active=true]:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md whitespace-nowrap overflow-hidden text-ellipsis`}
 										>
 											{i !== 0 && (
 												<>
