@@ -43,22 +43,20 @@ export function ConfirmationModal({
 
 	if (!isOpen) return null
 
+	const target = document.querySelector('.pro-dashboard') ?? document.body
+
 	return createPortal(
 		<div
 			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs flex justify-center items-center z-[1000]"
 			onClick={onClose}
 		>
 			<div
-				className="bg-(--bg7) border border-white/10 p-6 w-full max-w-md shadow-xl mx-4"
+				className="pro-bg1 border border-white/10 p-6 w-full max-w-md shadow-xl mx-4"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="flex items-center justify-between mb-4">
 					<h2 className="text-lg font-semibold pro-text1">{title}</h2>
-					<button
-						onClick={onClose}
-						className="p-1 pro-hover-bg pro-text1 transition-colors"
-						aria-label="Close modal"
-					>
+					<button onClick={onClose} className="p-1 pro-hover-bg pro-text1 transition-colors" aria-label="Close modal">
 						<Icon name="x" height={20} width={20} />
 					</button>
 				</div>
@@ -84,6 +82,6 @@ export function ConfirmationModal({
 				</div>
 			</div>
 		</div>,
-		document.body
+		target
 	)
 }

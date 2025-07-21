@@ -338,6 +338,82 @@ export function useProTable(
 		return { name: nameColumn, category: categoryColumn }
 	}, [filters, onFilterClick])
 
+	const totals = React.useMemo(() => {
+		const sums: Record<string, number> = {}
+		const usdMetrics = [
+			'tvl',
+			'mcap',
+			'fees_24h',
+			'fees_7d',
+			'fees_30d',
+			'fees_1y',
+			'revenue_24h',
+			'revenue_7d',
+			'revenue_30d',
+			'revenue_1y',
+			'volume_24h',
+			'volume_7d',
+			'cumulativeFees',
+			'cumulativeVolume'
+		]
+
+		usdMetrics.forEach((metric) => {
+			sums[metric] = 0
+		})
+
+		finalProtocolsList.forEach((protocol) => {
+			usdMetrics.forEach((metric) => {
+				const value = protocol[metric as keyof IProtocolRow]
+				if (typeof value === 'number' && value > 0) {
+					sums[metric] += value
+				}
+			})
+		})
+
+		return sums
+	}, [finalProtocolsList])
+
+	const percentageShareColumnDefs = React.useMemo(() => {
+		const usdMetrics = [
+			{ key: 'tvl', name: 'TVL % Share' },
+			{ key: 'mcap', name: 'Market Cap % Share' },
+			{ key: 'fees_24h', name: 'Fees 24h % Share' },
+			{ key: 'fees_7d', name: 'Fees 7d % Share' },
+			{ key: 'fees_30d', name: 'Fees 30d % Share' },
+			{ key: 'fees_1y', name: 'Fees 1y % Share' },
+			{ key: 'revenue_24h', name: 'Revenue 24h % Share' },
+			{ key: 'revenue_7d', name: 'Revenue 7d % Share' },
+			{ key: 'revenue_30d', name: 'Revenue 30d % Share' },
+			{ key: 'revenue_1y', name: 'Revenue 1y % Share' },
+			{ key: 'volume_24h', name: 'Volume 24h % Share' },
+			{ key: 'volume_7d', name: 'Volume 7d % Share' },
+			{ key: 'cumulativeFees', name: 'Cumulative Fees % Share' },
+			{ key: 'cumulativeVolume', name: 'Cumulative Volume % Share' }
+		]
+
+		return usdMetrics.map(
+			(metric): ColumnDef<IProtocolRow> => ({
+				id: `${metric.key}_share`,
+				header: metric.name,
+				accessorFn: (row) => {
+					const value = row[metric.key as keyof IProtocolRow]
+					const total = totals[metric.key]
+
+					if (typeof value === 'number' && value > 0 && total > 0) {
+						return (value / total) * 100
+					}
+					return null
+				},
+				cell: ({ getValue }) => {
+					const value = getValue() as number | null
+					if (value === null || value === undefined) return ''
+
+					return `${value.toFixed(2)}%`
+				}
+			})
+		)
+	}, [totals])
+
 	const allColumns = React.useMemo(() => {
 		const baseColumns = [...protocolsByChainColumns]
 
@@ -355,8 +431,8 @@ export function useProTable(
 			}
 		}
 
-		return [...baseColumns, ...customColumnDefs]
-	}, [customColumnDefs, columnsWithFilter])
+		return [...baseColumns, ...customColumnDefs, ...percentageShareColumnDefs]
+	}, [customColumnDefs, columnsWithFilter, percentageShareColumnDefs])
 
 	const table = useReactTable({
 		data: finalProtocolsList,
