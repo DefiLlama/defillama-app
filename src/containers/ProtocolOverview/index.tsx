@@ -2266,13 +2266,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 									key={`${props.name}-${groupBy}-fees-${month[0]}`}
 									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 								>
-									{monthDates[i + 1] ? (
+									{i !== 0 && monthDates[i + 1] ? (
 										<Tooltip
 											content={
 												<PerformanceTooltipContent
 													currentValue={feesByMonth[month[0]]}
 													previousValue={monthDates[i + 1] ? feesByMonth[monthDates[i + 1][0]] : null}
 													groupBy={groupBy}
+													dataType="fees"
 												/>
 											}
 											className="underline decoration-dotted justify-center"
@@ -2303,13 +2304,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 									key={`${props.name}-${groupBy}-revenue-${month[0]}`}
 									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 								>
-									{monthDates[i + 1] ? (
+									{i !== 0 && monthDates[i + 1] ? (
 										<Tooltip
 											content={
 												<PerformanceTooltipContent
 													currentValue={revenueByMonth[month[0]]}
 													previousValue={monthDates[i + 1] ? revenueByMonth[monthDates[i + 1][0]] : null}
 													groupBy={groupBy}
+													dataType="revenue"
 												/>
 											}
 											className="underline decoration-dotted justify-center"
@@ -2341,13 +2343,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 										key={`${props.name}-${groupBy}-incentives-${month[0]}`}
 										className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 									>
-										{monthDates[i + 1] ? (
+										{i !== 0 && monthDates[i + 1] ? (
 											<Tooltip
 												content={
 													<PerformanceTooltipContent
 														currentValue={incentivesByMonth[month[0]]}
 														previousValue={monthDates[i + 1] ? incentivesByMonth[monthDates[i + 1][0]] : null}
 														groupBy={groupBy}
+														dataType="incentives"
 													/>
 												}
 												className="underline decoration-dotted justify-center"
@@ -2382,13 +2385,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 											earnings > 0 ? 'text-(--pct-green)' : earnings < 0 ? 'text-(--pct-red)' : ''
 										}`}
 									>
-										{monthDates[i + 1] ? (
+										{i !== 0 && monthDates[i + 1] ? (
 											<Tooltip
 												content={
 													<PerformanceTooltipContent
 														currentValue={earnings}
 														previousValue={previousEarnings}
 														groupBy={groupBy}
+														dataType="earnings"
 													/>
 												}
 												className="underline decoration-dotted justify-center"
@@ -2421,13 +2425,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 										key={`${props.name}-${groupBy}-holders-revenue-${month[0]}`}
 										className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 									>
-										{monthDates[i + 1] ? (
+										{i !== 0 && monthDates[i + 1] ? (
 											<Tooltip
 												content={
 													<PerformanceTooltipContent
 														currentValue={holdersRevenueByMonth[month[0]]}
 														previousValue={monthDates[i + 1] ? holdersRevenueByMonth[monthDates[i + 1][0]] : null}
 														groupBy={groupBy}
+														dataType="token holders net income"
 													/>
 												}
 												className="underline decoration-dotted justify-center"
@@ -2451,11 +2456,13 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 const PerformanceTooltipContent = ({
 	currentValue,
 	previousValue,
-	groupBy
+	groupBy,
+	dataType
 }: {
 	currentValue: number
 	previousValue: number
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
+	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income'
 }) => {
 	if (previousValue == null) return null
 	const valueChange = currentValue - previousValue
@@ -2469,7 +2476,10 @@ const PerformanceTooltipContent = ({
 			<span className={`${percentageChange > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}>
 				{`${percentageChangeText}`}
 			</span>{' '}
-			<span>from previous {groupBy === 'Yearly' ? 'year' : groupBy === 'Quarterly' ? 'quarter' : 'month'}</span>
+			<span>
+				compared to previous {groupBy === 'Yearly' ? 'year' : groupBy === 'Quarterly' ? 'quarter' : 'month'} total{' '}
+				{dataType}
+			</span>
 		</p>
 	)
 }
