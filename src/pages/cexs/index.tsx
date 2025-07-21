@@ -491,6 +491,18 @@ export const cexData: Array<ICex> = [
 		walletsLink: 'https://www.ourbit.com/assets/reserve-proof'
 	},
 	{
+		name: 'Indodax',
+		slug: 'indodax',
+		coin: null,
+		walletsLink: null
+	},
+	{
+		name: 'Tothemoon',
+		slug: 'tothemoon',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'HashKey Global',
 		slug: 'hashkey-global',
 		coin: null,
