@@ -163,18 +163,45 @@ export default function Protocols(props) {
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
 				<div className="col-span-1 xl:col-[2/-1] border border-(--cards-border) rounded-md xl:min-h-[360px]">
-					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="fees" />
+					<DimensionProtocolChartByType
+						chartType="overview"
+						protocolName={slug(props.name)}
+						adapterType="fees"
+						metadata={{
+							revenue: props.metrics.revenue ?? false,
+							bribeRevenue: props.metrics.bribeRevenue ?? false,
+							tokenTax: props.metrics.tokenTax ?? false
+						}}
+					/>
 				</div>
 			</div>
 			<div className="grid grid-cols-2 gap-2">
 				{props.hasMultipleChain ? (
 					<div className="col-span-full xl:col-span-1 xl:only:col-span-full border border-(--cards-border) rounded-md">
-						<DimensionProtocolChartByType chartType="chain" protocolName={slug(props.name)} adapterType="fees" />
+						<DimensionProtocolChartByType
+							chartType="chain"
+							protocolName={slug(props.name)}
+							adapterType="fees"
+							metadata={{
+								revenue: props.metrics.revenue ?? false,
+								bribeRevenue: props.metrics.bribeRevenue ?? false,
+								tokenTax: props.metrics.tokenTax ?? false
+							}}
+						/>
 					</div>
 				) : null}
 				{props.hasMultipleVersions ? (
 					<div className="col-span-full xl:col-span-1 xl:only:col-span-full border border-(--cards-border) rounded-md">
-						<DimensionProtocolChartByType chartType="version" protocolName={slug(props.name)} adapterType="fees" />
+						<DimensionProtocolChartByType
+							chartType="version"
+							protocolName={slug(props.name)}
+							adapterType="fees"
+							metadata={{
+								revenue: props.metrics.revenue ?? false,
+								bribeRevenue: props.metrics.bribeRevenue ?? false,
+								tokenTax: props.metrics.tokenTax ?? false
+							}}
+						/>
 					</div>
 				) : null}
 			</div>
