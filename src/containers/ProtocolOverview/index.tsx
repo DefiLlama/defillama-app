@@ -2191,6 +2191,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		}
 		return props.incomeStatement
 	}, [groupBy, props.incomeStatement.monthDates])
+
 	return (
 		<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 			<div className="flex flex-wrap items-center justify-between gap-1">
@@ -2224,12 +2225,24 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					<thead>
 						<tr>
 							<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold"></th>
-							{monthDates.map((month) => (
+							{monthDates.map((month, i) => (
 								<th
 									key={`${props.name}-${groupBy}-income-statement-${month[0]}`}
 									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold"
 								>
-									{month[1]}
+									{i === 0 ? (
+										<span className="flex justify-center -mr-2 items-center gap-1">
+											<span className="whitespace-nowrap overflow-hidden text-ellipsis">{month[1]}</span>
+											<Tooltip
+												content={`Current ${groupBy.toLowerCase()} data is incomplete`}
+												className="text-(--pct-red) text-xs"
+											>
+												*
+											</Tooltip>
+										</span>
+									) : (
+										month[1]
+									)}
 								</th>
 							))}
 						</tr>
