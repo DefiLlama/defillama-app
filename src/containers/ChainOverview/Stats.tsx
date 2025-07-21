@@ -1,6 +1,6 @@
 import { TokenLogo } from '~/components/TokenLogo'
 import { IChainOverviewData } from './types'
-import { chainIconUrl, download, formattedNum, slug, toNiceCsvDate } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -14,6 +14,7 @@ import { chainOverviewChartColors, BAR_CHARTS, chainCharts, ChainChartLabels } f
 import { Icon } from '~/components/Icon'
 import dayjs from 'dayjs'
 import * as Ariakit from '@ariakit/react'
+import { downloadChart } from '~/components/ECharts/utils'
 
 const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
@@ -833,34 +834,4 @@ const updateRoute = (key, val, router) => {
 
 const chainsNamesMap = {
 	'OP Mainnet': 'Optimism'
-}
-
-function downloadChart(data: Record<string, Array<[string | number, number]>>, filename: string) {
-	let rows = []
-	const charts = []
-	const dateStore = {}
-	for (const chartName in data) {
-		charts.push(chartName)
-		for (const [date, value] of data[chartName]) {
-			if (!dateStore[date]) {
-				dateStore[date] = {}
-			}
-			dateStore[date][chartName] = value
-		}
-	}
-	rows.push(['Timestamp', 'Date', ...charts])
-	for (const date in dateStore) {
-		const values = []
-		for (const chartName in data) {
-			values.push(dateStore[date]?.[chartName] ?? '')
-		}
-		rows.push([date, toNiceCsvDate(+date / 1000), ...values])
-	}
-	download(
-		filename,
-		rows
-			.sort((a, b) => a[0] - b[0])
-			.map((r) => r.join(','))
-			.join('\n')
-	)
 }

@@ -50,6 +50,20 @@ export const getStaticProps = withPerformanceLogging(
 			totalAllTime: adapterData.totalAllTime ?? null
 		}
 
+		const linkedProtocols = (adapterData?.linkedProtocols ?? []).slice(1)
+		const linkedProtocolsWithAdapterData = []
+		if (protocolData.isParentProtocol) {
+			for (const key in protocolMetadata) {
+				if (linkedProtocols.length === 0) break
+				if (linkedProtocols.includes(protocolMetadata[key].displayName)) {
+					if (protocolMetadata[key].perpsAggregators) {
+						linkedProtocolsWithAdapterData.push(protocolMetadata[key])
+					}
+					linkedProtocols.splice(linkedProtocols.indexOf(protocolMetadata[key].displayName), 1)
+				}
+			}
+		}
+
 		return {
 			props: {
 				name: protocolData.name,
@@ -60,7 +74,7 @@ export const getStaticProps = withPerformanceLogging(
 				openSmolStatsSummaryByDefault: true,
 				perpAggregatorVolume,
 				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: adapterData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
+				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false
 			},
 			revalidate: maxAgeForNext([22])
 		}

@@ -64,6 +64,25 @@ export const getStaticProps = withPerformanceLogging(
 			totalAllTime: notionalVolumeData?.totalAllTime ?? null
 		}
 
+		const linkedProtocols = Array.from(
+			new Set([
+				...(premiumVolumeData?.linkedProtocols ?? []).slice(1),
+				...(notionalVolumeData?.linkedProtocols ?? []).slice(1)
+			])
+		)
+		const linkedProtocolsWithAdapterData = []
+		if (protocolData.isParentProtocol) {
+			for (const key in protocolMetadata) {
+				if (linkedProtocols.length === 0) break
+				if (linkedProtocols.includes(protocolMetadata[key].displayName)) {
+					if (protocolMetadata[key].options) {
+						linkedProtocolsWithAdapterData.push(protocolMetadata[key])
+					}
+					linkedProtocols.splice(linkedProtocols.indexOf(protocolMetadata[key].displayName), 1)
+				}
+			}
+		}
+
 		return {
 			props: {
 				name: protocolData.name,
@@ -75,8 +94,7 @@ export const getStaticProps = withPerformanceLogging(
 				optionsPremiumVolume: premiumVolumeData && premiumVolumeData.totalAllTime ? optionsPremiumVolume : null,
 				optionsNotionalVolume: notionalVolumeData && notionalVolumeData.totalAllTime ? optionsNotionalVolume : null,
 				hasMultipleChain: premiumVolumeData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions:
-					premiumVolumeData?.linkedProtocols?.length > 0 && protocolData.isParentProtocol ? true : false
+				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false
 			},
 			revalidate: maxAgeForNext([22])
 		}
