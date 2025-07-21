@@ -67,7 +67,7 @@ export const getStaticProps = withPerformanceLogging(
 
 const RevenueOnChain = (props) => {
 	return (
-		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO className="gap-2">
+		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

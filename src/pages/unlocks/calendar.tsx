@@ -243,7 +243,7 @@ export default function UnlocksCalendar({
 				</a>
 			</Announcement>
 
-			<div className="flex items-center justify-between gap-2 p-3 bg-(--cards-bg) rounded-md">
+			<div className="flex items-center justify-between gap-2 p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<h1 className="text-xl font-semibold">Token Unlocks Calendar</h1>
 				<div className="flex items-center gap-2">
 					<button
@@ -269,7 +269,7 @@ export default function UnlocksCalendar({
 				</div>
 			</div>
 
-			<div className="bg-(--cards-bg) rounded-md p-3">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				<CalendarView unlocksData={unlocksData} precomputedData={precomputedData} />
 			</div>
 		</Layout>

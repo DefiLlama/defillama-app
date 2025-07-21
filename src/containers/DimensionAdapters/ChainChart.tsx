@@ -172,7 +172,7 @@ export const ChainsByAdapterChart = ({
 	}, [chartData, chartInterval, selectedChains, chartType])
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 border border-(--cards-border)">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 border border-(--cards-border)">
 			<>
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-2">
 					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296] mr-auto">

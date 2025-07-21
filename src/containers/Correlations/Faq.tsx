@@ -1,5 +1,5 @@
 export const FAQ = () => (
-	<div className="bg-(--cards-bg) rounded-md p-3">
+	<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 		<div className="mx-auto max-w-xl flex flex-col gap-4">
 			<div className="flex flex-col gap-1">
 				<h2 className="font-semibold text-lg">Correlation</h2>

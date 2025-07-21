@@ -10,7 +10,10 @@ const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC
 
 export function Treasury({ protocolName }) {
 	return (
-		<div className="bg-(--cards-bg) rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1" id="treasury">
+		<div
+			className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3 flex flex-col gap-4 col-span-full xl:col-span-1"
+			id="treasury"
+		>
 			<h3>Treasury</h3>
 
 			<TreasuryChart protocolName={protocolName} />

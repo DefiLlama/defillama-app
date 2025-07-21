@@ -152,8 +152,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				pathname={pathname}
 			/>
 
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="font-semibold text-2xl">{investorName}</h1>
 
 					<details className="group text-base">

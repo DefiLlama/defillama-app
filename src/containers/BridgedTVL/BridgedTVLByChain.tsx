@@ -57,7 +57,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 				<SEO cardName={chainName} token={chain} />
 				<Metrics currentMetric="Bridged TVL" isChains={chainName === 'All Chains'} />
 				<RowLinksWithDropdown links={chains} activeLink={chainName} />
-				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 					<div className="bg-(--cards-bg) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						<h1 className="flex items-center gap-2 text-xl font-semibold mb-3">
 							<TokenLogo logo={chainIconUrl(chain)} size={24} />

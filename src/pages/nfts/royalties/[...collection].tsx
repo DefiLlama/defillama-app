@@ -78,8 +78,8 @@ export default function Collection() {
 
 	return (
 		<Layout title={props.name + ' Royalties - DefiLlama'}>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1 *:last:col-span-2">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2 *:last:col-span-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={props.logo} size={48} />
 						<FormattedName text={props.name} fontWeight={700} />

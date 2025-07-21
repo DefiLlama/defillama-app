@@ -141,7 +141,7 @@ function PeggedChainsOverview({
 
 			<Metrics currentMetric="Stablecoin Supply" isChains={true} />
 
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Stablecoins Market Cap</span>
@@ -201,7 +201,7 @@ function PeggedChainsOverview({
 
 					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
 				</div>
-				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[406px]">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[406px]">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 					{chartType === 'Total Market Cap' && (
 						<React.Suspense fallback={<></>}>
@@ -249,7 +249,7 @@ function PeggedChainsOverview({
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-1 bg-(--cards-bg) rounded-md p-3">
+			<div className="flex flex-col gap-1 bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<h2 className="font-semibold text-sm">Filters</h2>
 				<GroupStablecoins label="Filters" />
 			</div>

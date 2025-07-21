@@ -295,7 +295,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	return (
 		<>
-			<div className="flex flex-col sm:flex-row gap-4 sm:justify-between items-center w-full bg-(--cards-bg) rounded-md p-3">
+			<div className="flex flex-col sm:flex-row gap-4 sm:justify-between items-center w-full bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				{isEmissionsPage ? (
 					<h1 className="flex items-center gap-2 text-xl font-semibold">
 						<TokenLogo logo={tokenIconUrl(data.name)} />

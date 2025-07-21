@@ -97,7 +97,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				</>
 			)} */}
 
-			<div className="flex items-center justify-between gap-4 bg-(--cards-bg) rounded-md p-3">
+			<div className="flex items-center justify-between gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				<h1 className="text-xl font-semibold">Liquidation levels in DeFi 💦</h1>
 				<LiquidationsHeader data={data} options={options} />
 			</div>

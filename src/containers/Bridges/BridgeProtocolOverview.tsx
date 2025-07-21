@@ -58,14 +58,14 @@ const BridgeInfo = ({
 
 	return (
 		<>
-			<div className="bg-(--cards-bg) rounded-md p-3 flex items-center justify-between gap-2">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
 				<h1 className="flex flex-nowrap items-center gap-1 text-xl font-semibold">
 					<TokenLogo logo={logo} size={24} />
 					<span>{displayName}</span>
 				</h1>
 				<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
 			</div>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-[#545757] dark:text-[#cccccc]">Deposited to {currentChain} (24h)</span>

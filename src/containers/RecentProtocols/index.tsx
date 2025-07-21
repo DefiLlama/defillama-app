@@ -330,7 +330,7 @@ export function RecentProtocols({
 				</span>
 			) : null}
 
-			<div className="bg-(--cards-bg) rounded-md p-3 flex items-center gap-4 justify-between">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3 flex items-center gap-4 justify-between">
 				<h1 className="text-xl font-semibold mr-auto">{header}</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>

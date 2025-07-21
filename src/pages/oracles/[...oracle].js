@@ -96,8 +96,8 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
 
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="text-xl font-semibold">{token}</h1>
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Secured (USD)</span>
@@ -109,7 +109,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 					</p>
 				</div>
 
-				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[360px]">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[360px]">
 					<Suspense fallback={<></>}>
 						<LineAndBarChart charts={charts} alwaysShowTooltip />
 					</Suspense>

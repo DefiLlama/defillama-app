@@ -20,7 +20,7 @@ export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
 			<ProtocolsChainsSearch hideFilters />
 			<Metrics currentMetric="Total Borrowed" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-3 w-full xl:col-span-1 overflow-x-auto text-base">
 					{props.chain !== 'All' && (
 						<h1 className="flex items-center flex-nowrap gap-2">
@@ -51,7 +51,7 @@ export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
 						) : null}
 					</div>
 				</div>
-				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 pt-3">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 pt-3">
 					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
 						<LineAndBarChart charts={props.charts} />
 					</Suspense>

@@ -155,7 +155,11 @@ export default function Correlations({ coinsData }) {
 	const isClient = useIsClient()
 
 	if (!isClient) {
-		return <h1 className="bg-(--cards-bg) rounded-md p-3 text-center text-xl font-semibold">Correlations Matrix</h1>
+		return (
+			<h1 className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3 text-center text-xl font-semibold">
+				Correlations Matrix
+			</h1>
+		)
 	}
 
 	return (

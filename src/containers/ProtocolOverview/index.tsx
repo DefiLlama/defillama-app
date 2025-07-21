@@ -402,8 +402,7 @@ function Fees(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (fees30d) {
+	if (fees30d != null) {
 		metrics.push({
 			name: 'Fees (Annualized)',
 			tooltipContent:
@@ -482,8 +481,7 @@ function Revenue(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (revenue30d) {
+	if (revenue30d != null) {
 		metrics.push({
 			name: 'Revenue (Annualized)',
 			tooltipContent:
@@ -567,8 +565,7 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (holdersRevenue30d) {
+	if (holdersRevenue30d != null) {
 		metrics.push({
 			name: 'Holders Revenue (Annualized)',
 			tooltipContent:
@@ -772,8 +769,7 @@ function DexVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.dexVolume.total30d) {
+	if (props.dexVolume.total30d != null) {
 		metrics.push({ name: 'DEX Volume 30d', tooltipContent: null, value: props.dexVolume.total30d })
 	}
 	if (props.dexVolume.total7d != null) {
@@ -802,8 +798,7 @@ function DexAggregatorVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.dexAggregatorVolume.total30d) {
+	if (props.dexAggregatorVolume.total30d != null) {
 		metrics.push({ name: 'DEX Aggregator Volume 30d', tooltipContent: null, value: props.dexAggregatorVolume.total30d })
 	}
 	if (props.dexAggregatorVolume.total7d != null) {
@@ -836,8 +831,7 @@ function PerpVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.perpVolume.total30d) {
+	if (props.perpVolume.total30d != null) {
 		metrics.push({ name: 'Perp Volume 30d', tooltipContent: null, value: props.perpVolume.total30d })
 	}
 	if (props.perpVolume.total7d != null) {
@@ -870,8 +864,7 @@ function PerpAggregatorVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.perpAggregatorVolume.total30d) {
+	if (props.perpAggregatorVolume.total30d != null) {
 		metrics.push({
 			name: 'Perp Aggregator Volume 30d',
 			tooltipContent: null,
@@ -916,8 +909,7 @@ function BridgeAggregatorVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.bridgeAggregatorVolume.total30d) {
+	if (props.bridgeAggregatorVolume.total30d != null) {
 		metrics.push({
 			name: 'Bridge Aggregator Volume 30d',
 			tooltipContent: null,
@@ -1036,8 +1028,7 @@ function OptionsPremiumVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.optionsPremiumVolume.total30d) {
+	if (props.optionsPremiumVolume.total30d != null) {
 		metrics.push({
 			name: 'Options Premium Volume 30d',
 			tooltipContent: null,
@@ -1082,8 +1073,7 @@ function OptionsNotionalVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.optionsNotionalVolume.total30d) {
+	if (props.optionsNotionalVolume.total30d != null) {
 		metrics.push({
 			name: 'Options Notional Volume 30d',
 			tooltipContent: null,
