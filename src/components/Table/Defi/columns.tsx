@@ -565,20 +565,11 @@ export const activeInvestorsColumns: ColumnDef<{
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return (
-				<Ariakit.HovercardProvider>
-					<Ariakit.HovercardAnchor className="whitespace-nowrap text-ellipsis overflow-hidden">
-						{getValue() as string | null}
-					</Ariakit.HovercardAnchor>
-					<Ariakit.Hovercard
-						unmountOnHide
-						wrapperProps={{
-							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
-						}}
-						className="max-w-xl z-10 p-1 shadow-sm rounded-md bg-(--bg2) border border-(--bg3) text-(--text1) flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden max-sm-drawer"
-					>
-						{getValue() as string | null}
-					</Ariakit.Hovercard>
-				</Ariakit.HovercardProvider>
+				<Tooltip content={getValue() as string}>
+					<span className="overflow-x-hidden text-ellipsis whitespace-normal line-clamp-1 min-w-0">
+						{getValue() as string}
+					</span>
+				</Tooltip>
 			)
 		},
 		size: 240
