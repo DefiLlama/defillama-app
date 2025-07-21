@@ -120,7 +120,7 @@ export const columns: ColumnDef<any>[] = [
 					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
 					<BasicLink
-						href={`/protocol/${slug}#treasury`}
+						href={`/protocol/${slug}?treasury=true&tvl=false`}
 						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{name}
