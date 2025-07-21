@@ -74,6 +74,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="governance"
+			toggleOptions={[]}
 		>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<GovernanceData apis={props.governanceApis} />

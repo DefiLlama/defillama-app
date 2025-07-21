@@ -169,6 +169,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="options"
+			toggleOptions={[]}
 		>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
 				<div className="col-span-1 flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:min-h-[360px]">
@@ -249,7 +250,11 @@ export default function Protocols(props) {
 						<CSVDownloadButton
 							onClick={() => {
 								try {
-									downloadChart(finalCharts, `${props.name}.csv`)
+									const dataByChartType = {}
+									for (const chartType in finalCharts) {
+										dataByChartType[chartType] = finalCharts[chartType].data
+									}
+									downloadChart(dataByChartType, `${props.name}-total-options-volume.csv`)
 								} catch (error) {
 									console.error('Error generating CSV:', error)
 								}

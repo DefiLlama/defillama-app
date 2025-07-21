@@ -360,7 +360,11 @@ export default function Protocols(props) {
 						<CSVDownloadButton
 							onClick={() => {
 								try {
-									downloadChart(finalCharts, `${props.name}.csv`)
+									const dataByChartType = {}
+									for (const chartType in finalCharts) {
+										dataByChartType[chartType] = finalCharts[chartType].data
+									}
+									downloadChart(dataByChartType, `${props.name}-total-fees-revenue.csv`)
 								} catch (error) {
 									console.error('Error generating CSV:', error)
 								}
