@@ -8,3 +8,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 		}
 	}
 }
+
+export default function PerpsAggregator() {
+	return <div>PerpsAggregator</div>
+}

@@ -8,3 +8,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 		}
 	}
 }
+
+export default function Dex() {
+	return <div>Dex</div>
+}

@@ -8,3 +8,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 		}
 	}
 }
+
+export default function NotionalVolume() {
+	return <div>NotionalVolume</div>
+}
