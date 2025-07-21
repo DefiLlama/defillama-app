@@ -38,7 +38,7 @@ import { getProtocolEmissons } from '~/api/categories/protocols'
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
 	try {
-		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${protocolName}`)
+		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${slug(protocolName)}`)
 
 		if (!data || (data as any).statusCode === 400) {
 			throw new Error((data as any).body)
@@ -57,12 +57,12 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		// }
 
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
-			const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${protocolName}`)
+			const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`)
 
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
 	} catch (e) {
-		console.log(`[ERROR] [${Date.now() - start}ms] <${PROTOCOL_API}/${protocolName}>`, e)
+		console.log(`[ERROR] [${Date.now() - start}ms] <${PROTOCOL_API}/${slug(protocolName)}>`, e)
 
 		return null
 	}
