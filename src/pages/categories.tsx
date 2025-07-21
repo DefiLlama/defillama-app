@@ -303,7 +303,8 @@ export const descriptions = {
 	'Risk Curators':
 		'Projects that analyze DeFi risks and help users choose strategies across lending, trading, or staking systems to improve safety and returns.',
 	'DAO Service Provider': 'Protocols that provide services to DAOs',
-	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights'
+	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights',
+	'Canonical Bridge': ''
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
