@@ -71,6 +71,12 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
+		let chart = (adapterData.totalDataChart ?? []).map(([date, value]) => [+date * 1e3, value])
+		const nonZeroIndex = chart.findIndex(([date, value]) => value > 0)
+		if (nonZeroIndex !== -1) {
+			chart = chart.slice(nonZeroIndex)
+		}
+
 		return {
 			props: {
 				name: protocolData.name,
@@ -80,7 +86,7 @@ export const getStaticProps = withPerformanceLogging(
 				hasKeyMetrics: true,
 				openSmolStatsSummaryByDefault: true,
 				perpVolume,
-				chart: (adapterData.totalDataChart ?? []).map(([date, value]) => [+date * 1e3, value]),
+				chart,
 				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false
 			},
