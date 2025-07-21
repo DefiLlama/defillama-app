@@ -339,22 +339,24 @@ export default function Protocols(props) {
 								C
 							</Tooltip>
 						</div>
-						<Select
-							allValues={props.defaultCharts}
-							selectedValues={charts}
-							setSelectedValues={setCharts}
-							label="Charts"
-							clearAll={() => setCharts([])}
-							toggleAll={() => setCharts(props.defaultCharts)}
-							selectOnlyOne={(newChart) => {
-								setCharts([newChart])
-							}}
-							triggerProps={{
-								className:
-									'h-[30px] bg-transparent! border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
-							}}
-							labelType="smol"
-						/>
+						{props.defaultCharts.length > 0 ? (
+							<Select
+								allValues={props.defaultCharts}
+								selectedValues={charts}
+								setSelectedValues={setCharts}
+								label="Charts"
+								clearAll={() => setCharts([])}
+								toggleAll={() => setCharts(props.defaultCharts)}
+								selectOnlyOne={(newChart) => {
+									setCharts([newChart])
+								}}
+								triggerProps={{
+									className:
+										'h-[30px] bg-transparent! border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
+								}}
+								labelType="smol"
+							/>
+						) : null}
 						<CSVDownloadButton
 							onClick={() => {
 								try {

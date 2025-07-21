@@ -8,6 +8,14 @@ import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/q
 import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { TokenLogo } from '~/components/TokenLogo'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
+import { lazy, Suspense, useMemo, useState } from 'react'
+import { oldBlue } from '~/constants/colors'
+import { downloadChart, formatBarChart } from '~/components/ECharts/utils'
+import { Tooltip } from '~/components/Tooltip'
+import { Select } from '~/components/Select'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/options/[...protocol]',
@@ -36,13 +44,13 @@ export const getStaticProps = withPerformanceLogging(
 			getAdapterProtocolSummary({
 				adapterType: 'options',
 				protocol: metadata[1].name,
-				excludeTotalDataChart: true,
+				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true
 			}),
 			getAdapterProtocolSummary({
 				adapterType: 'options',
 				protocol: metadata[1].name,
-				excludeTotalDataChart: true,
+				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true,
 				dataType: 'dailyNotionalVolume'
 			}).catch(() => null)
@@ -83,6 +91,16 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
+		const charts: Record<string, Array<[string | number, number]>> = {}
+		if (premiumVolumeData?.totalDataChart?.length > 0) {
+			charts['Premium Volume'] = premiumVolumeData.totalDataChart
+		}
+		if (notionalVolumeData?.totalDataChart?.length > 0) {
+			charts['Notional Volume'] = notionalVolumeData.totalDataChart
+		}
+
+		const defaultCharts = Object.keys(charts)
+
 		return {
 			props: {
 				name: protocolData.name,
@@ -93,6 +111,8 @@ export const getStaticProps = withPerformanceLogging(
 				openSmolStatsSummaryByDefault: true,
 				optionsPremiumVolume: premiumVolumeData && premiumVolumeData.totalAllTime ? optionsPremiumVolume : null,
 				optionsNotionalVolume: notionalVolumeData && notionalVolumeData.totalAllTime ? optionsNotionalVolume : null,
+				charts,
+				defaultCharts,
 				hasMultipleChain: premiumVolumeData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false
 			},
@@ -106,6 +126,42 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols(props) {
+	const [groupBy, setGroupBy] = useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
+	const [charts, setCharts] = useState<string[]>(props.defaultCharts)
+
+	const finalCharts = useMemo(() => {
+		const finalCharts = {}
+		if (charts.includes('Premium Volume')) {
+			finalCharts['Premium Volume'] = {
+				name: 'Premium Volume',
+				stack: 'Premium Volume',
+				type: groupBy === 'cumulative' ? 'line' : 'bar',
+				data: formatBarChart({
+					data: props.charts['Premium Volume'],
+					groupBy,
+					denominationPriceHistory: null,
+					dateInMs: false
+				}),
+				color: oldBlue
+			}
+		}
+		if (charts.includes('Notional Volume')) {
+			finalCharts['Notional Volume'] = {
+				name: 'Notional Volume',
+				stack: 'Notional Volume',
+				type: groupBy === 'cumulative' ? 'line' : 'bar',
+				data: formatBarChart({
+					data: props.charts['Notional Volume'],
+					groupBy,
+					denominationPriceHistory: null,
+					dateInMs: false
+				}),
+				color: '#E59421'
+			}
+		}
+		return finalCharts
+	}, [charts, groupBy, props.charts])
+
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -124,8 +180,87 @@ export default function Protocols(props) {
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
-				<div className="col-span-1 xl:col-[2/-1] border border-(--cards-border) rounded-md xl:min-h-[360px]">
-					<DimensionProtocolChartByType chartType="overview" protocolName={slug(props.name)} adapterType="options" />
+				<div className="col-span-1 xl:col-[2/-1] border border-(--cards-border) bg-(--cards-bg) rounded-md xl:min-h-[360px]">
+					<div className="flex items-center justify-end gap-2 p-2">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+							<Tooltip
+								content="Daily"
+								render={<button />}
+								className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+								data-active={groupBy === 'daily' || !groupBy}
+								onClick={() => {
+									setGroupBy('daily')
+								}}
+							>
+								D
+							</Tooltip>
+							<Tooltip
+								content="Weekly"
+								render={<button />}
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+								data-active={groupBy === 'weekly'}
+								onClick={() => {
+									setGroupBy('weekly')
+								}}
+							>
+								W
+							</Tooltip>
+							<Tooltip
+								content="Monthly"
+								render={<button />}
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+								data-active={groupBy === 'monthly'}
+								onClick={() => {
+									setGroupBy('monthly')
+								}}
+							>
+								M
+							</Tooltip>
+							<Tooltip
+								content="Cumulative"
+								render={<button />}
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+								data-active={groupBy === 'cumulative'}
+								onClick={() => {
+									setGroupBy('cumulative')
+								}}
+							>
+								C
+							</Tooltip>
+						</div>
+						{props.defaultCharts.length > 0 ? (
+							<Select
+								allValues={props.defaultCharts}
+								selectedValues={charts}
+								setSelectedValues={setCharts}
+								label="Charts"
+								clearAll={() => setCharts([])}
+								toggleAll={() => setCharts(props.defaultCharts)}
+								selectOnlyOne={(newChart) => {
+									setCharts([newChart])
+								}}
+								triggerProps={{
+									className:
+										'h-[30px] bg-transparent! border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
+								}}
+								labelType="smol"
+							/>
+						) : null}
+						<CSVDownloadButton
+							onClick={() => {
+								try {
+									downloadChart(finalCharts, `${props.name}.csv`)
+								} catch (error) {
+									console.error('Error generating CSV:', error)
+								}
+							}}
+							smol
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						/>
+					</div>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
+						<LineAndBarChart charts={finalCharts} valueSymbol="$" />
+					</Suspense>
 				</div>
 			</div>
 			<div className="grid grid-cols-2 gap-2">
