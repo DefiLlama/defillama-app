@@ -120,11 +120,11 @@ export const CategoryPerformanceContainer = ({
 		<>
 			<ProtocolsChainsSearch />
 
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<h1 className="text-xl font-semibold p-3">
-					{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
-				</h1>
+			<h1 className="text-xl font-semibold bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+				{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
+			</h1>
 
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 					<button
 						className="py-2 px-6 whitespace-nowrap border-b border-(--form-control-border) data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
@@ -205,14 +205,14 @@ export const CategoryPerformanceContainer = ({
 						</React.Suspense>
 					)}
 				</div>
-
-				<TableWithSearch
-					data={sortedPctChanges}
-					columns={isCoinPage ? CoinPerformanceColumn : CategoryPerformanceColumn}
-					columnToSearch={'name'}
-					placeholder={'Search...'}
-				/>
 			</div>
+
+			<TableWithSearch
+				data={sortedPctChanges}
+				columns={isCoinPage ? CoinPerformanceColumn : CategoryPerformanceColumn}
+				columnToSearch={'name'}
+				placeholder={'Search...'}
+			/>
 		</>
 	)
 }

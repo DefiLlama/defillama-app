@@ -448,11 +448,10 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 						labelType="smol"
 					/>
 				</div>
-				<div className="bg-(--cards-bg) rounded-md relative">
-					<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
-						<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
-					</React.Suspense>
-				</div>
+
+				<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+					<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
+				</React.Suspense>
 			</div>
 
 			<React.Suspense

@@ -21,7 +21,7 @@ export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
 			<Metrics currentMetric="Total Borrowed" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-3 w-full xl:col-span-1 overflow-x-auto text-base">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-3 w-full xl:col-span-1 overflow-x-auto text-base">
 					{props.chain !== 'All' && (
 						<h1 className="flex items-center flex-nowrap gap-2">
 							<TokenLogo logo={chainIconUrl(props.chain)} size={24} />

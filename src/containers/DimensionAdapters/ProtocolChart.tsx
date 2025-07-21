@@ -62,7 +62,7 @@ export const DimensionProtocolChartByType = ({
 
 	if (error) {
 		return (
-			<div className="bg-(--cards-bg) rounded-md flex flex-col items-center justify-center col-span-2 min-h-[418px]">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col items-center justify-center col-span-2 min-h-[418px]">
 				<p className="text-sm text-(--pct-red) p-3">Error : {error.message}</p>
 			</div>
 		)

@@ -367,7 +367,7 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabProvider>
 				</div>
 
-				<div className="bg-(--cards-bg) rounded-md min-h-[416px] flex flex-col col-span-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[416px] flex flex-col col-span-2">
 					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--tag-border-color) m-3">
 						<button
 							data-active={chartType === 'Mcap'}

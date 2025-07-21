@@ -310,7 +310,7 @@ const PageView = (props) => {
 					</p>
 				</div>
 
-				<LazyChart className="bg-(--cards-bg) rounded-md pt-3 col-span-2 min-h-[480px]">
+				<LazyChart className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-3 col-span-2 min-h-[480px]">
 					{!isLoading && (
 						<Chart
 							height="468px"
@@ -524,7 +524,7 @@ const PageView = (props) => {
 					</>
 				)}
 			</div>
-			<div className="flex flex-col gap-4 bg-(--cards-bg) rounded-md p-5">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				<h3 className="font-semibold text-lg">Protocol Information</h3>
 				<p className="flex items-center gap-2">
 					<span>Category</span>

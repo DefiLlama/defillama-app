@@ -135,7 +135,7 @@ export default function Protocols(props) {
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
-				<div className="col-span-1 xl:col-[2/-1] border border-(--cards-border) bg-(--cards-bg) rounded-md xl:min-h-[360px]">
+				<div className="col-span-1 xl:col-[2/-1] bg-(--cards-bg) border border-(--cards-border) rounded-md xl:min-h-[360px]">
 					<div className="flex items-center justify-end gap-2 p-2">
 						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 							<Tooltip

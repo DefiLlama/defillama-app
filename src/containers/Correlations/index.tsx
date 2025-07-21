@@ -165,7 +165,7 @@ export default function Correlations({ coinsData }) {
 	return (
 		<>
 			<ProtocolsChainsSearch />
-			<div className="p-3 bg-(--cards-bg) rounded-md flex items-center flex-wrap justify-between gap-4">
+			<div className="p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center flex-wrap justify-between gap-4">
 				<h1 className="text-xl font-semibold">Correlations Matrix</h1>
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 					<button
@@ -192,7 +192,7 @@ export default function Correlations({ coinsData }) {
 				</div>
 			</div>
 
-			<div className="p-3 bg-(--cards-bg) rounded-md flex flex-col gap-4 items-center justify-center">
+			<div className="p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-4 items-center justify-center">
 				<div className="flex flex-col sm:flex-row">
 					<div className="no-scrollbar overflow-auto mr-8 flex flex-col">
 						<h2 className="text-lg font-medium">Selected Coins</h2>

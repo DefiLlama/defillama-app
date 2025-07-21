@@ -94,7 +94,7 @@ export default function Tokens({ searchData }) {
 				variant={isSmall ? 'secondary' : 'primary'}
 			/>
 
-			<div className="bg-(--cards-bg) rounded-md w-full">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md w-full">
 				{isLoading ? (
 					<div className="flex items-center justify-center mx-auto w-full my-32">
 						<LocalLoader />

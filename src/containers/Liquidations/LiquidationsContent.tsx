@@ -28,7 +28,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 	const [bobo, setBobo] = React.useState(false)
 	return (
 		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-			<div className="bg-(--cards-bg) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 				<p className="flex flex-col">
 					<TotalLiquidable {...data} />
 				</p>
@@ -46,7 +46,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					className="mt-auto mr-auto"
 				/>
 			</div>
-			<div className="bg-(--cards-bg) rounded-md flex flex-col gap-4 p-3 col-span-2 min-h-[458px]">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-4 p-3 col-span-2 min-h-[458px]">
 				<div className="flex items-center gap-4 flex-wrap">
 					<StackBySwitch />
 					<CurrencyToggle symbol={data.symbol} />

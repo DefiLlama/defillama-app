@@ -184,7 +184,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 			{poolsData.length > 0 ? (
 				<YieldsOptimizerTable data={poolsDataWithAmounts} />
 			) : (
-				<p className="p-3 bg-(--cards-bg) rounded-md text-center">
+				<p className="p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md text-center">
 					Given a token to use for collateral and a token to borrow, this calculator will look at all the lending
 					protocols
 					<br />

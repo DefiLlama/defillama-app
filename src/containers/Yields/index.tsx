@@ -261,7 +261,9 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 			) : poolsData.length > 0 ? (
 				<YieldsPoolsTable data={poolsData} />
 			) : (
-				<p className="p-5 bg-(--cards-bg) rounded-md text-center">Couldn't find any pools for these filters</p>
+				<p className="p-5 bg-(--cards-bg) border border-(--cards-border) rounded-md text-center">
+					Couldn't find any pools for these filters
+				</p>
 			)}
 		</>
 	)

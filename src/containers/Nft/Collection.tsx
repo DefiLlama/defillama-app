@@ -86,7 +86,7 @@ export function NFTCollectionContainer() {
 					</a>
 				</div>
 
-				<div className="bg-(--cards-bg) rounded-md col-span-2 min-h-[392px]">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 min-h-[392px]">
 					<div className="flex items-center justify-end p-3 pb-0 w-full">
 						<Switch
 							label="Include Outliers"

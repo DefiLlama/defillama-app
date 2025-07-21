@@ -205,7 +205,7 @@ const PageView = () => {
 // 					</TableWrapper>
 // 				</div>
 
-// 				<LazyChart className="bg-(--cards-bg) rounded-md pt-3 col-span-2  min-h-[372px]">
+// 				<LazyChart className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-3 col-span-2  min-h-[372px]">
 // 					<AreaChart title="Net Borrow APY" chartData={netBorrowChartData} color={backgroundColor} valueSymbol={'%'} />
 
 // 					<ButtonLight as="button" onClick={downloadCsv} useTextColor={true}>
@@ -271,7 +271,7 @@ const PageView = () => {
 // 				)}
 // 			</div>
 
-// <div className="flex flex-col gap-4 bg-(--cards-bg) rounded-md p-6">
+// <div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-6">
 
 // 					<h3 className="font-semibold text-lg">Protocol Information</h3>
 // 					<p className="flex items-center gap-2">
