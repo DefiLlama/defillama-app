@@ -129,6 +129,28 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 				columnToSearch="name"
 				header="Protocol Rankings"
 				defaultSorting={sortByRevenye.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : []}
+				customFilters={
+					<CSVDownloadButton
+						onClick={() => {
+							const headers = categoryColumns.map((col) => col.header as string)
+							const rows = finalProtocols.map((protocol) => {
+								return categoryColumns.map((col: any) => {
+									const value =
+										'accessorFn' in col && col.accessorFn
+											? col?.accessorFn?.(protocol)
+											: protocol[col.id as keyof typeof protocol]
+									if (value === null || value === undefined) return ''
+									if (col.id === 'name') return `"${protocol.name}"`
+									if (typeof value === 'number') return value
+									return String(value).includes(',') ? `"${String(value)}"` : String(value)
+								})
+							})
+							const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
+							download(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
+						}}
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					/>
+				}
 			/>
 		</>
 	)
