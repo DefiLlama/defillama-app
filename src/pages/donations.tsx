@@ -11,7 +11,9 @@ export const getStaticProps = withPerformanceLogging('donations', async () => {
 	return {
 		props: {
 			protocols: protocols
-				.filter((p) => p.referralUrl !== undefined)
+				.filter(
+					(p) => p.referralUrl != null && !['Mycelium Perpetual Swaps', 'Hubble Exchange', 'NEX'].includes(p.name)
+				)
 				.map((protocol) => ({
 					name: protocol.name,
 					logo: tokenIconUrl(protocol.name),
@@ -44,12 +46,7 @@ function PressPage({ protocols }) {
 					<ul className="flex flex-col gap-1">
 						{protocols.map((p) => (
 							<li key={p.name}>
-								<a
-									className="text-(--blue) hover:underline"
-									target="_blank"
-									rel="noopener noreferrer"
-									href={p.url}
-								>
+								<a className="text-(--blue) hover:underline" target="_blank" rel="noopener noreferrer" href={p.url}>
 									{p.name}
 								</a>
 							</li>
