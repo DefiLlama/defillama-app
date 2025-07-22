@@ -10,13 +10,18 @@ const CACHE_DIR = path.join(__dirname, '../.cache')
 const CACHE_FILE = path.join(CACHE_DIR, 'lastPull.json')
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
+const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
 const FIVE_MINUTES = 5 * 60 * 1000
 
 const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
 async function pullData() {
 	try {
-		const [protocols, chains] = await Promise.all([fetchJson(PROTOCOLS_DATA_URL), fetchJson(CHAINS_DATA_URL)])
+		const [protocols, chains, categoriesAndTags] = await Promise.all([
+			fetchJson(PROTOCOLS_DATA_URL),
+			fetchJson(CHAINS_DATA_URL),
+			fetchJson(CATEGORIES_AND_TAGS_DATA_URL)
+		])
 
 		if (!fs.existsSync(CACHE_DIR)) {
 			fs.mkdirSync(CACHE_DIR)
@@ -24,6 +29,7 @@ async function pullData() {
 
 		fs.writeFileSync(path.join(CACHE_DIR, 'chains.json'), JSON.stringify(chains))
 		fs.writeFileSync(path.join(CACHE_DIR, 'protocols.json'), JSON.stringify(protocols))
+		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
 		console.log('Data pulled and cached successfully.')
