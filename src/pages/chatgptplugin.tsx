@@ -6,7 +6,9 @@ function PluginPage() {
 	return (
 		<Layout title="DefiLlama - ChatGPT Plugin" defaultSEO>
 			<ProtocolsChainsSearch />
-			<h1 className="text-xl font-semibold bg-(--cards-bg) rounded-md p-3">DefiLlama ChatGPT Plugin</h1>
+			<h1 className="text-xl font-semibold bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+				DefiLlama ChatGPT Plugin
+			</h1>
 
 			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h2 className="font-semibold text-lg">About</h2>

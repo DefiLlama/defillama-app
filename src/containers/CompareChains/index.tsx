@@ -171,7 +171,7 @@ export function CompareChains({ chains }) {
 		<>
 			<ProtocolsChainsSearch />
 
-			<div className="bg-(--cards-bg) rounded-md flex items-center gap-3 p-3 *:last:-my-3">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center gap-3 p-3 *:last:-my-3">
 				<h2 className="font-semibold text-base">Compare chains: </h2>
 
 				<ReactSelect
@@ -189,7 +189,7 @@ export function CompareChains({ chains }) {
 			</div>
 
 			<div className="flex flex-col gap-1 relative">
-				<div className="bg-(--cards-bg) rounded-md min-h-[404px]">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[404px]">
 					<div className="flex items-center flex-wrap gap-2 p-3">
 						{supportedCharts.map(({ id, name, key }) => (
 							<Switch
@@ -254,7 +254,7 @@ const ChainContainer = (
 ) => {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl_fees')
 	return (
-		<div className="flex-1 flex flex-col gap-8 p-5 col-span-1 w-full bg-(--cards-bg) rounded-md overflow-x-auto">
+		<div className="flex-1 flex flex-col gap-8 p-5 col-span-1 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md overflow-x-auto">
 			{props.metadata.name !== 'All' && (
 				<h1 className="flex items-center flex-nowrap gap-2">
 					<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />

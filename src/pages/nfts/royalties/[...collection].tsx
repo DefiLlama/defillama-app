@@ -6,8 +6,11 @@ import { formattedNum } from '~/utils'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
-import { DimensionProtocolOverviewChart } from '~/containers/DimensionAdapters/ProtocolChart'
-import { useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
+import { oldBlue } from '~/constants/colors'
+import { formatBarChart } from '~/components/ECharts/utils'
+
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 export default function Collection() {
 	const router = useRouter()
@@ -25,8 +28,30 @@ export default function Collection() {
 	})
 
 	const chartData = useMemo(() => {
-		if (!collectionData) return []
-		return [collectionData.royaltyHistory[0].totalDataChart.map((t) => ({ date: t[0], Earnings: t[1] })), ['Earnings']]
+		if (!collectionData)
+			return {
+				Earnings: {
+					name: 'Earnings',
+					stack: 'Earnings',
+					type: 'bar' as const,
+					data: [],
+					color: oldBlue
+				}
+			}
+		return {
+			Earnings: {
+				name: 'Earnings',
+				stack: 'Earnings',
+				type: 'bar' as const,
+				data: formatBarChart({
+					data: collectionData.royaltyHistory[0].totalDataChart,
+					groupBy: 'daily',
+					denominationPriceHistory: null,
+					dateInMs: false
+				}),
+				color: oldBlue
+			}
+		}
 	}, [collectionData])
 
 	if (fetchingData) {
@@ -53,8 +78,8 @@ export default function Collection() {
 
 	return (
 		<Layout title={props.name + ' Royalties - DefiLlama'}>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1 *:last:col-span-2">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2 *:last:col-span-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={props.logo} size={48} />
 						<FormattedName text={props.name} fontWeight={700} />
@@ -71,7 +96,9 @@ export default function Collection() {
 					</p>
 				</div>
 
-				<DimensionProtocolOverviewChart totalDataChart={chartData as any} />
+				<Suspense fallback={<div className="min-h-[360px]" />}>
+					<LineAndBarChart charts={chartData} valueSymbol="$" />
+				</Suspense>
 			</div>
 		</Layout>
 	)

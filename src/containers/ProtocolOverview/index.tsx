@@ -402,8 +402,7 @@ function Fees(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (fees30d) {
+	if (fees30d != null) {
 		metrics.push({
 			name: 'Fees (Annualized)',
 			tooltipContent:
@@ -482,8 +481,7 @@ function Revenue(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (revenue30d) {
+	if (revenue30d != null) {
 		metrics.push({
 			name: 'Revenue (Annualized)',
 			tooltipContent:
@@ -567,8 +565,7 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (holdersRevenue30d) {
+	if (holdersRevenue30d != null) {
 		metrics.push({
 			name: 'Holders Revenue (Annualized)',
 			tooltipContent:
@@ -772,8 +769,7 @@ function DexVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.dexVolume.total30d) {
+	if (props.dexVolume.total30d != null) {
 		metrics.push({ name: 'DEX Volume 30d', tooltipContent: null, value: props.dexVolume.total30d })
 	}
 	if (props.dexVolume.total7d != null) {
@@ -802,8 +798,7 @@ function DexAggregatorVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.dexAggregatorVolume.total30d) {
+	if (props.dexAggregatorVolume.total30d != null) {
 		metrics.push({ name: 'DEX Aggregator Volume 30d', tooltipContent: null, value: props.dexAggregatorVolume.total30d })
 	}
 	if (props.dexAggregatorVolume.total7d != null) {
@@ -836,8 +831,7 @@ function PerpVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.perpVolume.total30d) {
+	if (props.perpVolume.total30d != null) {
 		metrics.push({ name: 'Perp Volume 30d', tooltipContent: null, value: props.perpVolume.total30d })
 	}
 	if (props.perpVolume.total7d != null) {
@@ -870,8 +864,7 @@ function PerpAggregatorVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.perpAggregatorVolume.total30d) {
+	if (props.perpAggregatorVolume.total30d != null) {
 		metrics.push({
 			name: 'Perp Aggregator Volume 30d',
 			tooltipContent: null,
@@ -916,8 +909,7 @@ function BridgeAggregatorVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.bridgeAggregatorVolume.total30d) {
+	if (props.bridgeAggregatorVolume.total30d != null) {
 		metrics.push({
 			name: 'Bridge Aggregator Volume 30d',
 			tooltipContent: null,
@@ -1036,8 +1028,7 @@ function OptionsPremiumVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.optionsPremiumVolume.total30d) {
+	if (props.optionsPremiumVolume.total30d != null) {
 		metrics.push({
 			name: 'Options Premium Volume 30d',
 			tooltipContent: null,
@@ -1082,8 +1073,7 @@ function OptionsNotionalVolume(props: IKeyMetricsProps) {
 
 	const metrics = []
 
-	// TODO summary/adapter doesnot return total30d
-	if (props.optionsNotionalVolume.total30d) {
+	if (props.optionsNotionalVolume.total30d != null) {
 		metrics.push({
 			name: 'Options Notional Volume 30d',
 			tooltipContent: null,
@@ -2191,6 +2181,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		}
 		return props.incomeStatement
 	}, [groupBy, props.incomeStatement.monthDates])
+
 	return (
 		<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
 			<div className="flex flex-wrap items-center justify-between gap-1">
@@ -2224,12 +2215,24 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					<thead>
 						<tr>
 							<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold"></th>
-							{monthDates.map((month) => (
+							{monthDates.map((month, i) => (
 								<th
 									key={`${props.name}-${groupBy}-income-statement-${month[0]}`}
 									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold"
 								>
-									{month[1]}
+									{i === 0 ? (
+										<span className="flex justify-center -mr-2 items-center gap-1">
+											<span className="whitespace-nowrap overflow-hidden text-ellipsis">{month[1]}</span>
+											<Tooltip
+												content={`Current ${groupBy.toLowerCase()} data is incomplete`}
+												className="text-(--pct-red) text-xs"
+											>
+												*
+											</Tooltip>
+										</span>
+									) : (
+										month[1]
+									)}
 								</th>
 							))}
 						</tr>
@@ -2253,13 +2256,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 									key={`${props.name}-${groupBy}-fees-${month[0]}`}
 									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 								>
-									{monthDates[i + 1] ? (
+									{i !== 0 && monthDates[i + 1] ? (
 										<Tooltip
 											content={
 												<PerformanceTooltipContent
 													currentValue={feesByMonth[month[0]]}
 													previousValue={monthDates[i + 1] ? feesByMonth[monthDates[i + 1][0]] : null}
 													groupBy={groupBy}
+													dataType="fees"
 												/>
 											}
 											className="underline decoration-dotted justify-center"
@@ -2290,13 +2294,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 									key={`${props.name}-${groupBy}-revenue-${month[0]}`}
 									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 								>
-									{monthDates[i + 1] ? (
+									{i !== 0 && monthDates[i + 1] ? (
 										<Tooltip
 											content={
 												<PerformanceTooltipContent
 													currentValue={revenueByMonth[month[0]]}
 													previousValue={monthDates[i + 1] ? revenueByMonth[monthDates[i + 1][0]] : null}
 													groupBy={groupBy}
+													dataType="revenue"
 												/>
 											}
 											className="underline decoration-dotted justify-center"
@@ -2328,13 +2333,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 										key={`${props.name}-${groupBy}-incentives-${month[0]}`}
 										className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 									>
-										{monthDates[i + 1] ? (
+										{i !== 0 && monthDates[i + 1] ? (
 											<Tooltip
 												content={
 													<PerformanceTooltipContent
 														currentValue={incentivesByMonth[month[0]]}
 														previousValue={monthDates[i + 1] ? incentivesByMonth[monthDates[i + 1][0]] : null}
 														groupBy={groupBy}
+														dataType="incentives"
 													/>
 												}
 												className="underline decoration-dotted justify-center"
@@ -2369,13 +2375,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 											earnings > 0 ? 'text-(--pct-green)' : earnings < 0 ? 'text-(--pct-red)' : ''
 										}`}
 									>
-										{monthDates[i + 1] ? (
+										{i !== 0 && monthDates[i + 1] ? (
 											<Tooltip
 												content={
 													<PerformanceTooltipContent
 														currentValue={earnings}
 														previousValue={previousEarnings}
 														groupBy={groupBy}
+														dataType="earnings"
 													/>
 												}
 												className="underline decoration-dotted justify-center"
@@ -2408,13 +2415,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 										key={`${props.name}-${groupBy}-holders-revenue-${month[0]}`}
 										className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
 									>
-										{monthDates[i + 1] ? (
+										{i !== 0 && monthDates[i + 1] ? (
 											<Tooltip
 												content={
 													<PerformanceTooltipContent
 														currentValue={holdersRevenueByMonth[month[0]]}
 														previousValue={monthDates[i + 1] ? holdersRevenueByMonth[monthDates[i + 1][0]] : null}
 														groupBy={groupBy}
+														dataType="token holders net income"
 													/>
 												}
 												className="underline decoration-dotted justify-center"
@@ -2438,11 +2446,13 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 const PerformanceTooltipContent = ({
 	currentValue,
 	previousValue,
-	groupBy
+	groupBy,
+	dataType
 }: {
 	currentValue: number
 	previousValue: number
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
+	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income'
 }) => {
 	if (previousValue == null) return null
 	const valueChange = currentValue - previousValue
@@ -2456,7 +2466,10 @@ const PerformanceTooltipContent = ({
 			<span className={`${percentageChange > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}>
 				{`${percentageChangeText}`}
 			</span>{' '}
-			<span>from previous {groupBy === 'Yearly' ? 'year' : groupBy === 'Quarterly' ? 'quarter' : 'month'}</span>
+			<span>
+				compared to previous {groupBy === 'Yearly' ? 'year' : groupBy === 'Quarterly' ? 'quarter' : 'month'} total{' '}
+				{dataType}
+			</span>
 		</p>
 	)
 }

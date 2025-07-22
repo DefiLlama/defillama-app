@@ -75,7 +75,7 @@ export default function Protocols(props) {
 			tab="assets"
 			isCEX={true}
 		>
-			<div className="grid grid-cols-2 bg-(--cards-bg) rounded-md pt-2">
+			<div className="grid grid-cols-2 bg-(--cards-bg) border border-(--cards-border) rounded-md pt-2">
 				{isLoading ? (
 					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 				) : (

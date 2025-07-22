@@ -15,7 +15,6 @@ export function ChainOverview(props: IChainOverviewData) {
 		<Layout
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
 			defaultSEO
-			className="gap-2"
 		>
 			<ProtocolsChainsSearch options={props.tvlAndFeesOptions} />
 			<Metrics currentMetric="TVL" />

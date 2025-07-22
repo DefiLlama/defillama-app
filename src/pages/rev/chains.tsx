@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 
 const REVByChain = (props: IChainsByREVPageData) => {
 	return (
-		<Layout title="REV by chain - DefiLlama" className="gap-2">
+		<Layout title="REV by chain - DefiLlama">
 			<ProtocolsChainsSearch hideFilters />
 			<Metrics currentMetric="REV" isChains />
 			<TableWithSearch

@@ -5,7 +5,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
-import { download, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug, toNiceCsvDate } from '~/utils'
+import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
 import {
 	BRIDGEVOLUME_API_SLUG,
 	CACHE_SERVER,
@@ -29,7 +29,7 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { buildProtocolAddlChartsData } from '../utils'
-import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import { downloadChart, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 
 const ProtocolLineBarChart = lazy(() => import('./Chart')) as React.FC<any>
 
@@ -50,36 +50,6 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 }
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-
-function downloadChart(data: Record<string, Array<[string | number, number]>>, filename: string) {
-	let rows = []
-	const charts = []
-	const dateStore = {}
-	for (const chartName in data) {
-		charts.push(chartName)
-		for (const [date, value] of data[chartName]) {
-			if (!dateStore[date]) {
-				dateStore[date] = {}
-			}
-			dateStore[date][chartName] = value
-		}
-	}
-	rows.push(['Timestamp', 'Date', ...charts])
-	for (const date in dateStore) {
-		const values = []
-		for (const chartName in data) {
-			values.push(dateStore[date]?.[chartName] ?? '')
-		}
-		rows.push([date, toNiceCsvDate(+date / 1000), ...values])
-	}
-	download(
-		filename,
-		rows
-			.sort((a, b) => a[0] - b[0])
-			.map((r) => r.join(','))
-			.join('\n')
-	)
-}
 
 export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
@@ -360,7 +330,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							>
 								M
 							</Tooltip>
-							<button
+							<Tooltip
+								content="Cumulative"
+								render={<button />}
 								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 								data-active={groupBy === 'cumulative'}
 								onClick={() => {
@@ -369,8 +341,8 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									})
 								}}
 							>
-								Cumulative
-							</button>
+								C
+							</Tooltip>
 						</div>
 					) : null}
 					<EmbedChart />

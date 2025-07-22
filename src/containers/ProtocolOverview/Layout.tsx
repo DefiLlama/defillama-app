@@ -49,7 +49,7 @@ export function ProtocolOverviewLayout({
 		| 'forks'
 }) {
 	return (
-		<Layout title={`${name} - DefiLlama`} style={defaultProtocolPageStyles} className="gap-2">
+		<Layout title={`${name} - DefiLlama`} style={defaultProtocolPageStyles}>
 			<ProtocolsChainsSearch options={toggleOptions} />
 			{scams.includes(name) && (
 				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">

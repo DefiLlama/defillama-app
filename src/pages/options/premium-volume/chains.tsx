@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 
 const OptionsPremiumVolumeByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title="Options Premium Volume by chain - DefiLlama" className="gap-2">
+		<Layout title="Options Premium Volume by chain - DefiLlama">
 			<ChainsByAdapter {...props} type="Options Premium Volume" />
 		</Layout>
 	)

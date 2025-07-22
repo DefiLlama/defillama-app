@@ -35,7 +35,7 @@ export default function Layout({
 			<Nav />
 			<main
 				{...props}
-				className={`flex flex-col gap-1 text-(--text1) isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen lg:w-screen ${
+				className={`flex flex-col gap-2 text-(--text1) isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen lg:w-screen ${
 					className ?? ''
 				}`}
 			>

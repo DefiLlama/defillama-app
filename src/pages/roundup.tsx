@@ -18,7 +18,7 @@ export default function Roundup({ messages }: { messages: Array<string | Array<s
 				</a>
 			</Announcement>
 
-			<div className="flex flex-col gap-3 bg-(--cards-bg) rounded-md p-3">
+			<div className="flex flex-col gap-3 bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<h1 className="font-semibold text-xl text-center">Daily news roundup with the 🦙</h1>
 
 				<div className="flex flex-col gap-[2px] max-w-lg mx-auto text-base">

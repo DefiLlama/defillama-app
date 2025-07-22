@@ -78,7 +78,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 
 			{/* {!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
 				<>
-					<p className="p-5 bg-(--cards-bg) rounded-md text-center">
+					<p className="p-5 bg-(--cards-bg) border border-(--cards-border) rounded-md text-center">
 						We are now tracking
 						<Link href={`/liquidations/bnb`} className="flex items-center gap-1">
 								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
@@ -86,7 +86,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 						</Link>
 						ecosystem assets! Choose one from the asset picker dropdown menu!
 					</p>
-					<p className="p-5 bg-(--cards-bg) rounded-md text-center xl:hidden">
+					<p className="p-5 bg-(--cards-bg) border border-(--cards-border) rounded-md text-center xl:hidden">
 						We are now tracking
 						<Link href={`/liquidations/bnb`} className="flex items-center gap-1">
 								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
@@ -97,7 +97,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				</>
 			)} */}
 
-			<div className="flex items-center justify-between gap-4 bg-(--cards-bg) rounded-md p-3">
+			<div className="flex items-center justify-between gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				<h1 className="text-xl font-semibold">Liquidation levels in DeFi 💦</h1>
 				<LiquidationsHeader data={data} options={options} />
 			</div>

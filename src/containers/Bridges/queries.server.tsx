@@ -1,7 +1,14 @@
 import { slug, chainIconUrl, tokenIconUrl, getRandomColor } from '~/utils'
 import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
-import { CONFIG_API, BRIDGEDAYSTATS_API, BRIDGES_API, BRIDGEVOLUME_API, BRIDGELARGETX_API } from '~/constants'
+import {
+	CONFIG_API,
+	BRIDGEDAYSTATS_API,
+	BRIDGES_API,
+	BRIDGEVOLUME_API,
+	BRIDGELARGETX_API,
+	NETFLOWS_API
+} from '~/constants'
 import { fetchJson } from '~/utils/async'
 
 export const getBridges = () =>
@@ -204,6 +211,18 @@ export async function getBridgeChainsPageData() {
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
 	const prevDayTimestamp = currentTimestamp - 86400 - 3600
+
+	let netflowsDataDay = null
+	let netflowsDataWeek = null
+	try {
+		;[netflowsDataDay, netflowsDataWeek] = await Promise.all([
+			fetchJson(`${NETFLOWS_API}/day`).catch(() => null),
+			fetchJson(`${NETFLOWS_API}/week`).catch(() => null)
+		])
+	} catch (e) {
+		console.error('Failed to fetch netflows data:', e)
+	}
+
 	let prevDayDataByChain = []
 	prevDayDataByChain = (
 		await Promise.all(
@@ -223,7 +242,9 @@ export async function getBridgeChainsPageData() {
 		chains,
 		chartDataByChain,
 		chainToChartDataIndex,
-		prevDayDataByChain
+		prevDayDataByChain,
+		netflowsDataDay,
+		netflowsDataWeek
 	})
 
 	return {

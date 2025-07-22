@@ -170,8 +170,8 @@ export const PeggedAssetInfo = ({
 
 	return (
 		<>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1" style={tagStyles as any}>
-				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2" style={tagStyles as any}>
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<Ariakit.TabProvider defaultSelectedId={defaultSelectedId}>
 						<Ariakit.TabList aria-label="Pegged Tabs" className="flex">
 							<Ariakit.Tab
@@ -367,7 +367,7 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabProvider>
 				</div>
 
-				<div className="bg-(--cards-bg) rounded-md min-h-[416px] flex flex-col col-span-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[416px] flex flex-col col-span-2">
 					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--tag-border-color) m-3">
 						<button
 							data-active={chartType === 'Mcap'}

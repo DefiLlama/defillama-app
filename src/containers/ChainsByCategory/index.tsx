@@ -100,7 +100,7 @@ export function ChainsByCategory({
 	const groupedChains = useGroupChainsByParent(dataByChain, showByGroup ? chainsGroupbyParent : {})
 
 	return (
-		<Layout title={`${category} Chains DeFi TVL - DefiLlama`} defaultSEO className="gap-2">
+		<Layout title={`${category} Chains DeFi TVL - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
 
 			<Metrics currentMetric="TVL" isChains={true} />

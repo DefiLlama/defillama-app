@@ -84,7 +84,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="tvl"
 		>
-			<div className="grid grid-cols-2 bg-(--cards-bg) rounded-md pt-2">
+			<div className="grid grid-cols-2 bg-(--cards-bg) border border-(--cards-border) rounded-md pt-2">
 				{isLoading ? (
 					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
 				) : (

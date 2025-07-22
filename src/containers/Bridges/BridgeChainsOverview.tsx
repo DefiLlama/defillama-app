@@ -20,11 +20,11 @@ export function BridgeChainsOverview({ allChains, tableData, chartData, chartSta
 	return (
 		<>
 			<BridgesSearch />
-			<div className="flex items-center justify-between flex-wrap gap-3 p-3 bg-(--cards-bg) rounded-md">
+			<div className="flex items-center justify-between flex-wrap gap-3 p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<h1 className="text-xl font-semibold">Bridge Inflows by Chain</h1>
 				<CSVDownloadButton onClick={downloadCsv} />
 			</div>
-			<div className="min-h-[406px] bg-(--cards-bg) rounded-md">
+			<div className="min-h-[406px] bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				{chartData && chartData.length > 0 && (
 					<BarChart
 						chartData={chartData}

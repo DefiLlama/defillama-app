@@ -57,6 +57,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="stablecoins"
+			toggleOptions={[]}
 		>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<StablecoinInfo assetName={props.assetName} />
