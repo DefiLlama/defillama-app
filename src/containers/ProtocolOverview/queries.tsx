@@ -40,10 +40,6 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 	try {
 		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${slug(protocolName)}`)
 
-		if (!data || (data as any).statusCode === 400) {
-			throw new Error((data as any).body)
-		}
-
 		let isNewlyListedProtocol = true
 
 		Object.values(data.chainTvls).forEach((chain) => {
@@ -57,7 +53,11 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		// }
 
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
-			const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`)
+			const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
+
+			if (!hourlyData) {
+				return data
+			}
 
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
