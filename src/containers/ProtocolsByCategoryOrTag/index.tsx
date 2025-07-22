@@ -1,6 +1,6 @@
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { lazy, Suspense, useMemo } from 'react'
-import { IProtocolByCategoryPageData } from './types'
+import { IProtocolByCategoryOrTagPageData } from './types'
 import { ColumnDef } from '@tanstack/react-table'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
@@ -20,7 +20,7 @@ const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaki
 
 const sortByRevenue = ['Trading App']
 
-export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
+export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
 	const { finalProtocols, charts } = useMemo(() => {
@@ -157,8 +157,8 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 }
 
 const columns = (
-	category: IProtocolByCategoryPageData['category']
-): ColumnDef<IProtocolByCategoryPageData['protocols'][0]>[] => [
+	category: IProtocolByCategoryOrTagPageData['category']
+): ColumnDef<IProtocolByCategoryOrTagPageData['protocols'][0]>[] => [
 	{
 		id: 'name',
 		header: 'Name',

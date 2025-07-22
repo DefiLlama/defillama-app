@@ -307,6 +307,21 @@ export const descriptions = {
 	'Canonical Bridge': 'The official bridge designated by a blockchain for transferring its assets across networks'
 }
 
+export const tags = [
+	'Treasury Bills',
+	'Commodities',
+	'Other Fixed Income',
+	'Private Credit',
+	'Real Estate',
+	'Money Market Funds',
+	'Stocks & ETFs',
+	'Private Equity',
+	'Crowdfunding',
+	'Collectibles',
+	'Carbon Credits',
+	'Onchain Equity'
+]
+
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
 
 export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
@@ -517,9 +532,12 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 					) : null}
 					<span className="shrink-0">{index + 1}</span>{' '}
 					{row.depth > 0 ? (
-						<span className="text-sm font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
 							{getValue() as string}
-						</span>
+						</BasicLink>
 					) : (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}

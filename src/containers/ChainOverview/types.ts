@@ -110,6 +110,7 @@ export interface ILiteChart {
 
 export interface ILiteProtocol {
 	category: string
+	tags?: Array<string>
 	chains: Array<string>
 	mcap: number
 	name: string

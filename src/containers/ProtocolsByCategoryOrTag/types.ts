@@ -18,9 +18,10 @@ interface IProtocolByCategoryWithSubRows extends IProtocolByCategory {
 	subRows?: IProtocolByCategory[]
 }
 
-export interface IProtocolByCategoryPageData {
+export interface IProtocolByCategoryOrTagPageData {
 	protocols: Array<IProtocolByCategoryWithSubRows>
-	category: string
+	category: string | null
+	tag: string | null
 	chains: Array<{ label: string; to: string }>
 	chain: string
 	charts: ILineAndBarChartProps['charts']

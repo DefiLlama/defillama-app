@@ -3,17 +3,27 @@ import { fetchJson } from '~/utils/async'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
-import { IProtocolByCategoryPageData } from './types'
+import { IProtocolByCategoryOrTagPageData } from './types'
 import { slug, tokenIconUrl } from '~/utils'
 import { oldBlue } from '~/constants/colors'
 
-export async function getProtocolsByCategory({
+export async function getProtocolsByCategoryOrTag({
 	category,
+	tag,
 	chain
 }: {
-	category: string
+	category?: string
+	tag?: string
 	chain?: string
-}): Promise<IProtocolByCategoryPageData> {
+}): Promise<IProtocolByCategoryOrTagPageData> {
+	if (category && tag) {
+		return null
+	}
+
+	if (!category && !tag) {
+		return null
+	}
+
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const chainMetadata = chain
 		? metadataCache.chainMetadata[slug(chain)]
@@ -74,13 +84,17 @@ export async function getProtocolsByCategory({
 					excludeTotalDataChartBreakdown: true
 			  })
 			: null,
-		fetchJson(`${CATEGORY_CHART_API}/${category.toLowerCase().replace(' ', '_')}${chain ? `/${chain}` : ''}`),
-		fetchJson(`${CHART_API}/categories/${category.toLowerCase().replace(' ', '_')}`)
+		tag
+			? fetchJson(`${TAGS_CHART_API}/${slug(tag)}${chain ? `/${chain}` : ''}`)
+			: fetchJson(`${CATEGORY_CHART_API}/${slug(category)}${chain ? `/${chain}` : ''}`),
+		category ? fetchJson(`${CHART_API}/categories/${category.toLowerCase().replace(' ', '_')}`) : {}
 	])
 
 	const chains = []
-	for (const chain in tvlByCategories) {
-		chains.push([chain, tvlByCategories[chain].at(-1)?.[1] ?? 0])
+	if (category) {
+		for (const chain in tvlByCategories) {
+			chains.push([chain, tvlByCategories[chain].at(-1)?.[1] ?? 0])
+		}
 	}
 
 	const adapterDataStore = {}
@@ -140,8 +154,9 @@ export async function getProtocolsByCategory({
 	const parentProtocolsStore = {}
 
 	for (const protocol of protocols) {
+		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category == category
 		if (
-			protocol.category == category &&
+			isProtocolInCategoryOrTag &&
 			(chain ? protocol.chainTvls[chain] || adapterDataStore[protocol.defillamaId] : true)
 		) {
 			let tvl = 0
@@ -216,7 +231,7 @@ export async function getProtocolsByCategory({
 				tvl,
 				extraTvls,
 				mcap: protocol.mcap ?? null,
-				...(['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
+				...(category && ['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
 				fees,
 				revenue,
 				dexVolume,
@@ -313,7 +328,7 @@ export async function getProtocolsByCategory({
 				chains: parentProtocol.chains,
 				mcap: parentProtocol.mcap ?? null,
 				tvl,
-				...(['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
+				...(category && ['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
 				extraTvls,
 				fees: fees.total24h == 0 && fees.total7d == 0 && fees.total30d == 0 ? null : fees,
 				revenue: revenue.total24h == 0 && revenue.total7d == 0 && revenue.total30d == 0 ? null : revenue,
@@ -369,13 +384,14 @@ export async function getProtocolsByCategory({
 		},
 		chain: chain ?? 'All',
 		protocols: finalProtocols.sort((a, b) => b.tvl - a.tvl),
-		category,
+		category: category ?? null,
+		tag: tag ?? null,
 		chains: [
-			{ label: 'All', to: `/protocols/${category}` },
+			{ label: 'All', to: `/protocols/${category ?? tag}` },
 			...chains
 				.sort((a, b) => b[1] - a[1])
 				.map((c) => c[0])
-				.map((c) => ({ label: c, to: `/protocols/${category}/${c}` }))
+				.map((c) => ({ label: c, to: `/protocols/${category ?? tag}/${c}` }))
 		],
 		fees7d: fees7d > 0 ? fees7d : null,
 		revenue7d: revenue7d > 0 ? revenue7d : null,

@@ -4,9 +4,9 @@ import { PROTOCOLS_API } from '~/constants/index'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import { fetchJson } from '~/utils/async'
-import { descriptions } from '../categories'
-import { ProtocolsByCategory } from '~/containers/ProtocolsByCategory'
-import { getProtocolsByCategory } from '~/containers/ProtocolsByCategory/queries'
+import { descriptions, tags } from '../categories'
+import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
+import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocols/[...category]',
@@ -16,14 +16,15 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const categoryName = Object.entries(descriptions).find((d) => slug(d[0]) === slug(category))?.[0]
+		const tagName = tags.find((t) => slug(t) === slug(category))
 
-		if (!categoryName) {
+		if (!categoryName && !tagName) {
 			return {
 				notFound: true
 			}
 		}
 
-		const props = await getProtocolsByCategory({ category: categoryName, chain })
+		const props = await getProtocolsByCategoryOrTag({ category: categoryName, tag: tagName, chain })
 
 		if (!props)
 			return {
@@ -49,8 +50,8 @@ export async function getStaticPaths() {
 
 export default function Protocols(props) {
 	return (
-		<Layout title={`${capitalizeFirstLetter(props.category)} TVL Rankings - DefiLlama`} defaultSEO>
-			<ProtocolsByCategory {...props} />
+		<Layout title={`${capitalizeFirstLetter(props.category ?? props.tag)} TVL Rankings - DefiLlama`} defaultSEO>
+			<ProtocolsByCategoryOrTag {...props} />
 		</Layout>
 	)
 }
