@@ -14,7 +14,7 @@ export const getStaticProps = withPerformanceLogging('forks', async ({ params: {
 	const { protocolMetadata } = metadataCache
 	let metadata
 	for (const key in protocolMetadata) {
-		if (protocolMetadata[key].name === normalizedName) {
+		if (slug(protocolMetadata[key].displayName) === normalizedName) {
 			metadata = [key, protocolMetadata[key]]
 			break
 		}
