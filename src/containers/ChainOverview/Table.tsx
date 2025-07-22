@@ -4,6 +4,8 @@ import { useMemo, useState, useSyncExternalStore } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { VirtualTable } from '~/components/Table/Table'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { download } from '~/utils'
 import {
 	type ColumnDef,
 	type ColumnSizingState,
@@ -391,6 +393,47 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
+	const handleDownloadCsv = () => {
+		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
+		const headers = visibleColumns.map((col) => {
+			if (typeof col.columnDef.header === 'string') {
+				return col.columnDef.header
+			}
+			return col.id
+		})
+
+		const rows = instance.getSortedRowModel().rows.map((row) => {
+			return visibleColumns.map((col) => {
+				const cell = row.getAllCells().find((c) => c.column.id === col.id)
+				if (!cell) return ''
+
+				const value = cell.getValue()
+				if (value === null || value === undefined) return ''
+
+				if (col.id === 'name') {
+					return `"${row.original.name}"`
+				} else if (col.id === 'category') {
+					return row.original.category || ''
+				} else if (col.id === 'tvl') {
+					return row.original.tvl?.default?.tvl || 0
+				} else if (col.id.includes('change_')) {
+					return value
+				} else if (col.id === 'mcaptvl' || col.id === 'pf' || col.id === 'ps') {
+					return value
+				} else if (typeof value === 'number') {
+					return value
+				} else {
+					const str = String(value)
+					return str.includes(',') ? `"${str}"` : str
+				}
+			})
+		})
+
+		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
+		const chainName = router.query.chain || 'all'
+		download(`defillama-${chainName}-protocols.csv`, csvContent)
+	}
+
 	return (
 		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md isolate">
 			<div className="flex items-center gap-2 p-3 flex-wrap">
@@ -441,6 +484,10 @@ export const ChainProtocolsTable = ({
 							onDeleteCustomColumn={handleDeleteCustomColumn}
 						/>
 						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+						<CSVDownloadButton
+							onClick={handleDownloadCsv}
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						/>
 					</div>
 				</div>
 			</div>

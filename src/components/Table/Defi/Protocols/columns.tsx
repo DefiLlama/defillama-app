@@ -265,7 +265,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 125
 			}),
 			columnHelper.accessor('fees_1y', {
-				header: 'Monthly Avg 1Y Fees',
+				header: 'Fees 1Y',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
