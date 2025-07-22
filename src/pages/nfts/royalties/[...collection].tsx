@@ -81,7 +81,7 @@ export default function Collection() {
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2 *:last:col-span-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl">
-						<TokenLogo logo={props.logo} size={48} />
+						<TokenLogo logo={props.logo} fallbackLogo={props.fallbackLogo} size={48} />
 						<FormattedName text={props.name} fontWeight={700} />
 					</h1>
 
