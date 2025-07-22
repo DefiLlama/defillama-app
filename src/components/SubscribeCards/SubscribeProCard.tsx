@@ -7,11 +7,13 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 export function SubscribeProCard({
 	context = 'page',
 	active = false,
-	onCancelSubscription
+	onCancelSubscription,
+	isLegacyActive = false
 }: {
 	context?: 'page' | 'account'
 	active?: boolean
 	onCancelSubscription?: () => void
+	isLegacyActive?: boolean
 }) {
 	return (
 		<div
@@ -79,7 +81,7 @@ export function SubscribeProCard({
 				</li>
 			</ul>
 			<div className="w-full max-w-[408px] mx-auto flex flex-col gap-3 relative z-10">
-				{active ? (
+				{active && !isLegacyActive ? (
 					<div className="flex flex-col gap-2">
 						<span className="text-center text-green-400 font-bold">Current Plan</span>
 						{onCancelSubscription && (
@@ -91,7 +93,7 @@ export function SubscribeProCard({
 							</button>
 						)}
 					</div>
-				) : context === 'account' ? (
+				) : context === 'account' || isLegacyActive ? (
 					<div className="flex flex-col gap-6 mt-2">
 						<div className="flex flex-col items-center">
 							<div className="grid grid-cols-2 gap-3 w-full">

@@ -29,7 +29,7 @@ export const AccountInfo = () => {
 		legacySubscription
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
-	const isLegacyActive = legacySubscription?.status === 'active'
+	const isLegacyApiSubscription = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const isWalletUser = user?.email?.includes('@defillama.com')
 
 	const isVerified = user?.verified
@@ -109,7 +109,7 @@ export const AccountInfo = () => {
 				isLoading={loaders.logout}
 				subscription={subscription}
 			/>
-			{isLegacyActive && (
+			{isLegacyApiSubscription && (
 				<div className="flex items-center gap-3 bg-linear-to-r from-yellow-400/10 to-yellow-900/30 border border-yellow-500 text-yellow-100 rounded-xl px-6 py-4 w-full shadow-xs mb-4">
 					<Icon name="alert-triangle" className="text-yellow-400 shrink-0" height={24} width={24} />
 					<span className="text-base font-medium">
