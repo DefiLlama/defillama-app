@@ -290,6 +290,7 @@ export default function AreaChart({
 
 		return () => {
 			window.removeEventListener('resize', resize)
+			chartInstance.dispose()
 		}
 	}, [defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend, hideDataZoom, id, chartsStack])
 

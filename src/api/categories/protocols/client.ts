@@ -60,24 +60,6 @@ export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
 	})
 }
 
-export const useFetchProtocolTreasury = (protocolName, includeTreasury) => {
-	const isEnabled = !!protocolName
-	return useQuery({
-		queryKey: ['treasury', protocolName, includeTreasury, isEnabled],
-		queryFn: isEnabled
-			? () =>
-					fetchJson(`${PROTOCOL_TREASURY_API}/${protocolName}`).then((data: any) => {
-						if (!includeTreasury) {
-							return { ...data, chainTvls: { ...data.chainTvls, OwnTokens: {} } }
-						} else return data
-					})
-			: () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
 export const useFetchProtocolActiveUsers = (protocolId: number | string | null) => {
 	const isEnabled = !!protocolId
 	return useQuery({

@@ -1,8 +1,10 @@
-import { useFetchProtocolTreasury } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { buildProtocolAddlChartsData } from './utils'
 import { useState, useMemo, lazy, Suspense } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { fetchJson } from '~/utils/async'
+import { PROTOCOL_TREASURY_API } from '~/constants'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -22,40 +24,55 @@ export function Treasury({ protocolName }) {
 }
 
 export const TreasuryChart = ({ protocolName }: { protocolName: string }) => {
-	const [includeTreasury, setIncludeTreasury] = useState(true)
-	const { data, isLoading } = useFetchProtocolTreasury(protocolName, includeTreasury)
+	const [includeOwnTokens, setIncludeOwnTokens] = useState(true)
+	const isEnabled = !!protocolName
+	const { data, isLoading } = useQuery({
+		queryKey: ['treasury', protocolName, isEnabled],
+		queryFn: isEnabled ? () => fetchJson(`${PROTOCOL_TREASURY_API}/${protocolName}`) : () => null,
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isEnabled
+	})
 
 	const { tokenBreakdown, tokenBreakdownUSD, tokensUnique, top10Tokens, historicalTreasury } = useMemo(() => {
-		const tokens = Object.entries(data?.chainTvls ?? {})
-			.filter((chain) => !chain[0].endsWith('-OwnTokens'))
-			.reduce((acc, curr: [string, { tokensInUsd: Array<{ date: number; tokens: { [token: string]: number } }> }]) => {
-				if (curr[1].tokensInUsd?.length > 0) {
-					const tokens = curr[1].tokensInUsd.slice(-1)[0].tokens
-
-					for (const token in tokens) {
-						acc = [...acc, { name: token, value: tokens[token] }]
-					}
-				}
-
-				return acc
-			}, [])
-			.sort((a, b) => b.value - a.value)
-
-		const top10Tokens = tokens.slice(0, 11)
-
-		if (tokens.length > 10) {
-			top10Tokens.push({ name: 'Others', value: tokens.slice(11).reduce((acc, curr) => (acc += curr.value), 0) })
+		const chartData = {}
+		const allLatestTokensInUsd = {}
+		for (const chain in data?.chainTvls ?? {}) {
+			if (chain.includes('-')) continue
+			if (!includeOwnTokens && chain.endsWith('OwnTokens')) continue
+			chartData[chain] = data.chainTvls[chain]
+			const latestTokensInUsd = data.chainTvls[chain].tokensInUsd.slice(-1)[0].tokens
+			for (const token in latestTokensInUsd) {
+				allLatestTokensInUsd[token] = (allLatestTokensInUsd[token] || 0) + latestTokensInUsd[token]
+			}
 		}
+
+		const [topTokens, others] = Object.entries(allLatestTokensInUsd)
+			.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+			.map(([token, value]) => ({ name: token, value: value as number }))
+			.reduce(
+				(acc, curr) => {
+					if (acc[0].length < 9) {
+						acc[0].push(curr)
+					} else {
+						acc[1] += curr.value
+					}
+
+					return acc
+				},
+				[[] as { name: string; value: number }[], 0]
+			)
+
+		const top10Tokens = [...topTokens, { name: 'Others', value: others }]
+
 		const { tokenBreakdown, tokenBreakdownUSD, tokensUnique } = buildProtocolAddlChartsData({
-			protocolData: data,
+			protocolData: { name: protocolName, chainTvls: chartData },
 			extraTvlsEnabled: {}
 		})
 
 		const historicalTreasury = {}
-		for (const chain in data?.chainTvls ?? {}) {
-			if (chain.includes('-')) continue
-
-			for (const { date, totalLiquidityUSD } of data.chainTvls[chain].tvl) {
+		for (const chain in chartData) {
+			for (const { date, totalLiquidityUSD } of chartData[chain].tvl) {
 				historicalTreasury[date] = (historicalTreasury[date] || 0) + totalLiquidityUSD
 			}
 		}
@@ -66,7 +83,7 @@ export const TreasuryChart = ({ protocolName }: { protocolName: string }) => {
 		}
 
 		return { tokenBreakdown, tokenBreakdownUSD, tokensUnique, top10Tokens, historicalTreasury: finalHistoricalTreasury }
-	}, [data])
+	}, [data, includeOwnTokens])
 
 	if (isLoading) {
 		return <p className="my-[180px] text-center">Loading...</p>
@@ -75,7 +92,7 @@ export const TreasuryChart = ({ protocolName }: { protocolName: string }) => {
 	return (
 		<>
 			<label className="flex flex-nowrap gap-2 items-center justify-end cursor-pointe m-4">
-				<input type="checkbox" checked={includeTreasury} onChange={() => setIncludeTreasury(!includeTreasury)} />
+				<input type="checkbox" checked={includeOwnTokens} onChange={() => setIncludeOwnTokens(!includeOwnTokens)} />
 				<span>Include own tokens</span>
 			</label>
 
