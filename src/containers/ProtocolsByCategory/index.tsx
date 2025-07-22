@@ -18,7 +18,7 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 
 const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
-const sortByRevenye = ['Trading App']
+const sortByRevenue = ['Trading App']
 
 export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
@@ -116,7 +116,7 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 						/>
 					</div>
 				</div>
-				<div className="bg-(--cards-bg) min-h-[360px] rounded-md col-span-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2  min-h-[360px] py-2">
 					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
 						<LineAndBarChart charts={charts} valueSymbol="$" />
 					</Suspense>
@@ -128,7 +128,7 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 				placeholder="Search protocols..."
 				columnToSearch="name"
 				header="Protocol Rankings"
-				defaultSorting={sortByRevenye.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : []}
+				defaultSorting={sortByRevenue.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : []}
 				customFilters={
 					<CSVDownloadButton
 						onClick={() => {

@@ -56,6 +56,7 @@ export const ChainProtocolsTable = ({
 		typeof router.query.minTvl === 'string' && router.query.minTvl !== '' && !Number.isNaN(Number(router.query.minTvl))
 			? +router.query.minTvl
 			: null
+
 	const maxTvl =
 		typeof router.query.maxTvl === 'string' && router.query.maxTvl !== '' && !Number.isNaN(Number(router.query.maxTvl))
 			? +router.query.maxTvl
