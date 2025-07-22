@@ -180,7 +180,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			toast.success('Account created! Please check your email to verify your account.', { duration: 5000 })
 		},
 		onError: (error: any) => {
-			console.log({ error })
+			if (error?.error === 'User with this email already exists') {
+				return
+			}
 			const message = error.error
 			if (message) {
 				toast.error(message)
@@ -198,10 +200,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			turnstileToken: string,
 			onSuccess?: () => void
 		) => {
-			try {
-				await signupMutation.mutateAsync({ email, password, passwordConfirm, turnstileToken })
-				onSuccess?.()
-			} catch (e) {}
+			const result = await signupMutation.mutateAsync({ email, password, passwordConfirm, turnstileToken })
+			onSuccess?.()
+			return result
 		},
 		[signupMutation]
 	)

@@ -25,7 +25,7 @@ const columnResizeMode = 'onChange'
 
 function HacksTable({ data }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(hacksColumnOrders[0][1])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [projectName, setProjectName] = React.useState('')
 	const windowSize = useWindowSize()
@@ -67,7 +67,7 @@ function HacksTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="p-3 flex items-center justify-end">
 				<div className="relative w-full sm:max-w-[280px]">
 					<Icon
@@ -98,8 +98,8 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col">
 						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{totalHacked}b</span>
@@ -113,7 +113,7 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 						<span className="font-semibold text-2xl font-jetbrains">{totalRugs}b</span>
 					</p>
 				</div>
-				<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2 min-h-[360px]">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[360px]">
 					<div className="flex items-center p-3 -mb-12">
 						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 					</div>

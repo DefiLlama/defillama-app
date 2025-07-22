@@ -8,11 +8,11 @@ export interface IChainMetadata {
 	activeUsers?: boolean
 	fees?: boolean
 	chainFees?: boolean
-	derivatives?: boolean
-	aggregators?: boolean
+	perps?: boolean
+	dexAggregators?: boolean
 	options?: boolean
-	'aggregator-derivatives'?: boolean
-	'bridge-aggregators'?: boolean
+	perpsAggregators?: boolean
+	bridgeAggregators?: boolean
 	inflows?: boolean
 	chainAssets?: boolean
 	gecko_id?: string
@@ -26,7 +26,7 @@ export interface IChainOverviewData {
 	metadata: IChainMetadata
 	protocols: Array<IProtocol>
 	tvlChart: Array<[number, number]>
-	extraTvlChart: {
+	extraTvlCharts: {
 		staking: Record<string, number>
 		borrowed: Record<string, number>
 		pool2: Record<string, number>
@@ -110,6 +110,7 @@ export interface ILiteChart {
 
 export interface ILiteProtocol {
 	category: string
+	tags?: Array<string>
 	chains: Array<string>
 	mcap: number
 	name: string

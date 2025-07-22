@@ -245,8 +245,8 @@ const PageView = (props) => {
 
 	return (
 		<>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl flex-wrap">
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 							? `${poolData.symbol} (${poolData.poolMeta})`
@@ -279,7 +279,9 @@ const PageView = (props) => {
 							<span className="text-base text-[#545757] dark:text-[#cccccc]">Total Risk Rating</span>
 							<span className="flex items-center gap-2 flex-nowrap">
 								<span
-									className="w-7 h-7 rounded-full flex items-center justify-center text-base font-bold"
+									className={`w-7 h-7 rounded-full flex items-center justify-center text-base font-bold ${
+										riskData?.pool_rating ? 'text-base' : 'text-sm'
+									}`}
 									style={getRatingColor(riskData?.pool_rating_color)}
 								>
 									{riskData?.pool_rating || 'N/A'}
@@ -308,7 +310,7 @@ const PageView = (props) => {
 					</p>
 				</div>
 
-				<LazyChart className="bg-(--cards-bg) rounded-md pt-3 col-span-2 min-h-[480px]">
+				<LazyChart className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-3 col-span-2 min-h-[480px]">
 					{!isLoading && (
 						<Chart
 							height="468px"
@@ -417,7 +419,9 @@ const PageView = (props) => {
 								<div className="flex items-center justify-between rounded-xl min-w-[160px] mb-4 p-3">
 									<h3 className="flex items-center gap-1 text-base font-bold">
 										<span
-											className="w-7 h-7 rounded-full flex items-center justify-center"
+											className={`w-7 h-7 rounded-full flex items-center justify-center ${
+												riskData?.pool_rating ? 'text-base' : 'text-sm'
+											}`}
 											style={getRatingColor(riskData?.pool_rating_color)}
 										>
 											{riskData?.pool_rating || 'N/A'}
@@ -520,7 +524,7 @@ const PageView = (props) => {
 					</>
 				)}
 			</div>
-			<div className="flex flex-col gap-4 bg-(--cards-bg) rounded-md p-5">
+			<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				<h3 className="font-semibold text-lg">Protocol Information</h3>
 				<p className="flex items-center gap-2">
 					<span>Category</span>

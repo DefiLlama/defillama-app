@@ -7,7 +7,6 @@ import { BasicLink } from '~/components/Link'
 import { IProtocolPageMetrics } from './types'
 import * as Ariakit from '@ariakit/react'
 import { TokenLogo } from '~/components/TokenLogo'
-import { oldBlue } from '~/constants/colors'
 import { defaultProtocolPageStyles } from './Chart/constants'
 
 export function ProtocolOverviewLayout({
@@ -98,14 +97,33 @@ export function ProtocolOverviewLayout({
 					and the other side here: prnt.sc/HspPo_049Lzk. On rehold.io. Made on 26/09/2024.
 				</p>
 			)}
+			{[
+				'DeSyn Liquid Strategy',
+				'YieldNest',
+				'DeSyn Safe',
+				'Sumer.Money',
+				'Bullbaswap',
+				'Zircuit Staking',
+				'Magpie Ecosystem'
+			].includes(name) && (
+				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
+					This protocol includes unproductive positions that may contribute to inflated metrics. Be safe
+				</p>
+			)}
+			{name === 'PumpBTC' && (
+				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-[--btn-bg] border border-[--bg-color] mb-1">
+					PumpBTC has been reported for using unbacked assets to artificially inflate its own and other protocols TVL
+					metrics. Proceed with caution.
+				</p>
+			)}
 
 			<div className="flex flex-col gap-2 isolate">
 				<div className="w-full flex overflow-x-auto text-xs font-medium">
 					{otherProtocols?.length > 1 && (
 						<Ariakit.MenuProvider>
-							<Ariakit.MenuButton className="mr-4 flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-[#e6e6e6] dark:border-[#222324]">
+							<Ariakit.MenuButton className="mr-4 flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-(--cards-border)">
 								<TokenLogo logo={tokenIconUrl(name)} size={16} />
-								<span className="whitespace-nowrap">{name === otherProtocols[0] ? 'Combined View' : 'Split View'}</span>
+								<span className="whitespace-nowrap">{name === otherProtocols[0] ? `${name} (Combined)` : name}</span>
 								<Ariakit.MenuButtonArrow />
 							</Ariakit.MenuButton>
 							<Ariakit.Menu
@@ -114,7 +132,7 @@ export function ProtocolOverviewLayout({
 								wrapperProps={{
 									className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 								}}
-								className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
+								className="text-sm font-medium flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
 								portal
 							>
 								{otherProtocols.map((value, i) => {
@@ -124,17 +142,24 @@ export function ProtocolOverviewLayout({
 											render={<BasicLink href={`/protocol/${slug(value)}`} />}
 											data-active={name === value}
 											className={`group flex items-center gap-2 py-2 relative ${
-												i === 0 ? 'px-3' : 'ml-5 pr-3'
-											} shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) data-[active=true]:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md whitespace-nowrap overflow-hidden text-ellipsis`}
+												i === 0 ? 'px-3' : 'ml-[22px] pr-3'
+											} shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) data-[active=true]:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md whitespace-nowrap overflow-hidden text-ellipsis`}
 										>
 											{i !== 0 && (
 												<>
-													<span className="w-[1px] h-full group-last:h-[50%] absolute top-0 bottom-0 left-0 block bg-(--form-control-border)" />
-													<span className="w-3 h-[1px] bg-(--form-control-border) -mr-2" />
+													<span className="w-[2px] h-full group-last:h-[50%] absolute top-0 bottom-0 left-0 block bg-(--form-control-border)" />
+													<span className="w-3 h-[2px] bg-(--form-control-border) -mr-2" />
 												</>
 											)}
-											<TokenLogo logo={tokenIconUrl(value)} size={16} />
-											<span>{value}</span>
+											<TokenLogo logo={tokenIconUrl(value)} size={24} />
+											{i === 0 ? (
+												<span className="flex flex-col">
+													<span>{`${value} (Combined)`}</span>
+													<span className="text-[10px] text-[#666] dark:text-[#919296]">Aggregated view</span>
+												</span>
+											) : (
+												<span>{value}</span>
+											)}
 										</Ariakit.MenuItem>
 									)
 								})}

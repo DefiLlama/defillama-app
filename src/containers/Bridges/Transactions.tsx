@@ -1,8 +1,9 @@
 import { useMutation } from '@tanstack/react-query'
 import * as React from 'react'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { BRIDGETX_API } from '~/constants'
 import { download, toNiceCsvDate } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 
 type BridgeTransaction = {
 	tx_hash: string
@@ -61,9 +62,9 @@ const downloadTxs = async ({ bridges, startDate, endDate, selectedBridge }) => {
 		let iterations = 0
 
 		do {
-			const transactions = await fetch(
+			const transactions = await fetchJson(
 				`${BRIDGETX_API}/${bridgeId}?starttimestamp=${startTimestamp}&endtimestamp=${endTimestampParam}`
-			).then((resp) => resp.json())
+			)
 			numberTxsReturned = transactions?.length
 			if (numberTxsReturned) {
 				const earliestTx = transactions[transactions.length - 1]
@@ -81,34 +82,52 @@ const downloadTxs = async ({ bridges, startDate, endDate, selectedBridge }) => {
 }
 
 export const BridgeTransactionsPage = ({ bridges }) => {
+	const defaultEndDate = new Date()
+	const defaultStartDate = new Date(defaultEndDate)
+	defaultStartDate.setMonth(defaultEndDate.getMonth() - 1)
+
 	const { mutate, isPending, error } = useMutation({ mutationFn: downloadTxs })
+
+	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange, validateDateRange } =
+		useDateRangeValidation({
+			initialStartDate: defaultStartDate.toISOString().split('T')[0],
+			initialEndDate: defaultEndDate.toISOString().split('T')[0]
+		})
+
+	const handleSubmit = (e) => {
+		e.preventDefault()
+		const formEl = e.target as HTMLFormElement
+		const formData = new FormData(formEl)
+
+		const startDateValue = formData.get('startDate') as string
+		const endDateValue = formData.get('endDate') as string
+
+		if (!validateDateRange(startDateValue, endDateValue)) {
+			return
+		}
+
+		mutate({
+			startDate: startDateValue,
+			endDate: endDateValue,
+			selectedBridge: formData.get('selectedBridge'),
+			bridges
+		})
+	}
 
 	return (
 		<>
-			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-(--cards-bg) p-3">
+			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-(--cards-bg) border border-(--cards-border) p-3">
 				<h1 className="text-xl font-semibold">Generate Bridge Transactions CSV</h1>
 
-				<form
-					className="mx-auto my-8 flex flex-col gap-4"
-					onSubmit={(e) => {
-						e.preventDefault()
-						const formEl = e.target as HTMLFormElement
-						const formData = new FormData(formEl)
-
-						mutate({
-							startDate: formData.get('startDate'),
-							endDate: formData.get('endDate'),
-							selectedBridge: formData.get('selectedBridge'),
-							bridges
-						})
-					}}
-				>
+				<form className="mx-auto my-8 flex flex-col gap-4" onSubmit={handleSubmit}>
 					<span className="flex gap-4 flex-wrap">
 						<label className="flex flex-col">
 							<span className="text-base font-medium">Start Date</span>
 							<input
 								type="date"
 								name="startDate"
+								value={startDate}
+								onChange={(e) => handleStartDateChange(e.target.value)}
 								required
 								className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
 							/>
@@ -118,6 +137,9 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 							<input
 								type="date"
 								name="endDate"
+								value={endDate}
+								onChange={(e) => handleEndDateChange(e.target.value)}
+								min={startDate}
 								required
 								className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
 							/>
@@ -142,6 +164,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 						{isPending ? 'Downloading...' : 'Download .CSV'}
 					</button>
 
+					{dateError ? <p className="text-red-500 text-center">{dateError}</p> : null}
 					{error ? <p className="text-red-500 text-center">{(error as any).message}</p> : null}
 				</form>
 			</div>

@@ -19,6 +19,8 @@ import {
 } from '~/containers/DimensionAdapters/queries'
 import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
+import { fetchJson } from '~/utils/async'
+import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -49,6 +51,7 @@ export const useFetchChainChartData = ({
 			? chainGeckoId
 			: null
 
+	const isDenominationEnabled = denomination !== 'USD' && chainGeckoId ? true : false
 	const isTokenPriceEnabled = toggledCharts.includes('Token Price') ? true : false
 	const isTokenMcapEnabled = toggledCharts.includes('Token Mcap') ? true : false
 	const isTokenVolumeEnabled = toggledCharts.includes('Token Volume') ? true : false
@@ -61,18 +64,16 @@ export const useFetchChainChartData = ({
 	}>({
 		queryKey: ['priceHistory', denominationGeckoId],
 		queryFn: () =>
-			fetch(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`)
-				.then((r) => r.json())
-				.then((res) => {
-					if (!res.data?.prices?.length) return null
+			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then((res) => {
+				if (!res.data?.prices?.length) return null
 
-					const store = {}
-					for (const [date, value] of res.data.prices) {
-						store[date] = value
-					}
+				const store = {}
+				for (const [date, value] of res.data.prices) {
+					store[date] = value
+				}
 
-					return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
-				}),
+				return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
+			}),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: denominationGeckoId ? true : false
@@ -208,9 +209,7 @@ export const useFetchChainChartData = ({
 	const isBridgedTvlEnabled = toggledCharts.includes('Bridged TVL') ? true : false
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
 		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
-		queryFn: isBridgedTvlEnabled
-			? () => fetch(`${CHAINS_ASSETS_CHART}/${selectedChain}`).then((r) => r.json())
-			: () => null,
+		queryFn: isBridgedTvlEnabled ? () => fetchJson(`${CHAINS_ASSETS_CHART}/${selectedChain}`) : () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isBridgedTvlEnabled
@@ -221,19 +220,17 @@ export const useFetchChainChartData = ({
 		queryKey: ['raisesChart', selectedChain, isRaisesEnabled],
 		queryFn: () =>
 			isRaisesEnabled
-				? fetch(`${RAISES_API}`)
-						.then((r) => r.json())
-						.then((data) => {
-							const store = (data?.raises ?? []).reduce((acc, curr) => {
-								acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
-								return acc
-							}, {} as Record<string, number>)
-							const chart = []
-							for (const date in store) {
-								chart.push([+date * 1e3, store[date] * 1e6])
-							}
-							return chart
-						})
+				? fetchJson(`${RAISES_API}`).then((data) => {
+						const store = (data?.raises ?? []).reduce((acc, curr) => {
+							acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
+							return acc
+						}, {} as Record<string, number>)
+						const chart = []
+						for (const date in store) {
+							chart.push([+date * 1e3, store[date] * 1e6])
+						}
+						return chart
+				  })
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -247,6 +244,11 @@ export const useFetchChainChartData = ({
 			isChainIncentivesEnabled
 				? getProtocolEmissons(slug(selectedChain))
 						.then((data) => data?.unlockUsdChart ?? null)
+						.then((chart) => {
+							if (!chart) return null
+							const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
+							return chart.slice(nonZeroIndex)
+						})
 						.catch(() => null)
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
@@ -373,7 +375,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatLineChart({
 				data: finalTvlChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices,
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null,
 				dateInMs: true
 			})
 		}
@@ -383,7 +385,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: chainFeesData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -392,7 +394,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: chainRevenueData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -401,7 +403,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: dexVolumeData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -410,7 +412,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: perpsVolumeData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -419,7 +421,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: chainAppFeesData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -428,7 +430,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: chainAppRevenueData.totalDataChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -471,7 +473,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatBarChart({
 				data: inflowsChartData,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -480,7 +482,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatLineChart({
 				data: stablecoinsChartData,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices,
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null,
 				dateInMs: true
 			})
 		}
@@ -537,7 +539,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatLineChart({
 				data: finalChainAssetsChart,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices,
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null,
 				dateInMs: true
 			})
 		}
@@ -557,7 +559,7 @@ export const useFetchChainChartData = ({
 			charts[chartName] = formatLineChart({
 				data: chainIncentivesData,
 				groupBy,
-				denominationPriceHistory: denominationPriceHistory?.prices
+				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
@@ -570,6 +572,7 @@ export const useFetchChainChartData = ({
 		toggledCharts,
 		isGovTokensEnabled,
 		fetchingDenominationPriceHistory,
+		isDenominationEnabled,
 		denominationPriceHistory,
 		fetchingChainFees,
 		chainFeesData,
@@ -612,109 +615,6 @@ export const useFetchChainChartData = ({
 		totalValueUSD,
 		valueChange24hUSD,
 		change24h
-	}
-}
-
-const formatBarChart = ({
-	data,
-	groupBy,
-	dateInMs = false,
-	denominationPriceHistory
-}: {
-	data: Array<[string | number, number]>
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
-	dateInMs?: boolean
-	hasNoPrice?: boolean
-	denominationPriceHistory: Record<string, number> | null
-}): Array<[number, number]> => {
-	if (['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
-		const store = {}
-		let total = 0
-		const isWeekly = groupBy === 'weekly'
-		const isMonthly = groupBy === 'monthly'
-		const isCumulative = groupBy === 'cumulative'
-		for (const [date, value] of data) {
-			const dateKey = isWeekly
-				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
-				: isMonthly
-				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
-				: dateInMs
-				? +date / 1e3
-				: +date
-			// sum up values as it is bar chart
-			if (denominationPriceHistory) {
-				const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-				store[dateKey] = (store[dateKey] ?? 0) + (price ? value / price : 0) + total
-				if (isCumulative && price) {
-					total += value / price
-				}
-			} else {
-				store[dateKey] = (store[dateKey] ?? 0) + value + total
-				if (isCumulative) {
-					total += value
-				}
-			}
-		}
-		const finalChart = []
-		for (const date in store) {
-			finalChart.push([+date * 1e3, store[date]])
-		}
-		return finalChart
-	}
-	if (denominationPriceHistory) {
-		return data.map(([date, value]) => {
-			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
-		})
-	} else {
-		return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
-	}
-}
-
-const formatLineChart = ({
-	data,
-	groupBy,
-	dateInMs = false,
-	denominationPriceHistory
-}: {
-	data: Array<[string | number, number]>
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
-	dateInMs?: boolean
-	denominationPriceHistory: Record<string, number> | null
-}): Array<[number, number]> => {
-	if (['weekly', 'monthly'].includes(groupBy)) {
-		const store = {}
-		const isWeekly = groupBy === 'weekly'
-		const isMonthly = groupBy === 'monthly'
-		for (const [date, value] of data) {
-			const dateKey = isWeekly
-				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
-				: isMonthly
-				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
-				: dateInMs
-				? +date / 1e3
-				: +date
-			// do not sum up values, just use the last value for each date
-			const finalValue = denominationPriceHistory
-				? denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-					? value / denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-					: null
-				: value
-			store[dateKey] = finalValue
-		}
-		const finalChart = []
-		for (const date in store) {
-			finalChart.push([+date * 1e3, store[date]])
-		}
-		return finalChart
-	}
-	if (denominationPriceHistory) {
-		return data.map(([date, value]) => {
-			const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
-			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
-		})
-	} else {
-		return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
 	}
 }
 

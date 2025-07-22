@@ -1,72 +1,100 @@
-import { CATEGORY_API, CHART_API, PROTOCOLS_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { CATEGORY_CHART_API, TAGS_CHART_API, PROTOCOLS_API, CHART_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
-import { IProtocolByCategoryPageData } from './types'
+import { IProtocolByCategoryOrTagPageData } from './types'
 import { slug, tokenIconUrl } from '~/utils'
 import { oldBlue } from '~/constants/colors'
-import { tvlOptions } from '~/components/Filters/options'
 
-const extraTvlOptions = tvlOptions.filter((o) => !['doublecounted', 'liquidstaking'].includes(o.key)).map((o) => o.key)
-
-export async function getProtocolsByCategory({
+export async function getProtocolsByCategoryOrTag({
 	category,
+	tag,
 	chain
 }: {
-	category: string
+	category?: string
+	tag?: string
 	chain?: string
-}): Promise<IProtocolByCategoryPageData> {
+}): Promise<IProtocolByCategoryOrTagPageData> {
+	if (category && tag) {
+		return null
+	}
+
+	if (!category && !tag) {
+		return null
+	}
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const chainMetadata = chain
+		? metadataCache.chainMetadata[slug(chain)]
+		: { name: 'All', fees: true, dexs: true, perps: true }
+
+	if (!chainMetadata) {
+		return null
+	}
+
 	const [
 		{ protocols, parentProtocols },
 		feesData,
 		revenueData,
 		dexVolumeData,
 		perpVolumeData,
-		tvlByCategories,
-		tvlOnAllChains
+		chartData,
+		tvlByCategories
 	]: [
 		{ protocols: Array<ILiteProtocol>; parentProtocols: Array<ILiteParentProtocol> },
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
-		Record<string, Array<[string, number]>>,
-		{ chart: Record<string, Record<string, { tvl: number }>> }
+		Record<string, Record<string, number | null>>,
+		Record<string, Array<[string, number]>>
 	] = await Promise.all([
-		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
-		getAdapterChainOverview({
-			chain: chain ?? 'All',
-			adapterType: 'fees',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
-		}),
-		getAdapterChainOverview({
-			chain: chain ?? 'All',
-			adapterType: 'fees',
-			dataType: 'dailyRevenue',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
-		}),
-		getAdapterChainOverview({
-			chain: chain ?? 'All',
-			adapterType: 'dexs',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
-		}),
-		getAdapterChainOverview({
-			chain: chain ?? 'All',
-			adapterType: 'derivatives',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
-		}),
-		fetchWithErrorLogging(`${CHART_API}/categories/${category.toLowerCase().replace(' ', '_')}`).then((r) => r.json()),
-		fetchWithErrorLogging(`${CATEGORY_API}`).then((r) => r.json())
+		fetchJson(PROTOCOLS_API),
+		chainMetadata?.fees
+			? getAdapterChainOverview({
+					chain: chain ?? 'All',
+					adapterType: 'fees',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: null,
+		chainMetadata?.fees
+			? getAdapterChainOverview({
+					chain: chain ?? 'All',
+					adapterType: 'fees',
+					dataType: 'dailyRevenue',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: null,
+		chainMetadata?.dexs
+			? getAdapterChainOverview({
+					chain: chain ?? 'All',
+					adapterType: 'dexs',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: null,
+		chainMetadata?.perps
+			? getAdapterChainOverview({
+					chain: chain ?? 'All',
+					adapterType: 'derivatives',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+			  })
+			: null,
+		tag
+			? fetchJson(`${TAGS_CHART_API}/${slug(tag)}${chain ? `/${chain}` : ''}`)
+			: fetchJson(`${CATEGORY_CHART_API}/${slug(category)}${chain ? `/${chain}` : ''}`),
+		category ? fetchJson(`${CHART_API}/categories/${category.toLowerCase().replace(' ', '_')}`) : {}
 	])
 
 	const chains = []
-	for (const chain in tvlByCategories) {
-		chains.push([chain, tvlByCategories[chain].at(-1)?.[1] ?? 0])
+	if (category) {
+		for (const chain in tvlByCategories) {
+			chains.push([chain, tvlByCategories[chain].at(-1)?.[1] ?? 0])
+		}
 	}
 
 	const adapterDataStore = {}
@@ -126,19 +154,25 @@ export async function getProtocolsByCategory({
 	const parentProtocolsStore = {}
 
 	for (const protocol of protocols) {
+		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category == category
 		if (
-			protocol.category == category &&
+			isProtocolInCategoryOrTag &&
 			(chain ? protocol.chainTvls[chain] || adapterDataStore[protocol.defillamaId] : true)
 		) {
 			let tvl = 0
 			const extraTvls: Record<string, number> = {}
 			if (chain) {
 				for (const pchain in protocol.chainTvls) {
-					if (!pchain.startsWith(chain)) {
+					if (pchain.split('-')[0] !== chain) {
 						continue
 					}
 
 					const extraKey = pchain.split('-')[1]
+
+					if (extraKey === 'excludeParent') {
+						extraTvls.excludeParent = (extraTvls.excludeParent ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
+						continue
+					}
 
 					if (
 						extraKey &&
@@ -156,6 +190,11 @@ export async function getProtocolsByCategory({
 				}
 			} else {
 				for (const pchain in protocol.chainTvls) {
+					if (pchain === 'excludeParent') {
+						extraTvls[pchain] = (extraTvls[pchain] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
+						continue
+					}
+
 					if (
 						pchain.includes('-') ||
 						pchain === 'offers' ||
@@ -192,7 +231,7 @@ export async function getProtocolsByCategory({
 				tvl,
 				extraTvls,
 				mcap: protocol.mcap ?? null,
-				...(['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
+				...(category && ['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
 				fees,
 				revenue,
 				dexVolume,
@@ -220,13 +259,16 @@ export async function getProtocolsByCategory({
 				continue
 			}
 
-			const tvl = parentProtocolsStore[parentProtocol.id].reduce((acc, p) => acc + p.tvl, 0)
+			let tvl = parentProtocolsStore[parentProtocol.id].reduce((acc, p) => acc + p.tvl, 0)
 			const extraTvls = parentProtocolsStore[parentProtocol.id].reduce((acc, p) => {
 				for (const key in p.extraTvls) {
 					acc[key] = (acc[key] ?? 0) + p.extraTvls[key]
 				}
 				return acc
 			}, {})
+
+			tvl -= extraTvls.excludeParent ?? 0
+
 			const borrowed = extraTvls.borrowed ?? null
 			const supplied = borrowed && tvl > 0 ? borrowed + tvl : null
 			const suppliedTvl = supplied ? (supplied / tvl).toFixed(2) : null
@@ -286,7 +328,7 @@ export async function getProtocolsByCategory({
 				chains: parentProtocol.chains,
 				mcap: parentProtocol.mcap ?? null,
 				tvl,
-				...(['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
+				...(category && ['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
 				extraTvls,
 				fees: fees.total24h == 0 && fees.total7d == 0 && fees.total30d == 0 ? null : fees,
 				revenue: revenue.total24h == 0 && revenue.total7d == 0 && revenue.total30d == 0 ? null : revenue,
@@ -298,22 +340,37 @@ export async function getProtocolsByCategory({
 	}
 
 	let chart = []
-	let extraTvlCharts: Record<string, Record<string, number>> = {}
-	if (chain) {
-		if (!tvlByCategories[chain]) return null
-		chart = tvlByCategories[chain].map(([date, tvl]) => [+date * 1e3, tvl])
-	} else {
-		for (const date in tvlOnAllChains.chart) {
-			chart.push([+date * 1e3, tvlOnAllChains.chart[date][category]?.tvl ?? null])
-			for (const tvlType in tvlOnAllChains.chart[date][category]) {
-				if (tvlType === 'tvl') continue
-				extraTvlCharts[tvlType] = extraTvlCharts[tvlType] ?? {}
-				extraTvlCharts[tvlType][+date * 1e3] = tvlOnAllChains.chart[date][category][tvlType]
+	let extraTvlCharts: Record<string, Record<string | number, number | null>> = {}
+	for (const chartType in chartData) {
+		if (chartType == 'doublecounted' || chartType == 'liquidstaking') continue
+
+		if (chartType === 'tvl') {
+			for (const date in chartData[chartType]) {
+				chart.push([+date * 1e3, chartData[chartType][date] ?? null])
+			}
+		} else {
+			if (!extraTvlCharts[chartType]) {
+				extraTvlCharts[chartType] = {}
+			}
+			for (const date in chartData[chartType]) {
+				extraTvlCharts[chartType][+date * 1e3] = chartData[chartType][date] ?? null
 			}
 		}
 	}
 
 	const startIndex = chart.findIndex(([date, tvl]) => tvl != null)
+
+	let fees7d = 0
+	let revenue7d = 0
+	let dexVolume7d = 0
+	let perpVolume7d = 0
+
+	for (const protocol of finalProtocols) {
+		fees7d += protocol.fees?.total7d ?? 0
+		revenue7d += protocol.revenue?.total7d ?? 0
+		dexVolume7d += protocol.dexVolume?.total7d ?? 0
+		perpVolume7d += protocol.perpVolume?.total7d ?? 0
+	}
 
 	return {
 		charts: {
@@ -327,18 +384,19 @@ export async function getProtocolsByCategory({
 		},
 		chain: chain ?? 'All',
 		protocols: finalProtocols.sort((a, b) => b.tvl - a.tvl),
-		category,
+		category: category ?? null,
+		tag: tag ?? null,
 		chains: [
-			{ label: 'All', to: `/protocols/${category}` },
+			{ label: 'All', to: `/protocols/${category ?? tag}` },
 			...chains
 				.sort((a, b) => b[1] - a[1])
 				.map((c) => c[0])
-				.map((c) => ({ label: c, to: `/protocols/${category}/${c}` }))
+				.map((c) => ({ label: c, to: `/protocols/${category ?? tag}/${c}` }))
 		],
-		fees24h: feesData?.total24h ?? null,
-		revenue24h: revenueData?.total24h ?? null,
-		dexVolume24h: dexVolumeData?.total24h ?? null,
-		perpVolume24h: perpVolumeData?.total24h ?? null,
+		fees7d: fees7d > 0 ? fees7d : null,
+		revenue7d: revenue7d > 0 ? revenue7d : null,
+		dexVolume7d: dexVolume7d > 0 ? dexVolume7d : null,
+		perpVolume7d: perpVolume7d > 0 ? perpVolume7d : null,
 		extraTvlCharts
 	}
 }

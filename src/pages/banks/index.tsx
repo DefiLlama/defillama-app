@@ -31,7 +31,7 @@ const banksTableColumns = [
 		header: 'Assets',
 		accessorKey: '6',
 		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + formattedNum(getValue() * 1e6) : ''}</>
+			return <>{getValue() ? formattedNum(getValue() * 1e6, true) : ''}</>
 		},
 		meta: {
 			align: 'end'
@@ -41,7 +41,7 @@ const banksTableColumns = [
 		header: 'Assets (inflation adjusted)',
 		accessorKey: '7',
 		cell: ({ getValue }) => {
-			return <>{getValue() ? '$' + formattedNum(getValue() * 1e6) : ''}</>
+			return <>{getValue() ? formattedNum(getValue() * 1e6, true) : ''}</>
 		},
 		meta: {
 			align: 'end'
@@ -58,7 +58,7 @@ const Banks = () => {
 	return (
 		<Layout title="Bank Failures">
 			<ProtocolsChainsSearch />
-			<div className="relative col-span-2 bg-(--cards-bg) rounded-md p-3 min-h-[384px]">
+			<div className="relative col-span-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3 min-h-[384px]">
 				<React.Suspense fallback={<></>}>
 					<BarChart
 						chartData={Object.entries(data.years).map((t) => [new Date(t[0]).getTime() / 1e3, t[1] * 1e6])}

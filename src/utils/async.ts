@@ -19,7 +19,7 @@ export function withErrorLogging<T extends any[], R>(
 	}
 }
 
-export async function fetchWithErrorLogging(
+async function fetchWithErrorLogging(
 	url: RequestInfo | URL,
 	options?: FetchOverCacheOptions,
 	retry: boolean = false
@@ -27,9 +27,9 @@ export async function fetchWithErrorLogging(
 	const start = Date.now()
 	try {
 		const res = await fetchOverCache(url, options)
-		if (res.status >= 400) {
-			const end = Date.now()
-			postRuntimeLogs(`[HTTP] [error] [${res.status}] [${end - start}ms] <${url}>`)
+		if (res.status !== 200) {
+			// const end = Date.now()
+			// postRuntimeLogs(`[HTTP] [error] [${res.status}] [${end - start}ms] < ${url} >`)
 		}
 		return res
 	} catch (error) {
@@ -38,7 +38,7 @@ export async function fetchWithErrorLogging(
 				const res = await fetchOverCache(url, options)
 				if (res.status >= 400) {
 					const end = Date.now()
-					postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] <${url}>`)
+					postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] < ${url} >`)
 				}
 				return res
 			} catch (error) {
@@ -46,7 +46,7 @@ export async function fetchWithErrorLogging(
 					const res = await fetchOverCache(url, options)
 					if (res.status >= 400) {
 						const end = Date.now()
-						postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] <${url}>`)
+						postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] < ${url} >`)
 					}
 					return res
 				} catch (error) {
@@ -54,52 +54,13 @@ export async function fetchWithErrorLogging(
 					postRuntimeLogs(
 						`[HTTP] [3] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${
 							end - start
-						}ms] <${url}>`
+						}ms] < ${url} >`
 					)
 					return null
 				}
 			}
 		}
 		throw error
-	}
-}
-
-export async function fetchWithTimeout(url, ms, options = {}) {
-	const controller = new AbortController()
-	const promise = fetchWithErrorLogging(url, { signal: controller.signal, ...options })
-	const timeout = setTimeout(() => controller.abort(), ms)
-	return promise.finally(() => clearTimeout(timeout))
-}
-
-const dataCache: {
-	[key: string]: any
-} = {}
-
-export async function wrappedFetch(
-	endpoint: string,
-	{ retries = 0, cache = false }: { retries?: number; cache?: boolean } = {}
-): Promise<any> {
-	if (cache) {
-		retries++
-		if (!dataCache[endpoint]) {
-			dataCache[endpoint] = _getData(retries)
-		}
-		return dataCache[endpoint]
-	}
-	return _getData(retries)
-
-	async function _getData(retiresLeft = 0, attempts = 0) {
-		try {
-			const res = await fetchWithErrorLogging(endpoint).then((res) => res.json())
-			return res
-		} catch (error) {
-			if (retiresLeft > 0) {
-				attempts++
-				await sleep(attempts * 30 * 1000) // retry after 30 seconds * attempts
-				return _getData(retiresLeft - 1, attempts)
-			}
-			throw error
-		}
 	}
 }
 
@@ -110,26 +71,7 @@ export async function sleep(ms: number): Promise<void> {
 export const fetchApi = async (url: string | Array<string>) => {
 	if (!url) return null
 	try {
-		const data =
-			typeof url === 'string'
-				? await fetchWithErrorLogging(url).then(async (res) => {
-						if (!res.ok) {
-							throw new Error(res.statusText ?? `Failed to fetch ${url}`)
-						}
-						const data = await res.json()
-						return data
-				  })
-				: await Promise.all(
-						url.map((u) =>
-							fetchWithErrorLogging(u).then(async (res) => {
-								if (!res.ok) {
-									throw new Error(res.statusText ?? `Failed to fetch ${u}`)
-								}
-								const data = await res.json()
-								return data
-							})
-						)
-				  )
+		const data = typeof url === 'string' ? await fetchJson(url) : await Promise.all(url.map((u) => fetchJson(u)))
 		return data
 	} catch (error) {
 		throw new Error(
@@ -146,6 +88,121 @@ export function postRuntimeLogs(log) {
 			headers: { 'Content-Type': 'application/json' }
 		})
 	}
+	console.log(`\n${log}\n`)
+}
 
-	console.log(log)
+async function handleFetchResponse(
+	res: Response,
+	url: RequestInfo | URL,
+	options?: FetchOverCacheOptions,
+	callerInfo?: string
+) {
+	try {
+		if (res.status === 200) {
+			const response = await res.json()
+			return response
+		}
+
+		// Handle non-200 status codes
+		let errorMessage = `[HTTP] [error] [${res.status}] < ${res.url} >`
+
+		// Try to get error message from statusText first
+		if (res.statusText) {
+			errorMessage += `: ${res.statusText}`
+		}
+
+		// Read response body only once
+		const responseText = await res.text()
+
+		if (responseText) {
+			// Try to parse as JSON first
+			try {
+				const errorResponse = JSON.parse(responseText)
+				if (errorResponse.error) {
+					errorMessage = errorResponse.error
+				} else if (errorResponse.message) {
+					errorMessage = errorResponse.message
+				} else {
+					// If JSON parsing succeeded but no error/message field, use the text
+					errorMessage = responseText
+				}
+			} catch (jsonError) {
+				// If JSON parsing fails, use the text response
+				errorMessage = responseText
+			}
+		}
+
+		throw new Error(errorMessage)
+	} catch (e) {
+		// Log with caller info if available
+		const logMessage = callerInfo
+			? `[fetchJson] [error] [caller: ${callerInfo}] [${e.message}] < ${url} >`
+			: `[HTTP] [parse] [error] [${e.message}] < ${url} > \n${JSON.stringify(options)}`
+
+		postRuntimeLogs(logMessage)
+
+		throw e // Re-throw the error instead of returning empty object
+	}
+}
+
+export async function fetchJson(
+	url: RequestInfo | URL,
+	options?: FetchOverCacheOptions,
+	retry: boolean = false
+): Promise<any> {
+	// Capture caller information at the time of call
+	const callerInfo = getCallerInfo(new Error().stack)
+
+	try {
+		const res = await fetchWithErrorLogging(url, options, retry).then((res) =>
+			handleFetchResponse(res, url, options, callerInfo)
+		)
+		return res
+	} catch (error) {
+		// Only log here if the error didn't come from handleFetchResponse
+		if (!error.message.includes('[HTTP]')) {
+			postRuntimeLogs(
+				`[fetchJson] [error] [caller: ${callerInfo}] [${
+					error instanceof Error ? error.message : 'Unknown error'
+				}] < ${url} >`
+			)
+		}
+
+		throw error
+	}
+}
+
+// Helper function to extract caller information from stack trace
+function getCallerInfo(stack?: string): string {
+	if (!stack) return 'unknown'
+
+	const lines = stack.split('\n')
+	// Look for the first line that contains a file path and function name
+	// Skip lines that contain fetchJson, handleFetchResponse, etc.
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i].trim()
+		// Match patterns like "at functionName (file:line:column)" or "at file:line:column"
+		const match = line.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)|at\s+(.+?):(\d+):(\d+)/)
+		if (match) {
+			const functionName = match[1] || 'anonymous'
+			const filePath = match[2] || match[5]
+			const lineNumber = match[3] || match[6]
+
+			// Skip if this is fetchJson, handleFetchResponse, or other internal functions
+			if (
+				functionName.includes('fetchJson') ||
+				functionName.includes('handleFetchResponse') ||
+				functionName.includes('fetchWithErrorLogging') ||
+				functionName.includes('getCallerInfo')
+			) {
+				continue
+			}
+
+			// Extract just the filename from the full path
+			const fileName = filePath.split('/').pop()?.split('\\').pop() || 'unknown'
+			return `${functionName} (${fileName}:${lineNumber})`
+		}
+	}
+
+	return 'unknown'
 }

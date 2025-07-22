@@ -175,6 +175,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 110
 			}),
+			columnHelper.accessor('mcap', {
+				header: 'Market Cap',
+				cell: ({ getValue }) => <>{getValue() != null && getValue() > 0 ? formattedNum(getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Market capitalization of the protocol token'
+				},
+				size: 120
+			}),
 			columnHelper.accessor('mcaptvl', {
 				header: 'Mcap/TVL',
 				cell: (info) => {
@@ -255,7 +265,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 125
 			}),
 			columnHelper.accessor('fees_1y', {
-				header: 'Monthly Avg 1Y Fees',
+				header: 'Fees 1Y',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
@@ -274,15 +284,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 120
 			}),
-			// columnHelper.accessor('average_revenue_1y', {
-			// 	header: 'Monthly Avg 1Y Rev',
-			// 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			// 	sortUndefined: 'last',
-			// 	meta: {
-			// 		align: 'end'
-			// 	},
-			// 	size: 180
-			// }),
+			columnHelper.accessor('average_revenue_1y', {
+				header: 'Monthly Avg 1Y Rev',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
+				},
+				size: 180
+			}),
 			columnHelper.accessor('holdersRevenue30d', {
 				header: 'Holders Revenue 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -557,7 +568,6 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		},
 		size: 100
 	},
-
 	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
@@ -916,7 +926,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'TVL',
 		accessorKey: 'tvl',
 		cell: ({ getValue }) => {
-			return <>{'$' + formattedNum(getValue())}</>
+			return <>{formattedNum(getValue(), true)}</>
 		},
 		sortUndefined: 'last',
 		meta: {
@@ -1124,7 +1134,7 @@ const Tvl = ({ value, rowValues }) => {
 					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 				}}
 			>
-				{value || value === 0 ? '$' + formattedNum(value || 0) : null}
+				{value || value === 0 ? formattedNum(value || 0, true) : null}
 			</span>
 		</span>
 	)

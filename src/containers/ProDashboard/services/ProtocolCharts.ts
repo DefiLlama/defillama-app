@@ -60,7 +60,7 @@ export default class ProtocolCharts {
 	}
 
 	static async fees(protocol: string): Promise<[number, number][]> {
-		return this.summary(protocol, 'fees')
+		return this.summary(protocol, 'fees', 'dailyFees')
 	}
 
 	static async revenue(protocol: string): Promise<[number, number][]> {

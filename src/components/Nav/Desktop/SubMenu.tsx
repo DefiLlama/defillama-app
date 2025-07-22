@@ -45,17 +45,21 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 			</summary>
 
 			<span className="my-4 flex flex-col gap-4">
-				{navLinks[name].main.map((subLink) => (
-					<BasicLink
-						href={subLink.path}
-						key={subLink.path}
-						data-linkactive={subLink.path === pathname}
-						className="-my-[6px] pl-7 rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
-					>
-						<span>{subLink.name}</span>
-						{subLink.newTag === true ? <NewTag /> : null}
-					</BasicLink>
-				))}
+				{navLinks[name].main.map((subLink) => {
+					const isActive = subLink.path.split('?')[0] === pathname
+
+					return (
+						<BasicLink
+							href={subLink.path}
+							key={subLink.path}
+							data-linkactive={isActive}
+							className="-my-[6px] pl-7 rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
+						>
+							<span>{subLink.name}</span>
+							{subLink.newTag === true ? <NewTag /> : null}
+						</BasicLink>
+					)
+				})}
 			</span>
 		</details>
 	)

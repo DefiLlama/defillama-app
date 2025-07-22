@@ -38,6 +38,11 @@ export function useModalActions(
 		[protocols, state.selectedProtocol]
 	)
 
+	const selectedChainData = useMemo(
+		() => chains.find((c: Chain) => c.name === state.selectedChain),
+		[chains, state.selectedChain]
+	)
+
 	const chainOptions = useMemo(
 		() => [
 			{ value: 'All', label: 'All Chains' },
@@ -90,12 +95,14 @@ export function useModalActions(
 
 	const handleAddToComposer = () => {
 		if (state.composerSubType === 'chain' && state.selectedChain) {
+			const chain = chains.find((c: Chain) => c.name === state.selectedChain)
 			const newChart: ChartConfig = {
 				id: `${state.selectedChain}-${state.selectedChartType}-${Date.now()}`,
 				kind: 'chart',
 				chain: state.selectedChain,
 				type: state.selectedChartType,
-				grouping: 'day'
+				grouping: 'day',
+				geckoId: ['chainMcap', 'chainPrice'].includes(state.selectedChartType) ? chain?.gecko_id : undefined
 			}
 			actions.setComposerItems((prev) => [...prev, newChart])
 		} else if (state.composerSubType === 'protocol' && state.selectedProtocol) {
@@ -158,6 +165,7 @@ export function useModalActions(
 					items: state.composerItems
 				} as MultiChartConfig
 			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'chain' && state.selectedChain) {
+				const chain = chains.find((c: Chain) => c.name === state.selectedChain)
 				const chartTypeDetails = CHART_TYPES[state.selectedChartType]
 				newItem = {
 					...editItem,
@@ -166,7 +174,7 @@ export function useModalActions(
 					protocol: undefined,
 					type: state.selectedChartType,
 					grouping: chartTypeDetails?.groupable ? 'day' : undefined,
-					geckoId: undefined
+					geckoId: ['chainMcap', 'chainPrice'].includes(state.selectedChartType) ? chain?.gecko_id : undefined
 				} as ChartConfig
 			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'protocol' && state.selectedProtocol) {
 				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
@@ -227,6 +235,14 @@ export function useModalActions(
 						kind: 'table',
 						tableType: 'dataset',
 						datasetType: 'earnings',
+						chains: state.selectedChains
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'fees') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'fees',
 						chains: state.selectedChains
 					} as ProtocolsTableConfig
 				} else if (state.selectedTableType === 'token-usage') {
@@ -324,14 +340,17 @@ export function useModalActions(
 			if (state.selectedMainTab === 'composer' && state.composerItems.length > 0) {
 				handleAddMultiChart(state.composerItems, state.composerChartName.trim() || undefined)
 			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'chain' && state.selectedChain) {
+				const chain = chains.find((c: Chain) => c.name === state.selectedChain)
 				// Handle multiple selected charts
 				if (state.selectedChartTypes.length > 0) {
 					state.selectedChartTypes.forEach((chartType) => {
-						handleAddChart(state.selectedChain, chartType, 'chain')
+						const geckoId = ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
+						handleAddChart(state.selectedChain, chartType, 'chain', geckoId)
 					})
 				} else if (state.selectedChartType) {
 					// Fallback to single chart for backward compatibility
-					handleAddChart(state.selectedChain, state.selectedChartType, 'chain')
+					const geckoId = ['chainMcap', 'chainPrice'].includes(state.selectedChartType) ? chain?.gecko_id : undefined
+					handleAddChart(state.selectedChain, state.selectedChartType, 'chain', geckoId)
 				}
 			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'protocol' && state.selectedProtocol) {
 				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
@@ -357,6 +376,8 @@ export function useModalActions(
 					handleAddTable(state.selectedChains, 'dataset', 'holders-revenue')
 				} else if (state.selectedTableType === 'earnings') {
 					handleAddTable(state.selectedChains, 'dataset', 'earnings')
+				} else if (state.selectedTableType === 'fees') {
+					handleAddTable(state.selectedChains, 'dataset', 'fees')
 				} else if (state.selectedTableType === 'token-usage' && state.selectedTokens.length > 0) {
 					handleAddTable([], 'dataset', 'token-usage', undefined, state.selectedTokens, state.includeCex)
 				} else if (state.selectedTableType === 'yields') {
@@ -404,6 +425,7 @@ export function useModalActions(
 		},
 		computed: {
 			selectedProtocolData,
+			selectedChainData,
 			chainOptions,
 			protocolOptions,
 			protocolsLoading,

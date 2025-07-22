@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 import { AddChartModal } from './components/AddChartModal'
 import { ChartGrid } from './components/ChartGrid'
 import { EmptyState } from './components/EmptyState'
@@ -43,8 +44,12 @@ function ProDashboardContent() {
 		{ value: '30d', label: '30d' },
 		{ value: '90d', label: '90d' },
 		{ value: '365d', label: '365d' },
+		{ value: 'ytd', label: 'YTD' },
+		{ value: '3y', label: '3Y' },
 		{ value: 'all', label: 'All' }
 	]
+
+	const hasChartItems = items?.some((item) => item?.kind === 'chart' || item?.kind === 'multi')
 
 	const handleNameSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
@@ -79,21 +84,24 @@ function ProDashboardContent() {
 			</div>
 
 			<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 md:mb-2">
-				<div className="flex gap-0 overflow-x-auto order-2 md:order-1">
-					{timePeriods.map((period, index) => (
-						<button
-							key={period.value}
-							className={`px-3 py-1.5 md:px-4 md:py-2 text-sm font-medium border transition-colors duration-200 flex-1 md:flex-initial ${
-								timePeriod === period.value
-									? 'border-(--primary1) bg-(--primary1) text-white'
-									: 'border-white/20 pro-hover-bg pro-text2'
-							}`}
-							onClick={() => setTimePeriod(period.value)}
-						>
-							{period.label}
-						</button>
-					))}
-				</div>
+				<Tooltip content={!hasChartItems ? 'Add chart items to enable time period selection' : null} placement="bottom">
+					<div className="flex gap-0 overflow-x-auto order-2 md:order-1">
+						{timePeriods.map((period) => (
+							<button
+								key={period.value}
+								className={`px-3 py-1.5 md:px-4 md:py-2 text-sm font-medium border transition-colors duration-200 flex-1 md:flex-initial ${
+									timePeriod === period.value
+										? 'border-(--primary1) bg-(--primary1) text-white'
+										: 'border-white/20 pro-hover-bg pro-text2'
+								} ${!hasChartItems ? 'opacity-50 cursor-not-allowed' : ''}`}
+								onClick={() => hasChartItems && setTimePeriod(period.value)}
+								disabled={!hasChartItems}
+							>
+								{period.label}
+							</button>
+						))}
+					</div>
+				</Tooltip>
 
 				<div className="flex items-center gap-2 order-1 md:order-2 w-full md:w-auto">
 					<div className="flex items-center gap-2 min-w-0 flex-1 md:flex-initial">

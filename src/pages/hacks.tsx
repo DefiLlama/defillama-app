@@ -4,13 +4,11 @@ import HacksContainer from '~/containers/Hacks'
 import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { HACKS_API } from '~/constants'
 
-const fetch = fetchWithErrorLogging
-
 export const getStaticProps = withPerformanceLogging('hacks', async () => {
-	const data = (await fetch(HACKS_API).then((r) => r.json())).map((h) => ({
+	const data = (await fetchJson(HACKS_API)).map((h) => ({
 		chains: h.chain ?? [],
 		classification: h.classification,
 		date: h.date,
@@ -87,14 +85,14 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	}
 })
 
-const Raises = (props) => {
+const Hacks = (props) => {
 	const monthlyHacks = React.useMemo(() => {
 		return props.monthlyHacks.map((m) => [getFirstDateOfTheMonth(m[0]), m[1]])
 	}, [props.monthlyHacks])
-	return <HacksContainer {...(props as any)} monthlyHacks={monthlyHacks} />
+	return <HacksContainer {...props} monthlyHacks={monthlyHacks} />
 }
 
-export default Raises
+export default Hacks
 
 function getFirstDateOfTheMonth(currentDate) {
 	const date = new Date(currentDate * 1000)

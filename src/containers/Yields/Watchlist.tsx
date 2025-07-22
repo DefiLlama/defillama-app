@@ -75,7 +75,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 	return (
 		<>
 			<WatchListTabs />
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<h1 className="text-xl font-semibold p-3">Saved Pools</h1>
 
 				<div className="flex items-center flex-wrap gap-4 p-3">
@@ -229,7 +229,9 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				{filteredProtocols.length ? (
 					<YieldsPoolsTable data={filteredProtocols} />
 				) : (
-					<p className="p-5 bg-(--cards-bg) rounded-md text-center">You have not saved any pools.</p>
+					<p className="p-5 bg-(--cards-bg) border border-(--cards-border) rounded-md text-center">
+						You have not saved any pools.
+					</p>
 				)}
 			</div>
 		</>
@@ -243,7 +245,7 @@ export const WatchListTabs = () => {
 			<BasicLink
 				href={'/watchlist'}
 				data-active={router.pathname === '/watchlist'}
-				className="shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border-b-2 border-transparent data-[active=true]:border-(--old-blue) relative bottom-[-2px] z-10"
+				className="shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border-b-2 border-transparent data-[active=true]:border-(--old-blue) relative bottom-[-2px]"
 			>
 				DeFi
 			</BasicLink>
@@ -251,7 +253,7 @@ export const WatchListTabs = () => {
 			<BasicLink
 				href={'/yields/watchlist'}
 				data-active={router.pathname === '/yields/watchlist'}
-				className="shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border-b-2 border-transparent data-[active=true]:border-(--old-blue) relative bottom-[-2px] z-10"
+				className="shrink-0 py-1 px-[10px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border-b-2 border-transparent data-[active=true]:border-(--old-blue) relative bottom-[-2px]"
 			>
 				Yields
 			</BasicLink>

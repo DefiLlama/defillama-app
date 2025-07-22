@@ -58,15 +58,15 @@ const BridgeInfo = ({
 
 	return (
 		<>
-			<div className="bg-(--cards-bg) rounded-md p-3 flex items-center justify-between gap-2">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
 				<h1 className="flex flex-nowrap items-center gap-1 text-xl font-semibold">
 					<TokenLogo logo={logo} size={24} />
 					<span>{displayName}</span>
 				</h1>
 				<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
 			</div>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-[#545757] dark:text-[#cccccc]">Deposited to {currentChain} (24h)</span>
 						<span className="font-jetbrains font-semibold text-2xl">
@@ -103,7 +103,7 @@ const BridgeInfo = ({
 					) : null}
 				</div>
 
-				<div className="bg-(--cards-bg) rounded-md col-span-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2">
 					<div className="w-full max-w-fit overflow-x-auto ml-auto p-3">
 						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 							<button
@@ -153,7 +153,7 @@ const BridgeInfo = ({
 					</LazyChart>
 				</div>
 			</div>
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-end justify-between flex-wrap gap-2 p-3">
 					<AddressesTableSwitch />
 					<p className="opacity-60 text-sm italic">All stats in table are for the previous day.</p>

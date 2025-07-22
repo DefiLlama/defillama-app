@@ -1,12 +1,15 @@
 import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import * as Ariakit from '@ariakit/react'
 
 export function AvailableRange({
 	variant = 'primary',
-	nestedMenu
+	nestedMenu,
+	placement
 }: {
 	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
+	placement?: Ariakit.PopoverStoreProps['placement']
 }) {
 	const router = useRouter()
 
@@ -32,9 +35,24 @@ export function AvailableRange({
 		)
 	}
 
+	const handleClear = () => {
+		const { minAvailable, maxAvailable, ...restQuery } = router.query
+
+		router.push(
+			{
+				pathname: router.pathname,
+				query: restQuery
+			},
+			undefined,
+			{
+				shallow: true
+			}
+		)
+	}
+
 	const { minAvailable, maxAvailable } = router.query
-	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable).toLocaleString() : null
-	const max = typeof maxAvailable === 'string' && maxAvailable !== '' ? Number(maxAvailable).toLocaleString() : null
+	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable) : null
+	const max = typeof maxAvailable === 'string' && maxAvailable !== '' ? Number(maxAvailable) : null
 
 	return (
 		<FilterBetweenRange
@@ -45,7 +63,9 @@ export function AvailableRange({
 						{min || max ? (
 							<>
 								<span>Available: </span>
-								<span className="text-(--link)">{`${min || 'min'} - ${max || 'max'}`}</span>
+								<span className="text-(--link)">{`${min?.toLocaleString() ?? 'min'} - ${
+									max?.toLocaleString() ?? 'max'
+								}`}</span>
 							</>
 						) : (
 							'Available'
@@ -56,10 +76,12 @@ export function AvailableRange({
 				)
 			}
 			onSubmit={handleSubmit}
+			onClear={handleClear}
 			nestedMenu={nestedMenu}
 			min={min}
 			max={max}
 			variant="secondary"
+			placement={placement}
 		/>
 	)
 }

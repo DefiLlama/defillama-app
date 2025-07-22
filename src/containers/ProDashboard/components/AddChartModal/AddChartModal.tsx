@@ -33,10 +33,20 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 		}
 	}
 
+	const getCurrentGeckoId = () => {
+		const itemType = getCurrentItemType()
+		if (itemType === 'protocol') {
+			return computed.selectedProtocolData?.geckoId
+		} else if (itemType === 'chain') {
+			return computed.selectedChainData?.gecko_id
+		}
+		return undefined
+	}
+
 	const { availableChartTypes, isLoading: chartTypesLoading } = useAvailableChartTypes(
 		getCurrentSelectedItem(),
 		state.selectedMainTab === 'table' ? 'chain' : getCurrentItemType(),
-		computed.selectedProtocolData?.geckoId,
+		getCurrentGeckoId(),
 		computed.timePeriod
 	)
 
@@ -47,7 +57,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 		shouldFetchPreviewData ? state.selectedChartTypes : [],
 		getCurrentItemType(),
 		getCurrentSelectedItem() || '',
-		computed.selectedProtocolData?.geckoId,
+		getCurrentGeckoId(),
 		computed.timePeriod
 	)
 

@@ -2,6 +2,7 @@ import { oldBlue } from '~/constants/colors'
 
 export const protocolCharts = {
 	TVL: 'tvl',
+	'Total Assets': 'totalAssets',
 	Mcap: 'mcap',
 	'Token Price': 'tokenPrice',
 	'Token Volume': 'tokenVolume',
@@ -38,7 +39,8 @@ export const protocolCharts = {
 	Contributers: 'contributersMetrics',
 	'Devs Commits': 'devsCommits',
 	'Contributers Commits': 'contributersCommits',
-	'NFT Volume': 'nftVolume'
+	'NFT Volume': 'nftVolume',
+	'Bridge Volume': 'bridgeVolume'
 } as const
 
 export type ProtocolChartsLabels = keyof typeof protocolCharts
@@ -49,6 +51,7 @@ export const yAxisByChart: {
 	[K in keyof typeof protocolCharts]: ProtocolChartsLabels
 } = {
 	TVL: 'TVL',
+	'Total Assets': 'TVL',
 	Mcap: 'TVL',
 	FDV: 'TVL',
 	Borrowed: 'TVL',
@@ -85,7 +88,8 @@ export const yAxisByChart: {
 	Contributers: 'Contributers',
 	'Devs Commits': 'Devs Commits',
 	'Contributers Commits': 'Contributers Commits',
-	'NFT Volume': 'NFT Volume'
+	'NFT Volume': 'NFT Volume',
+	'Bridge Volume': 'DEX Volume'
 }
 
 export const BAR_CHARTS: ProtocolChartsLabels[] = [
@@ -116,7 +120,8 @@ export const BAR_CHARTS: ProtocolChartsLabels[] = [
 	'Options Premium Volume',
 	'Options Notional Volume',
 	'Perp Aggregator Volume',
-	'Bridge Aggregator Volume'
+	'Bridge Aggregator Volume',
+	'Bridge Volume'
 ]
 
 export const DISABLED_CUMULATIVE_CHARTS: ProtocolChartsLabels[] = [

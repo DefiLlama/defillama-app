@@ -50,8 +50,8 @@ export function NFTCollectionContainer() {
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
 			<NFTsSearch />
 
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={data[0].image} fallbackLogo={data?.[0]?.image} size={48} />
 						<FormattedName text={name} fontWeight={700} />
@@ -86,7 +86,7 @@ export function NFTCollectionContainer() {
 					</a>
 				</div>
 
-				<div className="bg-(--cards-bg) rounded-md col-span-2 min-h-[392px]">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 min-h-[392px]">
 					<div className="flex items-center justify-end p-3 pb-0 w-full">
 						<Switch
 							label="Include Outliers"

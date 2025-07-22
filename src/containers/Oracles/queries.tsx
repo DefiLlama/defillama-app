@@ -3,8 +3,8 @@ import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/t
 import { ORACLE_API, PROTOCOLS_API } from '~/constants'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
-import { getColorFromNumber, slug } from '~/utils'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { getColorFromNumber } from '~/utils'
+import { fetchJson } from '~/utils/async'
 
 interface IOracleProtocols {
 	[key: string]: number
@@ -25,8 +25,8 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
 			IAdapterOverview | null
 		] = await Promise.all([
-			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
-			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
+			fetchJson(ORACLE_API),
+			fetchJson(PROTOCOLS_API),
 			getAdapterChainOverview({
 				adapterType: 'derivatives',
 				chain: 'All',
@@ -180,10 +180,7 @@ export async function getOraclePageDataByChain(chain: string) {
 		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
 			IOracleApiResponse,
 			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> }
-		] = await Promise.all([
-			fetchWithErrorLogging(ORACLE_API).then((r) => r.json()),
-			fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json())
-		])
+		] = await Promise.all([fetchJson(ORACLE_API), fetchJson(PROTOCOLS_API)])
 
 		const filteredProtocols = formatProtocolsData({ protocols, chain })
 

@@ -111,7 +111,8 @@ export const defaultToolsAndFooterLinks = {
 		},
 		{
 			name: 'API Docs',
-			path: '/docs/api'
+			path: 'https://api-docs.defillama.com/',
+			external: true
 		},
 		{
 			name: 'List Your Project',
@@ -154,9 +155,9 @@ export const navLinks: ILinks = {
 			{ name: 'Oracles', path: '/oracles' },
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
-			{ name: 'Compare Protocols', path: '/compare-protocols?protocol=Sky&protocol=Curve+DEX' },
+			{ name: 'Compare Protocols', path: '/compare-protocols?protocol=Sky+Lending&protocol=Curve+DEX' },
 			{ name: 'Protocol Expenses', path: '/expenses' },
-			{ name: 'Token Usage', path: '/tokenUsage?token=ETH' },
+			{ name: 'Token Usage', path: '/token-usage?token=ETH' },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },
 			{ name: 'Languages', path: '/languages' },
@@ -208,7 +209,8 @@ export const navLinks: ILinks = {
 			},
 			{
 				name: 'API Docs',
-				path: '/docs/api'
+				path: 'https://api-docs.defillama.com/',
+				external: true
 			},
 			{ name: 'List your protocol', path: 'https://github.com/DefiLlama/yield-server#readme', external: true },
 			{

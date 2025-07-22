@@ -34,7 +34,6 @@ function Support() {
 
 		mutateAsync(formData)
 			.then((data) => {
-				console.log({ data })
 				if (data?.message === 'success') {
 					toast.success('Support request submitted successfully', { position: 'bottom-right' })
 					form.reset()
@@ -50,8 +49,11 @@ function Support() {
 
 	return (
 		<Layout title="Support - DefiLlama" defaultSEO>
-			<div className="flex flex-col gap-4 w-full max-w-lg mx-auto xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11">
-				<form onSubmit={onSubmit} className="flex flex-col gap-4 p-3 w-full bg-(--cards-bg) rounded-md">
+			<div className="flex flex-col gap-4 w-full max-w-lg mx-auto lg:mt-4 xl:mt-11">
+				<form
+					onSubmit={onSubmit}
+					className="flex flex-col gap-4 p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md"
+				>
 					<h1 className="text-xl font-semibold text-center mb-3">Support</h1>
 					<label className="flex flex-col gap-1">
 						<span>Name</span>

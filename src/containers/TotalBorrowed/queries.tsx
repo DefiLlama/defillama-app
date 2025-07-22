@@ -1,5 +1,5 @@
 import { CHART_API, PROTOCOLS_API } from '~/constants'
-import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
+import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
 import { oldBlue } from '~/constants/colors'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
@@ -44,9 +44,8 @@ export async function getTotalBorrowedByChain({
 		},
 		Array<[number, number]>
 	] = await Promise.all([
-		fetchWithErrorLogging(PROTOCOLS_API).then((res) => res.json()),
-		fetchWithErrorLogging(`${CHART_API}${chain && chain !== 'All' ? `/${chain}` : ''}`)
-			.then((res) => res.json())
+		fetchJson(PROTOCOLS_API),
+		fetchJson(`${CHART_API}${chain && chain !== 'All' ? `/${chain}` : ''}`)
 			.then((data: ILiteChart) => data?.borrowed?.map((item) => [+item[0] * 1e3, item[1]]) ?? [])
 			.catch((err) => {
 				postRuntimeLogs(`Total Borrowed by Chain: ${chain}: ${err instanceof Error ? err.message : err}`)
@@ -64,7 +63,7 @@ export async function getTotalBorrowedByChain({
 		let totalPrevMonth: number | null = null
 
 		for (const ctvl in protocol.chainTvls) {
-			if (ctvl.includes('-borrowed') && (chain === 'All' ? true : ctvl.startsWith(chain))) {
+			if (ctvl.includes('-borrowed') && (chain === 'All' ? true : ctvl.split('-')[0] === chain)) {
 				totalBorrowed = (totalBorrowed ?? 0) + protocol.chainTvls[ctvl].tvl
 				totalPrevMonth = (totalPrevMonth ?? 0) + protocol.chainTvls[ctvl].tvlPrevMonth
 			}

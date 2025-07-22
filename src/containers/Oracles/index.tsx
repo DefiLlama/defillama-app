@@ -89,7 +89,7 @@ export const OraclesByChain = ({
 				fallback={
 					<div
 						style={{ minHeight: `${tokensList.length * 50 + 200}px` }}
-						className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md"
+						className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
 					/>
 				}
 			>
@@ -165,7 +165,7 @@ const columns: ColumnDef<IOraclesRow>[] = [
 	{
 		header: 'TVS',
 		accessorKey: 'tvs',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total Value Secured by the Oracle. Excludes CeFi'

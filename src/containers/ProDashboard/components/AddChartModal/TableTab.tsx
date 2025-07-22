@@ -56,6 +56,12 @@ const tableTypeOptions = [
 		icon: '💵'
 	},
 	{
+		value: 'fees',
+		label: 'Fees',
+		description: 'Protocol fees generated across timeframes',
+		icon: '💸'
+	},
+	{
 		value: 'revenue',
 		label: 'Revenue',
 		description: 'Protocol revenue generation across timeframes',
@@ -73,6 +79,7 @@ const tableTypeOptions = [
 		description: 'Protocol profitability and earnings data',
 		icon: '📈'
 	},
+
 	{
 		value: 'token-usage',
 		label: 'Token Usage',
@@ -254,6 +261,7 @@ export function TableTab({
 			) : selectedTableType === 'revenue' ||
 			  selectedTableType === 'holders-revenue' ||
 			  selectedTableType === 'earnings' ||
+			  selectedTableType === 'fees' ||
 			  selectedTableType === 'yields' ||
 			  selectedTableType === 'aggregators' ||
 			  selectedTableType === 'perps' ||

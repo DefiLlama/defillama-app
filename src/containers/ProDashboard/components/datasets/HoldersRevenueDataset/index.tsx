@@ -33,9 +33,18 @@ export function HoldersRevenueDataset({ chains }: { chains?: string[] }) {
 	const { data, isLoading, error } = useHoldersRevenueData(chains)
 	const windowSize = useWindowSize()
 
+	const columnsToUse = React.useMemo(() => {
+		if (chains && chains.length > 0) {
+			return holdersRevenueDatasetColumns.filter(
+				(col: any) => col.accessorKey !== 'change_1d' && col.accessorKey !== 'change_7d'
+			)
+		}
+		return holdersRevenueDatasetColumns
+	}, [chains])
+
 	const instance = useReactTable({
 		data: data || [],
-		columns: holdersRevenueDatasetColumns as ColumnDef<any>[],
+		columns: columnsToUse as ColumnDef<any>[],
 		state: {
 			sorting,
 			columnOrder,
@@ -132,30 +141,37 @@ export function HoldersRevenueDataset({ chains }: { chains?: string[] }) {
 							onClick={() => {
 								const rows = instance.getFilteredRowModel().rows
 								const csvData = rows.map((row) => row.original)
-								const headers = [
-									'Protocol',
-									'Category',
-									'24h Holders Revenue',
-									'7d Holders Revenue',
-									'30d Holders Revenue',
-									'24h Change',
-									'7d Change',
-									'Chains'
-								]
+								const headers =
+									chains && chains.length > 0
+										? [
+												'Protocol',
+												'Category',
+												'24h Holders Revenue',
+												'7d Holders Revenue',
+												'30d Holders Revenue',
+												'Chains'
+										  ]
+										: [
+												'Protocol',
+												'Category',
+												'24h Holders Revenue',
+												'7d Holders Revenue',
+												'30d Holders Revenue',
+												'24h Change',
+												'7d Change',
+												'Chains'
+										  ]
+
 								const csv = [
 									headers.join(','),
-									...csvData.map((item) =>
-										[
-											item.name,
-											item.category,
-											item.total24h,
-											item.total7d,
-											item.total30d,
-											item.change_1d,
-											item.change_7d,
-											item.chains?.join(';') || ''
-										].join(',')
-									)
+									...csvData.map((item) => {
+										const values = [item.name, item.category, item.total24h, item.total7d, item.total30d]
+										if (!(chains && chains.length > 0)) {
+											values.push(item.change_1d, item.change_7d)
+										}
+										values.push(item.chains?.join(';') || '')
+										return values.join(',')
+									})
 								].join('\n')
 
 								const blob = new Blob([csv], { type: 'text/csv' })

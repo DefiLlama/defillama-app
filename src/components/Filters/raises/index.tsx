@@ -11,7 +11,7 @@ export function RaisesFilters(props: IDropdownMenusProps) {
 	const isClient = useIsClient()
 
 	return (
-		<div className="flex flex-col gap-4 p-3 rounded-md bg-(--cards-bg)">
+		<div className="flex flex-col gap-4 p-3 rounded-md bg-(--cards-bg) border border-(--cards-border)">
 			<h1 className="text-lg font-semibold">{props.header}</h1>
 			<RaisesSearch list={props.investors} />
 

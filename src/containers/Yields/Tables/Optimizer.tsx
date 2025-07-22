@@ -43,7 +43,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			<NameYield
 				withoutLink
 				project={row.original.projectName}
-				projectslug={row.original.projectslug}
+				projectslug={row.original.project}
 				airdrop={row.original.airdrop}
 				borrow={true}
 			/>
@@ -74,7 +74,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{value === null ? null : '$' + formattedNum(value)}
+					{value === null ? null : formattedNum(value, true)}
 				</span>
 			)
 		},
@@ -271,7 +271,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{'$' + formattedNum(info.getValue())}
+					{formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -291,7 +291,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{'$' + formattedNum(info.getValue())}
+					{formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},

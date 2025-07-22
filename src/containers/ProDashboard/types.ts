@@ -15,6 +15,7 @@ export interface MultiChartConfig {
 	items: ChartConfig[]
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	colSpan?: 1 | 2
+	showCumulative?: boolean
 }
 
 export interface TextConfig {
@@ -40,6 +41,7 @@ export interface ChartConfig {
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	geckoId?: string | null
 	colSpan?: 1 | 2
+	showCumulative?: boolean
 }
 
 export interface TableFilters {
@@ -81,6 +83,7 @@ export interface ProtocolsTableConfig {
 		| 'revenue'
 		| 'holders-revenue'
 		| 'earnings'
+		| 'fees'
 		| 'token-usage'
 		| 'yields'
 		| 'aggregators'
@@ -148,7 +151,9 @@ export const CHART_TYPES = {
 	},
 	chainFees: { id: 'chainFees', title: 'Chain Fees', chartType: 'bar', color: '#F59E0B', groupable: true },
 	chainRevenue: { id: 'chainRevenue', title: 'Chain Revenue', chartType: 'bar', color: '#F59E0B', groupable: true },
-	bridgedTvl: { id: 'bridgedTvl', title: 'Bridged TVL', chartType: 'area', color: '#9333EA' }
+	bridgedTvl: { id: 'bridgedTvl', title: 'Bridged TVL', chartType: 'area', color: '#9333EA' },
+	chainMcap: { id: 'chainMcap', title: 'Token MCap', chartType: 'area', color: '#2563EB' },
+	chainPrice: { id: 'chainPrice', title: 'Token Price', chartType: 'area', color: '#16A34A' }
 }
 
 // Helper functions to extract chart types from CHART_TYPES
@@ -178,7 +183,9 @@ export const getChainChartTypes = (): string[] => {
 		'stablecoinInflows',
 		'chainFees',
 		'chainRevenue',
-		'bridgedTvl'
+		'bridgedTvl',
+		'chainMcap',
+		'chainPrice'
 	]
 }
 

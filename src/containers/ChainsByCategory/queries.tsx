@@ -1,11 +1,11 @@
 import { getColorFromNumber, slug } from '~/utils'
 import { ACTIVE_USERS_API, CHAINS_ASSETS, TEMP_CHAIN_NFTS } from '~/constants'
 import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
 import { IChainAssets } from '~/containers/ChainOverview/types'
 import { IChainsByCategory, IChainsByCategoryData } from './types'
-import { getDimensionAdapterChainsOverview } from '../DimensionAdapters/queries.server'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from '../DimensionAdapters/constants'
 
 export const getChainsByCategory = async ({
 	category,
@@ -25,10 +25,8 @@ export const getChainsByCategory = async ({
 		chainNftsVolume,
 		appRevenue
 	] = await Promise.all([
-		fetchWithErrorLogging(`https://api.llama.fi/chains2/${category}`).then((res) =>
-			res.json()
-		) as Promise<IChainsByCategory>,
-		getDimensionAdapterChainsOverview({ adapterType: 'dexs' }),
+		fetchJson(`https://api.llama.fi/chains2/${category}`) as Promise<IChainsByCategory>,
+		getDimensionAdapterOverviewOfAllChains({ adapterType: 'dexs' }),
 		getAdapterChainOverview({
 			adapterType: 'fees',
 			chain: 'All',
@@ -49,9 +47,7 @@ export const getChainsByCategory = async ({
 			return null
 		}) as Promise<IAdapterOverview | null>,
 		getPeggedAssets() as any,
-		fetchWithErrorLogging(ACTIVE_USERS_API)
-			.then((res) => res.json())
-			.catch(() => ({})) as Promise<
+		fetchJson(ACTIVE_USERS_API).catch(() => ({})) as Promise<
 			Record<
 				string,
 				{
@@ -62,9 +58,9 @@ export const getChainsByCategory = async ({
 				}
 			>
 		>,
-		fetchWithErrorLogging(CHAINS_ASSETS).then((res) => res.json()) as Promise<IChainAssets>,
-		fetchWithErrorLogging(TEMP_CHAIN_NFTS).then((res) => res.json()) as Promise<Record<string, number>>,
-		getDimensionAdapterChainsOverview({ adapterType: 'fees', dataType: 'dailyAppRevenue' })
+		fetchJson(CHAINS_ASSETS) as Promise<IChainAssets>,
+		fetchJson(TEMP_CHAIN_NFTS) as Promise<Record<string, number>>,
+		getDimensionAdapterOverviewOfAllChains({ adapterType: 'fees', dataType: 'dailyAppRevenue' })
 	])
 
 	const categoryLinks = [
@@ -133,4 +129,38 @@ export const getChainsByCategory = async ({
 			}
 		})
 	}
+}
+
+async function getDimensionAdapterOverviewOfAllChains({
+	adapterType,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType?: `${ADAPTER_DATA_TYPES}`
+}) {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+	const chains = []
+	for (const chain in metadataCache.chainMetadata) {
+		if (metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]) {
+			chains.push(chain)
+		}
+	}
+
+	const data = await Promise.all(
+		chains.map((chain) =>
+			getAdapterChainOverview({
+				chain,
+				adapterType,
+				excludeTotalDataChart: true,
+				excludeTotalDataChartBreakdown: true,
+				dataType
+			}).catch(() => {
+				postRuntimeLogs(`getDimensionAdapterOverviewOfAllChains:${chain}:${adapterType}:failed`)
+				return null
+			})
+		)
+	)
+
+	return data.filter(Boolean)
 }

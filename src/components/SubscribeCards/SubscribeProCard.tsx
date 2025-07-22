@@ -66,7 +66,7 @@ export function SubscribeProCard({
 					<span className="font-medium">Priority support</span>
 				</li>
 				<p className="px-[26px] font-medium">
-					<a href="https://defillama.com/pro-api/docs" target="_blank" rel="noreferrer noopener" className="underline">
+					<a href="https://api-docs.defillama.com/" target="_blank" rel="noreferrer noopener" className="underline">
 						Pro API
 					</a>{' '}
 					limits:

@@ -90,9 +90,13 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 
 export default function Correlations({ coinsData }) {
 	const router = useRouter()
-	const queryCoins = router.query?.coin || ([] as Array<string>)
-	const selectedCoins = useMemo<Record<string, IResponseCGMarketsAPI>>(
-		() =>
+	const queryParamString = JSON.stringify(router.query ?? {})
+	const queryCoins = useMemo(() => {
+		const routerQuery = JSON.parse(queryParamString)
+		return routerQuery?.coin || ([] as Array<string>)
+	}, [queryParamString])
+	const selectedCoins = useMemo<Record<string, IResponseCGMarketsAPI>>(() => {
+		return (
 			(queryCoins &&
 				Object.fromEntries(
 					coinsData
@@ -101,9 +105,10 @@ export default function Correlations({ coinsData }) {
 						)
 						.map((coin) => [coin.id, coin])
 				)) ||
-			{},
-		[queryCoins]
-	)
+			{}
+		)
+	}, [queryCoins])
+
 	const [period, setPeriod] = useState(365)
 	const { data: priceChart, isLoading } = usePriceCharts(Object.keys(selectedCoins))
 	const coins = Object.values(selectedCoins).filter(Boolean)
@@ -151,14 +156,16 @@ export default function Correlations({ coinsData }) {
 
 	if (!isClient) {
 		return (
-			<h1 className="bg-(--cards-bg) rounded-md p-3 text-center text-xl font-semibold">Correlations Matrix</h1>
+			<h1 className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3 text-center text-xl font-semibold">
+				Correlations Matrix
+			</h1>
 		)
 	}
 
 	return (
 		<>
 			<ProtocolsChainsSearch />
-			<div className="p-3 bg-(--cards-bg) rounded-md flex items-center flex-wrap justify-between gap-4">
+			<div className="p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center flex-wrap justify-between gap-4">
 				<h1 className="text-xl font-semibold">Correlations Matrix</h1>
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 					<button
@@ -185,7 +192,7 @@ export default function Correlations({ coinsData }) {
 				</div>
 			</div>
 
-			<div className="p-3 bg-(--cards-bg) rounded-md flex flex-col gap-4 items-center justify-center">
+			<div className="p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-4 items-center justify-center">
 				<div className="flex flex-col sm:flex-row">
 					<div className="no-scrollbar overflow-auto mr-8 flex flex-col">
 						<h2 className="text-lg font-medium">Selected Coins</h2>

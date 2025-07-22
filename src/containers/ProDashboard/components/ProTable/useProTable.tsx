@@ -30,7 +30,7 @@ interface CustomColumn {
 }
 
 import { TableFilters } from '../../types'
-import { getPercentChange } from '~/utils'
+import { formattedNum, getPercentChange } from '~/utils'
 import { Icon } from '~/components/Icon'
 
 // Helper function to recalculate parent protocol metrics based on filtered children
@@ -46,9 +46,11 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let fees_24h = 0
 	let fees_7d = 0
 	let fees_30d = 0
+	let fees_1y = 0
 	let revenue_24h = 0
 	let revenue_7d = 0
 	let revenue_30d = 0
+	let revenue_1y = 0
 
 	let weightedVolumeChange = 0
 	let totalVolumeWeight = 0
@@ -69,9 +71,11 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		if (child.fees_24h) fees_24h += child.fees_24h
 		if (child.fees_7d) fees_7d += child.fees_7d
 		if (child.fees_30d) fees_30d += child.fees_30d
+		if (child.fees_1y) fees_1y += child.fees_1y
 		if (child.revenue_24h) revenue_24h += child.revenue_24h
 		if (child.revenue_7d) revenue_7d += child.revenue_7d
 		if (child.revenue_30d) revenue_30d += child.revenue_30d
+		if (child.revenue_1y) revenue_1y += child.revenue_1y
 	})
 
 	const change_1d = getPercentChange(tvl, tvlPrevDay)
@@ -83,10 +87,10 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
 	}
 
-	// Calculate mcaptvl
 	let mcaptvl = null
-	if (tvl && mcap) {
-		mcaptvl = +(mcap / tvl).toFixed(2)
+	const finalMcap = mcap > 0 ? mcap : parent.mcap || 0
+	if (tvl && finalMcap) {
+		mcaptvl = +formattedNum(finalMcap / tvl)
 	}
 
 	return {
@@ -95,16 +99,18 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		tvlPrevDay,
 		tvlPrevWeek,
 		tvlPrevMonth,
-		mcap: mcap || parent.mcap, // Keep original mcap if no child has mcap
+		mcap: finalMcap,
 		volume_24h,
 		volume_7d,
 		volumeChange_7d,
 		fees_24h,
 		fees_7d,
 		fees_30d,
+		fees_1y,
 		revenue_24h,
 		revenue_7d,
 		revenue_30d,
+		revenue_1y,
 		change_1d,
 		change_7d,
 		change_1m,
@@ -332,6 +338,82 @@ export function useProTable(
 		return { name: nameColumn, category: categoryColumn }
 	}, [filters, onFilterClick])
 
+	const totals = React.useMemo(() => {
+		const sums: Record<string, number> = {}
+		const usdMetrics = [
+			'tvl',
+			'mcap',
+			'fees_24h',
+			'fees_7d',
+			'fees_30d',
+			'fees_1y',
+			'revenue_24h',
+			'revenue_7d',
+			'revenue_30d',
+			'revenue_1y',
+			'volume_24h',
+			'volume_7d',
+			'cumulativeFees',
+			'cumulativeVolume'
+		]
+
+		usdMetrics.forEach((metric) => {
+			sums[metric] = 0
+		})
+
+		finalProtocolsList.forEach((protocol) => {
+			usdMetrics.forEach((metric) => {
+				const value = protocol[metric as keyof IProtocolRow]
+				if (typeof value === 'number' && value > 0) {
+					sums[metric] += value
+				}
+			})
+		})
+
+		return sums
+	}, [finalProtocolsList])
+
+	const percentageShareColumnDefs = React.useMemo(() => {
+		const usdMetrics = [
+			{ key: 'tvl', name: 'TVL % Share' },
+			{ key: 'mcap', name: 'Market Cap % Share' },
+			{ key: 'fees_24h', name: 'Fees 24h % Share' },
+			{ key: 'fees_7d', name: 'Fees 7d % Share' },
+			{ key: 'fees_30d', name: 'Fees 30d % Share' },
+			{ key: 'fees_1y', name: 'Fees 1y % Share' },
+			{ key: 'revenue_24h', name: 'Revenue 24h % Share' },
+			{ key: 'revenue_7d', name: 'Revenue 7d % Share' },
+			{ key: 'revenue_30d', name: 'Revenue 30d % Share' },
+			{ key: 'revenue_1y', name: 'Revenue 1y % Share' },
+			{ key: 'volume_24h', name: 'Volume 24h % Share' },
+			{ key: 'volume_7d', name: 'Volume 7d % Share' },
+			{ key: 'cumulativeFees', name: 'Cumulative Fees % Share' },
+			{ key: 'cumulativeVolume', name: 'Cumulative Volume % Share' }
+		]
+
+		return usdMetrics.map(
+			(metric): ColumnDef<IProtocolRow> => ({
+				id: `${metric.key}_share`,
+				header: metric.name,
+				accessorFn: (row) => {
+					const value = row[metric.key as keyof IProtocolRow]
+					const total = totals[metric.key]
+
+					if (typeof value === 'number' && value > 0 && total > 0) {
+						return (value / total) * 100
+					}
+					return null
+				},
+				cell: ({ getValue }) => {
+					const value = getValue() as number | null
+					if (value === null || value === undefined) return ''
+
+					return `${value.toFixed(2)}%`
+				}
+			})
+		)
+	}, [totals])
+
 	const allColumns = React.useMemo(() => {
 		const baseColumns = [...protocolsByChainColumns]
 
@@ -349,8 +431,8 @@ export function useProTable(
 			}
 		}
 
-		return [...baseColumns, ...customColumnDefs]
-	}, [customColumnDefs, columnsWithFilter])
+		return [...baseColumns, ...customColumnDefs, ...percentageShareColumnDefs]
+	}, [customColumnDefs, columnsWithFilter, percentageShareColumnDefs])
 
 	const table = useReactTable({
 		data: finalProtocolsList,
@@ -451,7 +533,7 @@ export function useProTable(
 
 	const columnPresets = React.useMemo(
 		() => ({
-			essential: ['name', 'category', 'chains', 'tvl', 'change_1d', 'change_7d'],
+			essential: ['name', 'category', 'chains', 'tvl', 'change_1d', 'change_7d', 'mcap'],
 			fees: ['name', 'category', 'chains', 'tvl', 'fees_24h', 'fees_7d', 'revenue_24h', 'revenue_7d'],
 			volume: ['name', 'category', 'chains', 'tvl', 'volume_24h', 'volume_7d', 'volumeChange_7d'],
 			advanced: [
@@ -547,7 +629,10 @@ export function useProTable(
 		const headers = table
 			.getVisibleFlatColumns()
 			.filter((col) => col.id !== 'expand')
-			.map((col) => col.columnDef.header || col.id)
+			.map((col) => {
+				const hdr = col.columnDef.header
+				return typeof hdr === 'string' ? hdr : col.id
+			})
 
 		const rows = table.getRowModel().rows.map((row) => {
 			return table

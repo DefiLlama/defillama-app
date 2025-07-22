@@ -88,5 +88,37 @@ export const earningsDatasetColumns: ColumnDef<IEarningsRow>[] = [
 		meta: {
 			align: 'end'
 		}
+	},
+	{
+		header: '24h Change',
+		accessorKey: 'change_1d',
+		size: 100,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return (
+				<span className={`font-mono ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
+					{value ? formattedPercent(value, false, 100) : '-'}
+				</span>
+			)
+		},
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Change',
+		accessorKey: 'change_7d',
+		size: 100,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return (
+				<span className={`font-mono ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
+					{value ? formattedPercent(value, false, 100) : '-'}
+				</span>
+			)
+		},
+		meta: {
+			align: 'end'
+		}
 	}
 ]

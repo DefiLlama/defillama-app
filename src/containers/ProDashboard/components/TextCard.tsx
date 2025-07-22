@@ -10,7 +10,7 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 	return (
 		<div className="p-4 h-full flex flex-col">
 			{text.title && (
-				<div className="mb-3 shrink-0 pr-28">
+				<div className="mb-4 shrink-0 pr-28">
 					<h2 className="text-lg font-semibold pro-text1">{text.title}</h2>
 				</div>
 			)}
@@ -38,12 +38,7 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 								</blockquote>
 							),
 							a: ({ children, href }) => (
-								<a
-									href={href}
-									className="text-(--primary1) hover:underline"
-									target="_blank"
-									rel="noopener noreferrer"
-								>
+								<a href={href} className="text-(--primary1) hover:underline" target="_blank" rel="noopener noreferrer">
 									{children}
 								</a>
 							),

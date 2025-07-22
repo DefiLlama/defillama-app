@@ -1,6 +1,6 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
-import { getPercentChange } from '~/utils'
+import { formattedNum, getPercentChange } from '~/utils'
 
 function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastOnceValue) {
 	if (curr[key] || curr[key] === 0) {
@@ -35,9 +35,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		fees_7d,
 		fees_24h,
 		fees_30d,
+		fees_1y,
 		revenue_24h,
 		revenue_7d,
 		revenue_30d,
+		revenue_1y,
 		holderRevenue_24h,
 		holdersRevenue30d,
 		userFees_24h,
@@ -76,9 +78,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 				'fees_7d',
 				'fees_24h',
 				'fees_30d',
+				'fees_1y',
 				'revenue_24h',
 				'revenue_7d',
 				'revenue_30d',
+				'revenue_1y',
 				'holderRevenue_24h',
 				'holdersRevenue30d',
 				'userFees_24h',
@@ -110,9 +114,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 			fees_7d: 0,
 			fees_24h: 0,
 			fees_30d: 0,
+			fees_1y: 0,
 			revenue_24h: 0,
 			revenue_7d: 0,
 			revenue_30d: 0,
+			revenue_1y: 0,
 			holderRevenue_24h: 0,
 			holdersRevenue30d: 0,
 			userFees_24h: 0,
@@ -125,23 +131,19 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	const change1d: number | null = getPercentChange(tvl, tvlPrevDay)
 	const change7d: number | null = getPercentChange(tvl, tvlPrevWeek)
 	const change1m: number | null = getPercentChange(tvl, tvlPrevMonth)
-	const pf = getAnnualizedRatio(mcap, fees_30d)
-	const ps = getAnnualizedRatio(mcap, revenue_30d)
 
 	let volumeChange_7d = null
 	if (totalVolumeWeight > 0) {
 		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
 	}
 
-	let mcaptvl = null
+	const finalMcap = mcap > 0 ? mcap : parent?.mcap || 0
+	const pf = getAnnualizedRatio(finalMcap, fees_30d)
+	const ps = getAnnualizedRatio(finalMcap, revenue_30d)
 
-	if (tvl) {
-		if (mcap) {
-			mcaptvl = +(mcap / tvl).toFixed(2)
-		}
-		if (parent.mcap) {
-			mcaptvl = +(parent.mcap / tvl).toFixed(2)
-		}
+	let mcaptvl = null
+	if (tvl && finalMcap) {
+		mcaptvl = +formattedNum(finalMcap / tvl)
 	}
 
 	return {
@@ -160,9 +162,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		fees_24h,
 		fees_7d,
 		fees_30d,
+		fees_1y,
 		revenue_24h,
 		revenue_7d,
 		revenue_30d,
+		revenue_1y,
 		holderRevenue_24h,
 		holdersRevenue30d,
 		userFees_24h,
@@ -175,7 +179,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		cumulativeVolume,
 		pf,
 		ps,
-		mcap,
+		mcap: finalMcap,
 		mcaptvl: mcaptvl ?? undefined,
 		extraTvl: {},
 		symbol: null,

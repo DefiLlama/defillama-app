@@ -34,6 +34,8 @@ const REVByChain = (props: IChainsByREVPageData) => {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				rowSize={64}
+				compact
 			/>
 		</Layout>
 	)
@@ -75,7 +77,7 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end',
+			align: 'center',
 			headerHelperText: 'Chain fees and MEV tips in the last 24 hours'
 		},
 		size: 128
@@ -87,7 +89,7 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end',
+			align: 'center',
 			headerHelperText: 'Chain fees and MEV tips in the last 30 days'
 		},
 		size: 128

@@ -1,565 +1,1514 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
-import { useLocalStorageSettingsManager, useDarkModeManager } from '~/contexts/LocalStorage'
-import type { IChartProps } from '~/components/ECharts/types'
-import { LazyChart } from '~/components/LazyChart'
-import { BAR_CHARTS } from './utils'
-import { useFetchAndFormatChartData } from './useFetchAndFormatChartData'
+import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { lazy, Suspense, useMemo } from 'react'
+import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
+import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
+import { useQuery } from '@tanstack/react-query'
+import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
+import {
+	BRIDGEVOLUME_API_SLUG,
+	CACHE_SERVER,
+	NFT_MARKETPLACES_VOLUME_API,
+	PROTOCOL_TREASURY_API,
+	TOKEN_LIQUIDITY_API
+} from '~/constants'
+import { getProtocolEmissons } from '~/api/categories/protocols'
+import {
+	useFetchProtocolActiveUsers,
+	useFetchProtocolDevMetrics,
+	useFetchProtocolGovernanceData,
+	useFetchProtocolMedianAPY,
+	useFetchProtocolNewUsers,
+	useFetchProtocolTransactions
+} from '~/api/categories/protocols/client'
+import { fetchJson } from '~/utils/async'
 import { EmbedChart } from '~/components/EmbedChart'
-import { IFusedProtocolData, NftVolumeData } from '~/api/types'
-import { transparentize } from 'polished'
-import { BasicLink } from '~/components/Link'
-import { IProtocolPageMetrics } from '../types'
+import { Tooltip } from '~/components/Tooltip'
+import { Icon } from '~/components/Icon'
+import * as Ariakit from '@ariakit/react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { buildProtocolAddlChartsData } from '../utils'
+import { downloadChart, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 
-const AreaChart = React.lazy(() => import('./Chart')) as React.FC<IChartProps>
+const ProtocolLineBarChart = lazy(() => import('./Chart')) as React.FC<any>
 
-interface IProps {
-	protocol: string
-	color: string
-	historicalChainTvls: {}
-	chartDenominations: Array<{ symbol: string; geckoId?: string | null }>
-	bobo?: boolean
-	hallmarks?: Array<[number, string]> | null
-	geckoId?: string | null
-	chartColors: { [type: string]: string }
-	metrics: IProtocolPageMetrics
-	activeUsersId: number | string | null
-	usdInflowsData: Array<[string, number]> | null
-	governanceApis: Array<string> | null
-	isHourlyChart?: boolean
-	isCEX?: boolean
-	tokenSymbol?: string
-	protocolId: string
-	twitterHandle?: string
-	nftVolumeData: NftVolumeData
-	protocolData?: IFusedProtocolData
-	enabled?: Record<string, boolean>
-	incentivesData?: {
-		emissions24h: number
-		emissions7d: number
-		emissions30d: number
-		emissionsAllTime: number
-		incentivesChart: Array<[number, number]>
+// Utility function to update any query parameter in URL
+const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: string): string => {
+	if (typeof document === 'undefined') return `${currentUrl}?${queryKey}=${newValue}`
+	const url = new URL(currentUrl, window.location.origin)
+
+	// If value is falsy or empty, remove the parameter
+	if (!newValue || newValue === '') {
+		url.searchParams.delete(queryKey)
+	} else {
+		// Replace or add the parameter
+		url.searchParams.set(queryKey, newValue)
 	}
+
+	return url.pathname + url.search
 }
 
-const CHART_TYPES = [
-	'tvl',
-	'mcap',
-	'tokenPrice',
-	'tokenVolume',
-	'tokenLiquidity',
-	'fdv',
-	'dexVolume',
-	'perpsVolume',
-	'premiumVolume',
-	'notionalVolume',
-	'fees',
-	'revenue',
-	'holdersRevenue',
-	'incentives',
-	'unlocks',
-	'activeAddresses',
-	'newAddresses',
-	'transactions',
-	'gasUsed',
-	'events',
-	'staking',
-	'borrowed',
-	'medianApy',
-	'usdInflows',
-	'governance',
-	'bridgeVolume',
-	'twitter',
-	'devMetrics',
-	'contributersMetrics',
-	'contributersCommits',
-	'devCommits',
-	'nftVolume',
-	'perpsAggregators',
-	'bridgeAggregators',
-	'dexAggregators'
-]
+const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-const ProtocolChart = React.memo(function ProtocolChart({
-	protocol,
-	color,
-	historicalChainTvls,
-	bobo = false,
-	hallmarks,
-	geckoId,
-	chartColors,
-	metrics,
-	activeUsersId,
-	usdInflowsData,
-	governanceApis,
-	isHourlyChart,
-	isCEX,
-	tokenSymbol = 'Token',
-	protocolId,
-	chartDenominations,
-	twitterHandle,
-	nftVolumeData,
-	protocolData,
-	enabled = null,
-	incentivesData
-}: IProps) {
+export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
-	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 	const [isThemeDark] = useDarkModeManager()
 
-	const toggledMetrics = React.useMemo(() => {
-		const toggled = enabled || {
-			...router.query,
-			...((!metrics.tvl
-				? metrics.dexs
-					? { dexVolume: router.query.dexVolume ?? 'true' }
-					: metrics.perps
-					? { perpsVolume: router.query.perpsVolume ?? 'true' }
-					: metrics.options
-					? {
-							optionsPremiumVolume: router.query.optionsPremiumVolume ?? 'true',
-							optionsNotionalVolume: router.query.optionsNotionalVolume ?? 'true'
-					  }
-					: metrics.dexAggregators
-					? { dexAggregators: router.query.dexAggregators ?? 'true' }
-					: metrics.bridgeAggregators
-					? { bridgeAggregators: router.query.bridgeAggregators ?? 'true' }
-					: metrics.perpsAggregators
-					? { perpsAggregators: router.query.perpsAggregators ?? 'true' }
-					: metrics.bridge
-					? { bridgeVolume: router.query.bridgeVolume ?? 'true' }
-					: metrics.fees
-					? {
-							fees: router.query.fees ?? 'true'
-					  }
-					: metrics.revenue
-					? { revenue: router.query.revenue ?? 'true', holdersRevenue: router.query.holdersRevenue ?? 'true' }
-					: metrics.unlocks
-					? { unlocks: router.query.unlocks ?? 'true' }
-					: metrics.treasury
-					? { treasury: router.query.treasury ?? 'true' }
-					: {}
-				: {}) as Record<string, string>)
+	const queryParamsString = useMemo(() => {
+		return JSON.stringify(router.query ?? {})
+	}, [router.query])
+
+	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
+		const queryParams = JSON.parse(queryParamsString)
+		const chartsByStaus = {}
+		for (const pchart in protocolCharts) {
+			const chartKey = protocolCharts[pchart]
+			chartsByStaus[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
 		}
 
-		return {
-			...toggled,
-			tvl: router.query.tvl === 'false' ? 'false' : 'true',
-			events: router.query.events === 'false' ? 'false' : 'true'
-		} as any
-	}, [enabled, router, metrics])
+		const defaultToggledCharts: ProtocolChartsLabels[] = [props.isCEX ? 'Total Assets' : 'TVL', 'Events' as any]
 
-	const { fetchingTypes, isLoading, chartData, chartsUnique, unlockTokenSymbol, valueSymbol } =
-		useFetchAndFormatChartData({
-			isRouterReady: router.isReady,
-			denomination: toggledMetrics.denomination,
-			groupBy: toggledMetrics.groupBy,
-			tvl: toggledMetrics.tvl,
-			mcap: toggledMetrics.mcap,
-			tokenPrice: toggledMetrics.tokenPrice,
-			fdv: toggledMetrics.fdv,
-			volume: toggledMetrics.dexVolume,
-			perpsVolume: toggledMetrics.perpsVolume,
-			optionsPremiumVolume: toggledMetrics.optionsPremiumVolume,
-			optionsNotionalVolume: toggledMetrics.optionsNotionalVolume,
-			fees: toggledMetrics.fees,
-			revenue: toggledMetrics.revenue,
-			holdersRevenue: toggledMetrics.holdersRevenue,
-			incentives: toggledMetrics.incentives,
-			unlocks: toggledMetrics.unlocks,
-			activeAddresses: toggledMetrics.activeAddresses,
-			newAddresses: toggledMetrics.newAddresses,
-			events: toggledMetrics.events,
-			transactions: toggledMetrics.transactions,
-			gasUsed: toggledMetrics.gasUsed,
-			staking: toggledMetrics.staking,
-			borrowed: toggledMetrics.borrowed,
-			medianApy: toggledMetrics.medianApy,
-			usdInflows: toggledMetrics.usdInflows,
-			governance: toggledMetrics.governance,
-			treasury: toggledMetrics.treasury,
-			bridgeVolume: toggledMetrics.bridgeVolume,
-			tokenVolume: toggledMetrics.tokenVolume,
-			tokenLiquidity: toggledMetrics.tokenLiquidity,
-			protocol,
-			chartDenominations,
-			geckoId,
-			metrics,
-			activeUsersId,
-			governanceApis,
-			protocolId,
-			historicalChainTvls,
-			extraTvlEnabled,
-			isHourlyChart,
-			usdInflowsData,
-			twitter: toggledMetrics.twitter,
-			twitterHandle,
-			devMetrics: toggledMetrics.devMetrics,
-			contributersMetrics: toggledMetrics.contributersMetrics,
-			contributersCommits: toggledMetrics.contributersCommits,
-			devCommits: toggledMetrics.devCommits,
-			nftVolume: toggledMetrics.nftVolume,
-			nftVolumeData,
-			aggregators: toggledMetrics.dexAggregators,
-			perpsAggregators: toggledMetrics.perpsAggregators,
-			bridgeAggregators: toggledMetrics.bridgeAggregators,
-			incentivesData
-		})
+		const toggled = {
+			...chartsByStaus
+		} as Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'>
 
-	const realPathname =
-		`/${isCEX ? 'cex' : 'protocol'}/${protocol}?` +
-		CHART_TYPES.reduce((acc, curr) => {
-			if (router.query[curr]) {
-				acc += `${curr}=${router.query[curr]}&`
+		if (!props.metrics.tvl) {
+			if (props.metrics.dexs) {
+				defaultToggledCharts.push('DEX Volume')
+				toggled.dexVolume = queryParams.dexVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.perps) {
+				defaultToggledCharts.push('Perp Volume')
+				toggled.perpVolume = queryParams.perpVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.options) {
+				defaultToggledCharts.push('Options Premium Volume')
+				defaultToggledCharts.push('Options Notional Volume')
+				toggled.optionsPremiumVolume = queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true'
+				toggled.optionsNotionalVolume = queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.dexAggregators) {
+				defaultToggledCharts.push('DEX Aggregator Volume')
+				toggled.dexAggregatorVolume = queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.bridgeAggregators) {
+				defaultToggledCharts.push('Bridge Aggregator Volume')
+				toggled.bridgeAggregatorVolume = queryParams.bridgeAggregatorVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.perpsAggregators) {
+				defaultToggledCharts.push('Perp Aggregator Volume')
+				toggled.perpAggregatorVolume = queryParams.perpAggregatorVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.fees) {
+				defaultToggledCharts.push('Fees')
+				toggled.fees = queryParams.fees === 'false' ? 'false' : 'true'
+			} else if (props.metrics.revenue) {
+				defaultToggledCharts.push('Revenue')
+				defaultToggledCharts.push('Holders Revenue')
+				toggled.revenue = queryParams.revenue === 'false' ? 'false' : 'true'
+				toggled.holdersRevenue = queryParams.holdersRevenue === 'false' ? 'false' : 'true'
+			} else if (props.metrics.unlocks) {
+				defaultToggledCharts.push('Unlocks')
+				toggled.unlocks = queryParams.unlocks === 'false' ? 'false' : 'true'
+			} else if (props.metrics.treasury) {
+				defaultToggledCharts.push('Treasury')
+				toggled.treasury = queryParams.treasury === 'false' ? 'false' : 'true'
+			} else {
+				// if (props.metrics.bridge) {
+				// 	 toggled.bridgeVolume = queryParams.bridgeVolume === 'false' ? 'false' : 'true'
+				// }
 			}
-			return acc
-		}, '')
-
-	const hasAtleasOneBarChart = chartsUnique.reduce((acc, curr) => {
-		if (BAR_CHARTS.includes(curr)) {
-			acc = true
 		}
 
-		return acc
-	}, false)
+		const toggledMetrics = {
+			...toggled,
+			...(props.isCEX
+				? { totalAssets: queryParams.totalAssets === 'false' ? 'false' : 'true' }
+				: { tvl: queryParams.tvl === 'false' ? 'false' : 'true' }),
+			events: queryParams.events === 'false' ? 'false' : 'true',
+			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
+		} as IToggledMetrics
 
-	const { chartOptions } = React.useMemo(() => {
-		const options: Array<{ label: string; key: string; colors?: Record<string, string> }> = []
-		if (protocolData?.tvlByChain?.length > 0) {
-			options.push({ label: isCEX ? 'Total Assets' : 'TVL', key: 'tvl' })
-		}
-		if (geckoId) {
-			options.push({ label: 'Mcap', key: 'mcap' })
-			options.push({ label: `${tokenSymbol} Price`, key: 'tokenPrice' })
-			options.push({ label: `${tokenSymbol} Volume`, key: 'tokenVolume' })
-			options.push({ label: `${tokenSymbol} Liquidity`, key: 'tokenLiquidity' })
-			options.push({ label: 'FDV', key: 'fdv' })
-		}
-		if (metrics?.bridge) {
-			options.push({ label: 'Bridge Volume', key: 'bridgeVolume' })
-		}
-		if (metrics?.dexs) {
-			options.push({ label: 'DEX Volume', key: 'dexVolume' })
-		}
-		if (metrics?.perps) {
-			options.push({ label: 'Perps Volume', key: 'perpsVolume' })
-		}
-		if (metrics?.perpsAggregators) {
-			options.push({ label: 'Perps Aggregators Volume', key: 'perpsAggregators' })
-		}
-		if (metrics?.options) {
-			options.push({ label: 'Options Premium Volume', key: 'optionsPremiumVolume' })
-			options.push({ label: 'Options Notional Volume', key: 'optionsNotionalVolume' })
-		}
-		if (metrics?.fees) {
-			options.push({ label: 'Fees', key: 'fees' })
-		}
-		if (metrics?.revenue) {
-			options.push({ label: 'Revenue', key: 'revenue' })
-			options.push({ label: 'Holders Revenue', key: 'holdersRevenue' })
-		}
-		if (incentivesData?.incentivesChart?.length > 0) {
-			options.push({ label: 'Incentives', key: 'incentives' })
-		}
-		if (metrics?.unlocks) {
-			options.push({ label: 'Unlocks', key: 'unlocks' })
-		}
-		if (activeUsersId) {
-			options.push({ label: 'Active Addresses', key: 'activeAddresses' })
-			options.push({ label: 'New Addresses', key: 'newAddresses' })
-			options.push({ label: 'Transactions', key: 'transactions' })
-		}
-		if (historicalChainTvls['staking']?.tvl?.length > 0) {
-			options.push({ label: 'Staking', key: 'staking' })
-		}
-		if (historicalChainTvls['borrowed']?.tvl?.length > 0) {
-			options.push({ label: 'Borrowed', key: 'borrowed' })
-		}
-		if (metrics?.yields) {
-			options.push({ label: 'Median APY', key: 'medianApy' })
-		}
-		if (!isHourlyChart && metrics?.inflows) {
-			options.push({ label: 'USD Inflows', key: 'usdInflows' })
-		}
-		if (metrics?.governance) {
-			options.push({ label: 'Governance', key: 'Governance' })
-		}
-		if (metrics?.treasury) {
-			options.push({ label: 'Treasury', key: 'treasury' })
-		}
-		if (hallmarks?.length > 0) {
-			options.push({ label: 'Events', key: 'events' })
-		}
-		if (metrics?.dev) {
-			options.push({ label: 'Developers', key: 'devMetrics' })
-			options.push({ label: 'Developer Commits', key: 'devCommits' })
-		}
-		if (metrics?.nfts) {
-			options.push({ label: 'NFT Volume', key: 'nftVolume' })
-		}
-		if (metrics?.dexAggregators) {
-			options.push({ label: 'DEX Aggregators Volume', key: 'dexAggregators' })
-		}
-		if (metrics?.bridgeAggregators) {
-			options.push({ label: 'Bridge Aggregators Volume', key: 'bridgeAggregators' })
-		}
+		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
+
+		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
 		return {
-			chartOptions: options.map((option) => {
-				const primaryColor =
-					option.label === 'Total Assets'
-						? chartColors['TVL']
-						: option.label === 'Developer Commits'
-						? chartColors['Devs Commits']
-						: chartColors[option.label.startsWith('$') ? `Token ${option.label.split(' ')[1]}` : option.label]
-				return {
-					...option,
-					colors: primaryColor
-						? {
-								'--primary-color': primaryColor,
-								'--btn-bg': transparentize(0.9, primaryColor),
-								'--btn-hover-bg': transparentize(0.8, primaryColor)
-						  }
-						: {}
-				}
-			})
+			toggledMetrics,
+			toggledCharts,
+			hasAtleasOneBarChart,
+			groupBy: hasAtleasOneBarChart
+				? typeof queryParams.groupBy === 'string' && groupByOptions.includes(queryParams.groupBy as any)
+					? (queryParams.groupBy as any)
+					: 'daily'
+				: 'daily',
+			defaultToggledCharts
 		}
-	}, [
-		metrics,
-		historicalChainTvls,
-		isHourlyChart,
-		geckoId,
-		activeUsersId,
-		hallmarks,
-		tokenSymbol,
-		isCEX,
-		protocolData,
-		chartColors,
-		incentivesData
-	])
+	}, [queryParamsString, props.availableCharts, props.metrics])
 
-	if (enabled)
-		return (
-			<ProtocolChartOnly
-				isRouterReady={router.isReady}
-				isLoading={isLoading}
-				fetchingTypes={fetchingTypes}
-				chartData={chartData}
-				color={color}
-				valueSymbol={valueSymbol}
-				chartsUnique={chartsUnique}
-				events={toggledMetrics.events}
-				hallmarks={hallmarks}
-				chartColors={chartColors}
-				bobo={bobo}
-				unlockTokenSymbol={unlockTokenSymbol}
-				isThemeDark={isThemeDark}
-				groupBy={toggledMetrics.groupBy}
-			/>
-		)
+	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+	const [feesSettings] = useLocalStorageSettingsManager('fees')
+
+	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
+		...props,
+		toggledMetrics,
+		groupBy: groupBy,
+		tvlSettings,
+		feesSettings,
+		isCEX: props.isCEX
+	})
+
+	const metricsDialogStore = Ariakit.useDialogStore()
 
 	return (
-		<div className="bg-(--cards-bg) rounded-md flex flex-col col-span-2">
-			{chartOptions.length > 0 ? (
-				<div className="flex items-center gap-2 flex-wrap m-3">
-					{chartOptions.map((coption) => (
-						<label
-							className="text-sm cursor-pointer flex items-center gap-1 flex-nowrap"
-							key={`${protocolData.name}-${coption.key}`}
-							style={coption.colors as any}
-						>
-							<input
-								type="checkbox"
-								value={coption.key}
-								onChange={() =>
-									router.push(
-										{
-											pathname: router.pathname,
-											query: {
-												...router.query,
-												[coption.key]: toggledMetrics[coption.key] === 'true' ? 'false' : 'true'
-											}
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}
-								checked={toggledMetrics[coption.key] === 'true'}
-								className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
-							/>
-							<span
-								className={`border ${
-									toggledMetrics[coption.key] === 'true'
-										? 'border-(--btn-hover-bg) bg-(--btn-bg)'
-										: 'border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E]'
-								} rounded p-[2px] h-[18px] w-[34px]`}
-							>
-								{toggledMetrics[coption.key] !== 'true' ? (
-									<span className="block h-3 w-3 bg-[#707A7A] rounded-[3px] shrink-0 mr-auto"></span>
-								) : (
-									<span className="block h-3 w-3 bg-(--primary-color) rounded-[3px] shrink-0 ml-auto"></span>
-								)}
-							</span>
-							<span>{coption.label}</span>
-						</label>
-					))}
-				</div>
-			) : null}
-
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end m-3 mt-0 first:mt-3">
-				{chartDenominations.length > 0 && (
-					<div className="mr-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--btn-hover-bg)">
-						{chartDenominations.map((D) => (
-							<BasicLink
-								href={
-									realPathname +
-									`denomination=${D.symbol}` +
-									(toggledMetrics.groupBy ? `&groupBy=${toggledMetrics.groupBy}` : '')
-								}
-								key={D.symbol}
-								shallow
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--btn-bg) focus-visible:bg-(--btn-bg) data-[active=true]:bg-(--btn-hover-bg)"
-								data-active={
-									toggledMetrics.denomination === D.symbol || (D.symbol === 'USD' && !toggledMetrics.denomination)
-								}
-							>
-								{D.symbol}
-							</BasicLink>
-						))}
-					</div>
-				)}
-
-				{hasAtleasOneBarChart ? (
-					<>
-						<div className="ml-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--btn-hover-bg)">
-							<BasicLink
-								href={
-									realPathname +
-									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
-									'groupBy=daily'
-								}
-								shallow
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
-								data-active={toggledMetrics.groupBy === 'daily' || !toggledMetrics.groupBy}
-							>
-								Daily
-							</BasicLink>
-
-							<BasicLink
-								href={
-									realPathname +
-									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
-									'groupBy=weekly'
-								}
-								shallow
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
-								data-active={toggledMetrics.groupBy === 'weekly'}
-							>
-								Weekly
-							</BasicLink>
-
-							<BasicLink
-								href={
-									realPathname +
-									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
-									'groupBy=monthly'
-								}
-								shallow
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
-								data-active={toggledMetrics.groupBy === 'monthly'}
-							>
-								Monthly
-							</BasicLink>
-
-							<BasicLink
-								href={
-									realPathname +
-									(toggledMetrics.denomination ? `denomination=${toggledMetrics.denomination}&` : '') +
-									'groupBy=cumulative'
-								}
-								shallow
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
-								data-active={toggledMetrics.groupBy === 'cumulative'}
-							>
-								Cumulative
-							</BasicLink>
-						</div>
-					</>
+		<div className="flex flex-col gap-3">
+			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-start">
+				{props.availableCharts.length > 0 ? (
+					<Ariakit.DialogProvider store={metricsDialogStore}>
+						<Ariakit.DialogDisclosure className="flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-(--cards-border)">
+							<span>Add Metrics</span>
+							<Icon name="plus" className="h-[14px] w-[14px]" />
+						</Ariakit.DialogDisclosure>
+						<Ariakit.Dialog className="dialog gap-3 sm:w-full max-sm:drawer" unmountOnHide>
+							<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
+							<div className="flex flex-wrap gap-2">
+								{props.availableCharts.map((chart) => (
+									<button
+										key={`add-metric-${chart}`}
+										onClick={() => {
+											router
+												.push(
+													updateQueryParamInUrl(
+														router.asPath,
+														protocolCharts[chart],
+														toggledMetrics[protocolCharts[chart]] === 'true'
+															? defaultToggledCharts.includes(chart)
+																? 'false'
+																: null
+															: 'true'
+													),
+													undefined,
+													{
+														shallow: true
+													}
+												)
+												.then(() => {
+													metricsDialogStore.toggle()
+												})
+										}}
+										data-active={toggledMetrics[protocolCharts[chart]] === 'true'}
+										className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									>
+										<span>{chart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
+										{toggledMetrics[protocolCharts[chart]] === 'true' ? (
+											<Icon name="x" className="h-[14px] w-[14px]" />
+										) : (
+											<Icon name="plus" className="h-[14px] w-[14px]" />
+										)}
+									</button>
+								))}
+								{props.hallmarks.length > 0 ? (
+									<button
+										onClick={() => {
+											router
+												.push(
+													updateQueryParamInUrl(
+														router.asPath,
+														'events',
+														toggledMetrics.events === 'true' ? 'false' : 'true'
+													),
+													undefined,
+													{
+														shallow: true
+													}
+												)
+												.then(() => {
+													metricsDialogStore.toggle()
+												})
+										}}
+										data-active={toggledMetrics.events === 'true'}
+										className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									>
+										<span>Events</span>
+										{toggledMetrics.events === 'true' ? (
+											<Icon name="x" className="h-[14px] w-[14px]" />
+										) : (
+											<Icon name="plus" className="h-[14px] w-[14px]" />
+										)}
+									</button>
+								) : null}
+							</div>
+						</Ariakit.Dialog>
+					</Ariakit.DialogProvider>
 				) : null}
-
-				<EmbedChart color={color} />
+				{toggledCharts.map((tchart) => (
+					<label
+						className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto"
+						key={`add-or-remove-metric-${tchart}`}
+					>
+						<input
+							type="checkbox"
+							value={tchart}
+							checked={true}
+							onChange={() => {
+								router.push(
+									updateQueryParamInUrl(
+										router.asPath,
+										protocolCharts[tchart],
+										defaultToggledCharts.includes(tchart) ? 'false' : null
+									),
+									undefined,
+									{
+										shallow: true
+									}
+								)
+							}}
+							className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
+						/>
+						<span
+							className="text-xs flex items-center gap-1 border-2 border-(--old-blue) rounded-full px-2 py-1"
+							style={{
+								borderColor: props.chartColors[tchart]
+							}}
+						>
+							<span>{tchart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
+							<Icon name="x" className="h-[14px] w-[14px]" />
+						</span>
+					</label>
+				))}
+				<div className="ml-auto flex flex-wrap justify-end gap-1">
+					{props.chartDenominations?.length ? (
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+							{props.chartDenominations.map((denom) => (
+								<button
+									key={`denomination-${denom.symbol}`}
+									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--old-blue)"
+									data-active={
+										toggledMetrics.denomination === denom.symbol ||
+										(denom.symbol === 'USD' && !toggledMetrics.denomination)
+									}
+									onClick={() => {
+										router.push(
+											updateQueryParamInUrl(router.asPath, 'denomination', denom.symbol === 'USD' ? '' : denom.symbol),
+											undefined,
+											{ shallow: true }
+										)
+									}}
+								>
+									{denom.symbol}
+								</button>
+							))}
+						</div>
+					) : null}
+					{hasAtleasOneBarChart ? (
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+							<Tooltip
+								content="Daily"
+								render={<button />}
+								className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+								data-active={groupBy === 'daily' || !groupBy}
+								onClick={() => {
+									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'daily'), undefined, { shallow: true })
+								}}
+							>
+								D
+							</Tooltip>
+							<Tooltip
+								content="Weekly"
+								render={<button />}
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+								data-active={groupBy === 'weekly'}
+								onClick={() => {
+									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'weekly'), undefined, { shallow: true })
+								}}
+							>
+								W
+							</Tooltip>
+							<Tooltip
+								content="Monthly"
+								render={<button />}
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+								data-active={groupBy === 'monthly'}
+								onClick={() => {
+									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'monthly'), undefined, { shallow: true })
+								}}
+							>
+								M
+							</Tooltip>
+							<Tooltip
+								content="Cumulative"
+								render={<button />}
+								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+								data-active={groupBy === 'cumulative'}
+								onClick={() => {
+									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'cumulative'), undefined, {
+										shallow: true
+									})
+								}}
+							>
+								C
+							</Tooltip>
+						</div>
+					) : null}
+					<EmbedChart />
+					<CSVDownloadButton
+						onClick={() => {
+							try {
+								downloadChart(finalCharts, `${props.name}.csv`)
+							} catch (error) {
+								console.error('Error generating CSV:', error)
+							}
+						}}
+						smol
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					/>
+				</div>
 			</div>
-
-			<ProtocolChartOnly
-				isRouterReady={router.isReady}
-				isLoading={isLoading}
-				fetchingTypes={fetchingTypes}
-				chartData={chartData}
-				color={color}
-				valueSymbol={valueSymbol}
-				chartsUnique={chartsUnique}
-				events={toggledMetrics.events}
-				hallmarks={hallmarks}
-				chartColors={chartColors}
-				bobo={bobo}
-				unlockTokenSymbol={unlockTokenSymbol}
-				isThemeDark={isThemeDark}
-				groupBy={toggledMetrics.groupBy}
-			/>
+			<div className="flex flex-col min-h-[360px]">
+				{loadingCharts ? (
+					<p className="text-center text-xs my-auto min-h-[360px] flex flex-col items-center justify-center">
+						fetching {loadingCharts}...
+					</p>
+				) : (
+					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+						<ProtocolLineBarChart
+							chartData={finalCharts}
+							chartColors={props.chartColors}
+							isThemeDark={isThemeDark}
+							valueSymbol={valueSymbol}
+							groupBy={groupBy}
+							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
+							unlockTokenSymbol={props.token.symbol}
+						/>
+					</Suspense>
+				)}
+			</div>
 		</div>
 	)
-})
+}
 
-export default ProtocolChart
+export const useFetchAndFormatChartData = ({
+	name,
+	id: protocolId,
+	geckoId,
+	currentTvlByChain,
+	tvlChartData,
+	extraTvlCharts,
+	metrics,
+	toggledMetrics,
+	groupBy,
+	chartDenominations,
+	governanceApis,
+	tvlSettings,
+	feesSettings,
+	isCEX
+}: IProtocolOverviewPageData & {
+	toggledMetrics: IToggledMetrics
+	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	tvlSettings: Record<string, boolean>
+	feesSettings: Record<string, boolean>
+}) => {
+	const router = useRouter()
+	const isRouterReady = router.isReady
 
-export const ProtocolChartOnly = React.memo(function ProtocolChartOnly({
-	isRouterReady,
-	isLoading,
-	fetchingTypes,
-	chartData,
-	color,
-	valueSymbol,
-	chartsUnique,
-	events,
-	hallmarks,
-	chartColors,
-	bobo,
-	unlockTokenSymbol,
-	isThemeDark,
-	groupBy
-}: any) {
-	return (
-		<LazyChart className="col-span-1 min-h-[360px]">
-			{!isRouterReady ? null : isLoading ? (
-				<p className="relative text-center top-[50%]">{`Fetching ${fetchingTypes.join(', ')} ...`}</p>
-			) : (
-				<React.Suspense fallback={<></>}>
-					<AreaChart
-						chartData={chartData}
-						color={color}
-						title=""
-						valueSymbol={valueSymbol}
-						stacks={chartsUnique}
-						hallmarks={!(events === 'false') && hallmarks}
-						tooltipSort={false}
-						stackColors={chartColors}
-						style={
-							bobo
-								? {
-										backgroundImage: 'url("/bobo.png")',
-										backgroundSize: '100% 360px',
-										backgroundRepeat: 'no-repeat',
-										backgroundPosition: 'bottom'
-								  }
-								: undefined
+	const denominationGeckoId =
+		isRouterReady && toggledMetrics.denomination
+			? chartDenominations.find((d) => d.symbol === toggledMetrics.denomination)?.geckoId
+			: null
+	// date in the chart is in ms
+	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<
+		Record<string, number>
+	>({
+		queryKey: ['priceHistory', denominationGeckoId],
+		queryFn: () =>
+			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then((res) => {
+				if (!res.data?.prices?.length) return null
+
+				const store = {}
+				for (const [date, value] of res.data.prices) {
+					store[date] = value
+				}
+
+				return store
+			}),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: denominationGeckoId ? true : false
+	})
+
+	// date in the chart is in ms
+	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } = useQuery<IDenominationPriceHistory>({
+		queryKey: ['priceHistory', geckoId],
+		queryFn: () =>
+			fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then((res) =>
+				res.data.prices.length > 0 ? res.data : { prices: [], mcaps: [], volumes: [] }
+			),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled:
+			isRouterReady &&
+			(toggledMetrics.mcap === 'true' ||
+				toggledMetrics.tokenPrice === 'true' ||
+				toggledMetrics.tokenVolume === 'true' ||
+				toggledMetrics.fdv === 'true') &&
+			geckoId
+				? true
+				: false
+	})
+
+	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery({
+		queryKey: ['tokenSupply', geckoId],
+		queryFn: () => fetchJson(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.data?.['total_supply']),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: geckoId && toggledMetrics.fdv === 'true' && isRouterReady ? true : false
+	})
+
+	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery({
+		queryKey: ['tokenLiquidity', protocolId],
+		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`).catch(() => null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isRouterReady && metrics.liquidity && toggledMetrics.tokenLiquidity === 'true' ? true : false
+	})
+
+	const tvlChart = useMemo(() => {
+		const extraTvls = []
+
+		for (const extra in tvlSettings) {
+			if (tvlSettings[extra] && currentTvlByChain?.[extra] != null) {
+				extraTvls.push(extra)
+			}
+		}
+
+		if (extraTvls.length > 0) {
+			const store = {}
+			const isWeekly = groupBy === 'weekly'
+			const isMonthly = groupBy === 'monthly'
+			for (const [date, value] of tvlChartData) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				store[dateKey] = value + extraTvls.reduce((acc, curr) => acc + (extraTvlCharts?.[curr]?.[dateKey] ?? 0), 0)
+			}
+			const finalChart = []
+			for (const date in store) {
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? store[date] / denominationPriceHistory[String(+date * 1e3)]
+						: null
+					: store[date]
+				finalChart.push([+date * 1e3, finalValue])
+			}
+			return finalChart as Array<[number, number]>
+		}
+
+		return formatLineChart({ data: tvlChartData, groupBy, denominationPriceHistory })
+	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory, currentTvlByChain])
+
+	const isFeesEnabled = toggledMetrics.fees === 'true' && metrics.fees && isRouterReady ? true : false
+	const { data: feesData = null, isLoading: fetchingFees } = useQuery<IAdapterSummary>({
+		queryKey: ['fees', name, isFeesEnabled],
+		queryFn: () =>
+			isFeesEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isFeesEnabled
+	})
+
+	const isRevenueEnabled = toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady ? true : false
+	const { data: revenueData = null, isLoading: fetchingRevenue } = useQuery<IAdapterSummary>({
+		queryKey: ['revenue', name, isRevenueEnabled],
+		queryFn: () =>
+			isRevenueEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						dataType: 'dailyRevenue',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isRevenueEnabled
+	})
+
+	const isHoldersRevenueEnabled =
+		toggledMetrics.holdersRevenue === 'true' && (metrics.fees || metrics.revenue) && isRouterReady ? true : false
+	const { data: holdersRevenueData = null, isLoading: fetchingHoldersRevenue } = useQuery<IAdapterSummary>({
+		queryKey: ['holders-revenue', name, isHoldersRevenueEnabled],
+		queryFn: () =>
+			isHoldersRevenueEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						dataType: 'dailyHoldersRevenue',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isHoldersRevenueEnabled
+	})
+
+	const isBribesEnabled =
+		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
+		feesSettings?.bribes &&
+		metrics.bribes &&
+		isRouterReady
+			? true
+			: false
+	const { data: bribesData = null, isLoading: fetchingBribes } = useQuery<IAdapterSummary>({
+		queryKey: ['bribes', name, isBribesEnabled],
+		queryFn: () =>
+			isBribesEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						dataType: 'dailyBribesRevenue',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isBribesEnabled
+	})
+
+	const isTokenTaxesEnabled =
+		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
+		feesSettings?.tokentax &&
+		metrics.tokenTax &&
+		isRouterReady
+	const { data: tokenTaxesData = null, isLoading: fetchingTokenTaxes } = useQuery<IAdapterSummary>({
+		queryKey: ['token-taxes', name, isTokenTaxesEnabled],
+		queryFn: () =>
+			isTokenTaxesEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						dataType: 'dailyTokenTaxes',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isTokenTaxesEnabled
+	})
+
+	const isDexVolumeEnabled = toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady ? true : false
+	const { data: dexVolumeData = null, isLoading: fetchingDexVolume } = useQuery<IAdapterSummary>({
+		queryKey: ['dexVolume', name, isDexVolumeEnabled],
+		queryFn: () =>
+			isDexVolumeEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'dexs',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isDexVolumeEnabled
+	})
+
+	const isPerpsVolumeEnabled = toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady ? true : false
+	const { data: perpsVolumeData = null, isLoading: fetchingPerpVolume } = useQuery<IAdapterSummary>({
+		queryKey: ['perpVolume', name, isPerpsVolumeEnabled],
+		queryFn: () =>
+			isPerpsVolumeEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'derivatives',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isPerpsVolumeEnabled
+	})
+
+	const isOptionsPremiumVolumeEnabled =
+		toggledMetrics.optionsPremiumVolume === 'true' && metrics.options && isRouterReady ? true : false
+	const { data: optionsPremiumVolumeData = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<IAdapterSummary>({
+		queryKey: ['optionsPremiumVolume', name, isOptionsPremiumVolumeEnabled],
+		queryFn: () =>
+			isOptionsPremiumVolumeEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'options',
+						dataType: 'dailyPremiumVolume',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isOptionsPremiumVolumeEnabled
+	})
+
+	const isOptionsNotionalVolumeEnabled =
+		toggledMetrics.optionsNotionalVolume === 'true' && metrics.options && isRouterReady ? true : false
+	const { data: optionsNotionalVolumeData = null, isLoading: fetchingOptionsNotionalVolume } =
+		useQuery<IAdapterSummary>({
+			queryKey: ['optionsNotionalVolume', name, isOptionsNotionalVolumeEnabled],
+			queryFn: () =>
+				isOptionsNotionalVolumeEnabled
+					? getAdapterProtocolSummary({
+							adapterType: 'options',
+							dataType: 'dailyNotionalVolume',
+							protocol: name,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+					  })
+					: Promise.resolve(null),
+			staleTime: 60 * 60 * 1000,
+			retry: 0,
+			enabled: isOptionsNotionalVolumeEnabled
+		})
+
+	const isDexAggregatorsVolumeEnabled =
+		toggledMetrics.dexAggregatorVolume === 'true' && metrics.dexAggregators && isRouterReady ? true : false
+	const { data: dexAggregatorsVolumeData = null, isLoading: fetchingDexAggregatorVolume } = useQuery<IAdapterSummary>({
+		queryKey: ['dexAggregatorVolume', name, isDexAggregatorsVolumeEnabled],
+		queryFn: () =>
+			isDexAggregatorsVolumeEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'aggregators',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isDexAggregatorsVolumeEnabled
+	})
+
+	const isPerpsAggregatorsVolumeEnabled =
+		toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators && isRouterReady ? true : false
+	const { data: perpsAggregatorsVolumeData = null, isLoading: fetchingPerpAggregatorVolume } =
+		useQuery<IAdapterSummary>({
+			queryKey: ['perpAggregatorVolume', name, isPerpsAggregatorsVolumeEnabled],
+			queryFn: () =>
+				isPerpsAggregatorsVolumeEnabled
+					? getAdapterProtocolSummary({
+							adapterType: 'aggregator-derivatives',
+							protocol: name,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+					  })
+					: Promise.resolve(null),
+			staleTime: 60 * 60 * 1000,
+			retry: 0,
+			enabled: isPerpsAggregatorsVolumeEnabled
+		})
+
+	const isBridgeAggregatorsVolumeEnabled =
+		toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators && isRouterReady ? true : false
+	const { data: bridgeAggregatorsVolumeData = null, isLoading: fetchingBridgeAggregatorVolume } =
+		useQuery<IAdapterSummary>({
+			queryKey: ['bridgeAggregatorVolume', name, isBridgeAggregatorsVolumeEnabled],
+			queryFn: () =>
+				isBridgeAggregatorsVolumeEnabled
+					? getAdapterProtocolSummary({
+							adapterType: 'bridge-aggregators',
+							protocol: name,
+							excludeTotalDataChart: false,
+							excludeTotalDataChartBreakdown: true
+					  })
+					: Promise.resolve(null),
+			staleTime: 60 * 60 * 1000,
+			retry: 0,
+			enabled: isBridgeAggregatorsVolumeEnabled
+		})
+
+	const isUnlocksEnabled =
+		(toggledMetrics.unlocks === 'true' || toggledMetrics.incentives === 'true') && metrics.unlocks && isRouterReady
+			? true
+			: false
+	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
+		queryKey: ['unlocks', name, isUnlocksEnabled],
+		queryFn: () => (isUnlocksEnabled ? getProtocolEmissons(slug(name)) : Promise.resolve(null)),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isUnlocksEnabled
+	})
+
+	const isTreasuryEnabled = toggledMetrics.treasury === 'true' && metrics.treasury && isRouterReady ? true : false
+	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery({
+		queryKey: ['treasury', name, isTreasuryEnabled],
+		queryFn: () =>
+			isTreasuryEnabled
+				? fetchJson(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then((data) => {
+						const store = {}
+						for (const chain in data.chainTvls) {
+							if (chain.includes('-')) continue
+							for (const item of data.chainTvls[chain].tvl ?? []) {
+								store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
+							}
 						}
-						unlockTokenSymbol={unlockTokenSymbol}
-						isThemeDark={isThemeDark}
-						groupBy={groupBy}
-					/>
-				</React.Suspense>
-			)}
-		</LazyChart>
+						const finalChart = []
+						for (const date in store) {
+							finalChart.push([+date * 1e3, store[date]])
+						}
+						return finalChart
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isTreasuryEnabled
+	})
+
+	const isUsdInflowsEnabled = toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady ? true : false
+	const { data: usdInflowsData = null, isLoading: fetchingUsdInflows } = useQuery({
+		queryKey: ['usdInflows', name, isUsdInflowsEnabled, JSON.stringify(tvlSettings)],
+		queryFn: () =>
+			isUsdInflowsEnabled
+				? fetchJson(`https://api.llama.fi/protocol/${slug(name)}`).then((data) => {
+						return (
+							buildProtocolAddlChartsData({ protocolData: data as any, extraTvlsEnabled: tvlSettings })?.usdInflows ??
+							null
+						)
+				  })
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isUsdInflowsEnabled
+	})
+
+	const isBridgeVolumeEnabled = toggledMetrics.bridgeVolume === 'true' && isRouterReady ? true : false
+	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery({
+		queryKey: ['bridgeVolume', name, isBridgeVolumeEnabled],
+		queryFn: () =>
+			isBridgeVolumeEnabled
+				? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
+						.then((data) => {
+							const store = {}
+							for (const item of data.dailyVolumes) {
+								store[item.date] = (store[item.date] ?? 0) + (item.depositUSD + item.withdrawUSD) / 2
+							}
+							const finalChart = []
+							for (const date in store) {
+								finalChart.push([+date * 1e3, store[date]])
+							}
+							return finalChart
+						})
+						.catch(() => null)
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isBridgeVolumeEnabled
+	})
+
+	const { data: medianAPYData = null, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
+		isRouterReady && toggledMetrics.medianApy === 'true' && metrics.yields && !protocolId.startsWith('parent#')
+			? slug(name)
+			: null
 	)
-})
+
+	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
+		isRouterReady && toggledMetrics.activeAddresses === 'true' && metrics.activeUsers ? protocolId : null
+	)
+	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
+		isRouterReady && toggledMetrics.newAddresses === 'true' && metrics.activeUsers ? protocolId : null
+	)
+	const { data: transactionsData = null, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
+		isRouterReady && toggledMetrics.transactions === 'true' && metrics.activeUsers ? protocolId : null
+	)
+	// const { data: gasData, isLoading: fetchingGasUsed } = useFetchProtocolGasUsed(
+	// 	isRouterReady && toggledMetrics.gasUsed === 'true' && metrics.activeUsers ? protocolId : null
+	// )
+
+	const { data: governanceData = null, isLoading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
+		isRouterReady &&
+			[toggledMetrics.totalProposals, toggledMetrics.successfulProposals, toggledMetrics.maxVotes].some(
+				(v) => v === 'true'
+			) &&
+			governanceApis &&
+			governanceApis.length > 0
+			? governanceApis
+			: null
+	)
+
+	const { data: devMetricsData = null, isLoading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
+		isRouterReady &&
+			[
+				toggledMetrics.devsMetrics,
+				toggledMetrics.devsCommits,
+				toggledMetrics.contributersMetrics,
+				toggledMetrics.contributersCommits
+			].some((v) => v === 'true')
+			? protocolId
+			: null
+	)
+
+	const isNftVolumeEnabled = toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady ? true : false
+	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery({
+		queryKey: ['nftVolume', name, isNftVolumeEnabled],
+		queryFn: () =>
+			isNftVolumeEnabled
+				? fetchJson(NFT_MARKETPLACES_VOLUME_API, { timeout: 10_000 })
+						.then((r) => {
+							const chartByDate = r
+								.filter((r) => slug(r.exchangeName) === slug(name))
+								.map(({ day, sumUsd }) => {
+									return [new Date(day).getTime(), sumUsd]
+								})
+							return chartByDate
+						})
+						.catch(() => [])
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isNftVolumeEnabled
+	})
+
+	const showNonUsdDenomination =
+		toggledMetrics.denomination &&
+		toggledMetrics.denomination !== 'USD' &&
+		chartDenominations.find((d) => d.symbol === toggledMetrics.denomination) &&
+		denominationPriceHistory
+			? true
+			: false
+
+	const valueSymbol = showNonUsdDenomination
+		? chartDenominations.find((d) => d.symbol === toggledMetrics.denomination)?.symbol ?? ''
+		: '$'
+
+	const chartData = useMemo(() => {
+		const loadingCharts = []
+
+		if (fetchingDenominationPriceHistory) {
+			loadingCharts.push('Denomination Price History')
+		}
+
+		if (fetchingProtocolTokenData) {
+			loadingCharts.push('Mcap, Token price, Token volume')
+		}
+
+		if (fetchingTokenTotalSupply) {
+			loadingCharts.push('Token Supply')
+		}
+
+		if (fetchingTokenLiquidity) {
+			loadingCharts.push('Token Liquidity')
+		}
+
+		if (fetchingFees) {
+			loadingCharts.push('Fees')
+		}
+
+		if (fetchingRevenue) {
+			loadingCharts.push('Revenue')
+		}
+
+		if (fetchingHoldersRevenue) {
+			loadingCharts.push('Holders Revenue')
+		}
+
+		if (fetchingBribes) {
+			loadingCharts.push('Bribes')
+		}
+
+		if (fetchingTokenTaxes) {
+			loadingCharts.push('Token Taxes')
+		}
+
+		if (fetchingDexVolume) {
+			loadingCharts.push('DEX Volume')
+		}
+		if (fetchingPerpVolume) {
+			loadingCharts.push('Perp Volume')
+		}
+		if (fetchingOptionsPremiumVolume) {
+			loadingCharts.push('Options Premium Volume')
+		}
+		if (fetchingOptionsNotionalVolume) {
+			loadingCharts.push('Options Notional Volume')
+		}
+		if (fetchingDexAggregatorVolume) {
+			loadingCharts.push('DEX Aggregator Volume')
+		}
+		if (fetchingPerpAggregatorVolume) {
+			loadingCharts.push('Perp Aggregator Volume')
+		}
+		if (fetchingBridgeAggregatorVolume) {
+			loadingCharts.push('Bridge Aggregator Volume')
+		}
+		if (fetchingUnlocksAndIncentives) {
+			loadingCharts.push('Emissions')
+		}
+		if (fetchingTreasury) {
+			loadingCharts.push('Treasury')
+		}
+		if (fetchingUsdInflows) {
+			loadingCharts.push('USD Inflows')
+		}
+		if (fetchingMedianAPY) {
+			loadingCharts.push('Median APY')
+		}
+		if (fetchingGovernanceData) {
+			loadingCharts.push('Governance')
+		}
+		if (fetchingDevMetrics) {
+			loadingCharts.push('Dev Metrics')
+		}
+		if (fetchingNftVolume) {
+			loadingCharts.push('NFT Volume')
+		}
+		if (fetchingActiveAddresses) {
+			loadingCharts.push('Active Addresses')
+		}
+		if (fetchingNewAddresses) {
+			loadingCharts.push('New Addresses')
+		}
+		if (fetchingTransactions) {
+			loadingCharts.push('Transactions')
+		}
+		if (fetchingBridgeVolume) {
+			loadingCharts.push('Bridge Volume')
+		}
+		if (loadingCharts.length > 0) {
+			return {
+				finalCharts: {} as Record<string, Array<[string | number, number]>>,
+				valueSymbol,
+				loadingCharts: loadingCharts.join(', ').toLowerCase()
+			}
+		}
+
+		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number]> } = {}
+
+		if (tvlChart?.length > 0 && (toggledMetrics.tvl === 'true' || toggledMetrics.totalAssets === 'true')) {
+			const chartName: ProtocolChartsLabels = isCEX ? 'Total Assets' : ('TVL' as const)
+			charts[chartName] = tvlChart
+		}
+
+		if (protocolTokenData) {
+			if (toggledMetrics.mcap === 'true') {
+				const chartName: ProtocolChartsLabels = 'Mcap' as const
+				charts[chartName] = formatLineChart({
+					data: protocolTokenData.mcaps,
+					groupBy,
+					dateInMs: true,
+					denominationPriceHistory
+				})
+			}
+			if (toggledMetrics.tokenPrice === 'true') {
+				const chartName: ProtocolChartsLabels = 'Token Price' as const
+				charts[chartName] = formatLineChart({
+					data: protocolTokenData.prices,
+					groupBy,
+					dateInMs: true,
+					denominationPriceHistory
+				})
+			}
+			if (toggledMetrics.tokenVolume === 'true') {
+				const chartName: ProtocolChartsLabels = 'Token Volume' as const
+				charts[chartName] = formatBarChart({
+					data: protocolTokenData.volumes,
+					groupBy,
+					dateInMs: true,
+					denominationPriceHistory
+				})
+			}
+			if (toggledMetrics.fdv === 'true') {
+				const chartName: ProtocolChartsLabels = 'FDV' as const
+				charts[chartName] = formatLineChart({
+					data: protocolTokenData.prices.map(([date, price]) => [date, price * tokenTotalSupply]),
+					groupBy,
+					dateInMs: true,
+					denominationPriceHistory
+				})
+			}
+		}
+
+		if (tokenLiquidityData) {
+			const chartName: ProtocolChartsLabels = 'Token Liquidity' as const
+			charts[chartName] = formatLineChart({ data: tokenLiquidityData, groupBy, denominationPriceHistory })
+		}
+
+		const feesStore = {}
+		const revenueStore = {}
+		const holdersRevenueStore = {}
+		const isWeekly = groupBy === 'weekly'
+		const isMonthly = groupBy === 'monthly'
+		const isCumulative = groupBy === 'cumulative'
+
+		if (feesData) {
+			let total = 0
+			for (const [date, value] of feesData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+				feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
+				if (isCumulative) {
+					total += finalValue
+				}
+			}
+		}
+
+		if (revenueData) {
+			let total = 0
+			for (const [date, value] of revenueData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+				revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
+				if (isCumulative) {
+					total += finalValue
+				}
+			}
+		}
+
+		if (holdersRevenueData) {
+			let total = 0
+			for (const [date, value] of holdersRevenueData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+				holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
+				if (isCumulative) {
+					total += finalValue
+				}
+			}
+		}
+
+		if (bribesData) {
+			let total = 0
+			for (const [date, value] of bribesData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+
+				if (feesData) {
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
+				}
+				if (revenueData) {
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
+				}
+				if (holdersRevenueData) {
+					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
+				}
+				if (isCumulative) {
+					total += finalValue
+				}
+			}
+		}
+
+		if (tokenTaxesData) {
+			let total = 0
+			for (const [date, value] of tokenTaxesData.totalDataChart) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1e3) : isMonthly ? firstDayOfMonth(+date * 1e3) : date
+				const finalValue = denominationPriceHistory
+					? denominationPriceHistory[String(+date * 1e3)]
+						? value / denominationPriceHistory[String(+date * 1e3)]
+						: 0
+					: value
+
+				if (feesData) {
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
+				}
+				if (revenueData) {
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
+				}
+				if (holdersRevenueData) {
+					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
+				}
+				if (isCumulative) {
+					total += finalValue
+				}
+			}
+		}
+
+		const finalFeesChart = []
+		const finalRevenueChart = []
+		const finalHoldersRevenueChart = []
+
+		for (const date in feesStore) {
+			finalFeesChart.push([+date * 1e3, feesStore[date]])
+		}
+
+		for (const date in revenueStore) {
+			finalRevenueChart.push([+date * 1e3, revenueStore[date]])
+		}
+
+		for (const date in holdersRevenueStore) {
+			finalHoldersRevenueChart.push([+date * 1e3, holdersRevenueStore[date]])
+		}
+
+		if (finalFeesChart.length > 0) {
+			const chartName: ProtocolChartsLabels = 'Fees' as const
+			charts[chartName] = finalFeesChart
+		}
+
+		if (finalRevenueChart.length > 0) {
+			const chartName: ProtocolChartsLabels = 'Revenue' as const
+			charts[chartName] = finalRevenueChart
+		}
+
+		if (finalHoldersRevenueChart.length > 0) {
+			const chartName: ProtocolChartsLabels = 'Holders Revenue' as const
+			charts[chartName] = finalHoldersRevenueChart
+		}
+
+		if (dexVolumeData) {
+			const chartName: ProtocolChartsLabels = 'DEX Volume' as const
+			charts[chartName] = formatBarChart({ data: dexVolumeData.totalDataChart, groupBy, denominationPriceHistory })
+		}
+
+		if (perpsVolumeData) {
+			const chartName: ProtocolChartsLabels = 'Perp Volume' as const
+			charts[chartName] = formatBarChart({
+				data: perpsVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
+		if (optionsPremiumVolumeData) {
+			const chartName: ProtocolChartsLabels = 'Options Premium Volume' as const
+			charts[chartName] = formatBarChart({
+				data: optionsPremiumVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
+		if (optionsNotionalVolumeData) {
+			const chartName: ProtocolChartsLabels = 'Options Notional Volume' as const
+			charts[chartName] = formatBarChart({
+				data: optionsNotionalVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
+		if (dexAggregatorsVolumeData) {
+			const chartName: ProtocolChartsLabels = 'DEX Aggregator Volume' as const
+			charts[chartName] = formatBarChart({
+				data: dexAggregatorsVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
+		if (perpsAggregatorsVolumeData) {
+			const chartName: ProtocolChartsLabels = 'Perp Aggregator Volume' as const
+			charts[chartName] = formatBarChart({
+				data: perpsAggregatorsVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
+		if (bridgeAggregatorsVolumeData) {
+			const chartName: ProtocolChartsLabels = 'Bridge Aggregator Volume' as const
+			charts[chartName] = formatBarChart({
+				data: bridgeAggregatorsVolumeData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
+		if (toggledMetrics.unlocks === 'true' && unlocksAndIncentivesData?.chartData?.documented.length > 0) {
+			const isWeekly = groupBy === 'weekly'
+			const isMonthly = groupBy === 'monthly'
+			const store = {}
+			for (const { date, ...rest } of unlocksAndIncentivesData.chartData.documented) {
+				const dateKey = isWeekly ? lastDayOfWeek(+date * 1000) : isMonthly ? firstDayOfMonth(+date * 1000) : date
+				let total = 0
+				for (const label in rest) {
+					total += rest[label]
+				}
+				store[dateKey] = (store[dateKey] ?? 0) + total
+			}
+
+			const finalChart = []
+			for (const date in store) {
+				finalChart.push([+date * 1e3, store[date]])
+			}
+
+			const chartName: ProtocolChartsLabels = 'Unlocks' as const
+			charts[chartName] = finalChart
+		}
+
+		if (toggledMetrics.incentives === 'true' && unlocksAndIncentivesData?.unlockUsdChart) {
+			const chartName: ProtocolChartsLabels = 'Incentives' as const
+			const nonZeroIndex = unlocksAndIncentivesData.unlockUsdChart.findIndex(([_, value]) => value > 0)
+			const finalUnlocksChart = unlocksAndIncentivesData.unlockUsdChart.slice(nonZeroIndex)
+			charts[chartName] = formatBarChart({
+				data: finalUnlocksChart,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
+		if (extraTvlCharts?.staking && toggledMetrics.staking_tvl === 'true') {
+			const chartData = []
+			for (const date in extraTvlCharts.staking) {
+				chartData.push([+date * 1e3, extraTvlCharts.staking[date]])
+			}
+			const chartName: ProtocolChartsLabels = 'Staking' as const
+			charts[chartName] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
+		}
+
+		if (extraTvlCharts?.borrowed && toggledMetrics.borrowed_tvl === 'true') {
+			const chartData = []
+			for (const date in extraTvlCharts.borrowed) {
+				chartData.push([+date * 1e3, extraTvlCharts.borrowed[date]])
+			}
+			const chartName: ProtocolChartsLabels = 'Borrowed' as const
+			charts[chartName] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
+		}
+
+		if (medianAPYData) {
+			const chartName: ProtocolChartsLabels = 'Median APY' as const
+			charts[chartName] = formatLineChart({
+				data: medianAPYData.map((item) => [+item.date * 1e3, item.medianAPY]),
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory: null
+			})
+		}
+
+		if (governanceData) {
+			const totalProposals = {}
+			const successfulProposals = {}
+			const maxVotes = {}
+			for (const gItem of governanceData) {
+				for (const item of gItem.activity ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+					totalProposals[date] = (totalProposals[date] ?? 0) + (item['Total'] || 0)
+					successfulProposals[date] = (successfulProposals[date] ?? 0) + (item['Successful'] || 0)
+				}
+				for (const item of gItem.maxVotes ?? []) {
+					const date = Math.floor(nearestUtcZeroHour(+item.date * 1000) / 1000)
+					maxVotes[date] = (maxVotes[date] ?? 0) + (item['Max Votes'] || 0)
+				}
+			}
+			const finalTotalProposals = []
+			const finalSuccessfulProposals = []
+			const finalMaxVotes = []
+			for (const date in totalProposals) {
+				finalTotalProposals.push([+date * 1e3, totalProposals[date]])
+			}
+			for (const date in successfulProposals) {
+				finalSuccessfulProposals.push([+date * 1e3, successfulProposals[date]])
+			}
+			for (const date in maxVotes) {
+				finalMaxVotes.push([+date * 1e3, maxVotes[date]])
+			}
+			const chartName1: ProtocolChartsLabels = 'Total Proposals' as const
+			charts[chartName1] = finalTotalProposals
+			const chartName2: ProtocolChartsLabels = 'Successful Proposals' as const
+			charts[chartName2] = finalSuccessfulProposals
+			const chartName3: ProtocolChartsLabels = 'Max Votes' as const
+			charts[chartName3] = finalMaxVotes
+		}
+
+		if (devMetricsData && (toggledMetrics.devsMetrics === 'true' || toggledMetrics.devsCommits === 'true')) {
+			const developers = []
+			const commits = []
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
+
+			for (const { k, v, cc } of devMetricsData.report?.[metricKey] ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(new Date(k).getTime()) / 1000)
+
+				developers.push([+date * 1e3, v])
+				commits.push([+date * 1e3, cc])
+			}
+
+			if (toggledMetrics.devsMetrics === 'true') {
+				const chartName: ProtocolChartsLabels = 'Developers' as const
+				charts[chartName] = developers
+			}
+
+			if (toggledMetrics.devsCommits === 'true') {
+				const chartName: ProtocolChartsLabels = 'Devs Commits' as const
+				charts[chartName] = commits
+			}
+		}
+
+		if (
+			devMetricsData &&
+			(toggledMetrics.contributersMetrics === 'true' || toggledMetrics.contributersCommits === 'true')
+		) {
+			const contributers = []
+			const commits = []
+
+			const metricKey = groupBy === 'monthly' ? 'monthly_contributers' : 'weekly_contributers'
+
+			for (const { k, v, cc } of devMetricsData.report?.[metricKey] ?? []) {
+				const date = Math.floor(nearestUtcZeroHour(new Date(k).getTime()) / 1000)
+
+				contributers.push([+date * 1e3, v])
+				commits.push([+date * 1e3, cc])
+			}
+
+			if (toggledMetrics.contributersMetrics === 'true') {
+				const chartName: ProtocolChartsLabels = 'Contributers' as const
+				charts[chartName] = contributers
+			}
+
+			if (toggledMetrics.contributersCommits === 'true') {
+				const chartName: ProtocolChartsLabels = 'Contributers Commits' as const
+				charts[chartName] = commits
+			}
+		}
+
+		if (nftVolumeData && toggledMetrics.nftVolume === 'true') {
+			const chartName: ProtocolChartsLabels = 'NFT Volume' as const
+			charts[chartName] = formatBarChart({
+				data: nftVolumeData,
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory
+			})
+		}
+
+		if (activeAddressesData && toggledMetrics.activeAddresses === 'true') {
+			const chartName: ProtocolChartsLabels = 'Active Addresses' as const
+			charts[chartName] = formatBarChart({
+				data: activeAddressesData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (newAddressesData && toggledMetrics.newAddresses === 'true') {
+			const chartName: ProtocolChartsLabels = 'New Addresses' as const
+			charts[chartName] = formatBarChart({
+				data: newAddressesData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (transactionsData && toggledMetrics.transactions === 'true') {
+			const chartName: ProtocolChartsLabels = 'Transactions' as const
+			charts[chartName] = formatBarChart({
+				data: transactionsData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (treasuryData && toggledMetrics.treasury === 'true') {
+			const chartName: ProtocolChartsLabels = 'Treasury' as const
+			charts[chartName] = formatLineChart({
+				data: treasuryData,
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory
+			})
+		}
+
+		if (usdInflowsData && toggledMetrics.usdInflows === 'true') {
+			const chartName: ProtocolChartsLabels = 'USD Inflows' as const
+			charts[chartName] = formatBarChart({
+				data: usdInflowsData,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
+		if (bridgeVolumeData && toggledMetrics.bridgeVolume === 'true') {
+			charts['Bridge Volume'] = formatBarChart({
+				data: bridgeVolumeData,
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory
+			})
+		}
+
+		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
+	}, [
+		toggledMetrics,
+		tvlChart,
+		fetchingDenominationPriceHistory,
+		denominationPriceHistory,
+		fetchingProtocolTokenData,
+		protocolTokenData,
+		fetchingTokenTotalSupply,
+		tokenTotalSupply,
+		fetchingTokenLiquidity,
+		tokenLiquidityData,
+		fetchingFees,
+		feesData,
+		fetchingRevenue,
+		revenueData,
+		fetchingHoldersRevenue,
+		holdersRevenueData,
+		fetchingBribes,
+		bribesData,
+		fetchingTokenTaxes,
+		tokenTaxesData,
+		fetchingDexVolume,
+		dexVolumeData,
+		fetchingPerpVolume,
+		perpsVolumeData,
+		fetchingOptionsPremiumVolume,
+		optionsPremiumVolumeData,
+		fetchingOptionsNotionalVolume,
+		optionsNotionalVolumeData,
+		fetchingDexAggregatorVolume,
+		dexAggregatorsVolumeData,
+		fetchingPerpAggregatorVolume,
+		perpsAggregatorsVolumeData,
+		fetchingBridgeAggregatorVolume,
+		bridgeAggregatorsVolumeData,
+		fetchingUnlocksAndIncentives,
+		unlocksAndIncentivesData,
+		fetchingTreasury,
+		treasuryData,
+		fetchingUsdInflows,
+		usdInflowsData,
+		fetchingMedianAPY,
+		medianAPYData,
+		fetchingActiveAddresses,
+		activeAddressesData,
+		fetchingNewAddresses,
+		newAddressesData,
+		fetchingTransactions,
+		transactionsData,
+		fetchingGovernanceData,
+		governanceData,
+		fetchingDevMetrics,
+		devMetricsData,
+		fetchingNftVolume,
+		nftVolumeData,
+		fetchingBridgeVolume,
+		bridgeVolumeData,
+		groupBy,
+		extraTvlCharts,
+		valueSymbol
+	])
+
+	return chartData
+}
+
+// disabled: tweets, gas used, bridge inflows
+// use nearestUtcZeroHour for all dates
+// check if all charts need to have same time range

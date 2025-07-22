@@ -11,6 +11,7 @@ const metricDescriptions: Record<string, string> = {
 	change_1d: '24-hour percentage change in TVL',
 	change_7d: '7-day percentage change in TVL',
 	change_1m: '30-day percentage change in TVL',
+	mcap: 'Market capitalization of the protocol token',
 	mcaptvl: 'Market Capitalization to TVL ratio',
 	fees_24h: 'Total fees generated in the last 24 hours',
 	fees_7d: 'Total fees generated in the last 7 days',
@@ -32,7 +33,21 @@ const metricDescriptions: Record<string, string> = {
 	volume_24h: 'Spot trading volume in the last 24 hours',
 	volume_7d: 'Spot trading volume in the last 7 days',
 	volumeChange_7d: '7-day percentage change in spot trading volume',
-	cumulativeVolume: 'Total cumulative trading volume since inception'
+	cumulativeVolume: 'Total cumulative trading volume since inception',
+	tvl_share: 'Percentage of total TVL across all protocols',
+	mcap_share: 'Percentage of total market cap across all protocols',
+	fees_24h_share: 'Percentage of total 24h fees across all protocols',
+	fees_7d_share: 'Percentage of total 7d fees across all protocols',
+	fees_30d_share: 'Percentage of total 30d fees across all protocols',
+	fees_1y_share: 'Percentage of total yearly fees across all protocols',
+	revenue_24h_share: 'Percentage of total 24h revenue across all protocols',
+	revenue_7d_share: 'Percentage of total 7d revenue across all protocols',
+	revenue_30d_share: 'Percentage of total 30d revenue across all protocols',
+	revenue_1y_share: 'Percentage of total yearly revenue across all protocols',
+	volume_24h_share: 'Percentage of total 24h volume across all protocols',
+	volume_7d_share: 'Percentage of total 7d volume across all protocols',
+	cumulativeFees_share: 'Percentage of total cumulative fees across all protocols',
+	cumulativeVolume_share: 'Percentage of total cumulative volume across all protocols'
 }
 
 interface CustomColumn {
@@ -83,6 +98,31 @@ export function ColumnManagementPanel({
 		return protocolsByChainTableColumns.filter((column) => column.name.toLowerCase().includes(searchTerm.toLowerCase()))
 	}, [searchTerm])
 
+	const percentageShareColumns = React.useMemo(() => {
+		const usdValuedMetrics = [
+			{ key: 'tvl', name: 'TVL % Share', category: TABLE_CATEGORIES.TVL },
+			{ key: 'mcap', name: 'Market Cap % Share', category: TABLE_CATEGORIES.TVL },
+			{ key: 'fees_24h', name: 'Fees 24h % Share', category: TABLE_CATEGORIES.FEES },
+			{ key: 'fees_7d', name: 'Fees 7d % Share', category: TABLE_CATEGORIES.FEES },
+			{ key: 'fees_30d', name: 'Fees 30d % Share', category: TABLE_CATEGORIES.FEES },
+			{ key: 'fees_1y', name: 'Fees 1y % Share', category: TABLE_CATEGORIES.FEES },
+			{ key: 'revenue_24h', name: 'Revenue 24h % Share', category: TABLE_CATEGORIES.REVENUE },
+			{ key: 'revenue_7d', name: 'Revenue 7d % Share', category: TABLE_CATEGORIES.REVENUE },
+			{ key: 'revenue_30d', name: 'Revenue 30d % Share', category: TABLE_CATEGORIES.REVENUE },
+			{ key: 'revenue_1y', name: 'Revenue 1y % Share', category: TABLE_CATEGORIES.REVENUE },
+			{ key: 'volume_24h', name: 'Volume 24h % Share', category: TABLE_CATEGORIES.VOLUME },
+			{ key: 'volume_7d', name: 'Volume 7d % Share', category: TABLE_CATEGORIES.VOLUME },
+			{ key: 'cumulativeFees', name: 'Cumulative Fees % Share', category: TABLE_CATEGORIES.FEES },
+			{ key: 'cumulativeVolume', name: 'Cumulative Volume % Share', category: TABLE_CATEGORIES.VOLUME }
+		]
+
+		return usdValuedMetrics.map((metric) => ({
+			key: `${metric.key}_share`,
+			name: metric.name,
+			category: 'PERCENTAGE_SHARE' as const
+		}))
+	}, [])
+
 	// Custom columns formatted for the standard columns view
 	const customColumnsForStandardView = React.useMemo(() => {
 		return customColumns.map((customCol) => ({
@@ -94,8 +134,8 @@ export function ColumnManagementPanel({
 
 	// Combined columns for standard tab display
 	const allColumnsForDisplay = React.useMemo(() => {
-		return [...protocolsByChainTableColumns, ...customColumnsForStandardView]
-	}, [customColumnsForStandardView])
+		return [...protocolsByChainTableColumns, ...percentageShareColumns, ...customColumnsForStandardView]
+	}, [customColumnsForStandardView, percentageShareColumns])
 
 	// Helper component for column buttons
 	const ColumnButton = ({
@@ -126,6 +166,9 @@ export function ColumnManagementPanel({
 							<Icon name="check" height={12} width={12} className="text-green-500" />
 							<span className="text-xs pro-text1">{column.name}</span>
 							{isCustom && <span className="text-xs px-1 py-0.5 bg-(--primary1) text-white rounded-sm">Custom</span>}
+							{column.key?.endsWith('_share') && (
+								<span className="text-xs px-1 py-0.5 bg-blue-600 text-white rounded-sm">%</span>
+							)}
 						</div>
 						<div className="flex items-center gap-1">
 							{moveColumnUp && !isFirst && (
@@ -166,10 +209,18 @@ export function ColumnManagementPanel({
 				>
 					<Icon name="plus" height={10} width={10} className="pro-text3" />
 					<span className="text-xs pro-text1">{column.name}</span>
+					{column.key?.endsWith('_share') && (
+						<span className="text-xs px-1 py-0.5 bg-blue-600 text-white rounded-sm ml-auto">%</span>
+					)}
 				</button>
 			</Tooltip>
 		)
 	}
+
+	// Filter percentage share columns by search term
+	const filteredPercentageColumns = React.useMemo(() => {
+		return percentageShareColumns.filter((column) => column.name.toLowerCase().includes(searchTerm.toLowerCase()))
+	}, [percentageShareColumns, searchTerm])
 
 	const columnGroups = React.useMemo(() => {
 		const groups = [
@@ -177,6 +228,11 @@ export function ColumnManagementPanel({
 				title: 'Custom Columns',
 				columns: customColumnsForStandardView,
 				show: customColumns.length > 0
+			},
+			{
+				title: 'Percentage Share',
+				columns: filteredPercentageColumns,
+				show: true
 			},
 			{
 				title: 'TVL & Market',
@@ -196,7 +252,7 @@ export function ColumnManagementPanel({
 			}
 		]
 		return groups.filter((group) => group.show !== false && group.columns.length > 0)
-	}, [filteredColumns, customColumnsForStandardView, customColumns.length])
+	}, [filteredColumns, customColumnsForStandardView, customColumns.length, filteredPercentageColumns])
 
 	if (!showColumnPanel) return null
 

@@ -1,6 +1,6 @@
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { lazy, Suspense, useMemo } from 'react'
-import { IProtocolByCategoryPageData } from './types'
+import { IProtocolByCategoryOrTagPageData } from './types'
 import { ColumnDef } from '@tanstack/react-table'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
@@ -18,9 +18,9 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 
 const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
-const sortByRevenye = ['Trading App']
+const sortByRevenue = ['Trading App']
 
-export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
+export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
 	const { finalProtocols, charts } = useMemo(() => {
@@ -63,8 +63,8 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 		<>
 			<ProtocolsChainsSearch options={toggleOptions} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					{props.chain !== 'All' && props.chain && (
 						<h1 className="flex items-center gap-2">
 							<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
@@ -80,28 +80,28 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 						</p>
 					)}
 					<div className="flex flex-col flex-1 gap-2 mb-auto">
-						{props.fees24h != null && (
+						{props.fees7d != null && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
 								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Fees (7d)</span>
-								<span className="text-right font-jetbrains">{formattedNum(props.fees24h, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.fees7d, true)}</span>
 							</p>
 						)}
-						{props.revenue24h != null && (
+						{props.revenue7d != null && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
 								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Revenue (7d)</span>
-								<span className="text-right font-jetbrains">{formattedNum(props.revenue24h, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.revenue7d, true)}</span>
 							</p>
 						)}
-						{props.dexVolume24h != null && ['Dexs', 'DEX Aggregators'].includes(props.category) && (
+						{props.dexVolume7d != null && ['Dexs', 'DEX Aggregators'].includes(props.category) && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
 								<span className="font-normal text-[#545757] dark:text-[#cccccc]">DEX Volume (7d)</span>
-								<span className="text-right font-jetbrains">{formattedNum(props.dexVolume24h, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 							</p>
 						)}
-						{props.perpVolume24h != null && ['Derivatives'].includes(props.category) && (
+						{props.perpVolume7d != null && ['Derivatives'].includes(props.category) && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
 								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Perp Volume (7d)</span>
-								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume24h, true)}</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume7d, true)}</span>
 							</p>
 						)}
 						<CSVDownloadButton
@@ -116,7 +116,7 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 						/>
 					</div>
 				</div>
-				<div className="bg-(--cards-bg) min-h-[360px] rounded-md col-span-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2  min-h-[360px] py-2">
 					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
 						<LineAndBarChart charts={charts} valueSymbol="$" />
 					</Suspense>
@@ -128,15 +128,37 @@ export function ProtocolsByCategory(props: IProtocolByCategoryPageData) {
 				placeholder="Search protocols..."
 				columnToSearch="name"
 				header="Protocol Rankings"
-				defaultSorting={sortByRevenye.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : []}
+				defaultSorting={sortByRevenue.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : []}
+				customFilters={
+					<CSVDownloadButton
+						onClick={() => {
+							const headers = categoryColumns.map((col) => col.header as string)
+							const rows = finalProtocols.map((protocol) => {
+								return categoryColumns.map((col: any) => {
+									const value =
+										'accessorFn' in col && col.accessorFn
+											? col?.accessorFn?.(protocol)
+											: protocol[col.id as keyof typeof protocol]
+									if (value === null || value === undefined) return ''
+									if (col.id === 'name') return `"${protocol.name}"`
+									if (typeof value === 'number') return value
+									return String(value).includes(',') ? `"${String(value)}"` : String(value)
+								})
+							})
+							const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
+							download(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
+						}}
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					/>
+				}
 			/>
 		</>
 	)
 }
 
 const columns = (
-	category: IProtocolByCategoryPageData['category']
-): ColumnDef<IProtocolByCategoryPageData['protocols'][0]>[] => [
+	category: IProtocolByCategoryOrTagPageData['category']
+): ColumnDef<IProtocolByCategoryOrTagPageData['protocols'][0]>[] => [
 	{
 		id: 'name',
 		header: 'Name',

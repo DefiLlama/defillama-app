@@ -75,7 +75,7 @@ function RaisesTable({ raises, downloadCsv }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
 				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon
@@ -152,8 +152,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				pathname={pathname}
 			/>
 
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-1">
-				<div className="bg-(--cards-bg) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="font-semibold text-2xl">{investorName}</h1>
 
 					<details className="group text-base">
@@ -179,7 +179,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 						))}
 					</details>
 				</div>
-				<div className="bg-(--cards-bg) rounded-md col-span-2 min-h-[360px]">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 min-h-[360px]">
 					<React.Suspense fallback={<></>}>
 						<BarChart chartData={fundingRoundsByMonth} title="" groupBy="monthly" color={oldBlue} valueSymbol="" />
 					</React.Suspense>
@@ -187,12 +187,12 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-(--cards-bg) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
 					</React.Suspense>
 				</LazyChart>
-				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-(--cards-bg) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
 					</React.Suspense>

@@ -65,6 +65,7 @@ interface IIconsRowProps {
 	yieldRewardsSymbols?: string[]
 	disableLinks?: boolean
 	urlPrefix?: string
+	iconsAlignment?: 'start' | 'end'
 }
 
 const isChain = (chain) => {
@@ -78,7 +79,8 @@ export const IconsRow = ({
 	iconType,
 	yieldRewardsSymbols = [],
 	disableLinks = false,
-	urlPrefix = ''
+	urlPrefix = '',
+	iconsAlignment = 'end'
 }: IIconsRowProps) => {
 	const [visibleChainIndex, setVisibileChainIndex] = useState(0)
 	const mainWrapEl = useRef(null)
@@ -108,7 +110,12 @@ export const IconsRow = ({
 	}, [links, visibleChainIndex])
 
 	return (
-		<div className="flex items-center justify-end bg-none overflow-hidden" ref={mainWrapEl}>
+		<div
+			className={`flex items-center ${
+				iconsAlignment === 'start' ? 'justify-start' : 'justify-end'
+			} bg-none overflow-hidden`}
+			ref={mainWrapEl}
+		>
 			{visibleChains.map((chain, i) => (
 				<ChainLogo
 					key={chain}
@@ -123,7 +130,7 @@ export const IconsRow = ({
 				<Ariakit.HovercardProvider>
 					<Ariakit.HovercardAnchor
 						render={<button />}
-						className="h-6 w-6 rounded-full flex items-center justify-center text-(--text1) bg-(--bg3) shrink-0"
+						className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] text-(--text1) bg-(--bg3) shrink-0"
 					>
 						{`+${hoverChains.length}`}
 					</Ariakit.HovercardAnchor>

@@ -5,10 +5,7 @@ import { RAISES_API } from '~/constants'
 import { InvestorContainer } from '~/containers/Raises/Investor'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
+import { fetchJson } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging(
 	'raises/[...investorName]',
@@ -17,7 +14,7 @@ export const getStaticProps = withPerformanceLogging(
 			investorName: [name]
 		}
 	}) => {
-		const data = await fetch(RAISES_API).then((r) => r.json())
+		const data = await fetchJson(RAISES_API)
 
 		const raises = []
 

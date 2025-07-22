@@ -21,6 +21,8 @@ export const LANGS_API = `${SERVER_URL}/langs`
 export const ORACLE_API = `${SERVER_URL}/oracles`
 export const FORK_API = `${SERVER_URL}/forks`
 export const CATEGORY_API = `${SERVER_URL}/categories`
+export const CATEGORY_CHART_API = `${SERVER_URL}/charts/categories`
+export const TAGS_CHART_API = `${SERVER_URL}/charts/tags`
 export const PROTOCOLS_BY_TOKEN_API = `${SERVER_URL}/tokenProtocols`
 export const PROTOCOL_TREASURY_API = `${SERVER_URL}/treasury`
 export const PROTOCOLS_TREASURY = `${SERVER_URL}/treasuries`
@@ -80,6 +82,7 @@ const BRIDGES_SERVER_URL = process.env.BRIDGES_SERVER_URL ?? 'https://bridges.ll
 export const BRIDGEDAYSTATS_API = `${BRIDGES_SERVER_URL}/bridgedaystats`
 export const BRIDGES_API = `${BRIDGES_SERVER_URL}/bridges`
 export const BRIDGEVOLUME_API = `${BRIDGES_SERVER_URL}/bridgevolume`
+export const BRIDGEVOLUME_API_SLUG = `${BRIDGES_SERVER_URL}/bridgevolume/slug`
 export const BRIDGELARGETX_API = `${BRIDGES_SERVER_URL}/largetransactions`
 export const BRIDGETX_API = `${BRIDGES_SERVER_URL}/transactions`
 export const BRIDGEINFLOWS_API = `${SERVER_URL}/chain-assets/historical-flows`
@@ -134,8 +137,6 @@ export const CG_TOKEN_API =
 
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
-export const ICONS_PALETTE_CDN = 'https://icons.llamao.fi/palette'
-// export const ICONS_PALETTE_CDN = 'https://palette.llamao.fi/palette'
 
 export const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
 export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
@@ -161,6 +162,8 @@ export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
 
 export const AUTH_SERVER = 'https://auth.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
+
+export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
 export const scams = [
 	'SyncDEX Finance',

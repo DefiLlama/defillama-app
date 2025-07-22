@@ -159,6 +159,7 @@
 	--pro-bg3: #e5e5e5;
 	--pro-bg4: #cccccc;
 	--pro-bg7: rgba(255, 255, 255, 0.95);
+	--pro-bg8: rgba(35, 91, 255, 0.1);
 
 	--pro-divider: rgba(0, 0, 0, 0.15);
 	--pro-border: rgba(0, 0, 0, 0.12);
@@ -174,6 +175,7 @@
 		--pro-bg3: #0d1516;
 		--pro-bg4: #101a1c;
 		--pro-bg7: rgba(7, 14, 15, 0.7);
+		--pro-bg8: rgba(35, 91, 255, 0.1);
 
 		--pro-divider: rgba(255, 255, 255, 0.1);
 		--pro-border: rgba(255, 255, 255, 0.2);
@@ -202,6 +204,12 @@
 	& .pro-bg7 {
 		background-color: var(--pro-bg7);
 	}
+	/* & .pro-bg8 {
+		background-color: var(--pro-bg8);
+	} */
+	/* & .pro-bg8:hover {
+		background-color: rgba(17, 30, 78, 0.25);
+	} */
 
 	& .pro-border {
 		border-color: var(--pro-border);
@@ -309,6 +317,16 @@
 	}
 }
 
+@utility pro-info-card {
+	.pro-dashboard & {
+		border-radius: 0.3rem;
+		background-image: linear-gradient(to top, rgba(35, 91, 255, 0), rgba(35, 91, 255, 0.15));
+	}
+	.pro-dashboard &:hover {
+		background-color: rgba(17, 30, 78, 0.25);
+	}
+}
+
 @layer base {
 	@font-face {
 		font-family: 'Inter var';
@@ -370,6 +388,8 @@
 		--old-blue: #1f67d2;
 		--pct-green: #008a13;
 		--pct-red: #e60d02;
+
+		--cards-border: #e6e6e6;
 	}
 
 	* {
@@ -423,6 +443,8 @@
 		--cards-bg: #131516;
 		--pct-green: #3fb84f;
 		--pct-red: #e24a42;
+
+		--cards-border: #222324;
 	}
 
 	body {
@@ -458,6 +480,11 @@
 	textarea,
 	select {
 		@apply rounded-none text-inherit;
+	}
+
+	/* Dark mode calendar picker indicator */
+	html.dark input[type='date']::-webkit-calendar-picker-indicator {
+		filter: invert(1) brightness(0.8) contrast(0.8);
 	}
 
 	img,

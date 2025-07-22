@@ -1,7 +1,6 @@
 import * as React from 'react'
 import PeggedContainer from '~/containers/Stablecoins/StablecoinOverview'
-import { peggedAssetIconPalleteUrl, slug } from '~/utils'
-import { getColor } from '~/utils/getColor'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getPeggedAssetPageData, getPeggedAssets } from '~/containers/Stablecoins/queries.server'
 import { primaryColor } from '~/constants/colors'
@@ -19,10 +18,6 @@ export const getStaticProps = withPerformanceLogging(
 		const { chainsUnique, chainCirculatings, peggedAssetData, totalCirculating, unreleased, mcap, bridgeInfo } =
 			data.props
 
-		const name = peggedAssetData.name
-
-		const backgroundColor = name ? await getColor(peggedAssetIconPalleteUrl(name)) : primaryColor
-
 		return {
 			props: {
 				chainsUnique,
@@ -32,7 +27,7 @@ export const getStaticProps = withPerformanceLogging(
 				unreleased,
 				mcap,
 				bridgeInfo,
-				backgroundColor
+				backgroundColor: primaryColor
 			},
 			revalidate: maxAgeForNext([22])
 		}

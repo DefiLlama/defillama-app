@@ -9,6 +9,7 @@ import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/E
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
 import { COINS_PRICES_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -76,125 +77,124 @@ const PageView = ({
 	return (
 		<>
 			<ProtocolsChainsSearch />
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
-				<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap p-3">
-					<span>Total Value Locked ETH LSTs</span>
-					<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
-				</h1>
 
-				<div className="bg-(--cards-bg) rounded-md w-full flex flex-col">
-					<div className="flex flex-wrap overflow-x-auto border-y border-(--form-control-border)">
-						<button
-							className="py-2 px-6 whitespace-nowrap border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-							onClick={() => setTab('breakdown')}
-							data-selected={tab === 'breakdown'}
-						>
-							Breakdown
-						</button>
-						<button
-							className="py-2 px-6 whitespace-nowrap border-l border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-							onClick={() => setTab('inflows')}
-							data-selected={tab === 'inflows'}
-						>
-							Inflows
-						</button>
-					</div>
+			<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+				<span>Total Value Locked ETH LSTs</span>
+				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
+			</h1>
 
-					<div className="flex flex-col items-center gap-4 min-h-[408px] w-full">
-						{tab === 'breakdown' ? (
-							<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 pt-12 xl:*:*:[&[role='combobox']]:-mt-9!">
-								<React.Suspense fallback={<></>}>
-									<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
-								</React.Suspense>
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md w-full flex flex-col">
+				<div className="flex flex-wrap overflow-x-auto border-y border-(--form-control-border)">
+					<button
+						className="py-2 px-6 whitespace-nowrap border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						onClick={() => setTab('breakdown')}
+						data-selected={tab === 'breakdown'}
+					>
+						Breakdown
+					</button>
+					<button
+						className="py-2 px-6 whitespace-nowrap border-l border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						onClick={() => setTab('inflows')}
+						data-selected={tab === 'inflows'}
+					>
+						Inflows
+					</button>
+				</div>
+
+				<div className="flex flex-col items-center gap-4 min-h-[408px] w-full">
+					{tab === 'breakdown' ? (
+						<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 pt-12 xl:*:*:[&[role='combobox']]:-mt-9!">
+							<React.Suspense fallback={<></>}>
+								<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
+							</React.Suspense>
+							<React.Suspense fallback={<></>}>
+								<AreaChart
+									chartData={areaChartData}
+									stacks={tokens}
+									stackColors={lsdColors}
+									customLegendName="LST"
+									customLegendOptions={tokens}
+									hideDefaultLegend
+									valueSymbol="%"
+									title=""
+									expandTo100Percent={true}
+								/>
+							</React.Suspense>
+						</div>
+					) : (
+						<div className="flex flex-col w-full gap-1">
+							<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+								<button
+									data-active={groupBy === 'daily'}
+									className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									onClick={() => setGroupBy('daily')}
+								>
+									Daily
+								</button>
+
+								<button
+									data-active={groupBy === 'weekly'}
+									className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									onClick={() => setGroupBy('weekly')}
+								>
+									Weekly
+								</button>
+
+								<button
+									data-active={groupBy === 'monthly'}
+									className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									onClick={() => setGroupBy('monthly')}
+								>
+									Monthly
+								</button>
+
+								<button
+									data-active={groupBy === 'cumulative'}
+									className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									onClick={() => setGroupBy('cumulative')}
+								>
+									Cumulative
+								</button>
+							</div>
+
+							{groupBy === 'cumulative' ? (
 								<React.Suspense fallback={<></>}>
 									<AreaChart
-										chartData={areaChartData}
+										chartData={inflowsData}
 										stacks={tokens}
 										stackColors={lsdColors}
 										customLegendName="LST"
 										customLegendOptions={tokens}
 										hideDefaultLegend
-										valueSymbol="%"
+										valueSymbol="ETH"
 										title=""
-										expandTo100Percent={true}
 									/>
 								</React.Suspense>
-							</div>
-						) : (
-							<div className="flex flex-col w-full gap-1">
-								<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
-									<button
-										data-active={groupBy === 'daily'}
-										className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-										onClick={() => setGroupBy('daily')}
-									>
-										Daily
-									</button>
-
-									<button
-										data-active={groupBy === 'weekly'}
-										className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-										onClick={() => setGroupBy('weekly')}
-									>
-										Weekly
-									</button>
-
-									<button
-										data-active={groupBy === 'monthly'}
-										className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-										onClick={() => setGroupBy('monthly')}
-									>
-										Monthly
-									</button>
-
-									<button
-										data-active={groupBy === 'cumulative'}
-										className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-										onClick={() => setGroupBy('cumulative')}
-									>
-										Cumulative
-									</button>
-								</div>
-
-								{groupBy === 'cumulative' ? (
-									<React.Suspense fallback={<></>}>
-										<AreaChart
-											chartData={inflowsData}
-											stacks={tokens}
-											stackColors={lsdColors}
-											customLegendName="LST"
-											customLegendOptions={tokens}
-											hideDefaultLegend
-											valueSymbol="ETH"
-											title=""
-										/>
-									</React.Suspense>
-								) : (
-									<React.Suspense fallback={<></>}>
-										<BarChart
-											chartData={inflowsData}
-											hideDefaultLegend
-											customLegendName="Protocol"
-											customLegendOptions={tokens}
-											stacks={barChartStacks}
-											stackColors={lsdColors}
-											valueSymbol="ETH"
-											title=""
-										/>
-									</React.Suspense>
-								)}
-							</div>
-						)}
-					</div>
+							) : (
+								<React.Suspense fallback={<></>}>
+									<BarChart
+										chartData={inflowsData}
+										hideDefaultLegend
+										customLegendName="Protocol"
+										customLegendOptions={tokens}
+										stacks={barChartStacks}
+										stackColors={lsdColors}
+										valueSymbol="ETH"
+										title=""
+									/>
+								</React.Suspense>
+							)}
+						</div>
+					)}
 				</div>
-
-				<TableWithSearch
-					data={tokensList}
-					columns={LSDColumn}
-					columnToSearch={'name'}
-					placeholder={'Search protocols...'}
-				/>
 			</div>
+
+			<TableWithSearch
+				data={tokensList}
+				columns={LSDColumn}
+				columnToSearch={'name'}
+				placeholder={'Search protocols...'}
+			/>
 		</>
 	)
 }
@@ -238,8 +238,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	// Fetch ETH price from API
 	const fetchEthPrice = async () => {
 		try {
-			const response = await fetch(`${COINS_PRICES_API}/current/ethereum:0x0000000000000000000000000000000000000000`)
-			const data = await response.json()
+			const data = await fetchJson(`${COINS_PRICES_API}/current/ethereum:0x0000000000000000000000000000000000000000`)
 			return data.coins['ethereum:0x0000000000000000000000000000000000000000'].price
 		} catch (error) {
 			console.error('Error fetching ETH price:', error)
@@ -403,7 +402,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 			pegInfo,
 			marketRate: lsd?.marketRate ?? null,
 			expectedRate: lsd?.expectedRate ?? null,
-			mcapOverTvl: mcaptvl ? mcaptvl.toFixed(2) : null,
+			mcapOverTvl: mcaptvl ? formattedNum(mcaptvl) : null,
 			apy: lsdApy.find((m) => m.name === p.name)?.apy ?? null,
 			fee: lsd?.fee > 0 ? lsd?.fee * 100 : null
 		}

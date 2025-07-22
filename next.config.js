@@ -332,11 +332,6 @@ const nextConfig = {
 				permanent: true
 			},
 			{
-				source: '/derivatives/:slug',
-				destination: '/perps/:slug',
-				permanent: true
-			},
-			{
 				source: '/derivatives/chains',
 				destination: '/perps/chains',
 				permanent: true
@@ -429,11 +424,6 @@ const nextConfig = {
 			{
 				source: '/derivatives-aggregator',
 				destination: '/perps-aggregators',
-				permanent: true
-			},
-			{
-				source: '/derivatives-aggregator/:slug',
-				destination: '/perps-aggregators/:slug',
 				permanent: true
 			},
 			{
@@ -542,8 +532,23 @@ const nextConfig = {
 				permanent: true
 			},
 			{
+				source: '/docs/api',
+				destination: 'https://api-docs.defillama.com/',
+				permanent: true
+			},
+			{
+				source: '/pro-api/docs',
+				destination: 'https://api-docs.defillama.com/',
+				permanent: true
+			},
+			{
 				source: '/net-protocol-treasury',
 				destination: '/net-project-treasury',
+				permanent: true
+			},
+			{
+				source: '/docs',
+				destination: 'https://api-docs.defillama.com/',
 				permanent: true
 			}
 		]

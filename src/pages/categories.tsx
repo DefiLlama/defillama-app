@@ -11,7 +11,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { tvlOptions } from '~/components/Filters/options'
@@ -22,7 +22,7 @@ const LineAndBarChart = React.lazy(
 
 export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const [{ protocols }, revenueData, { chart, categories: protocolsByCategory }] = await Promise.all([
-		fetchWithErrorLogging(PROTOCOLS_API).then((r) => r.json()),
+		fetchJson(PROTOCOLS_API),
 		getAdapterChainOverview({
 			adapterType: 'fees',
 			chain: 'All',
@@ -30,7 +30,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			excludeTotalDataChart: true,
 			excludeTotalDataChartBreakdown: true
 		}),
-		fetchWithErrorLogging(CATEGORY_API).then((r) => r.json())
+		fetchJson(CATEGORY_API)
 	])
 
 	const categories = {}
@@ -303,8 +303,24 @@ export const descriptions = {
 	'Risk Curators':
 		'Projects that analyze DeFi risks and help users choose strategies across lending, trading, or staking systems to improve safety and returns.',
 	'DAO Service Provider': 'Protocols that provide services to DAOs',
-	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights'
+	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights',
+	'Canonical Bridge': 'The official bridge designated by a blockchain for transferring its assets across networks'
 }
+
+export const tags = [
+	'Treasury Bills',
+	'Commodities',
+	'Other Fixed Income',
+	'Private Credit',
+	'Real Estate',
+	'Money Market Funds',
+	'Stocks & ETFs',
+	'Private Equity',
+	'Crowdfunding',
+	'Collectibles',
+	'Carbon Credits',
+	'Onchain Equity'
+]
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
 
@@ -433,7 +449,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch options={finalTvlOptions} />
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
 					<h1 className="text-xl font-semibold mr-auto">Categories</h1>
 					<SelectWithCombobox
@@ -447,18 +463,17 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 						labelType="smol"
 					/>
 				</div>
-				<div className="bg-(--cards-bg) rounded-md relative">
-					<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
-						<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
-					</React.Suspense>
-				</div>
+
+				<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+					<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
+				</React.Suspense>
 			</div>
 
 			<React.Suspense
 				fallback={
 					<div
 						style={{ minHeight: `${categories.length * 50 + 200}px` }}
-						className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md"
+						className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
 					/>
 				}
 			>
@@ -517,9 +532,12 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 					) : null}
 					<span className="shrink-0">{index + 1}</span>{' '}
 					{row.depth > 0 ? (
-						<span className="text-sm font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						>
 							{getValue() as string}
-						</span>
+						</BasicLink>
 					) : (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}

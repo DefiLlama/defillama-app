@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { COINS_PRICES_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
 
 type PriceObject = {
 	confidence: number
@@ -13,8 +14,7 @@ export const useGetPrice = (tokens: Array<string>) => {
 	const prices = useQuery({
 		queryKey: ['prices', tokens],
 		queryFn: async () => {
-			const response = await fetch(`${COINS_PRICES_API}/current/${tokens.join(',')}`)
-			const result = await response.json()
+			const result = await fetchJson(`${COINS_PRICES_API}/current/${tokens.join(',')}`)
 			const data = Object.fromEntries(
 				Object.entries(result.coins).map(([key, value]: [string, PriceObject]) => {
 					return [key?.split(':')[1], value]

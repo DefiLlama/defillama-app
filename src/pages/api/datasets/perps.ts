@@ -1,13 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import metadataCache from '~/utils/metadata'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.PERPS
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const { chains } = req.query
 		const chainList = typeof chains === 'string' ? [chains] : chains || []
 

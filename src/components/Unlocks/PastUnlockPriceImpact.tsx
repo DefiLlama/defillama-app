@@ -111,7 +111,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 	}, [data])
 
 	return (
-		<div className={`bg-(--cards-bg) rounded-md p-1 flex flex-col gap-0.5 ${className}`}>
+		<div className={`bg-(--cards-bg) border border-(--cards-border) rounded-md p-1 flex flex-col gap-0.5 ${className}`}>
 			<Tooltip
 				className="text-lg font-semibold mb-1"
 				content={`Price change 7 days after the most recent major unlock event, not counting non-circulating and farming emissions. Sorted by the value of the unlock event.`}

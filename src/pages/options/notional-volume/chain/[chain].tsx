@@ -5,8 +5,7 @@ import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/querie
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-import metadataCache from '~/utils/metadata'
-import { fetchWithErrorLogging } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { TMetric } from '~/components/Metrics'
@@ -26,10 +25,9 @@ export const getStaticPaths = async () => {
 		}
 	}
 
-	const chains = await fetchWithErrorLogging(
+	const chains = await fetchJson(
 		`${DIMENISIONS_OVERVIEW_API}/${adapterType}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=${dataType}`
 	)
-		.then((res) => res.json())
 		.then((res) => (res.allChains ?? []).slice(0, 10))
 		.catch(() => [])
 
@@ -45,7 +43,9 @@ export const getStaticProps = withPerformanceLogging(
 	`${type}/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
-		if (!metadataCache.chainMetadata[chain].options) {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+		if (!metadataCache.chainMetadata[chain]?.options) {
 			return { notFound: true }
 		}
 
@@ -67,7 +67,7 @@ export const getStaticProps = withPerformanceLogging(
 
 const NotionalVolumeOnChain = (props) => {
 	return (
-		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO className="gap-2">
+		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

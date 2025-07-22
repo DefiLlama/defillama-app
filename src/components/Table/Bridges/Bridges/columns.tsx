@@ -71,7 +71,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 	{
 		header: '24h Volume',
 		accessorKey: 'lastDailyVolume',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -80,7 +80,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 	{
 		header: '7d Volume',
 		accessorKey: 'weeklyVolume',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -89,7 +89,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 	{
 		header: '1m Volume',
 		accessorKey: 'monthlyVolume',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -135,11 +135,8 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue() as any
 			if (value) {
 				return (
-					<span
-						className="text-(--color)"
-						style={{ '--color': (value as number) > 0 ? '#3fb950' : '#f85149' } as any}
-					>
-						${formattedNum(info.getValue())}
+					<span className={`${value > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}>
+						{formattedNum(value, true)}
 					</span>
 				)
 			}
@@ -153,7 +150,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 	{
 		header: '24h Deposits',
 		accessorKey: 'prevDayUsdDeposits',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -162,7 +159,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 	{
 		header: '24h Withdrawals',
 		accessorKey: 'prevDayUsdWithdrawals',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -175,11 +172,8 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue() as any
 			if (value) {
 				return (
-					<span
-						className="text-(--color)"
-						style={{ '--color': (value as number) > 0 ? '#3fb950' : '#f85149' } as any}
-					>
-						${formattedNum(info.getValue())}
+					<span className={`${value > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}>
+						{formattedNum(value, true)}
 					</span>
 				)
 			}
@@ -193,7 +187,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 	{
 		header: '7d Deposits',
 		accessorKey: 'prevWeekUsdWithdrawals',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -202,7 +196,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 	{
 		header: '7d Withdrawals',
 		accessorKey: 'prevWeekUsdDeposits',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -254,7 +248,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as boolean
 			return (
-				<span className="text-(--color)" style={{ '--color': value ? '#f85149' : '#3fb950' } as any}>
+				<span className={`${value ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
 					{value ? 'Withdrawal' : 'Deposit'}
 				</span>
 			)
@@ -294,7 +288,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 	{
 		header: 'Value',
 		accessorKey: 'usdValue',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -366,7 +360,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 	{
 		header: 'Deposited',
 		accessorKey: 'deposited',
-		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
+		cell: (info) => formattedNum(info.getValue() ?? 0, true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -375,7 +369,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 	{
 		header: 'Withdrawn',
 		accessorKey: 'withdrawn',
-		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
+		cell: (info) => formattedNum(info.getValue() ?? 0, true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -384,7 +378,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 	{
 		header: 'Total Volume',
 		accessorKey: 'volume',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -429,7 +423,7 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 	{
 		header: 'Deposited',
 		accessorKey: 'deposited',
-		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
+		cell: (info) => formattedNum(info.getValue() ?? 0, true),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -438,7 +432,7 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 	{
 		header: 'Withdrawn',
 		accessorKey: 'withdrawn',
-		cell: (info) => <>${formattedNum(info.getValue() ?? 0)}</>,
+		cell: (info) => formattedNum(info.getValue() ?? 0, true),
 		size: 120,
 		meta: {
 			align: 'end'

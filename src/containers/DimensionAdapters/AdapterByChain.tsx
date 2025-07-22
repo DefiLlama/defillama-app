@@ -29,6 +29,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { AdapterByChainChart } from './ChainChart'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
+import { chainCharts } from '../ChainOverview/constants'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<
@@ -362,7 +363,7 @@ export function AdapterByChain(props: IProps) {
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' ? (
 				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-					<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{props.chain !== 'All' && (
 							<h1 className="flex items-center flex-nowrap gap-2">
 								<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
@@ -383,13 +384,13 @@ export function AdapterByChain(props: IProps) {
 
 						<div className="flex flex-col">
 							{props.total30d != null ? (
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 									<span className="text-[#545757] dark:text-[#cccccc]">{metricName} (30d)</span>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.total30d, true)}</span>
 								</p>
 							) : null}
 							{props.change_7dover7d != null ? (
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-[#e6e6e6] dark:border-[#222324] last:border-none py-1">
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 									<Tooltip
 										content="Change of last 7d volume over the previous 7d volume"
 										className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
@@ -416,7 +417,7 @@ export function AdapterByChain(props: IProps) {
 					/>
 				</div>
 			) : null}
-			<div className="bg-(--cards-bg) border border-[#e6e6e6] dark:border-[#222324] rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center justify-end flex-wrap gap-4 p-2">
 					<div className="relative w-full sm:max-w-[280px] mr-auto">
 						<Icon
@@ -484,11 +485,11 @@ const columnSizes = Object.entries({
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
 const columnOrders = Object.entries({
-	0: ['name', 'total24h', 'total30d', 'category', 'definition'],
-	640: ['name', 'category', 'definition', 'total24h', 'total30d']
+	0: ['name', 'total24h', 'total7d', 'total30d', 'category', 'definition'],
+	640: ['name', 'category', 'definition', 'total24h', 'total7d', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const chartKeys: Record<IProps['type'], typeof protocolCharts[keyof typeof protocolCharts]> = {
+const protocolChartsKeys: Record<IProps['type'], typeof protocolCharts[keyof typeof protocolCharts]> = {
 	Fees: 'fees',
 	Revenue: 'revenue',
 	'Holders Revenue': 'holdersRevenue',
@@ -500,6 +501,13 @@ const chartKeys: Record<IProps['type'], typeof protocolCharts[keyof typeof proto
 	'Perp Aggregator Volume': 'perpAggregatorVolume',
 	'DEX Aggregator Volume': 'dexAggregatorVolume',
 	Earnings: 'incentives'
+}
+
+const chainChartsKeys: Partial<Record<IProps['type'], typeof chainCharts[keyof typeof chainCharts]>> = {
+	Fees: 'chainFees',
+	Revenue: 'chainRevenue',
+	'DEX Volume': 'dexsVolume',
+	'Perp Volume': 'perpsVolume'
 }
 
 const getColumnsOptions = (type) =>
@@ -514,6 +522,17 @@ const getColumnsOptions = (type) =>
 						headerName = 'Bridge Aggregator Volume 24h'
 					} else if (type === 'DEX Aggregator Volume') {
 						headerName = 'DEX Aggregator Volume 24h'
+					} else {
+						headerName = c.id
+					}
+					break
+				case 'total7d':
+					if (type === 'Perp Aggregator Volume') {
+						headerName = 'Perp Aggregator Volume 7d'
+					} else if (type === 'Bridge Aggregator Volume') {
+						headerName = 'Bridge Aggregator Volume 7d'
+					} else if (type === 'DEX Aggregator Volume') {
+						headerName = 'DEX Aggregator Volume 7d'
 					} else {
 						headerName = c.id
 					}
@@ -559,15 +578,10 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 				</span>
 			)
 
-			const basePath = row.original.category === 'Chain' ? 'chain' : 'protocol'
-			const chartKey =
-				row.original.category === 'Chain'
-					? type === 'Fees'
-						? 'chainFees'
-						: type.includes('Revenue')
-						? 'chainRevenue'
-						: chartKeys[type]
-					: chartKeys[type]
+			const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
+			const chartKey = ['Chain', 'Rollup'].includes(row.original.category)
+				? chainChartsKeys[type] ?? protocolChartsKeys[type]
+				: protocolChartsKeys[type]
 
 			return (
 				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -669,6 +683,18 @@ const getColumnsByType = (
 				size: 128
 			},
 			{
+				id: 'total7d',
+				header: 'Fees 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Total fees paid by users when using the protocol in the last 7 days'
+				},
+				size: 128
+			},
+			{
 				id: 'total30d',
 				header: 'Fees 30d',
 				accessorFn: (protocol) => protocol.total30d,
@@ -724,6 +750,18 @@ const getColumnsByType = (
 				meta: {
 					align: 'center',
 					headerHelperText: 'Revenue earned by the protocol in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 128
+			},
+			{
+				id: 'total7d',
+				header: 'Revenue 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Revenue earned by the protocol in the last 7 days'
 				},
 				size: 128
 			},
@@ -788,6 +826,18 @@ const getColumnsByType = (
 				size: 180
 			},
 			{
+				id: 'total7d',
+				header: 'Holders Revenue 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Revenue earned by token holders of the protocol in the last 7 days'
+				},
+				size: 180
+			},
+			{
 				id: 'total30d',
 				header: 'Holders Revenue 30d',
 				accessorFn: (protocol) => protocol.total30d,
@@ -812,6 +862,18 @@ const getColumnsByType = (
 					align: 'center',
 					headerHelperText:
 						'Sum of value paid buying and selling options on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 180
+			},
+			{
+				id: 'total7d',
+				header: 'Premium Volume 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Sum of value paid buying and selling options on the options exchange in the last 7 days'
 				},
 				size: 180
 			},
@@ -844,6 +906,19 @@ const getColumnsByType = (
 				size: 180
 			},
 			{
+				id: 'total7d',
+				header: 'Notional Volume 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Sum of the notional value of all options that have been traded on the options exchange in the last 7 days'
+				},
+				size: 180
+			},
+			{
 				id: 'total30d',
 				header: 'Notional Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
@@ -872,6 +947,18 @@ const getColumnsByType = (
 				size: 152
 			},
 			{
+				id: 'total7d',
+				header: 'DEX Volume 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Volume of all spot swaps on the dex in the last 7 days'
+				},
+				size: 152
+			},
+			{
 				id: 'total30d',
 				header: 'DEX Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
@@ -896,6 +983,18 @@ const getColumnsByType = (
 					align: 'center',
 					headerHelperText:
 						'Notional volume of all trades on the perp exchange, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 160
+			},
+			{
+				id: 'total7d',
+				header: 'Perp Volume 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage in the last 7 days'
 				},
 				size: 160
 			},
@@ -929,6 +1028,19 @@ const getColumnsByType = (
 					align: 'center',
 					headerHelperText:
 						'Notional volume of all trades on the perp aggregator, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 160
+			},
+			{
+				id: 'total7d',
+				header: 'Perp Aggregator Volume 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Notional volume of all trades on the perp aggregator, including leverage in the last 7 days'
 				},
 				size: 160
 			},
@@ -972,6 +1084,19 @@ const getColumnsByType = (
 				size: 160
 			},
 			{
+				id: 'total7d',
+				header: 'Bridge Aggregator Volume 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 7 days'
+				},
+				size: 160
+			},
+			{
 				id: 'total30d',
 				header: () => (
 					<>
@@ -1007,6 +1132,18 @@ const getColumnsByType = (
 					align: 'center',
 					headerHelperText:
 						'Volume of spot token swaps on the DEX aggregator in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 160
+			},
+			{
+				id: 'total7d',
+				header: 'DEX Aggregator Volume 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 7 days'
 				},
 				size: 160
 			},
@@ -1058,6 +1195,20 @@ const getColumnsByType = (
 					align: 'center',
 					headerHelperText:
 						'Earnings (Revenue - Incentives) earned by the protocol in the last 24 hours' +
+						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
+				},
+				size: 160
+			},
+			{
+				id: 'total7d',
+				header: 'Earnings 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Earnings (Revenue - Incentives) earned by the protocol in the last 7 days' +
 						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
 				},
 				size: 160

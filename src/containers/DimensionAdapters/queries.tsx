@@ -6,13 +6,10 @@ import {
 	PROTOCOLS_API,
 	REV_PROTOCOLS
 } from '~/constants'
-import { fetchWithErrorLogging, postRuntimeLogs } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE, ADAPTER_DATA_TYPES } from './constants'
-import metadataCache from '~/utils/metadata'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
-
-const fetch = fetchWithErrorLogging
 
 export interface IAdapterOverview {
 	totalDataChart: Array<[number, number]> // date, value
@@ -120,9 +117,7 @@ async function getChainMapping() {
 	}
 
 	try {
-		const mapping = await fetchWithErrorLogging('https://api.llama.fi/overview/_internal/chain-name-id-map').then(
-			handleFetchResponse
-		)
+		const mapping = await fetchJson('https://api.llama.fi/overview/_internal/chain-name-id-map')
 		chainMappingCache = mapping
 		return mapping
 	} catch (error) {
@@ -151,9 +146,7 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let url = `${DIMENISIONS_OVERVIEW_API}/${
-			adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
-		}${
+		let url = `${DIMENISIONS_OVERVIEW_API}/${adapterType}${
 			chain && chain !== 'All' ? `/${slug(chain)}` : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
@@ -161,21 +154,19 @@ export async function getAdapterChainOverview({
 			url += `&dataType=${dataType}`
 		}
 
-		const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
+		const data = await fetchJson(url, { timeout: 30_000 })
 
 		return data as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let url = `${DIMENISIONS_OVERVIEW_API}/${
-			adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
-		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		let url = `${DIMENISIONS_OVERVIEW_API}/${adapterType}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 		if (dataType) {
 			url += `&dataType=dailyRevenue`
 		}
 
 		const [data, emissionsData, chainMapping] = await Promise.all([
-			fetchWithErrorLogging(url).then(handleFetchResponse),
+			fetchJson(url),
 			getEmissionsData(),
 			getChainMapping()
 		])
@@ -286,9 +277,7 @@ export async function getAdapterProtocolSummary({
 	excludeTotalDataChartBreakdown: boolean
 	dataType?: `${ADAPTER_DATA_TYPES}`
 }) {
-	let url = `${DIMENISIONS_SUMMARY_BASE_API}/${
-		adapterType === 'derivatives-aggregator' ? 'aggregator-derivatives' : adapterType
-	}${
+	let url = `${DIMENISIONS_SUMMARY_BASE_API}/${adapterType}${
 		protocol && protocol !== 'All' ? `/${slug(protocol)}` : ''
 	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
@@ -296,23 +285,23 @@ export async function getAdapterProtocolSummary({
 		url += `&dataType=${dataType}`
 	}
 
-	const data = await fetchWithErrorLogging(url).then(handleFetchResponse)
+	const data = await fetchJson(url)
 
 	return data as IAdapterSummary
 }
 
 export async function getCexVolume() {
 	const [cexs, btcPriceRes] = await Promise.all([
-		fetch(
-			`${BASE_API}cachedExternalResponse?url=${encodeURIComponent(
+		fetchJson(
+			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
 				'https://api.coingecko.com/api/v3/exchanges?per_page=250'
 			)}`
-		).then(handleFetchResponse),
-		fetch(
-			`${BASE_API}cachedExternalResponse?url=${encodeURIComponent(
+		),
+		fetchJson(
+			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
 				'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
 			)}`
-		).then(handleFetchResponse)
+		)
 	])
 	const btcPrice = btcPriceRes?.bitcoin?.usd
 	if (!btcPrice || !cexs || typeof cexs.filter !== 'function') return undefined
@@ -322,9 +311,7 @@ export async function getCexVolume() {
 }
 
 async function getEmissionsData() {
-	const data = await fetchWithErrorLogging('https://api.llama.fi/emissionsBreakdownAggregated').then(
-		handleFetchResponse
-	)
+	const data = await fetchJson('https://api.llama.fi/emissionsBreakdownAggregated')
 	return data
 }
 
@@ -523,7 +510,7 @@ export const getAdapterByChainPageData = async ({
 			excludeTotalDataChart: false,
 			excludeTotalDataChartBreakdown: true
 		}),
-		fetch(PROTOCOLS_API).then(handleFetchResponse),
+		fetchJson(PROTOCOLS_API),
 		adapterType === 'fees'
 			? getAdapterChainOverview({
 					adapterType,
@@ -544,23 +531,26 @@ export const getAdapterByChainPageData = async ({
 			: Promise.resolve(null)
 	])
 
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 	const chains = data.protocols
 		.filter((e) => e.protocolType === 'chain')
 		.map((e) => [e.name, metadataCache.chainMetadata[slug(e.name)]?.gecko_id ?? null])
 		.filter((e) => (e[1] ? true : false))
 
-	const chainMcaps = await fetch(MCAPS_API, {
-		method: 'POST',
-		body: JSON.stringify({
-			coins: chains.map(([_, geckoId]) => `coingecko:${geckoId}`)
-		})
-	})
-		.then((r) => r.json())
-		.catch((err) => {
-			console.log('Failed to fetch mcaps by chain')
-			console.log(err)
-			return {}
-		})
+	const chainMcaps =
+		chains.length > 0
+			? await fetchJson(MCAPS_API, {
+					method: 'POST',
+					body: JSON.stringify({
+						coins: chains.map(([_, geckoId]) => `coingecko:${geckoId}`)
+					})
+			  }).catch((err) => {
+					console.log('Failed to fetch mcaps by chain')
+					console.log(err)
+					return {}
+			  })
+			: {}
 
 	const chainsMcap =
 		chains?.reduce((acc, [chain, geckoId]) => {
@@ -818,9 +808,13 @@ export const getChainsByAdapterPageData = async ({
 	route: string
 }): Promise<IChainsByAdapterPageData> => {
 	try {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const allChains = []
 		for (const chain in metadataCache.chainMetadata) {
-			if (metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]) {
+			if (
+				ADAPTER_TYPES_TO_METADATA_TYPE[adapterType] &&
+				metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]
+			) {
 				allChains.push(chain)
 			}
 		}
@@ -911,6 +905,7 @@ export const getChainsByAdapterPageData = async ({
 				...(tokenTaxesByChain[c.chain] ? { tokenTax: tokenTaxesByChain[c.chain] } : {})
 			}))
 			.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+
 		return {
 			adapterType,
 			dataType: dataType ?? null,
@@ -918,11 +913,16 @@ export const getChainsByAdapterPageData = async ({
 			chains,
 			allChains: chains.map((c) => c.name)
 		}
-	} catch (error) {}
+	} catch (error) {
+		console.log(error)
+		throw error
+	}
 }
 
 export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> => {
 	try {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 		const allChains = []
 		for (const chain in metadataCache.chainMetadata) {
 			if (metadataCache.chainMetadata[chain]['chainFees']) {
@@ -965,17 +965,8 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 		})
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
-	} catch (error) {}
-}
-
-async function handleFetchResponse(res: Response) {
-	try {
-		const response = await res.json()
-		return response
-	} catch (e) {
-		postRuntimeLogs(
-			`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`
-		)
-		return {}
+	} catch (error) {
+		console.log(error)
+		throw error
 	}
 }

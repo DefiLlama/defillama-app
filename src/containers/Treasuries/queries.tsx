@@ -1,10 +1,8 @@
 import { PROTOCOLS_TREASURY } from '~/constants'
-import { fetchWithErrorLogging } from '~/utils/async'
-
-const fetch = fetchWithErrorLogging
+import { fetchJson } from '~/utils/async'
 
 export const getTreasuryData = async () => {
-	const treasuries = await fetch(PROTOCOLS_TREASURY).then((res) => res.json())
+	const treasuries = await fetchJson(PROTOCOLS_TREASURY)
 	return treasuries
 		.map((t) => ({
 			...t,
@@ -23,7 +21,7 @@ export const getTreasuryData = async () => {
 }
 
 export const getEntitiesData = async () => {
-	const entities = await fetch('https://api.llama.fi/entities').then((res) => res.json())
+	const entities = await fetchJson('https://api.llama.fi/entities')
 	return entities
 		.map((t) => ({
 			...t,

@@ -4,6 +4,8 @@ import { useMemo, useState, useSyncExternalStore } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { VirtualTable } from '~/components/Table/Table'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { download } from '~/utils'
 import {
 	type ColumnDef,
 	type ColumnSizingState,
@@ -54,6 +56,7 @@ export const ChainProtocolsTable = ({
 		typeof router.query.minTvl === 'string' && router.query.minTvl !== '' && !Number.isNaN(Number(router.query.minTvl))
 			? +router.query.minTvl
 			: null
+
 	const maxTvl =
 		typeof router.query.maxTvl === 'string' && router.query.maxTvl !== '' && !Number.isNaN(Number(router.query.maxTvl))
 			? +router.query.maxTvl
@@ -391,48 +394,103 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
+	const handleDownloadCsv = () => {
+		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
+		const headers = visibleColumns.map((col) => {
+			if (typeof col.columnDef.header === 'string') {
+				return col.columnDef.header
+			}
+			return col.id
+		})
+
+		const rows = instance.getSortedRowModel().rows.map((row) => {
+			return visibleColumns.map((col) => {
+				const cell = row.getAllCells().find((c) => c.column.id === col.id)
+				if (!cell) return ''
+
+				const value = cell.getValue()
+				if (value === null || value === undefined) return ''
+
+				if (col.id === 'name') {
+					return `"${row.original.name}"`
+				} else if (col.id === 'category') {
+					return row.original.category || ''
+				} else if (col.id === 'tvl') {
+					return row.original.tvl?.default?.tvl || 0
+				} else if (col.id.includes('change_')) {
+					return value
+				} else if (col.id === 'mcaptvl' || col.id === 'pf' || col.id === 'ps') {
+					return value
+				} else if (typeof value === 'number') {
+					return value
+				} else {
+					const str = String(value)
+					return str.includes(',') ? `"${str}"` : str
+				}
+			})
+		})
+
+		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
+		const chainName = router.query.chain || 'all'
+		download(`defillama-${chainName}-protocols.csv`, csvContent)
+	}
+
 	return (
-		<div className="bg-(--cards-bg) rounded-md border border-[#e6e6e6] dark:border-[#222324] isolate">
-			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
-				<h3 className="text-lg font-semibold mr-auto">Protocol Rankings</h3>
-				<TagGroup
-					setValue={setFilter('category')}
-					selectedValue={filterState}
-					values={Object.values(TABLE_CATEGORIES) as Array<string>}
-				/>
-				<TagGroup
-					setValue={setFilter('period')}
-					selectedValue={filterState}
-					values={Object.values(TABLE_PERIODS) as Array<string>}
-				/>
-				<SelectWithCombobox
-					allValues={mergedColumns}
-					selectedValues={selectedColumns}
-					setSelectedValues={addColumn}
-					selectOnlyOne={addOnlyOneColumn}
-					toggleAll={toggleAllColumns}
-					clearAll={clearAllColumns}
-					nestedMenu={false}
-					label={'Columns'}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
-					customFooter={
-						<button
-							className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-(--btn-bg) hover:bg-(--btn-hover-bg) text-(--text1) text-xs font-medium border border-(--form-control-border)"
-							onClick={handleAddCustomColumn}
-							type="button"
-						>
-							<Icon name="plus" height={16} width={16} />
-							Add Custom Column
-						</button>
-					}
-					onEditCustomColumn={handleEditCustomColumn}
-					onDeleteCustomColumn={handleDeleteCustomColumn}
-				/>
-				<TVLRange variant="third" />
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md isolate">
+			<div className="flex items-center gap-2 p-3 flex-wrap">
+				<div className="text-lg font-semibold flex grow w-full md:w-auto">Protocol Rankings</div>
+
+				<div className="flex items-center gap-2 max-md:w-full max-sm:flex-col">
+					<TagGroup
+						setValue={setFilter('category')}
+						selectedValue={filterState}
+						values={Object.values(TABLE_CATEGORIES) as Array<string>}
+						className="max-sm:w-full"
+						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+					/>
+					<TagGroup
+						setValue={setFilter('period')}
+						selectedValue={filterState}
+						values={Object.values(TABLE_PERIODS) as Array<string>}
+						className="max-sm:w-full"
+						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+					/>
+
+					<div className="flex items-center gap-2 w-full sm:w-auto">
+						<SelectWithCombobox
+							allValues={mergedColumns}
+							selectedValues={selectedColumns}
+							setSelectedValues={addColumn}
+							selectOnlyOne={addOnlyOneColumn}
+							toggleAll={toggleAllColumns}
+							clearAll={clearAllColumns}
+							nestedMenu={false}
+							label={'Columns'}
+							labelType="smol"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+							}}
+							customFooter={
+								<button
+									className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-(--btn-bg) hover:bg-(--btn-hover-bg) text-(--text1) text-xs font-medium border border-(--form-control-border)"
+									onClick={handleAddCustomColumn}
+									type="button"
+								>
+									<Icon name="plus" height={16} width={16} />
+									Add Custom Column
+								</button>
+							}
+							onEditCustomColumn={handleEditCustomColumn}
+							onDeleteCustomColumn={handleDeleteCustomColumn}
+						/>
+						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+						<CSVDownloadButton
+							onClick={handleDownloadCsv}
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						/>
+					</div>
+				</div>
 			</div>
 			<VirtualTable instance={instance} />
 			<CustomColumnModal
@@ -1067,7 +1125,7 @@ const columns: ColumnDef<IProtocol>[] = [
 						align: 'end',
 						headerHelperText: 'Total earnings (Revenue - Incentives) earned by the protocol since it was launched'
 					},
-					size: 150
+					size: 180
 				}
 			)
 		],

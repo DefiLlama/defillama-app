@@ -311,12 +311,12 @@ const demoTextCard: TextConfig = {
 	title: '📊 Pro Dashboard Features Showcase',
 	content: `This dashboard demonstrates all available Pro Dashboard features including:
 
-• **Chart Types**: TVL, Volume, Fees, Revenue, Users, Transactions
-• **Protocol Charts**: Individual protocol metrics and token data
-• **Chain Charts**: Ecosystem-wide metrics across different chains
-• **Multi-Charts**: Combined visualizations for comparison
-• **Tables**: Protocol rankings and data tables
-• **Text Cards**: Documentation and insights
+- **Chart Types**: TVL, Volume, Fees, Revenue, Users, Transactions
+- **Protocol Charts**: Individual protocol metrics and token data
+- **Chain Charts**: Ecosystem-wide metrics across different chains
+- **Multi-Charts**: Combined visualizations for comparison
+- **Tables**: Protocol rankings and data tables
+- **Text Cards**: Documentation and insights
 
 *Built with DefiLlama Pro Dashboard*`,
 	colSpan: 1
@@ -328,12 +328,12 @@ const demoTextCard2: TextConfig = {
 	title: '📈 Understanding DeFi Metrics',
 	content: `**Key DeFi Metrics Explained:**
 
-• **TVL (Total Value Locked)**: The total value of assets locked in DeFi protocols
-• **Volume**: Trading volume across DEXs and protocols
-• **Fees**: Protocol fees generated from user activity
-• **Revenue**: Net revenue earned by protocols
-• **Users**: Active user count on the platform
-• **Transactions**: Number of on-chain transactions
+- **TVL (Total Value Locked)**: The total value of assets locked in DeFi protocols
+- **Volume**: Trading volume across DEXs and protocols
+- **Fees**: Protocol fees generated from user activity
+- **Revenue**: Net revenue earned by protocols
+- **Users**: Active user count on the platform
+- **Transactions**: Number of on-chain transactions
 
 *These metrics help assess protocol health, adoption, and market trends.*`,
 	colSpan: 1
@@ -345,12 +345,12 @@ const demoTextCard3: TextConfig = {
 	title: '🔧 Advanced Protocol Rankings',
 	content: `**ProTable Features:**
 
-• **Dynamic Columns**: Show/hide columns, reorder as needed
-• **Column Presets**: Essential, Fees, Volume, Advanced views
-• **Export Capabilities**: Download data as CSV for analysis
-• **Real-time Search**: Filter protocols instantly
-• **Custom Sorting**: Sort by any metric ascending/descending
-• **Pagination**: Handle large datasets efficiently
+- **Dynamic Columns**: Show/hide columns, reorder as needed
+- **Column Presets**: Essential, Fees, Volume, Advanced views
+- **Export Capabilities**: Download data as CSV for analysis
+- **Real-time Search**: Filter protocols instantly
+- **Custom Sorting**: Sort by any metric ascending/descending
+- **Pagination**: Handle large datasets efficiently
 
 *Professional-grade data tables for serious DeFi analysis.*`,
 	colSpan: 1
@@ -362,22 +362,38 @@ const demoTextCard4: TextConfig = {
 	title: '🚀 Dashboard Management',
 	content: `**Dashboard Capabilities:**
 
-• **Multiple Dashboards**: Create unlimited custom dashboards
-• **Auto-save**: Changes saved automatically as you work
-• **Sharing**: Share read-only dashboards with your team
-• **Flexible Layout**: 1x1 and 2x1 grid spans for optimal viewing
-• **Chart Composer**: Combine multiple metrics in single charts
-• **Time Controls**: Synchronize time periods across all charts
+- **Multiple Dashboards**: Create unlimited custom dashboards
+- **Auto-save**: Changes saved automatically as you work
+- **Sharing**: Share read-only dashboards with your team
+- **Flexible Layout**: 1x1 and 2x1 grid spans for optimal viewing
+- **Chart Composer**: Combine multiple metrics in single charts
+- **Time Controls**: Synchronize time periods across all charts
 
 *Build the perfect analytics workspace for your DeFi research.*`,
 	colSpan: 1
 }
 
 const features = [
-	{ icon: 'bar-chart-2', text: 'Customizable Charts' },
-	{ icon: 'activity', text: 'Multiple Dashboards' },
-	{ icon: 'percent', text: 'Advanced Analytics' },
-	{ icon: 'layers', text: 'Multi-Charts' }
+	{
+		icon: 'bar-chart-2',
+		title: 'Customizable Charts',
+		text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.'
+	},
+	{
+		icon: 'activity',
+		title: 'Multiple Dashboards',
+		text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.'
+	},
+	{
+		icon: 'percent',
+		title: 'Advanced Analytics',
+		text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.'
+	},
+	{
+		icon: 'layers',
+		title: 'Multi-Charts',
+		text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.'
+	}
 ]
 
 export const DemoPreview = () => {
@@ -387,15 +403,23 @@ export const DemoPreview = () => {
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
 					<div className="text-center">
 						<h1 className="text-3xl font-bold text-(--text1) mb-2">Pro Dashboard Preview</h1>
-						<p className="text-lg text-(--text2)">See what you'll get with Pro access</p>
+						<p className="text-lg text-(--text2)">See what you'll get with Pro access:</p>
 					</div>
 
 					<div className="flex items-center justify-center">
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+						<div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-2 lg:gap-6 pro-dashboard">
 							{features.map((feature, index) => (
-								<div key={index} className="flex items-center gap-2 text-sm text-(--text2)">
-									<Icon name={feature.icon as any} height={16} width={16} className="text-(--primary1) shrink-0" />
-									<span className="whitespace-nowrap">{feature.text}</span>
+								<div
+									key={index}
+									className="flex flex-wrap items-center gap-2 text-sm text-(--text2) px-8 py-15 pro-info-card justify-center"
+								>
+									<div className="flex align-center gap-2">
+										<Icon name={feature.icon as any} height={32} width={32} className="text-(--primary1) shrink-0" />
+										<span className="whitespace-nowrap font-bold text-lg leading-[170%]">{feature.title}</span>
+									</div>
+									<div className="flex content-around">
+										<p className="text-sm text-center">{feature.text}</p>
+									</div>
 								</div>
 							))}
 						</div>
@@ -418,7 +442,7 @@ export const DemoPreview = () => {
 				</div>
 			</div>
 
-			<div className="bg-(--bg7) bg-opacity-20 border-t border-(--divider) py-2">
+			<div className="bg-(--bg7) bg-opacity-20 border-t border-(--divider) py-2 pt-6">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6">
 					<div className="flex items-center justify-center">
 						<span className="text-xs text-(--text2) opacity-75 italic">

@@ -8,6 +8,7 @@ import { getReadableValue } from '~/containers/Liquidations/utils'
 import { ILiquidablePositionsRow, ILiquidableProtocolRow } from './types'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
+import { fetchJson } from '~/utils/async'
 
 export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] = [
 	{
@@ -36,7 +37,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 
 			if (isSmol) {
 				return (
-					<span style={{ color: isNegative ? '#F56565' : '#48BB78' }}>
+					<span className={`${isNegative ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
 						{'<'}
 						{isNegative ? '-' : '+'}
 						{'0.01%'}
@@ -46,7 +47,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 
 			const _value = (value as number).toFixed(2)
 			return (
-				<span style={{ color: isNegative ? '#F56565' : '#48BB78' }}>
+				<span className={`${isNegative ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
 					{isNegative ? '' : '+'}
 					{_value}%
 				</span>
@@ -168,7 +169,7 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 
 const fetchApi = async (url: string) => {
 	try {
-		const data = await fetch(url).then((res) => res.json())
+		const data = await fetchJson(url)
 		return data
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : `Failed to fetch ${url}`)
@@ -186,6 +187,18 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 			break
 		case 'maker':
 			_value = 'makerdao'
+			break
+		case 'compound':
+			_value = 'compound-finance'
+			break
+		case 'solend':
+			_value = 'save-protocol'
+			break
+		case 'trader-joe-lend':
+			_value = 'joe-lend'
+			break
+		case 'navi':
+			_value = 'navi-lending'
 			break
 		default:
 			_value = value as string

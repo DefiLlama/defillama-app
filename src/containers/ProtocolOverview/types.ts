@@ -12,7 +12,7 @@ export interface IProtocolMetadata {
 	holdersRevenue?: boolean
 	dexs?: boolean
 	perps?: boolean
-	aggregator?: boolean
+	dexAggregators?: boolean
 	options?: boolean
 	perpsAggregators?: boolean
 	bridgeAggregators?: boolean
@@ -27,6 +27,8 @@ export interface IProtocolMetadata {
 	emissions?: boolean
 	bribeRevenue?: boolean
 	tokenTax?: boolean
+	bridges?: boolean
+	stablecoins?: boolean
 }
 
 export interface IProtocolPageMetrics {
@@ -105,6 +107,7 @@ export interface IUpdatedProtocol {
 
 interface IAdapterOverview {
 	total24h: number | null
+	total7d: number | null
 	total30d: number | null
 	totalAllTime: number | null
 	methodology?: string | null
@@ -148,6 +151,7 @@ export interface IProtocolOverviewPageData {
 	bridgeAggregatorVolume: IAdapterOverview | null
 	optionsPremiumVolume: IAdapterOverview | null
 	optionsNotionalVolume: IAdapterOverview | null
+	bridgeVolume: Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
 	incentives?: {
 		emissions24h: number
 		emissions7d: number
@@ -235,6 +239,14 @@ export interface IProtocolOverviewPageData {
 	hallmarks: Array<[number, string]>
 	geckoId: string | null
 	governanceApis: Array<string> | null
+	incomeStatement?: {
+		feesByMonth: Record<string, number>
+		revenueByMonth: Record<string, number>
+		holdersRevenueByMonth: Record<string, number> | null
+		incentivesByMonth: Record<string, number> | null
+		monthDates: Array<[number, string]>
+	} | null
+	openSmolStatsSummaryByDefault?: boolean
 }
 
 export interface IHack {
@@ -243,7 +255,7 @@ export interface IHack {
 	classification: string
 	technique: string
 	amount: number
-	chain: Array<string>
+	chain?: Array<string>
 	bridgeHack: boolean
 	targetType: string
 	source: string

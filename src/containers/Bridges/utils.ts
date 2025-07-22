@@ -119,7 +119,9 @@ export const formatChainsData = ({
 	chains = [],
 	chartDataByChain = [],
 	chainToChartDataIndex = {},
-	prevDayDataByChain = [] as IDailyBridgeStats[]
+	prevDayDataByChain = [] as IDailyBridgeStats[],
+	netflowsDataDay = null,
+	netflowsDataWeek = null
 }) => {
 	let filteredChains = [...chains]
 
@@ -133,20 +135,69 @@ export const formatChainsData = ({
 				return name === chain.name
 			}) ?? null
 		const prevDayChart = charts?.[charts.length - 1]
-		const prevDayUsdDeposits = prevDayChart?.depositUSD
-		const prevDayUsdWithdrawals = prevDayChart?.withdrawUSD
 		const totalTokensDeposited = prevDayData?.totalTokensDeposited
 		const totalTokensWithdrawn = prevDayData?.totalTokensWithdrawn
-		const prevDayNetFlow = prevDayUsdDeposits - prevDayUsdWithdrawals
 
-		const prevWeekCharts = chartDataByChain[chartIndex].slice(-8, -1)
-		let prevWeekUsdDeposits = 0
-		let prevWeekUsdWithdrawals = 0
-		for (const chart of prevWeekCharts) {
-			prevWeekUsdDeposits += chart.depositUSD
-			prevWeekUsdWithdrawals += chart.withdrawUSD
+		let prevDayUsdDeposits, prevDayUsdWithdrawals, prevDayNetFlow
+		if (netflowsDataDay && Array.isArray(netflowsDataDay)) {
+			const chainNetflowDay = netflowsDataDay.find(
+				(item) => item.chain && item.chain.toLowerCase() === name.toLowerCase()
+			)
+			if (chainNetflowDay) {
+				prevDayUsdDeposits =
+					chainNetflowDay.deposited_usd !== undefined ? Number(chainNetflowDay.deposited_usd) : prevDayChart?.depositUSD
+				prevDayUsdWithdrawals =
+					chainNetflowDay.withdrawn_usd !== undefined
+						? Number(chainNetflowDay.withdrawn_usd)
+						: prevDayChart?.withdrawUSD
+				prevDayNetFlow =
+					chainNetflowDay.net_flow !== undefined
+						? Number(chainNetflowDay.net_flow)
+						: prevDayUsdDeposits - prevDayUsdWithdrawals
+			} else {
+				prevDayUsdDeposits = prevDayChart?.depositUSD
+				prevDayUsdWithdrawals = prevDayChart?.withdrawUSD
+				prevDayNetFlow = prevDayUsdDeposits - prevDayUsdWithdrawals
+			}
+		} else {
+			prevDayUsdDeposits = prevDayChart?.depositUSD
+			prevDayUsdWithdrawals = prevDayChart?.withdrawUSD
+			prevDayNetFlow = prevDayUsdDeposits - prevDayUsdWithdrawals
 		}
-		const prevWeekNetFlow = prevWeekUsdWithdrawals - prevWeekUsdDeposits
+
+		let prevWeekUsdDeposits, prevWeekUsdWithdrawals, prevWeekNetFlow
+		if (netflowsDataWeek && Array.isArray(netflowsDataWeek)) {
+			const chainNetflowWeek = netflowsDataWeek.find(
+				(item) => item.chain && item.chain.toLowerCase() === name.toLowerCase()
+			)
+			if (chainNetflowWeek) {
+				prevWeekUsdDeposits = chainNetflowWeek.deposited_usd !== undefined ? Number(chainNetflowWeek.deposited_usd) : 0
+				prevWeekUsdWithdrawals =
+					chainNetflowWeek.withdrawn_usd !== undefined ? Number(chainNetflowWeek.withdrawn_usd) : 0
+				prevWeekNetFlow =
+					chainNetflowWeek.net_flow !== undefined
+						? -Number(chainNetflowWeek.net_flow)
+						: prevWeekUsdWithdrawals - prevWeekUsdDeposits
+			} else {
+				const prevWeekCharts = chartDataByChain[chartIndex].slice(-8, -1)
+				prevWeekUsdDeposits = 0
+				prevWeekUsdWithdrawals = 0
+				for (const chart of prevWeekCharts) {
+					prevWeekUsdDeposits += chart.depositUSD
+					prevWeekUsdWithdrawals += chart.withdrawUSD
+				}
+				prevWeekNetFlow = prevWeekUsdWithdrawals - prevWeekUsdDeposits
+			}
+		} else {
+			const prevWeekCharts = chartDataByChain[chartIndex].slice(-8, -1)
+			prevWeekUsdDeposits = 0
+			prevWeekUsdWithdrawals = 0
+			for (const chart of prevWeekCharts) {
+				prevWeekUsdDeposits += chart.depositUSD
+				prevWeekUsdWithdrawals += chart.withdrawUSD
+			}
+			prevWeekNetFlow = prevWeekUsdWithdrawals - prevWeekUsdDeposits
+		}
 
 		let topTokenDepositedSymbol = null,
 			topTokenWithdrawnSymbol = null,

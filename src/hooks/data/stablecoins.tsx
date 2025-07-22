@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { getDominancePercent } from '~/utils'
+import { formattedNum, getDominancePercent } from '~/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter } from '~/utils'
 
@@ -200,7 +200,7 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
 								bridgedTo,
 								minted,
 								dominance,
-								mcaptvl: mcaptvl !== null ? +mcaptvl.toFixed(2) : null,
+								mcaptvl: mcaptvl !== null ? +formattedNum(mcaptvl) : null,
 								name: parentName,
 								subRows: [...subChains, childData]
 							}
