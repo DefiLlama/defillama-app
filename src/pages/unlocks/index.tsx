@@ -116,16 +116,16 @@ export default function Protocols({ data, unlockStats }) {
 				</div>
 			</div>
 
-			<Suspense fallback={<div className="min-h-[400px] md:min-h-[200px] xl:min-h-[130px]"></div>}>
+			<Suspense fallback={<div className="min-h-[400px] md:min-h-[200px] xl:min-h-fit"></div>}>
 				<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 isolate">
 					<div className="col-span-1 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col gap-1">
-						<TopUnlocks data={data} period={1} title="24h Top Unlocks" className="col-span-1 h-[130px]" />
+						<TopUnlocks data={data} period={1} title="24h Top Unlocks" className="col-span-1 h-fit" />
 					</div>
 					<div className="col-span-1 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col gap-1">
-						<TopUnlocks data={data} period={30} title="30d Top Unlocks" className="col-span-1 h-[130px]" />
+						<TopUnlocks data={data} period={30} title="30d Top Unlocks" className="col-span-1 h-fit" />
 					</div>
 					<div className="col-span-1 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col gap-1">
-						<PastUnlockPriceImpact data={data} title="Post Unlock Price Impact" className="col-span-1 h-[130px]" />
+						<PastUnlockPriceImpact data={data} title="Post Unlock Price Impact" className="col-span-1 h-fit" />
 					</div>
 				</div>
 			</Suspense>

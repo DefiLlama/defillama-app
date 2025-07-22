@@ -11,9 +11,7 @@ export const toFilterProtocol = ({
 	protocolData: ILiteProtocol
 	chainDisplayName: string | null
 }): boolean => {
-	return protocolMetadata.name &&
-		!protocolMetadata.name.startsWith('chain#') &&
-		protocolMetadata.displayName &&
+	return protocolMetadata.displayName &&
 		protocolMetadata.chains &&
 		(chainDisplayName !== 'All'
 			? Array.from(new Set([...(protocolMetadata.chains ?? []), ...(protocolData.chains ?? [])])).includes(
