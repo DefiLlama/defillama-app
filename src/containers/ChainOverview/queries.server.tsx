@@ -731,6 +731,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 
 	for (const protocol of protocols) {
 		if (
+			!protocol.defillamaId.startsWith('chain#') &&
 			metadataCache.protocolMetadata[protocol.defillamaId] &&
 			toFilterProtocol({
 				protocolMetadata: metadataCache.protocolMetadata[protocol.defillamaId],
@@ -792,7 +793,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 
 			const childStore: IChildProtocol = {
 				name: metadataCache.protocolMetadata[protocol.defillamaId].displayName,
-				slug: metadataCache.protocolMetadata[protocol.defillamaId].name,
+				slug: slug(metadataCache.protocolMetadata[protocol.defillamaId].displayName),
 				chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
 				category: protocol.category ?? null,
 				tvl: protocol.tvl != null ? tvls : null,
@@ -945,7 +946,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 
 			protocolsStore[parentProtocol.id] = {
 				name: metadataCache.protocolMetadata[parentProtocol.id].displayName,
-				slug: metadataCache.protocolMetadata[parentProtocol.id].name,
+				slug: slug(metadataCache.protocolMetadata[parentProtocol.id].displayName),
 				category: chilsProtocolCategories.length > 1 ? null : chilsProtocolCategories[0],
 				childProtocols: parentStore[parentProtocol.id],
 				chains: Array.from(new Set(...parentStore[parentProtocol.id].map((p) => p.chains ?? []))),
@@ -975,6 +976,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 	}
 
 	const finalProtocols: IProtocol[] = []
+
 	for (const protocol in protocolsStore) {
 		finalProtocols.push(protocolsStore[protocol])
 	}
