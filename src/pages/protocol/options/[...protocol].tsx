@@ -43,13 +43,13 @@ export const getStaticProps = withPerformanceLogging(
 			getProtocol(protocol),
 			getAdapterProtocolSummary({
 				adapterType: 'options',
-				protocol: metadata[1].name,
+				protocol: metadata[1].displayName,
 				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true
 			}),
 			getAdapterProtocolSummary({
 				adapterType: 'options',
-				protocol: metadata[1].name,
+				protocol: metadata[1].displayName,
 				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true,
 				dataType: 'dailyNotionalVolume'

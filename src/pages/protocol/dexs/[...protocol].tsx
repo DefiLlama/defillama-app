@@ -42,7 +42,7 @@ export const getStaticProps = withPerformanceLogging(
 			getProtocol(protocol),
 			getAdapterProtocolSummary({
 				adapterType: 'dexs',
-				protocol: metadata[1].name,
+				protocol: metadata[1].displayName,
 				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true
 			})

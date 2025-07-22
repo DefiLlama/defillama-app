@@ -1,7 +1,6 @@
 import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
 
 export interface IProtocolMetadata {
-	name?: string
 	tvl?: boolean
 	yields?: boolean
 	forks?: boolean

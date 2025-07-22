@@ -1174,13 +1174,13 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		const [fees, revenue, holdersRevenue, incentives] = await Promise.all([
 			getAdapterProtocolSummary({
 				adapterType: 'fees',
-				protocol: slug(metadata.displayName),
+				protocol: metadata.displayName,
 				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true
 			}),
 			getAdapterProtocolSummary({
 				adapterType: 'fees',
-				protocol: slug(metadata.displayName),
+				protocol: metadata.displayName,
 				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true,
 				dataType: 'dailyRevenue'
@@ -1188,7 +1188,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			metadata.holdersRevenue
 				? getAdapterProtocolSummary({
 						adapterType: 'fees',
-						protocol: slug(metadata.displayName),
+						protocol: metadata.displayName,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyHoldersRevenue'

@@ -48,7 +48,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		const projectYields = yields?.data?.filter(
 			({ project }) =>
-				project === metadata[1].name || (protocolData.parentProtocol ? false : otherProtocols.includes(project))
+				project === slug(metadata[1].displayName) ||
+				(protocolData.parentProtocol ? false : otherProtocols.includes(project))
 		)
 
 		return {

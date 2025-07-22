@@ -27,7 +27,6 @@ export const getStaticProps = withPerformanceLogging(
 		const data = await getProtocolOverviewPageData({
 			protocolId: slug(exchangeData.slug),
 			metadata: {
-				name: slug(exchangeData.slug),
 				displayName: exchangeData.name,
 				tvl: true
 			},

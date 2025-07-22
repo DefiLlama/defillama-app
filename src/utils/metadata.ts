@@ -27,7 +27,6 @@ interface IChainMetadata {
 }
 
 interface IProtocolMetadata {
-	name?: string
 	tvl?: boolean
 	yields?: boolean
 	forks?: boolean
