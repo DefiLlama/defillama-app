@@ -10,6 +10,7 @@ import {
 } from '~/constants'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/governance/[...protocol]',
@@ -55,7 +56,8 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				governanceApis: governanceApis.filter((x) => !!x)
+				governanceApis: governanceApis.filter((x) => !!x),
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -75,6 +77,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			metrics={props.metrics}
 			tab="governance"
 			toggleOptions={[]}
+			warningBanners={props.warningBanners}
 		>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<GovernanceData apis={props.governanceApis} />

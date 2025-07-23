@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl } from '~/api/types'
-import type { IRaise } from '~/containers/ProtocolOverview/types'
+import type { IRaise, IUpdatedProtocol } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
@@ -385,4 +385,30 @@ export const useFetchProtocolAddlChartsData = (protocolName) => {
 	})
 
 	return { ...data, historicalChainTvls: addlProtocolData?.chainTvls ?? null, isLoading: data.isLoading || isLoading }
+}
+
+export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
+	const banners = [...(protocolData.warningBanners ?? [])]
+
+	if (protocolData.rugged && protocolData.deadUrl) {
+		banners.push({
+			message: 'This protocol rug pulled user funds, their website is down.',
+			level: 'rug'
+		})
+	} else {
+		if (protocolData.rugged) {
+			banners.push({
+				message: 'This protocol rug pulled user funds.',
+				level: 'rug'
+			})
+		}
+
+		if (protocolData.deadUrl) {
+			banners.push({
+				message: 'This protocol rug pulled user funds, their website is down.',
+				level: 'rug'
+			})
+		}
+	}
+	return banners
 }

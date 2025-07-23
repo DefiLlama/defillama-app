@@ -1,4 +1,4 @@
-import { CATEGORY_CHART_API, TAGS_CHART_API, PROTOCOLS_API, CHART_API } from '~/constants'
+import { CATEGORY_CHART_API, TAGS_CHART_API, PROTOCOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
@@ -40,7 +40,7 @@ export async function getProtocolsByCategoryOrTag({
 		dexVolumeData,
 		perpVolumeData,
 		chartData,
-		tvlByCategories
+		chainsByCategoriesOrTags
 	]: [
 		{ protocols: Array<ILiteProtocol>; parentProtocols: Array<ILiteParentProtocol> },
 		IAdapterOverview | null,
@@ -48,7 +48,7 @@ export async function getProtocolsByCategoryOrTag({
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		Record<string, Record<string, number | null>>,
-		Record<string, Array<[string, number]>>
+		Record<string, Array<string>>
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		chainMetadata?.fees
@@ -87,15 +87,12 @@ export async function getProtocolsByCategoryOrTag({
 		tag
 			? fetchJson(`${TAGS_CHART_API}/${slug(tag)}${chain ? `/${chain}` : ''}`)
 			: fetchJson(`${CATEGORY_CHART_API}/${slug(category)}${chain ? `/${chain}` : ''}`),
-		category ? fetchJson(`${CHART_API}/categories/${category.toLowerCase().replace(' ', '_')}`) : {}
+		tag
+			? fetchJson('https://api.llama.fi/lite/chains-by-tags').catch(() => null)
+			: fetchJson('https://api.llama.fi/lite/chains-by-categories').catch(() => null)
 	])
 
-	const chains = []
-	if (category) {
-		for (const chain in tvlByCategories) {
-			chains.push([chain, tvlByCategories[chain].at(-1)?.[1] ?? 0])
-		}
-	}
+	const chains = chainsByCategoriesOrTags?.[tag ?? category] ?? []
 
 	const adapterDataStore = {}
 	for (const protocol of feesData?.protocols ?? []) {
@@ -388,10 +385,7 @@ export async function getProtocolsByCategoryOrTag({
 		tag: tag ?? null,
 		chains: [
 			{ label: 'All', to: `/protocols/${category ?? tag}` },
-			...chains
-				.sort((a, b) => b[1] - a[1])
-				.map((c) => c[0])
-				.map((c) => ({ label: c, to: `/protocols/${category ?? tag}/${c}` }))
+			...chains.map((c) => ({ label: c, to: `/protocols/${category ?? tag}/${c}` }))
 		],
 		fees7d: fees7d > 0 ? fees7d : null,
 		revenue7d: revenue7d > 0 ? revenue7d : null,

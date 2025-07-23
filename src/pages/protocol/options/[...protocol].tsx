@@ -14,6 +14,7 @@ import { downloadChart, formatBarChart } from '~/components/ECharts/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { Select } from '~/components/Select'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -114,7 +115,8 @@ export const getStaticProps = withPerformanceLogging(
 				charts,
 				defaultCharts,
 				hasMultipleChain: premiumVolumeData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false
+				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -170,6 +172,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="options"
 			toggleOptions={[]}
+			warningBanners={props.warningBanners}
 		>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
 				<div className="col-span-1 flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:min-h-[360px]">

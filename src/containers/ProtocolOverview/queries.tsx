@@ -34,6 +34,7 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { allColors, ProtocolChartsLabels } from './Chart/constants'
 import dayjs from 'dayjs'
 import { getProtocolEmissons } from '~/api/categories/protocols'
+import { getProtocolWarningBanners } from './utils'
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
@@ -108,7 +109,7 @@ export const getProtocolMetrics = ({
 		}
 	}
 
-	const tvlTab = metadata.tvl && (inflowsExist || multipleChains || tokenBreakdownExist)
+	const tvlTab = metadata.tvl && (multipleChains || inflowsExist || tokenBreakdownExist)
 
 	return {
 		tvl: metadata.tvl ? true : false,
@@ -911,7 +912,10 @@ export const getProtocolOverviewPageData = async ({
 				? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 				: null,
 		token: {
-			symbol: protocolData.symbol ?? protocolData.tokenCGData?.symbol ?? null,
+			symbol:
+				protocolData.symbol && protocolData.symbol !== '-'
+					? protocolData.symbol
+					: protocolData.tokenCGData?.symbol ?? null,
 			gecko_id: protocolData.gecko_id ?? null,
 			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
 			explorer_url: getProtocolTokenUrlOnExplorer(protocolData.address)
@@ -977,7 +981,8 @@ export const getProtocolOverviewPageData = async ({
 		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string]),
 		geckoId: protocolData.gecko_id ?? null,
 		governanceApis: governanceApis(protocolData.governanceID) ?? null,
-		incomeStatement
+		incomeStatement,
+		warningBanners: getProtocolWarningBanners(protocolData)
 	}
 }
 

@@ -13,6 +13,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -88,7 +89,8 @@ export const getStaticProps = withPerformanceLogging(
 				perpVolume,
 				chart,
 				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false
+				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -124,6 +126,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="perps"
+			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">

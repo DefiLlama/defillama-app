@@ -4,7 +4,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
-import { buildProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import { buildProtocolAddlChartsData, getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { PROTOCOL_TREASURY_API } from '~/constants'
@@ -47,7 +47,8 @@ export const getStaticProps = withPerformanceLogging(
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
-				metrics
+				metrics,
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -125,6 +126,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="treasury"
+			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
 			<div className="flex flex-wrap justify-between items-center gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2">

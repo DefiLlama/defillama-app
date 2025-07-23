@@ -165,50 +165,6 @@ export const POCKETBASE_URL = 'https://pb.llama.fi'
 
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
-export const scams = [
-	'SyncDEX Finance',
-	'Avatr',
-	'SatoshiCoreSwap',
-	'Opankeswap',
-	'PolyLend',
-	'Syncus',
-	'Drachma Exchange',
-	'StableDoin',
-	'CroLend Finance',
-	'Agora',
-	'MinerSwap',
-	'Mosquitos Finance',
-	'SatoshiCoreSwap',
-	'Swaprum',
-	'Cells Finance',
-	'SkyDex',
-	'Avault',
-	'Tegro Finance',
-	'Lendora Protocol',
-	'MantaSwap',
-	'Onchain Trade',
-	'Venuswap',
-	'Scroll Swap',
-	'StakeSteak',
-	'Glori Finance',
-	'ZebraDAO',
-	'Leaper Finance',
-	'ShibaNova',
-	'DaikoDEX',
-	'BaySwap',
-	'Sorta Finance',
-	'Magnate Finance',
-	'Kokomo Finance',
-	'HashDAO Finance',
-	'AbstraDEX',
-	'Honeyswap',
-	'YFII',
-	'Sboom',
-	'Beralis Dex',
-	'Beralis V2',
-	'Beralis V3'
-]
-
 export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Staking Pool']
 
 export const REV_PROTOCOLS = {

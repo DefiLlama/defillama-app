@@ -7,6 +7,7 @@ import { YIELD_POOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/yields/[...protocol]',
@@ -65,7 +66,8 @@ export const getStaticProps = withPerformanceLogging(
 								noOfPoolsTracked: projectYields.length,
 								averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
 						  }
-						: null
+						: null,
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -84,6 +86,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="yields"
+			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
 			<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">

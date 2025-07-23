@@ -5,7 +5,11 @@ import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { LazyChart } from '~/components/LazyChart'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import {
+	formatTvlsByChain,
+	getProtocolWarningBanners,
+	useFetchProtocolAddlChartsData
+} from '~/containers/ProtocolOverview/utils'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -52,7 +56,8 @@ export const getStaticProps = withPerformanceLogging(
 				parentProtocol: protocolData.parentProtocol ?? null,
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
-				metrics
+				metrics,
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -83,6 +88,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="tvl"
+			warningBanners={props.warningBanners}
 		>
 			{isLoading ? (
 				<p className="flex items-center justify-center text-center min-h-[384px] p-2">Loading...</p>

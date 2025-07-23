@@ -16,6 +16,7 @@ import { downloadChart, formatBarChart } from '~/components/ECharts/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Tooltip } from '~/components/Tooltip'
 import { Select } from '~/components/Select'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -190,7 +191,8 @@ export const getStaticProps = withPerformanceLogging(
 				charts,
 				defaultCharts,
 				hasMultipleChain: feesData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false
+				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -279,6 +281,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="fees"
+			warningBanners={props.warningBanners}
 			toggleOptions={toggleOptions}
 		>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
