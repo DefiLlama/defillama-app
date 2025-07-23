@@ -912,7 +912,10 @@ export const getProtocolOverviewPageData = async ({
 				? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 				: null,
 		token: {
-			symbol: protocolData.symbol ?? protocolData.tokenCGData?.symbol ?? null,
+			symbol:
+				protocolData.symbol && protocolData.symbol !== '-'
+					? protocolData.symbol
+					: protocolData.tokenCGData?.symbol ?? null,
 			gecko_id: protocolData.gecko_id ?? null,
 			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
 			explorer_url: getProtocolTokenUrlOnExplorer(protocolData.address)
