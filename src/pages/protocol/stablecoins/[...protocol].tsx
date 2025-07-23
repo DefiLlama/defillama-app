@@ -5,6 +5,7 @@ import { maxAgeForNext } from '~/api'
 import { StablecoinInfo } from '~/containers/ProtocolOverview/Stablecoin'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/stablecoins/[...protocol]',
@@ -39,7 +40,7 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				metrics,
 				assetName: protocolData.stablecoins[0],
-				warningBanners: protocolData.warningBanners ?? []
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}

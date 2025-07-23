@@ -14,6 +14,7 @@ import { downloadChart, formatBarChart } from '~/components/ECharts/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { Select } from '~/components/Select'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -115,7 +116,7 @@ export const getStaticProps = withPerformanceLogging(
 				defaultCharts,
 				hasMultipleChain: premiumVolumeData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
-				warningBanners: protocolData.warningBanners ?? []
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}

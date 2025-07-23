@@ -5,7 +5,11 @@ import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { LazyChart } from '~/components/LazyChart'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import {
+	formatTvlsByChain,
+	getProtocolWarningBanners,
+	useFetchProtocolAddlChartsData
+} from '~/containers/ProtocolOverview/utils'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -53,7 +57,7 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
 				metrics,
-				warningBanners: protocolData.warningBanners ?? []
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}

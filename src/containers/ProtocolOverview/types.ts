@@ -103,6 +103,7 @@ export interface IUpdatedProtocol {
 	misrepresentedTokens?: boolean
 	deprecated?: boolean
 	rugged?: boolean
+	deadUrl?: boolean
 	warningBanners?: Array<{
 		message: string
 		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set

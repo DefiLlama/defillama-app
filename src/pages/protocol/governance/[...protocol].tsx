@@ -10,6 +10,7 @@ import {
 } from '~/constants'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/governance/[...protocol]',
@@ -56,7 +57,7 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				metrics,
 				governanceApis: governanceApis.filter((x) => !!x),
-				warningBanners: protocolData.warningBanners ?? []
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}

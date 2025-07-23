@@ -5,6 +5,7 @@ import { maxAgeForNext } from '~/api'
 import { UnlocksCharts } from '~/containers/ProtocolOverview/Emissions'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/unlocks/[...protocol]',
@@ -38,7 +39,7 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				warningBanners: protocolData.warningBanners ?? []
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}

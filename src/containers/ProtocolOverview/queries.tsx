@@ -34,6 +34,7 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { allColors, ProtocolChartsLabels } from './Chart/constants'
 import dayjs from 'dayjs'
 import { getProtocolEmissons } from '~/api/categories/protocols'
+import { getProtocolWarningBanners } from './utils'
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
@@ -978,7 +979,7 @@ export const getProtocolOverviewPageData = async ({
 		geckoId: protocolData.gecko_id ?? null,
 		governanceApis: governanceApis(protocolData.governanceID) ?? null,
 		incomeStatement,
-		warningBanners: protocolData.warningBanners ?? []
+		warningBanners: getProtocolWarningBanners(protocolData)
 	}
 }
 

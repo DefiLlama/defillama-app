@@ -13,6 +13,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -88,7 +89,7 @@ export const getStaticProps = withPerformanceLogging(
 				chart,
 				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
-				warningBanners: protocolData.warningBanners ?? []
+				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
 		}
