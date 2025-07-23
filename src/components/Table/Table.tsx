@@ -77,7 +77,7 @@ export function VirtualTable({
 	const tableHeaderRef = useRef<HTMLDivElement>(null)
 	const firstColumn = instance.getVisibleLeafColumns()[0]
 	const firstColumnId = firstColumn?.id
-	const firstColumnWidth = firstColumn?.getSize() || 240
+	//const firstColumnWidth = firstColumn?.getSize() || 240
 	const totalTableWidth = instance.getTotalSize()
 	const isChainPage =
 		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
@@ -169,8 +169,6 @@ export function VirtualTable({
 										gridColumn: `span ${header.colSpan}`,
 										position: isSticky ? 'sticky' : undefined,
 										left: isSticky ? 0 : undefined,
-										width: isSticky ? `${firstColumnWidth}px` : undefined,
-										minWidth: isSticky ? `${firstColumnWidth}px` : undefined,
 										zIndex: isSticky ? 10 : undefined,
 										background: 'var(--cards-bg)'
 									}}
@@ -261,8 +259,6 @@ export function VirtualTable({
 													: undefined,
 												position: isSticky ? 'sticky' : undefined,
 												left: isSticky ? 0 : undefined,
-												width: isSticky ? `${firstColumnWidth}px` : undefined,
-												minWidth: isSticky ? `${firstColumnWidth}px` : undefined,
 												zIndex: isSticky ? 1 : undefined,
 												background: isSticky ? 'var(--cards-bg)' : undefined
 											}}
