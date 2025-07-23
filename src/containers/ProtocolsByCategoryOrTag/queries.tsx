@@ -85,8 +85,8 @@ export async function getProtocolsByCategoryOrTag({
 			  })
 			: null,
 		tag
-			? fetchJson(`${TAGS_CHART_API}/${slug(tag)}${chain ? `/${chain}` : ''}`)
-			: fetchJson(`${CATEGORY_CHART_API}/${slug(category)}${chain ? `/${chain}` : ''}`),
+			? fetchJson(`${TAGS_CHART_API}/${slug(tag)}${chain ? `/${slug(chain)}` : ''}`)
+			: fetchJson(`${CATEGORY_CHART_API}/${slug(category)}${chain ? `/${slug(chain)}` : ''}`),
 		tag
 			? fetchJson('https://api.llama.fi/lite/chains-by-tags').catch(() => null)
 			: fetchJson('https://api.llama.fi/lite/chains-by-categories').catch(() => null)
@@ -379,13 +379,13 @@ export async function getProtocolsByCategoryOrTag({
 				color: oldBlue
 			}
 		},
-		chain: chain ?? 'All',
+		chain: chainMetadata?.name ?? 'All',
 		protocols: finalProtocols.sort((a, b) => b.tvl - a.tvl),
 		category: category ?? null,
 		tag: tag ?? null,
 		chains: [
-			{ label: 'All', to: `/protocols/${category ?? tag}` },
-			...chains.map((c) => ({ label: c, to: `/protocols/${category ?? tag}/${c}` }))
+			{ label: 'All', to: `/protocols/${slug(category ?? tag)}` },
+			...chains.map((c) => ({ label: c, to: `/protocols/${slug(category ?? tag)}/${slug(c)}` }))
 		],
 		fees7d: fees7d > 0 ? fees7d : null,
 		revenue7d: revenue7d > 0 ? revenue7d : null,

@@ -190,7 +190,7 @@ export function tokenIconUrl(name) {
 			.toLowerCase()
 			.replace(/[()'"]/g, '') // Remove parentheses and quotes
 			.replace(/\s+/g, '-') // Replace spaces with hyphens
-			.replace(/[^\w.-]/g, '') // Remove any other non-word chars except hyphens and dots
+			.replace(/[^\w.!&-]/g, '') // Remove any other non-word chars except hyphens, !, & and .
 	}?w=48&h=48`
 }
 
