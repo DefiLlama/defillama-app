@@ -82,6 +82,7 @@ export function ProtocolOverviewLayout({
 							? 'bg-(--pct-yellow)/20 border-(--pct-yellow)'
 							: 'bg-(--btn-bg) border-(--bg-color)'
 					}`}
+					key={`${banner.message}-${banner.level}-${name}`}
 				>
 					{banner.message}
 				</p>
