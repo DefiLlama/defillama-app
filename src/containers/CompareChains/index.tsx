@@ -20,11 +20,12 @@ import { Tooltip } from '~/components/Tooltip'
 const LineAndBarChart: any = React.lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 const CustomOption = ({ innerProps, label, data }) => (
-	<div {...innerProps} style={{ display: 'flex', margin: '8px', cursor: 'pointer' }}>
+	<div {...innerProps} className="flex items-center gap-2 p-2 cursor-pointer">
 		<img
 			src={`https://icons.llamao.fi/icons/chains/rsz_${label}?w=48&h=48`}
 			alt={label}
 			style={{ width: '20px', marginRight: '10px', borderRadius: '50%' }}
+			className="w-5 h-5 rounded-full shrink-0"
 		/>
 		{label}
 	</div>
