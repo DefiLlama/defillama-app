@@ -66,9 +66,10 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 
 	const groupedHacks = onlyHacksTechnique.reduce(sumDuplicates, []).toSorted((a, b) => b.value - a.value)
 
+	const mainCategories = groupedHacks.slice(0, 15)
 	const othersValue = groupedHacks.slice(15).reduce((total, entry) => total + entry.value, 0)
 
-	const pieChartData = [...groupedHacks.slice(0, 15), { name: 'Others', value: othersValue }]
+	const pieChartData = [...mainCategories, { name: 'Others', value: othersValue }]
 
 	return {
 		props: {
