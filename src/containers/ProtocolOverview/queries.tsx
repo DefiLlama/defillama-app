@@ -40,10 +40,6 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 	try {
 		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${slug(protocolName)}`)
 
-		if (!data || (data as any).statusCode === 400) {
-			throw new Error((data as any).body)
-		}
-
 		let isNewlyListedProtocol = true
 
 		Object.values(data.chainTvls).forEach((chain) => {
@@ -57,7 +53,11 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		// }
 
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
-			const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`)
+			const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
+
+			if (!hourlyData) {
+				return data
+			}
 
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
@@ -233,7 +233,7 @@ export const getProtocolOverviewPageData = async ({
 		any,
 		IProtocolOverviewPageData['incomeStatement']
 	] = await Promise.all([
-		getProtocol(metadata.name).then(async (data) => {
+		getProtocol(slug(metadata.displayName)).then(async (data) => {
 			try {
 				const devMetricsProtocolUrl = data.id?.includes('parent')
 					? `${DEV_METRICS_API}/parent/${data?.id?.replace('parent#', '')}.json`
@@ -389,12 +389,20 @@ export const getProtocolOverviewPageData = async ({
 			: Promise.resolve(null),
 		metadata.yields
 			? fetchJson(YIELD_POOLS_API).catch((err) => {
-					console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', metadata.name, err instanceof Error ? err.message : '')
+					console.log(
+						'[HTTP]:[ERROR]:[PROTOCOL_YIELD]:',
+						slug(metadata.displayName),
+						err instanceof Error ? err.message : ''
+					)
 					return {}
 			  })
 			: null,
-		fetchArticles({ tags: metadata.name }).catch((err) => {
-			console.log('[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:', metadata.name, err instanceof Error ? err.message : '')
+		fetchArticles({ tags: slug(metadata.displayName) }).catch((err) => {
+			console.log(
+				'[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:',
+				slug(metadata.displayName),
+				err instanceof Error ? err.message : ''
+			)
 			return []
 		}),
 		metadata?.emissions && protocolId
@@ -452,7 +460,7 @@ export const getProtocolOverviewPageData = async ({
 			: [],
 		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
 		fetchJson(HACKS_API).catch(() => ({ hacks: [] })),
-		fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.name)}`)
+		fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.displayName)}`)
 			.then((data) => data.dailyVolumes || null)
 			.catch(() => null),
 		getProtocolIncomeStatement({ metadata })
@@ -568,7 +576,7 @@ export const getProtocolOverviewPageData = async ({
 	const otherProtocols = protocolData.otherProtocols?.map((p) => slug(p)) ?? []
 	const projectYields = yieldsData?.data?.filter(
 		({ project }) =>
-			[metadata.name, metadata.displayName].includes(project) ||
+			[slug(metadata.displayName), metadata.displayName].includes(project) ||
 			(protocolData?.parentProtocol ? false : otherProtocols.includes(project))
 	)
 	const yields =
@@ -1166,13 +1174,13 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		const [fees, revenue, holdersRevenue, incentives] = await Promise.all([
 			getAdapterProtocolSummary({
 				adapterType: 'fees',
-				protocol: metadata.name,
+				protocol: metadata.displayName,
 				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true
 			}),
 			getAdapterProtocolSummary({
 				adapterType: 'fees',
-				protocol: metadata.name,
+				protocol: metadata.displayName,
 				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true,
 				dataType: 'dailyRevenue'
@@ -1180,13 +1188,13 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			metadata.holdersRevenue
 				? getAdapterProtocolSummary({
 						adapterType: 'fees',
-						protocol: metadata.name,
+						protocol: metadata.displayName,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyHoldersRevenue'
 				  })
 				: Promise.resolve(null),
-			getProtocolEmissons(metadata.name)
+			getProtocolEmissons(slug(metadata.displayName))
 				.then((data) => data.unlockUsdChart ?? [])
 				.then((chart) => {
 					const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)

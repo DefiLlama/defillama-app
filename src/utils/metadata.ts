@@ -1,8 +1,10 @@
 import chainMetadata from '../../.cache/chains.json'
 import protocolMetadata from '../../.cache/protocols.json'
+import categoriesAndTags from '../../.cache/categoriesAndTags.json'
 
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
+const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
 
 interface IChainMetadata {
 	stablecoins?: boolean
@@ -25,7 +27,6 @@ interface IChainMetadata {
 }
 
 interface IProtocolMetadata {
-	name?: string
 	tvl?: boolean
 	yields?: boolean
 	forks?: boolean
@@ -58,18 +59,28 @@ interface IProtocolMetadata {
 const metadataCache: {
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
+	categoriesAndTags: {
+		categories: Array<string>
+		tags: Array<string>
+	}
 } = {
 	chainMetadata,
-	protocolMetadata
+	protocolMetadata,
+	categoriesAndTags
 }
 
 setInterval(async () => {
 	const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
-	const [protocols, chains] = await Promise.all([fetchJson(PROTOCOLS_DATA_URL), fetchJson(CHAINS_DATA_URL)])
+	const [protocols, chains, categoriesAndTags] = await Promise.all([
+		fetchJson(PROTOCOLS_DATA_URL),
+		fetchJson(CHAINS_DATA_URL),
+		fetchJson(CATEGORIES_AND_TAGS_DATA_URL)
+	])
 
 	metadataCache.protocolMetadata = protocols
 	metadataCache.chainMetadata = chains
+	metadataCache.categoriesAndTags = categoriesAndTags
 }, 60 * 60 * 1000)
 
 export default metadataCache

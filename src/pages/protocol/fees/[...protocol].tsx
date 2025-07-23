@@ -31,7 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
-			if (protocolMetadata[key].name === normalizedName) {
+			if (slug(protocolMetadata[key].displayName) === normalizedName) {
 				metadata = [key, protocolMetadata[key]]
 				break
 			}
@@ -46,14 +46,14 @@ export const getStaticProps = withPerformanceLogging(
 				getProtocol(protocol),
 				getAdapterProtocolSummary({
 					adapterType: 'fees',
-					protocol: metadata[1].name,
+					protocol: metadata[1].displayName,
 					excludeTotalDataChart: false,
 					excludeTotalDataChartBreakdown: true
 				}),
 				metadata[1].revenue
 					? getAdapterProtocolSummary({
 							adapterType: 'fees',
-							protocol: metadata[1].name,
+							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyRevenue'
@@ -62,7 +62,7 @@ export const getStaticProps = withPerformanceLogging(
 				metadata[1].holdersRevenue
 					? getAdapterProtocolSummary({
 							adapterType: 'fees',
-							protocol: metadata[1].name,
+							protocol: metadata[1].displayName,
 							excludeTotalDataChart: true,
 							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyHoldersRevenue'
@@ -71,7 +71,7 @@ export const getStaticProps = withPerformanceLogging(
 				metadata[1].bribeRevenue
 					? getAdapterProtocolSummary({
 							adapterType: 'fees',
-							protocol: metadata[1].name,
+							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyBribesRevenue'
@@ -80,7 +80,7 @@ export const getStaticProps = withPerformanceLogging(
 				metadata[1].tokenTax
 					? getAdapterProtocolSummary({
 							adapterType: 'fees',
-							protocol: metadata[1].name,
+							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyTokenTaxes'

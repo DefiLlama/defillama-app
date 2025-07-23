@@ -8,7 +8,7 @@ import {
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useMemo } from 'react'
-import { firstDayOfMonth, getPercentChange, getPrevTvlFromChart, lastDayOfWeek, slug } from '~/utils'
+import { getPercentChange, getPrevTvlFromChart, slug } from '~/utils'
 import { ChainChartLabels, chainCharts } from './constants'
 import { useQuery } from '@tanstack/react-query'
 import {

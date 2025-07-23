@@ -28,7 +28,7 @@ export const getStaticProps = withPerformanceLogging(
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
-			if (protocolMetadata[key].name === normalizedName) {
+			if (slug(protocolMetadata[key].displayName) === normalizedName) {
 				metadata = [key, protocolMetadata[key]]
 				break
 			}
@@ -42,7 +42,7 @@ export const getStaticProps = withPerformanceLogging(
 			getProtocol(protocol),
 			getAdapterProtocolSummary({
 				adapterType: 'dexs',
-				protocol: metadata[1].name,
+				protocol: metadata[1].displayName,
 				excludeTotalDataChart: false,
 				excludeTotalDataChartBreakdown: true
 			})

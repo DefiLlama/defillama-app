@@ -16,7 +16,7 @@ import { SignIn } from './SignIn'
 
 export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTrial?: boolean }) {
 	const { isAuthenticated, loaders, user, changeEmail, addEmail } = useAuthContext()
-	const { subscription, isSubscriptionFetching } = useSubscribe()
+	const { subscription, isSubscriptionFetching, apiSubscription } = useSubscribe()
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [newEmail, setNewEmail] = useState('')
 	const isWalletUser = user?.email?.includes('@defillama.com')
@@ -264,7 +264,10 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									subscription?.provider !== 'trial'
 								}
 							/>
-							<SubscribeProCard context="page" />
+							<SubscribeProCard 
+								context="page" 
+								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
+							/>
 							<SubscribeEnterpriseCard />
 						</div>
 						<div className="flex md:hidden justify-center gap-2 mt-4">

@@ -4,7 +4,6 @@ import { PROTOCOLS_API } from '~/constants/index'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import { fetchJson } from '~/utils/async'
-import { descriptions, tags } from '../categories'
 import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
 import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
 
@@ -15,8 +14,13 @@ export const getStaticProps = withPerformanceLogging(
 			category: [category, chain]
 		}
 	}) => {
-		const categoryName = Object.entries(descriptions).find((d) => slug(d[0]) === slug(category))?.[0]
-		const tagName = tags.find((t) => slug(t) === slug(category))
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const { categoriesAndTags } = metadataCache
+		const categoryName = categoriesAndTags.categories.find((c) => slug(c) === slug(category))
+		let tagName = null
+		if (!categoryName) {
+			tagName = categoriesAndTags.tags.find((t) => slug(t) === slug(category))
+		}
 
 		if (!categoryName && !tagName) {
 			return {

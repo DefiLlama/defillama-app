@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
-			if (protocolMetadata[key].name === normalizedName) {
+			if (slug(protocolMetadata[key].displayName) === normalizedName) {
 				metadata = [key, protocolMetadata[key]]
 				break
 			}
@@ -48,7 +48,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		const projectYields = yields?.data?.filter(
 			({ project }) =>
-				project === metadata[1].name || (protocolData.parentProtocol ? false : otherProtocols.includes(project))
+				project === slug(metadata[1].displayName) ||
+				(protocolData.parentProtocol ? false : otherProtocols.includes(project))
 		)
 
 		return {

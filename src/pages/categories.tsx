@@ -307,21 +307,6 @@ export const descriptions = {
 	'Canonical Bridge': 'The official bridge designated by a blockchain for transferring its assets across networks'
 }
 
-export const tags = [
-	'Treasury Bills',
-	'Commodities',
-	'Other Fixed Income',
-	'Private Credit',
-	'Real Estate',
-	'Money Market Funds',
-	'Stocks & ETFs',
-	'Private Equity',
-	'Crowdfunding',
-	'Collectibles',
-	'Carbon Credits',
-	'Onchain Equity'
-]
-
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
 
 export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {

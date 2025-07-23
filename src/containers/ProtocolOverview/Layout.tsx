@@ -104,7 +104,11 @@ export function ProtocolOverviewLayout({
 				'Sumer.Money',
 				'Bullbaswap',
 				'Zircuit Staking',
-				'Magpie Ecosystem'
+				'Magpie Ecosystem',
+				'Pell Network',
+                'DeSyn Liquid Strategy',
+                'DeSyn Protocol',
+                'exSat Staking BTC',
 			].includes(name) && (
 				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
 					This protocol includes unproductive positions that may contribute to inflated metrics. Be safe

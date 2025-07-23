@@ -34,8 +34,8 @@ export const SubscriberContent = ({
 	legacySubscription
 }: SubscriberContentProps) => {
 	const isLlamaFeed = llamafeedSubscription?.status === 'active'
-	const isPro = apiSubscription?.status === 'active'
-	const isLegacy = legacySubscription?.status === 'active'
+	const isPro = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
+	const isLegacy = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const creditsLimit = isLlamaFeed ? 0 : 1_000_000
 
 	async function handleManageSubscription(type: 'llamafeed' | 'api') {
@@ -70,8 +70,9 @@ export const SubscriberContent = ({
 				/>
 				<SubscribeProCard
 					context="account"
-					active={isPro}
+					active={isPro || isLegacy}
 					onCancelSubscription={isPro ? () => handleManageSubscription('api') : undefined}
+					isLegacyActive={isLegacy}
 				/>
 				<SubscribeEnterpriseCard active={subscription?.type === 'enterprise'} />
 			</div>
