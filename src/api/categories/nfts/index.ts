@@ -302,6 +302,7 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 				name: collection[0].name,
 				displayName: collection[0].name,
 				logo: `https://nft-icons.llamao.fi/icons/nfts/${slug}?w=48&h=48`,
+				fallbackLogo: collection[0].image,
 				address: slug,
 				url: collection[0].projectUrl,
 				twitter: collection[0].twitterUsername,
