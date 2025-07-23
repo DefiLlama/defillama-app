@@ -55,7 +55,8 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				governanceApis: governanceApis.filter((x) => !!x)
+				governanceApis: governanceApis.filter((x) => !!x),
+				warningBanners: protocolData.warningBanners ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -75,6 +76,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			metrics={props.metrics}
 			tab="governance"
 			toggleOptions={[]}
+			warningBanners={props.warningBanners}
 		>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<GovernanceData apis={props.governanceApis} />

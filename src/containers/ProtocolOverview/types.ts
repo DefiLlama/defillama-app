@@ -102,6 +102,12 @@ export interface IUpdatedProtocol {
 	stablecoins?: Array<string>
 	misrepresentedTokens?: boolean
 	deprecated?: boolean
+	rugged?: boolean
+	warningBanners?: Array<{
+		message: string
+		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set
+		level: 'low' | 'alert' | 'rug'
+	}>
 }
 
 interface IAdapterOverview {
@@ -246,6 +252,7 @@ export interface IProtocolOverviewPageData {
 		monthDates: Array<[number, string]>
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
+	warningBanners?: IUpdatedProtocol['warningBanners']
 }
 
 export interface IHack {

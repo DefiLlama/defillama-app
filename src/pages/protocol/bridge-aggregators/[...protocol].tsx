@@ -88,7 +88,8 @@ export const getStaticProps = withPerformanceLogging(
 				bridgeAggregatorVolume,
 				chart,
 				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false
+				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
+				warningBanners: protocolData.warningBanners ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -124,6 +125,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="bridge-aggregators"
+			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">

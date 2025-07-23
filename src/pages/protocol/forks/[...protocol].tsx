@@ -37,7 +37,8 @@ export const getStaticProps = withPerformanceLogging(
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
-				metrics
+				metrics,
+				warningBanners: protocolData.warningBanners ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -56,6 +57,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="forks"
+			warningBanners={props.warningBanners}
 		>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<ForksData protocolName={props.name} />

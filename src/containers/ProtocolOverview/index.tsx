@@ -94,6 +94,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			otherProtocols={props.otherProtocols}
 			toggleOptions={toggleOptions}
 			metrics={props.metrics}
+			warningBanners={props.warningBanners}
 			tab="information"
 		>
 			<SEO

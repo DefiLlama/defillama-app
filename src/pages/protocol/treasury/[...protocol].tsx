@@ -47,7 +47,8 @@ export const getStaticProps = withPerformanceLogging(
 				name: protocolData.name,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
-				metrics
+				metrics,
+				warningBanners: protocolData.warningBanners ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -125,6 +126,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="treasury"
+			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
 			<div className="flex flex-wrap justify-between items-center gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2">

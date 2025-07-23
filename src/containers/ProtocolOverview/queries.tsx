@@ -977,7 +977,8 @@ export const getProtocolOverviewPageData = async ({
 		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string]),
 		geckoId: protocolData.gecko_id ?? null,
 		governanceApis: governanceApis(protocolData.governanceID) ?? null,
-		incomeStatement
+		incomeStatement,
+		warningBanners: protocolData.warningBanners ?? []
 	}
 }
 

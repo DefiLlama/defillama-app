@@ -38,7 +38,8 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				assetName: protocolData.stablecoins[0]
+				assetName: protocolData.stablecoins[0],
+				warningBanners: protocolData.warningBanners ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -57,6 +58,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="stablecoins"
+			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">

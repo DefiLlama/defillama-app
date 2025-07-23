@@ -52,7 +52,8 @@ export const getStaticProps = withPerformanceLogging(
 				parentProtocol: protocolData.parentProtocol ?? null,
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
-				metrics
+				metrics,
+				warningBanners: protocolData.warningBanners ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -83,6 +84,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="tvl"
+			warningBanners={props.warningBanners}
 		>
 			{isLoading ? (
 				<p className="flex items-center justify-center text-center min-h-[384px] p-2">Loading...</p>

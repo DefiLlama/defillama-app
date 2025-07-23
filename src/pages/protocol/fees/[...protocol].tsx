@@ -190,7 +190,8 @@ export const getStaticProps = withPerformanceLogging(
 				charts,
 				defaultCharts,
 				hasMultipleChain: feesData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false
+				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
+				warningBanners: protocolData.warningBanners ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -279,6 +280,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="fees"
+			warningBanners={props.warningBanners}
 			toggleOptions={toggleOptions}
 		>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">

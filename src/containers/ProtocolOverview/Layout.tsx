@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { scams } from '~/constants'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { slug, tokenIconUrl } from '~/utils'
 import { BasicLink } from '~/components/Link'
@@ -17,7 +16,8 @@ export function ProtocolOverviewLayout({
 	otherProtocols,
 	toggleOptions,
 	metrics,
-	tab
+	tab,
+	warningBanners
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -47,27 +47,18 @@ export function ProtocolOverviewLayout({
 		| 'options'
 		| 'governance'
 		| 'forks'
+	warningBanners?: Array<{
+		message: string
+		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set
+		level: 'low' | 'alert' | 'rug'
+	}>
 }) {
 	return (
 		<Layout title={`${name} - DefiLlama`} style={defaultProtocolPageStyles}>
 			<ProtocolsChainsSearch options={toggleOptions} />
-			{scams.includes(name) && (
-				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
-					Project has some red flags and multiple users have reported concerns. Be careful.
-				</p>
-			)}
-			{name === '01' && (
-				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
-					01 Exchange was winded down. Please withdraw your remaining assets.
-				</p>
-			)}
-			{name === 'Curve Finance' && (
-				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
-					Curve Finance updated their website to curve.finance. Update all your bookmarks.
-				</p>
-			)}
+
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
-				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
+				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color)">
 					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
 					click{' '}
 					<a
@@ -82,44 +73,19 @@ export function ProtocolOverviewLayout({
 				</p>
 			)}
 
-			{name === 'Multichain' && (
-				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
-					Please avoid using Multichain. The Multichain team doesn't control the keys and your money will get
-					stuck/lost.
+			{warningBanners?.map((banner) => (
+				<p
+					className={`relative p-2 text-xs text-black dark:text-white text-center rounded-md border ${
+						banner.level === 'rug'
+							? 'bg-(--pct-red)/20 border-(--pct-red)'
+							: banner.level === 'alert'
+							? 'bg-(--pct-yellow)/20 border-(--pct-yellow)'
+							: 'bg-(--btn-bg) border-(--bg-color)'
+					}`}
+				>
+					{banner.message}
 				</p>
-			)}
-
-			{(name === 'ReHold' || name === 'ReHold V1' || name === 'ReHold V2') && (
-				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
-					$700,000 Unsanctioned Withdrawal Be cautious when interacting with ReHold, ReHold V1, and ReHold V2. It is
-					important to review both sides of the story: Check both the history here:
-					medium.com/@bifotofficial/700-000-unauthorized-withdrawal-from-rehold-protocol-full-disclosure-and-next-steps-097119d545cd
-					and the other side here: prnt.sc/HspPo_049Lzk. On rehold.io. Made on 26/09/2024.
-				</p>
-			)}
-			{[
-				'DeSyn Liquid Strategy',
-				'YieldNest',
-				'DeSyn Safe',
-				'Sumer.Money',
-				'Bullbaswap',
-				'Zircuit Staking',
-				'Magpie Ecosystem',
-				'Pell Network',
-                'DeSyn Liquid Strategy',
-                'DeSyn Protocol',
-                'exSat Staking BTC',
-			].includes(name) && (
-				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color) mb-1">
-					This protocol includes unproductive positions that may contribute to inflated metrics. Be safe
-				</p>
-			)}
-			{name === 'PumpBTC' && (
-				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-[--btn-bg] border border-[--bg-color] mb-1">
-					PumpBTC has been reported for using unbacked assets to artificially inflate its own and other protocols TVL
-					metrics. Proceed with caution.
-				</p>
-			)}
+			))}
 
 			<div className="flex flex-col gap-2 isolate">
 				<div className="w-full flex overflow-x-auto text-xs font-medium">

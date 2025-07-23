@@ -65,7 +65,8 @@ export const getStaticProps = withPerformanceLogging(
 								noOfPoolsTracked: projectYields.length,
 								averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
 						  }
-						: null
+						: null,
+				warningBanners: protocolData.warningBanners ?? []
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -84,6 +85,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="yields"
+			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
 			<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
