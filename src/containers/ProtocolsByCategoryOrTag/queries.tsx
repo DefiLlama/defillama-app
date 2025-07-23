@@ -40,7 +40,7 @@ export async function getProtocolsByCategoryOrTag({
 		dexVolumeData,
 		perpVolumeData,
 		chartData,
-		chainsByCategories
+		chainsByCategoriesOrTags
 	]: [
 		{ protocols: Array<ILiteProtocol>; parentProtocols: Array<ILiteParentProtocol> },
 		IAdapterOverview | null,
@@ -87,10 +87,12 @@ export async function getProtocolsByCategoryOrTag({
 		tag
 			? fetchJson(`${TAGS_CHART_API}/${slug(tag)}${chain ? `/${chain}` : ''}`)
 			: fetchJson(`${CATEGORY_CHART_API}/${slug(category)}${chain ? `/${chain}` : ''}`),
-		fetchJson('https://api.llama.fi/lite/chains-by-categories').catch(() => null)
+		tag
+			? fetchJson('https://api.llama.fi/lite/chains-by-tags').catch(() => null)
+			: fetchJson('https://api.llama.fi/lite/chains-by-categories').catch(() => null)
 	])
 
-	const chains = category ? chainsByCategories?.[category.toLowerCase().replace(' ', '_')] ?? [] : []
+	const chains = chainsByCategoriesOrTags?.[tag ?? category] ?? []
 
 	const adapterDataStore = {}
 	for (const protocol of feesData?.protocols ?? []) {
