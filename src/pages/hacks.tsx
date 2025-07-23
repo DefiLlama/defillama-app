@@ -23,9 +23,9 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 
 	const monthlyHacks = {}
 
-	data.forEach((r) => {
-		const monthlyDate = getFirstDateOfTheMonth(r.date)
-		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + r.amount * 1e6
+	data.forEach((hack) => {
+		const monthlyDate = getFirstDateOfTheMonth(hack.date)
+		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + hack.amount * 1e6
 	})
 
 	const totalHacked = formattedNum(
@@ -57,20 +57,18 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	const sumDuplicates = (acc, obj) => {
 		const found = acc.find((o) => o.name === obj.name)
 		if (found) {
-			found.value += obj.value
+			found.value += obj.value * 1e6
 		} else {
-			acc.push(obj)
+			acc.push({ ...obj, value: obj.value * 1e6 })
 		}
 		return acc
 	}
 
-	const reducedData = onlyHacksTechnique.reduce(sumDuplicates, [])
-	const othersValue = reducedData.slice(15).reduce((total, entry) => total + entry.value, 0)
+	const groupedHacks = onlyHacksTechnique.reduce(sumDuplicates, []).toSorted((a, b) => b.value - a.value)
 
-	const pieChartData = [
-		...reducedData.sort((a, b) => b.value - a.value).slice(0, 15),
-		{ name: 'Others', value: othersValue }
-	]
+	const othersValue = groupedHacks.slice(15).reduce((total, entry) => total + entry.value, 0)
+
+	const pieChartData = [...groupedHacks.slice(0, 15), { name: 'Others', value: othersValue }]
 
 	return {
 		props: {
