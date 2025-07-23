@@ -176,7 +176,7 @@ export const formatChainsData = ({
 					chainNetflowWeek.withdrawn_usd !== undefined ? Number(chainNetflowWeek.withdrawn_usd) : 0
 				prevWeekNetFlow =
 					chainNetflowWeek.net_flow !== undefined
-						? -Number(chainNetflowWeek.net_flow)
+						? Number(chainNetflowWeek.net_flow)
 						: prevWeekUsdWithdrawals - prevWeekUsdDeposits
 			} else {
 				const prevWeekCharts = chartDataByChain[chartIndex].slice(-8, -1)
