@@ -3,6 +3,7 @@ import { GetStaticProps, GetStaticPropsContext } from 'next'
 import { RedisCachePayload, getCache, setCache, setPageBuildTimes } from './cache-client'
 import { maxAgeForNext } from '~/api'
 import { postRuntimeLogs } from './async'
+import { fetchWithConnectionPooling } from './http-client'
 
 const isServer = typeof document === 'undefined'
 const REDIS_URL = process.env.REDIS_URL as string
@@ -52,7 +53,9 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 
 	if (process.env.NODE_ENV === 'development') {
 		try {
-			const response = await fetch(url, options)
+			// Use connection pooling on server-side, regular fetch on client-side
+			const response =
+				isServer && typeof url === 'string' ? await fetchWithConnectionPooling(url, options) : await fetch(url, options)
 			return response
 		} catch (error) {
 			postRuntimeLogs(`fetch error for <${url}>`)
@@ -88,7 +91,10 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		try {
 			const controller = new AbortController()
 			const id = setTimeout(() => controller.abort(), timeout)
-			const response = await fetch(url, { ...options, signal: controller.signal })
+			const response =
+				isServer && typeof url === 'string'
+					? await fetchWithConnectionPooling(url, { ...options, signal: controller.signal })
+					: await fetch(url, { ...options, signal: controller.signal })
 			clearTimeout(id)
 
 			const arrayBuffer = await response.arrayBuffer()
