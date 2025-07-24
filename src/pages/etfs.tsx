@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { lastDayOfWeek, firstDayOfMonth, toK, download, toNiceCsvDate } from '~/utils'
+import { lastDayOfWeek, firstDayOfMonth, download, toNiceCsvDate, formattedNum } from '~/utils'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ETFColumn } from '~/components/Table/Defi/columns'
@@ -42,12 +42,12 @@ const AssetSection = ({ name, iconUrl, flows, aum }: AssetSectionProps) => (
 			<div className="flex items-center justify-between">
 				<span className="font-medium">Flows</span>
 				<span className={`font-jetbrains ${flows > 0 ? 'text-green-500' : flows < 0 ? 'text-red-500' : ''}`}>
-					{`${flows > 0 ? '+' : '-'}$${toK(Math.abs(flows) || 0)}`}
+					{formattedNum(flows || 0, true)}
 				</span>
 			</div>
 			<div className="flex items-center justify-between">
 				<span className="font-medium">AUM</span>
-				<span className="font-jetbrains">${toK(aum || 0)}</span>
+				<span className="font-jetbrains">{formattedNum(aum || 0, true)}</span>
 			</div>
 		</div>
 	</div>
