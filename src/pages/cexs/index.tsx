@@ -705,7 +705,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 	])
 	const cexs = await Promise.all(
 		cexData.map(async (c) => {
-			if (c.slug === undefined) {
+			if (c.slug == null) {
 				return c
 			} else {
 				const res = await Promise.allSettled([
@@ -724,15 +724,15 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 
 				let ownToken = 0
 
-				Object.values(chainTvls as IChainTvl).map((item) => {
-					if (item.tvl) {
-						cexTvl += item.tvl[item.tvl.length - 1]?.totalLiquidityUSD ?? 0
+				for (const chain in chainTvls) {
+					if (chainTvls[chain].tvl) {
+						cexTvl += chainTvls[chain].tvl[chainTvls[chain].tvl.length - 1]?.totalLiquidityUSD ?? 0
 					}
 
-					if (item.tokensInUsd) {
-						ownToken += item.tokensInUsd[item.tokensInUsd.length - 1]?.tokens[c.coin] ?? 0
+					if (chainTvls[chain].tokensInUsd) {
+						ownToken += chainTvls[chain].tokensInUsd[chainTvls[chain].tokensInUsd.length - 1]?.tokens[c.coin] ?? 0
 					}
-				})
+				}
 
 				const cleanTvl = cexTvl - ownToken
 
