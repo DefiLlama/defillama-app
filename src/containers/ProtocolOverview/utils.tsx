@@ -3,6 +3,7 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl } from '~/api/types'
 import type { IRaise, IUpdatedProtocol } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { postRuntimeLogs } from '~/utils/async'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
 	const tvlDictionary: { [data: number]: { [chain: string]: number } } = {}
@@ -388,7 +389,38 @@ export const useFetchProtocolAddlChartsData = (protocolName) => {
 }
 
 export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
-	const banners = [...(protocolData.warningBanners ?? [])]
+	// Helper function to check if a date is in valid format
+	const isValidDateFormat = (date: any): boolean => {
+		if (!date || date === 'forever') return true
+
+		// Check if it's a number (seconds or milliseconds)
+		if (typeof date === 'number') {
+			const dateObj = new Date(date * 1000)
+			return !isNaN(dateObj.getTime())
+		}
+
+		// Check if it's a string in YYYY-MM-DD format
+		if (typeof date === 'string') {
+			const dateObj = new Date(date)
+			return !isNaN(dateObj.getTime())
+		}
+
+		return false
+	}
+
+	const banners = [...(protocolData.warningBanners ?? [])].filter((banner) => {
+		if (!banner.until || banner.until === 'forever') {
+			return true
+		}
+
+		// Validate date format first
+		if (!isValidDateFormat(banner.until)) {
+			postRuntimeLogs(`Invalid date format for ${protocolData.name} banner`)
+			return false
+		}
+
+		return new Date(typeof banner.until === 'number' ? banner.until * 1000 : banner.until) > new Date()
+	})
 
 	if (protocolData.rugged && protocolData.deadUrl) {
 		banners.push({
