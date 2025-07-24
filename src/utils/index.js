@@ -719,7 +719,7 @@ export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue
 		return acc + curr.value
 	}, 0)
 
-	if (otherSlices.length > 0) {
+	if (otherSlicesValue > 0) {
 		return [...mainSlices, { name: 'Others', value: otherSlicesValue }]
 	}
 

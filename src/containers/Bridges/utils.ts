@@ -239,10 +239,12 @@ export const formatChainsData = ({
 }
 
 const groupTokensBySymbol = (tokens: { [token: string]: ITokenData }) => {
-	return Object.entries(tokens).reduce((acc, [_, tokenData]) => {
-		acc[tokenData.symbol] = (acc[tokenData.symbol] ?? 0) + tokenData.usdValue
-		return acc
-	}, {} as { [symbol: string]: number })
+	const group = {}
+	for (const token in tokens) {
+		const symbol = tokens[token].symbol || 'Unknown'
+		group[symbol] = (group[symbol] ?? 0) + (tokens[token].usdValue || 0)
+	}
+	return group
 }
 
 export const useBuildBridgeChartData = (bridgeStatsCurrentDay: IDailyBridgeStats) => {

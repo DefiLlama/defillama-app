@@ -321,12 +321,12 @@ export function BridgesOverviewByChain({
 							)}
 							{chartType === '24h Tokens Deposited' && (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<PieChart chartData={tokenWithdrawals} />
+									<PieChart chartData={tokenDeposits} />
 								</React.Suspense>
 							)}
 							{chartType === '24h Tokens Withdrawn' && (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<PieChart chartData={tokenDeposits} />
+									<PieChart chartData={tokenWithdrawals} />
 								</React.Suspense>
 							)}
 						</>
