@@ -38,35 +38,8 @@ export function VirtualTable({
 }: ITableProps) {
 	const router = useRouter()
 	const tableContainerRef = useRef<HTMLTableSectionElement>(null)
-	// const [, forceUpdate] = React.useReducer((x) => x + 1, 0)
 	const { rows } = instance.getRowModel()
-	// React.useEffect(() => {
-	// 	if (!tableContainerRef.current) return
 
-	// 	// Handle window resize
-	// 	const handleResize = () => {
-	// 		forceUpdate()
-	// 	}
-	// 	window.addEventListener('resize', handleResize)
-
-	// 	// Handle position changes
-	// 	const resizeObserver = new ResizeObserver(handleResize)
-	// 	const intersectionObserver = new IntersectionObserver(handleResize, { threshold: [0, 1] })
-
-	// 	// Observe the table and its parent elements up to body
-	// 	let element: HTMLElement | null = tableContainerRef.current
-	// 	while (element && element !== document.body) {
-	// 		resizeObserver.observe(element)
-	// 		intersectionObserver.observe(element)
-	// 		element = element.parentElement
-	// 	}
-
-	// 	return () => {
-	// 		window.removeEventListener('resize', handleResize)
-	// 		resizeObserver.disconnect()
-	// 		intersectionObserver.disconnect()
-	// 	}
-	// }, [])
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
 		estimateSize: () => rowSize || 50,
@@ -102,33 +75,49 @@ export function VirtualTable({
 		return () => window.removeEventListener('keydown', focusSearchBar)
 	}, [])
 
-	useEffect(() => {
-		const onScroll = () => {
-			const tableWrapperEl = document.getElementById('table-wrapper')
-			const tableHeaderDuplicate = document.getElementById('table-header-dup')
+	const onScrollOrResize = React.useCallback(() => {
+		const tableWrapperEl = document.getElementById('table-wrapper')
+		const tableHeaderDuplicate = document.getElementById('table-header-dup')
 
-			if (
-				!skipVirtualization &&
-				tableHeaderRef.current &&
-				tableWrapperEl &&
-				tableWrapperEl.getBoundingClientRect().top <= 20 &&
-				tableHeaderDuplicate
-			) {
-				tableHeaderRef.current.style.position = 'fixed'
-				tableHeaderRef.current.style.top = '0px'
-				tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
-				tableHeaderRef.current.style['overflow-x'] = 'overlay'
-				tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
-				tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
-			} else if (tableHeaderRef.current) {
-				tableHeaderRef.current.style.position = 'relative'
-				tableHeaderRef.current.style['overflow-x'] = 'initial'
-				tableHeaderDuplicate.style.height = '0px'
-			}
+		if (
+			!skipVirtualization &&
+			tableHeaderRef.current &&
+			tableWrapperEl &&
+			tableWrapperEl.getBoundingClientRect().top <= 20 &&
+			tableHeaderDuplicate
+		) {
+			tableHeaderRef.current.style.position = 'fixed'
+			tableHeaderRef.current.style.top = '0px'
+			tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
+			tableHeaderRef.current.style['overflow-x'] = 'overlay'
+			tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
+			tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
+		} else if (tableHeaderRef.current) {
+			tableHeaderRef.current.style.position = 'relative'
+			tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
+			tableHeaderRef.current.style['overflow-x'] = 'initial'
+			tableHeaderDuplicate.style.height = '0px'
 		}
-		window.addEventListener('scroll', onScroll)
-		return () => window.removeEventListener('scroll', onScroll)
-	}, [skipVirtualization, instance])
+	}, [instance, skipVirtualization])
+
+	useEffect(() => {
+		let resizeTimeout: NodeJS.Timeout
+
+		const handleResize = () => {
+			clearTimeout(resizeTimeout)
+			resizeTimeout = setTimeout(() => {
+				onScrollOrResize()
+			}, 50) // 50ms debounce
+		}
+
+		window.addEventListener('scroll', onScrollOrResize)
+		window.addEventListener('resize', handleResize)
+		return () => {
+			clearTimeout(resizeTimeout)
+			window.removeEventListener('scroll', onScrollOrResize)
+			window.removeEventListener('resize', handleResize)
+		}
+	}, [onScrollOrResize])
 
 	useEffect(() => {
 		const tableWrapperEl = document.getElementById('table-wrapper')
