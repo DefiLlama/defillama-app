@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { formattedNum, formattedPercent } from '~/utils'
+import { percentageSortingFn } from '../../../utils/tableSorting'
 
 export const perpsDatasetColumns: ColumnDef<any>[] = [
 	{
@@ -31,6 +32,8 @@ export const perpsDatasetColumns: ColumnDef<any>[] = [
 		header: '24h Change',
 		accessorKey: 'change_1d',
 		size: 100,
+		sortUndefined: 'last',
+		sortingFn: percentageSortingFn,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
@@ -44,6 +47,8 @@ export const perpsDatasetColumns: ColumnDef<any>[] = [
 		header: '7d Change',
 		accessorKey: 'change_7d',
 		size: 100,
+		sortUndefined: 'last',
+		sortingFn: percentageSortingFn,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (

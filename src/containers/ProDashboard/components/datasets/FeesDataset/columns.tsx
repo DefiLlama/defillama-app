@@ -2,6 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { percentageSortingFn } from '../../../utils/tableSorting'
 
 interface IFeesRow {
 	name: string
@@ -92,6 +93,8 @@ export const feesDatasetColumns: ColumnDef<IFeesRow>[] = [
 		header: '24h Change',
 		accessorKey: 'change_1d',
 		size: 100,
+		sortUndefined: 'last',
+		sortingFn: percentageSortingFn,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
@@ -108,6 +111,8 @@ export const feesDatasetColumns: ColumnDef<IFeesRow>[] = [
 		header: '7d Change',
 		accessorKey: 'change_7d',
 		size: 100,
+		sortUndefined: 'last',
+		sortingFn: percentageSortingFn,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (

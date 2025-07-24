@@ -31,6 +31,7 @@ export const dexsDatasetColumns: ColumnDef<any>[] = [
 		header: '24h Change',
 		accessorKey: 'change_1d',
 		size: 100,
+		sortUndefined: 'last',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
@@ -44,6 +45,7 @@ export const dexsDatasetColumns: ColumnDef<any>[] = [
 		header: '7d Change',
 		accessorKey: 'change_7d',
 		size: 100,
+		sortUndefined: 'last',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
