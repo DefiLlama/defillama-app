@@ -27,7 +27,8 @@ export function ChainsTableHeader({
 		{ key: 'essential', label: 'Essential' },
 		{ key: 'defi', label: 'DeFi' },
 		{ key: 'volume', label: 'Volume' },
-		{ key: 'advanced', label: 'Advanced' }
+		{ key: 'advanced', label: 'Advanced' },
+		{ key: 'shares', label: 'Market Share' }
 	]
 
 	return (

@@ -2,6 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { percentageSortingFn } from '../../../utils/tableSorting'
 
 interface IRevenueRow {
 	name: string
@@ -93,6 +94,7 @@ export const revenueDatasetColumns: ColumnDef<IRevenueRow>[] = [
 		accessorKey: 'change_1d',
 		size: 100,
 		sortUndefined: 'last',
+		sortingFn: percentageSortingFn,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
@@ -110,6 +112,7 @@ export const revenueDatasetColumns: ColumnDef<IRevenueRow>[] = [
 		accessorKey: 'change_7d',
 		size: 100,
 		sortUndefined: 'last',
+		sortingFn: percentageSortingFn,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (

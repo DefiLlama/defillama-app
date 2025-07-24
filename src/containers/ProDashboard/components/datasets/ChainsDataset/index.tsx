@@ -55,9 +55,77 @@ export function ChainsDataset({
 	const { data, isLoading, error } = useChainsData(category)
 	const windowSize = useWindowSize()
 
+	const totals = React.useMemo(() => {
+		const sums: Record<string, number> = {}
+		const metrics = ['tvl', 'stablesMcap', 'totalVolume24h', 'totalFees24h', 'totalAppRevenue24h', 'nftVolume']
+
+		metrics.forEach((metric) => {
+			sums[metric] = 0
+		})
+
+		if (data && Array.isArray(data)) {
+			data.forEach((chain) => {
+				metrics.forEach((metric) => {
+					const value = chain[metric]
+					if (typeof value === 'number' && value > 0) {
+						sums[metric] += value
+					}
+				})
+			})
+		}
+
+		return sums
+	}, [data])
+
+	const percentageShareColumns = React.useMemo(() => {
+		const shareMetrics = [
+			{ key: 'tvl', name: 'DeFi TVL % Share' },
+			{ key: 'stablesMcap', name: 'Stables % Share' },
+			{ key: 'totalVolume24h', name: '24h Volume % Share' },
+			{ key: 'totalFees24h', name: '24h Fees % Share' },
+			{ key: 'totalAppRevenue24h', name: '24h Revenue % Share' },
+			{ key: 'nftVolume', name: 'NFT Volume % Share' }
+		]
+
+		return shareMetrics.map(
+			(metric): ColumnDef<any> => ({
+				id: `${metric.key}_share`,
+				header: metric.name,
+				size: 120,
+				accessorFn: (row) => {
+					const value = row[metric.key]
+					const total = totals[metric.key]
+
+					if (typeof value === 'number' && value > 0 && total > 0) {
+						return (value / total) * 100
+					}
+					return null
+				},
+				cell: ({ getValue }) => {
+					const value = getValue() as number | null
+					if (value === null || value === undefined) return <span className="font-mono pro-text2">-</span>
+
+					return <span className="font-mono pro-text2">{value.toFixed(2)}%</span>
+				},
+				sortingFn: (rowA, rowB, columnId) => {
+					const a = rowA.getValue(columnId) as number | null
+					const b = rowB.getValue(columnId) as number | null
+					if (a === null && b !== null) return 1
+					if (a !== null && b === null) return -1
+					if (a === null && b === null) return 0
+					return (a ?? 0) - (b ?? 0)
+				}
+			})
+		)
+	}, [totals])
+
+	const allColumns = React.useMemo(() => {
+		return [...chainsDatasetColumns, ...percentageShareColumns] as ColumnDef<any>[]
+	}, [percentageShareColumns])
+
 	const instance = useReactTable({
 		data: data || [],
-		columns: chainsDatasetColumns as ColumnDef<any>[],
+		columns: allColumns,
 		state: {
 			sorting,
 			columnOrder,
@@ -98,6 +166,14 @@ export function ChainsDataset({
 				'totalAppRevenue24h',
 				'mcaptvl',
 				'nftVolume'
+			],
+			shares: [
+				'name',
+				'tvl_share',
+				'stablesMcap_share',
+				'totalVolume24h_share',
+				'totalFees24h_share',
+				'totalAppRevenue24h_share'
 			]
 		}),
 		[]
@@ -252,13 +328,13 @@ export function ChainsDataset({
 		URL.revokeObjectURL(url)
 	}, [instance])
 
-	const allColumns = React.useMemo(
+	const columnOptions = React.useMemo(
 		() =>
-			chainsDatasetColumns.map((col) => ({
+			[...chainsDatasetColumns, ...percentageShareColumns].map((col) => ({
 				id: (col as any).accessorKey || col.id,
-				name: col.header as string
+				name: typeof col.header === 'string' ? col.header : col.id || ''
 			})),
-		[]
+		[percentageShareColumns]
 	)
 
 	const moveColumnUp = React.useCallback(
@@ -348,7 +424,7 @@ export function ChainsDataset({
 			<ColumnManagementPanel
 				showColumnPanel={showColumnPanel}
 				setShowColumnPanel={setShowColumnPanel}
-				columns={allColumns}
+				columns={columnOptions}
 				columnVisibility={columnVisibility}
 				columnOrder={columnOrder}
 				toggleColumnVisibility={toggleColumnVisibility}

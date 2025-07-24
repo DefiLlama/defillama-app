@@ -31,8 +31,32 @@ export function ColumnManagementPanel({
 	const [searchTerm, setSearchTerm] = React.useState('')
 
 	const filteredColumns = React.useMemo(() => {
-		return columns.filter((column) => column.name.toLowerCase().includes(searchTerm.toLowerCase()))
+		return columns.filter((column) => column.name && column.name.toLowerCase().includes(searchTerm.toLowerCase()))
 	}, [columns, searchTerm])
+
+	const percentageShareColumns = React.useMemo(() => {
+		return filteredColumns.filter((col) => col.id.endsWith('_share'))
+	}, [filteredColumns])
+
+	const standardColumns = React.useMemo(() => {
+		return filteredColumns.filter((col) => !col.id.endsWith('_share'))
+	}, [filteredColumns])
+
+	const columnGroups = React.useMemo(() => {
+		const groups = [
+			{
+				title: 'Percentage Share',
+				columns: percentageShareColumns,
+				show: percentageShareColumns.length > 0
+			},
+			{
+				title: 'Standard Metrics',
+				columns: standardColumns,
+				show: standardColumns.length > 0
+			}
+		]
+		return groups.filter((group) => group.show)
+	}, [percentageShareColumns, standardColumns])
 
 	const activeColumns = React.useMemo(() => {
 		const orderedVisibleColumns = columnOrder.filter((id) => columnVisibility[id] !== false)
@@ -115,6 +139,9 @@ export function ColumnManagementPanel({
 									<div className="flex items-center gap-2">
 										<Icon name="check" height={12} width={12} className="text-green-500" />
 										<span className="text-xs pro-text1">{column.name}</span>
+										{columnId.endsWith('_share') && (
+											<span className="text-xs px-1 py-0.5 bg-blue-600 text-white rounded-sm">%</span>
+										)}
 									</div>
 									<div className="flex items-center gap-1">
 										{moveColumnUp && !isFirst && (
@@ -155,19 +182,29 @@ export function ColumnManagementPanel({
 						Available Columns
 					</h5>
 					<p className="text-xs pro-text3 mb-3">Click to add to table</p>
-					<div className="space-y-1 max-h-60 overflow-y-auto thin-scrollbar">
-						{filteredColumns
-							.filter((col) => columnVisibility[col.id] === false)
-							.map((column) => (
-								<button
-									key={column.id}
-									onClick={() => toggleColumnVisibility(column.id)}
-									className="flex items-center gap-2 w-full p-2 text-left border pro-divider pro-hover-bg transition-colors pro-bg2"
-								>
-									<Icon name="plus" height={10} width={10} className="pro-text3" />
-									<span className="text-xs pro-text1">{column.name}</span>
-								</button>
-							))}
+					<div className="space-y-3 max-h-60 overflow-y-auto thin-scrollbar">
+						{columnGroups.map((group) => (
+							<div key={group.title}>
+								<h6 className="text-xs font-medium pro-text2 mb-1">{group.title}</h6>
+								<div className="space-y-1">
+									{group.columns
+										.filter((col) => columnVisibility[col.id] === false)
+										.map((column) => (
+											<button
+												key={column.id}
+												onClick={() => toggleColumnVisibility(column.id)}
+												className="flex items-center gap-2 w-full p-2 text-left border pro-divider pro-hover-bg transition-colors pro-bg2"
+											>
+												<Icon name="plus" height={10} width={10} className="pro-text3" />
+												<span className="text-xs pro-text1">{column.name}</span>
+												{column.id.endsWith('_share') && (
+													<span className="text-xs px-1 py-0.5 bg-blue-600 text-white rounded-sm ml-auto">%</span>
+												)}
+											</button>
+										))}
+								</div>
+							</div>
+						))}
 					</div>
 				</div>
 			</div>
