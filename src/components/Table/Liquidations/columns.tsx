@@ -186,7 +186,10 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 			_value = 'benqi-lending'
 			break
 		case 'maker':
-			_value = 'makerdao'
+			_value = 'sky'
+			break
+		case 'mimo-protocol':
+			_value = 'mimo'
 			break
 		case 'compound':
 			_value = 'compound-finance'
