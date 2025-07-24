@@ -1,4 +1,4 @@
-import { slug, chainIconUrl, tokenIconUrl, getRandomColor } from '~/utils'
+import { slug, chainIconUrl, tokenIconUrl, getRandomColor, preparePieChartData } from '~/utils'
 import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
 import {
@@ -498,20 +498,15 @@ export async function getBridgePageDatanew(bridge: string) {
 				}, [])
 			}
 
-			const otherDeposits = fullTokenDeposits.slice(10).reduce((total, entry) => {
-				return (total += entry.value)
-			}, 0)
-			tokenDeposits = fullTokenDeposits
-				.slice(0, 15)
-				.sort((a, b) => b.value - a.value)
-				.concat({ name: 'Others', value: otherDeposits })
-			const otherWithdrawals = fullTokenWithdrawals.slice(10).reduce((total, entry) => {
-				return (total += entry.value)
-			}, 0)
-			tokenWithdrawals = fullTokenWithdrawals
-				.slice(0, 15)
-				.sort((a, b) => b.value - a.value)
-				.concat({ name: 'Others', value: otherWithdrawals })
+			const tokenDeposits = preparePieChartData({
+				data: fullTokenDeposits,
+				limit: 15
+			})
+			const tokenWithdrawals = preparePieChartData({
+				data: fullTokenWithdrawals,
+				limit: 15
+			})
+
 			tokenColor = Object.fromEntries(
 				[...tokenDeposits, ...tokenWithdrawals, 'Others'].map((token) => {
 					return typeof token === 'string' ? ['-', getRandomColor()] : [token.name, getRandomColor()]

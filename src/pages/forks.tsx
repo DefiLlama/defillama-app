@@ -10,7 +10,7 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { forksColumn } from '~/components/Table/Defi/columns'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download } from '~/utils'
+import { download, preparePieChartData } from '~/utils'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Metrics } from '~/components/Metrics'
 
@@ -40,11 +40,10 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 			.map((token) => ({ name: token[0], value: token[1] }))
 			.sort((a, b) => b.value - a.value)
 
-		const otherTvl = tvls.slice(5).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
-
-		const tokenTvls = tvls.slice(0, 5).concat({ name: 'Others', value: otherTvl })
+		const tokenTvls = preparePieChartData({
+			data: tvls,
+			limit: 5
+		})
 
 		const tokensList = tvls.map(({ name, value }) => {
 			const tokenTvl = forkedTokensData.find((p) => p.name.toLowerCase() === name.toLowerCase())?.tvl ?? null

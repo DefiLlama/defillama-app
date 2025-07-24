@@ -9,7 +9,7 @@ import {
 	getStablecoinDominance,
 	getPrevStablecoinTotalFromChart
 } from '~/containers/Stablecoins/utils'
-import { formattedNum, getPercentChange, toNiceCsvDate, download } from '~/utils'
+import { formattedNum, getPercentChange, toNiceCsvDate, download, preparePieChartData } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -123,16 +123,7 @@ function PeggedChainsOverview({
 	const groupedChains = useGroupChainsPegged(chainTotals, chainsGroupbyParent)
 
 	const chainsCirculatingValues = React.useMemo(() => {
-		const data = groupedChains.map((chain) => ({ name: chain.name, value: chain.mcap }))
-
-		const otherCirculating = data.slice(10).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
-
-		return data
-			.slice(0, 10)
-			.sort((a, b) => b.value - a.value)
-			.concat({ name: 'Others', value: otherCirculating })
+		return preparePieChartData({ data: groupedChains, sliceIdentifier: 'name', sliceValue: 'mcap', limit: 10 })
 	}, [groupedChains])
 
 	return (

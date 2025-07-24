@@ -2,7 +2,6 @@ import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { ORACLE_API, PROTOCOLS_API } from '~/constants'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
 import { getColorFromNumber } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -20,23 +19,10 @@ interface IOracleApiResponse {
 // - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null, chain = null) {
 	try {
-		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }, perps]: [
+		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
 			IOracleApiResponse,
-			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
-			IAdapterOverview | null
-		] = await Promise.all([
-			fetchJson(ORACLE_API),
-			fetchJson(PROTOCOLS_API),
-			getAdapterChainOverview({
-				adapterType: 'derivatives',
-				chain: 'All',
-				excludeTotalDataChart: true,
-				excludeTotalDataChartBreakdown: true
-			}).catch((err) => {
-				console.log(err)
-				return null
-			})
-		])
+			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> }
+		] = await Promise.all([fetchJson(ORACLE_API), fetchJson(PROTOCOLS_API)])
 
 		const oracleExists = oracle ? oraclesTVS[oracle] && (chain ? chainsByOracle[oracle].includes(chain) : true) : true
 
@@ -166,8 +152,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			tokensProtocols: oraclesProtocols,
 			filteredProtocols: protocolsWithBreakdown,
 			chartData,
-			oraclesColors: colors,
-			derivativeProtocols: perps?.protocols ?? []
+			oraclesColors: colors
 		}
 	} catch (e) {
 		console.log(e)

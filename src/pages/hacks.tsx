@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import HacksContainer from '~/containers/Hacks'
-import { formattedNum } from '~/utils'
+import { formattedNum, preparePieChartData } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchJson } from '~/utils/async'
@@ -64,12 +64,9 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 		return acc
 	}
 
-	const groupedHacks = onlyHacksTechnique.reduce(sumDuplicates, []).toSorted((a, b) => b.value - a.value)
+	const groupedHacks = onlyHacksTechnique.reduce(sumDuplicates, [])
 
-	const mainCategories = groupedHacks.slice(0, 15)
-	const othersValue = groupedHacks.slice(15).reduce((total, entry) => total + entry.value, 0)
-
-	const pieChartData = [...mainCategories, { name: 'Others', value: othersValue }]
+	const pieChartData = preparePieChartData({ data: groupedHacks, limit: 15 })
 
 	return {
 		props: {

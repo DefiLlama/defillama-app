@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { download, formattedNum } from '~/utils'
+import { download, formattedNum, preparePieChartData } from '~/utils'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -27,17 +27,15 @@ export const OraclesByChain = ({
 }) => {
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
 	const { tokenTvls, tokensList } = React.useMemo(() => {
-		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1] ?? {})
+		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1])
 			.filter((item) => item[0] !== 'date')
 			.map((token) => ({ name: token[0], value: token[1] ?? 0 } as { name: string; value: number }))
 			.sort((a, b) => b.value - a.value)
 
-		const otherTvl = tvls.slice(5).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
-
-		const tokenTvls = tvls.slice(0, 5).concat({ name: 'Others', value: otherTvl })
-
+		const tokenTvls = preparePieChartData({
+			data: tvls,
+			limit: 5
+		})
 		const tokensList = tvls.map(({ name, value }) => {
 			return {
 				name,

@@ -1,24 +1,21 @@
 import { useMemo } from 'react'
 import { keepNeededProperties } from '~/api/shared'
-import { capitalizeFirstLetter, getPercentChange, getPrevVolumeFromChart, slug } from '~/utils'
+import { capitalizeFirstLetter, getPercentChange, getPrevVolumeFromChart, preparePieChartData, slug } from '~/utils'
+
+export interface ITokenData {
+	usdValue: number
+	amount: number
+	symbol: string
+	decimals: number
+}
 
 export interface IDailyBridgeStats {
 	date: number
 	totalTokensDeposited: {
-		[token: string]: {
-			usdValue: number
-			amount: number
-			symbol: string
-			decimals: number
-		}
+		[token: string]: ITokenData
 	}
 	totalTokensWithdrawn: {
-		[token: string]: {
-			usdValue: number
-			amount: number
-			symbol: string
-			decimals: number
-		}
+		[token: string]: ITokenData
 	}
 	totalAddressDeposited: {
 		[address: string]: {
@@ -241,6 +238,15 @@ export const formatChainsData = ({
 	return filteredChains
 }
 
+const groupTokensBySymbol = (tokens: { [token: string]: ITokenData }) => {
+	const group = {}
+	for (const token in tokens) {
+		const symbol = tokens[token].symbol || 'Unknown'
+		group[symbol] = (group[symbol] ?? 0) + (tokens[token].usdValue || 0)
+	}
+	return group
+}
+
 export const useBuildBridgeChartData = (bridgeStatsCurrentDay: IDailyBridgeStats) => {
 	const { tokenDeposits, tokenWithdrawals } = useMemo(() => {
 		const tokensDeposited = bridgeStatsCurrentDay?.totalTokensDeposited
@@ -248,44 +254,19 @@ export const useBuildBridgeChartData = (bridgeStatsCurrentDay: IDailyBridgeStats
 		let tokenDeposits = [],
 			tokenWithdrawals = []
 		if (tokensDeposited && tokensWithdrawn) {
-			let uniqueTokenDeposits = {} as { [symbol: string]: number }
-			Object.entries(tokensDeposited).map(([token, tokenData]) => {
-				{
-					const symbol = tokenData.symbol
-					const usdValue = tokenData.usdValue
-					uniqueTokenDeposits[symbol] = (uniqueTokenDeposits[symbol] ?? 0) + usdValue
-				}
-			})
-			const fullTokenDeposits = Object.entries(uniqueTokenDeposits).map(([symbol, usdValue]) => {
-				return { name: symbol, value: usdValue }
-			})
-			const otherDeposits = fullTokenDeposits.slice(10).reduce((total, entry) => {
-				return (total += entry.value)
-			}, 0)
-			tokenDeposits = fullTokenDeposits
-				.slice(0, 10)
-				.sort((a, b) => b.value - a.value)
-				.concat({ name: 'Others', value: otherDeposits })
+			const uniqueTokenDeposits = groupTokensBySymbol(tokensDeposited)
 
-			let uniqueTokenWithdrawals = {} as { [symbol: string]: number }
-			Object.entries(tokensWithdrawn).map(([token, tokenData]) => {
-				{
-					const symbol = tokenData.symbol
-					const usdValue = tokenData.usdValue
-					uniqueTokenWithdrawals[symbol] = (uniqueTokenWithdrawals[symbol] ?? 0) + usdValue
-				}
+			tokenDeposits = preparePieChartData({
+				data: uniqueTokenDeposits,
+				limit: 10
 			})
 
-			const fullTokenWithdrawals = Object.entries(uniqueTokenWithdrawals).map(([symbol, usdValue]) => {
-				return { name: symbol, value: usdValue }
+			const uniqueTokenWithdrawals = groupTokensBySymbol(tokensWithdrawn)
+
+			tokenWithdrawals = preparePieChartData({
+				data: uniqueTokenWithdrawals,
+				limit: 10
 			})
-			const otherWithdrawals = fullTokenWithdrawals.slice(10).reduce((total, entry) => {
-				return (total += entry.value)
-			}, 0)
-			tokenWithdrawals = fullTokenWithdrawals
-				.slice(0, 10)
-				.sort((a, b) => b.value - a.value)
-				.concat({ name: 'Others', value: otherWithdrawals })
 		}
 
 		return { tokenDeposits, tokenWithdrawals }

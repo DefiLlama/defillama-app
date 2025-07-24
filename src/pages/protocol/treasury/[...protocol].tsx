@@ -2,7 +2,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
-import { slug } from '~/utils'
+import { preparePieChartData, slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { buildProtocolAddlChartsData, getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { lazy, Suspense, useMemo, useState } from 'react'
@@ -81,23 +81,10 @@ export default function Protocols(props) {
 			}
 		}
 
-		const [topTokens, others] = Object.entries(allLatestTokensInUsd)
-			.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
-			.map(([token, value]) => ({ name: token, value: value as number }))
-			.reduce(
-				(acc, curr) => {
-					if (acc[0].length < 9) {
-						acc[0].push(curr)
-					} else {
-						acc[1] += curr.value
-					}
-
-					return acc
-				},
-				[[] as { name: string; value: number }[], 0]
-			)
-
-		const top10Tokens = [...topTokens, { name: 'Others', value: others }]
+		const top10Tokens = preparePieChartData({
+			data: allLatestTokensInUsd,
+			limit: 9
+		})
 
 		const { tokenBreakdown, tokenBreakdownUSD, tokensUnique } = buildProtocolAddlChartsData({
 			protocolData: { name: props.name, chainTvls: chartData },
