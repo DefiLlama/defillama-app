@@ -170,9 +170,10 @@ export async function getProtocolsByCategoryOrTag({
 					}
 
 					if (
-						extraKey &&
-						(!DEFI_SETTINGS_KEYS.includes(extraKey) ||
-							!['doublecounted', 'liquidstaking', 'dcAndLsOverlap'].includes(extraKey))
+						extraKey
+							? ['doublecounted', 'liquidstaking', 'dcAndLsOverlap', 'offers'].includes(extraKey) ||
+							  !DEFI_SETTINGS_KEYS.includes(extraKey)
+							: false
 					) {
 						continue
 					}
@@ -185,7 +186,27 @@ export async function getProtocolsByCategoryOrTag({
 					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
 				}
 			} else {
-				tvl = protocol.tvl ?? 0
+				for (const pchain in protocol.chainTvls) {
+					if (pchain === 'excludeParent') {
+						extraTvls[pchain] = (extraTvls[pchain] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
+						continue
+					}
+
+					if (
+						['doublecounted', 'liquidstaking', 'dcAndLsOverlap', 'offers'].includes(pchain) ||
+						pchain.includes('-') ||
+						protocol.chainTvls[pchain].tvl == null
+					) {
+						continue
+					}
+
+					if (DEFI_SETTINGS_KEYS.includes(pchain)) {
+						extraTvls[pchain] = (extraTvls[pchain] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
+						continue
+					}
+
+					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
+				}
 			}
 
 			const borrowed = extraTvls.borrowed ?? null
