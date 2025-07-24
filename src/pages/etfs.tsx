@@ -42,7 +42,7 @@ const AssetSection = ({ name, iconUrl, flows, aum }: AssetSectionProps) => (
 			<div className="flex items-center justify-between">
 				<span className="font-medium">Flows</span>
 				<span className={`font-jetbrains ${flows > 0 ? 'text-green-500' : flows < 0 ? 'text-red-500' : ''}`}>
-					{`${flows > 0 ? '+' : ''}$${toK(flows || 0)}`}
+					{`${flows > 0 ? '+' : '-'}$${toK(Math.abs(flows) || 0)}`}
 				</span>
 			</div>
 			<div className="flex items-center justify-between">
