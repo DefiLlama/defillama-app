@@ -169,7 +169,7 @@ export function VirtualTable({
 										}`}
 								>
 									<span
-										className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap"
+										className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap w-full"
 										data-align={
 											meta?.align ??
 											(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
