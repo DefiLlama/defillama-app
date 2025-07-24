@@ -13,7 +13,7 @@ import {
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { formattedNum, getPercentChange, toNiceCsvDate, download, slug } from '~/utils'
+import { formattedNum, getPercentChange, toNiceCsvDate, download, slug, preparePieChartData } from '~/utils'
 import { PeggedFilters } from '~/components/Filters/stablecoins'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
@@ -132,16 +132,7 @@ function PeggedAssetsOverview({
 	const peggedTotals = useCalcCirculating(peggedAssets)
 
 	const chainsCirculatingValues = React.useMemo(() => {
-		const data = peggedTotals.map((chain) => ({ name: chain.symbol, value: chain.mcap }))
-
-		const otherCirculating = data.slice(10).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
-
-		return data
-			.slice(0, 10)
-			.sort((a, b) => b.value - a.value)
-			.concat({ name: 'Others', value: otherCirculating })
+		return preparePieChartData({ data: peggedTotals, sliceIdentifier: 'symbol', sliceValue: 'mcap', limit: 10 })
 	}, [peggedTotals])
 
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)

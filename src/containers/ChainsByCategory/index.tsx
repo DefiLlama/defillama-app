@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { toNiceCsvDate, download } from '~/utils'
+import { toNiceCsvDate, download, preparePieChartData } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -46,21 +46,12 @@ export function ChainsByCategory({
 					(typeof maxTvl === 'string' && maxTvl !== '' ? chain.tvl <= +maxTvl : true)
 			)
 
-			// format chains data to use in pie chart
-			const onlyChainTvls = dataByChain.map((chain) => ({
-				name: chain.name,
-				value: chain.tvl
-			}))
-
-			const chainsWithLowTvls = onlyChainTvls.slice(10).reduce((total, entry) => {
-				return (total += entry.value)
-			}, 0)
-
-			// limit chains in pie chart to 10 and remaining chains in others
-			const pieChartData = onlyChainTvls
-				.slice(0, 10)
-				.sort((a, b) => b.value - a.value)
-				.concat({ name: 'Others', value: chainsWithLowTvls })
+			const pieChartData = preparePieChartData({
+				data: dataByChain,
+				sliceIdentifier: 'name',
+				sliceValue: 'tvl',
+				limit: 10
+			})
 
 			const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = groupDataWithTvlsByDay({
 				chains: stackedDataset,

@@ -15,7 +15,8 @@ import {
 	formattedNum,
 	download,
 	getBlockExplorer,
-	peggedAssetIconUrl
+	peggedAssetIconUrl,
+	preparePieChartData
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from './Table'
@@ -123,18 +124,7 @@ export const PeggedAssetInfo = ({
 	const chainTotals = useCalcCirculating(chainCirculatings)
 
 	const chainsCirculatingValues = React.useMemo(() => {
-		const data = chainTotals.map((chain) => ({
-			name: chain.name,
-			value: chain.circulating
-		}))
-		const otherCirculating = data.slice(10).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
-
-		return data
-			.slice(0, 10)
-			.sort((a, b) => b.value - a.value)
-			.concat({ name: 'Others', value: otherCirculating })
+		return preparePieChartData({ data: chainTotals, sliceIdentifier: 'name', sliceValue: 'circulating', limit: 10 })
 	}, [chainTotals])
 
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)

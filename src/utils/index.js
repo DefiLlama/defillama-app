@@ -686,3 +686,36 @@ export function formatValue(value, formatType = 'auto') {
 	if (formatType === 'number') return formattedNum(value)
 	return String(value)
 }
+
+export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue = 'value', limit }) => {
+	let pieData = []
+
+	if (Array.isArray(data)) {
+		pieData = data.map((entry) => {
+			return {
+				name: entry[sliceIdentifier],
+				value: entry[sliceValue]
+			}
+		})
+	} else {
+		pieData = Object.entries(data).map(([name, value]) => {
+			return {
+				name: name,
+				value: value
+			}
+		})
+	}
+
+	pieData = pieData.toSorted((a, b) => b.value - a.value)
+
+	if (!limit) {
+		return pieData
+	}
+
+	const mainSlices = pieData.slice(0, limit)
+	const otherSlices = pieData.slice(limit).reduce((acc, curr) => {
+		return acc + curr.value
+	}, 0)
+
+	return [...mainSlices, { name: 'Others', value: otherSlices }]
+}

@@ -3,6 +3,7 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl } from '~/api/types'
 import type { IRaise, IUpdatedProtocol } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { preparePieChartData } from '~/utils'
 import { postRuntimeLogs } from '~/utils/async'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
@@ -263,24 +264,9 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 			? Object.entries(tokenBreakdownUSD[tokenBreakdownUSD.length - 1])
 					.filter((values) => values[0] !== 'date')
 					.map(([name, value]) => ({ name, value }))
-					.sort((a, b) => b.value - a.value)
 			: []
 
-	const pieChartData = []
-
-	let othersDataInPieChart = 0
-
-	tokenBreakdownPieChart.forEach((token, index) => {
-		if (index < 15 && token.name !== 'Others') {
-			pieChartData.push(token)
-		} else {
-			othersDataInPieChart += token.value
-		}
-	})
-
-	if (othersDataInPieChart) {
-		pieChartData.push({ name: 'Others', value: othersDataInPieChart })
-	}
+	const pieChartData = preparePieChartData({ data: tokenBreakdownPieChart, limit: 15 })
 
 	return { tokenBreakdownUSD, tokenBreakdownPieChart: pieChartData, tokenBreakdown: Object.values(rawTokens) }
 }
