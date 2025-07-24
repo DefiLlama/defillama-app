@@ -160,7 +160,8 @@ export async function getProtocolsByCategoryOrTag({
 			const extraTvls: Record<string, number> = {}
 			if (chain) {
 				for (const pchain in protocol.chainTvls) {
-					if (pchain.split('-')[0] !== chain) {
+					const chainName = slug(pchain.split('-')[0])
+					if (chainName !== chain) {
 						continue
 					}
 
@@ -183,7 +184,7 @@ export async function getProtocolsByCategoryOrTag({
 						continue
 					}
 
-					tvl = tvl + (protocol.chainTvls[chain].tvl ?? 0)
+					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
 				}
 			} else {
 				for (const pchain in protocol.chainTvls) {
