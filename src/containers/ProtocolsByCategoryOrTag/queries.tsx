@@ -152,10 +152,7 @@ export async function getProtocolsByCategoryOrTag({
 
 	for (const protocol of protocols) {
 		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category == category
-		if (
-			isProtocolInCategoryOrTag &&
-			(chain ? protocol.chainTvls[chain] || adapterDataStore[protocol.defillamaId] : true)
-		) {
+		if (isProtocolInCategoryOrTag) {
 			let tvl = 0
 			const extraTvls: Record<string, number> = {}
 			if (chain) {
