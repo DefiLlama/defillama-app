@@ -713,9 +713,15 @@ export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue
 	}
 
 	const mainSlices = pieData.slice(0, limit)
-	const otherSlices = pieData.slice(limit).reduce((acc, curr) => {
+	const otherSlices = pieData.slice(limit)
+
+	const otherSlicesValue = otherSlices.reduce((acc, curr) => {
 		return acc + curr.value
 	}, 0)
 
-	return [...mainSlices, { name: 'Others', value: otherSlices }]
+	if (otherSlices.length > 0) {
+		return [...mainSlices, { name: 'Others', value: otherSlicesValue }]
+	}
+
+	return mainSlices
 }
