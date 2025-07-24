@@ -171,7 +171,8 @@ export async function getProtocolsByCategoryOrTag({
 
 					if (
 						extraKey &&
-						(!DEFI_SETTINGS_KEYS.includes(extraKey) || !['doublecounted', 'liquidstaking'].includes(extraKey))
+						(!DEFI_SETTINGS_KEYS.includes(extraKey) ||
+							!['doublecounted', 'liquidstaking', 'dcAndLsOverlap'].includes(extraKey))
 					) {
 						continue
 					}
@@ -184,28 +185,7 @@ export async function getProtocolsByCategoryOrTag({
 					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
 				}
 			} else {
-				for (const pchain in protocol.chainTvls) {
-					if (pchain === 'excludeParent') {
-						extraTvls[pchain] = (extraTvls[pchain] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
-						continue
-					}
-
-					if (
-						pchain.includes('-') ||
-						pchain === 'offers' ||
-						protocol.chainTvls[pchain].tvl == null ||
-						['doublecounted', 'liquidstaking'].includes(pchain)
-					) {
-						continue
-					}
-
-					if (DEFI_SETTINGS_KEYS.includes(pchain)) {
-						extraTvls[pchain] = (extraTvls[pchain] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
-						continue
-					}
-
-					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
-				}
+				tvl = protocol.tvl ?? 0
 			}
 
 			const borrowed = extraTvls.borrowed ?? null
@@ -337,7 +317,7 @@ export async function getProtocolsByCategoryOrTag({
 	let chart = []
 	let extraTvlCharts: Record<string, Record<string | number, number | null>> = {}
 	for (const chartType in chartData) {
-		if (chartType == 'doublecounted' || chartType == 'liquidstaking') continue
+		if (['doublecounted', 'liquidstaking', 'dcAndLsOverlap'].includes(chartType)) continue
 
 		if (chartType === 'tvl') {
 			for (const date in chartData[chartType]) {
