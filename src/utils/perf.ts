@@ -87,7 +87,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		let responseInit: ResponseInit
 		let blob: Blob
 		let StatusCode: number
-		const timeout = options?.timeout ?? 30000
+		const timeout = options?.timeout ?? 60_000
 		try {
 			const controller = new AbortController()
 			const id = setTimeout(() => controller.abort(), timeout)
