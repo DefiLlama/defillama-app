@@ -165,7 +165,17 @@ export const POCKETBASE_URL = 'https://pb.llama.fi'
 
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
-export const removedCategories = ['Basis Trading', 'RWA', 'Infrastructure', 'Staking Pool']
+export const removedCategories = [
+	'Chain',
+	'CEX',
+	'Infrastructure',
+	'Staking Pool',
+	'RWA',
+	'Basis Trading',
+	'CeDeFi',
+	'Bridge',
+	'Canonical Bridge'
+]
 
 export const REV_PROTOCOLS = {
 	ethereum: ['flashbots', 'eden-relay'],
