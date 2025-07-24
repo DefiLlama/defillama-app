@@ -4,7 +4,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { formattedNum, firstDayOfMonth, lastDayOfWeek, toK } from '~/utils'
+import { formattedNum, firstDayOfMonth, lastDayOfWeek } from '~/utils'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
@@ -80,7 +80,10 @@ const PageView = ({
 
 			<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				<span>Total Value Locked ETH LSTs</span>
-				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
+				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH (${formattedNum(
+					stakedEthInUsdSum,
+					true
+				)})`}</span>
 			</h1>
 
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md w-full flex flex-col">

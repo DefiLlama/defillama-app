@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId } from 'react'
-import { toK } from '~/utils'
+import { formattedNum } from '~/utils'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { ScatterChart as EChartScatter } from 'echarts/charts'
@@ -93,8 +93,8 @@ export default function ScatterChart({ chartData }: IChartProps) {
 							'Pool: ' +
 							params.value[4] +
 							'<br/>' +
-							'TVL: $' +
-							toK(params.value[5]) +
+							'TVL: ' +
+							formattedNum(params.value[5], true) +
 							'<br/>' +
 							'APY Spot: ' +
 							params.value[6].toFixed(2) +

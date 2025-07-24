@@ -13,7 +13,7 @@ import {
 import { useMedia } from '~/hooks/useMedia'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import { toK } from '~/utils'
+import { formattedNum } from '~/utils'
 import { useMemo } from 'react'
 
 const CHART_SYMBOLS = {
@@ -211,7 +211,12 @@ export function useDefaults({
 				if (title && (title.toLowerCase() === 'tokens (usd)' || title.toLowerCase() === 'chains')) {
 					const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
 
-					vals += '<li style="list-style:none;font-weight:600">' + 'Total' + '&nbsp;&nbsp;' + '$' + toK(total) + '</li>'
+					vals +=
+						'<li style="list-style:none;font-weight:600">' +
+						'Total' +
+						'&nbsp;&nbsp;' +
+						formatTooltipValue(total, valueSymbol) +
+						'</li>'
 				}
 
 				return chartdate + vals
@@ -246,8 +251,7 @@ export function useDefaults({
 								curr.marker +
 								curr.seriesName +
 								'&nbsp;&nbsp;' +
-								valueSymbol +
-								toK(curr.value[1]) +
+								formatTooltipValue(curr.value[1], valueSymbol) +
 								'</li>')
 						} else return prev
 					}, '')
@@ -255,12 +259,22 @@ export function useDefaults({
 				const others = params.slice(10).reduce((acc, curr) => (acc += curr.value[1]), 0)
 
 				if (others) {
-					vals += '<li style="list-style:none">' + 'Others' + '&nbsp;&nbsp;' + valueSymbol + toK(others) + '</li>'
+					vals +=
+						'<li style="list-style:none">' +
+						'Others' +
+						'&nbsp;&nbsp;' +
+						formatTooltipValue(others, valueSymbol) +
+						'</li>'
 				}
 
 				const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
 
-				vals += '<li style="list-style:none;font-weight:600">' + 'Total Inflows' + '&nbsp;&nbsp;' + toK(total) + '</li>'
+				vals +=
+					'<li style="list-style:none;font-weight:600">' +
+					'Total Inflows' +
+					'&nbsp;&nbsp;' +
+					formatTooltipValue(total, valueSymbol) +
+					'</li>'
 
 				return chartdate + vals
 			}
@@ -353,12 +367,7 @@ export function useDefaults({
 		const yAxis = {
 			type: 'value',
 			axisLabel: {
-				formatter: (value) =>
-					valueSymbol === '$'
-						? value < 0
-							? `-$${toK(Math.abs(value))}`
-							: `$${toK(value)}`
-						: (valueSymbol === '%' ? value : toK(value)) + ' ' + valueSymbol
+				formatter: (value) => formatTooltipValue(value, valueSymbol)
 			},
 			axisLine: {
 				lineStyle: {
@@ -460,13 +469,14 @@ export function useDefaults({
 }
 
 export const formatTooltipValue = (value, symbol) => {
-	return symbol === '$'
-		? `${symbol}${toK(value)}`
-		: symbol === '%'
-		? Math.round(value * 100) / 100 + ' %'
-		: `${value}`.startsWith('0.00')
-		? toK(value)
-		: `${toK(value)} ${symbol}`
+	switch (symbol) {
+		case '$':
+			return formattedNum(value, true)
+		case '%':
+			return `${Math.round(value * 100) / 100} %`
+		default:
+			return `${formattedNum(value)} ${symbol}`
+	}
 }
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

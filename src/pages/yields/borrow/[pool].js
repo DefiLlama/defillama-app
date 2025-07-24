@@ -2,7 +2,7 @@ import { lazy, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
-import { download, toK } from '~/utils'
+import { download, formattedNum } from '~/utils'
 import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/containers/Yields/queries/client'
 import { getColorFromNumber } from '~/utils'
 import { useEffect } from 'react'
@@ -191,15 +191,15 @@ const PageView = () => {
 
 // 							<tr>
 // 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pt-1">Supplied:</th>
-// 								<td className="font-jetbrains text-right">${toK(totalSupplyUsd ?? 0)}</td>
+// 								<td className="font-jetbrains text-right">{formattedNum(totalSupplyUsd ?? 0, true)}</td>
 // 							</tr>
 // 							<tr>
 // 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Borrowed:</th>
-// 								<td className="font-jetbrains text-right">${toK(totalBorrowUsd ?? 0)}</td>
+// 								<td className="font-jetbrains text-right">{formattedNum(totalBorrowUsd ?? 0, true)}</td>
 // 							</tr>
 // 							<tr>
 // 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Available:</th>
-// 								<td className="font-jetbrains text-right">${toK(totalAvailableUsd ?? 0)}</td>
+// 								<td className="font-jetbrains text-right">{formattedNum(totalAvailableUsd ?? 0, true)}</td>
 // 							</tr>
 // 						</tbody>
 // 					</TableWrapper>

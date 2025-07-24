@@ -4,7 +4,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TooltipComponent, TitleComponent, ToolboxComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { toK } from '~/utils'
+import { formattedNum } from '~/utils'
 
 echarts.use([TitleComponent, TooltipComponent, EChartTreemap, CanvasRenderer, ToolboxComponent])
 
@@ -111,7 +111,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 						return [
 							treePath[1] + '<br>',
 							'Return: ' + info.value[1] + '%' + '<br>',
-							'Market Cap: $' + toK(info.value[0]) + '<br>'
+							'Market Cap: ' + formattedNum(info.value[0], true) + '<br>'
 						].join('')
 					} else {
 						return null
@@ -141,7 +141,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 								arr = [
 									'{name|' + params.data.path.split('/').slice(-1)[0] + '}',
 									'Return: {apy| ' + params.value[1] + '%' + '}',
-									'Market Cap: {mcap| $' + toK(params.value[0]) + '}'
+									'Market Cap: {mcap| ' + formattedNum(params.value[0], true) + '}'
 								]
 							} else {
 								arr = [params.name]

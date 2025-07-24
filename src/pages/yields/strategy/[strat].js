@@ -9,7 +9,7 @@ import {
 	useYieldConfigData
 } from '~/containers/Yields/queries/client'
 import { calculateLoopAPY } from '~/containers/Yields/queries/index'
-import { toK } from '~/utils'
+import { formattedNum } from '~/utils'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
 
@@ -200,12 +200,12 @@ const PageView = () => {
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
 									Available Borrow Liquidity:
 								</th>
-								<td className="font-jetbrains text-right">${toK(borrowAvailable)}</td>
+								<td className="font-jetbrains text-right">${formattedNum(borrowAvailable)}</td>
 							</tr>
 
 							<tr>
 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Farm TVL:</th>
-								<td className="font-jetbrains text-right">${toK(farmTVL)}</td>
+								<td className="font-jetbrains text-right">{formattedNum(farmTVL, true)}</td>
 							</tr>
 						</tbody>
 					</table>

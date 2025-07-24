@@ -4,7 +4,7 @@ import { YieldsTableWrapper } from './shared'
 import { getColumnSizesKeys } from '~/components/Table/utils'
 import { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
-import { formattedNum, formattedPercent, toK } from '~/utils'
+import { formattedNum, formattedPercent } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
 import type { IYieldTableRow } from './types'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -102,7 +102,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'boost',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{toK(info.getValue()) + 'x'}</ColoredAPY>
+			return <ColoredAPY data-variant="borrow">{formattedNum(info.getValue()) + 'x'}</ColoredAPY>
 		},
 		size: 140,
 		meta: {

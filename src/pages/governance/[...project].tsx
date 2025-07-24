@@ -2,7 +2,7 @@ import { maxAgeForNext } from '~/api'
 import * as React from 'react'
 import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
-import { slug, tokenIconUrl, chainIconUrl, toK } from '~/utils'
+import { slug, tokenIconUrl, chainIconUrl, formattedNum } from '~/utils'
 import {
 	GOVERNANCE_SNAPSHOT_API,
 	GOVERNANCE_COMPOUND_API,
@@ -152,14 +152,14 @@ export default function Protocol({ data, governanceType }) {
 					{data.stats.highestTotalScore ? (
 						<p className="flex flex-col gap-1">
 							<span className="text-[#737373] dark:text-[#a9a9a9]">Max Total Votes</span>
-							<span className="font-jetbrains font-semibold text-lg">{toK(data.stats.highestTotalScore)}</span>
+							<span className="font-jetbrains font-semibold text-lg">{formattedNum(data.stats.highestTotalScore)}</span>
 						</p>
 					) : null}
 
 					{data.metadata.followersCount ? (
 						<p className="flex flex-col gap-1">
 							<span className="text-[#737373] dark:text-[#a9a9a9]">Followers</span>
-							<span className="font-jetbrains font-semibold text-lg">{toK(data.metadata.followersCount)}</span>
+							<span className="font-jetbrains font-semibold text-lg">{formattedNum(data.metadata.followersCount)}</span>
 						</p>
 					) : null}
 				</div>

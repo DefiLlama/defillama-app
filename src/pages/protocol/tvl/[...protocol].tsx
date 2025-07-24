@@ -91,7 +91,9 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 		>
 			{isLoading ? (
-				<p className="flex items-center justify-center text-center min-h-[384px] p-2">Loading...</p>
+				<p className="flex items-center justify-center text-center min-h-[384px] bg-(--cards-bg) border border-(--cards-border) rounded-md  p-2">
+					Loading...
+				</p>
 			) : (
 				<div className="grid grid-cols-2 rounded-md min-h-[384px] gap-2">
 					{chainsSplit && chainsUnique?.length > 1 && (

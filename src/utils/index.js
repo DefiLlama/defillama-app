@@ -87,7 +87,7 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	return description
 }
 
-export const toK = (num) => {
+const toK = (num) => {
 	if ((!num && num !== 0) || Number.isNaN(Number(num))) {
 		return null
 	}

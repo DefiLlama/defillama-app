@@ -139,7 +139,9 @@ export default function Protocols(props) {
 				</label>
 			</div>
 			{isLoading ? (
-				<p className="flex items-center justify-center text-center min-h-[384px] p-2">Loading...</p>
+				<p className="flex items-center justify-center text-center min-h-[384px] bg-(--cards-bg) border border-(--cards-border) rounded-md  p-2">
+					Loading...
+				</p>
 			) : (
 				<div className="grid grid-cols-2 rounded-md min-h-[384px] gap-2">
 					<LazyChart className="relative col-span-full min-h-[368px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">

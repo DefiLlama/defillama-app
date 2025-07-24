@@ -15,7 +15,6 @@ import {
 	formattedNum,
 	download,
 	getBlockExplorer,
-	toK,
 	peggedAssetIconUrl
 } from '~/utils'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -227,7 +226,7 @@ export const PeggedAssetInfo = ({
 										<tbody>
 											<tr>
 												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Total Circulating</th>
-												<td className="font-jetbrains text-right">{toK(totalCirculating)}</td>
+												<td className="font-jetbrains text-right">{formattedNum(totalCirculating)}</td>
 											</tr>
 										</tbody>
 									</table>
@@ -255,7 +254,7 @@ export const PeggedAssetInfo = ({
 															</span>
 														</label>
 													</th>
-													<td className="font-jetbrains text-right">{toK(unreleased)}</td>
+													<td className="font-jetbrains text-right">{formattedNum(unreleased)}</td>
 												</tr>
 											))}
 										</tbody>

@@ -2,7 +2,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
-import { download, toK } from '~/utils'
+import { download, formattedNum } from '~/utils'
 import { LazyChart } from '~/components/LazyChart'
 import {
 	useYieldChartData,
@@ -103,8 +103,6 @@ const PageView = (props) => {
 	const apy = poolData.apy?.toFixed(2) ?? 0
 	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? 0
 	const apyDelta20pct = (apy * 0.8).toFixed(2)
-
-	const tvlUsd = toK(poolData.tvlUsd ?? 0)
 
 	let confidence = poolData.predictions?.binnedConfidence ?? null
 
@@ -271,7 +269,9 @@ const PageView = (props) => {
 
 					<p className="flex flex-col gap-1">
 						<span className="text-base text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
-						<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#4f8fea]">${tvlUsd}</span>
+						<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#4f8fea]">
+							{formattedNum(poolData.tvlUsd ?? 0, true)}
+						</span>
 					</p>
 
 					{hasRiskData && (

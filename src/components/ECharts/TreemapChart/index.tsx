@@ -4,7 +4,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TooltipComponent, ToolboxComponent, DataZoomComponent, TitleComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { toK } from '~/utils'
+import { formattedNum } from '~/utils'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, DataZoomComponent, EChartTreemap, CanvasRenderer])
 
@@ -112,7 +112,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 						return [
 							'Project: ' + treePath[0] + '<br>',
 							'Pool: ' + treePath[1] + '<br>',
-							'TVL: $' + toK(info.value[0]) + '<br>',
+							'TVL: ' + formattedNum(info.value[0], true) + '<br>',
 							'APY: ' + info.value[1] + '%' + '<br>',
 							'1d Change: ' + info.value[2] + '%'
 						].join('')

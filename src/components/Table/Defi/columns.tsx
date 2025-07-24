@@ -13,7 +13,6 @@ import {
 	formattedNum,
 	formattedPercent,
 	slug,
-	toK,
 	tokenIconUrl,
 	toNiceDayMonthAndYear,
 	toNiceDayMonthYear,
@@ -1060,7 +1059,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'mcapOverTvl',
 		cell: ({ getValue, row }) => {
 			const TooltipContent = () => {
-				return <>{row.original.mcap ? <span>{`Market Cap: $${toK(row.original.mcap)}`}</span> : null}</>
+				return <>{row.original.mcap ? <span>{`Market Cap: ${formattedNum(row.original.mcap, true)}`}</span> : null}</>
 			}
 			return (
 				<Tooltip content={<TooltipContent />} className="justify-end">
@@ -1383,20 +1382,6 @@ export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 		size: 110
 	}
 ]
-
-function formatCexInflows(value) {
-	if (Number.isNaN(Number(value))) return null
-
-	let x = value
-	let isNegative = false
-
-	if (value.toString().startsWith('-')) {
-		isNegative = true
-		x = value.toString().split('-').slice(1).join('-')
-	}
-
-	return `${isNegative ? '-' : '+'} $${toK(x)}`
-}
 
 export const hacksColumnOrders = formatColumnOrder({
 	0: ['name', 'date', 'amountLost', 'chains', 'classification', 'technique', 'link']

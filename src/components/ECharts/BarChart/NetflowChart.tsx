@@ -4,7 +4,7 @@ import { BarChart } from 'echarts/charts'
 import { CanvasRenderer } from 'echarts/renderers'
 import { TooltipComponent, GridComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { toK } from '~/utils'
+import { formattedNum } from '~/utils'
 import { capitalize } from 'lodash'
 import { useQuery } from '@tanstack/react-query'
 import { TagGroup } from '~/components/TagGroup'
@@ -79,7 +79,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					const value = (params[0].value || 0) + (params[1].value || 0)
 					return `<div class="flex flex-col gap-1">
 						<span class="font-medium">${chain}</span>
-						<span>Net Flow: ${value > 0 ? '+' : ''}${toK(value)}</span>
+						<span>Net Flow: ${value > 0 ? '+' : ''}${formattedNum(value)}</span>
 					</div>`
 				}
 			},
@@ -100,7 +100,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					}
 				},
 				axisLabel: {
-					formatter: (value) => toK(value),
+					formatter: (value) => formattedNum(value),
 					color: isThemeDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)'
 				}
 			},
@@ -131,7 +131,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					label: {
 						show: true,
 						position: 'left',
-						formatter: (params) => (params.value !== 0 ? toK(params.value) : ''),
+						formatter: (params) => (params.value !== 0 ? formattedNum(params.value) : ''),
 						backgroundColor: 'transparent',
 						color: '#ef4444',
 						fontSize: 12,
@@ -151,7 +151,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					label: {
 						show: true,
 						position: 'right',
-						formatter: (params) => (params.value !== 0 ? toK(params.value) : ''),
+						formatter: (params) => (params.value !== 0 ? formattedNum(params.value) : ''),
 						backgroundColor: 'transparent',
 						color: '#22c55e',
 						fontSize: 12,
