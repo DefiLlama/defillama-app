@@ -1388,7 +1388,7 @@
 
 	/**
 	 * Obstacle definitions.
-	 * minGap: minimum pixel space betweeen obstacles.
+	 * minGap: minimum pixel space between obstacles.
 	 * multipleSpeed: Speed at which multiples are allowed.
 	 * speedOffset: speed faster / slower than the horizon.
 	 * minSpeed: Minimum speed which the obstacle can make an appearance.
@@ -2137,7 +2137,7 @@
 				this.xPos -= Math.ceil(speed)
 				this.draw()
 
-				// Mark as removeable if no longer in the canvas.
+				// Mark as removable if no longer in the canvas.
 				if (!this.isVisible()) {
 					this.remove = true
 				}
@@ -2406,7 +2406,7 @@
 		},
 
 		/**
-		 * Update the x position of an indivdual piece of the line.
+		 * Update the x position of an individual piece of the line.
 		 * @param {number} pos Line position.
 		 * @param {number} increment
 		 */
