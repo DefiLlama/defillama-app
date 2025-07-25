@@ -1,5 +1,5 @@
-import { CG_TOKEN_API, TOKEN_LIST_API } from '~/constants/index'
-import { fetchApi, fetchJson } from '~/utils/async'
+import { CG_TOKEN_API, COINS_PRICES_API, MCAPS_API, TOKEN_LIST_API } from '~/constants/index'
+import { fetchApi, fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IResponseCGMarketsAPI } from './types'
 import { useQuery } from '@tanstack/react-query'
 
@@ -56,4 +56,106 @@ export function maxAgeForNext(minutesForRollover: number[] = [22]) {
 	const nextMinute = minutesForRollover.find((m) => m > currentMinute) ?? Math.min(...minutesForRollover) + 60
 	const maxAge = nextMinute * 60 - currentMinute * 60 - currentSecond
 	return maxAge
+}
+
+export async function fetchChainMcaps(chains: Array<[string, string]>) {
+	if (chains.length === 0) {
+		return {}
+	}
+
+	// Filter out chains without gecko_id
+	const validChains = chains.filter(([_, geckoId]) => geckoId != null && geckoId !== '')
+
+	if (validChains.length === 0) {
+		return {}
+	}
+
+	// Split chains into batches of 10
+	const batchSize = 10
+	const batches = []
+	for (let i = 0; i < validChains.length; i += batchSize) {
+		batches.push(validChains.slice(i, i + batchSize))
+	}
+
+	// Fetch mcaps for each batch
+	const batchPromises = batches.map(async (batch) => {
+		try {
+			const response = await fetchJson(MCAPS_API, {
+				method: 'POST',
+				body: JSON.stringify({
+					coins: batch.map(([_, geckoId]) => `coingecko:${geckoId}`)
+				})
+			})
+			return response
+		} catch (err) {
+			postRuntimeLogs(`Failed to fetch mcaps for batch: ${batch.map(([chain]) => chain).join(', ')}`)
+			postRuntimeLogs(err)
+			return {}
+		}
+	})
+
+	// Wait for all batches to complete
+	const batchResults = await Promise.all(batchPromises)
+
+	// Merge all results into a single object
+	const mergedMcaps = {}
+	batchResults.forEach((batchResult) => {
+		Object.assign(mergedMcaps, batchResult)
+	})
+
+	return validChains.reduce((acc, [chain, geckoId]) => {
+		if (mergedMcaps[`coingecko:${geckoId}`]) {
+			acc[chain] = mergedMcaps[`coingecko:${geckoId}`]?.mcap ?? null
+		}
+		return acc
+	}, {})
+}
+
+export async function fetchCoinPrices(coins: Array<string>) {
+	if (coins.length === 0) {
+		return {}
+	}
+
+	// Split chains into batches of 10
+	const batchSize = 10
+	const batches = []
+	for (let i = 0; i < coins.length; i += batchSize) {
+		batches.push(coins.slice(i, i + batchSize))
+	}
+
+	// Fetch prices for each batch
+	const batchPromises = batches.map(async (batch) => {
+		try {
+			const response = await fetchJson(`${COINS_PRICES_API}/current/${batch.join(',')}`)
+			return response.coins ?? {}
+		} catch (err) {
+			postRuntimeLogs(`Failed to fetch prices for batch: ${batch.join(', ')}`)
+			postRuntimeLogs(err)
+			return {}
+		}
+	})
+
+	// Wait for all batches to complete
+	const batchResults = await Promise.all(batchPromises)
+
+	// Merge all results into a single object
+	const mergedPrices = {}
+	batchResults.forEach((batchResult) => {
+		Object.assign(mergedPrices, batchResult)
+	})
+
+	return coins.reduce((acc, coin) => {
+		if (mergedPrices[coin]) {
+			acc[coin] = mergedPrices[coin] ?? null
+		}
+		return acc
+	}, {} as Record<string, PriceObject>)
+}
+
+type PriceObject = {
+	confidence: number
+	decimals: number
+	price: number
+	symbol: string
+	timestamp: number
 }

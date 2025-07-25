@@ -1,14 +1,9 @@
-import {
-	DIMENISIONS_OVERVIEW_API,
-	DIMENISIONS_SUMMARY_BASE_API,
-	MCAPS_API,
-	PROTOCOLS_API,
-	REV_PROTOCOLS
-} from '~/constants'
+import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API, PROTOCOLS_API, REV_PROTOCOLS } from '~/constants'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE, ADAPTER_DATA_TYPES } from './constants'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
+import { fetchChainMcaps } from '~/api'
 
 export interface IAdapterOverview {
 	totalDataChart: Array<[number, number]> // date, value
@@ -949,57 +944,4 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 		postRuntimeLogs(error)
 		throw error
 	}
-}
-
-export async function fetchChainMcaps(chains: Array<[string, string]>) {
-	if (chains.length === 0) {
-		return {}
-	}
-
-	// Filter out chains without gecko_id
-	const validChains = chains.filter(([_, geckoId]) => geckoId != null && geckoId !== '')
-
-	if (validChains.length === 0) {
-		return {}
-	}
-
-	// Split chains into batches of 10
-	const batchSize = 10
-	const batches = []
-	for (let i = 0; i < validChains.length; i += batchSize) {
-		batches.push(validChains.slice(i, i + batchSize))
-	}
-
-	// Fetch mcaps for each batch
-	const batchPromises = batches.map(async (batch) => {
-		try {
-			const response = await fetchJson(MCAPS_API, {
-				method: 'POST',
-				body: JSON.stringify({
-					coins: batch.map(([_, geckoId]) => `coingecko:${geckoId}`)
-				})
-			})
-			return response
-		} catch (err) {
-			postRuntimeLogs(`Failed to fetch mcaps for batch: ${batch.map(([chain]) => chain)}`)
-			postRuntimeLogs(err)
-			return {}
-		}
-	})
-
-	// Wait for all batches to complete
-	const batchResults = await Promise.all(batchPromises)
-
-	// Merge all results into a single object
-	const mergedMcaps = {}
-	batchResults.forEach((batchResult) => {
-		Object.assign(mergedMcaps, batchResult)
-	})
-
-	return validChains.reduce((acc, [chain, geckoId]) => {
-		if (mergedMcaps[`coingecko:${geckoId}`]) {
-			acc[chain] = mergedMcaps[`coingecko:${geckoId}`]?.mcap ?? null
-		}
-		return acc
-	}, {})
 }

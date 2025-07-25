@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
-import { CACHE_SERVER, COINS_PRICES_API } from '~/constants'
+import { CACHE_SERVER } from '~/constants'
 import { LocalLoader } from '~/components/LocalLoader'
 import { CoinsPicker } from '~/containers/Correlations'
 import { useQuery } from '@tanstack/react-query'
@@ -9,6 +9,7 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { fetchJson } from '~/utils/async'
+import { fetchCoinPrices } from '~/api'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()
@@ -36,7 +37,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 			coins.length == 2
 				? () =>
 						Promise.all([
-							fetchJson(`${COINS_PRICES_API}/current/${coins.map((c) => 'coingecko:' + c).join(',')}`),
+							fetchCoinPrices(coins.map((c) => 'coingecko:' + c)).then((coins) => ({ coins })),
 							fetchJson(`${CACHE_SERVER}/supply/${coins[0]}`),
 							fetchJson(`${CACHE_SERVER}/supply/${coins[1]}`)
 						])
