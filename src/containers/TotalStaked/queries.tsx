@@ -54,6 +54,8 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 
 	if (!chart || chart.length === 0) return null
 
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 	const finalProtocols = []
 	const finalParentProtocols = {}
 
@@ -73,7 +75,10 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			logo: tokenIconUrl(slug(protocol.name)),
 			slug: slug(protocol.name),
 			category: protocol.category,
-			chains: protocol.chains ?? [],
+			chains:
+				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
+				protocol.chains ??
+				[],
 			totalStaked,
 			totalPrevMonth,
 			change_1m:
@@ -105,7 +110,7 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 				logo: tokenIconUrl(slug(p.name)),
 				slug: slug(p.name),
 				category: categories.length > 1 ? null : categories[0] ?? null,
-				chains: p.chains ?? [],
+				chains: Array.from(new Set(finalParentProtocols[parent].map((p) => p.chains).flat())),
 				totalStaked: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalStaked ?? 0), 0),
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
