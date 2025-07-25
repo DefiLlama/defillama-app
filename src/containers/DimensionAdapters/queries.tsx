@@ -3,7 +3,6 @@ import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE, ADAPTER_DATA_TYPES } from './constants'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
-import { fetchChainMcaps } from '~/api'
 
 export interface IAdapterOverview {
 	totalDataChart: Array<[number, number]> // date, value
@@ -532,7 +531,7 @@ export const getAdapterByChainPageData = async ({
 		.map((e) => [e.name, metadataCache.chainMetadata[slug(e.name)]?.gecko_id ?? null])
 		.filter((e) => (e[1] ? true : false)) as Array<[string, string | null]>
 
-	const chainsMcap = await fetchChainMcaps(chains)
+	// const chainsMcap = await fetchChainMcaps(chains)
 
 	const protocolsMcap = {}
 	for (const protocol of protocolsData.protocols) {
@@ -541,8 +540,6 @@ export const getAdapterByChainPageData = async ({
 	for (const protocol of protocolsData.parentProtocols) {
 		protocolsMcap[protocol.name] = protocol.mcap ?? null
 	}
-
-	const mcapData = { ...protocolsMcap, ...chainsMcap }
 
 	const allProtocols = [...data.protocols]
 
@@ -641,7 +638,7 @@ export const getAdapterByChainPageData = async ({
 			total30d: protocol.total30d ?? null,
 			total1y: protocol.total1y ?? null,
 			totalAllTime: protocol.totalAllTime ?? null,
-			mcap: mcapData[protocol.name] ?? null,
+			mcap: protocolsMcap[protocol.name] ?? null,
 			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
 			...(methodology ? { methodology } : {})
@@ -737,7 +734,7 @@ export const getAdapterByChainPageData = async ({
 			total30d,
 			total1y,
 			totalAllTime,
-			mcap: mcapData[protocol] ?? null,
+			mcap: protocolsMcap[protocol] ?? null,
 			childProtocols: parentProtocols[protocol],
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),
