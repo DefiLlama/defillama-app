@@ -404,14 +404,14 @@ export const protocolsMetrics: Array<{
 		mainRoute: '/total-staked',
 		chainRoute: `/total-staked/chain/{chain}`,
 		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.staking?.protocols ?? 0,
-		description: 'Total value of all protocols own tokens staked on their platform'
+		description: 'Total value of protocols own tokens staked on their platform'
 	},
 	{
 		name: 'Pool2 TVL',
 		mainRoute: '/pool2',
 		chainRoute: `/pool2/chain/{chain}`,
 		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.pool2?.protocols ?? 0,
-		description: 'Total value locked in pool2 across all protocols'
+		description: 'Total value locked in pool2 of a protocol'
 	}
 ]
 
