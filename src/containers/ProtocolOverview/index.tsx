@@ -1579,6 +1579,21 @@ const Raises = (props: IProtocolOverviewPageData) => {
 							<span>Round: {raise.round}</span>
 							{raise.investors?.length ? <span>Investors: {raise.investors.join(', ')}</span> : null}
 						</span>
+						{raise.source ? (
+							<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
+								<span className="flex items-center gap-1 flex-nowrap">
+									Source:{' '}
+									<a
+										href={raise.source}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="underline whitespace-nowrap overflow-hidden text-ellipsis"
+									>
+										{raise.source}
+									</a>
+								</span>
+							</span>
+						) : null}
 					</p>
 				))}
 			</div>
