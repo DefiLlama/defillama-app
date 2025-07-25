@@ -420,6 +420,13 @@ export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
 				level: 'rug'
 			})
 		}
+
+		if (protocolData.deadUrl) {
+			banners.push({
+				message: 'This protocol website is down.',
+				level: 'rug'
+			})
+		}
 	}
 	return banners
 }
