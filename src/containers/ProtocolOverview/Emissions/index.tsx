@@ -563,7 +563,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									key={source}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="text-white text-base flex items-center font-medium gap-2"
+									className="text-base flex items-center font-medium gap-2"
 								>
 									<span>
 										{i + 1} {new URL(source).hostname}

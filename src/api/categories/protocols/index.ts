@@ -1,33 +1,33 @@
 import type { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 import {
-	BRIDGEINFLOWS_API,
-	CATEGORY_COIN_PRICES_API,
-	CATEGORY_INFO_API,
-	CATEGORY_PERFORMANCE_API,
-	CHAINS_ASSETS,
-	CHAIN_ASSETS_FLOWS,
-	COINS_INFO_API,
-	COINS_PRICES_API,
-	ETF_FLOWS_API,
-	ETF_SNAPSHOT_API,
-	LSD_RATES_API,
-	PROTOCOLS_API,
-	PROTOCOL_API,
-	PROTOCOL_EMISSIONS_API,
-	PROTOCOL_EMISSIONS_LIST_API,
-	PROTOCOL_EMISSION_API,
-	YIELD_POOLS_API
-} from '~/constants'
-import {
 	batchFetchHistoricalPrices,
 	capitalizeFirstLetter,
 	getColorFromNumber,
 	roundToNearestHalfHour,
 	slug
 } from '~/utils'
+import {
+	PROTOCOLS_API,
+	PROTOCOL_API,
+	PROTOCOL_EMISSIONS_API,
+	PROTOCOL_EMISSIONS_LIST_API,
+	PROTOCOL_EMISSION_API,
+	YIELD_POOLS_API,
+	LSD_RATES_API,
+	CHAINS_ASSETS,
+	ETF_SNAPSHOT_API,
+	ETF_FLOWS_API,
+	CHAIN_ASSETS_FLOWS,
+	BRIDGEINFLOWS_API,
+	CATEGORY_PERFORMANCE_API,
+	CATEGORY_COIN_PRICES_API,
+	CATEGORY_INFO_API,
+	COINS_INFO_API
+} from '~/constants'
+import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import { fetchJson } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
-import { BasicPropsToKeep, formatProtocolsData } from './utils'
+import { fetchCoinPrices } from '~/api'
 
 export const getAllProtocolEmissionsWithHistory = async ({
 	startDate,
@@ -38,12 +38,8 @@ export const getAllProtocolEmissionsWithHistory = async ({
 } = {}) => {
 	try {
 		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
-		const coins = await fetchJson(
-			`${COINS_PRICES_API}/current/${res
-				.filter((p) => p.gecko_id)
-				.map((p) => 'coingecko:' + p.gecko_id)
-				.join(',')}`
-		)
+
+		const coinPrices = await fetchCoinPrices(res.filter((p) => p.gecko_id).map((p) => `coingecko:${p.gecko_id}`))
 
 		return res
 			.map((protocol) => {
@@ -58,14 +54,13 @@ export const getAllProtocolEmissionsWithHistory = async ({
 
 					filteredEvents.sort((a, b) => a.timestamp - b.timestamp)
 
-					const coin = coins.coins['coingecko:' + protocol.gecko_id]
-					const tSymbol = coin?.symbol ?? null
+					const coin = coinPrices[`coingecko:${protocol.gecko_id}`]
 
 					return {
 						...protocol,
 						events: filteredEvents,
 						tPrice: coin?.price ?? null,
-						tSymbol
+						tSymbol: coin?.symbol ?? null
 					}
 				} catch (e) {
 					console.log('error', protocol.name, e)

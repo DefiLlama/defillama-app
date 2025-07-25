@@ -28,6 +28,8 @@ export interface ITotalTrackedByMetric {
 	cexs: { protocols: number; chains: number }
 	nfts: { protocols: number; chains: number }
 	bridgedTVL: { protocols: number; chains: number }
+	staking: { protocols: number; chains: number }
+	pool2: { protocols: number; chains: number }
 }
 
 export type TMetric =
@@ -55,6 +57,8 @@ export type TMetric =
 	| 'REV'
 	| 'Unlocks'
 	| 'Earnings'
+	| 'Total Staked'
+	| 'Pool2 TVL'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -394,6 +398,20 @@ export const protocolsMetrics: Array<{
 		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.protocols ?? 0,
 		description:
 			'Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself.'
+	},
+	{
+		name: 'Total Staked',
+		mainRoute: '/total-staked',
+		chainRoute: `/total-staked/chain/{chain}`,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.staking?.protocols ?? 0,
+		description: 'Total value of protocols own tokens staked on their platform'
+	},
+	{
+		name: 'Pool2 TVL',
+		mainRoute: '/pool2',
+		chainRoute: `/pool2/chain/{chain}`,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.pool2?.protocols ?? 0,
+		description: 'Total value locked in pool2 of a protocol'
 	}
 ]
 

@@ -1,18 +1,18 @@
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
-import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
+import { oldBlue } from '~/constants/colors'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 
-export interface ITotalBorrowedByChainPageData {
+export interface IPool2ByChainPageData {
 	protocols: Array<{
 		name: string
 		logo: string
 		slug: string
 		category: string | null
 		chains: Array<string>
-		totalBorrowed: number
+		pool2Tvl: number
 		change_1m: number | null
 		subRows?: Array<{
 			name: string
@@ -20,22 +20,18 @@ export interface ITotalBorrowedByChainPageData {
 			slug: string
 			category: string | null
 			chains: Array<string>
-			totalBorrowed: number
+			pool2Tvl: number
 			change_1m: number | null
 		}>
 	}>
 	chain: string
 	chains: Array<{ label: string; to: string }>
 	charts: ILineAndBarChartProps['charts']
-	totalBorrowed: number
+	pool2Tvl: number
 	change24h: number | null
 }
 
-export async function getTotalBorrowedByChain({
-	chain
-}: {
-	chain: string
-}): Promise<ITotalBorrowedByChainPageData | null> {
+export async function getPool2TVLByChain({ chain }: { chain: string }): Promise<IPool2ByChainPageData | null> {
 	const [{ protocols, parentProtocols }, chart, chains]: [
 		{
 			protocols: Array<ILiteProtocol>
@@ -46,13 +42,13 @@ export async function getTotalBorrowedByChain({
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		fetchJson(`${CHART_API}${chain && chain !== 'All' ? `/${chain}` : ''}`)
-			.then((data: ILiteChart) => data?.borrowed?.map((item) => [+item[0] * 1e3, item[1]]) ?? [])
+			.then((data: ILiteChart) => data?.pool2?.map((item) => [+item[0] * 1e3, item[1]]) ?? [])
 			.catch((err) => {
-				postRuntimeLogs(`Total Borrowed by Chain: ${chain}: ${err instanceof Error ? err.message : err}`)
+				postRuntimeLogs(`Pool2 TVL by Chain: ${chain}: ${err instanceof Error ? err.message : err}`)
 				return null
 			}),
 		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
-			data.chainTvls.filter((chain) => (chain.extraTvl?.borrowed?.tvl ? true : false)).map((chain) => chain.name)
+			data.chainTvls.filter((chain) => (chain.extraTvl?.pool2?.tvl ? true : false)).map((chain) => chain.name)
 		)
 	])
 
@@ -62,12 +58,12 @@ export async function getTotalBorrowedByChain({
 	const finalParentProtocols = {}
 
 	for (const protocol of protocols) {
-		let totalBorrowed: number | null = null
+		let pool2Tvl: number | null = null
 		let totalPrevMonth: number | null = null
 
 		for (const ctvl in protocol.chainTvls) {
-			if (ctvl.includes('-borrowed') && (chain === 'All' ? true : ctvl.split('-')[0] === chain)) {
-				totalBorrowed = (totalBorrowed ?? 0) + protocol.chainTvls[ctvl].tvl
+			if (ctvl.includes('-pool2') && (chain === 'All' ? true : ctvl.split('-')[0] === chain)) {
+				pool2Tvl = (pool2Tvl ?? 0) + protocol.chainTvls[ctvl].tvl
 				totalPrevMonth = (totalPrevMonth ?? 0) + protocol.chainTvls[ctvl].tvlPrevMonth
 			}
 		}
@@ -78,15 +74,13 @@ export async function getTotalBorrowedByChain({
 			slug: slug(protocol.name),
 			category: protocol.category,
 			chains: protocol.chains ?? [],
-			totalBorrowed,
+			pool2Tvl,
 			totalPrevMonth,
 			change_1m:
-				totalPrevMonth != null && totalBorrowed != null
-					? getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2) ?? 0
-					: null
+				totalPrevMonth != null && pool2Tvl != null ? getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2) ?? 0 : null
 		}
 
-		if (totalBorrowed != null) {
+		if (pool2Tvl != null) {
 			if (protocol.parentProtocol) {
 				finalParentProtocols[protocol.parentProtocol] = [...(finalParentProtocols[protocol.parentProtocol] ?? []), p]
 			} else {
@@ -98,7 +92,7 @@ export async function getTotalBorrowedByChain({
 	for (const parent in finalParentProtocols) {
 		const p = parentProtocols.find((p) => p.id === parent)
 		if (p) {
-			const totalBorrowed = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalBorrowed ?? 0), 0)
+			const pool2Tvl = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.pool2Tvl ?? 0), 0)
 			const totalPrevMonth = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0)
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
@@ -110,11 +104,11 @@ export async function getTotalBorrowedByChain({
 				slug: slug(p.name),
 				category: categories.length > 1 ? null : categories[0] ?? null,
 				chains: p.chains ?? [],
-				totalBorrowed: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalBorrowed ?? 0), 0),
+				pool2Tvl: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.pool2Tvl ?? 0), 0),
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
 					totalPrevMonth != null && totalPrevMonth != null
-						? getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2) ?? 0
+						? getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2) ?? 0
 						: null,
 				subRows: finalParentProtocols[parent]
 			})
@@ -122,16 +116,16 @@ export async function getTotalBorrowedByChain({
 	}
 
 	return {
-		protocols: finalProtocols.sort((a, b) => (b.totalBorrowed ?? 0) - (a.totalBorrowed ?? 0)),
+		protocols: finalProtocols.sort((a, b) => (b.pool2Tvl ?? 0) - (a.pool2Tvl ?? 0)),
 		chain,
 		chains: [
-			{ label: 'All', to: '/total-borrowed' },
-			...chains.map((chain) => ({ label: chain, to: `/total-borrowed/chain/${slug(chain)}` }))
+			{ label: 'All', to: '/pool2' },
+			...chains.map((chain) => ({ label: chain, to: `/pool2/chain/${slug(chain)}` }))
 		],
 		charts: {
-			'Total Borrowed': { name: 'Total Borrowed', data: chart, type: 'line', stack: 'Total Borrowed', color: oldBlue }
+			'Pool2 TVL': { name: 'Pool2 TVL', data: chart, type: 'line', stack: 'Pool2 TVL', color: oldBlue }
 		},
-		totalBorrowed: chart[chart.length - 1][1],
+		pool2Tvl: chart[chart.length - 1][1],
 		change24h:
 			chart.length > 2 ? +getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]).toFixed(2) : null
 	}

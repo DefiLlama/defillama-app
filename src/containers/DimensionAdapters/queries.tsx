@@ -1,14 +1,9 @@
-import {
-	DIMENISIONS_OVERVIEW_API,
-	DIMENISIONS_SUMMARY_BASE_API,
-	MCAPS_API,
-	PROTOCOLS_API,
-	REV_PROTOCOLS
-} from '~/constants'
+import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API, PROTOCOLS_API, REV_PROTOCOLS } from '~/constants'
+import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
+import { fetchChainMcaps } from '~/api'
 
 export interface IAdapterOverview {
 	totalDataChart: Array<[number, number]> // date, value
@@ -535,29 +530,9 @@ export const getAdapterByChainPageData = async ({
 	const chains = data.protocols
 		.filter((e) => e.protocolType === 'chain')
 		.map((e) => [e.name, metadataCache.chainMetadata[slug(e.name)]?.gecko_id ?? null])
-		.filter((e) => (e[1] ? true : false))
+		.filter((e) => (e[1] ? true : false)) as Array<[string, string | null]>
 
-	const chainMcaps =
-		chains.length > 0
-			? await fetchJson(MCAPS_API, {
-					method: 'POST',
-					body: JSON.stringify({
-						coins: chains.map(([_, geckoId]) => `coingecko:${geckoId}`)
-					})
-			  }).catch((err) => {
-					console.log('Failed to fetch mcaps by chain')
-					console.log(err)
-					return {}
-			  })
-			: {}
-
-	const chainsMcap =
-		chains?.reduce((acc, [chain, geckoId]) => {
-			if (geckoId) {
-				acc[chain] = chainMcaps[`coingecko:${geckoId}`]?.mcap ?? null
-			}
-			return acc
-		}, {}) ?? {}
+	const chainsMcap = await fetchChainMcaps(chains)
 
 	const protocolsMcap = {}
 	for (const protocol of protocolsData.protocols) {
@@ -566,7 +541,8 @@ export const getAdapterByChainPageData = async ({
 	for (const protocol of protocolsData.parentProtocols) {
 		protocolsMcap[protocol.name] = protocol.mcap ?? null
 	}
-	const mcapData = { ...protocolsMcap, chainsMcap }
+
+	const mcapData = { ...protocolsMcap, ...chainsMcap }
 
 	const allProtocols = [...data.protocols]
 
@@ -913,7 +889,7 @@ export const getChainsByAdapterPageData = async ({
 			allChains: chains.map((c) => c.name)
 		}
 	} catch (error) {
-		console.log(error)
+		postRuntimeLogs(error)
 		throw error
 	}
 }
@@ -965,7 +941,7 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
 	} catch (error) {
-		console.log(error)
+		postRuntimeLogs(error)
 		throw error
 	}
 }

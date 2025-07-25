@@ -1,18 +1,18 @@
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
-import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
+import { oldBlue } from '~/constants/colors'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 
-export interface ITotalBorrowedByChainPageData {
+export interface ITotalStakedByChainPageData {
 	protocols: Array<{
 		name: string
 		logo: string
 		slug: string
 		category: string | null
 		chains: Array<string>
-		totalBorrowed: number
+		totalStaked: number
 		change_1m: number | null
 		subRows?: Array<{
 			name: string
@@ -20,22 +20,18 @@ export interface ITotalBorrowedByChainPageData {
 			slug: string
 			category: string | null
 			chains: Array<string>
-			totalBorrowed: number
+			totalStaked: number
 			change_1m: number | null
 		}>
 	}>
 	chain: string
 	chains: Array<{ label: string; to: string }>
 	charts: ILineAndBarChartProps['charts']
-	totalBorrowed: number
+	totalStaked: number
 	change24h: number | null
 }
 
-export async function getTotalBorrowedByChain({
-	chain
-}: {
-	chain: string
-}): Promise<ITotalBorrowedByChainPageData | null> {
+export async function getTotalStakedByChain({ chain }: { chain: string }): Promise<ITotalStakedByChainPageData | null> {
 	const [{ protocols, parentProtocols }, chart, chains]: [
 		{
 			protocols: Array<ILiteProtocol>
@@ -46,13 +42,13 @@ export async function getTotalBorrowedByChain({
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		fetchJson(`${CHART_API}${chain && chain !== 'All' ? `/${chain}` : ''}`)
-			.then((data: ILiteChart) => data?.borrowed?.map((item) => [+item[0] * 1e3, item[1]]) ?? [])
+			.then((data: ILiteChart) => data?.staking?.map((item) => [+item[0] * 1e3, item[1]]) ?? [])
 			.catch((err) => {
-				postRuntimeLogs(`Total Borrowed by Chain: ${chain}: ${err instanceof Error ? err.message : err}`)
+				postRuntimeLogs(`Total Staked by Chain: ${chain}: ${err instanceof Error ? err.message : err}`)
 				return null
 			}),
 		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
-			data.chainTvls.filter((chain) => (chain.extraTvl?.borrowed?.tvl ? true : false)).map((chain) => chain.name)
+			data.chainTvls.filter((chain) => (chain.extraTvl?.staking?.tvl ? true : false)).map((chain) => chain.name)
 		)
 	])
 
@@ -62,12 +58,12 @@ export async function getTotalBorrowedByChain({
 	const finalParentProtocols = {}
 
 	for (const protocol of protocols) {
-		let totalBorrowed: number | null = null
+		let totalStaked: number | null = null
 		let totalPrevMonth: number | null = null
 
 		for (const ctvl in protocol.chainTvls) {
-			if (ctvl.includes('-borrowed') && (chain === 'All' ? true : ctvl.split('-')[0] === chain)) {
-				totalBorrowed = (totalBorrowed ?? 0) + protocol.chainTvls[ctvl].tvl
+			if (ctvl.includes('-staking') && (chain === 'All' ? true : ctvl.split('-')[0] === chain)) {
+				totalStaked = (totalStaked ?? 0) + protocol.chainTvls[ctvl].tvl
 				totalPrevMonth = (totalPrevMonth ?? 0) + protocol.chainTvls[ctvl].tvlPrevMonth
 			}
 		}
@@ -78,15 +74,15 @@ export async function getTotalBorrowedByChain({
 			slug: slug(protocol.name),
 			category: protocol.category,
 			chains: protocol.chains ?? [],
-			totalBorrowed,
+			totalStaked,
 			totalPrevMonth,
 			change_1m:
-				totalPrevMonth != null && totalBorrowed != null
-					? getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2) ?? 0
+				totalPrevMonth != null && totalStaked != null
+					? getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0
 					: null
 		}
 
-		if (totalBorrowed != null) {
+		if (totalStaked != null) {
 			if (protocol.parentProtocol) {
 				finalParentProtocols[protocol.parentProtocol] = [...(finalParentProtocols[protocol.parentProtocol] ?? []), p]
 			} else {
@@ -98,7 +94,7 @@ export async function getTotalBorrowedByChain({
 	for (const parent in finalParentProtocols) {
 		const p = parentProtocols.find((p) => p.id === parent)
 		if (p) {
-			const totalBorrowed = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalBorrowed ?? 0), 0)
+			const totalStaked = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalStaked ?? 0), 0)
 			const totalPrevMonth = finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0)
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
@@ -110,11 +106,11 @@ export async function getTotalBorrowedByChain({
 				slug: slug(p.name),
 				category: categories.length > 1 ? null : categories[0] ?? null,
 				chains: p.chains ?? [],
-				totalBorrowed: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalBorrowed ?? 0), 0),
+				totalStaked: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalStaked ?? 0), 0),
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
 					totalPrevMonth != null && totalPrevMonth != null
-						? getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2) ?? 0
+						? getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0
 						: null,
 				subRows: finalParentProtocols[parent]
 			})
@@ -122,16 +118,16 @@ export async function getTotalBorrowedByChain({
 	}
 
 	return {
-		protocols: finalProtocols.sort((a, b) => (b.totalBorrowed ?? 0) - (a.totalBorrowed ?? 0)),
+		protocols: finalProtocols.sort((a, b) => (b.totalStaked ?? 0) - (a.totalStaked ?? 0)),
 		chain,
 		chains: [
-			{ label: 'All', to: '/total-borrowed' },
-			...chains.map((chain) => ({ label: chain, to: `/total-borrowed/chain/${slug(chain)}` }))
+			{ label: 'All', to: '/total-staked' },
+			...chains.map((chain) => ({ label: chain, to: `/total-staked/chain/${slug(chain)}` }))
 		],
 		charts: {
-			'Total Borrowed': { name: 'Total Borrowed', data: chart, type: 'line', stack: 'Total Borrowed', color: oldBlue }
+			'Total Staked': { name: 'Total Staked', data: chart, type: 'line', stack: 'Total Staked', color: oldBlue }
 		},
-		totalBorrowed: chart[chart.length - 1][1],
+		totalStaked: chart[chart.length - 1][1],
 		change24h:
 			chart.length > 2 ? +getPercentChange(chart[chart.length - 1][1], chart[chart.length - 2][1]).toFixed(2) : null
 	}

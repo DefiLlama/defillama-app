@@ -9,6 +9,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { CACHE_SERVER, COINS_PRICES_API } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
+import { fetchCoinPrices } from '~/api'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()
@@ -36,7 +37,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 			coins.length == 2
 				? () =>
 						Promise.all([
-							fetchJson(`${COINS_PRICES_API}/current/${coins.map((c) => 'coingecko:' + c).join(',')}`),
+							fetchCoinPrices(coins.map((c) => 'coingecko:' + c)).then((coins) => ({ coins })),
 							fetchJson(`${CACHE_SERVER}/supply/${coins[0]}`),
 							fetchJson(`${CACHE_SERVER}/supply/${coins[1]}`)
 						])

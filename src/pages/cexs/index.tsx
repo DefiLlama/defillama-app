@@ -165,6 +165,13 @@ export const cexData: Array<ICex> = [
 		cgId: null
 	},
 	{
+		name: 'Gemini',
+        slug: 'gemini',
+        coin: null,
+		cgId: 'gemini',
+		walletsLink: 'https://www.gemini.com/trust-center/',
+	},
+	{
 		name: 'Bybit',
 		slug: 'Bybit',
 		coin: 'BIT',

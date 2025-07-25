@@ -1,5 +1,3 @@
-import { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense } from 'react'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -10,15 +8,17 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
-import { ITotalBorrowedByChainPageData } from './queries'
+import { ITotalStakedByChainPageData } from './queries'
+import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense } from 'react'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
-export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
+export function StakedByChain(props: ITotalStakedByChainPageData) {
 	return (
 		<>
 			<ProtocolsChainsSearch hideFilters />
-			<Metrics currentMetric="Total Borrowed" />
+			<Metrics currentMetric="Total Staked" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-3 w-full xl:col-span-1 overflow-x-auto text-base">
@@ -31,9 +31,9 @@ export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
 					<div className="flex items-end justify-between gap-4 flex-wrap">
 						<p className="flex flex-col">
 							<span className="flex flex-col">
-								<span>Total Borrowed</span>
+								<span>Total Staked</span>
 								<span className="font-semibold text-2xl font-jetbrains min-h-8 overflow-hidden whitespace-nowrap text-ellipsis">
-									{formattedNum(props.totalBorrowed, true)}
+									{formattedNum(props.totalStaked, true)}
 								</span>
 							</span>
 						</p>
@@ -68,7 +68,7 @@ export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
 	)
 }
 
-const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
+const columns: ColumnDef<ITotalStakedByChainPageData['protocols'][0]>[] = [
 	{
 		id: 'name',
 		header: 'Name',
@@ -117,7 +117,7 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 
 					<span className="flex flex-col -my-2">
 						<BasicLink
-							href={`/protocol/${row.original.slug}?borrowed_tvl=true`}
+							href={`/protocol/${row.original.slug}?staking_tvl=true`}
 							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 						>
 							{value}
@@ -151,14 +151,14 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 		}
 	},
 	{
-		id: 'totalBorrowed',
-		header: 'Total Borrowed',
-		accessorFn: (protocol) => protocol.totalBorrowed,
+		id: 'totalStaked',
+		header: 'Total Staked',
+		accessorFn: (protocol) => protocol.totalStaked,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Sum of value currently borrowed across all active loans on a Lending protocol'
+			headerHelperText: "Sum of value of protocol's own tokens staked on their protocol"
 		},
 		size: 128
 	},
