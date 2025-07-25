@@ -1,7 +1,7 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { BorrowedByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
-import { getTotalBorrowedByChain } from '~/containers/TotalBorrowed/queries'
+import { getTotalStakedByChain } from '~/containers/TotalStaked/queries'
+import { StakedByChain } from '~/containers/TotalStaked/StakedByChain'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -11,7 +11,7 @@ export const getStaticPaths = async () => {
 }
 
 export const getStaticProps = withPerformanceLogging(
-	`total-borrowed/chain/[chain]`,
+	`total-staked/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getTotalBorrowedByChain({ chain: metadataCache.chainMetadata[chain].name })
+		const data = await getTotalStakedByChain({ chain: metadataCache.chainMetadata[chain].name })
 
 		if (!data) return { notFound: true }
 
@@ -32,8 +32,8 @@ export const getStaticProps = withPerformanceLogging(
 
 export default function TotalBorrowed(props) {
 	return (
-		<Layout title="Total Borrowed - DefiLlama">
-			<BorrowedByChain {...props} />
+		<Layout title="Total Staked - DefiLlama">
+			<StakedByChain {...props} />
 		</Layout>
 	)
 }
