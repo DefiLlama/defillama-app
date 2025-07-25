@@ -1,15 +1,14 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import { withPerformanceLogging } from '~/utils/perf'
-import ProDashboard from '~/containers/ProDashboard'
-import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
-import { useSubscribe } from '~/hooks/useSubscribe'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { Icon } from '~/components/Icon'
+import ProDashboard from '~/containers/ProDashboard'
+import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
+import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/hooks/useSubscribe'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticPaths = async () => {
 	return {

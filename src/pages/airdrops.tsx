@@ -1,10 +1,10 @@
-import { RecentProtocols } from '~/containers/RecentProtocols'
 import { maxAgeForNext } from '~/api'
 import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
-import { withPerformanceLogging } from '~/utils/perf'
+import { RecentProtocols } from '~/containers/RecentProtocols'
 import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const exclude = [
 	'DeerFi',

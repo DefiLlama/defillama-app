@@ -1,18 +1,18 @@
 import * as React from 'react'
-import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { slug } from '~/utils'
-import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
-import { LazyChart } from '~/components/LazyChart'
+import { maxAgeForNext } from '~/api'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { LazyChart } from '~/components/LazyChart'
+import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
+import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import {
 	formatTvlsByChain,
 	getProtocolWarningBanners,
 	useFetchProtocolAddlChartsData
 } from '~/containers/ProtocolOverview/utils'
-import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { maxAgeForNext } from '~/api'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { slug } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 

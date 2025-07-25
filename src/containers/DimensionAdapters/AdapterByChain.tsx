@@ -1,8 +1,3 @@
-import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { IAdapterByChainPageData } from './types'
-import { VirtualTable } from '~/components/Table/Table'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { Icon } from '~/components/Icon'
 import {
 	type ColumnDef,
 	ColumnFiltersState,
@@ -15,21 +10,26 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { BasicLink } from '~/components/Link'
-import { chainIconUrl, download, formattedNum, slug } from '~/utils'
-import { Tooltip } from '~/components/Tooltip'
-import { TokenLogo } from '~/components/TokenLogo'
-import { AdaptorsSearch } from '~/components/Search/Adaptors'
-import { Metrics, TMetric } from '~/components/Metrics'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useRouter } from 'next/router'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
+import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
+import { Metrics, TMetric } from '~/components/Metrics'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { AdaptorsSearch } from '~/components/Search/Adaptors'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { VirtualTable } from '~/components/Table/Table'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { AdapterByChainChart } from './ChainChart'
-import { protocolCharts } from '../ProtocolOverview/Chart/constants'
-import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
+import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { chainCharts } from '../ChainOverview/constants'
+import { protocolCharts } from '../ProtocolOverview/Chart/constants'
+import { AdapterByChainChart } from './ChainChart'
+import { IAdapterByChainPageData } from './types'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<

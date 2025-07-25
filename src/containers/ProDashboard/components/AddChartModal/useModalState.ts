@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
-import { ModalState, MainTabType, ChartTabType, CombinedTableType } from './types'
-import { DashboardItemConfig, ChartConfig } from '../../types'
+import { useEffect, useState } from 'react'
+import { ChartConfig, DashboardItemConfig } from '../../types'
+import { ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
 	const [selectedMainTab, setSelectedMainTab] = useState<MainTabType>('chart')

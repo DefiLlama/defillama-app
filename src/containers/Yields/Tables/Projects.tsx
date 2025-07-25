@@ -1,12 +1,12 @@
+import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import * as React from 'react'
-import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import type { IYieldsProjectsTableRow } from './types'
 
 import { ColumnDef } from '@tanstack/react-table'
+import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, formattedPercent } from '~/utils'
 import { YieldsProject } from './Name'
-import { Tooltip } from '~/components/Tooltip'
 
 const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 	{

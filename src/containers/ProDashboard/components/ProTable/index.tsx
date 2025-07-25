@@ -1,13 +1,12 @@
-import * as React from 'react'
-import { useProTable } from './useProTable'
-import { TableHeader } from './TableHeader'
-import { ColumnManagementPanel } from './ColumnManagementPanel'
-import { TableBody } from './TableBody'
-import { TablePagination } from './TablePagination'
-import { ProtocolFilterModal } from './ProtocolFilterModal'
 import { memo, useMemo, useState } from 'react'
-import { TableFilters } from '../../types'
 import { useProDashboard } from '../../ProDashboardAPIContext'
+import { TableFilters } from '../../types'
+import { ColumnManagementPanel } from './ColumnManagementPanel'
+import { ProtocolFilterModal } from './ProtocolFilterModal'
+import { TableBody } from './TableBody'
+import { TableHeader } from './TableHeader'
+import { TablePagination } from './TablePagination'
+import { useProTable } from './useProTable'
 
 export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	tableId,
@@ -53,19 +52,14 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		updateCustomColumn,
 		categories,
 		availableProtocols
-	} = useProTable(
-		memoizedChains, 
-		filters, 
-		() => setShowFilterModal(true),
-		{
+	} = useProTable(memoizedChains, filters, () => setShowFilterModal(true), {
 			initialColumnOrder: columnOrder,
 			initialColumnVisibility: columnVisibility,
 			initialCustomColumns: customColumns,
 			onColumnsChange: (newColumnOrder, newColumnVisibility, newCustomColumns) => {
 				handleTableColumnsChange(tableId, newColumnOrder, newColumnVisibility, newCustomColumns)
 			}
-		}
-	)
+	})
 
 	const handleFiltersChange = (newFilters: TableFilters) => {
 		handleTableFiltersChange(tableId, newFilters)

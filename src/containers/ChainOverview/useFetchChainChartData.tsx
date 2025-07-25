@@ -1,26 +1,26 @@
-import { useRouter } from 'next/router'
+import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
+import { useMemo } from 'react'
+import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
 	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
-import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
+import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
-import { useMemo } from 'react'
-import { getPercentChange, getPrevTvlFromChart, slug } from '~/utils'
-import { ChainChartLabels, chainCharts } from './constants'
-import { useQuery } from '@tanstack/react-query'
 import {
 	getAdapterChainOverview,
 	getAdapterProtocolSummary,
 	IAdapterOverview,
 	IAdapterSummary
 } from '~/containers/DimensionAdapters/queries'
-import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
-import { getProtocolEmissons } from '~/api/categories/protocols'
+import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
+import { getPercentChange, getPrevTvlFromChart, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import { ChainChartLabels, chainCharts } from './constants'
 
 export const useFetchChainChartData = ({
 	denomination,

@@ -1,6 +1,6 @@
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
-import { InstantSearch } from 'react-instantsearch'
 import { ReactNode } from 'react'
+import { InstantSearch } from 'react-instantsearch'
 
 const { searchClient } = instantMeiliSearch(
 	'https://search.defillama.com',

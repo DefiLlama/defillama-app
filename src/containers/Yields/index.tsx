@@ -1,12 +1,12 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
-import { YieldsPoolsTable } from './Tables/Pools'
-import { YieldFiltersV2 } from './Filters'
+import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { LocalLoader } from '~/components/LocalLoader'
-import { useFormatYieldQueryParams } from './hooks'
-import { toFilterPool } from './utils'
 import { download } from '~/utils'
+import { YieldFiltersV2 } from './Filters'
+import { useFormatYieldQueryParams } from './hooks'
+import { YieldsPoolsTable } from './Tables/Pools'
+import { toFilterPool } from './utils'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
 	const { query, pathname, push } = useRouter()

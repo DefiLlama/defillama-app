@@ -1,27 +1,27 @@
-import * as React from 'react'
 import {
-	useReactTable,
+	ColumnDef,
+	ColumnFiltersState,
+	ExpandedState,
 	SortingState,
 	getCoreRowModel,
-	getSortedRowModel,
-	ExpandedState,
 	getExpandedRowModel,
-	ColumnDef,
 	getFilteredRowModel,
-	ColumnFiltersState
+	getSortedRowModel,
+	useReactTable
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
-import useWindowSize from '~/hooks/useWindowSize'
-import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import * as React from 'react'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { formatColumnOrder } from '~/components/Table/utils'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
-import { Tooltip } from '~/components/Tooltip'
-import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { VirtualTable } from '~/components/Table/Table'
+import { formatColumnOrder } from '~/components/Table/utils'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
+import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
+import useWindowSize from '~/hooks/useWindowSize'
+import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
 

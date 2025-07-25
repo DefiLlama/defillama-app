@@ -1,11 +1,11 @@
 import { lazy, Suspense, useMemo } from 'react'
-import { formatChartTvlsByDay } from '~/hooks/data'
-import { formattedNum, getPercentChange, getTokenDominance } from '~/utils'
-import { formatDataWithExtraTvls } from '~/hooks/data/defi'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { oldBlue } from '~/constants/colors'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { formatChartTvlsByDay } from '~/hooks/data'
+import { formatDataWithExtraTvls } from '~/hooks/data/defi'
+import { formattedNum, getPercentChange, getTokenDominance } from '~/utils'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 

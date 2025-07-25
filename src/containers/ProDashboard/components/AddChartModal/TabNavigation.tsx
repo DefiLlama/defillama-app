@@ -1,5 +1,5 @@
-import { MainTabType } from './types'
 import { DashboardItemConfig } from '../../types'
+import { MainTabType } from './types'
 
 interface TabNavigationProps {
 	selectedMainTab: MainTabType
@@ -12,7 +12,7 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 		{ id: 'chart' as const, label: 'Chart', subtitle: '(Single)', mobileLabel: 'Chart' },
 		{ id: 'composer' as const, label: 'Chart Composer', subtitle: '(Multi)', mobileLabel: 'Composer' },
 		{ id: 'table' as const, label: 'Table', subtitle: '(Dataset)', mobileLabel: 'Table' },
-		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' },
+		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' }
 	]
 
 	return (

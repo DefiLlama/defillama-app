@@ -1,10 +1,10 @@
+import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
 import { sum } from 'lodash'
 import { useEffect, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
-import * as Ariakit from '@ariakit/react'
-import { Icon } from '~/components/Icon'
 import { generateGoogleCalendarUrl } from '~/utils/calendar'
 
 const ProtocolPageButton = () => {

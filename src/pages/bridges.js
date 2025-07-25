@@ -1,9 +1,9 @@
-import Layout from '~/layout'
+import { QueryClient } from '@tanstack/react-query'
 import { maxAgeForNext } from '~/api'
 import { BridgesOverviewByChain } from '~/containers/Bridges/BridgesOverviewByChain'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()
 

@@ -1,11 +1,11 @@
-import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { UnlocksCharts } from '~/containers/ProtocolOverview/Emissions'
-import { slug } from '~/utils'
+import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
+import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { slug } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/unlocks/[...protocol]',

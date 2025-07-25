@@ -1,7 +1,7 @@
+import { lazy, Suspense } from 'react'
+import { Icon } from '~/components/Icon'
 import { CHART_TYPES } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
-import { Icon } from '~/components/Icon'
-import { lazy, Suspense } from 'react'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart'))
 

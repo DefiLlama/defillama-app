@@ -1,13 +1,13 @@
 import { useRouter } from 'next/router'
-import { DesktopSearch } from '~/components/Search/Base/Desktop'
-import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
-import { useInstantSearch, useSearchBox } from 'react-instantsearch'
-import { SearchV2 } from '../InstantSearch'
-import { useIsClient } from '~/hooks'
 import { useCallback, useMemo } from 'react'
+import { useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { tvlOptions } from '~/components/Filters/options'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
+import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import { Select } from '~/components/Select'
+import { useIsClient } from '~/hooks'
+import { SearchV2 } from '../InstantSearch'
+import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]

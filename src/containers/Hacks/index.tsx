@@ -1,22 +1,22 @@
-import * as React from 'react'
-import Layout from '~/layout'
+import * as Ariakit from '@ariakit/react'
 import {
-	useReactTable,
+	ColumnFiltersState,
+	ColumnOrderState,
 	SortingState,
 	getCoreRowModel,
+	getFilteredRowModel,
 	getSortedRowModel,
-	ColumnOrderState,
-	ColumnFiltersState,
-	getFilteredRowModel
+	useReactTable
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
-import { hacksColumns, hacksColumnOrders } from '~/components/Table/Defi/columns'
+import * as React from 'react'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import useWindowSize from '~/hooks/useWindowSize'
-import { Icon } from '~/components/Icon'
-import * as Ariakit from '@ariakit/react'
 import { FormattedName } from '~/components/FormattedName'
+import { Icon } from '~/components/Icon'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { hacksColumnOrders, hacksColumns } from '~/components/Table/Defi/columns'
+import { VirtualTable } from '~/components/Table/Table'
+import useWindowSize from '~/hooks/useWindowSize'
+import Layout from '~/layout'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>

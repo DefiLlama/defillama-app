@@ -1,33 +1,33 @@
-import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
-	ExpandedState,
-	getExpandedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
+	ExpandedState,
+	SortingState,
+	getCoreRowModel,
+	getExpandedRowModel,
 	getFilteredRowModel,
-	ColumnDef
+	getSortedRowModel,
+	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
+import { TVLRange } from '~/components/Filters/TVLRange'
+import { Icon } from '~/components/Icon'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { TagGroup } from '~/components/TagGroup'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import useWindowSize from '~/hooks/useWindowSize'
 import {
 	columnOrders,
 	columnSizes,
 	protocolAddlColumns,
+	protocolsByChainColumns,
 	protocolsColumns,
-	topGainersAndLosersColumns,
-	protocolsByChainColumns
+	topGainersAndLosersColumns
 } from './columns'
-import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
-import { TVLRange } from '~/components/Filters/TVLRange'
-import { TagGroup } from '~/components/TagGroup'
-import { Icon } from '~/components/Icon'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))

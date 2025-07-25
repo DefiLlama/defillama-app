@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { Tooltip } from '~/components/Tooltip'
 
 interface WrapperProps {

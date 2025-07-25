@@ -1,4 +1,4 @@
-import { DashboardItemConfig, ChartConfig, ProtocolsTableConfig, TextConfig, MultiChartConfig } from '../types'
+import { ChartConfig, DashboardItemConfig, MultiChartConfig, ProtocolsTableConfig, TextConfig } from '../types'
 
 /**
  * Clean items before saving by removing runtime data like loading states and data

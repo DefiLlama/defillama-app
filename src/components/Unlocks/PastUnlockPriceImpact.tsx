@@ -1,11 +1,11 @@
+import * as Ariakit from '@ariakit/react'
+import dayjs from 'dayjs'
 import * as React from 'react'
 import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
-import { TokenLogo } from '../TokenLogo'
-import { BasicLink } from '../Link'
-import { Tooltip } from '../Tooltip'
-import * as Ariakit from '@ariakit/react'
 import { Icon } from '../Icon'
-import dayjs from 'dayjs'
+import { BasicLink } from '../Link'
+import { TokenLogo } from '../TokenLogo'
+import { Tooltip } from '../Tooltip'
 
 interface PastUnlockPriceImpactProps {
 	data: any[]

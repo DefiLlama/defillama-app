@@ -1,11 +1,10 @@
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
 import { InvestorContainer } from '~/containers/Raises/Investor'
 import { slug } from '~/utils'
-import { withPerformanceLogging } from '~/utils/perf'
 import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'raises/[...investorName]',

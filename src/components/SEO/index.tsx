@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
 import Head from 'next/head'
-import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
-import { useIsClient } from '~/hooks'
+import { useMemo } from 'react'
 import { ADAPTOR_TYPES } from '~/api/categories/adaptors'
+import { useIsClient } from '~/hooks'
+import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 interface SEOProps {
 	cardName?: string
@@ -132,7 +132,8 @@ export const SEO = ({
 	])
 
 	let pageTitle = 'DefiLlama'
-	let pageDescription = "DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency.";
+	let pageDescription =
+		'DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency.'
 	let pageKeywords = ''
 
 	if (unlockPage && cardName) {
@@ -143,23 +144,15 @@ export const SEO = ({
 
 	return (
 		<Head>
-			<meta
-				name="description"
-				content={pageDescription}
-			/>
+			<meta name="description" content={pageDescription} />
 
-			{pageKeywords !== '' && (
-				<meta name="keywords" content={pageKeywords} />
-			)}
+			{pageKeywords !== '' && <meta name="keywords" content={pageKeywords} />}
 
 			<meta property="og:title" content={pageTitle} />
 			<meta property="og:type" content="website" />
 			<meta property="og:url" content={windowURL} />
 			<meta property="og:site_name" content="DefiLlama" />
-			<meta
-				property="og:description"
-				content={pageDescription}
-			/>
+			<meta property="og:description" content={pageDescription} />
 			<meta property="og:image" content={cardURL} />
 
 			<meta name="twitter:card" content="summary_large_image" />
@@ -168,10 +161,7 @@ export const SEO = ({
 			<meta name="twitter:title" content={pageTitle} />
 			<meta name="twitter:site" content="@DefiLlama" />
 			<meta name="twitter:creator" content="@DefiLlama" />
-			<meta
-				name="twitter:description"
-				content={pageDescription}
-			/>
+			<meta name="twitter:description" content={pageDescription} />
 			<meta name="twitter:image" content={cardURL} />
 		</Head>
 	)

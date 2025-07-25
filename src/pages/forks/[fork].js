@@ -1,12 +1,12 @@
-import { getForkPageData } from '~/containers/Forks/queries'
-import { withPerformanceLogging } from '~/utils/perf'
-import { ForksByProtocol } from '~/containers/Forks'
-import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { maxAgeForNext } from '~/api'
-import { slug } from '~/utils'
 import { Metrics } from '~/components/Metrics'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { ForksByProtocol } from '~/containers/Forks'
+import { getForkPageData } from '~/containers/Forks/queries'
+import Layout from '~/layout'
+import { slug } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('forks', async ({ params: { fork } }) => {
 	const normalizedName = slug(fork)

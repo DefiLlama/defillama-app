@@ -1,14 +1,14 @@
-import { useAvailableChartTypes } from '../../queries'
 import { useMultipleChartData } from '../../hooks/useMultipleChartData'
-import { ModalHeader } from './ModalHeader'
-import { TabNavigation } from './TabNavigation'
+import { useAvailableChartTypes } from '../../queries'
 import { ChartTab } from './ChartTab'
 import { ComposerTab } from './ComposerTab'
-import { TableTab } from './TableTab'
-import { TextTab } from './TextTab'
+import { ModalHeader } from './ModalHeader'
 import { SubmitButton } from './SubmitButton'
-import { useModalActions } from './useModalActions'
+import { TableTab } from './TableTab'
+import { TabNavigation } from './TabNavigation'
+import { TextTab } from './TextTab'
 import { AddChartModalProps } from './types'
+import { useModalActions } from './useModalActions'
 
 export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps) {
 	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)

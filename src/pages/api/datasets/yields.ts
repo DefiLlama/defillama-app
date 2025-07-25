@@ -1,14 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import {
-	YIELD_POOLS_API,
-	YIELD_CONFIG_API,
-	YIELD_URL_API,
-	YIELD_CHAIN_API,
 	PROTOCOLS_API,
-	YIELD_LEND_BORROW_API
+	YIELD_CHAIN_API,
+	YIELD_CONFIG_API,
+	YIELD_LEND_BORROW_API,
+	YIELD_POOLS_API,
+	YIELD_URL_API
 } from '~/constants'
-import { fetchApi } from '~/utils/async'
 import { formatYieldsPageData } from '~/containers/Yields/queries/utils'
+import { fetchApi } from '~/utils/async'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {

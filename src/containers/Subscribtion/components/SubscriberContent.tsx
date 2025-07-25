@@ -1,10 +1,10 @@
-import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import toast from 'react-hot-toast'
-import { Subscription } from '~/hooks/useSubscribe'
+import { Icon } from '~/components/Icon'
+import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
-import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
+import { Subscription } from '~/hooks/useSubscribe'
 
 interface SubscriberContentProps {
 	apiKey: string | null

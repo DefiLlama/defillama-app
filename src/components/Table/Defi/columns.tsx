@@ -1,13 +1,14 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense, useEffect, useState } from 'react'
+import { Bookmark } from '~/components/Bookmark'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
-import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import {
 	capitalizeFirstLetter,
 	formattedNum,
@@ -18,7 +19,6 @@ import {
 	toNiceDayMonthYear,
 	toNiceHour
 } from '~/utils'
-import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { formatColumnOrder } from '../utils'
 import type {
 	AirdropRow,
@@ -30,7 +30,6 @@ import type {
 	IGovernance,
 	ILSDRow
 } from './types'
-import * as Ariakit from '@ariakit/react'
 
 const UnconstrainedSmolLineChart = lazy(() =>
 	import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))

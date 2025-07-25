@@ -1,6 +1,5 @@
-import * as React from 'react'
-import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
+import * as React from 'react'
 import { COLOR_PALETTE } from '../constants'
 import type { DailyUnlocks, PrecomputedData } from '../types'
 

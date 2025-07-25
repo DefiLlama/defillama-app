@@ -1,20 +1,20 @@
 import { ColumnDef } from '@tanstack/react-table'
+import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
+import { TokenLogo } from '~/components/TokenLogo'
+import { getBlockExplorerForAddress, getBlockExplorerForTx } from '~/containers/Bridges/utils'
 import {
+	chainIconUrl,
 	formattedNum,
 	formattedPercent,
-	chainIconUrl,
-	toNiceDayAndHour,
 	getBlockExplorer,
 	slug,
-	tokenIconUrl
+	tokenIconUrl,
+	toNiceDayAndHour
 } from '~/utils'
-import { TokenLogo } from '~/components/TokenLogo'
 import { formatColumnOrder } from '../../utils'
 import type { IBridge, IBridgeChain } from './types'
-import { getBlockExplorerForTx, getBlockExplorerForAddress } from '~/containers/Bridges/utils'
-import { Icon } from '~/components/Icon'
 
 export const bridgesColumn: ColumnDef<IBridge>[] = [
 	{

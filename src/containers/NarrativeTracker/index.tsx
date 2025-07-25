@@ -1,10 +1,10 @@
 import * as React from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
-import { useScrollToTop } from '~/hooks'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { useScrollToTop } from '~/hooks'
 
 interface IChartProps {
 	chartData: any[]

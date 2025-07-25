@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 
 export function EmbedChart({ color }: { color?: string }) {
 	const router = useRouter()

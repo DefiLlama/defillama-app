@@ -5,9 +5,9 @@ import {
 	PROTOCOLS_API,
 	REV_PROTOCOLS
 } from '~/constants'
-import { fetchJson } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
-import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE, ADAPTER_DATA_TYPES } from './constants'
+import { fetchJson } from '~/utils/async'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
 
 export interface IAdapterOverview {

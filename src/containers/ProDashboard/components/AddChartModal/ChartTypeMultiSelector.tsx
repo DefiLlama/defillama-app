@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { LoadingSpinner } from '../LoadingSpinner'
 import { CHART_TYPES } from '../../types'
+import { LoadingSpinner } from '../LoadingSpinner'
 
 interface ChartTypeMultiSelectorProps {
 	selectedChartTypes: string[]
@@ -78,9 +78,7 @@ export function ChartTypeMultiSelector({
 									>
 										<div
 											className={`w-4 h-4 border-2 flex items-center justify-center transition-all shrink-0 ${
-												isSelected
-													? 'border-(--primary1) bg-(--primary1)'
-													: 'border-gray-300 dark:border-gray-600'
+												isSelected ? 'border-(--primary1) bg-(--primary1)' : 'border-gray-300 dark:border-gray-600'
 											}`}
 										>
 											{isSelected && (

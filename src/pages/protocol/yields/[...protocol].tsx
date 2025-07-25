@@ -1,13 +1,13 @@
-import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { ProtocolPools } from '~/containers/ProtocolOverview/Yields'
 import { maxAgeForNext } from '~/api'
 import { YIELD_POOLS_API } from '~/constants'
-import { fetchJson } from '~/utils/async'
-import { slug } from '~/utils'
+import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
+import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { ProtocolPools } from '~/containers/ProtocolOverview/Yields'
+import { slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/yields/[...protocol]',

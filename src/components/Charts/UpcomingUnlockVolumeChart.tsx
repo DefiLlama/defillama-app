@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 
 dayjs.extend(weekOfYear)

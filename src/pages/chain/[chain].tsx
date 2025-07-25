@@ -1,10 +1,10 @@
-import { PROTOCOLS_API } from '~/constants/index'
-import { withPerformanceLogging } from '~/utils/perf'
-import { fetchJson } from '~/utils/async'
-import { slug } from '~/utils'
-import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { maxAgeForNext } from '~/api'
+import { PROTOCOLS_API } from '~/constants/index'
 import { ChainOverview } from '~/containers/ChainOverview'
+import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
+import { slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain

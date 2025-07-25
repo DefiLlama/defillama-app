@@ -1,10 +1,9 @@
 import { maxAgeForNext } from '~/api'
-import type { IChainTvl } from '~/api/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
+import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 import { Cexs } from '~/containers/Cexs'
 import { fetchJson } from '~/utils/async'
-import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 
 interface ICex {
 	name: string

@@ -1,11 +1,11 @@
-import * as React from 'react'
-import type { IBaseSearchProps } from '../types'
-import { useRouter } from 'next/router'
-import { TokenLogo } from '~/components/TokenLogo'
-import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
+import * as React from 'react'
+import { Icon } from '~/components/Icon'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import type { IBaseSearchProps } from '../types'
 
 export const DesktopSearch = (props: IBaseSearchProps) => {
 	const {

@@ -1,12 +1,11 @@
-import * as React from 'react'
+import { ColumnDef } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { TokenLogo } from '~/components/TokenLogo'
-import { ColumnDef } from '@tanstack/react-table'
-import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TokenLogo } from '~/components/TokenLogo'
+import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 
 export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	const data = Object.keys(assets)

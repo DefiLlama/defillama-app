@@ -1,9 +1,9 @@
+import { feesOptions } from '~/components/Filters/options'
+import { useFeesFilterState } from '~/components/Filters/useProtocolFilterState'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
+import { Select } from '~/components/Select'
 import type { ICommonSearchProps } from '../types'
 import { useGetAdaptorsSearchList } from './hooks'
-import { Select } from '~/components/Select'
-import { useFeesFilterState } from '~/components/Filters/useProtocolFilterState'
-import { feesOptions } from '~/components/Filters/options'
 
 interface IAdaptorSearchProps extends ICommonSearchProps {
 	onlyChains?: boolean

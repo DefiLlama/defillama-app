@@ -1,26 +1,26 @@
-import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
+	PaginationState,
+	SortingState,
 	VisibilityState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
-	PaginationState,
-	ColumnDef
+	getSortedRowModel,
+	useReactTable
 } from '@tanstack/react-table'
-import { TableBody } from '../../ProTable/TableBody'
-import { chainsDatasetColumns } from './columns'
+import * as React from 'react'
 import useWindowSize from '~/hooks/useWindowSize'
+import { useProDashboard } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
-import { useChainsData } from './useChainsData'
+import { TableBody } from '../../ProTable/TableBody'
 import { ChainsTableHeader } from './ChainsTableHeader'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
-import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { chainsDatasetColumns } from './columns'
+import { useChainsData } from './useChainsData'
 
 interface ChainsDatasetProps {
 	category?: string

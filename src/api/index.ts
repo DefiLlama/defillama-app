@@ -1,7 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { CG_TOKEN_API, TOKEN_LIST_API } from '~/constants/index'
 import { fetchApi, fetchJson } from '~/utils/async'
 import type { IResponseCGMarketsAPI } from './types'
-import { useQuery } from '@tanstack/react-query'
 
 function getCGMarketsDataURLs() {
 	const urls: string[] = []

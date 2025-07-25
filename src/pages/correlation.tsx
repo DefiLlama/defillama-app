@@ -1,7 +1,7 @@
+import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import Correlations from '~/containers/Correlations'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
 
 export const getStaticProps = withPerformanceLogging('correlation', async () => {
 	const coinsData = await getAllCGTokensList()

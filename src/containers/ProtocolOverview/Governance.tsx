@@ -1,21 +1,21 @@
-import * as React from 'react'
-import { toNiceDayMonthAndYear, formattedNum } from '~/utils'
 import {
-	useReactTable,
+	ColumnDef,
+	ColumnFiltersState,
 	SortingState,
 	getCoreRowModel,
-	getSortedRowModel,
 	getFilteredRowModel,
-	ColumnFiltersState,
-	ColumnDef
+	getSortedRowModel,
+	useReactTable
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
+import * as React from 'react'
 import { formatGovernanceData } from '~/api/categories/protocols'
+import { VirtualTable } from '~/components/Table/Table'
+import { formattedNum, toNiceDayMonthAndYear } from '~/utils'
 
-import { fetchJson } from '~/utils/async'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
+import { fetchJson } from '~/utils/async'
 
 export function GovernanceTable({ data, governanceType }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])

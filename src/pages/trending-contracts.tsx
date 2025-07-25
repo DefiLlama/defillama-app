@@ -1,13 +1,13 @@
-import { useDeferredValue, useState } from 'react'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
-import Layout from '~/layout'
+import { useDeferredValue, useState } from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { VirtualTable } from '~/components/Table/Table'
+import Layout from '~/layout'
 import { formattedPercent } from '~/utils'
 
-import { fetchJson } from '~/utils/async'
-import { TagGroup } from '~/components/TagGroup'
 import { useQuery } from '@tanstack/react-query'
+import { TagGroup } from '~/components/TagGroup'
+import { fetchJson } from '~/utils/async'
 
 const valueToFilter = {
 	'1d': 'day',

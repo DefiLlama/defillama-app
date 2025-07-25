@@ -1,25 +1,24 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import Layout from '~/layout'
+import { lazy, Suspense, useMemo } from 'react'
+import exponentialLogo from '~/assets/exponential.avif'
 import { AuditInfo } from '~/components/AuditInfo'
-import { download, formattedNum } from '~/utils'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
+import { BasicLink } from '~/components/Link'
+import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
+import { defaultProtocolPageStyles } from '~/containers/ProtocolOverview/Chart/constants'
 import {
 	useYieldChartData,
+	useYieldChartLendBorrow,
 	useYieldConfigData,
-	useYieldPoolData,
-	useYieldChartLendBorrow
+	useYieldPoolData
 } from '~/containers/Yields/queries/client'
-import { getColorFromNumber } from '~/utils'
-import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
-import exponentialLogo from '~/assets/exponential.avif'
-import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { useQuery } from '@tanstack/react-query'
+import Layout from '~/layout'
+import { download, formattedNum, getColorFromNumber } from '~/utils'
 import { fetchApi } from '~/utils/async'
-import { Icon } from '~/components/Icon'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { BasicLink } from '~/components/Link'
-import { defaultProtocolPageStyles } from '~/containers/ProtocolOverview/Chart/constants'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 

@@ -1,8 +1,8 @@
-import type { IFormattedProtocol } from '~/api/types'
 import { keepNeededProperties } from '~/api/shared'
-import { formattedNum, getPercentChange } from '~/utils'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import type { IFormattedProtocol } from '~/api/types'
 import { ILiteProtocol } from '~/containers/ChainOverview/types'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { formattedNum, getPercentChange } from '~/utils'
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
 

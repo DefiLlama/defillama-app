@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { LoadingSpinner } from './LoadingSpinner'
 import { Dashboard } from '../services/DashboardAPI'
 import { ChartConfig } from '../types'
+import { LoadingSpinner } from './LoadingSpinner'
 
 interface DashboardListProps {
 	dashboards: Dashboard[]
@@ -122,10 +122,15 @@ export function DashboardList({
 									<div className="flex flex-wrap gap-1">
 										{dashboard.data.items.slice(0, 3).map((item) => {
 											const displayText = 
-												item.kind === 'chart' ? `${(item as ChartConfig).type} chart` : 
-												item.kind === 'table' ? 'table' :
-												item.kind === 'multi' ? 'multi chart' :
-												item.kind === 'text' ? 'text' : 'unknown';
+												item.kind === 'chart'
+													? `${(item as ChartConfig).type} chart`
+													: item.kind === 'table'
+													? 'table'
+													: item.kind === 'multi'
+													? 'multi chart'
+													: item.kind === 'text'
+													? 'text'
+													: 'unknown'
 											return (
 												<span
 													key={item.id}
@@ -133,12 +138,10 @@ export function DashboardList({
 												>
 													{displayText}
 												</span>
-											);
+											)
 										})}
 										{dashboard.data.items.length > 3 && (
-											<span className="px-2 py-1 text-xs text-(--text3)">
-												+{dashboard.data.items.length - 3} more
-											</span>
+											<span className="px-2 py-1 text-xs text-(--text3)">+{dashboard.data.items.length - 3} more</span>
 										)}
 									</div>
 								</div>

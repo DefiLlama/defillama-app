@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { slug, formattedPercent } from '~/utils'
+import { formattedPercent, slug } from '~/utils'
 import type { INftCollection } from '../types'
 
 export const columns: ColumnDef<INftCollection>[] = [

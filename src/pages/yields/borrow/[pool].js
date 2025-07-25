@@ -1,11 +1,6 @@
-import { lazy, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { lazy, useEffect } from 'react'
 import Layout from '~/layout'
-import { AuditInfo } from '~/components/AuditInfo'
-import { download, formattedNum } from '~/utils'
-import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/containers/Yields/queries/client'
-import { getColorFromNumber } from '~/utils'
-import { useEffect } from 'react'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
 

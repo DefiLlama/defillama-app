@@ -1,7 +1,7 @@
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import { withPerformanceLogging } from '~/utils/perf'
 import { Announcement } from '~/components/Announcement'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export default function Roundup({ messages }: { messages: Array<string | Array<string>> }) {
 	return (

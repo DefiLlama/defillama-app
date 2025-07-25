@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
-import type { INftMarketplace } from '../types'
-import { formattedPercent } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
+import { formattedPercent } from '~/utils'
+import type { INftMarketplace } from '../types'
 
 export const columns: ColumnDef<INftMarketplace>[] = [
 	{

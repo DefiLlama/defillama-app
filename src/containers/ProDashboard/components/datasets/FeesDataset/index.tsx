@@ -1,24 +1,24 @@
-import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
+	getSortedRowModel,
 	PaginationState,
-	ColumnDef
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
-import { TableBody } from '../../ProTable/TableBody'
-import { feesDatasetColumns } from './columns'
+import * as React from 'react'
+import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
-import { useFeesData } from './useFeesData'
-import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { TableBody } from '../../ProTable/TableBody'
+import { feesDatasetColumns } from './columns'
+import { useFeesData } from './useFeesData'
 
 export function FeesDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])

@@ -1,16 +1,18 @@
-import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
+import { getAnnualizedRatio } from '~/api/categories/adaptors'
+import { getAllProtocolEmissions, getETFData } from '~/api/categories/protocols'
+import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHAINS_ASSETS,
 	CHART_API,
-	PROTOCOLS_API,
-	PROTOCOLS_TREASURY,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
+	PROTOCOLS_API,
+	PROTOCOLS_TREASURY,
 	RAISES_API,
 	REV_PROTOCOLS
 } from '~/constants'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import {
 	getAdapterChainOverview,
 	getAdapterProtocolSummary,
@@ -20,26 +22,24 @@ import {
 } from '~/containers/DimensionAdapters/queries'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { formattedNum, getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { ChainChartLabels } from './constants'
 import type {
+	IChainAssets,
 	IChainMetadata,
 	IChainOverviewData,
 	IChildProtocol,
+	ILiteChart,
 	ILiteParentProtocol,
 	ILiteProtocol,
 	IProtocol,
-	TVL_TYPES,
 	IRaises,
-	ILiteChart,
 	ITreasury,
-	IChainAssets
+	TVL_TYPES
 } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { getAllProtocolEmissions, getETFData } from '~/api/categories/protocols'
-import { tvlOptions } from '~/components/Filters/options'
-import { ChainChartLabels } from './constants'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)

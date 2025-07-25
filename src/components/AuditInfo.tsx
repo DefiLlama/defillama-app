@@ -1,6 +1,5 @@
-import * as React from 'react'
-import { Menu } from '~/components/Menu'
 import { Icon } from '~/components/Icon'
+import { Menu } from '~/components/Menu'
 import { Tooltip } from '~/components/Tooltip'
 
 interface IProps {

@@ -1,5 +1,5 @@
 import type { IJoin2ReturnType, IOverviewProps, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
-import { ADAPTER_TYPES, ADAPTER_DATA_TYPES } from './constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 
 export interface IProtocolContainerProps {
 	protocolSummary: ProtocolAdaptorSummaryProps

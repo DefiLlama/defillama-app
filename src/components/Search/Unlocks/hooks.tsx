@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { slug, tokenIconUrl } from '~/utils'
 import { getProtocolEmissionsList } from '~/api/categories/protocols'
+import { slug, tokenIconUrl } from '~/utils'
 import { IGetSearchList } from '../types'
 
 export function useGetUnlocksSearchList({ disabled }: { disabled?: boolean }): IGetSearchList {

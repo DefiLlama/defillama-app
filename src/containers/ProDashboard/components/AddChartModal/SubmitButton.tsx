@@ -1,5 +1,5 @@
-import { MainTabType, ChartTabType, CombinedTableType } from './types'
-import { DashboardItemConfig, ChartConfig } from '../../types'
+import { ChartConfig, DashboardItemConfig } from '../../types'
+import { ChartTabType, CombinedTableType, MainTabType } from './types'
 
 interface SubmitButtonProps {
 	editItem?: DashboardItemConfig | null
@@ -36,12 +36,20 @@ export function SubmitButton({
 }: SubmitButtonProps) {
 	const isDisabled = 
 		chartTypesLoading ||
-		(selectedMainTab === 'chart' && selectedChartTab === 'chain' && (!selectedChain || selectedChartTypes.length === 0)) ||
-		(selectedMainTab === 'chart' && selectedChartTab === 'protocol' && (!selectedProtocol || selectedChartTypes.length === 0)) ||
-		(selectedMainTab === 'table' && selectedTableType === 'protocols' && (!selectedChains || selectedChains.length === 0)) ||
+		(selectedMainTab === 'chart' &&
+			selectedChartTab === 'chain' &&
+			(!selectedChain || selectedChartTypes.length === 0)) ||
+		(selectedMainTab === 'chart' &&
+			selectedChartTab === 'protocol' &&
+			(!selectedProtocol || selectedChartTypes.length === 0)) ||
+		(selectedMainTab === 'table' &&
+			selectedTableType === 'protocols' &&
+			(!selectedChains || selectedChains.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
 		(selectedMainTab === 'table' && selectedTableType === 'trending-contracts' && !selectedDatasetChain) ||
-		(selectedMainTab === 'table' && selectedTableType === 'token-usage' && (!selectedTokens || selectedTokens.length === 0)) ||
+		(selectedMainTab === 'table' &&
+			selectedTableType === 'token-usage' &&
+			(!selectedTokens || selectedTokens.length === 0)) ||
 		(selectedMainTab === 'composer' && composerItems.length === 0) ||
 		(selectedMainTab === 'text' && !textContent.trim())
 
@@ -49,15 +57,19 @@ export function SubmitButton({
 		if (editItem) return 'Save Changes'
 		
 		switch (selectedMainTab) {
-			case 'table': return 'Add Table'
-			case 'composer': return 'Add Multi-Chart'
-			case 'text': return 'Add Text'
+			case 'table':
+				return 'Add Table'
+			case 'composer':
+				return 'Add Multi-Chart'
+			case 'text':
+				return 'Add Text'
 			case 'chart':
 				if (selectedChartTypes.length > 1) {
 					return `Add ${selectedChartTypes.length} Charts`
 				}
 				return 'Add Chart'
-			default: return 'Add Chart'
+			default:
+				return 'Add Chart'
 		}
 	}
 

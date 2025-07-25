@@ -6,7 +6,9 @@ export function useRevenueData(chains?: string[]) {
 	const filteredChains = chains?.includes('All') ? [] : chains
 	
 	const queryParams =
-		filteredChains && filteredChains.length > 0 ? `?${filteredChains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}` : ''
+		filteredChains && filteredChains.length > 0
+			? `?${filteredChains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}`
+			: ''
 
 	// Use sorted chains array to ensure consistent query key
 	const sortedChains = chains ? [...chains].sort() : []

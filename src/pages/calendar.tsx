@@ -1,25 +1,25 @@
-import { maxAgeForNext } from '~/api'
-import * as React from 'react'
-import Layout from '~/layout'
+import * as Ariakit from '@ariakit/react'
 import {
-	useReactTable,
+	ColumnFiltersState,
 	SortingState,
 	getCoreRowModel,
-	getSortedRowModel,
 	getFilteredRowModel,
-	ColumnFiltersState
+	getSortedRowModel,
+	useReactTable
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
-import { calendarColumns } from '~/components/Table/Defi/columns'
-import { withPerformanceLogging } from '~/utils/perf'
-import { Announcement } from '~/components/Announcement'
-import calendarEvents from '~/constants/calendar'
-import { formatPercentage } from '~/utils'
-import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import { useRouter } from 'next/router'
+import * as React from 'react'
+import { maxAgeForNext } from '~/api'
+import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
+import { calendarColumns } from '~/components/Table/Defi/columns'
+import { VirtualTable } from '~/components/Table/Table'
+import { PROTOCOL_EMISSIONS_API } from '~/constants'
+import calendarEvents from '~/constants/calendar'
+import Layout from '~/layout'
+import { formatPercentage } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import * as Ariakit from '@ariakit/react'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('calendar', async () => {
 	const res = await fetchJson(PROTOCOL_EMISSIONS_API).catch(() => [])

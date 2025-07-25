@@ -1,9 +1,9 @@
-import { ChartTabType } from './types'
+import { Icon } from '~/components/Icon'
+import { Protocol, getChainChartTypes, getProtocolChartTypes } from '../../types'
+import { ChartPreviewCarousel } from '../ChartPreviewCarousel'
 import { ItemSelect } from '../ItemSelect'
 import { ChartTypeMultiSelector } from './ChartTypeMultiSelector'
-import { ChartPreviewCarousel } from '../ChartPreviewCarousel'
-import { Icon } from '~/components/Icon'
-import { Protocol, getProtocolChartTypes, getChainChartTypes } from '../../types'
+import { ChartTabType } from './types'
 
 interface ChartTabProps {
 	selectedChartTab: ChartTabType

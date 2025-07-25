@@ -1,11 +1,11 @@
-import { useQuery, useQueries } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
+import dayjs from 'dayjs'
 import { CHAINS_API, PROTOCOLS_API } from '~/constants'
 import { sluggify } from '~/utils/cache-client'
-import ProtocolCharts from './services/ProtocolCharts'
-import ChainCharts from './services/ChainCharts'
-import { getProtocolChartTypes, getChainChartTypes } from './types'
 import { TimePeriod } from './ProDashboardAPIContext'
-import dayjs from 'dayjs'
+import ChainCharts from './services/ChainCharts'
+import ProtocolCharts from './services/ProtocolCharts'
+import { getChainChartTypes, getProtocolChartTypes } from './types'
 
 function generateChartKey(
 	type: string,
@@ -252,7 +252,7 @@ export function useChartData(
 	})
 }
 
-export { generateChartKey, getChartQueryKey, getChartQueryFn }
+export { generateChartKey, getChartQueryFn, getChartQueryKey }
 
 export function useChains() {
 	return useQuery({

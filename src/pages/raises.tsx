@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'

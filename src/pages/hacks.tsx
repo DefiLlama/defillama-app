@@ -4,8 +4,8 @@ import HacksContainer from '~/containers/Hacks'
 import { formattedNum, preparePieChartData } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchJson } from '~/utils/async'
 import { HACKS_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	const data = (await fetchJson(HACKS_API)).map((h) => ({

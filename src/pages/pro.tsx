@@ -1,14 +1,13 @@
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import { withPerformanceLogging } from '~/utils/perf'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
 import { DemoPreview } from '~/containers/ProDashboard/components/DemoPreview'
-import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
-import { useSubscribe } from '~/hooks/useSubscribe'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
+import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/hooks/useSubscribe'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('index/pro', async () => {
 	return {

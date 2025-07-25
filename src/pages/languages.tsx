@@ -1,14 +1,14 @@
 import * as React from 'react'
+import { maxAgeForNext } from '~/api'
+import type { IChartProps } from '~/components/ECharts/types'
+import { LazyChart } from '~/components/LazyChart'
+import { LANGS_API } from '~/constants'
 import Layout from '~/layout'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
-import { maxAgeForNext } from '~/api'
-import { LANGS_API } from '~/constants'
-import { LazyChart } from '~/components/LazyChart'
-import type { IChartProps } from '~/components/ECharts/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchJson } from '~/utils/async'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { fetchJson } from '~/utils/async'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 

@@ -1,12 +1,12 @@
-import * as React from 'react'
-import { Table, flexRender, RowData } from '@tanstack/react-table'
+import { flexRender, RowData, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
-import { SortIcon } from '~/components/Table/SortIcon'
 import { useRouter } from 'next/router'
+import * as React from 'react'
+import { useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { SortIcon } from '~/components/Table/SortIcon'
 import { Tooltip } from '../Tooltip'
-import { useEffect, useRef } from 'react'
 
 interface ITableProps {
 	instance: Table<any>

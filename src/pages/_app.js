@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import NProgress from 'nprogress'
-import { useAnalytics } from '~/hooks/useAnalytics'
-import '~/tailwind.css'
-import '~/nprogress.css'
-import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+import NProgress from 'nprogress'
+import { useEffect } from 'react'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
+import { useAnalytics } from '~/hooks/useAnalytics'
+import '~/nprogress.css'
+import '~/tailwind.css'
 
 NProgress.configure({ showSpinner: false })
 

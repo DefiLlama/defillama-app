@@ -1,19 +1,17 @@
 /* eslint-disable no-unused-vars*/
 // eslint sucks at types
-import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
+import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 import * as React from 'react'
-import Layout from '~/layout'
+import { maxAgeForNext } from '~/api'
 import { LiquidationsSearch } from '~/components/Search/Liquidations'
+import type { ISearchItem } from '~/components/Search/types'
 import { SEO } from '~/components/SEO'
-import { LiquidationsHeader } from '~/containers/Liquidations/LiquidationsHeader'
+import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { LiquidationsContent } from '~/containers/Liquidations/LiquidationsContent'
+import { LiquidationsHeader } from '~/containers/Liquidations/LiquidationsHeader'
+import { LiqPositionsTable } from '~/containers/Liquidations/PositionsTable'
 import { LiqProtocolsTable } from '~/containers/Liquidations/ProtocolsTable'
 import { TableSwitch } from '~/containers/Liquidations/TableSwitch'
-import { LiqPositionsTable } from '~/containers/Liquidations/PositionsTable'
-import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import type { ISearchItem } from '~/components/Search/types'
-import { maxAgeForNext } from '~/api'
-import { liquidationsIconUrl } from '~/utils'
 import {
 	ChartData,
 	getAvailableAssetsList,
@@ -21,7 +19,9 @@ import {
 	getPrevChartData,
 	getReadableValue
 } from '~/containers/Liquidations/utils'
-import { LiquidationsContext } from '~/containers/Liquidations/context'
+import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import Layout from '~/layout'
+import { liquidationsIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = withPerformanceLogging(

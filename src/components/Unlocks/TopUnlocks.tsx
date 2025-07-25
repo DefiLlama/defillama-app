@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import { TokenLogo } from '../TokenLogo'
 import { BasicLink } from '../Link'
+import { TokenLogo } from '../TokenLogo'
 import { Tooltip } from '../Tooltip'
 
 interface TopUnlocksProps {

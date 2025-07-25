@@ -1,11 +1,10 @@
-import * as React from 'react'
-import Layout from '~/layout'
-import data from './final.json'
-import { formattedNum } from '~/utils'
-import { toNiceDateYear } from '~/utils'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { sortingFns } from '@tanstack/react-table'
+import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import Layout from '~/layout'
+import { formattedNum, toNiceDateYear } from '~/utils'
+import data from './final.json'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<any>
 

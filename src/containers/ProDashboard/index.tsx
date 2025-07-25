@@ -1,16 +1,15 @@
-import { useState } from 'react'
 import { useRouter } from 'next/router'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import { AddChartModal } from './components/AddChartModal'
 import { ChartGrid } from './components/ChartGrid'
-import { EmptyState } from './components/EmptyState'
 import { DemoPreview } from './components/DemoPreview'
-import { useSubscribe } from '~/hooks/useSubscribe'
-import { ProDashboardLoader } from './components/ProDashboardLoader'
-import { useProDashboard, TimePeriod } from './ProDashboardAPIContext'
+import { EmptyState } from './components/EmptyState'
+import { TimePeriod, useProDashboard } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 function ProDashboardContent() {
 	const router = useRouter()

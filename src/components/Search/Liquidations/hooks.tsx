@@ -1,5 +1,5 @@
-import { getAvailableAssetsList } from '~/containers/Liquidations/utils'
 import { useQuery } from '@tanstack/react-query'
+import { getAvailableAssetsList } from '~/containers/Liquidations/utils'
 import { IGetSearchList } from '../types'
 
 export function useGetLiquidationSearchList({ disabled }: { disabled?: boolean }): IGetSearchList {

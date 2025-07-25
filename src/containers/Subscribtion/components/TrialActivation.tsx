@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { useAuthContext } from '../auth'
-import toast from 'react-hot-toast'
-import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
+import { useAuthContext } from '../auth'
 
 interface TrialActivationProps {
 	onSuccess?: () => void

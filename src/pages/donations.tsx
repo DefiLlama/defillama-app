@@ -1,10 +1,9 @@
-import * as React from 'react'
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('donations', async () => {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url', 'referralUrl'])

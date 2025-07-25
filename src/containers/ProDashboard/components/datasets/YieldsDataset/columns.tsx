@@ -1,8 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table'
+import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, tokenIconUrl } from '~/utils'
-import { IconsRow } from '~/components/IconsRow'
 
 interface IYieldsRow {
 	pool: string

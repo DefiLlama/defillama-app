@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { formattedNum } from '~/utils'
-import { ProtocolChartsLabels, BAR_CHARTS, yAxisByChart, DISABLED_CUMULATIVE_CHARTS } from './constants'
+import { BAR_CHARTS, DISABLED_CUMULATIVE_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
 
 const customOffsets = {
 	Contributers: 60,
