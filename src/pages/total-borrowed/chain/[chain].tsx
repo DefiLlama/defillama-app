@@ -30,7 +30,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export default function TotalBorrowed(props) {
+export default function TotalBorrowedByChain(props) {
 	return (
 		<Layout title="Total Borrowed - DefiLlama">
 			<BorrowedByChain {...props} />

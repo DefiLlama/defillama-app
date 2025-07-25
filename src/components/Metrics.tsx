@@ -29,6 +29,7 @@ export interface ITotalTrackedByMetric {
 	nfts: { protocols: number; chains: number }
 	bridgedTVL: { protocols: number; chains: number }
 	staking: { protocols: number; chains: number }
+	pool2: { protocols: number; chains: number }
 }
 
 export type TMetric =
@@ -57,6 +58,7 @@ export type TMetric =
 	| 'Unlocks'
 	| 'Earnings'
 	| 'Total Staked'
+	| 'Pool2 TVL'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -402,7 +404,14 @@ export const protocolsMetrics: Array<{
 		mainRoute: '/total-staked',
 		chainRoute: `/total-staked/chain/{chain}`,
 		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.staking?.protocols ?? 0,
-		description: 'Sum of value of all protocols own tokens staked on their platform'
+		description: 'Total value of all protocols own tokens staked on their platform'
+	},
+	{
+		name: 'Pool2 TVL',
+		mainRoute: '/pool2',
+		chainRoute: `/pool2/chain/{chain}`,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.pool2?.protocols ?? 0,
+		description: 'Total value locked in pool2 across all protocols'
 	}
 ]
 

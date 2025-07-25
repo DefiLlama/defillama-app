@@ -1,4 +1,4 @@
-import { CG_TOKEN_API, COINS_PRICES_API, MCAPS_API, TOKEN_LIST_API } from '~/constants/index'
+import { CG_TOKEN_API, COINS_PRICES_API, COINS_MCAPS_API, TOKEN_LIST_API } from '~/constants/index'
 import { fetchApi, fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IResponseCGMarketsAPI } from './types'
 import { useQuery } from '@tanstack/react-query'
@@ -80,7 +80,7 @@ export async function fetchChainMcaps(chains: Array<[string, string]>) {
 	// Fetch mcaps for each batch
 	const batchPromises = batches.map(async (batch) => {
 		try {
-			const response = await fetchJson(MCAPS_API, {
+			const response = await fetchJson(COINS_MCAPS_API, {
 				method: 'POST',
 				body: JSON.stringify({
 					coins: batch.map(([_, geckoId]) => `coingecko:${geckoId}`)
