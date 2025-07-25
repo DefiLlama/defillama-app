@@ -1573,7 +1573,9 @@ const Raises = (props: IProtocolOverviewPageData) => {
 							<span className="text-[#545757] dark:text-[#cccccc]">
 								{dayjs.utc(raise.date * 1000).format('MMM D, YYYY')}
 							</span>
-							<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
+							{raise.amount ? (
+								<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
+							) : null}
 						</span>
 						<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
 							<span>Round: {raise.round}</span>
