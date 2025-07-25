@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { CG_TOKEN_API, COINS_PRICES_API, COINS_MCAPS_API, TOKEN_LIST_API } from '~/constants/index'
+import { CG_TOKEN_API, COINS_MCAPS_API, COINS_PRICES_API, TOKEN_LIST_API } from '~/constants/index'
 import { fetchApi, fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IResponseCGMarketsAPI } from './types'
 

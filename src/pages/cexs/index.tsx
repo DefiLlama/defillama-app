@@ -169,7 +169,7 @@ export const cexData: Array<ICex> = [
         slug: 'gemini',
         coin: null,
 		cgId: 'gemini',
-		walletsLink: 'https://www.gemini.com/trust-center/',
+		walletsLink: 'https://www.gemini.com/trust-center/'
 	},
 	{
 		name: 'Bybit',

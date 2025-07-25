@@ -1,4 +1,23 @@
+import { fetchCoinPrices } from '~/api'
 import type { IFusedProtocolData, IProtocolResponse } from '~/api/types'
+import {
+	BRIDGEINFLOWS_API,
+	CATEGORY_COIN_PRICES_API,
+	CATEGORY_INFO_API,
+	CATEGORY_PERFORMANCE_API,
+	CHAINS_ASSETS,
+	CHAIN_ASSETS_FLOWS,
+	COINS_INFO_API,
+	ETF_FLOWS_API,
+	ETF_SNAPSHOT_API,
+	LSD_RATES_API,
+	PROTOCOLS_API,
+	PROTOCOL_API,
+	PROTOCOL_EMISSIONS_API,
+	PROTOCOL_EMISSIONS_LIST_API,
+	PROTOCOL_EMISSION_API,
+	YIELD_POOLS_API
+} from '~/constants'
 import {
 	batchFetchHistoricalPrices,
 	capitalizeFirstLetter,
@@ -6,28 +25,9 @@ import {
 	roundToNearestHalfHour,
 	slug
 } from '~/utils'
-import {
-	PROTOCOLS_API,
-	PROTOCOL_API,
-	PROTOCOL_EMISSIONS_API,
-	PROTOCOL_EMISSIONS_LIST_API,
-	PROTOCOL_EMISSION_API,
-	YIELD_POOLS_API,
-	LSD_RATES_API,
-	CHAINS_ASSETS,
-	ETF_SNAPSHOT_API,
-	ETF_FLOWS_API,
-	CHAIN_ASSETS_FLOWS,
-	BRIDGEINFLOWS_API,
-	CATEGORY_PERFORMANCE_API,
-	CATEGORY_COIN_PRICES_API,
-	CATEGORY_INFO_API,
-	COINS_INFO_API
-} from '~/constants'
-import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import { fetchJson } from '~/utils/async'
 import { sluggify } from '~/utils/cache-client'
-import { fetchCoinPrices } from '~/api'
+import { BasicPropsToKeep, formatProtocolsData } from './utils'
 
 export const getAllProtocolEmissionsWithHistory = async ({
 	startDate,

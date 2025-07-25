@@ -2,14 +2,14 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
+import { fetchCoinPrices } from '~/api'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/LocalLoader'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { CACHE_SERVER, COINS_PRICES_API } from '~/constants'
+import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
-import { fetchCoinPrices } from '~/api'
 
 export default function CompareFdv({ coinsData, protocols }) {
 	const router = useRouter()
