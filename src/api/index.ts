@@ -64,7 +64,9 @@ export async function fetchChainMcaps(chains: Array<[string, string]>) {
 	}
 
 	// Filter out chains without gecko_id
-	const validChains = chains.filter(([_, geckoId]) => geckoId != null && geckoId !== '')
+	const validChains = chains
+		.filter(([_, geckoId]) => geckoId != null && geckoId !== '')
+		.map(([chain, geckoId]) => [chain, `coingecko:${geckoId}`])
 
 	if (validChains.length === 0) {
 		return {}
@@ -83,12 +85,12 @@ export async function fetchChainMcaps(chains: Array<[string, string]>) {
 			const response = await fetchJson(COINS_MCAPS_API, {
 				method: 'POST',
 				body: JSON.stringify({
-					coins: batch.map(([_, geckoId]) => `coingecko:${geckoId}`)
+					coins: batch
 				})
 			})
 			return response
 		} catch (err) {
-			postRuntimeLogs(`Failed to fetch mcaps for batch: ${batch.map(([chain]) => chain).join(', ')}`)
+			postRuntimeLogs(`Failed to fetch mcaps for batch: ${batch.join(', ')}`)
 			postRuntimeLogs(err)
 			return {}
 		}

@@ -150,6 +150,8 @@ export async function fetchJson(
 	options?: FetchOverCacheOptions,
 	retry: boolean = false
 ): Promise<any> {
+	const start = Date.now()
+
 	// Capture caller information at the time of call
 	const callerInfo = getCallerInfo(new Error().stack)
 
@@ -157,12 +159,19 @@ export async function fetchJson(
 		const res = await fetchWithErrorLogging(url, options, retry).then((res) =>
 			handleFetchResponse(res, url, options, callerInfo)
 		)
+
+		const end = Date.now()
+		if (end - start > 5000) {
+			postRuntimeLogs(`[fetchJson] [success] [${end - start}ms] < ${url} >`)
+		}
+
 		return res
 	} catch (error) {
+		const end = Date.now()
 		// Only log here if the error didn't come from handleFetchResponse
 		if (!error.message.includes('[HTTP]')) {
 			postRuntimeLogs(
-				`[fetchJson] [error] [caller: ${callerInfo}] [${
+				`[fetchJson] [error] [${end - start}ms] [caller: ${callerInfo}] [${
 					error instanceof Error ? error.message : 'Unknown error'
 				}] < ${url} >`
 			)
