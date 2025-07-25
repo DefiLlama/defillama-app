@@ -32,13 +32,13 @@ export interface ITotalStakedByChainPageData {
 }
 
 export async function getTotalStakedByChain({ chain }: { chain: string }): Promise<ITotalStakedByChainPageData | null> {
-	const [{ protocols, chains, parentProtocols }, chart]: [
+	const [{ protocols, parentProtocols }, chart, chains]: [
 		{
 			protocols: Array<ILiteProtocol>
-			chains: Array<string>
 			parentProtocols: Array<{ id: string; name: string; chains: Array<string> }>
 		},
-		Array<[number, number]>
+		Array<[number, number]>,
+		Array<string>
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		fetchJson(`${CHART_API}${chain && chain !== 'All' ? `/${chain}` : ''}`)
@@ -46,7 +46,10 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			.catch((err) => {
 				postRuntimeLogs(`Total Staked by Chain: ${chain}: ${err instanceof Error ? err.message : err}`)
 				return null
-			})
+			}),
+		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
+			data.chainTvls.filter((chain) => (chain.extraTvl?.staking?.tvl ? true : false)).map((chain) => chain.name)
+		)
 	])
 
 	if (!chart || chart.length === 0) return null
