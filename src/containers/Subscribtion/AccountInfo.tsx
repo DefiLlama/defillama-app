@@ -1,13 +1,13 @@
 import { FormEvent, useState } from 'react'
+import { Icon } from '~/components/Icon'
+import { LocalLoader } from '~/components/LocalLoader'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { Icon } from '~/components/Icon'
 import { AccountHeader } from './components/AccountHeader'
 import { AccountStatus } from './components/AccountStatus'
+import { EmailChangeModal } from './components/EmailChangeModal'
 import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { SubscriberContent } from './components/SubscriberContent'
-import { EmailChangeModal } from './components/EmailChangeModal'
-import { LocalLoader } from '~/components/LocalLoader'
 
 export const AccountInfo = () => {
 	const [newEmail, setNewEmail] = useState('')

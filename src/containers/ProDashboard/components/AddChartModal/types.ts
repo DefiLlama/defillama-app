@@ -1,4 +1,4 @@
-import { DashboardItemConfig, ChartConfig } from '../../types'
+import { ChartConfig, DashboardItemConfig } from '../../types'
 
 export interface AddChartModalProps {
 	isOpen: boolean

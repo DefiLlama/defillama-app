@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars*/
-import { useMemo, useEffect, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useSyncExternalStore } from 'react'
 // import { trackGoal } from 'fathom-client'
-import { slug } from '~/utils'
 import { useIsClient } from '~/hooks'
+import { slug } from '~/utils'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'

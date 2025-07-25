@@ -1,10 +1,10 @@
-import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { maxAgeForNext } from '~/api'
-import { cexData } from '../cexs'
-import { withPerformanceLogging } from '~/utils/perf'
+import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
+import { cexData } from '../cexs'
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/[...cex]',

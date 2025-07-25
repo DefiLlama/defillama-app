@@ -1,15 +1,15 @@
+import { useQuery } from '@tanstack/react-query'
 import {
 	CONFIG_API,
-	YIELD_CONFIG_API,
 	YIELD_CHART_API,
-	YIELD_POOLS_API,
-	YIELD_POOLS_LAMBDA_API,
 	YIELD_CHART_LEND_BORROW_API,
-	YIELD_CONFIG_POOL_API
+	YIELD_CONFIG_API,
+	YIELD_CONFIG_POOL_API,
+	YIELD_POOLS_API,
+	YIELD_POOLS_LAMBDA_API
 } from '~/constants'
-import { formatYieldsPageData } from './utils'
-import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '~/utils/async'
+import { formatYieldsPageData } from './utils'
 
 // single pool
 export const useYieldPoolData = (configID) => {

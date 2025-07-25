@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { FormattedName } from '~/components/FormattedName'
 

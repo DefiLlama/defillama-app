@@ -1,6 +1,6 @@
+import categoriesAndTags from '../../.cache/categoriesAndTags.json'
 import chainMetadata from '../../.cache/chains.json'
 import protocolMetadata from '../../.cache/protocols.json'
-import categoriesAndTags from '../../.cache/categoriesAndTags.json'
 
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'

@@ -1,10 +1,3 @@
-import { Announcement } from '~/components/Announcement'
-import { Metrics, TMetric } from '~/components/Metrics'
-import { AdaptorsSearch } from '~/components/Search/Adaptors'
-import { IChainsByAdapterPageData } from './types'
-import { download, formattedNum, slug } from '~/utils'
-import { TokenLogo } from '~/components/TokenLogo'
-import { BasicLink } from '~/components/Link'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -18,12 +11,19 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Announcement } from '~/components/Announcement'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
+import { Metrics, TMetric } from '~/components/Metrics'
+import { AdaptorsSearch } from '~/components/Search/Adaptors'
+import { VirtualTable } from '~/components/Table/Table'
+import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { VirtualTable } from '~/components/Table/Table'
-import { Icon } from '~/components/Icon'
+import { download, formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
+import { IChainsByAdapterPageData } from './types'
 
 interface IProps extends IChainsByAdapterPageData {
 	type: Extract<

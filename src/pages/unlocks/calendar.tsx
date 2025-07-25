@@ -1,15 +1,14 @@
+import dayjs from 'dayjs'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissionsWithHistory } from '~/api/categories/protocols'
-import * as React from 'react'
-import Layout from '~/layout'
-import { useWatchlistManager } from '~/contexts/LocalStorage'
-import { slug } from '~/utils'
-import { Icon } from '~/components/Icon'
-import { withPerformanceLogging } from '~/utils/perf'
-import { CalendarView } from '~/components/Unlocks/CalendarView'
 import { Announcement } from '~/components/Announcement'
-import dayjs from 'dayjs'
+import { Icon } from '~/components/Icon'
+import { CalendarView } from '~/components/Unlocks/CalendarView'
 import type { PrecomputedData } from '~/components/Unlocks/types'
+import { useWatchlistManager } from '~/contexts/LocalStorage'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const determineUnlockType = (
 	event: { timestamp: number; noOfTokens: number[]; description?: string; category?: string },

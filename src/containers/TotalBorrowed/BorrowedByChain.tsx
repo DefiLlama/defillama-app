@@ -1,3 +1,5 @@
+import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense } from 'react'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -9,8 +11,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { ITotalBorrowedByChainPageData } from './queries'
-import { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense } from 'react'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 

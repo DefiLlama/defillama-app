@@ -1,9 +1,9 @@
 import { maxAgeForNext } from '~/api'
 import { getNFTData } from '~/api/categories/nfts'
-import Layout from '~/layout'
+import { NFTsSearch } from '~/components/Search/NFTs'
 import { NftsCollectionTable } from '~/components/Table/Nfts/Collections'
 import { useScrollToTop } from '~/hooks'
-import { NFTsSearch } from '~/components/Search/NFTs'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('nfts', async () => {

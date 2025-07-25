@@ -1,6 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
-import { getChartQueryKey, getChartQueryFn } from '../queries'
 import { TimePeriod } from '../ProDashboardAPIContext'
+import { getChartQueryFn, getChartQueryKey } from '../queries'
 
 export function useMultipleChartData(
 	chartTypes: string[],

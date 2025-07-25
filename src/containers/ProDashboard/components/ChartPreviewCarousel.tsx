@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react'
-import { ChartPreview } from './ChartPreview'
+import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHART_TYPES } from '../types'
+import { ChartPreview } from './ChartPreview'
 
 interface ChartPreviewCarouselProps {
 	selectedChartTypes: string[]
@@ -9,15 +9,11 @@ interface ChartPreviewCarouselProps {
 	itemName: string
 }
 
-export function ChartPreviewCarousel({ 
-	selectedChartTypes, 
-	chartData, 
-	itemName
-}: ChartPreviewCarouselProps) {
+export function ChartPreviewCarousel({ selectedChartTypes, chartData, itemName }: ChartPreviewCarouselProps) {
 	const [currentIndex, setCurrentIndex] = useState(0)
 
-	const validCharts = useMemo(() => 
-		selectedChartTypes.filter(type => chartData.has(type)),
+	const validCharts = useMemo(
+		() => selectedChartTypes.filter((type) => chartData.has(type)),
 		[selectedChartTypes, chartData]
 	)
 

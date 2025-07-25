@@ -1,10 +1,10 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
-import { YieldsOptimizerTable } from './Tables/Optimizer'
+import * as React from 'react'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
-import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 import { useGetPrice } from './queries'
+import { YieldsOptimizerTable } from './Tables/Optimizer'
+import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 
 const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lendingProtocols, searchData }) => {
 	const { pathname, query } = useRouter()

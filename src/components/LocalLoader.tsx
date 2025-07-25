@@ -1,8 +1,7 @@
-import * as React from 'react'
 import Image from 'next/image'
-import { useNFTApp } from '~/hooks'
 import DefiLogo from '~/assets/logo_white.png'
 import NFTLogo from '~/assets/nft_logo_white.png'
+import { useNFTApp } from '~/hooks'
 
 export const LocalLoader = () => {
 	const isNFTApp = useNFTApp()

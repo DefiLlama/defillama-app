@@ -1,8 +1,8 @@
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
-import { getCoinPerformance, getCategoryInfo } from '~/api/categories/protocols'
-import { withPerformanceLogging } from '~/utils/perf'
+import { getCategoryInfo, getCoinPerformance } from '~/api/categories/protocols'
 import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('category-performance', async ({ params }) => {
 	const data = await getCoinPerformance(params.category)

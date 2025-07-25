@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.OPTIONS

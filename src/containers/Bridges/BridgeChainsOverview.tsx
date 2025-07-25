@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { lazy } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { BridgesSearch } from '~/components/Search/Bridges'
 import { BridgeChainsTable } from '~/components/Table/Bridges'
-import { toNiceCsvDate, download } from '~/utils'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { download, toNiceCsvDate } from '~/utils'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 

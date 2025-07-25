@@ -1,8 +1,8 @@
+import { useQuery } from '@tanstack/react-query'
 import { PEGGEDS_API } from '~/constants'
-import { fetchApi } from '~/utils/async'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
-import { useQuery } from '@tanstack/react-query'
+import { fetchApi } from '~/utils/async'
 
 export const useFetchStablecoinsList = ({ disabled }: { disabled?: boolean }) => {
 	return useQuery({

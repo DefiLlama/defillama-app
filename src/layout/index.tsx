@@ -1,7 +1,7 @@
-import * as React from 'react'
 import Head from 'next/head'
-import { SEO } from '~/components/SEO'
+import * as React from 'react'
 import Nav from '~/components/Nav'
+import { SEO } from '~/components/SEO'
 import { useIsClient } from '~/hooks'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))

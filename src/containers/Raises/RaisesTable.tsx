@@ -1,18 +1,18 @@
-import * as React from 'react'
 import {
-	useReactTable,
+	ColumnFiltersState,
+	ColumnOrderState,
 	SortingState,
 	getCoreRowModel,
-	getSortedRowModel,
 	getFilteredRowModel,
-	ColumnOrderState,
-	ColumnFiltersState
+	getSortedRowModel,
+	useReactTable
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
-import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
-import useWindowSize from '~/hooks/useWindowSize'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
+import { VirtualTable } from '~/components/Table/Table'
+import useWindowSize from '~/hooks/useWindowSize'
 
 const columnResizeMode = 'onChange'
 

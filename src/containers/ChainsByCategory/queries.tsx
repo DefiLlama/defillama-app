@@ -1,11 +1,11 @@
-import { getColorFromNumber, slug } from '~/utils'
 import { ACTIVE_USERS_API, CHAINS_ASSETS, TEMP_CHAIN_NFTS } from '~/constants'
-import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
 import { IChainAssets } from '~/containers/ChainOverview/types'
-import { IChainsByCategory, IChainsByCategoryData } from './types'
+import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
+import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
+import { getColorFromNumber, slug } from '~/utils'
+import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from '../DimensionAdapters/constants'
+import { IChainsByCategory, IChainsByCategoryData } from './types'
 
 export const getChainsByCategory = async ({
 	category,

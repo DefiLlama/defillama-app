@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { formattedPercent } from '~/utils'
 
@@ -41,9 +40,7 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 					rel="noopener noreferrer"
 					className="flex items-center gap-3 text-blue-600 dark:text-blue-400 hover:underline"
 				>
-					<span className="font-medium">
-						{name || `${value.slice(0, 4)}...${value.slice(-4)}`}
-					</span>
+					<span className="font-medium">{name || `${value.slice(0, 4)}...${value.slice(-4)}`}</span>
 				</a>
 			)
 		}

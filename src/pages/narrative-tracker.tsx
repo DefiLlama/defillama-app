@@ -1,9 +1,8 @@
-import * as React from 'react'
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getCategoryPerformance } from '~/api/categories/protocols'
-import { withPerformanceLogging } from '~/utils/perf'
 import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('narrative-tracker', async () => {
 	const data = await getCategoryPerformance()

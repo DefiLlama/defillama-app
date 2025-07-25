@@ -1,9 +1,8 @@
-import * as React from 'react'
-import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { getAirdropDirectoryData } from '~/api/categories/protocols'
-import { withPerformanceLogging } from '~/utils/perf'
 import { maxAgeForNext } from '~/api'
+import { getAirdropDirectoryData } from '~/api/categories/protocols'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 

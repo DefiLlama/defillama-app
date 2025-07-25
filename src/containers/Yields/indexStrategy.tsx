@@ -1,9 +1,9 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
-import { YieldsStrategyTable } from './Tables/Strategy'
+import * as React from 'react'
 import { YieldFiltersV2 } from './Filters'
-import { filterPool, findStrategyPools } from './utils'
 import { useFormatYieldQueryParams } from './hooks'
+import { YieldsStrategyTable } from './Tables/Strategy'
+import { filterPool, findStrategyPools } from './utils'
 
 const YieldsStrategyPage = ({
 	pools,

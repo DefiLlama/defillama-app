@@ -1,6 +1,4 @@
-import * as React from 'react'
 import { Table, flexRender } from '@tanstack/react-table'
-import { SortIcon } from '~/components/Table/SortIcon'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { ReorderableHeader } from './ReorderableHeader'
 

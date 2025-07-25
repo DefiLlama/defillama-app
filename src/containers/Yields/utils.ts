@@ -1,6 +1,5 @@
-import { YieldsData } from '~/containers/Yields/queries/index'
+import { calculateLoopAPY, YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions } from './Filters/Attributes'
-import { calculateLoopAPY } from '~/containers/Yields/queries/index'
 
 export function toFilterPool({
 	curr,

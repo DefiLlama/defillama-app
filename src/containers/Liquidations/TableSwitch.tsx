@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars*/
-import * as React from 'react'
-import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
+import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 
 export const TableSwitch = () => {
 	const [liqsSettings, toggleLiqsSettings] = useLocalStorageSettingsManager('liquidations')

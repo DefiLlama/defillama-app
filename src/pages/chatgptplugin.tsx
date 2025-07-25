@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import Layout from '~/layout'
 

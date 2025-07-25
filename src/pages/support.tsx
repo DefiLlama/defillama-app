@@ -1,5 +1,4 @@
 import { useMutation } from '@tanstack/react-query'
-import * as React from 'react'
 import toast from 'react-hot-toast'
 import Layout from '~/layout'
 

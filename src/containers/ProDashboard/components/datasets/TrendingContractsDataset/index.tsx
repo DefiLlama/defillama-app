@@ -1,25 +1,25 @@
-import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
+	PaginationState,
+	SortingState,
 	VisibilityState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
-	PaginationState,
-	ColumnDef
+	getSortedRowModel,
+	useReactTable
 } from '@tanstack/react-table'
-import { TableBody } from '../../ProTable/TableBody'
-import { trendingContractsColumns } from './columns'
+import * as React from 'react'
+import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
-import { useTrendingContractsData } from './useTrendingContractsData'
-import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { TableBody } from '../../ProTable/TableBody'
+import { trendingContractsColumns } from './columns'
+import { useTrendingContractsData } from './useTrendingContractsData'
 
 interface TrendingContractsDatasetProps {
 	chain?: string
@@ -29,7 +29,13 @@ interface TrendingContractsDatasetProps {
 	onTimeframeChange?: (timeframe: string) => void
 }
 
-export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', timeframe: initialTimeframe = '1d', tableId, onChainChange, onTimeframeChange }: TrendingContractsDatasetProps) {
+export function TrendingContractsDataset({
+	chain: initialChain = 'Ethereum',
+	timeframe: initialTimeframe = '1d',
+	tableId,
+	onChainChange,
+	onTimeframeChange
+}: TrendingContractsDatasetProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'gas_spend', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -193,7 +199,9 @@ export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', tim
 								const url = URL.createObjectURL(blob)
 								const a = document.createElement('a')
 								a.href = url
-								a.download = `trending-contracts-${chain.toLowerCase()}-${timeframe}-${new Date().toISOString().split('T')[0]}.csv`
+								a.download = `trending-contracts-${chain.toLowerCase()}-${timeframe}-${
+									new Date().toISOString().split('T')[0]
+								}.csv`
 								document.body.appendChild(a)
 								a.click()
 								document.body.removeChild(a)

@@ -1,5 +1,5 @@
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export const SignInWithGithub = ({ className, onSuccess }: { className?: string; onSuccess?: () => void }) => {
 	const { signInWithGithub, loaders } = useAuthContext()

@@ -1,24 +1,24 @@
-import { useState, useMemo, useRef } from 'react'
 import {
+	flexRender,
 	getCoreRowModel,
-	getSortedRowModel,
-	getPaginationRowModel,
 	getFilteredRowModel,
-	useReactTable,
+	getPaginationRowModel,
+	getSortedRowModel,
+	PaginationState,
 	SortingState,
-	PaginationState
+	useReactTable
 } from '@tanstack/react-table'
-import { download, formattedNum } from '~/utils'
-import { ProTableCSVButton } from '../../ProTable/CsvButton'
-import { flexRender } from '@tanstack/react-table'
-import { SortIcon } from '~/components/Table/SortIcon'
-import { LoadingSpinner } from '../../LoadingSpinner'
-import { useTokenUsageData } from './useTokenUsageData'
-import { getColumns } from './columns'
-import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { useTokenSearch } from './useTokenSearch'
-import { reactSelectStyles } from '../../../utils/reactSelectStyles'
+import { useMemo, useState } from 'react'
 import { components } from 'react-select'
+import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
+import { SortIcon } from '~/components/Table/SortIcon'
+import { download, formattedNum } from '~/utils'
+import { reactSelectStyles } from '../../../utils/reactSelectStyles'
+import { LoadingSpinner } from '../../LoadingSpinner'
+import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { getColumns } from './columns'
+import { useTokenSearch } from './useTokenSearch'
+import { useTokenUsageData } from './useTokenUsageData'
 
 interface TokenOption {
 	value: string
@@ -510,9 +510,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 									<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
 									<div
 										className={`w-4 h-4 border-2 transition-all ${
-											includeCex
-												? 'bg-(--primary1) border-(--primary1)'
-												: 'bg-transparent border-(--text3)'
+											includeCex ? 'bg-(--primary1) border-(--primary1)' : 'bg-transparent border-(--text3)'
 										}`}
 									>
 										{includeCex && (
@@ -578,10 +576,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						{table.getRowModel().rows.map((row) => (
 							<tr key={row.id} className="hover:bg-(--bg3) border-b border-(--divider)">
 								{row.getVisibleCells().map((cell) => (
-									<td
-										key={cell.id}
-										className="px-2 py-2 whitespace-nowrap border-r border-(--divider) last:border-r-0"
-									>
+									<td key={cell.id} className="px-2 py-2 whitespace-nowrap border-r border-(--divider) last:border-r-0">
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</td>
 								))}

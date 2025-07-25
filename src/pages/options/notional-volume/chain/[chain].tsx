@@ -1,14 +1,14 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
+import { TMetric } from '~/components/Metrics'
+import { DIMENISIONS_OVERVIEW_API } from '~/constants'
+import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
-import { withPerformanceLogging } from '~/utils/perf'
 import { fetchJson } from '~/utils/async'
-import { DIMENISIONS_OVERVIEW_API } from '~/constants'
-import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
-import { TMetric } from '~/components/Metrics'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.OPTIONS
 const dataType = 'dailyNotionalVolume'

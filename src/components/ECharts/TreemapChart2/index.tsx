@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { TreemapChart as EChartTreemap } from 'echarts/charts'
+import { TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { TreemapChart as EChartTreemap } from 'echarts/charts'
-import { TooltipComponent, TitleComponent, ToolboxComponent } from 'echarts/components'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 

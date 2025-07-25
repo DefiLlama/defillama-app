@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars*/
-import * as React from 'react'
-import { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
+import { BRIDGES_SHOWING_ADDRESSES, BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 
 export const TxsTableSwitch = () => {
 	const [bridgesSettings, toggleBridgesSettings] = useLocalStorageSettingsManager('bridges')

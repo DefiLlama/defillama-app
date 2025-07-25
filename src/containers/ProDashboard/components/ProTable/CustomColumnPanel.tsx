@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { Parser } from 'expr-eval'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
 
@@ -27,7 +27,9 @@ export function CustomColumnPanel({
 	const [newColumnName, setNewColumnName] = React.useState('')
 	const [newColumnExpression, setNewColumnExpression] = React.useState('')
 	const [validationError, setValidationError] = React.useState('')
-	const [liveValidation, setLiveValidation] = React.useState<{ isValid: boolean; error?: string; result?: number }>({ isValid: true })
+	const [liveValidation, setLiveValidation] = React.useState<{ isValid: boolean; error?: string; result?: number }>({
+		isValid: true
+	})
 	
 	// Autocomplete state
 	const [showAutocomplete, setShowAutocomplete] = React.useState(false)
@@ -50,7 +52,7 @@ export function CustomColumnPanel({
 	const autocompleteSuggestions = React.useMemo(() => {
 		const suggestions = [
 			// Variables
-			...availableVariables.map(variable => ({
+			...availableVariables.map((variable) => ({
 				type: 'variable' as const,
 				value: variable.key,
 				display: variable.key,
@@ -65,17 +67,65 @@ export function CustomColumnPanel({
 			{ type: 'operator' as const, value: ' % ', display: '%', description: 'Modulo', category: 'Operators' },
 			{ type: 'operator' as const, value: ' ^ ', display: '^', description: 'Exponentiation', category: 'Operators' },
 			// Functions
-			{ type: 'function' as const, value: 'abs(', display: 'abs()', description: 'Absolute value', category: 'Functions' },
-			{ type: 'function' as const, value: 'sqrt(', display: 'sqrt()', description: 'Square root', category: 'Functions' },
-			{ type: 'function' as const, value: 'pow(', display: 'pow(x, y)', description: 'Power function', category: 'Functions' },
-			{ type: 'function' as const, value: 'max(', display: 'max()', description: 'Maximum value', category: 'Functions' },
-			{ type: 'function' as const, value: 'min(', display: 'min()', description: 'Minimum value', category: 'Functions' },
-			{ type: 'function' as const, value: 'round(', display: 'round()', description: 'Round to nearest integer', category: 'Functions' },
-			{ type: 'function' as const, value: 'floor(', display: 'floor()', description: 'Round down', category: 'Functions' },
+			{
+				type: 'function' as const,
+				value: 'abs(',
+				display: 'abs()',
+				description: 'Absolute value',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'sqrt(',
+				display: 'sqrt()',
+				description: 'Square root',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'pow(',
+				display: 'pow(x, y)',
+				description: 'Power function',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'max(',
+				display: 'max()',
+				description: 'Maximum value',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'min(',
+				display: 'min()',
+				description: 'Minimum value',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'round(',
+				display: 'round()',
+				description: 'Round to nearest integer',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'floor(',
+				display: 'floor()',
+				description: 'Round down',
+				category: 'Functions'
+			},
 			{ type: 'function' as const, value: 'ceil(', display: 'ceil()', description: 'Round up', category: 'Functions' },
 			// Parentheses
-			{ type: 'operator' as const, value: '(', display: '(', description: 'Opening parenthesis', category: 'Operators' },
-			{ type: 'operator' as const, value: ')', display: ')', description: 'Closing parenthesis', category: 'Operators' },
+			{
+				type: 'operator' as const,
+				value: '(',
+				display: '(',
+				description: 'Opening parenthesis',
+				category: 'Operators'
+			},
+			{ type: 'operator' as const, value: ')', display: ')', description: 'Closing parenthesis', category: 'Operators' }
 		]
 		return suggestions
 	}, [availableVariables])
@@ -186,7 +236,8 @@ export function CustomColumnPanel({
 		if (!autocompleteFilter.trim()) return autocompleteSuggestions
 		
 		const filter = autocompleteFilter.toLowerCase()
-		return autocompleteSuggestions.filter(suggestion => 
+		return autocompleteSuggestions.filter(
+			(suggestion) =>
 			suggestion.display.toLowerCase().includes(filter) ||
 			suggestion.description.toLowerCase().includes(filter) ||
 			suggestion.value.toLowerCase().includes(filter)
@@ -194,13 +245,13 @@ export function CustomColumnPanel({
 	}, [autocompleteSuggestions, autocompleteFilter])
 
 	const insertVariable = (variableKey: string) => {
-		setNewColumnExpression(prev => prev + variableKey)
+		setNewColumnExpression((prev) => prev + variableKey)
 		setShowAutocomplete(false)
 		setAutocompleteIndex(-1)
 	}
 
 	const insertOperator = (operator: string) => {
-		setNewColumnExpression(prev => prev + ` ${operator} `)
+		setNewColumnExpression((prev) => prev + ` ${operator} `)
 		setShowAutocomplete(false)
 		setAutocompleteIndex(-1)
 	}
@@ -278,15 +329,11 @@ export function CustomColumnPanel({
 		switch (e.key) {
 			case 'ArrowDown':
 				e.preventDefault()
-				setAutocompleteIndex(prev => 
-					prev < filteredSuggestions.length - 1 ? prev + 1 : 0
-				)
+				setAutocompleteIndex((prev) => (prev < filteredSuggestions.length - 1 ? prev + 1 : 0))
 				break
 			case 'ArrowUp':
 				e.preventDefault()
-				setAutocompleteIndex(prev => 
-					prev > 0 ? prev - 1 : filteredSuggestions.length - 1
-				)
+				setAutocompleteIndex((prev) => (prev > 0 ? prev - 1 : filteredSuggestions.length - 1))
 				break
 			case 'Enter':
 			case 'Tab':
@@ -334,8 +381,6 @@ export function CustomColumnPanel({
 			return value.toFixed(2)
 		}
 	}
-
-
 
 	const handleMouseDown = (e: React.MouseEvent) => {
 		// Prevent drag events from bubbling up to dashboard
@@ -418,25 +463,25 @@ export function CustomColumnPanel({
 											key={`${suggestion.type}-${suggestion.value}`}
 											onClick={() => insertSuggestion(suggestion)}
 											className={`px-3 py-1.5 cursor-pointer flex items-center gap-2 text-sm ${
-												index === autocompleteIndex 
-													? 'bg-(--primary1) text-white' 
-													: 'pro-hover-bg pro-text1'
+												index === autocompleteIndex ? 'bg-(--primary1) text-white' : 'pro-hover-bg pro-text1'
 											}`}
 											onMouseEnter={() => setAutocompleteIndex(index)}
 										>
-											<span className={`w-1 h-1 rounded-full shrink-0 ${
-												suggestion.type === 'variable' ? 'bg-blue-500' :
-												suggestion.type === 'function' ? 'bg-purple-500' :
-												'bg-gray-500'
-											}`} />
+											<span
+												className={`w-1 h-1 rounded-full shrink-0 ${
+													suggestion.type === 'variable'
+														? 'bg-blue-500'
+														: suggestion.type === 'function'
+														? 'bg-purple-500'
+														: 'bg-gray-500'
+												}`}
+											/>
 											<code className="font-mono text-sm shrink-0 min-w-0">{suggestion.display}</code>
 											<span className="text-xs pro-text3 truncate ml-auto">{suggestion.description}</span>
 										</div>
 									))}
 									{filteredSuggestions.length === 0 && autocompleteFilter && (
-										<div className="px-3 py-2 text-sm pro-text3">
-											No suggestions found for "{autocompleteFilter}"
-										</div>
+										<div className="px-3 py-2 text-sm pro-text3">No suggestions found for "{autocompleteFilter}"</div>
 									)}
 								</div>
 							)}
@@ -453,16 +498,19 @@ export function CustomColumnPanel({
 						</div>
 						
 						<p className="mt-1 text-xs pro-text3">
-							💡 Start typing to see autocomplete suggestions. Use ↑↓ to navigate, Enter/Tab to select, Esc to close, or Ctrl+Space to open.
+							💡 Start typing to see autocomplete suggestions. Use ↑↓ to navigate, Enter/Tab to select, Esc to close, or
+							Ctrl+Space to open.
 						</p>
 						
 						{/* Live Preview */}
 						{newColumnExpression && (
-							<div className={`mt-2 p-2 border rounded text-xs ${
+							<div
+								className={`mt-2 p-2 border rounded text-xs ${
 								liveValidation.isValid 
 									? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' 
 									: 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
-							}`}>
+								}`}
+							>
 								<div className="flex items-center justify-between">
 									<span className="font-medium pro-text2">Live Preview:</span>
 									{liveValidation.isValid ? (
@@ -470,14 +518,17 @@ export function CustomColumnPanel({
 											{formatPreviewNumber(liveValidation.result || null)}
 										</span>
 									) : (
-										<span className="text-red-700 dark:text-red-300">
-											{liveValidation.error}
-										</span>
+										<span className="text-red-700 dark:text-red-300">{liveValidation.error}</span>
 									)}
 								</div>
 								{liveValidation.isValid && (
 									<div className="mt-1 pro-text3 text-xs">
-										Using sample data: {Object.entries(sampleData).slice(0, 3).map(([key, value]) => `${key}=${formatPreviewNumber(value)}`).join(', ')}...
+										Using sample data:{' '}
+										{Object.entries(sampleData)
+											.slice(0, 3)
+											.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+											.join(', ')}
+										...
 									</div>
 								)}
 							</div>
@@ -539,7 +590,11 @@ export function CustomColumnPanel({
 					))}
 				</div>
 				<div className="mt-2 text-xs pro-text3">
-					Sample values: {Object.entries(sampleData).slice(0, 4).map(([key, value]) => `${key}=${formatPreviewNumber(value)}`).join(', ')}
+					Sample values:{' '}
+					{Object.entries(sampleData)
+						.slice(0, 4)
+						.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+						.join(', ')}
 				</div>
 			</div>
 
@@ -548,10 +603,7 @@ export function CustomColumnPanel({
 				<div className="space-y-3">
 					<h5 className="text-sm font-medium pro-text2">Custom Columns ({customColumns.length})</h5>
 					{customColumns.map((column) => (
-						<div
-							key={column.id}
-							className="p-3 border pro-divider pro-bg3"
-						>
+						<div key={column.id} className="p-3 border pro-divider pro-bg3">
 							<div className="flex items-center justify-between">
 								<div className="flex-1">
 									<div className="flex items-center gap-2 mb-1">

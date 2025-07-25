@@ -1,11 +1,11 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
-import { TokenLogo } from '~/components/TokenLogo'
-import { FormattedName } from '~/components/FormattedName'
-import type { ISearchItem } from '~/components/Search/types'
-import { ChartData } from '~/containers/Liquidations/utils'
 import { matchSorter } from 'match-sorter'
+import * as React from 'react'
+import { FormattedName } from '~/components/FormattedName'
 import { BasicLink } from '~/components/Link'
+import type { ISearchItem } from '~/components/Search/types'
+import { TokenLogo } from '~/components/TokenLogo'
+import { ChartData } from '~/containers/Liquidations/utils'
 
 export const LiquidationsHeader = (props: { data: ChartData; options: ISearchItem[] }) => {
 	const { data, options } = props

@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useId } from 'react'
-import * as echarts from 'echarts/core'
-import { formattedNum } from '~/utils'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { SVGRenderer } from 'echarts/renderers'
 import { LineChart } from 'echarts/charts'
-import { GridComponent, TooltipComponent, MarkLineComponent } from 'echarts/components'
+import { GridComponent, MarkLineComponent, TooltipComponent } from 'echarts/components'
+import * as echarts from 'echarts/core'
+import { SVGRenderer } from 'echarts/renderers'
+import { useCallback, useEffect, useId } from 'react'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { formattedNum } from '~/utils'
 
 echarts.use([SVGRenderer, LineChart, TooltipComponent, GridComponent, MarkLineComponent])
 export function UnconstrainedSmolLineChart({

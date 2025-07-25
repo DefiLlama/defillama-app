@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Switch } from '~/components/Switch'
 import { DesktopSearch } from '~/components/Search/Base/Desktop'
+import { Switch } from '~/components/Switch'
 import type { ICommonSearchProps } from '../types'
 import { useGetBridgesSearchList } from './hooks'
 

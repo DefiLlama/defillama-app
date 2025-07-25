@@ -1,11 +1,11 @@
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants/index'
-import { capitalizeFirstLetter, slug } from '~/utils'
-import { withPerformanceLogging } from '~/utils/perf'
-import { fetchJson } from '~/utils/async'
 import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
 import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
+import Layout from '~/layout'
+import { capitalizeFirstLetter, slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocols/[...category]',

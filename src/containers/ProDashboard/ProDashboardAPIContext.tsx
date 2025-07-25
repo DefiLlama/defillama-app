@@ -1,23 +1,23 @@
-import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react'
 import { QueryObserverResult, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
+import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
-import {
-	ChartConfig,
-	CHART_TYPES,
-	DashboardItemConfig,
-	ProtocolsTableConfig,
-	MultiChartConfig,
-	TextConfig,
-	Chain,
-	TableFilters
-} from './types'
-import { useChartsData, useProtocolsAndChains } from './queries'
-import { groupData } from './utils'
-import { Protocol } from './types'
-import { Dashboard } from './services/DashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useDashboardAPI, useAutoSave, useDashboardPermissions } from './hooks'
+import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
+import { useChartsData, useProtocolsAndChains } from './queries'
+import { Dashboard } from './services/DashboardAPI'
+import {
+	Chain,
+	CHART_TYPES,
+	ChartConfig,
+	DashboardItemConfig,
+	MultiChartConfig,
+	Protocol,
+	ProtocolsTableConfig,
+	TableFilters,
+	TextConfig
+} from './types'
+import { groupData } from './utils'
 import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
 
 export type TimePeriod = '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'

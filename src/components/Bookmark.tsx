@@ -1,7 +1,7 @@
-import { useRef } from 'react'
-import { useWatchlistManager } from '~/contexts/LocalStorage'
-import { Icon } from '~/components/Icon'
 import { useRouter } from 'next/router'
+import { useRef } from 'react'
+import { Icon } from '~/components/Icon'
+import { useWatchlistManager } from '~/contexts/LocalStorage'
 
 // readableProtocolName has proper caps and spaces
 export function Bookmark({ readableProtocolName, ...props }) {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { OtherLinks } from './OtherLinks'
 import { BasicLink } from '../Link'
+import { OtherLinks } from './OtherLinks'
 
 interface ILink {
 	label: string

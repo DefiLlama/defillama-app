@@ -1,25 +1,25 @@
-import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
+	PaginationState,
+	SortingState,
 	VisibilityState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
-	PaginationState,
-	ColumnDef
+	getSortedRowModel,
+	useReactTable
 } from '@tanstack/react-table'
-import { TableBody } from '../../ProTable/TableBody'
-import { dexsDatasetColumns } from './columns'
+import * as React from 'react'
+import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
-import { useDexsData } from './useDexsData'
-import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { TableBody } from '../../ProTable/TableBody'
+import { dexsDatasetColumns } from './columns'
+import { useDexsData } from './useDexsData'
 
 export function DexsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])

@@ -1,14 +1,13 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { BasicLink } from '~/components/Link'
-import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
-import type { IPeggedAssetByChainRow, IPeggedAssetsRow, IPeggedChain } from './types'
-import { IconsRow } from '~/components/IconsRow'
-import { QuestionHelper } from '~/components/QuestionHelper'
-import { peggedAssetIconUrl, slug } from '~/utils'
 import { Icon } from '~/components/Icon'
+import { IconsRow } from '~/components/IconsRow'
+import { BasicLink } from '~/components/Link'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { formatColumnOrder } from '~/components/Table/utils'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { chainIconUrl, formattedNum, formattedPercent, peggedAssetIconUrl, slug } from '~/utils'
+import type { IPeggedAssetByChainRow, IPeggedAssetsRow, IPeggedChain } from './types'
 
 export const peggedAssetsByChainColumns: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{

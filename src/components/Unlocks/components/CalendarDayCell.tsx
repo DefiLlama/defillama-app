@@ -1,12 +1,12 @@
-import * as React from 'react'
 import dayjs from 'dayjs'
-import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, tokenIconUrl, slug } from '~/utils'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { TokenLogo } from '~/components/TokenLogo'
+import * as React from 'react'
 import { BasicLink } from '~/components/Link'
-import { interpolateColor } from '../utils/colorUtils'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import type { DailyUnlocks, DayInfo } from '../types'
+import { interpolateColor } from '../utils/colorUtils'
 
 interface CalendarDayCellProps {
 	dayInfo: DayInfo
@@ -19,8 +19,7 @@ interface CalendarDayCellProps {
 export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unlocksData, maxUnlockValue }) => {
 	const [isDarkMode] = useDarkModeManager()
 
-	if (!dayInfo.date)
-		return <div className="h-24 w-full border border-(--divider) bg-(--bg6) opacity-40"></div>
+	if (!dayInfo.date) return <div className="h-24 w-full border border-(--divider) bg-(--bg6) opacity-40"></div>
 
 	const dateStr = dayInfo.date.format('YYYY-MM-DD')
 	const dayData = unlocksData[dateStr]

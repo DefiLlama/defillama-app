@@ -1,4 +1,4 @@
-import { useInView, defaultFallbackInView } from 'react-intersection-observer'
+import { defaultFallbackInView, useInView } from 'react-intersection-observer'
 
 defaultFallbackInView(true)
 

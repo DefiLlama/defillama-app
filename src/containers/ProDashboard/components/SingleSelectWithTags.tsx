@@ -1,10 +1,9 @@
-import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { LoadingSpinner } from './LoadingSpinner'
-import { createFilter } from 'react-select'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRef } from 'react'
-import { getItemIconUrl } from '../utils'
+import { createFilter } from 'react-select'
+import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { reactSelectStyles } from '../utils/reactSelectStyles'
+import { LoadingSpinner } from './LoadingSpinner'
 
 interface SingleSelectWithTagsProps {
 	label: string
@@ -136,12 +135,14 @@ export function SingleSelectWithTags({
 			) : (
 				<>
 					<ReactSelect
-						options={options.filter(opt => !selectedValues.includes(opt.value))}
+						options={options.filter((opt) => !selectedValues.includes(opt.value))}
 						value={null}
 						onChange={handleChange}
 						onInputChange={onInputChange}
 						components={{ Option: CustomTokenOption, MenuList: VirtualizedMenuList }}
-						placeholder={selectedValues.length >= maxSelections ? `Maximum ${maxSelections} tokens selected` : placeholder}
+						placeholder={
+							selectedValues.length >= maxSelections ? `Maximum ${maxSelections} tokens selected` : placeholder
+						}
 						className="w-full"
 						filterOption={filterOption}
 						styles={reactSelectStyles}

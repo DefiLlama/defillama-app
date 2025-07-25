@@ -1,7 +1,7 @@
 import { maxAgeForNext } from '~/api'
-import { withPerformanceLogging } from '~/utils/perf'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('index', async () => {
 	const data = await getChainOverviewData({

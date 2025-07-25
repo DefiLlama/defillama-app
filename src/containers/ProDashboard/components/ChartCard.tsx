@@ -1,10 +1,10 @@
+import { lazy, memo, Suspense } from 'react'
+import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { ChartConfig, CHART_TYPES, Chain, Protocol } from '../types'
-import { LoadingSpinner } from './LoadingSpinner'
-import { getItemIconUrl, generateChartColor, convertToCumulative } from '../utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
-import { lazy, memo, Suspense, useState } from 'react'
-import { IChartProps, IBarChartProps } from '~/components/ECharts/types'
+import { Chain, CHART_TYPES, ChartConfig, Protocol } from '../types'
+import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
+import { LoadingSpinner } from './LoadingSpinner'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 

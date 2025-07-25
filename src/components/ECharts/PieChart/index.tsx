@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { PieChart as EPieChart } from 'echarts/charts'
+import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { PieChart as EPieChart } from 'echarts/charts'
-import { GridComponent, TitleComponent, TooltipComponent, GraphicComponent, LegendComponent } from 'echarts/components'
-import type { IPieChartProps } from '../types'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
+import type { IPieChartProps } from '../types'
 
 echarts.use([
 	CanvasRenderer,

@@ -1,18 +1,18 @@
 import { useMemo } from 'react'
-import { useProDashboard } from '../../ProDashboardAPIContext'
-import { useModalState } from './useModalState'
 import { sluggify } from '~/utils/cache-client'
+import { useProDashboard } from '../../ProDashboardAPIContext'
 import {
-	DashboardItemConfig,
-	ChartConfig,
-	MultiChartConfig,
-	ProtocolsTableConfig,
-	TextConfig,
+	Chain,
 	CHART_TYPES,
+	ChartConfig,
+	DashboardItemConfig,
+	MultiChartConfig,
 	Protocol,
-	Chain
+	ProtocolsTableConfig,
+	TextConfig
 } from '../../types'
-import { MainTabType, ChartTabType } from './types'
+import { ChartTabType, MainTabType } from './types'
+import { useModalState } from './useModalState'
 
 export function useModalActions(
 	editItem: DashboardItemConfig | null | undefined,

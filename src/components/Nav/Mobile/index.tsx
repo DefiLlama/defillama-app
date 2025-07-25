@@ -1,9 +1,9 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
+import { lazy } from 'react'
+import { BasicLink } from '~/components/Link'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
-import { BasicLink } from '~/components/Link'
-import { lazy } from 'react'
 
 const MobileSearch = lazy(() =>
 	import('~/components/Search/Base/Mobile').then((m) => ({ default: m.MobileSearch }))

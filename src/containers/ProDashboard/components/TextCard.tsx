@@ -1,6 +1,6 @@
+import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { TextConfig } from '../types'
-import { memo } from 'react'
 
 interface TextCardProps {
 	text: TextConfig

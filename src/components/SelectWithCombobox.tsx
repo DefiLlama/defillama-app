@@ -1,9 +1,9 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import * as React from 'react'
+import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import { Tooltip } from './Tooltip'
-import { Icon } from './Icon'
 
 interface ISelectWithCombobox {
 	allValues:

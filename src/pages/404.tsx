@@ -1,6 +1,6 @@
-import Layout from '~/layout'
 import Image from 'next/image'
 import lostLlama from '~/assets/404.png'
+import Layout from '~/layout'
 
 export default function HomePage() {
 	return (

@@ -1,12 +1,12 @@
-import { useConnectModal } from '@rainbow-me/rainbowkit'
 import * as Ariakit from '@ariakit/react'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { FormEvent, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/LocalLoader'
 import { BasicLink } from '~/components/Link'
+import { LocalLoader } from '~/components/LocalLoader'
 import { Turnstile } from '~/components/Turnstile'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export const SignIn = ({ text, className }: { text?: string; className?: string }) => {
 	const dialogState = Ariakit.useDialogStore()

@@ -1,11 +1,11 @@
-import { slug } from '~/utils'
-import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { maxAgeForNext } from '~/api'
-import { ProtocolOverview } from '~/containers/ProtocolOverview'
-import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { PROTOCOLS_API } from '~/constants'
+import { ProtocolOverview } from '~/containers/ProtocolOverview'
+import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
+import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[...protocol]',

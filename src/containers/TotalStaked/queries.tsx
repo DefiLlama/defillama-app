@@ -1,9 +1,9 @@
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
+import { oldBlue } from '~/constants/colors'
+import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
-import { oldBlue } from '~/constants/colors'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 
 export interface ITotalStakedByChainPageData {
 	protocols: Array<{

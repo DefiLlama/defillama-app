@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export const useResize = (myRef, externalTrigger) => {
 	const [width, setWidth] = useState(0)

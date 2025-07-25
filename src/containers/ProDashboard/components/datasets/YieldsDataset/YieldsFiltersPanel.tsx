@@ -1,6 +1,4 @@
 import * as React from 'react'
-import { Icon } from '~/components/Icon'
-import { MultiItemSelect } from '../../MultiItemSelect'
 
 export interface YieldsFilters {
 	apyMin?: number

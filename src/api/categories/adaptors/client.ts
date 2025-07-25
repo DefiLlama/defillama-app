@@ -1,7 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
 import type { IGetOverviewResponseBody } from './types'
-import { useQuery } from '@tanstack/react-query'
 
 export const useFetchAdaptorsList = (type: string, disabled?: boolean) => {
 	const url = `${DIMENISIONS_OVERVIEW_API}/${type}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`

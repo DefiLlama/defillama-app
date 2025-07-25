@@ -7,7 +7,6 @@ import {
 	PROTOCOL_GAS_USED_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
-	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API,
 	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
@@ -16,10 +15,10 @@ import { fetchApi, fetchJson } from '~/utils/async'
 import { getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
 
-import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Governance'
-import { buildProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useQuery } from '@tanstack/react-query'
+import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Governance'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
+import { buildProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
 
 export const useFetchProtocolsList = () => {

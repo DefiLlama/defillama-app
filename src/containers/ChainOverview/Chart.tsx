@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { formattedNum, getRandomColor } from '~/utils'
 import {
-	ChainChartLabels,
 	BAR_CHARTS,
-	yAxisByChart,
+	ChainChartLabels,
 	DISABLED_CUMULATIVE_CHARTS,
-	chainOverviewChartColors
+	chainOverviewChartColors,
+	yAxisByChart
 } from './constants'
 
 const customOffsets = {}

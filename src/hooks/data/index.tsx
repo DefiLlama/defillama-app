@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { IFormattedProtocol } from '~/api/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formatDataWithExtraTvls, groupDataWithTvlsByDay, IFormattedDataWithExtraTvl } from './defi'
 import { formattedNum, getPercentChange } from '~/utils'
+import { formatDataWithExtraTvls, groupDataWithTvlsByDay, IFormattedDataWithExtraTvl } from './defi'
 
 type DataValue = number | null
 

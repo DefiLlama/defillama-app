@@ -1,6 +1,6 @@
 import { formatProtocolsData } from '~/api/categories/protocols/utils'
-import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { ORACLE_API, PROTOCOLS_API } from '~/constants'
+import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getColorFromNumber } from '~/utils'
 import { fetchJson } from '~/utils/async'

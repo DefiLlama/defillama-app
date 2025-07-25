@@ -6,7 +6,9 @@ export function useOptionsData(chains?: string[]) {
 	const filteredChains = chains?.includes('All') ? [] : chains
 	
 	const queryParams =
-		filteredChains && filteredChains.length > 0 ? `?${filteredChains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}` : ''
+		filteredChains && filteredChains.length > 0
+			? `?${filteredChains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}`
+			: ''
 
 	const sortedChains = chains ? [...chains].sort() : []
 

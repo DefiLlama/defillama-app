@@ -1,9 +1,9 @@
-import Layout from '~/layout'
-import { withPerformanceLogging } from '~/utils/perf'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import CompareTokens from '~/containers/CompareTokens'
 import { DIMENISIONS_OVERVIEW_API, PROTOCOLS_API } from '~/constants'
+import CompareTokens from '~/containers/CompareTokens'
+import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('compare-tokens', async () => {
 	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols, volumeProtocols] = await Promise.all([

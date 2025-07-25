@@ -1,20 +1,20 @@
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { Icon } from '~/components/Icon'
+import { Metrics } from '~/components/Metrics'
 import { GroupStablecoins } from '~/components/MultiSelect/Stablecoins'
 import { PeggedSearch } from '~/components/Search/Stablecoins'
+import { Tooltip } from '~/components/Tooltip'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
-import { PeggedChainsTable } from './Table'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
 import {
 	buildStablecoinChartData,
-	getStablecoinDominance,
-	getPrevStablecoinTotalFromChart
+	getPrevStablecoinTotalFromChart,
+	getStablecoinDominance
 } from '~/containers/Stablecoins/utils'
-import { formattedNum, getPercentChange, toNiceCsvDate, download, preparePieChartData } from '~/utils'
-import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { Icon } from '~/components/Icon'
-import { Tooltip } from '~/components/Tooltip'
-import { Metrics } from '~/components/Metrics'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
+import { download, formattedNum, getPercentChange, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { PeggedChainsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 

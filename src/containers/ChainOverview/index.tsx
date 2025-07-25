@@ -1,12 +1,12 @@
-import Layout from '~/layout'
-import type { IChainOverviewData } from './types'
-import { Stats } from './Stats'
-import { SmolStats } from './SmolStats'
 import { Suspense, lazy } from 'react'
-import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Icon } from '~/components/Icon'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Metrics } from '~/components/Metrics'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import Layout from '~/layout'
+import { SmolStats } from './SmolStats'
+import { Stats } from './Stats'
+import type { IChainOverviewData } from './types'
 
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 

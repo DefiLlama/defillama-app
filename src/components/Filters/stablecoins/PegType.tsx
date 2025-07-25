@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
-import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 import { useMemo } from 'react'
 import { Select } from '~/components/Select'
+import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 
 export const stablecoinPegTypeOptions = [
 	{

@@ -1,5 +1,5 @@
-import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import dayjs from 'dayjs'
+import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
@@ -17,23 +17,23 @@ import {
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API
 } from '~/constants'
+import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { cg_volume_cexs } from '~/pages/cexs'
+import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { getAdapterChainOverview, getAdapterProtocolSummary, IAdapterOverview } from '../DimensionAdapters/queries'
+import { allColors, ProtocolChartsLabels } from './Chart/constants'
 import {
+	IArticle,
+	IArticlesResponse,
+	IHack,
+	IProtocolExpenses,
 	IProtocolMetadata,
 	IProtocolOverviewPageData,
 	IProtocolPageMetrics,
-	IUpdatedProtocol,
-	IArticlesResponse,
-	IArticle,
-	IProtocolExpenses,
-	IHack
+	IUpdatedProtocol
 } from './types'
-import { getAdapterChainOverview, getAdapterProtocolSummary, IAdapterOverview } from '../DimensionAdapters/queries'
-import { cg_volume_cexs } from '~/pages/cexs'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { allColors, ProtocolChartsLabels } from './Chart/constants'
-import dayjs from 'dayjs'
-import { getProtocolEmissons } from '~/api/categories/protocols'
 import { getProtocolWarningBanners } from './utils'
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {

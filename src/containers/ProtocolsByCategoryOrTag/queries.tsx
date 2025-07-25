@@ -1,11 +1,11 @@
-import { CATEGORY_CHART_API, TAGS_CHART_API, PROTOCOLS_API } from '~/constants'
-import { fetchJson } from '~/utils/async'
-import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
-import { IProtocolByCategoryOrTagPageData } from './types'
-import { slug, tokenIconUrl } from '~/utils'
+import { CATEGORY_CHART_API, PROTOCOLS_API, TAGS_CHART_API } from '~/constants'
 import { oldBlue } from '~/constants/colors'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { slug, tokenIconUrl } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
+import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
+import { IProtocolByCategoryOrTagPageData } from './types'
 
 export async function getProtocolsByCategoryOrTag({
 	category,

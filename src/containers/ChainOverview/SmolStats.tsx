@@ -1,8 +1,8 @@
-import { IChainOverviewData } from './types'
 import { lazy, Suspense, useMemo } from 'react'
-import { formattedNum, getPercentChange, slug } from '~/utils'
-import { Tooltip } from '~/components/Tooltip'
 import { BasicLink } from '~/components/Link'
+import { Tooltip } from '~/components/Tooltip'
+import { formattedNum, getPercentChange, slug } from '~/utils'
+import { IChainOverviewData } from './types'
 
 const FeesGeneratedChart: any = lazy(() =>
 	import('~/containers/ChainOverview/SmolCharts').then((m) => ({ default: m.FeesGeneratedChart }))

@@ -1,10 +1,10 @@
-import * as React from 'react'
-import dayjs from 'dayjs'
-import { formattedNum, tokenIconUrl, slug } from '~/utils'
-import { TokenLogo } from '~/components/TokenLogo'
-import { BasicLink } from '~/components/Link'
-import type { DailyUnlocks } from '../types'
 import type { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
+import * as React from 'react'
+import { BasicLink } from '~/components/Link'
+import { TokenLogo } from '~/components/TokenLogo'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import type { DailyUnlocks } from '../types'
 
 interface UnlocksListViewProps {
 	events: Array<{ date: Dayjs; event: DailyUnlocks['events'][0] }>

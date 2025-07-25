@@ -1,12 +1,12 @@
-import { useEffect, useId, useMemo, useState, useRef } from 'react'
 import * as echarts from 'echarts/core'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { stringToColour } from '../utils'
+import { download, slug, toNiceCsvDate } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download, toNiceCsvDate, slug } from '~/utils'
+import { stringToColour } from '../utils'
 
 // TODO remove color prop and use stackColors by default
 export default function AreaChart({

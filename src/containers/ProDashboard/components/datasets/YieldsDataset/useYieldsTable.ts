@@ -1,18 +1,18 @@
-import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
+	getSortedRowModel,
 	PaginationState,
-	ColumnDef,
+	SortingState,
+	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { yieldsDatasetColumns } from './columns'
 import { YieldsFilters } from './YieldsFiltersPanel'
 
@@ -397,12 +397,15 @@ export function useYieldsTable({
 		return count
 	}, [filters])
 
-	const applyFilters = React.useCallback((newFilters?: YieldsFilters) => {
+	const applyFilters = React.useCallback(
+		(newFilters?: YieldsFilters) => {
 		const filtersToApply = newFilters !== undefined ? newFilters : filters
 		if (onFiltersChange) {
 			onFiltersChange(filtersToApply)
 		}
-	}, [filters, onFiltersChange])
+		},
+		[filters, onFiltersChange]
+	)
 
 	const resetFilters = React.useCallback(() => {
 		setFilters({})

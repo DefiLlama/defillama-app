@@ -1,11 +1,4 @@
-import { TagGroup } from '~/components/TagGroup'
-import type { IProtocol } from './types'
-import { useMemo, useState, useSyncExternalStore } from 'react'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { TVLRange } from '~/components/Filters/TVLRange'
-import { VirtualTable } from '~/components/Table/Table'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download } from '~/utils'
+import * as Ariakit from '@ariakit/react'
 import {
 	type ColumnDef,
 	type ColumnSizingState,
@@ -17,22 +10,28 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { TokenLogo } from '~/components/TokenLogo'
+import { useRouter } from 'next/router'
+import { useMemo, useState, useSyncExternalStore } from 'react'
 import { Bookmark } from '~/components/Bookmark'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { ICONS_CDN, removedCategories } from '~/constants'
-import { Tooltip } from '~/components/Tooltip'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
-import { subscribeToLocalStorage, useLocalStorageSettingsManager, useCustomColumns } from '~/contexts/LocalStorage'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { VirtualTable } from '~/components/Table/Table'
+import { TagGroup } from '~/components/TagGroup'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
+import { ICONS_CDN, removedCategories } from '~/constants'
+import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
-import { useRouter } from 'next/router'
-import { evaluateFormula, getSortableValue } from './formula.service'
+import { chainIconUrl, download, formattedNum, formattedPercent, slug } from '~/utils'
 import { formatValue } from '../../utils'
-import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { CustomColumnModal } from './CustomColumnModal'
-import * as Ariakit from '@ariakit/react'
+import { replaceAliases, sampleProtocol } from './customColumnsUtils'
+import { evaluateFormula, getSortableValue } from './formula.service'
+import type { IProtocol } from './types'
 
 export interface CustomColumnDef {
 	name: string

@@ -1,9 +1,9 @@
-import { SEO } from '~/components/SEO'
-import { SignIn } from './SignIn'
 import Head from 'next/head'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { Toast } from '~/components/Toast'
 import { BasicLink } from '~/components/Link'
+import { SEO } from '~/components/SEO'
+import { Toast } from '~/components/Toast'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { SignIn } from './SignIn'
 
 export function SubscribeLayout({ children }) {
 	const { isAuthenticated, logout } = useAuthContext()

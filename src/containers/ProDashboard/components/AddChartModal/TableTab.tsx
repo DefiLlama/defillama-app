@@ -1,11 +1,11 @@
-import { MultiItemSelect } from '../MultiItemSelect'
-import { ItemSelect } from '../ItemSelect'
-import { SingleSelectWithTags } from '../SingleSelectWithTags'
-import { CombinedTableType } from './types'
-import { useTokenSearch } from '../datasets/TokenUsageDataset/useTokenSearch'
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { reactSelectStyles } from '../../utils/reactSelectStyles'
+import { useTokenSearch } from '../datasets/TokenUsageDataset/useTokenSearch'
+import { ItemSelect } from '../ItemSelect'
+import { MultiItemSelect } from '../MultiItemSelect'
+import { SingleSelectWithTags } from '../SingleSelectWithTags'
+import { CombinedTableType } from './types'
 
 interface TableTabProps {
 	selectedChains: string[]

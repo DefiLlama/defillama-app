@@ -1,9 +1,9 @@
-import Layout from '~/layout'
-import YieldsStrategyPage from '~/containers/Yields/indexStrategy'
-import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/containers/Yields/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { Announcement } from '~/components/Announcement'
+import YieldsStrategyPage from '~/containers/Yields/indexStrategy'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
+import { disclaimer } from '~/containers/Yields/utils'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/strategy', async () => {

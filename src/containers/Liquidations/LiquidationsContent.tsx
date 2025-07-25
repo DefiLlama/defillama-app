@@ -1,23 +1,23 @@
 /* eslint-disable no-unused-vars*/
+import Image from 'next/image'
 import * as React from 'react'
+import boboLogo from '~/assets/boboSmug.png'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Icon } from '~/components/Icon'
+import { Switch } from '~/components/Switch'
+import { LiquidationsContext } from '~/containers/Liquidations/context'
 import {
 	ChartData,
 	getLiquidationsCsvData,
 	getReadableValue,
 	PROTOCOL_NAMES_MAP_REVERSE
 } from '~/containers/Liquidations/utils'
-import { TotalLiquidable } from './TotalLiquidable'
-import { LiquidableChanges24H } from './LiquidableChanges24H'
-import { LiquidationsContext } from '~/containers/Liquidations/context'
-import { useStackBy } from './utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import Image from 'next/image'
-import boboLogo from '~/assets/boboSmug.png'
-import { StackBySwitch } from './StackBySwitch'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download } from '~/utils'
-import { Switch } from '~/components/Switch'
-import { Icon } from '~/components/Icon'
+import { LiquidableChanges24H } from './LiquidableChanges24H'
+import { StackBySwitch } from './StackBySwitch'
+import { TotalLiquidable } from './TotalLiquidable'
+import { useStackBy } from './utils'
 
 const LiquidationsChart = React.lazy(() =>
 	import('./LiquidationsChart').then((module) => ({ default: module.LiquidationsChart }))

@@ -1,6 +1,6 @@
-import { ChartData } from '~/containers/Liquidations/utils'
 import * as React from 'react'
 import { LiquidatablePositionsTable } from '~/components/Table/Liquidations'
+import { ChartData } from '~/containers/Liquidations/utils'
 
 export const LiqPositionsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const rows = React.useMemo(() => {

@@ -1,14 +1,13 @@
 import * as React from 'react'
-import { LoadingSpinner } from '../../LoadingSpinner'
-import { useYieldsData } from './useYieldsData'
 import { TagGroup } from '~/components/TagGroup'
-import { useYieldsTable } from './useYieldsTable'
-import { YieldsTableHeader } from './YieldsTableHeader'
-import { YieldsColumnManagementPanel } from './YieldsColumnManagementPanel'
-import { YieldsFiltersPanel } from './YieldsFiltersPanel'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { LoadingSpinner } from '../../LoadingSpinner'
 import { TableBody } from '../../ProTable/TableBody'
-import { YieldsFilters } from './YieldsFiltersPanel'
+import { useYieldsData } from './useYieldsData'
+import { useYieldsTable } from './useYieldsTable'
+import { YieldsColumnManagementPanel } from './YieldsColumnManagementPanel'
+import { YieldsFilters, YieldsFiltersPanel } from './YieldsFiltersPanel'
+import { YieldsTableHeader } from './YieldsTableHeader'
 
 interface YieldsDatasetProps {
 	chains?: string[]

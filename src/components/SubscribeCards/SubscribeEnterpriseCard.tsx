@@ -1,5 +1,4 @@
 import { Icon } from '~/components/Icon'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export function SubscribeEnterpriseCard({ active = false }: { active?: boolean }) {
 	return (

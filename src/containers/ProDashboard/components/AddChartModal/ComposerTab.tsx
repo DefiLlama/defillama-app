@@ -1,9 +1,8 @@
 import { Icon } from '~/components/Icon'
+import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
 import { ItemSelect } from '../ItemSelect'
 import { ChartTypeSelector } from './ChartTypeSelector'
-import { LoadingSpinner } from '../LoadingSpinner'
 import { ChartTabType } from './types'
-import { ChartConfig, CHART_TYPES, getProtocolChartTypes, getChainChartTypes } from '../../types'
 
 interface ComposerTabProps {
 	composerChartName: string
@@ -135,25 +134,16 @@ export function ComposerTab({
 				</div>
 
 				<div className="flex-1 lg:flex-3 border pro-border p-3 md:p-4 min-h-[200px] lg:min-h-0">
-					<div className="text-sm font-medium pro-text2 mb-2 md:mb-3">
-						Charts ({composerItems.length})
-					</div>
+					<div className="text-sm font-medium pro-text2 mb-2 md:mb-3">Charts ({composerItems.length})</div>
 					<div className="space-y-2 overflow-y-auto max-h-60 lg:max-h-80 thin-scrollbar">
 						{composerItems.length === 0 ? (
 							<div className="text-xs pro-text3 text-center py-6 md:py-8">No charts added yet</div>
 						) : (
 							composerItems.map((item) => (
-								<div
-									key={item.id}
-									className="flex items-center justify-between p-2 text-xs border pro-border pro-bg2"
-								>
+								<div key={item.id} className="flex items-center justify-between p-2 text-xs border pro-border pro-bg2">
 									<div className="flex-1 min-w-0">
-										<div className="font-medium pro-text1 truncate">
-											{item.protocol || item.chain}
-										</div>
-										<div className="pro-text3 truncate">
-											{CHART_TYPES[item.type]?.title}
-										</div>
+										<div className="font-medium pro-text1 truncate">{item.protocol || item.chain}</div>
+										<div className="pro-text3 truncate">{CHART_TYPES[item.type]?.title}</div>
 									</div>
 									<button
 										onClick={() => onRemoveFromComposer(item.id)}

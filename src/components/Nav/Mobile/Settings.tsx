@@ -1,10 +1,9 @@
-import { DARK_MODE, TSETTINGTYPE, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { tvlOptions } from '~/components/Filters/options'
-import { nftOptions } from '~/components/Filters/nfts/options'
-import { useRouter } from 'next/router'
-import { feesOptions } from '~/components/Filters/options'
-import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import { nftOptions } from '~/components/Filters/nfts/options'
+import { feesOptions, tvlOptions } from '~/components/Filters/options'
+import { Icon } from '~/components/Icon'
+import { DARK_MODE, TSETTINGTYPE, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 
 export function Settings() {
 	const [darkMode, toggleDarkMode] = useDarkModeManager()

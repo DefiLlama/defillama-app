@@ -1,9 +1,9 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
-import { getDexVolumeByChain, getFeesAndRevenueProtocolsByChain } from '../adaptors'
-import { formatProtocolsData } from '../protocols/utils'
-import { fetchApi } from '~/utils/async'
 import { useMemo } from 'react'
 import { PROTOCOLS_API } from '~/constants'
+import { fetchApi } from '~/utils/async'
+import { getDexVolumeByChain, getFeesAndRevenueProtocolsByChain } from '../adaptors'
+import { formatProtocolsData } from '../protocols/utils'
 
 export function useGetProtocolsListMultiChain(chains: string[]) {
 	const { data: allProtocolsData, isLoading: isLoadingAll } = useQuery({

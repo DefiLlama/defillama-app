@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 

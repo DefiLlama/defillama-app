@@ -1,8 +1,8 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
-import { YieldsLoopTable } from './Tables/Loop'
+import * as React from 'react'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
+import { YieldsLoopTable } from './Tables/Loop'
 import { toFilterPool } from './utils'
 
 const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) => {

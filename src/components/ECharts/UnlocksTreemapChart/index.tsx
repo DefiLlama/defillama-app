@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import dayjs from 'dayjs'
+import { TreemapChart as EChartTreemap } from 'echarts/charts'
+import { TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { TreemapChart as EChartTreemap } from 'echarts/charts'
-import { TooltipComponent, TitleComponent, ToolboxComponent } from 'echarts/components'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum, tokenIconUrl } from '~/utils'
-import dayjs from 'dayjs'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, EChartTreemap, CanvasRenderer])
 

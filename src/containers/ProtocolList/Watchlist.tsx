@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react'
+import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
+import { useGetProtocolsList } from '~/api/categories/protocols/client'
+import type { IFormattedProtocol } from '~/api/types'
+import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlistManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { useGetProtocolsList } from '~/api/categories/protocols/client'
-import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
-import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
-import { Icon } from '~/components/Icon'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { WatchListTabs } from '../Yields/Watchlist'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import type { IFormattedProtocol } from '~/api/types'
 
 export function DefiWatchlistContainer() {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')

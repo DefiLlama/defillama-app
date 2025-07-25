@@ -4,11 +4,11 @@ import { Metrics } from '~/components/Metrics'
 import { NFTsSearch } from '~/components/Search/NFTs'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
+import { TEMP_CHAIN_NFTS } from '~/constants'
 import Layout from '~/layout'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
-import { TEMP_CHAIN_NFTS } from '~/constants'
 
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)

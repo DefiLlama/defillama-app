@@ -1,8 +1,8 @@
-import * as React from 'react'
 import dayjs from 'dayjs'
-import { formattedNum, tokenIconUrl, slug } from '~/utils'
-import { TokenLogo } from '~/components/TokenLogo'
+import * as React from 'react'
 import { BasicLink } from '~/components/Link'
+import { TokenLogo } from '~/components/TokenLogo'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import type { DailyUnlocks, DayInfo } from '../types'
 
 interface WeekDayColumnProps {
@@ -21,16 +21,12 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 	return (
 		<div
 			key={dateStr}
-			className={`flex flex-col border border-(--divider) bg-(--bg7) p-3 min-h-48 ${
-				isToday ? 'border-(--blue)' : ''
-			}`}
+			className={`flex flex-col border border-(--divider) bg-(--bg7) p-3 min-h-48 ${isToday ? 'border-(--blue)' : ''}`}
 		>
 			<div className="text-sm font-medium mb-2 pb-2 border-b border-(--divider) flex justify-between items-center">
 				<span>
 					<span className="text-(--text2) mr-1.5">{dayInfo.date?.format('ddd')}</span>
-					<span className={isToday ? 'text-(--blue) font-bold' : 'text-(--text1)'}>
-						{dayInfo.date?.date()}
-					</span>
+					<span className={isToday ? 'text-(--blue) font-bold' : 'text-(--text1)'}>{dayInfo.date?.date()}</span>
 				</span>
 				{isToday && <span className="text-xs font-normal text-(--blue)">(Today)</span>}
 			</div>

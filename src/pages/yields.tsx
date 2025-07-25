@@ -1,9 +1,9 @@
-import Layout from '~/layout'
-import YieldPage from '~/containers/Yields'
-import { getYieldPageData, getLendBorrowData } from '~/containers/Yields/queries/index'
 import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
+import YieldPage from '~/containers/Yields'
+import { getLendBorrowData, getYieldPageData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields', async () => {

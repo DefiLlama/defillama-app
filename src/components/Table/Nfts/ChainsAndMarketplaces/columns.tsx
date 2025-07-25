@@ -1,9 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
+import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { capitalizeFirstLetter, chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
 import type { INftsCollectionRow } from '../types'
-import { BasicLink } from '~/components/Link'
 
 export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 	{

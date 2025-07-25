@@ -1,24 +1,24 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
-import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import * as React from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
+import { PeggedFilters } from '~/components/Filters/stablecoins'
 import { stablecoinAttributeOptions } from '~/components/Filters/stablecoins/Attribute'
-import { stablecoinPegTypeOptions } from '~/components/Filters/stablecoins/PegType'
 import { stablecoinBackingOptions } from '~/components/Filters/stablecoins/BackingType'
-import { PeggedAssetsTable } from './Table'
+import { stablecoinPegTypeOptions } from '~/components/Filters/stablecoins/PegType'
+import { Icon } from '~/components/Icon'
+import { Metrics } from '~/components/Metrics'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { Tooltip } from '~/components/Tooltip'
+import { oldBlue } from '~/constants/colors'
+import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
+import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import {
 	useCalcCirculating,
 	useCalcGroupExtraPeggedByDay,
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
-import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { formattedNum, getPercentChange, toNiceCsvDate, download, slug, preparePieChartData } from '~/utils'
-import { PeggedFilters } from '~/components/Filters/stablecoins'
-import { Icon } from '~/components/Icon'
-import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
-import { Metrics } from '~/components/Metrics'
+import { download, formattedNum, getPercentChange, preparePieChartData, slug, toNiceCsvDate } from '~/utils'
+import { PeggedAssetsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 

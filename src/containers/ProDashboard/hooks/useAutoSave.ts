@@ -5,7 +5,10 @@ interface UseAutoSaveOptions {
 	dashboardId: string | null
 	dashboardName: string
 	isAuthenticated: boolean
-	updateDashboard: (params: { id: string; data: { items: DashboardItemConfig[]; dashboardName: string } }) => Promise<any>
+	updateDashboard: (params: {
+		id: string
+		data: { items: DashboardItemConfig[]; dashboardName: string }
+	}) => Promise<any>
 	cleanItemsForSaving: (items: DashboardItemConfig[]) => DashboardItemConfig[]
 	delay?: number
 }

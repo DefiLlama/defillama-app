@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
-import Layout from '~/layout'
-import { splitArrayByFalsyValues } from '~/components/Table/utils'
-import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
-import { TopGainersAndLosers } from '~/components/Table/Defi/Protocols'
-import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { TopGainersAndLosers } from '~/components/Table/Defi/Protocols'
+import { splitArrayByFalsyValues } from '~/components/Table/utils'
+import { useCalcStakePool2Tvl } from '~/hooks/data'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('top-gainers-and-losers', async () => {
 	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])

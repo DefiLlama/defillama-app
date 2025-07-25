@@ -1,15 +1,15 @@
 import * as React from 'react'
-import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
-import { withPerformanceLogging } from '~/utils/perf'
-import { formattedNum, firstDayOfMonth, lastDayOfWeek } from '~/utils'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { LSDColumn } from '~/components/Table/Defi/columns'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { COINS_PRICES_API } from '~/constants'
+import Layout from '~/layout'
+import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 

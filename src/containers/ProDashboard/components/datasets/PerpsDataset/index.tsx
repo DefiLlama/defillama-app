@@ -1,25 +1,25 @@
-import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
+	PaginationState,
+	SortingState,
 	VisibilityState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
-	PaginationState,
-	ColumnDef
+	getSortedRowModel,
+	useReactTable
 } from '@tanstack/react-table'
-import { TableBody } from '../../ProTable/TableBody'
-import { perpsDatasetColumns } from './columns'
+import * as React from 'react'
+import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
-import { usePerpsData } from './usePerpsData'
-import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { TableBody } from '../../ProTable/TableBody'
+import { perpsDatasetColumns } from './columns'
+import { usePerpsData } from './usePerpsData'
 
 export function PerpsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])

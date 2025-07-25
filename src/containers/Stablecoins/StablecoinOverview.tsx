@@ -1,31 +1,31 @@
-import * as React from 'react'
+import * as Ariakit from '@ariakit/react'
 import { transparentize } from 'polished'
-import Layout from '~/layout'
-import { PeggedSearch } from '~/components/Search/Stablecoins'
-import { FormattedName } from '~/components/FormattedName'
-import { TokenLogo } from '~/components/TokenLogo'
+import * as React from 'react'
 import { AuditInfo } from '~/components/AuditInfo'
-import { SEO } from '~/components/SEO'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { FormattedName } from '~/components/FormattedName'
+import { Icon } from '~/components/Icon'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
+import { PeggedSearch } from '~/components/Search/Stablecoins'
+import { SEO } from '~/components/SEO'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
+import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
+import Layout from '~/layout'
 import {
 	capitalizeFirstLetter,
-	toNiceCsvDate,
-	formattedNum,
 	download,
+	formattedNum,
 	getBlockExplorer,
 	peggedAssetIconUrl,
-	preparePieChartData
+	preparePieChartData,
+	toNiceCsvDate
 } from '~/utils'
-import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { PeggedAssetByChainTable } from './Table'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { Icon } from '~/components/Icon'
-import * as Ariakit from '@ariakit/react'
-import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
-import { Tooltip } from '~/components/Tooltip'
 import { defaultProtocolPageStyles } from '../ProtocolOverview/Chart/constants'
+import { PeggedAssetByChainTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 

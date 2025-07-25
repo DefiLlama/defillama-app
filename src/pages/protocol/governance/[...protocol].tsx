@@ -1,16 +1,16 @@
-import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { GovernanceData } from '~/containers/ProtocolOverview/Governance'
 import { maxAgeForNext } from '~/api'
 import {
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
-import { slug } from '~/utils'
+import { GovernanceData } from '~/containers/ProtocolOverview/Governance'
+import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
+import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { slug } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/governance/[...protocol]',

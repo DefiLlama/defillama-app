@@ -1,16 +1,13 @@
-import * as React from 'react'
-import type { IYieldsTableProps } from './types'
-import { YieldsTableWrapper } from './shared'
-import { getColumnSizesKeys } from '~/components/Table/utils'
 import { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
-import { formattedNum, formattedPercent } from '~/utils'
-import { NameYield, NameYieldPool } from './Name'
-import type { IYieldTableRow } from './types'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { lockupsRewards, earlyExit } from '~/containers/Yields/utils'
+import { formatColumnOrder, getColumnSizesKeys } from '~/components/Table/utils'
+import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
+import { formattedNum, formattedPercent } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
-import { formatColumnOrder } from '~/components/Table/utils'
+import { NameYield, NameYieldPool } from './Name'
+import { YieldsTableWrapper } from './shared'
+import type { IYieldsTableProps, IYieldTableRow } from './types'
 
 const columns: ColumnDef<IYieldTableRow>[] = [
 	{

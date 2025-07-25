@@ -1,6 +1,6 @@
+import { maxAgeForNext } from '~/api'
 import { DefiWatchlistContainer } from '~/containers/ProtocolList/Watchlist'
 import Layout from '~/layout'
-import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('watchlist', async () => {

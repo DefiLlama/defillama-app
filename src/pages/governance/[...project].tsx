@@ -1,25 +1,25 @@
-import { maxAgeForNext } from '~/api'
 import * as React from 'react'
-import Layout from '~/layout'
+import { maxAgeForNext } from '~/api'
+import { formatGovernanceData } from '~/api/categories/protocols'
+import { IBarChartProps } from '~/components/ECharts/types'
 import { TokenLogo } from '~/components/TokenLogo'
-import { slug, tokenIconUrl, chainIconUrl, formattedNum } from '~/utils'
 import {
-	GOVERNANCE_SNAPSHOT_API,
 	GOVERNANCE_COMPOUND_API,
+	GOVERNANCE_SNAPSHOT_API,
 	GOVERNANCE_TALLY_API,
-	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
+	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
-import { IBarChartProps } from '~/components/ECharts/types'
-import { formatGovernanceData } from '~/api/categories/protocols'
 import { GovernanceTable } from '~/containers/ProtocolOverview/Governance'
+import Layout from '~/layout'
+import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
-import { fetchJson } from '~/utils/async'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { fetchJson } from '~/utils/async'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 

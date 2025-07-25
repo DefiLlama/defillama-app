@@ -1,6 +1,6 @@
+import { capitalizeFirstLetter } from '~/utils'
 import { IJoin2ReturnType } from '.'
 import { IJSON, ProtocolAdaptorSummaryResponse } from './types'
-import { capitalizeFirstLetter } from '~/utils'
 
 export const formatChain = (chain: string) => {
 	if (!chain) return chain

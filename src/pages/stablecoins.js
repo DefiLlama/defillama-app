@@ -1,8 +1,8 @@
-import Layout from '~/layout'
-import PeggedList from '~/containers/Stablecoins/StablecoinsByChain'
 import { maxAgeForNext } from '~/api'
-import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { primaryColor } from '~/constants/colors'
+import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
+import PeggedList from '~/containers/Stablecoins/StablecoinsByChain'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('stablecoins', async () => {

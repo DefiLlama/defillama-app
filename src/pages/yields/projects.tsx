@@ -1,9 +1,9 @@
-import Layout from '~/layout'
-import { YieldsProjectsTable } from '~/containers/Yields/Tables/Projects'
-import { Announcement } from '~/components/Announcement'
-import { disclaimer } from '~/containers/Yields/utils'
 import { maxAgeForNext } from '~/api'
+import { Announcement } from '~/components/Announcement'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
+import { YieldsProjectsTable } from '~/containers/Yields/Tables/Projects'
+import { disclaimer } from '~/containers/Yields/utils'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 function median(numbers) {

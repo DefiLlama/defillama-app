@@ -1,12 +1,12 @@
-import { useMemo } from 'react'
-import { Menu } from '~/components/Menu'
-import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
-import { useIsClient } from '~/hooks'
-import { DEFAULT_PORTFOLIO_NAME, useWatchlistManager } from '~/contexts/LocalStorage'
-import { Switch } from '~/components/Switch'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { Menu } from '~/components/Menu'
+import { Switch } from '~/components/Switch'
+import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
+import { DEFAULT_PORTFOLIO_NAME, useWatchlistManager } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()

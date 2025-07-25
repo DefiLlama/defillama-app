@@ -1,6 +1,6 @@
+import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
-import * as Ariakit from '@ariakit/react'
 
 export function RaisedRange({
 	variant = 'primary',

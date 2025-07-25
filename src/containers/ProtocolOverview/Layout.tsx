@@ -1,12 +1,12 @@
-import * as React from 'react'
-import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { slug, tokenIconUrl } from '~/utils'
-import { BasicLink } from '~/components/Link'
-import { IProtocolPageMetrics } from './types'
 import * as Ariakit from '@ariakit/react'
+import * as React from 'react'
+import { BasicLink } from '~/components/Link'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { TokenLogo } from '~/components/TokenLogo'
+import Layout from '~/layout'
+import { slug, tokenIconUrl } from '~/utils'
 import { defaultProtocolPageStyles } from './Chart/constants'
+import { IProtocolPageMetrics } from './types'
 
 export function ProtocolOverviewLayout({
 	children,

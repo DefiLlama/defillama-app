@@ -1,10 +1,10 @@
-import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { LoadingSpinner } from './LoadingSpinner'
-import { createFilter } from 'react-select'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef, useMemo } from 'react'
+import { useMemo, useRef } from 'react'
+import { createFilter } from 'react-select'
+import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { getItemIconUrl } from '../utils'
 import { reactSelectStyles } from '../utils/reactSelectStyles'
+import { LoadingSpinner } from './LoadingSpinner'
 
 interface MultiItemSelectProps {
 	label: string

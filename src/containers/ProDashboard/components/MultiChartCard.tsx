@@ -1,9 +1,9 @@
-import { CHART_TYPES, MultiChartConfig } from '../types'
-import { generateChartColor, convertToCumulative } from '../utils'
-import { EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import { lazy, memo, Suspense, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { memo, useState, useMemo, lazy, Suspense } from 'react'
+import { useProDashboard } from '../ProDashboardAPIContext'
+import { CHART_TYPES, MultiChartConfig } from '../types'
+import { convertToCumulative, generateChartColor } from '../utils'
+import { EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 

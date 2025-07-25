@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { IResponseCGMarketsAPI } from '~/api/types'
+import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
+import React, { useEffect, useMemo, useState } from 'react'
+import { IResponseCGMarketsAPI } from '~/api/types'
+import { Icon } from '~/components/Icon'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { useIsClient } from '~/hooks'
 import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
-import { Icon } from '~/components/Icon'
-import { useIsClient } from '~/hooks'
-import * as Ariakit from '@ariakit/react'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins, queryCoins }: any) {
 	const [search, setSearch] = useState('')

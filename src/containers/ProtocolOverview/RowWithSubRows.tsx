@@ -1,7 +1,7 @@
-import { Icon } from '~/components/Icon'
-import { Flag } from './Flag'
 import { useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { Flag } from './Flag'
 
 export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, rowValue, helperText }) => {
 	const [open, setOpen] = useState(false)
