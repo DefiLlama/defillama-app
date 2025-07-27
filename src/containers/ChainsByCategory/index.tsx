@@ -13,6 +13,7 @@ import { IChainsByCategoryData } from './types'
 import { ChainsByCategoryTable } from './Table'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Metrics } from '~/components/Metrics'
+import { PullToRefresh } from '~/components/PullToRefresh'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -28,7 +29,7 @@ export function ChainsByCategory({
 	stackedDataset,
 	tvlTypes
 }: IChainsByCategoryData) {
-	const { query } = useRouter()
+	const { query, reload } = useRouter()
 	const { minTvl, maxTvl } = query
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
