@@ -4,6 +4,7 @@ import { useMemo, useState, useSyncExternalStore } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { VirtualTable } from '~/components/Table/Table'
+import { ResponsiveTable } from '~/components/Table/ResponsiveTable'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download } from '~/utils'
 import {
@@ -492,7 +493,7 @@ export const ChainProtocolsTable = ({
 					</div>
 				</div>
 			</div>
-			<VirtualTable instance={instance} />
+			<ResponsiveTable instance={instance} getRowHref={(row) => `/protocol/${row.slug}`} cardClassName="mobile-card" />
 			<CustomColumnModal
 				dialogStore={customColumnDialogStore}
 				onSave={handleSaveCustomColumn}
