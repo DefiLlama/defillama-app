@@ -295,12 +295,7 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 
 export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
 
-export const slug = (name = '') =>
-	name
-		?.toLowerCase()
-		.replace(/[()'"]/g, '') // Remove parentheses and quotes
-		.replace(/\s+/g, '-') // Replace spaces with hyphens
-		.replace(/[^\w.!&+-]/g, '') // Remove any other non-word chars except hyphens, !, & and .
+export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
 
 export function getRandomColor() {
 	var letters = '0123456789ABCDEF'
