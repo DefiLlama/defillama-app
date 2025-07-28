@@ -167,10 +167,10 @@ export const cexData: Array<ICex> = [
 	},
 	{
 		name: 'Gemini',
-        slug: 'gemini',
-        coin: null,
+		slug: 'gemini',
+		coin: null,
 		cgId: 'gemini',
-		walletsLink: 'https://www.gemini.com/trust-center/',
+		walletsLink: 'https://www.gemini.com/trust-center/'
 	},
 	{
 		name: 'Bybit',
@@ -717,10 +717,11 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 			} else {
 				const res = await Promise.allSettled([
 					fetchJson(`${PROTOCOL_API}/${c.slug}`).catch(() => ({ chainTvls: {} })),
-					fetchJson(`${INFLOWS_API}/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`),
-					fetchJson(`${INFLOWS_API}/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`),
-					fetchJson(`${INFLOWS_API}/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`)
+					fetchJson(`${INFLOWS_API}/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).catch(() => null),
+					fetchJson(`${INFLOWS_API}/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`).catch(() => null),
+					fetchJson(`${INFLOWS_API}/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`).catch(() => null)
 				]).catch((e) => null)
+
 				if (res === null) {
 					return c
 				}
