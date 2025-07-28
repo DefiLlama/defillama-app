@@ -9,7 +9,18 @@ interface UseAutoSaveOptions {
 	dashboardDescription: string
 	isAuthenticated: boolean
 	isReadOnly: boolean
-	updateDashboard: (params: { id: string; data: { items: DashboardItemConfig[]; dashboardName: string; visibility: 'private' | 'public'; tags: string[]; description: string } }) => Promise<any>
+	currentDashboard: { user: string } | null
+	userId: string | undefined
+	updateDashboard: (params: {
+		id: string
+		data: {
+			items: DashboardItemConfig[]
+			dashboardName: string
+			visibility: 'private' | 'public'
+			tags: string[]
+			description: string
+		}
+	}) => Promise<any>
 	cleanItemsForSaving: (items: DashboardItemConfig[]) => DashboardItemConfig[]
 	delay?: number
 }
@@ -22,6 +33,8 @@ export function useAutoSave({
 	dashboardDescription,
 	isAuthenticated,
 	isReadOnly,
+	currentDashboard,
+	userId,
 	updateDashboard,
 	cleanItemsForSaving,
 	delay = 2000
@@ -30,7 +43,12 @@ export function useAutoSave({
 
 	const autoSave = useCallback(
 		(newItems: DashboardItemConfig[]) => {
-			if (!dashboardId || !isAuthenticated || isReadOnly) return
+			const isOwner = currentDashboard && userId && currentDashboard.user === userId
+			const shouldBlock = !dashboardId || !isAuthenticated || isReadOnly || !isOwner
+
+			if (shouldBlock) {
+				return
+			}
 
 			// Clear existing timeout
 			if (autoSaveTimeoutRef.current) {
@@ -54,7 +72,20 @@ export function useAutoSave({
 				})
 			}, delay)
 		},
-		[dashboardId, isAuthenticated, isReadOnly, dashboardName, dashboardVisibility, dashboardTags, dashboardDescription, cleanItemsForSaving, updateDashboard, delay]
+		[
+			dashboardId,
+			isAuthenticated,
+			isReadOnly,
+			currentDashboard,
+			userId,
+			dashboardName,
+			dashboardVisibility,
+			dashboardTags,
+			dashboardDescription,
+			cleanItemsForSaving,
+			updateDashboard,
+			delay
+		]
 	)
 
 	// Cleanup function to clear timeout on unmount

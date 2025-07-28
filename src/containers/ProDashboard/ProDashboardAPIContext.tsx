@@ -116,7 +116,7 @@ export function ProDashboardAPIProvider({
 	initialDashboardId?: string
 }) {
 	const router = useRouter()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, user } = useAuthContext()
 	const { data: { protocols = [], chains: rawChains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
 
 	const chains: Chain[] = rawChains
@@ -152,7 +152,9 @@ export function ProDashboardAPIProvider({
 		dashboardTags,
 		dashboardDescription,
 		isAuthenticated,
-		isReadOnly,
+		isReadOnly: isReadOnly || (initialDashboardId ? !currentDashboard : false), // Force read-only until dashboard is loaded
+		currentDashboard,
+		userId: user?.id,
 		updateDashboard,
 		cleanItemsForSaving
 	})
@@ -377,7 +379,7 @@ export function ProDashboardAPIProvider({
 
 	// Handle adding items
 	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
-		if (isReadOnly) {
+		if (isReadOnly || (initialDashboardId && !currentDashboard)) {
 			return
 		}
 		const newChartId = generateItemId(chartType, item)
