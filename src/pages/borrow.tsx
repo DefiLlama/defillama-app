@@ -256,6 +256,30 @@ interface IPool {
 	ltv?: number | null
 }
 
+const getAPY = (
+	pool: IPool,
+	borrow: string | string[],
+	collateral: string | string[],
+	incentives: string | string[]
+): number => {
+	const withIncentives = incentives === 'true'
+
+	const supplyApy = withIncentives ? pool.apy : pool.apyBase
+	const borrowApy = withIncentives ? pool.borrow.apyBorrow : pool.borrow.apyBaseBorrow
+
+	if (borrow && collateral) {
+		return supplyApy + borrowApy * pool.ltv
+	}
+
+	// borrow only
+	if (borrow) {
+		return borrowApy ?? 0
+	}
+
+	// supply only
+	return supplyApy ?? 0
+}
+
 const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 	const [tab, setTab] = React.useState('safe')
 
@@ -316,19 +340,9 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 								<td className="bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
 									<span className="flex flex-col">
 										<span>
-											{(
-												(borrow && collateral
-													? incentives === 'true'
-														? pool.apy + pool.borrow.apyBorrow * pool.ltv
-														: pool.apyBase + pool.borrow.apyBaseBorrow * pool.ltv
-													: borrow
-													? incentives === 'true'
-														? pool.borrow.apyBorrow
-														: pool.borrow.apyBaseBorrow
-													: incentives === 'true'
-													? pool.apy
-													: pool.apyBase) ?? 0
-											).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+											{getAPY(pool, borrow, collateral, incentives).toLocaleString(undefined, {
+												maximumFractionDigits: 2
+											})}
 											%
 										</span>
 										<span className="text-xs opacity-70">
