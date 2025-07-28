@@ -40,6 +40,10 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 	try {
 		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${slug(protocolName)}`)
 
+		if (protocolName === 'hyperbloom') {
+			postRuntimeLogs(JSON.stringify(data))
+		}
+
 		let isNewlyListedProtocol = true
 
 		Object.values(data.chainTvls).forEach((chain) => {
@@ -55,6 +59,10 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
 			try {
 				const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
+
+				if (protocolName === 'hyperbloom') {
+					postRuntimeLogs(JSON.stringify(hourlyData))
+				}
 
 				if (!hourlyData) {
 					return data
