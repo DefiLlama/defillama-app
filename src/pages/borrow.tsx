@@ -10,6 +10,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { getQueryValue } from '~/utils/url'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	const {
@@ -60,17 +61,9 @@ export default function YieldBorrow(data) {
 
 	const includeIncentives = router.query['incentives'] === 'true'
 
-	const borrowToken = router.query['borrow']
-		? typeof router.query['borrow'] === 'string'
-			? (router.query['borrow'] as string)
-			: router.query['borrow'][0]
-		: null
+	const borrowToken = getQueryValue(router.query, 'borrow')
 
-	const collateralToken = router.query['collateral']
-		? typeof router.query['collateral'] === 'string'
-			? (router.query['collateral'] as string)
-			: router.query['collateral'][0]
-		: null
+	const collateralToken = getQueryValue(router.query, 'collateral')
 
 	const filteredPools = findOptimizerPools({
 		pools: data.pools,
@@ -87,14 +80,14 @@ export default function YieldBorrow(data) {
 					<TokensSelect
 						label="Borrow"
 						searchData={data.searchData}
-						query={'borrow'}
+						queryParam={'borrow'}
 						placeholder="Select token to borrow"
 					/>
 
 					<TokensSelect
 						label="Collateral"
 						searchData={data.searchData}
-						query={'collateral'}
+						queryParam={'collateral'}
 						placeholder="Select token for collateral"
 					/>
 					{borrowToken && !collateralToken ? (
@@ -129,25 +122,21 @@ export default function YieldBorrow(data) {
 const TokensSelect = ({
 	searchData,
 	label,
-	query,
+	queryParam,
 	placeholder
 }: {
 	searchData: { [token: string]: { name: string; symbol: string; image: string; image2: string } }
 	label: string
-	query: string
+	queryParam: string
 	placeholder: string
 }) => {
 	const router = useRouter()
 
 	const onChange = (value) => {
-		router.push({ pathname: '/borrow', query: { ...router.query, [query]: value } }, undefined, { shallow: true })
+		router.push({ pathname: '/borrow', query: { ...router.query, [queryParam]: value } }, undefined, { shallow: true })
 	}
 
-	const selectedValue: string = router.query[query]
-		? typeof router.query[query] === 'string'
-			? (router.query[query] as string)
-			: router.query[query][0]
-		: ''
+	const selectedValue: string = getQueryValue(router.query, queryParam) ?? ''
 
 	const tokenInSearchData = selectedValue !== '' ? searchData[selectedValue.toUpperCase()] : null
 
@@ -209,7 +198,7 @@ const TokensSelect = ({
 								<Ariakit.ComboboxList>
 									{matches.slice(0, viewableMatches + 1).map((option) => (
 										<Ariakit.SelectItem
-											key={`${query}-${option.symbol}`}
+											key={`${queryParam}-${option.symbol}`}
 											value={option.symbol}
 											className="group flex items-center gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
 											render={<Ariakit.ComboboxItem />}
