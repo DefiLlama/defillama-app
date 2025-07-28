@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import {
 	CACHE_SERVER,
+	COINS_PRICES_API,
 	PROTOCOLS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
@@ -204,7 +205,7 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 }
 
 export const useGetTokenPrice = (geckoId?: string) => {
-	let url = geckoId ? `https://coins.llama.fi/prices/current/coingecko:${geckoId}` : null
+	let url = geckoId ? `${COINS_PRICES_API}/current/coingecko:${geckoId}` : null
 	const isEnabled = !!url
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['gecko-token-price', url, isEnabled],

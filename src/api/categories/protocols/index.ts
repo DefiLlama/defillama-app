@@ -22,7 +22,8 @@ import {
 	CATEGORY_PERFORMANCE_API,
 	CATEGORY_COIN_PRICES_API,
 	CATEGORY_INFO_API,
-	COINS_INFO_API
+	COINS_INFO_API,
+	COINS_PRICES_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import { fetchJson } from '~/utils/async'
@@ -107,7 +108,7 @@ export const getAllProtocolEmissions = async ({
 	try {
 		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
 		const coins = await fetchJson(
-			`https://coins.llama.fi/prices/current/${res
+			`${COINS_PRICES_API}/current/${res
 				.filter((p) => p.gecko_id)
 				.map((p) => 'coingecko:' + p.gecko_id)
 				.join(',')}`
@@ -255,12 +256,10 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const protocolEmissions = { documented: {}, realtime: {} }
 		const emissionCategories = { documented: [], realtime: [] }
 
-		const prices = await fetchJson(`https://coins.llama.fi/prices/current/${metadata.token}?searchWidth=4h`).catch(
-			(err) => {
-				console.log(err)
-				return {}
-			}
-		)
+		const prices = await fetchJson(`${COINS_PRICES_API}/current/${metadata.token}?searchWidth=4h`).catch((err) => {
+			console.log(err)
+			return {}
+		})
 
 		const tokenPrice = prices?.coins?.[metadata.token] ?? {}
 

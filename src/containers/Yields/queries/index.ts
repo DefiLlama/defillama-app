@@ -49,7 +49,9 @@ export async function getYieldPageData() {
 
 			// using coingecko ids for projects on Neo, otherwise empty object
 			pricesList.push(
-				p.chain === 'Neo' ? [`coingecko:${p.project}`] : rewardTokens.map((t) => `${priceChainName}:${t.toLowerCase()}`)
+				p.chain === 'Neo'
+					? [`coingecko:${p.project}`]
+					: rewardTokens.map((t) => `${priceChainName}:${t.replace('/', ':').toLowerCase()}`)
 			)
 		}
 	}

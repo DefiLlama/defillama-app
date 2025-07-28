@@ -87,8 +87,8 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 			...new Set(
 				poolsData
 					.map((pool) => [
-						`${pool.chain?.toLowerCase()}:${pool.underlyingTokens[0]?.toLowerCase()}`,
-						`${pool.chain?.toLowerCase()}:${pool.borrow.underlyingTokens[0]?.toLowerCase()}`
+						`${pool.chain?.toLowerCase()}:${pool.underlyingTokens[0]?.toLowerCase().replace('/', ':')}`,
+						`${pool.chain?.toLowerCase()}:${pool.borrow.underlyingTokens[0]?.toLowerCase().replace('/', ':')}`
 					])
 					.flat()
 			)
