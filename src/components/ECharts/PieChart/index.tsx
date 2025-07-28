@@ -39,7 +39,7 @@ export default function PieChart({
 			name: '',
 			type: 'pie',
 			left: 0,
-			right: 200,
+			right: 0,
 			top: title ? 25 : 0,
 			bottom: 0,
 			label: {
