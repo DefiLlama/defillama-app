@@ -41,7 +41,7 @@ export async function getYieldPageData() {
 	for (let p of data.pools) {
 		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
 
-		if (rewardTokens) {
+		if (rewardTokens?.length) {
 			let priceChainName = p.chain.toLowerCase()
 			priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
 				? priceChainMapping[priceChainName]
@@ -51,7 +51,7 @@ export async function getYieldPageData() {
 			pricesList.push(
 				p.chain === 'Neo'
 					? [`coingecko:${p.project}`]
-					: rewardTokens.map((t) => `${priceChainName}:${t.replace('/', ':').toLowerCase()}`)
+					: rewardTokens.map((t) => `${priceChainName}:${t.replaceAll('/', ':').toLowerCase()}`)
 			)
 		}
 	}
