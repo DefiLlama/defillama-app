@@ -417,7 +417,7 @@ export const protocolsMetrics: Array<{
 	},
 	{
 		name: 'Market Cap',
-		mainRoute: '/mcap',
+		mainRoute: '/mcaps',
 		chainRoute: null,
 		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.mcap?.protocols ?? 0,
 		description: ''
