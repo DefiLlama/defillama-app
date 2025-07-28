@@ -437,9 +437,11 @@ export const getProtocolOverviewPageData = async ({
 			: [],
 		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
 		fetchJson(HACKS_API).catch(() => ({ hacks: [] })),
-		fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.displayName)}`)
-			.then((data) => data.dailyVolumes || null)
-			.catch(() => null),
+		metadata.bridges
+			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.displayName)}`)
+					.then((data) => data.dailyVolumes || null)
+					.catch(() => null)
+			: null,
 		getProtocolIncomeStatement({ metadata })
 	])
 
