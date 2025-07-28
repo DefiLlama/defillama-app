@@ -376,23 +376,19 @@ const demoTextCard4: TextConfig = {
 const features = [
 	{
 		icon: 'bar-chart-2',
-		title: 'Customizable Charts',
-		text: ''
+		title: 'Customizable Charts'
 	},
 	{
 		icon: 'activity',
-		title: 'Multiple Dashboards',
-		text: ''
+		title: 'Multiple Dashboards'
 	},
 	{
 		icon: 'percent',
-		title: 'Advanced Analytics',
-		text: ''
+		title: 'Advanced Analytics'
 	},
 	{
 		icon: 'layers',
-		title: 'Multi-Charts',
-		text: ''
+		title: 'Multi-Charts'
 	}
 ]
 
@@ -416,9 +412,6 @@ export const DemoPreview = () => {
 									<div className="flex align-center gap-2">
 										<Icon name={feature.icon as any} height={32} width={32} className="text-(--primary1) shrink-0" />
 										<span className="whitespace-nowrap font-bold text-lg leading-[170%]">{feature.title}</span>
-									</div>
-									<div className="flex content-around">
-										<p className="text-sm text-center">{feature.text}</p>
 									</div>
 								</div>
 							))}

@@ -148,7 +148,11 @@ export function ProDashboardAPIProvider({
 	const { autoSave } = useAutoSave({
 		dashboardId,
 		dashboardName,
+		dashboardVisibility,
+		dashboardTags,
+		dashboardDescription,
 		isAuthenticated,
+		isReadOnly,
 		updateDashboard,
 		cleanItemsForSaving
 	})
@@ -194,6 +198,10 @@ export function ProDashboardAPIProvider({
 				return
 			}
 
+			if (isReadOnly) {
+				return
+			}
+
 			const cleanedItems = cleanItemsForSaving(items)
 			const data = {
 				items: cleanedItems,
@@ -218,6 +226,7 @@ export function ProDashboardAPIProvider({
 			dashboardTags,
 			dashboardDescription,
 			isAuthenticated,
+			isReadOnly,
 			updateDashboard,
 			createDashboard
 		]
@@ -225,7 +234,7 @@ export function ProDashboardAPIProvider({
 
 	// Save dashboard name
 	const saveDashboardName = useCallback(async () => {
-		if (dashboardId && isAuthenticated) {
+		if (dashboardId && isAuthenticated && !isReadOnly) {
 			const cleanedItems = cleanItemsForSaving(items)
 			const data = {
 				items: cleanedItems,
@@ -243,6 +252,7 @@ export function ProDashboardAPIProvider({
 	}, [
 		dashboardId,
 		isAuthenticated,
+		isReadOnly,
 		items,
 		dashboardName,
 		dashboardVisibility,
@@ -367,6 +377,9 @@ export function ProDashboardAPIProvider({
 
 	// Handle adding items
 	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
+		if (isReadOnly) {
+			return
+		}
 		const newChartId = generateItemId(chartType, item)
 		const chartTypeDetails = CHART_TYPES[chartType]
 
@@ -427,6 +440,9 @@ export function ProDashboardAPIProvider({
 		tokenSymbol?: string | string[],
 		includeCex?: boolean
 	) => {
+		if (isReadOnly) {
+			return
+		}
 		const chainIdentifier = chains.length > 1 ? 'multi' : chains[0] || 'table'
 		const newTable: ProtocolsTableConfig = {
 			id: generateItemId('table', chainIdentifier),
@@ -454,6 +470,9 @@ export function ProDashboardAPIProvider({
 	}
 
 	const handleAddMultiChart = (chartItems: ChartConfig[], name?: string) => {
+		if (isReadOnly) {
+			return
+		}
 		const defaultGrouping = 'day'
 		const newMultiChart: MultiChartConfig = {
 			id: generateItemId('multi', ''),
@@ -474,6 +493,9 @@ export function ProDashboardAPIProvider({
 	}
 
 	const handleAddText = (title: string | undefined, content: string) => {
+		if (isReadOnly) {
+			return
+		}
 		const newText: TextConfig = {
 			id: generateItemId('text', ''),
 			kind: 'text',
@@ -489,6 +511,9 @@ export function ProDashboardAPIProvider({
 	}
 
 	const handleEditItem = (itemId: string, newItem: DashboardItemConfig) => {
+		if (isReadOnly) {
+			return
+		}
 		setItems((prev) => {
 			const newItems = prev.map((item) => (item.id === itemId ? newItem : item))
 			autoSave(newItems)
@@ -498,25 +523,34 @@ export function ProDashboardAPIProvider({
 
 	const handleRemoveItem = useCallback(
 		(itemId: string) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.filter((item) => item.id !== itemId)
 				autoSave(newItems)
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleChartsReordered = useCallback(
 		(newCharts: DashboardItemConfig[]) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems(newCharts)
 			autoSave(newCharts)
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleGroupingChange = useCallback(
 		(chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === chartId && item.kind === 'chart') {
@@ -538,11 +572,14 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleColSpanChange = useCallback(
 		(chartId: string, newColSpan: 1 | 2) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === chartId) {
@@ -554,11 +591,14 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleCumulativeChange = useCallback(
 		(itemId: string, showCumulative: boolean) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === itemId && item.kind === 'chart') {
@@ -572,11 +612,14 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleTableFiltersChange = useCallback(
 		(tableId: string, filters: TableFilters) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === tableId && item.kind === 'table') {
@@ -588,11 +631,14 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleTableColumnsChange = useCallback(
 		(tableId: string, columnOrder?: string[], columnVisibility?: Record<string, boolean>, customColumns?: any[]) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === tableId && item.kind === 'table') {
@@ -609,7 +655,7 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const getChainInfo = (chainName: string) => {

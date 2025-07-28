@@ -4,8 +4,12 @@ import { DashboardItemConfig } from '../types'
 interface UseAutoSaveOptions {
 	dashboardId: string | null
 	dashboardName: string
+	dashboardVisibility: 'private' | 'public'
+	dashboardTags: string[]
+	dashboardDescription: string
 	isAuthenticated: boolean
-	updateDashboard: (params: { id: string; data: { items: DashboardItemConfig[]; dashboardName: string } }) => Promise<any>
+	isReadOnly: boolean
+	updateDashboard: (params: { id: string; data: { items: DashboardItemConfig[]; dashboardName: string; visibility: 'private' | 'public'; tags: string[]; description: string } }) => Promise<any>
 	cleanItemsForSaving: (items: DashboardItemConfig[]) => DashboardItemConfig[]
 	delay?: number
 }
@@ -13,7 +17,11 @@ interface UseAutoSaveOptions {
 export function useAutoSave({
 	dashboardId,
 	dashboardName,
+	dashboardVisibility,
+	dashboardTags,
+	dashboardDescription,
 	isAuthenticated,
+	isReadOnly,
 	updateDashboard,
 	cleanItemsForSaving,
 	delay = 2000
@@ -22,7 +30,7 @@ export function useAutoSave({
 
 	const autoSave = useCallback(
 		(newItems: DashboardItemConfig[]) => {
-			if (!dashboardId || !isAuthenticated) return
+			if (!dashboardId || !isAuthenticated || isReadOnly) return
 
 			// Clear existing timeout
 			if (autoSaveTimeoutRef.current) {
@@ -31,7 +39,13 @@ export function useAutoSave({
 
 			// Clean items and prepare data
 			const cleanedItems = cleanItemsForSaving(newItems)
-			const data = { items: cleanedItems, dashboardName }
+			const data = {
+				items: cleanedItems,
+				dashboardName,
+				visibility: dashboardVisibility,
+				tags: dashboardTags,
+				description: dashboardDescription
+			}
 
 			// Set new timeout
 			autoSaveTimeoutRef.current = setTimeout(() => {
@@ -40,7 +54,7 @@ export function useAutoSave({
 				})
 			}, delay)
 		},
-		[dashboardId, isAuthenticated, dashboardName, cleanItemsForSaving, updateDashboard, delay]
+		[dashboardId, isAuthenticated, isReadOnly, dashboardName, dashboardVisibility, dashboardTags, dashboardDescription, cleanItemsForSaving, updateDashboard, delay]
 	)
 
 	// Cleanup function to clear timeout on unmount
