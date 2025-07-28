@@ -149,15 +149,7 @@ const TokensSelect = ({
 			: router.query[query][0]
 		: ''
 
-	const focusItemRef = React.useRef(null)
-
 	const tokenInSearchData = selectedValue !== '' ? searchData[selectedValue.toUpperCase()] : null
-
-	const [resultsLength, setResultsLength] = React.useState(10)
-
-	const showMoreResults = () => {
-		setResultsLength((prev) => prev + 10)
-	}
 
 	const [searchValue, setSearchValue] = React.useState('')
 
@@ -355,28 +347,6 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 										</span>
 									</span>
 								</td>
-
-								{/* <td>
-									<span data-metric>
-										<span>
-											{pool.borrow.apyBaseBorrow && pool.ltv
-												? (incentives === 'true' ? pool.borrow.apyBorrow : pool.borrow.apyBaseBorrow).toLocaleString(
-														undefined,
-														{ maximumFractionDigits: 2 }
-												  ) + '%'
-												: '-'}
-										</span>
-										<span>Cost</span>
-									</span>
-								</td>
-
-								<td>
-									<span data-metric>
-										<span>{formattedNum(pool.borrow.totalAvailableUsd, true)}</span>
-										<span>Available</span>
-									</span>
-								</td> */}
-
 								<td className="rounded-r-md bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
 									<span className="flex items-center justify-end gap-1">
 										<TokenLogo logo={chainIconUrl(pool.chain)} size={20} />
