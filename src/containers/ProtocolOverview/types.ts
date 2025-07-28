@@ -185,14 +185,6 @@ export interface IProtocolOverviewPageData {
 		}
 	} | null
 	articles: IArticle[] | null
-	devMetrics?: {
-		weeklyCommits: number | null
-		monthlyCommits: number | null
-		weeklyDevelopers: number | null
-		monthlyDevelopers: number | null
-		lastCommit: number | null
-		updatedAt: number | null
-	} | null
 	users?: {
 		activeUsers: number | null
 		newUsers: number | null

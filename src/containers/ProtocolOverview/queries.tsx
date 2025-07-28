@@ -3,7 +3,6 @@ import { fetchJson } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
-	DEV_METRICS_API,
 	HACKS_API,
 	HOURLY_PROTOCOL_API,
 	LIQUIDITY_API,
@@ -236,35 +235,13 @@ export const getProtocolOverviewPageData = async ({
 	] = await Promise.all([
 		getProtocol(slug(metadata.displayName)).then(async (data) => {
 			try {
-				const devMetricsProtocolUrl = data.id?.includes('parent')
-					? `${DEV_METRICS_API}/parent/${data?.id?.replace('parent#', '')}.json`
-					: `${DEV_METRICS_API}/${data.id}.json`
+				const tokenCGData = (await data.gecko_id)
+					? fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
+							.then(({ data }) => data)
+							.catch(() => null as any)
+					: Promise.resolve(null)
 
-				const [tokenCGData, devActivity] = await Promise.all([
-					data.gecko_id
-						? fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
-								.then(({ data }) => data)
-								.catch(() => null as any)
-						: Promise.resolve(null),
-					data.github
-						? await fetchJson(devMetricsProtocolUrl, { timeout: 3_000 }).catch((e) => {
-								return null
-						  })
-						: Promise.resolve(null)
-				])
-
-				const devMetrics = devActivity?.report
-					? {
-							weeklyCommits: devActivity?.report?.weekly_contributers.slice(-1)[0]?.cc ?? null,
-							monthlyCommits: devActivity?.report?.monthly_contributers.slice(-1)[0]?.cc ?? null,
-							weeklyDevelopers: devActivity?.report?.weekly_contributers.slice(-1)[0]?.v ?? null,
-							monthlyDevelopers: devActivity?.report?.monthly_contributers.slice(-1)[0]?.v ?? null,
-							lastCommit: devActivity?.last_commit_update_time ?? null,
-							updatedAt: devActivity?.last_report_generated_time ?? null
-					  }
-					: null
-
-				return { ...data, devMetrics, tokenCGData: tokenCGData ? getTokenCGData(tokenCGData) : null }
+				return { ...data, tokenCGData: tokenCGData ? getTokenCGData(tokenCGData) : null }
 			} catch (e) {
 				console.log(e)
 				return data
@@ -858,13 +835,6 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Max Votes')
 	}
 
-	if (protocolData.devMetrics) {
-		availableCharts.push('Developers')
-		availableCharts.push('Devs Commits')
-		availableCharts.push('Contributers')
-		availableCharts.push('Contributers Commits')
-	}
-
 	if (metadata.nfts) {
 		availableCharts.push('NFT Volume')
 	}
@@ -940,7 +910,6 @@ export const getProtocolOverviewPageData = async ({
 		yields,
 		articles,
 		incentives,
-		devMetrics: protocolData.devMetrics ?? null,
 		users,
 		raises: raises?.length ? raises : null,
 		expenses: expenses

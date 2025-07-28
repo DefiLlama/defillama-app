@@ -16,7 +16,6 @@ import {
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
-	useFetchProtocolDevMetrics,
 	useFetchProtocolGovernanceData,
 	useFetchProtocolMedianAPY,
 	useFetchProtocolNewUsers,
@@ -836,18 +835,6 @@ export const useFetchAndFormatChartData = ({
 			: null
 	)
 
-	const { data: devMetricsData = null, isLoading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
-		isRouterReady &&
-			[
-				toggledMetrics.devsMetrics,
-				toggledMetrics.devsCommits,
-				toggledMetrics.contributersMetrics,
-				toggledMetrics.contributersCommits
-			].some((v) => v === 'true')
-			? protocolId
-			: null
-	)
-
 	const isNftVolumeEnabled = toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady ? true : false
 	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery({
 		queryKey: ['nftVolume', name, isNftVolumeEnabled],
@@ -955,9 +942,6 @@ export const useFetchAndFormatChartData = ({
 		}
 		if (fetchingGovernanceData) {
 			loadingCharts.push('Governance')
-		}
-		if (fetchingDevMetrics) {
-			loadingCharts.push('Dev Metrics')
 		}
 		if (fetchingNftVolume) {
 			loadingCharts.push('NFT Volume')
@@ -1324,57 +1308,6 @@ export const useFetchAndFormatChartData = ({
 			charts[chartName3] = finalMaxVotes
 		}
 
-		if (devMetricsData && (toggledMetrics.devsMetrics === 'true' || toggledMetrics.devsCommits === 'true')) {
-			const developers = []
-			const commits = []
-
-			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
-
-			for (const { k, v, cc } of devMetricsData.report?.[metricKey] ?? []) {
-				const date = Math.floor(nearestUtcZeroHour(new Date(k).getTime()) / 1000)
-
-				developers.push([+date * 1e3, v])
-				commits.push([+date * 1e3, cc])
-			}
-
-			if (toggledMetrics.devsMetrics === 'true') {
-				const chartName: ProtocolChartsLabels = 'Developers' as const
-				charts[chartName] = developers
-			}
-
-			if (toggledMetrics.devsCommits === 'true') {
-				const chartName: ProtocolChartsLabels = 'Devs Commits' as const
-				charts[chartName] = commits
-			}
-		}
-
-		if (
-			devMetricsData &&
-			(toggledMetrics.contributersMetrics === 'true' || toggledMetrics.contributersCommits === 'true')
-		) {
-			const contributers = []
-			const commits = []
-
-			const metricKey = groupBy === 'monthly' ? 'monthly_contributers' : 'weekly_contributers'
-
-			for (const { k, v, cc } of devMetricsData.report?.[metricKey] ?? []) {
-				const date = Math.floor(nearestUtcZeroHour(new Date(k).getTime()) / 1000)
-
-				contributers.push([+date * 1e3, v])
-				commits.push([+date * 1e3, cc])
-			}
-
-			if (toggledMetrics.contributersMetrics === 'true') {
-				const chartName: ProtocolChartsLabels = 'Contributers' as const
-				charts[chartName] = contributers
-			}
-
-			if (toggledMetrics.contributersCommits === 'true') {
-				const chartName: ProtocolChartsLabels = 'Contributers Commits' as const
-				charts[chartName] = commits
-			}
-		}
-
 		if (nftVolumeData && toggledMetrics.nftVolume === 'true') {
 			const chartName: ProtocolChartsLabels = 'NFT Volume' as const
 			charts[chartName] = formatBarChart({
@@ -1495,8 +1428,6 @@ export const useFetchAndFormatChartData = ({
 		transactionsData,
 		fetchingGovernanceData,
 		governanceData,
-		fetchingDevMetrics,
-		devMetricsData,
 		fetchingNftVolume,
 		nftVolumeData,
 		fetchingBridgeVolume,

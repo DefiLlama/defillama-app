@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { formattedNum } from '~/utils'
-import { ProtocolChartsLabels, BAR_CHARTS, yAxisByChart, DISABLED_CUMULATIVE_CHARTS } from './constants'
+import { ProtocolChartsLabels, BAR_CHARTS, yAxisByChart } from './constants'
 
 const customOffsets = {
 	Contributers: 60,
@@ -57,7 +57,6 @@ export default function ProtocolLineBarChart({
 			const stackColor = chartColors[stack]
 
 			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
-			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
 
 			const options = {
 				yAxisIndex: indexByYAxis[yAxisByChart[stack]]
@@ -411,64 +410,6 @@ export default function ProtocolLineBarChart({
 						show: true,
 						lineStyle: {
 							color: chartColors['Tweets']
-						}
-					}
-				})
-			}
-
-			if (type === 'Developers') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} devs`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Developers']
-						}
-					}
-				})
-			}
-			if (type === 'Contributers') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} contributers`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Contributers']
-						}
-					}
-				})
-			}
-
-			if (type === 'Devs Commits') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} commits`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Devs Commits']
-						}
-					}
-				})
-			}
-			if (type === 'Contributers Commits') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} commits`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Contributers Commits']
 						}
 					}
 				})

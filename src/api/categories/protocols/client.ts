@@ -1,13 +1,11 @@
 import { useMemo } from 'react'
 import {
 	CACHE_SERVER,
-	DEV_METRICS_API,
 	PROTOCOLS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
-	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API,
 	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
@@ -268,22 +266,6 @@ export const useFetchProtocolTwitter = (twitter?: string | null) => {
 						res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
 					)
 			: () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
-export const useFetchProtocolDevMetrics = (protocol?: string | null) => {
-	const url = protocol
-		? protocol?.includes('parent')
-			? `${DEV_METRICS_API}/parent/${protocol?.replace('parent#', '')}.json`
-			: `${DEV_METRICS_API}/${protocol}.json`
-		: null
-	const isEnabled = !!url
-	return useQuery({
-		queryKey: ['dev-metrics', url, isEnabled],
-		queryFn: isEnabled ? () => fetchApi(url).catch((err) => null) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled

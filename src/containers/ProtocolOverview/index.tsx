@@ -1617,7 +1617,6 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 					<ProtocolInfo {...props} />
 					<Articles {...props} />
 					<Yields {...props} />
-					<DevActivity {...props} />
 					<Users {...props} />
 				</div>
 				<Methodology {...props} />
@@ -1637,7 +1636,6 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 			<Yields {...props} />
 			{/* <Unlocks {...props} />
 			<Governance {...props} /> */}
-			<DevActivity {...props} />
 			<Users {...props} />
 			<Hacks {...props} />
 			<Competitors {...props} />
@@ -1958,66 +1956,6 @@ function Yields(props: IProtocolOverviewPageData) {
 				<span>View all Yields</span>
 				<Icon name="arrow-right" className="w-4 h-4" />
 			</BasicLink>
-		</div>
-	)
-}
-
-function DevActivity(props: IProtocolOverviewPageData) {
-	const devActivity = props.devMetrics
-	if (!devActivity) return null
-	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
-			<div>
-				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="dev-activity">
-					Development Activity
-					<a
-						aria-hidden="true"
-						tabIndex={-1}
-						href="#dev-activity"
-						className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
-					/>
-					<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
-				</h2>
-				{devActivity.updatedAt != null ? (
-					<p className="text-xs text-[#545757] dark:text-[#cccccc]">
-						Updated at {dayjs.utc(devActivity.updatedAt).format('MMM D, YYYY')}
-					</p>
-				) : null}
-			</div>
-			<div className="flex flex-col">
-				{devActivity.weeklyCommits != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-						<span className="text-[#545757] dark:text-[#cccccc]">Weekly commits</span>
-						<span className="font-jetbrains">{devActivity.weeklyCommits}</span>
-					</p>
-				) : null}
-				{devActivity.monthlyCommits != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-						<span className="text-[#545757] dark:text-[#cccccc]">Monthly commits</span>
-						<span className="font-jetbrains">{devActivity.monthlyCommits}</span>
-					</p>
-				) : null}
-				{devActivity.weeklyDevelopers != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-						<span className="text-[#545757] dark:text-[#cccccc]">Weekly developers</span>
-						<span className="font-jetbrains">{devActivity.weeklyDevelopers}</span>
-					</p>
-				) : null}
-				{devActivity.monthlyDevelopers != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-						<span className="text-[#545757] dark:text-[#cccccc]">Monthly developers</span>
-						<span className="font-jetbrains">{devActivity.monthlyDevelopers}</span>
-					</p>
-				) : null}
-				{devActivity.lastCommit != null ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-						<span className="text-[#545757] dark:text-[#cccccc]">Last commit</span>
-						<span className="font-jetbrains">{`${dayjs.utc(devActivity.lastCommit).format('DD/MM/YY')} (${dayjs
-							.utc(devActivity.lastCommit)
-							.fromNow()})`}</span>
-					</p>
-				) : null}
-			</div>
 		</div>
 	)
 }
