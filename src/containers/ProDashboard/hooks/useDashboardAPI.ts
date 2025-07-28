@@ -31,7 +31,13 @@ export function useDashboardAPI() {
 	})
 
 	const createDashboardMutation = useMutation({
-		mutationFn: async (data: { items: DashboardItemConfig[]; dashboardName: string }) => {
+		mutationFn: async (data: {
+			items: DashboardItemConfig[]
+			dashboardName: string
+			visibility?: 'private' | 'public'
+			tags?: string[]
+			description?: string
+		}) => {
 			return await dashboardAPI.createDashboard(data, authorizedFetch)
 		},
 		onSuccess: (dashboard) => {
@@ -43,7 +49,19 @@ export function useDashboardAPI() {
 	})
 
 	const updateDashboardMutation = useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: { items: DashboardItemConfig[]; dashboardName: string } }) => {
+		mutationFn: async ({
+			id,
+			data
+		}: {
+			id: string
+			data: {
+				items: DashboardItemConfig[]
+				dashboardName: string
+				visibility?: 'private' | 'public'
+				tags?: string[]
+				description?: string
+			}
+		}) => {
 			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)
 		},
 		onSuccess: () => {

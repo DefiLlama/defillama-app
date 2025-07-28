@@ -36,8 +36,15 @@ interface ProDashboardContextType {
 	isLoadingDashboard: boolean
 	isReadOnly: boolean
 	dashboardOwnerId: string | null
+	dashboardVisibility: 'private' | 'public'
+	dashboardTags: string[]
+	dashboardDescription: string
+	currentDashboard: Dashboard | null
 	setTimePeriod: (period: TimePeriod) => void
 	setDashboardName: (name: string) => void
+	setDashboardVisibility: (visibility: 'private' | 'public') => void
+	setDashboardTags: (tags: string[]) => void
+	setDashboardDescription: (description: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
 	handleAddTable: (
 		chains: string[],
@@ -82,9 +89,21 @@ interface ProDashboardContextType {
 	createNewDashboard: () => Promise<void>
 	loadDashboard: (id: string) => Promise<void>
 	deleteDashboard: (id: string) => Promise<void>
-	saveDashboard: () => Promise<void>
+	saveDashboard: (overrides?: {
+		visibility?: 'private' | 'public'
+		tags?: string[]
+		description?: string
+	}) => Promise<void>
 	saveDashboardName: () => Promise<void>
 	copyDashboard: () => Promise<void>
+	showCreateDashboardModal: boolean
+	setShowCreateDashboardModal: (show: boolean) => void
+	handleCreateDashboard: (data: {
+		dashboardName: string
+		visibility: 'private' | 'public'
+		tags: string[]
+		description: string
+	}) => Promise<void>
 }
 
 const ProDashboardContext = createContext<ProDashboardContextType | undefined>(undefined)
@@ -106,6 +125,10 @@ export function ProDashboardAPIProvider({
 	const [dashboardName, setDashboardName] = useState<string>('My Dashboard')
 	const [dashboardId, setDashboardId] = useState<string | null>(initialDashboardId || null)
 	const [currentDashboard, setCurrentDashboard] = useState<Dashboard | null>(null)
+	const [dashboardVisibility, setDashboardVisibility] = useState<'private' | 'public'>('private')
+	const [dashboardTags, setDashboardTags] = useState<string[]>([])
+	const [dashboardDescription, setDashboardDescription] = useState<string>('')
+	const [showCreateDashboardModal, setShowCreateDashboardModal] = useState(false)
 
 	// Use the dashboard API hook
 	const {
@@ -149,6 +172,9 @@ export function ProDashboardAPIProvider({
 				setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
 				setItems(dashboard.data.items)
 				setCurrentDashboard(dashboard)
+				setDashboardVisibility(dashboard.visibility || 'private')
+				setDashboardTags(dashboard.tags || [])
+				setDashboardDescription(dashboard.description || '')
 
 				return dashboard
 			} catch (error) {
@@ -161,35 +187,69 @@ export function ProDashboardAPIProvider({
 	})
 
 	// Save dashboard
-	const saveDashboard = useCallback(async () => {
-		if (!isAuthenticated) {
-			toast.error('Please sign in to save dashboards')
-			return
-		}
+	const saveDashboard = useCallback(
+		async (overrides?: { visibility?: 'private' | 'public'; tags?: string[]; description?: string }) => {
+			if (!isAuthenticated) {
+				toast.error('Please sign in to save dashboards')
+				return
+			}
 
-		const cleanedItems = cleanItemsForSaving(items)
-		const data = { items: cleanedItems, dashboardName }
+			const cleanedItems = cleanItemsForSaving(items)
+			const data = {
+				items: cleanedItems,
+				dashboardName,
+				visibility: overrides?.visibility ?? dashboardVisibility,
+				tags: overrides?.tags ?? dashboardTags,
+				description: overrides?.description ?? dashboardDescription
+			}
 
-		if (dashboardId) {
-			await updateDashboard({ id: dashboardId, data })
-		} else {
-			const newDashboard = await createDashboard(data)
-			setDashboardId(newDashboard.id)
-		}
-	}, [items, dashboardName, dashboardId, isAuthenticated, updateDashboard, createDashboard])
+			if (dashboardId) {
+				await updateDashboard({ id: dashboardId, data })
+			} else {
+				const newDashboard = await createDashboard(data)
+				setDashboardId(newDashboard.id)
+			}
+		},
+		[
+			items,
+			dashboardName,
+			dashboardId,
+			dashboardVisibility,
+			dashboardTags,
+			dashboardDescription,
+			isAuthenticated,
+			updateDashboard,
+			createDashboard
+		]
+	)
 
 	// Save dashboard name
 	const saveDashboardName = useCallback(async () => {
 		if (dashboardId && isAuthenticated) {
 			const cleanedItems = cleanItemsForSaving(items)
-			const data = { items: cleanedItems, dashboardName }
+			const data = {
+				items: cleanedItems,
+				dashboardName,
+				visibility: dashboardVisibility,
+				tags: dashboardTags,
+				description: dashboardDescription
+			}
 			try {
 				await updateDashboard({ id: dashboardId, data })
 			} catch (error) {
 				console.error('Failed to save dashboard name:', error)
 			}
 		}
-	}, [dashboardId, isAuthenticated, items, dashboardName, updateDashboard])
+	}, [
+		dashboardId,
+		isAuthenticated,
+		items,
+		dashboardName,
+		dashboardVisibility,
+		dashboardTags,
+		dashboardDescription,
+		updateDashboard
+	])
 
 	// Copy dashboard
 	const copyDashboard = useCallback(async () => {
@@ -217,18 +277,28 @@ export function ProDashboardAPIProvider({
 			return
 		}
 
-		try {
-			const data = {
-				items: [],
-				dashboardName: 'My Dashboard'
-			}
+		setShowCreateDashboardModal(true)
+	}, [isAuthenticated])
 
-			await createDashboard(data)
-		} catch (error) {
-			console.error('Failed to create new dashboard:', error)
-			toast.error('Failed to create new dashboard')
-		}
-	}, [isAuthenticated, createDashboard])
+	const handleCreateDashboard = useCallback(
+		async (data: { dashboardName: string; visibility: 'private' | 'public'; tags: string[]; description: string }) => {
+			try {
+				const dashboardData = {
+					items: [],
+					dashboardName: data.dashboardName,
+					visibility: data.visibility,
+					tags: data.tags,
+					description: data.description
+				}
+
+				await createDashboard(dashboardData)
+			} catch (error) {
+				console.error('Failed to create new dashboard:', error)
+				toast.error('Failed to create new dashboard')
+			}
+		},
+		[createDashboard]
+	)
 
 	// Load dashboard
 	const loadDashboard = useCallback(
@@ -564,8 +634,15 @@ export function ProDashboardAPIProvider({
 		isLoadingDashboard,
 		isReadOnly,
 		dashboardOwnerId,
+		dashboardVisibility,
+		dashboardTags,
+		dashboardDescription,
+		currentDashboard,
 		setTimePeriod,
 		setDashboardName,
+		setDashboardVisibility,
+		setDashboardTags,
+		setDashboardDescription,
 		handleAddChart,
 		handleAddTable,
 		handleAddMultiChart,
@@ -585,7 +662,10 @@ export function ProDashboardAPIProvider({
 		deleteDashboard: deleteDashboardWithConfirmation,
 		saveDashboard,
 		saveDashboardName,
-		copyDashboard
+		copyDashboard,
+		showCreateDashboardModal,
+		setShowCreateDashboardModal,
+		handleCreateDashboard
 	}
 
 	return <ProDashboardContext.Provider value={value}>{children}</ProDashboardContext.Provider>

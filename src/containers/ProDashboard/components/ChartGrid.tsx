@@ -24,7 +24,7 @@ import {
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useState, useEffect } from 'react'
 import { ConfirmationModal } from './ConfirmationModal'
 
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
@@ -38,11 +38,23 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem, isReadOnly } =
 		useProDashboard()
 	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
-	
+	const [isSmallScreen, setIsSmallScreen] = useState(false)
+
+	useEffect(() => {
+		const checkScreenSize = () => {
+			setIsSmallScreen(window.innerWidth <= 768)
+		}
+
+		checkScreenSize()
+		window.addEventListener('resize', checkScreenSize)
+
+		return () => window.removeEventListener('resize', checkScreenSize)
+	}, [])
+
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
-				distance: 5
+				distance: isSmallScreen ? 999999 : 5
 			}
 		}),
 		useSensor(KeyboardSensor)

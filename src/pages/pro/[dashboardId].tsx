@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -10,6 +10,7 @@ import { useSubscribe } from '~/hooks/useSubscribe'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { Icon } from '~/components/Icon'
+import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashboardEngagement'
 
 export const getStaticPaths = async () => {
 	return {
@@ -56,8 +57,10 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 	const router = useRouter()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()
-	const { isLoadingDashboard } = useProDashboard()
+	const { isLoadingDashboard, dashboardVisibility } = useProDashboard()
 	const [isValidating, setIsValidating] = useState(true)
+	const { trackView } = useDashboardEngagement(dashboardId === 'new' ? null : dashboardId)
+	const hasTrackedView = useRef(false)
 
 	useEffect(() => {
 		if (dashboardId === 'new') {
@@ -67,6 +70,19 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 
 		setIsValidating(false)
 	}, [dashboardId])
+
+	useEffect(() => {
+		if (
+			dashboardId &&
+			dashboardId !== 'new' &&
+			dashboardVisibility === 'public' &&
+			!isLoadingDashboard &&
+			!hasTrackedView.current
+		) {
+			hasTrackedView.current = true
+			trackView()
+		}
+	}, [dashboardId, dashboardVisibility, isLoadingDashboard, trackView])
 
 	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
 	const isLoading = isAccountLoading || isValidating || isLoadingDashboard
