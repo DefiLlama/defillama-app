@@ -377,22 +377,22 @@ const features = [
 	{
 		icon: 'bar-chart-2',
 		title: 'Customizable Charts',
-		text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.'
+		text: ''
 	},
 	{
 		icon: 'activity',
 		title: 'Multiple Dashboards',
-		text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.'
+		text: ''
 	},
 	{
 		icon: 'percent',
 		title: 'Advanced Analytics',
-		text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.'
+		text: ''
 	},
 	{
 		icon: 'layers',
 		title: 'Multi-Charts',
-		text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.'
+		text: ''
 	}
 ]
 
