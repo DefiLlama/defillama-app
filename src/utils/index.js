@@ -138,7 +138,7 @@ export const formattedNum = (number, symbol = false) => {
 	const currencyMark = isNegative ? `-${currencySymbol}` : currencySymbol
 	const normalMark = isNegative ? '-' : ''
 
-	if (num > 1_000_000) {
+	if (num >= 1_000_000) {
 		return `${symbol ? currencyMark : normalMark}${toK(num)}`
 	}
 
