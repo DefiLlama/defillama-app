@@ -11,6 +11,9 @@ import { ProDashboardLoader } from './components/ProDashboardLoader'
 import { useProDashboard, TimePeriod } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useDashboardEngagement } from './hooks/useDashboardEngagement'
+import { DashboardSettingsModal } from './components/DashboardSettingsModal'
+import { CreateDashboardModal } from './components/CreateDashboardModal'
 
 function ProDashboardContent() {
 	const router = useRouter()
@@ -18,6 +21,7 @@ function ProDashboardContent() {
 	const [editItem, setEditItem] = useState<DashboardItemConfig | null>(null)
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
 	const [showDashboardMenu, setShowDashboardMenu] = useState<boolean>(false)
+	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
 	const { isAuthenticated } = useAuthContext()
 	const {
@@ -37,8 +41,20 @@ function ProDashboardContent() {
 		saveDashboard,
 		saveDashboardName,
 		isReadOnly,
-		copyDashboard
+		copyDashboard,
+		dashboardVisibility,
+		dashboardTags,
+		dashboardDescription,
+		currentDashboard,
+		setDashboardVisibility,
+		setDashboardTags,
+		setDashboardDescription,
+		showCreateDashboardModal,
+		setShowCreateDashboardModal,
+		handleCreateDashboard
 	} = useProDashboard()
+
+	const { trackView, toggleLike, isLiking } = useDashboardEngagement(dashboardId)
 
 	const timePeriods: { value: TimePeriod; label: string }[] = [
 		{ value: '30d', label: '30d' },
@@ -92,7 +108,7 @@ function ProDashboardContent() {
 								className={`px-3 py-1.5 md:px-4 md:py-2 text-sm font-medium border transition-colors duration-200 flex-1 md:flex-initial ${
 									timePeriod === period.value
 										? 'border-(--primary1) bg-(--primary1) text-white'
-										: 'border-white/20 pro-hover-bg pro-text2'
+										: 'pro-border pro-hover-bg pro-text2'
 								} ${!hasChartItems ? 'opacity-50 cursor-not-allowed' : ''}`}
 								onClick={() => hasChartItems && setTimePeriod(period.value)}
 								disabled={!hasChartItems}
@@ -122,17 +138,54 @@ function ProDashboardContent() {
 								/>
 							</form>
 						) : (
-							<button
-								onClick={() => !isReadOnly && setIsEditingName(true)}
-								className={`group text-lg md:text-xl font-semibold pro-text1 px-2 py-1 md:px-3 md:py-2 bg-(--bg7) bg-opacity-30 ${
-									!isReadOnly ? 'pro-hover-bg hover:border-(--form-control-border)' : ''
-								} flex items-center gap-2 transition-colors min-w-0`}
-								disabled={isReadOnly}
-							>
-								<span className="truncate">{dashboardName}</span>
-								{!isReadOnly && <Icon name="pencil" height={14} width={14} className="pro-text1 shrink-0" />}
-								{isReadOnly && <span className="text-xs pro-text3 ml-2 shrink-0">(Read-only)</span>}
-							</button>
+							<div className="flex items-center gap-2">
+								<button
+									onClick={() => !isReadOnly && setIsEditingName(true)}
+									className={`group text-lg md:text-xl font-semibold pro-text1 px-2 py-1 md:px-3 md:py-2 bg-(--bg7) bg-opacity-30 ${
+										!isReadOnly ? 'pro-hover-bg hover:border-(--form-control-border)' : ''
+									} flex items-center gap-2 transition-colors min-w-0`}
+									disabled={isReadOnly}
+								>
+									<span className="truncate">{dashboardName}</span>
+									{!isReadOnly && <Icon name="pencil" height={14} width={14} className="pro-text1 shrink-0" />}
+									{isReadOnly && <span className="text-xs pro-text3 ml-2 shrink-0">(Read-only)</span>}
+									{!isReadOnly && dashboardId && (
+										<span
+											className={`text-xs px-2 py-0.5 ml-2 shrink-0 ${
+												dashboardVisibility === 'public'
+													? 'bg-(--primary1) bg-opacity-20'
+													: 'bg-(--bg1) bg-opacity-50 pro-text3'
+											}`}
+										>
+											{dashboardVisibility === 'public' ? 'Public' : 'Private'}
+										</span>
+									)}
+								</button>
+								{dashboardVisibility === 'public' && (
+									<div className="flex items-center gap-3 text-sm pro-text3">
+										<div className="flex items-center gap-1" title="Views">
+											<Icon name="eye" height={16} width={16} />
+											<span>{currentDashboard?.viewCount || 0}</span>
+										</div>
+										<button
+											onClick={() => toggleLike()}
+											disabled={isLiking || !isAuthenticated}
+											className={`flex items-center gap-1 transition-colors ${
+												currentDashboard?.liked ? 'text-(--primary1)' : 'hover:text-(--primary1)'
+											}`}
+											title={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
+										>
+											<Icon
+												name="star"
+												height={16}
+												width={16}
+												className={currentDashboard?.liked ? 'fill-current' : ''}
+											/>
+											<span>{currentDashboard?.likeCount || 0}</span>
+										</button>
+									</div>
+								)}
+							</div>
 						)}
 
 						{isAuthenticated && isReadOnly && (
@@ -159,7 +212,7 @@ function ProDashboardContent() {
 								{showDashboardMenu && (
 									<>
 										<div className="fixed inset-0 z-10" onClick={() => setShowDashboardMenu(false)} />
-										<div className="absolute right-0 top-full mt-2 w-64 bg-(--bg7) bg-opacity-90 backdrop-filter backdrop-blur-xl border border-white/30 shadow-lg z-[1000]">
+										<div className="absolute right-0 top-full mt-2 w-64 bg-(--bg7) bg-opacity-90 backdrop-filter backdrop-blur-xl border pro-glass-border shadow-lg z-[1000]">
 											<div className="p-2">
 												{isReadOnly ? (
 													<button
@@ -254,34 +307,69 @@ function ProDashboardContent() {
 						)}
 					</div>
 
-					<button
-						className={`px-2.5 py-2 md:px-4 md:py-2 ${
-							!isReadOnly ? 'bg-(--primary1) hover:bg-(--primary1-hover)' : 'bg-(--bg3) cursor-not-allowed'
-						} text-white flex items-center gap-2 text-sm md:text-base whitespace-nowrap md:hidden`}
-						onClick={() => !isReadOnly && setShowAddModal(true)}
-						disabled={isReadOnly}
-						title="Add Item"
-					>
-						<Icon name="plus" height={16} width={16} />
-					</button>
+					<div className="flex items-center gap-2 md:hidden">
+						{dashboardId && !isReadOnly && (
+							<button
+								onClick={() => setShowSettingsModal(true)}
+								className="p-2 bg-(--bg7) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors"
+								title="Dashboard Settings"
+							>
+								<Icon name="settings" height={16} width={16} className="pro-text1" />
+							</button>
+						)}
+						<button
+							className={`px-2.5 py-2 md:px-4 md:py-2 ${
+								!isReadOnly ? 'bg-(--primary1) hover:bg-(--primary1-hover)' : 'bg-(--bg3) cursor-not-allowed'
+							} text-white flex items-center gap-2 text-sm md:text-base whitespace-nowrap`}
+							onClick={() => !isReadOnly && setShowAddModal(true)}
+							disabled={isReadOnly}
+							title="Add Item"
+						>
+							<Icon name="plus" height={16} width={16} />
+						</button>
+					</div>
 				</div>
 
-				<button
-					className={`px-4 py-2 ${
-						!isReadOnly ? 'bg-(--primary1) hover:bg-(--primary1-hover)' : 'bg-(--bg3) cursor-not-allowed'
-					} text-white items-center gap-2 text-base whitespace-nowrap hidden md:flex order-3`}
-					onClick={() => !isReadOnly && setShowAddModal(true)}
-					disabled={isReadOnly}
-				>
-					<Icon name="plus" height={16} width={16} />
-					Add Item
-				</button>
+				<div className="flex items-center gap-2 order-3">
+					{dashboardId && !isReadOnly && (
+						<button
+							onClick={() => setShowSettingsModal(true)}
+							className="p-2 bg-(--bg7) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors hidden md:flex"
+							title="Dashboard Settings"
+						>
+							<Icon name="settings" height={20} width={20} className="pro-text1" />
+						</button>
+					)}
+					<button
+						className={`px-4 py-2 ${
+							!isReadOnly ? 'bg-(--primary1) hover:bg-(--primary1-hover)' : 'bg-(--bg3) cursor-not-allowed'
+						} text-white items-center gap-2 text-base whitespace-nowrap hidden md:flex`}
+						onClick={() => !isReadOnly && setShowAddModal(true)}
+						disabled={isReadOnly}
+					>
+						<Icon name="plus" height={16} width={16} />
+						Add Item
+					</button>
+				</div>
 			</div>
 
 			{!isAuthenticated && (
 				<div className="bg-(--bg3) border border-(--divider) p-3 mb-4 text-sm pro-text2">
 					<Icon name="help-circle" height={16} width={16} className="inline mr-2" />
 					Sign in to save and manage multiple dashboards
+				</div>
+			)}
+
+			{dashboardTags.length > 0 && (
+				<div className="mb-4 flex items-center gap-2">
+					<Icon name="bookmark" height={14} width={14} className="pro-text3" />
+					<div className="flex flex-wrap gap-2">
+						{dashboardTags.map((tag) => (
+							<span key={tag} className="px-2 py-1 bg-(--bg1) bg-opacity-50 text-xs pro-text2 border pro-border">
+								{tag}
+							</span>
+						))}
+					</div>
 				</div>
 			)}
 
@@ -305,6 +393,24 @@ function ProDashboardContent() {
 			/>
 
 			{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={() => setShowAddModal(true)} />}
+
+			<DashboardSettingsModal
+				isOpen={showSettingsModal}
+				onClose={() => setShowSettingsModal(false)}
+				visibility={dashboardVisibility}
+				tags={dashboardTags}
+				description={dashboardDescription}
+				onVisibilityChange={setDashboardVisibility}
+				onTagsChange={setDashboardTags}
+				onDescriptionChange={setDashboardDescription}
+				onSave={saveDashboard}
+			/>
+
+			<CreateDashboardModal
+				isOpen={showCreateDashboardModal}
+				onClose={() => setShowCreateDashboardModal(false)}
+				onCreate={handleCreateDashboard}
+			/>
 		</div>
 	)
 }
