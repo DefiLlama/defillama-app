@@ -88,6 +88,7 @@ export const getProtocolMetrics = ({
 	protocolData: IUpdatedProtocol
 	metadata: IProtocolMetadata
 }): IProtocolPageMetrics => {
+	let tvlChartExist = false
 	let inflowsExist = false
 	let multipleChains = false
 	let tokenBreakdownExist = false
@@ -109,6 +110,9 @@ export const getProtocolMetrics = ({
 
 	let chainsWithTvl = 0
 	for (const chain in protocolData.chainTvls ?? {}) {
+		if (protocolData.chainTvls[chain].tvl?.length > 0) {
+			tvlChartExist = true
+		}
 		if (chain.includes('-') || chain === 'offers' || DEFI_SETTINGS_KEYS.includes(chain)) {
 			continue
 		}
@@ -117,14 +121,13 @@ export const getProtocolMetrics = ({
 		}
 		if (chainsWithTvl > 1) {
 			multipleChains = true
-			break
 		}
 	}
 
 	const tvlTab = metadata.tvl && (multipleChains || inflowsExist || tokenBreakdownExist)
 
 	return {
-		tvl: metadata.tvl ? true : false,
+		tvl: metadata.tvl && tvlChartExist ? true : false,
 		tvlTab: tvlTab ? true : false,
 		dexs: metadata.dexs ? true : false,
 		perps: metadata.perps ? true : false,
