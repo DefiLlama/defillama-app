@@ -1,5 +1,5 @@
 import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
@@ -53,16 +53,21 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		// }
 
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
-			const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
+			try {
+				const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
 
-			if (!hourlyData) {
+				if (!hourlyData) {
+					return data
+				}
+
+				return { ...hourlyData, isHourlyChart: true }
+			} catch (e) {
+				postRuntimeLogs(`[ERROR] [${Date.now() - start}ms] < ${HOURLY_PROTOCOL_API}/${slug(protocolName)} >`, e)
 				return data
 			}
-
-			return { ...hourlyData, isHourlyChart: true }
 		} else return data
 	} catch (e) {
-		console.log(`[ERROR] [${Date.now() - start}ms] < ${PROTOCOL_API}/${slug(protocolName)} >`, e)
+		postRuntimeLogs(`[ERROR] [${Date.now() - start}ms] < ${PROTOCOL_API}/${slug(protocolName)} >`, e)
 
 		return null
 	}
