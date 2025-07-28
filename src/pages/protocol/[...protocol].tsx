@@ -52,5 +52,8 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols(props: IProtocolOverviewPageData) {
+	if (props.name === 'HyperBloom') {
+		console.log(props)
+	}
 	return <ProtocolOverview {...props} />
 }
