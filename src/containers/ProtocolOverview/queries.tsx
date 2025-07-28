@@ -63,7 +63,7 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
 	} catch (e) {
-		console.log(`[ERROR] [${Date.now() - start}ms] <${PROTOCOL_API}/${slug(protocolName)}>`, e)
+		console.log(`[ERROR] [${Date.now() - start}ms] < ${PROTOCOL_API}/${slug(protocolName)} >`, e)
 
 		return null
 	}

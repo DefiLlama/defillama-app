@@ -36,7 +36,7 @@ export const withPerformanceLogging = <T extends {}>(
 				`${(end - start).toFixed(0)}ms`
 			])
 			postRuntimeLogs(
-				`[ERROR] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
+				`[ERROR] [${(end - start).toFixed(0)}ms] < ${filename}> ` + (params ? ' ' + JSON.stringify(params) : '')
 			)
 			throw error
 		}
