@@ -73,7 +73,7 @@ export function DashboardSettingsModal({
 			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4"
 			onClick={onClose}
 		>
-			<div className="pro-glass shadow-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+			<div className="pro-bg1 shadow-2xl w-full max-w-lg border pro-border" onClick={(e) => e.stopPropagation()}>
 				<div className="p-6">
 					<div className="flex items-center justify-between mb-6">
 						<h2 className="text-xl font-semibold pro-text1">Dashboard Settings</h2>
@@ -88,17 +88,6 @@ export function DashboardSettingsModal({
 							<label className="block text-sm font-medium pro-text1 mb-3">Visibility</label>
 							<div className="flex gap-3">
 								<button
-									onClick={() => setLocalVisibility('private')}
-									className={`flex-1 px-4 py-3 border transition-colors ${
-										localVisibility === 'private'
-											? 'border-(--primary1) bg-(--primary1) bg-opacity-20 pro-text1'
-											: 'pro-border pro-text3 hover:pro-text1'
-									}`}
-								>
-									<Icon name="key" height={16} width={16} className="inline mr-2" />
-									Private
-								</button>
-								<button
 									onClick={() => setLocalVisibility('public')}
 									className={`flex-1 px-4 py-3 border transition-colors ${
 										localVisibility === 'public'
@@ -108,6 +97,17 @@ export function DashboardSettingsModal({
 								>
 									<Icon name="earth" height={16} width={16} className="inline mr-2" />
 									Public
+								</button>
+								<button
+									onClick={() => setLocalVisibility('private')}
+									className={`flex-1 px-4 py-3 border transition-colors ${
+										localVisibility === 'private'
+											? 'border-(--primary1) bg-(--primary1) bg-opacity-20 pro-text1'
+											: 'pro-border pro-text3 hover:pro-text1'
+									}`}
+								>
+									<Icon name="key" height={16} width={16} className="inline mr-2" />
+									Private
 								</button>
 							</div>
 							{localVisibility === 'public' && (
