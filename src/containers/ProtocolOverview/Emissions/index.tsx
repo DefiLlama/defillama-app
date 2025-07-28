@@ -467,6 +467,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									usdFormat={false}
 									legendPosition={pieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
+									toRight={200}
 								/>
 							</Suspense>
 						</LazyChart>
