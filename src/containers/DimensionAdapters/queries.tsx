@@ -3,6 +3,7 @@ import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE, ADAPTER_DATA_TYPES } from './constants'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
+import { getAnnualizedRatio } from '~/api/categories/adaptors'
 
 export interface IAdapterOverview {
 	totalDataChart: Array<[number, number]> // date, value
@@ -627,6 +628,16 @@ export const getAdapterByChainPageData = async ({
 					  protocol.methodology?.['TokenTaxes']
 				: null
 
+		const pf =
+			protocolsMcap[protocol.name] && protocol.total30d
+				? getAnnualizedRatio(protocolsMcap[protocol.name], protocol.total30d)
+				: null
+
+		const ps =
+			protocolsMcap[protocol.name] && protocol.total30d
+				? getAnnualizedRatio(protocolsMcap[protocol.name], protocol.total30d)
+				: null
+
 		const summary = {
 			name: protocol.displayName,
 			slug: protocol.slug,
@@ -641,6 +652,8 @@ export const getAdapterByChainPageData = async ({
 			mcap: protocolsMcap[protocol.name] ?? null,
 			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
+			...(pf ? { pf } : {}),
+			...(ps ? { ps } : {}),
 			...(methodology ? { methodology } : {})
 		}
 
@@ -723,6 +736,9 @@ export const getAdapterByChainPageData = async ({
 			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
 		).join(', ')
 
+		const pf = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
+		const ps = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
+
 		protocols[protocol] = {
 			name: protocol,
 			slug: slug(protocol),
@@ -738,6 +754,8 @@ export const getAdapterByChainPageData = async ({
 			childProtocols: parentProtocols[protocol],
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),
+			...(pf ? { pf } : {}),
+			...(ps ? { ps } : {}),
 			...(methodology
 				? {
 						methodology
@@ -746,19 +764,52 @@ export const getAdapterByChainPageData = async ({
 		}
 	}
 
+	let finalProtocols = []
+	if (route === 'pf') {
+		for (const protocol in protocols) {
+			if (protocols[protocol].pf != null) {
+				finalProtocols.push(protocols[protocol])
+			}
+		}
+	} else if (route === 'ps') {
+		for (const protocol in protocols) {
+			if (protocols[protocol].ps != null) {
+				finalProtocols.push(protocols[protocol])
+			}
+		}
+	} else {
+		for (const protocol in protocols) {
+			finalProtocols.push(protocols[protocol])
+		}
+	}
+
+	if (route === 'pf') {
+		finalProtocols = finalProtocols.sort(
+			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
+				(b.pf ?? 0) - (a.pf ?? 0)
+		)
+	} else if (route === 'ps') {
+		finalProtocols = finalProtocols.sort(
+			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
+				(b.ps ?? 0) - (a.ps ?? 0)
+		)
+	} else {
+		finalProtocols = finalProtocols.sort(
+			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
+				(b.total24h ?? 0) - (a.total24h ?? 0)
+		)
+	}
+
 	return {
 		chain,
 		chains: [
 			{ label: 'All', to: `/${route}` },
 			...data.allChains.map((chain) => ({ label: chain, to: `/${route}/chain/${slug(chain)}` }))
 		],
-		protocols: Object.values(protocols).sort(
-			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
-				(b.total24h ?? 0) - (a.total24h ?? 0)
-		),
+		protocols: finalProtocols,
 		categories: adapterType === 'fees' ? Array.from(categories).sort() : [],
 		adapterType,
-		chartData: data.totalDataChart.map(([date, value]) => [date * 1e3, value]),
+		chartData: adapterType === 'fees' ? null : data.totalDataChart.map(([date, value]) => [date * 1e3, value]),
 		dataType: dataType ?? null,
 		total24h: data.total24h ?? null,
 		total7d: data.total7d ?? null,

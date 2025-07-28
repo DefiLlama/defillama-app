@@ -30,6 +30,7 @@ import { AdapterByChainChart } from './ChainChart'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { chainCharts } from '../ChainOverview/constants'
+import { getAnnualizedRatio } from '~/api/categories/adaptors'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<
@@ -107,6 +108,14 @@ export function AdapterByChain(props: IProps) {
 				? protocols.map((p) => {
 						const childProtocols = p.childProtocols
 							? p.childProtocols.map((cp) => {
+									const total30d =
+										cp.total30d +
+										(enabledSettings.bribes ? cp.bribes?.total30d ?? 0 : 0) +
+										(enabledSettings.tokentax ? cp.tokenTax?.total30d ?? 0 : 0)
+
+									let pf = cp.mcap && cp.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
+									let ps = cp.mcap && cp.revenue?.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
+
 									return {
 										...cp,
 										total24h:
@@ -117,10 +126,7 @@ export function AdapterByChain(props: IProps) {
 											cp.total7d +
 											(enabledSettings.bribes ? cp.bribes?.total7d ?? 0 : 0) +
 											(enabledSettings.tokentax ? cp.tokenTax?.total7d ?? 0 : 0),
-										total30d:
-											cp.total30d +
-											(enabledSettings.bribes ? cp.bribes?.total30d ?? 0 : 0) +
-											(enabledSettings.tokentax ? cp.tokenTax?.total30d ?? 0 : 0),
+										total30d,
 										total1y:
 											cp.total1y +
 											(enabledSettings.bribes ? cp.bribes?.total1y ?? 0 : 0) +
@@ -128,10 +134,20 @@ export function AdapterByChain(props: IProps) {
 										totalAllTime:
 											cp.totalAllTime +
 											(enabledSettings.bribes ? cp.bribes?.totalAllTime ?? 0 : 0) +
-											(enabledSettings.tokentax ? cp.tokenTax?.totalAllTime ?? 0 : 0)
+											(enabledSettings.tokentax ? cp.tokenTax?.totalAllTime ?? 0 : 0),
+										...(pf ? { pf } : {}),
+										...(ps ? { ps } : {})
 									}
 							  })
 							: null
+
+						const total30d =
+							p.total30d +
+							(enabledSettings.bribes ? p.bribes?.total30d ?? 0 : 0) +
+							(enabledSettings.tokentax ? p.tokenTax?.total30d ?? 0 : 0)
+
+						const pf = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
+						const ps = p.mcap && p.revenue?.total30d ? getAnnualizedRatio(p.mcap, total30d) : null
 
 						return {
 							...p,
@@ -143,10 +159,7 @@ export function AdapterByChain(props: IProps) {
 								p.total7d +
 								(enabledSettings.bribes ? p.bribes?.total7d ?? 0 : 0) +
 								(enabledSettings.tokentax ? p.tokenTax?.total7d ?? 0 : 0),
-							total30d:
-								p.total30d +
-								(enabledSettings.bribes ? p.bribes?.total30d ?? 0 : 0) +
-								(enabledSettings.tokentax ? p.tokenTax?.total30d ?? 0 : 0),
+							total30d,
 							total1y:
 								p.total1y +
 								(enabledSettings.bribes ? p.bribes?.total1y ?? 0 : 0) +
@@ -155,6 +168,8 @@ export function AdapterByChain(props: IProps) {
 								p.totalAllTime +
 								(enabledSettings.bribes ? p.bribes?.totalAllTime ?? 0 : 0) +
 								(enabledSettings.tokentax ? p.tokenTax?.totalAllTime ?? 0 : 0),
+							...(pf ? { pf } : {}),
+							...(ps ? { ps } : {}),
 							...(childProtocols ? { childProtocols } : {})
 						}
 				  })
@@ -167,7 +182,9 @@ export function AdapterByChain(props: IProps) {
 		}
 	}, [router.query, props, enabledSettings])
 
-	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'total24h' }])
+	const [sorting, setSorting] = useState<SortingState>([
+		{ desc: true, id: ['pf', 'ps'].includes(props.type) ? props.type : 'total24h' }
+	])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
@@ -251,8 +268,11 @@ export function AdapterByChain(props: IProps) {
 			'Total 1m',
 			'Total 1y',
 			'Total All Time',
-			'Market Cap'
+			'Market Cap',
+			'P/F',
+			'P/S'
 		]
+
 		const csvdata = protocols.map((protocol) => {
 			return [
 				protocol.name,
@@ -262,9 +282,12 @@ export function AdapterByChain(props: IProps) {
 				protocol.total30d,
 				protocol.total1y,
 				protocol.totalAllTime,
-				protocol.mcap
+				protocol.mcap,
+				protocol.pf,
+				protocol.ps
 			]
 		})
+
 		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
 
 		download(`${props.type}-${props.chain}-protocols.csv`, csv)
@@ -633,7 +656,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 const getColumnsByType = (
 	isChain: boolean = false
-): Record<IProps['type'], ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
+): Record<IProps['type'] & 'P/F', ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
 	return {
 		Fees: [
 			NameColumn('Fees'),
@@ -1226,6 +1249,78 @@ const getColumnsByType = (
 						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
 				},
 				size: 160
+			}
+		],
+		'P/F': [
+			NameColumn('Fees'),
+			{
+				id: 'category',
+				header: 'Category',
+				accessorFn: (protocol) => protocol.category,
+				enableSorting: false,
+				cell: ({ getValue }) =>
+					getValue() ? (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-(--link-text)"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						''
+					),
+				meta: {
+					align: 'center'
+				},
+				size: 128
+			},
+			{
+				id: 'pf',
+				header: 'P/F',
+				accessorFn: (protocol) => protocol.pf,
+				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Market cap / annualized fees'
+				},
+				size: 120
+			}
+		],
+		'P/S': [
+			NameColumn('Revenue'),
+			{
+				id: 'category',
+				header: 'Category',
+				accessorFn: (protocol) => protocol.category,
+				enableSorting: false,
+				cell: ({ getValue }) =>
+					getValue() ? (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-(--link-text)"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						''
+					),
+				meta: {
+					align: 'center'
+				},
+				size: 128
+			},
+			{
+				id: 'ps',
+				header: 'P/S',
+				accessorFn: (protocol) => protocol.ps,
+				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Market cap / annualized revenue'
+				},
+				size: 120
 			}
 		]
 	}

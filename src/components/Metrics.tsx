@@ -31,6 +31,8 @@ export interface ITotalTrackedByMetric {
 	staking: { protocols: number; chains: number }
 	pool2: { protocols: number; chains: number }
 	mcap: { protocols: number; chains: number }
+	pf: { protocols: number; chains: number }
+	ps: { protocols: number; chains: number }
 }
 
 export type TMetric =
@@ -61,6 +63,8 @@ export type TMetric =
 	| 'Total Staked'
 	| 'Pool2 TVL'
 	| 'Market Cap'
+	| 'P/F'
+	| 'P/S'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -421,6 +425,20 @@ export const protocolsMetrics: Array<{
 		chainRoute: null,
 		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.mcap?.protocols ?? 0,
 		description: ''
+	},
+	{
+		name: 'P/F',
+		mainRoute: '/pf',
+		chainRoute: null,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.pf?.protocols ?? 0,
+		description: 'Market cap / annualized fees'
+	},
+	{
+		name: 'P/S',
+		mainRoute: '/ps',
+		chainRoute: null,
+		protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.ps?.protocols ?? 0,
+		description: 'Market cap / annualized revenue'
 	}
 ]
 
