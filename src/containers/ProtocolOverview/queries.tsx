@@ -235,12 +235,11 @@ export const getProtocolOverviewPageData = async ({
 	] = await Promise.all([
 		getProtocol(slug(metadata.displayName)).then(async (data) => {
 			try {
-				const tokenCGData = (await data.gecko_id)
-					? fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
+				const tokenCGData = data.gecko_id
+					? await fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
 							.then(({ data }) => data)
 							.catch(() => null as any)
-					: Promise.resolve(null)
-
+					: null
 				return { ...data, tokenCGData: tokenCGData ? getTokenCGData(tokenCGData) : null }
 			} catch (e) {
 				console.log(e)
