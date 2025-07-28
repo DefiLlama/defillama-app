@@ -189,5 +189,38 @@ export const getChainChartTypes = (): string[] => {
 	]
 }
 
+export interface BaseDatasetItem {
+	id: string
+	name: string
+	slug?: string
+	logo?: string
+	category?: string
+	chains?: string[]
+	total24h?: number
+	total7d?: number
+	total30d?: number
+	totalAllTime?: number
+	change_1d?: number
+	change_7d?: number
+}
+
+export interface DexItem extends BaseDatasetItem {
+	childProtocols?: Array<{
+		name: string
+		slug: string
+		logo?: string
+		chains?: string[]
+		category?: string
+		total24h?: number
+		total7d?: number
+		total30d?: number
+		total1y?: number
+		totalAllTime?: number
+		mcap?: number | null
+	}>
+}
+
+export interface AggregatorItem extends BaseDatasetItem {}
+
 export const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'
 export const isText = (x: DashboardItemConfig): x is TextConfig => x.kind === 'text'

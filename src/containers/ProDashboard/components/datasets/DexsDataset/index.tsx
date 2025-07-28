@@ -20,6 +20,11 @@ import { LoadingSpinner } from '../../LoadingSpinner'
 import { useDexsData } from './useDexsData'
 import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { DexItem } from '~/containers/ProDashboard/types'
+
+type DexItemWithMarketShare = DexItem & {
+	marketShare7d: number
+}
 
 export function DexsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
@@ -35,8 +40,19 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 	const { data, isLoading, error, refetch } = useDexsData(chains)
 	const windowSize = useWindowSize()
 
+	const enrichedData = React.useMemo<DexItemWithMarketShare[]>(() => {
+		if (!data || data.length === 0) return []
+
+		const total7dGlobal = data.reduce((sum: number, item: DexItem) => sum + (item.total7d || 0), 0)
+
+		return data.map((item) => ({
+			...item,
+			marketShare7d: total7dGlobal > 0 ? ((item.total7d || 0) / total7dGlobal) * 100 : 0
+		}))
+	}, [data])
+
 	const instance = useReactTable({
-		data: data || [],
+		data: enrichedData,
 		columns: dexsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,

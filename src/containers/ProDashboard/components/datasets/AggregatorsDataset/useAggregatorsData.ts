@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchJson } from '~/utils/async'
+import { AggregatorItem } from '~/containers/ProDashboard/types'
 
 export function useAggregatorsData(chains?: string[]) {
 	const queryParams =
@@ -7,7 +8,7 @@ export function useAggregatorsData(chains?: string[]) {
 
 	const sortedChains = chains ? [...chains].sort() : []
 
-	return useQuery({
+	return useQuery<AggregatorItem[]>({
 		queryKey: ['aggregators-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/aggregators${queryParams}`),
 		staleTime: 5 * 60 * 1000,
