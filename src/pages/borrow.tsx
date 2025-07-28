@@ -84,20 +84,24 @@ export default function YieldBorrow(data) {
 			<Announcement>{disclaimer}</Announcement>
 			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative lg:left-[-110px] lg:top-4 xl:top-11 bg-(--cards-bg) p-3">
 				<div className="flex flex-col gap-5 p-3 overflow-y-auto w-full">
-					<label className="flex flex-col gap-1 w-full">
-						<span className="text-base">Borrow</span>
-						<TokensSelect searchData={data.searchData} query={'borrow'} placeholder="Select token to borrow" />
-					</label>
+					<TokensSelect
+						label="Borrow"
+						searchData={data.searchData}
+						query={'borrow'}
+						placeholder="Select token to borrow"
+					/>
 
-					<label className="flex flex-col gap-1 w-full">
-						<span className="text-base">Collateral</span>
-						<TokensSelect searchData={data.searchData} query={'collateral'} placeholder="Select token for collateral" />
-						{borrowToken && !collateralToken ? (
-							<small className="text-center mt-[2px] text-orange-500">
-								Select your collateral token to see real borrow cost!
-							</small>
-						) : null}
-					</label>
+					<TokensSelect
+						label="Collateral"
+						searchData={data.searchData}
+						query={'collateral'}
+						placeholder="Select token for collateral"
+					/>
+					{borrowToken && !collateralToken ? (
+						<small className="text-center mt-[2px] text-orange-500">
+							Select your collateral token to see real borrow cost!
+						</small>
+					) : null}
 
 					{borrowToken || collateralToken ? (
 						<label className="flex gap-1 mx-auto cursor-pointer">
@@ -124,10 +128,12 @@ export default function YieldBorrow(data) {
 
 const TokensSelect = ({
 	searchData,
+	label,
 	query,
 	placeholder
 }: {
 	searchData: { [token: string]: { name: string; symbol: string; image: string; image2: string } }
+	label: string
 	query: string
 	placeholder: string
 }) => {
@@ -167,72 +173,75 @@ const TokensSelect = ({
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 
 	return (
-		<Ariakit.ComboboxProvider
-			resetValueOnHide
-			setValue={(value) => {
-				React.startTransition(() => {
-					setSearchValue(value)
-				})
-			}}
-		>
-			<Ariakit.SelectProvider value={selectedValue} setValue={onChange}>
-				<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 p-3 text-base font-medium rounded-md cursor-pointer text-(--text1) flex-nowrap">
-					{tokenInSearchData ? (
-						<>
-							<span>
-								{tokenInSearchData.symbol === 'USD_STABLES' ? tokenInSearchData.name : tokenInSearchData.symbol}
-							</span>
-						</>
-					) : (
-						<span className="opacity-60">{placeholder}</span>
-					)}
-					<Ariakit.SelectArrow className="ml-auto" />
-				</Ariakit.Select>
-				<Ariakit.SelectPopover
-					unmountOnHide
-					hideOnInteractOutside
-					sameWidth
-					gutter={6}
-					wrapperProps={{
-						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
-					}}
-					className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
-				>
-					<Ariakit.Combobox
-						placeholder="Search..."
-						autoFocus
-						className="bg-white dark:bg-black rounded-md text-base py-1 px-3 m-3"
-					/>
+		<div className="flex flex-col gap-1 w-full">
+			<Ariakit.ComboboxProvider
+				resetValueOnHide
+				setValue={(value) => {
+					React.startTransition(() => {
+						setSearchValue(value)
+					})
+				}}
+			>
+				<Ariakit.SelectProvider value={selectedValue} setValue={onChange}>
+					<Ariakit.SelectLabel className="text-base">{label}</Ariakit.SelectLabel>
+					<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 p-3 text-base font-medium rounded-md cursor-pointer text-(--text1) flex-nowrap">
+						{tokenInSearchData ? (
+							<>
+								<span>
+									{tokenInSearchData.symbol === 'USD_STABLES' ? tokenInSearchData.name : tokenInSearchData.symbol}
+								</span>
+							</>
+						) : (
+							<span className="opacity-60">{placeholder}</span>
+						)}
+						<Ariakit.SelectArrow className="ml-auto" />
+					</Ariakit.Select>
+					<Ariakit.SelectPopover
+						unmountOnHide
+						hideOnInteractOutside
+						sameWidth
+						gutter={6}
+						wrapperProps={{
+							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
+						}}
+						className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					>
+						<Ariakit.Combobox
+							placeholder="Search..."
+							autoFocus
+							className="bg-white dark:bg-black rounded-md text-base py-1 px-3 m-3"
+						/>
 
-					{matches.length > 0 ? (
-						<>
-							<Ariakit.ComboboxList>
-								{matches.slice(0, viewableMatches + 1).map((option) => (
-									<Ariakit.SelectItem
-										key={`${query}-${option.symbol}`}
-										value={option.symbol}
-										className="group flex items-center gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
-										render={<Ariakit.ComboboxItem />}
+						{matches.length > 0 ? (
+							<>
+								<Ariakit.ComboboxList>
+									{matches.slice(0, viewableMatches + 1).map((option) => (
+										<Ariakit.SelectItem
+											key={`${query}-${option.symbol}`}
+											value={option.symbol}
+											className="group flex items-center gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+											render={<Ariakit.ComboboxItem />}
+										>
+											{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : `${option.symbol}`}
+										</Ariakit.SelectItem>
+									))}
+								</Ariakit.ComboboxList>
+								{matches.length > viewableMatches ? (
+									<button
+										className="w-full py-4 px-3 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
+										onClick={() => setViewableMatches((prev) => prev + 20)}
 									>
-										{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : `${option.symbol}`}
-									</Ariakit.SelectItem>
-								))}
-							</Ariakit.ComboboxList>
-							{matches.length > viewableMatches ? (
-								<button
-									className="w-full py-4 px-3 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
-									onClick={() => setViewableMatches((prev) => prev + 20)}
-								>
-									See more...
-								</button>
-							) : null}
-						</>
-					) : (
-						<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
-					)}
-				</Ariakit.SelectPopover>
-			</Ariakit.SelectProvider>
-		</Ariakit.ComboboxProvider>
+										See more...
+									</button>
+								) : null}
+							</>
+						) : (
+							<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
+						)}
+					</Ariakit.SelectPopover>
+				</Ariakit.SelectProvider>
+			</Ariakit.ComboboxProvider>
+		</div>
 	)
 }
 
