@@ -118,7 +118,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			...toggled,
 			...(props.isCEX
 				? { totalAssets: queryParams.totalAssets === 'false' ? 'false' : 'true' }
-				: { tvl: queryParams.tvl === 'false' ? 'false' : 'true' }),
+				: { tvl: queryParams.tvl === 'false' || !props.metrics.tvl ? 'false' : 'true' }),
 			events: queryParams.events === 'false' ? 'false' : 'true',
 			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
 		} as IToggledMetrics
