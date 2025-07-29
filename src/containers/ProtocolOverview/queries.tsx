@@ -866,7 +866,7 @@ export const getProtocolOverviewPageData = async ({
 		hallmarks[hack.date] = `Hack: ${hack.classification ?? ''}`
 	}
 	for (const mark of protocolData.hallmarks ?? []) {
-		if (hallmarks[mark[0]]) {
+		if (hallmarks[mark[0]] || typeof mark[1] !== 'string') {
 			continue
 		}
 		hallmarks[mark[0]] = mark[1]
