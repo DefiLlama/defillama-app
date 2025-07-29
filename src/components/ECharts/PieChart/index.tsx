@@ -29,6 +29,7 @@ export default function PieChart({
 	customLabel,
 	legendPosition,
 	legendTextStyle,
+	toRight = 0,
 	...props
 }: IPieChartProps) {
 	const id = useId()
@@ -39,7 +40,7 @@ export default function PieChart({
 			name: '',
 			type: 'pie',
 			left: 0,
-			right: 0,
+			right: toRight,
 			top: title ? 25 : 0,
 			bottom: 0,
 			label: {
