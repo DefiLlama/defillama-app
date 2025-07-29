@@ -37,6 +37,13 @@ export const sluggify = (input: string) => {
 	return slug.replace(/^-+/, '').replace(/-+$/, '')
 }
 
+export const sluggifyProtocol = (input: string) => {
+	const slug = decodeURIComponent(input)
+		.toLowerCase()
+		.replace(/[^\w\/.]+/g, '-')
+	return slug.replace(/^-+/, '').replace(/-+$/, '')
+}
+
 /**
  * RedisCacheObject is the object stored in Redis
  *

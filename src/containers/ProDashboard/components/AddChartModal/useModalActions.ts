@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import { useModalState } from './useModalState'
-import { sluggify } from '~/utils/cache-client'
 import {
 	DashboardItemConfig,
 	ChartConfig,
@@ -57,7 +56,7 @@ export function useModalActions(
 	const protocolOptions = useMemo(
 		() =>
 			protocols.map((protocol: Protocol) => ({
-				value: sluggify(protocol.name),
+				value: protocol.slug,
 				label: protocol.name,
 				logo: protocol.logo
 			})),
@@ -118,8 +117,6 @@ export function useModalActions(
 			}
 			actions.setComposerItems((prev) => [...prev, newChart])
 		}
-		actions.setSelectedChain(null)
-		actions.setSelectedProtocol(null)
 		actions.setSelectedChartType('tvl')
 		actions.setSelectedChartTypes([])
 	}
