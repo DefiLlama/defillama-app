@@ -1,4 +1,4 @@
-import { FetchOverCacheOptions, fetchOverCache } from './perf'
+import { FetchWithPoolingOnServerOptions, fetchWithPoolingOnServer } from './perf'
 
 export function withErrorLogging<T extends any[], R>(
 	fn: (...args: T) => Promise<R>,
@@ -21,12 +21,12 @@ export function withErrorLogging<T extends any[], R>(
 
 async function fetchWithErrorLogging(
 	url: RequestInfo | URL,
-	options?: FetchOverCacheOptions,
+	options?: FetchWithPoolingOnServerOptions,
 	retry: boolean = false
 ): Promise<Response> {
 	const start = Date.now()
 	try {
-		const res = await fetchOverCache(url, options)
+		const res = await fetchWithPoolingOnServer(url, options)
 		if (res.status !== 200) {
 			// const end = Date.now()
 			// postRuntimeLogs(`[HTTP] [error] [${res.status}] [${end - start}ms] < ${url} >`)
@@ -35,7 +35,7 @@ async function fetchWithErrorLogging(
 	} catch (error) {
 		if (retry) {
 			try {
-				const res = await fetchOverCache(url, options)
+				const res = await fetchWithPoolingOnServer(url, options)
 				if (res.status >= 400) {
 					const end = Date.now()
 					postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] < ${url} >`)
@@ -43,7 +43,7 @@ async function fetchWithErrorLogging(
 				return res
 			} catch (error) {
 				try {
-					const res = await fetchOverCache(url, options)
+					const res = await fetchWithPoolingOnServer(url, options)
 					if (res.status >= 400) {
 						const end = Date.now()
 						postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] < ${url} >`)
@@ -94,7 +94,7 @@ export function postRuntimeLogs(log) {
 async function handleFetchResponse(
 	res: Response,
 	url: RequestInfo | URL,
-	options?: FetchOverCacheOptions,
+	options?: FetchWithPoolingOnServerOptions,
 	callerInfo?: string
 ) {
 	try {
@@ -147,7 +147,7 @@ async function handleFetchResponse(
 
 export async function fetchJson(
 	url: RequestInfo | URL,
-	options?: FetchOverCacheOptions,
+	options?: FetchWithPoolingOnServerOptions,
 	retry: boolean = false
 ): Promise<any> {
 	const start = Date.now()

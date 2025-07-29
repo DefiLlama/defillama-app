@@ -142,3 +142,21 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		return new Response(blob, responseInit)
 	}
 }
+
+export type FetchWithPoolingOnServerOptions = RequestInit & { timeout?: number }
+
+export const fetchWithPoolingOnServer = async (
+	url: RequestInfo | URL,
+	options?: FetchWithPoolingOnServerOptions
+): Promise<Response> => {
+	const isServer = typeof window === 'undefined'
+	const controller = new AbortController()
+	const timeout = options?.timeout ?? 60_000
+	const id = setTimeout(() => controller.abort(), timeout)
+	const response =
+		isServer && typeof url === 'string'
+			? await fetchWithConnectionPooling(url, { ...options, signal: controller.signal })
+			: await fetch(url, { ...options, signal: controller.signal })
+	clearTimeout(id)
+	return response
+}
