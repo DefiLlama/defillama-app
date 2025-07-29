@@ -522,14 +522,14 @@ export const protocolsMetrics: Array<{
 			{
 				name: 'Market Cap',
 				mainRoute: '/mcaps',
-				chainRoute: null,
+				chainRoute: `/mcaps/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.mcap?.protocols ?? 0,
 				description: 'Token price multiplied by circulating supply'
 			},
 			{
 				name: 'Token Price',
 				mainRoute: '/token-prices',
-				chainRoute: null,
+				chainRoute: `/token-prices/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.price?.protocols ?? 0,
 				description: 'Price of the protocol token'
 			}
