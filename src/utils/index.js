@@ -689,14 +689,14 @@ export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue
 		pieData = data.map((entry) => {
 			return {
 				name: entry[sliceIdentifier],
-				value: entry[sliceValue]
+				value: Number(entry[sliceValue])
 			}
 		})
 	} else {
 		pieData = Object.entries(data).map(([name, value]) => {
 			return {
 				name: name,
-				value: value
+				value: Number(value)
 			}
 		})
 	}
