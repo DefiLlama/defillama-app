@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import toast from 'react-hot-toast'
 import { AddChartModal } from './components/AddChartModal'
 import { ChartGrid } from './components/ChartGrid'
 import { EmptyState } from './components/EmptyState'
 import { DemoPreview } from './components/DemoPreview'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { ProDashboardLoader } from './components/ProDashboardLoader'
 import { useProDashboard, TimePeriod } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -186,7 +186,30 @@ function ProDashboardContent() {
 											/>
 											<span>{currentDashboard?.likeCount || 0}</span>
 										</button>
+										<button
+											onClick={() => {
+												const url = `${window.location.origin}/pro/${dashboardId}`
+												navigator.clipboard.writeText(url)
+												toast.success('Dashboard link copied to clipboard!')
+											}}
+											className="flex items-center gap-1 transition-colors hover:text-(--primary1)"
+											title="Share dashboard"
+										>
+											<Icon name="link" height={16} width={16} />
+											<span>Share</span>
+										</button>
 									</div>
+								)}
+								{dashboardVisibility === 'private' && dashboardId && (
+									<Tooltip content="Make dashboard public to share" placement="bottom">
+										<button
+											disabled
+											className="flex items-center gap-1 text-sm pro-text3 opacity-50 cursor-not-allowed"
+										>
+											<Icon name="link" height={16} width={16} />
+											<span>Share</span>
+										</button>
+									</Tooltip>
 								)}
 							</div>
 						)}
