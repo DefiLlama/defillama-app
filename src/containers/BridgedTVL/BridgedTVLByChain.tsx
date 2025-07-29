@@ -7,7 +7,6 @@ import { chainIconUrl, formattedNum, preparePieChartData } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import useWindowSize from '~/hooks/useWindowSize'
 import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -30,7 +29,6 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 		return { pieChartData, tableData }
 	}, [chainData, chartType])
 
-	const screenWidth = useWindowSize()
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'value', desc: true }])
 	const instance = useReactTable({
 		data: tableData,
@@ -89,7 +87,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 							</p>
 						) : null}
 					</div>
-					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 flex flex-col items-center gap-4 min-h-[434px]">
+					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 flex flex-col items-center gap-4 min-h-[436px]">
 						<div className="w-full max-w-fit overflow-x-auto p-3">
 							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 								{chartTypes.map(({ type, name }) =>
@@ -124,15 +122,12 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								) : null}
 							</div>
 						</div>
-
-						{chartType !== 'inflows' ? (
-							<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>
+						<div className="w-full">
+							{chartType !== 'inflows' ? (
 								<React.Suspense fallback={<></>}>
 									<PieChart chartData={pieChartData} usdFormat={false} />
 								</React.Suspense>
-							</div>
-						) : (
-							<div className="w-full">
+							) : (
 								<React.Suspense fallback={<></>}>
 									<BarChart
 										chartData={inflows}
@@ -143,8 +138,8 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 										// chartOptions={inflowsChartOptions}
 									/>
 								</React.Suspense>
-							</div>
-						)}
+							)}
+						</div>
 					</div>
 				</div>
 				{chartType !== 'inflows' ? <VirtualTable instance={instance} skipVirtualization /> : null}
