@@ -331,6 +331,13 @@ export const protocolsMetrics: Array<{
 				chainRoute: `/fees/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.protocols ?? 0,
 				description: 'Total fees paid by users when using the protocol'
+			},
+			{
+				name: 'DEX Volume',
+				mainRoute: '/dexs',
+				chainRoute: `/dexs/chain/{chain}`,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.dexs?.protocols ?? 0,
+				description: 'Volume of all spot token swaps that go through a DEX'
 			}
 		]
 	},
