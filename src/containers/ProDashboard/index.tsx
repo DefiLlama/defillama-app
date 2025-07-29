@@ -14,6 +14,8 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { CreateDashboardModal } from './components/CreateDashboardModal'
+import { SubscribeModal } from '~/components/Modal/SubscribeModal'
+import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 
 function ProDashboardContent() {
 	const router = useRouter()
@@ -22,6 +24,7 @@ function ProDashboardContent() {
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
 	const [showDashboardMenu, setShowDashboardMenu] = useState<boolean>(false)
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
+	const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
 	const { isAuthenticated } = useAuthContext()
 	const {
@@ -83,7 +86,7 @@ function ProDashboardContent() {
 		}
 	}
 
-	if (!isAuthenticated && subscription?.status !== 'active') {
+	if (!isAuthenticated && subscription?.status !== 'active' && dashboardVisibility !== 'public') {
 		return <DemoPreview />
 	}
 
@@ -190,7 +193,13 @@ function ProDashboardContent() {
 
 						{isAuthenticated && isReadOnly && (
 							<button
-								onClick={() => copyDashboard()}
+								onClick={() => {
+									if (subscription?.status === 'active') {
+										copyDashboard()
+									} else {
+										setShowSubscribeModal(true)
+									}
+								}}
 								className="flex items-center gap-2 px-3 py-2 border border-(--primary1) text-(--primary1) hover:bg-(--primary1) hover:text-white transition-colors"
 								title="Copy Dashboard"
 							>
@@ -217,7 +226,11 @@ function ProDashboardContent() {
 												{isReadOnly ? (
 													<button
 														onClick={() => {
-															copyDashboard()
+															if (subscription?.status === 'active') {
+																copyDashboard()
+															} else {
+																setShowSubscribeModal(true)
+															}
 															setShowDashboardMenu(false)
 														}}
 														className="w-full text-left px-3 py-2 pro-hover-bg flex items-center gap-2"
@@ -411,6 +424,10 @@ function ProDashboardContent() {
 				onClose={() => setShowCreateDashboardModal(false)}
 				onCreate={handleCreateDashboard}
 			/>
+
+			<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
+				<SubscribePlusCard context="modal" returnUrl={router.asPath} />
+			</SubscribeModal>
 		</div>
 	)
 }

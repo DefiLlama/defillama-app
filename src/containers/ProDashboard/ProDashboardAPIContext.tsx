@@ -161,14 +161,18 @@ export function ProDashboardAPIProvider({
 
 	// Load initial dashboard
 	const { isLoading: isLoadingDashboard } = useQuery({
-		queryKey: ['dashboard', initialDashboardId],
+		queryKey: ['dashboard', initialDashboardId, isAuthenticated],
 		queryFn: async () => {
-			if (!initialDashboardId || !isAuthenticated) {
+			if (!initialDashboardId) {
 				return null
 			}
 
 			try {
 				const dashboard = await loadDashboardData(initialDashboardId)
+
+				if (!dashboard) {
+					throw new Error('Dashboard not found')
+				}
 
 				if (!dashboard?.data?.items || !Array.isArray(dashboard.data.items)) {
 					throw new Error('Invalid dashboard data structure')
@@ -183,7 +187,7 @@ export function ProDashboardAPIProvider({
 				setDashboardDescription(dashboard.description || '')
 
 				return dashboard
-			} catch (error) {
+			} catch (error: any) {
 				console.error('Failed to load dashboard:', error)
 				router.push('/pro')
 				return null

@@ -14,7 +14,7 @@ export function SubscribeEnterpriseCard({ active = false }: { active?: boolean }
 			<ul className="flex flex-col mx-auto gap-3 py-6 mb-auto w-full max-sm:text-sm">
 				<li className="flex flex-nowrap gap-[10px] items-start">
 					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 shrink-0" />
-					<span>All features included in Llama+ and Pro tiers</span>
+					<span>All features included in Llama+ and API tiers</span>
 				</li>
 				<li className="flex flex-nowrap gap-[10px] items-start">
 					<Icon name="check" height={16} width={16} className="relative top-1 text-green-400 shrink-0" />

@@ -91,20 +91,16 @@ export function useDashboardAPI() {
 		}
 	})
 
-	// Load a specific dashboard
 	const loadDashboard = useCallback(
 		async (id: string) => {
-			if (!isAuthenticated) {
-				toast.error('Please sign in to load dashboards')
-				return null
-			}
-
 			try {
-				const dashboard = await dashboardAPI.getDashboard(id, authorizedFetch)
-				return dashboard
-			} catch (error) {
-				console.error('Failed to load dashboard:', error)
+				if (isAuthenticated) {
+					const dashboard = await dashboardAPI.getDashboard(id, authorizedFetch)
+					return dashboard
+				}
 				return null
+			} catch (error: any) {
+				console.error('Failed to load dashboard:', error)
 			}
 		},
 		[isAuthenticated, authorizedFetch]

@@ -57,7 +57,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 	const router = useRouter()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()
-	const { isLoadingDashboard, dashboardVisibility } = useProDashboard()
+	const { isLoadingDashboard, dashboardVisibility, currentDashboard } = useProDashboard()
 	const [isValidating, setIsValidating] = useState(true)
 	const { trackView } = useDashboardEngagement(dashboardId === 'new' ? null : dashboardId)
 	const hasTrackedView = useRef(false)
@@ -91,6 +91,27 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 		return <ProDashboardLoader />
 	}
 
+	if (dashboardId === 'new' && !isAuthenticated) {
+		return (
+			<div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
+				<div className="max-w-md text-center space-y-6">
+					<h1 className="text-3xl font-bold pro-text1">Sign In Required</h1>
+					<p className="text-lg pro-text2">Please sign in to create a new dashboard</p>
+					<button
+						onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
+						className="px-6 py-3 bg-(--primary1) hover:bg-(--primary1-hover) text-white font-medium transition-colors rounded-md"
+					>
+						Sign In
+					</button>
+				</div>
+			</div>
+		)
+	}
+
+	if (dashboardVisibility === 'public' && currentDashboard) {
+		return <ProDashboard />
+	}
+
 	if (!isAuthenticated) {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
@@ -108,7 +129,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 		)
 	}
 
-	if (subscription?.status !== 'active') {
+	if (subscription?.status !== 'active' && dashboardVisibility !== 'public') {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
 				<div className="max-w-2xl w-full bg-(--bg7) bg-opacity-30 backdrop-blur-xl border border-white/20 rounded-lg p-8 md:p-12 shadow-lg">
