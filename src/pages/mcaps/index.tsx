@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(`protocols-market-caps/inde
 
 export default function ProtocolsMarketCaps(props) {
 	return (
-		<Layout title="Protocols Market Caps - DefiLlama">
+		<Layout title="Market Caps - DefiLlama">
 			<McapsByChain {...props} />
 		</Layout>
 	)

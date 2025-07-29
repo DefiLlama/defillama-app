@@ -7,14 +7,14 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
-import { IProtocolMcapsByChainPageData } from './queries'
+import { IProtocolTokenPricesByChainPageData } from './queries'
 import { ColumnDef } from '@tanstack/react-table'
 
-export function McapsByChain(props: IProtocolMcapsByChainPageData) {
+export function TokenPricesByChain(props: IProtocolTokenPricesByChainPageData) {
 	return (
 		<>
 			<ProtocolsChainsSearch hideFilters />
-			<Metrics currentMetric="Market Cap" />
+			<Metrics currentMetric="Token Price" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<TableWithSearch
 				data={props.protocols}
@@ -28,7 +28,7 @@ export function McapsByChain(props: IProtocolMcapsByChainPageData) {
 	)
 }
 
-const columns: ColumnDef<IProtocolMcapsByChainPageData['protocols'][0]>[] = [
+const columns: ColumnDef<IProtocolTokenPricesByChainPageData['protocols'][0]>[] = [
 	{
 		id: 'name',
 		header: 'Name',
@@ -110,9 +110,9 @@ const columns: ColumnDef<IProtocolMcapsByChainPageData['protocols'][0]>[] = [
 		}
 	},
 	{
-		id: 'mcap',
-		header: 'Market Cap',
-		accessorFn: (protocol) => protocol.mcap,
+		id: 'price',
+		header: 'Token Price',
+		accessorFn: (protocol) => protocol.price,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
