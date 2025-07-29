@@ -7,6 +7,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { Metrics } from '~/components/Metrics'
 
 export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	const data = Object.keys(assets)
@@ -46,6 +47,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	return (
 		<>
 			<ProtocolsChainsSearch />
+			<Metrics currentMetric="Bridged TVL" isChains={true} />
 			<RowLinksWithDropdown links={chains} activeLink="All" />
 			<TableWithSearch
 				data={data}

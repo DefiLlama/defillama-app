@@ -10,7 +10,6 @@ import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { Metrics } from '~/components/Metrics'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -46,7 +45,6 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 			<Layout title={`${chainName} Bridged TVL - DefiLlama`}>
 				<ProtocolsChainsSearch />
 				<SEO cardName={chainName} token={chain} />
-				<Metrics currentMetric="Bridged TVL" isChains={chainName === 'All Chains'} />
 				<RowLinksWithDropdown links={chains} activeLink={chainName} />
 				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
