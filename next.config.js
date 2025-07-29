@@ -550,6 +550,11 @@ const nextConfig = {
 				source: '/docs',
 				destination: 'https://api-docs.defillama.com/',
 				permanent: true
+			},
+			{
+				source: '/treasury',
+				destination: '/treasuries',
+				permanent: true
 			}
 		]
 	},

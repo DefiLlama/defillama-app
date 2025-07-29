@@ -67,6 +67,7 @@ export type TMetric =
 	| 'P/F'
 	| 'P/S'
 	| 'Token Price'
+	| 'Treasury'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -430,6 +431,25 @@ export const protocolsMetrics: Array<{
 		]
 	},
 	{
+		category: 'Treasury',
+		pages: [
+			{
+				name: 'Net Project Treasury',
+				mainRoute: '/net-project-treasury',
+				chainRoute: null,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.treasury?.protocols ?? 0,
+				description: "Value of tokens owned by a protocol, excluding it's own token"
+			},
+			{
+				name: 'Treasury',
+				mainRoute: '/treasuries',
+				chainRoute: null,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.treasury?.protocols ?? 0,
+				description: "Value of tokens owned by a protocol, including it's own token and breakdown of assets held"
+			}
+		]
+	},
+	{
 		category: 'Others',
 		pages: [
 			{
@@ -453,13 +473,6 @@ export const protocolsMetrics: Array<{
 				chainRoute: `/total-borrowed/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.lending?.protocols ?? 0,
 				description: 'Sum of value currently borrowed across all active loans on a Lending protocol'
-			},
-			{
-				name: 'Net Project Treasury',
-				mainRoute: '/net-project-treasury',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.treasury?.protocols ?? 0,
-				description: "Value of tokens owned by a protocol, excluding it's own token"
 			},
 			{
 				name: 'Total Raised',
