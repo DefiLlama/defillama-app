@@ -231,10 +231,12 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 						<>
 							{chains.map(({ category, pages }) => (
 								<div key={`chain-metrics-category-${category}`} className="group">
-									<div className="flex items-center flex-nowrap gap-4 my-2 group-first:mt-0">
-										<h1 className="text-lg font-bold">{category}</h1>
-										<div className="h-[1px] flex-1 border border-(--cards-border)" />
-									</div>
+									{category ? (
+										<div className="flex items-center flex-nowrap gap-4 my-2 group-first:mt-0">
+											<h1 className="text-lg font-bold">{category}</h1>
+											<div className="h-[1px] flex-1 border border-(--cards-border)" />
+										</div>
+									) : null}
 									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
 										{pages.map((metric) => (
 											<BasicLink
@@ -261,10 +263,12 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 						<>
 							{protocols.map(({ category, pages }) => (
 								<div key={`protocol-metrics-category-${category}`} className="group">
-									<div className="flex items-center flex-nowrap gap-4 my-2 group-first:mt-0">
-										<h1 className="text-lg font-bold">{category}</h1>
-										<div className="h-[1px] flex-1 border border-(--cards-border)" />
-									</div>
+									{category ? (
+										<div className="flex items-center flex-nowrap gap-4 my-2 group-first:mt-0">
+											<h1 className="text-lg font-bold">{category}</h1>
+											<div className="h-[1px] flex-1 border border-(--cards-border)" />
+										</div>
+									) : null}
 									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
 										{pages.map((metric) => (
 											<BasicLink
@@ -309,7 +313,7 @@ export const protocolsMetrics: Array<{
 	}>
 }> = [
 	{
-		category: 'Trending',
+		category: 'Trending 🔥',
 		pages: [
 			{
 				name: 'TVL',
