@@ -33,6 +33,7 @@ export interface ITotalTrackedByMetric {
 	mcap: { protocols: number; chains: number }
 	pf: { protocols: number; chains: number }
 	ps: { protocols: number; chains: number }
+	price: { protocols: number; chains: number }
 }
 
 export type TMetric =
@@ -65,6 +66,7 @@ export type TMetric =
 	| 'Market Cap'
 	| 'P/F'
 	| 'P/S'
+	| 'Token Price'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -523,6 +525,13 @@ export const protocolsMetrics: Array<{
 				chainRoute: null,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.mcap?.protocols ?? 0,
 				description: 'Token price multiplied by circulating supply'
+			},
+			{
+				name: 'Token Price',
+				mainRoute: '/token-prices',
+				chainRoute: null,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.price?.protocols ?? 0,
+				description: 'Price of the protocol token'
 			}
 		]
 	}
