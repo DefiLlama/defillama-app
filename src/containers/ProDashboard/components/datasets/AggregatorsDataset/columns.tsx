@@ -75,7 +75,7 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 		size: 120,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="font-mono pro-text2">{formattedPercent(value)}</span>
+			return <span className="font-mono pro-text2">{formattedPercent(value, true)}</span>
 		}
 	},
 	{

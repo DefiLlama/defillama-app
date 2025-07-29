@@ -164,6 +164,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 									'24h Volume',
 									'% of Total',
 									'7d Volume',
+									'7d Market Share',
 									'30d Volume',
 									'Cumulative Volume',
 									'24h Change',
@@ -180,6 +181,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 											item.total24h,
 											percentage.toFixed(2),
 											item.total7d,
+											item.marketShare7d?.toFixed(2) || '0',
 											item.total30d,
 											cumulative,
 											item.change_1d,
@@ -193,6 +195,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 								const a = document.createElement('a')
 								a.href = url
 								a.download = `dexs-data-${new Date().toISOString().split('T')[0]}.csv`
+								document.body.appendChild(a)
 								a.click()
 								document.body.removeChild(a)
 								URL.revokeObjectURL(url)
