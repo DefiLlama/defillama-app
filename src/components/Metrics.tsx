@@ -361,6 +361,14 @@ export const protocolsMetrics: Array<{
 					'Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers'
 			},
 			{
+				name: 'Earnings',
+				mainRoute: '/earnings',
+				chainRoute: null,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.protocols ?? 0,
+				description:
+					'Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself.'
+			},
+			{
 				name: 'P/F',
 				mainRoute: '/pf',
 				chainRoute: null,
@@ -450,7 +458,7 @@ export const protocolsMetrics: Array<{
 		]
 	},
 	{
-		category: 'Others',
+		category: 'TVL',
 		pages: [
 			{
 				name: 'TVL',
@@ -460,26 +468,11 @@ export const protocolsMetrics: Array<{
 				description: 'Total value of all coins held in smart contracts of the protocols'
 			},
 			{
-				name: 'Stablecoin Supply',
-				mainRoute: '/stablecoins',
-				chainRoute: `/stablecoins/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.stablecoins?.protocols ?? 0,
-				description: 'Total market cap of stable assets currently deployed on the chain'
-			},
-
-			{
 				name: 'Total Borrowed',
 				mainRoute: '/total-borrowed',
 				chainRoute: `/total-borrowed/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.lending?.protocols ?? 0,
 				description: 'Sum of value currently borrowed across all active loans on a Lending protocol'
-			},
-			{
-				name: 'Total Raised',
-				mainRoute: '/raises',
-				chainRoute: `/raises?chain={chain}`,
-				protocolsTracked: () => 0,
-				description: 'Total amount of capital raised by a protocol'
 			},
 			{
 				name: 'Oracle TVS',
@@ -496,29 +489,6 @@ export const protocolsMetrics: Array<{
 				description: 'Sum of TVL across all forks of a protocol'
 			},
 			{
-				name: 'CEX Assets',
-				mainRoute: '/cexs',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.cexs?.protocols ?? 0,
-				description: 'Sum of assets held on a centralized exchange such as Binance'
-			},
-			{
-				name: 'Unlocks',
-				mainRoute: '/unlocks',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.emissions?.protocols ?? 0,
-				description:
-					'Tracks the release of locked tokens into circulation according to tokenomics schedules. Includes team, investor, ecosystem, and other vesting-based unlocks'
-			},
-			{
-				name: 'Earnings',
-				mainRoute: '/earnings',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.protocols ?? 0,
-				description:
-					'Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself.'
-			},
-			{
 				name: 'Total Staked',
 				mainRoute: '/total-staked',
 				chainRoute: `/total-staked/chain/{chain}`,
@@ -531,6 +501,19 @@ export const protocolsMetrics: Array<{
 				chainRoute: `/pool2/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.pool2?.protocols ?? 0,
 				description: 'Total value locked in pool2 of a protocol'
+			}
+		]
+	},
+	{
+		category: 'Token',
+		pages: [
+			{
+				name: 'Unlocks',
+				mainRoute: '/unlocks',
+				chainRoute: null,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.emissions?.protocols ?? 0,
+				description:
+					'Tracks the release of locked tokens into circulation according to tokenomics schedules. Includes team, investor, ecosystem, and other vesting-based unlocks'
 			},
 			{
 				name: 'Market Cap',
@@ -545,6 +528,32 @@ export const protocolsMetrics: Array<{
 				chainRoute: `/token-prices/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.price?.protocols ?? 0,
 				description: 'Price of the protocol token'
+			}
+		]
+	},
+	{
+		category: 'Others',
+		pages: [
+			{
+				name: 'Stablecoin Supply',
+				mainRoute: '/stablecoins',
+				chainRoute: `/stablecoins/{chain}`,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.stablecoins?.protocols ?? 0,
+				description: 'Total market cap of stable assets currently deployed on the chain'
+			},
+			{
+				name: 'Total Raised',
+				mainRoute: '/raises',
+				chainRoute: `/raises?chain={chain}`,
+				protocolsTracked: () => 0,
+				description: 'Total amount of capital raised by a protocol'
+			},
+			{
+				name: 'CEX Assets',
+				mainRoute: '/cexs',
+				chainRoute: null,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.cexs?.protocols ?? 0,
+				description: 'Sum of assets held on a centralized exchange such as Binance'
 			}
 		]
 	}
