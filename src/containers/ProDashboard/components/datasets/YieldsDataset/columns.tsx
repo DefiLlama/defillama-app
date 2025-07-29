@@ -69,7 +69,10 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 				</BasicLink>
 			)
 		},
-		size: 140
+		size: 140,
+		meta: {
+			align: 'end'
+		}
 	},
 	{
 		header: 'Chain',
