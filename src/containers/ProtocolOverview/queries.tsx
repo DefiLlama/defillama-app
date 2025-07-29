@@ -42,6 +42,7 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 
 		if (protocolName === 'hyperbloom') {
 			postRuntimeLogs(JSON.stringify(data))
+			postRuntimeLogs(JSON.stringify(data.chainTvls?.['Hyperliquid L1']?.tvl ?? []))
 		}
 
 		let isNewlyListedProtocol = true
@@ -62,6 +63,7 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 
 				if (protocolName === 'hyperbloom') {
 					postRuntimeLogs(JSON.stringify(hourlyData))
+					postRuntimeLogs(JSON.stringify(hourlyData.chainTvls?.['Hyperliquid L1']?.tvl ?? []))
 				}
 
 				if (!hourlyData) {
