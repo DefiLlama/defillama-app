@@ -97,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}))
 
 		let filteredPools = transformedPools
-		if (chainList.length > 0) {
+		if (chainList.length > 0 && !chainList.includes('All')) {
 			filteredPools = transformedPools.filter((pool: any) =>
 				pool.chains.some((chain: string) => chainList.some((c: string) => c.toLowerCase() === chain.toLowerCase()))
 			)

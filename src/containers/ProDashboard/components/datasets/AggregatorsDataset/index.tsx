@@ -71,7 +71,7 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 			change_7d: 100
 		}
 
-		const hasChains = chains && chains.length > 0
+		const hasChains = chains && chains.length > 0 && !chains.includes('All')
 		const defaultVisibility = {
 			change_1d: !hasChains,
 			change_7d: !hasChains
