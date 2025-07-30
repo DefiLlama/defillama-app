@@ -175,16 +175,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 110
 			}),
-			columnHelper.accessor('mcap', {
-				header: 'Market Cap',
-				cell: ({ getValue }) => <>{getValue() != null && getValue() > 0 ? formattedNum(getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				meta: {
-					align: 'end',
-					headerHelperText: 'Market capitalization of the protocol token'
-				},
-				size: 120
-			}),
+
 			columnHelper.accessor('mcaptvl', {
 				header: 'Mcap/TVL',
 				cell: (info) => {
@@ -429,6 +420,17 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		meta: {
 			headerHelperText: 'Volume traded on the protocol'
 		}
+	}),
+
+	columnHelper.accessor('mcap', {
+		header: 'Market Cap',
+		cell: ({ getValue }) => <>{getValue() != null && getValue() > 0 ? formattedNum(getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Market capitalization of the protocol token'
+		},
+		size: 120
 	})
 ]
 
