@@ -35,7 +35,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 	const series = useMemo(() => {
 		const uniqueChains = new Set(validItems.filter((item) => !item.protocol).map((item) => item.chain))
+		const uniqueProtocols = new Set(validItems.filter((item) => item.protocol).map((item) => item.protocol))
 		const isSingleChain = uniqueChains.size === 1 && validItems.every((item) => !item.protocol)
+		const isSingleProtocol = uniqueProtocols.size === 1 && validItems.every((item) => item.protocol)
 
 		const baseSeries = validItems.map((cfg, index) => {
 			const rawData = cfg.data as [string, number][]
@@ -54,9 +56,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			const itemIdentifier = cfg.protocol || cfg.chain || 'unknown'
 
-			const color = isSingleChain
-				? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
-				: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
+			const color =
+				isSingleChain || isSingleProtocol
+					? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
+					: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
 
 			return {
 				name: `${name} ${meta?.title || cfg.type}`,
