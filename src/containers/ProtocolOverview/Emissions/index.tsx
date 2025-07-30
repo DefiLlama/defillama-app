@@ -527,7 +527,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			</div>
 
 			{data.events?.length > 0 ? (
-				<div className="flex flex-col items-center justify-start p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md h-full">
+				<div className="flex flex-col items-center justify-start p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
 					<h1 className="text-center text-xl font-semibold">Unlock Events</h1>
 
 					<Pagination
