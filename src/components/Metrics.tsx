@@ -7,6 +7,7 @@ import { matchSorter } from 'match-sorter'
 import { useQuery } from '@tanstack/react-query'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
+import Image from 'next/image'
 
 export interface ITotalTrackedByMetric {
 	tvl: { protocols: number; chains: number }
@@ -141,24 +142,40 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
-			<p className="text-center flex items-center gap-1 justify-center flex-wrap relative w-full isolate rounded-md h-10 bg-(--cards-bg) p-1">
-				<img src="/icons/metrics-l.svg" width={189} height={82} alt="" className="rounded-l-md absolute left-0" />
-				<span className="bg-(--old-blue) text-white text-xs rounded-md py-[7px] items-center gap-2 px-2 hidden lg:flex">
-					<Icon name="sparkles" height={12} width={12} />
-					<span>New</span>
-				</span>
-				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
-					{currentMetric === 'CEX Assets' ? 'CEXs' : isChains ? 'Chains' : 'Protocols'}
-				</Ariakit.DialogDisclosure>
-				<span>ranked by </span>
-				<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
-					{currentMetric === 'CEX Assets' ? 'Assets' : currentMetric}
-				</Ariakit.DialogDisclosure>
-				<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs z-10">
-					<Icon name="pencil" height={12} width={12} />
-					<span className="hidden sm:block">Click to change</span>
-				</Ariakit.DialogDisclosure>
-				<img src="/icons/metrics-r.svg" width={189} height={82} alt="" className="rounded-r-md absolute right-0" />
+			<div className="relative w-full isolate rounded-md bg-(--cards-bg) p-1 h-10">
+				<Image
+					src="/icons/metrics-l.svg"
+					width={189}
+					height={82}
+					alt=""
+					className="rounded-l-md absolute left-0 top-0 h-full w-auto object-cover"
+					priority
+				/>
+				<div className="flex items-center gap-1 justify-center flex-wrap h-full">
+					<span className="bg-(--old-blue) text-white text-xs rounded-md py-[7px] items-center gap-2 px-2 hidden lg:flex">
+						<Icon name="sparkles" height={12} width={12} />
+						<span>New</span>
+					</span>
+					<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
+						{currentMetric === 'CEX Assets' ? 'CEXs' : isChains ? 'Chains' : 'Protocols'}
+					</Ariakit.DialogDisclosure>
+					<span>ranked by </span>
+					<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
+						{currentMetric === 'CEX Assets' ? 'Assets' : currentMetric}
+					</Ariakit.DialogDisclosure>
+					<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs z-10">
+						<Icon name="pencil" height={12} width={12} />
+						<span className="hidden sm:block">Click to change</span>
+					</Ariakit.DialogDisclosure>
+				</div>
+				<Image
+					src="/icons/metrics-r.svg"
+					width={189}
+					height={82}
+					alt=""
+					className="rounded-r-md absolute right-0 top-0 h-full w-auto object-cover"
+					priority
+				/>
 				<svg
 					width="100%"
 					height="100%"
@@ -186,7 +203,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 						strokeWidth="1"
 					/>
 				</svg>
-			</p>
+			</div>
 			<Ariakit.Dialog
 				className="dialog gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] max-sm:drawer h-[70vh] lg:h-[calc(100vh-32px)]"
 				unmountOnHide

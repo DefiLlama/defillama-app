@@ -29,6 +29,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 					width={155}
 					className="object-contain object-left mr-auto mb-4 hidden dark:block"
 					alt=""
+					fetchPriority="high"
 				/>
 				<img
 					src="/defillama-press-kit/defi/PNG/defillama-dark.png"
@@ -36,6 +37,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 					width={155}
 					className="object-contain object-left mr-auto mb-4 dark:hidden"
 					alt=""
+					fetchPriority="high"
 				/>
 			</BasicLink>
 
