@@ -41,7 +41,7 @@ export default function PieChart({
 			type: 'pie',
 			left: 0,
 			right: toRight,
-			top: title ? 25 : 0,
+			top: 0,
 			bottom: 0,
 			label: {
 				fontFamily: 'sans-serif',
@@ -88,16 +88,6 @@ export default function PieChart({
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
-			...(title && {
-				title: {
-					text: title,
-					textStyle: {
-						fontFamily: 'sans-serif',
-						fontWeight: 600,
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-					}
-				}
-			}),
 			tooltip: {
 				trigger: 'item',
 				confine: true,
@@ -146,6 +136,7 @@ export default function PieChart({
 
 	return (
 		<div className="relative" {...props}>
+			{title && <h1 className="text-lg mr-auto font-bold px-2">{title}</h1>}
 			<div id={id} className="min-h-[360px] my-auto mx-0" style={height ? { height } : undefined}></div>
 		</div>
 	)

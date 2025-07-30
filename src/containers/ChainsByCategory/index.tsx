@@ -99,17 +99,17 @@ export function ChainsByCategory({
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
 
 			<div className="flex flex-col gap-2 xl:flex-row">
-				<div className="isolate relative rounded-md p-2 bg-(--cards-bg) border border-(--cards-border) flex-1 min-h-[360px] flex flex-col">
+				<div className="isolate relative rounded-md bg-(--cards-bg) flex-1 min-h-[406px] flex flex-col pt-2">
 					<CSVDownloadButton
 						onClick={downloadCsv}
 						smol
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+						className="ml-auto mx-2 z-10 h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
 					</React.Suspense>
 				</div>
-				<div className="rounded-md p-2 bg-(--cards-bg) border border-(--cards-border) flex-1 min-h-[360px]">
+				<div className="rounded-md bg-(--cards-bg) flex-1 min-h-[406px] pt-2">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -119,7 +119,6 @@ export function ChainsByCategory({
 							valueSymbol="%"
 							title=""
 							expandTo100Percent={true}
-							chartOptions={chartOptions}
 						/>
 					</React.Suspense>
 				</div>
@@ -138,13 +137,3 @@ export function ChainsByCategory({
 		</Layout>
 	)
 }
-
-const chartOptions = {
-	grid: {
-		top: 10,
-		bottom: 60,
-		left: 0,
-		right: 0
-	},
-	dataZoom: [{}, { bottom: 32, right: 6 }]
-} as any

@@ -12,7 +12,7 @@ interface MultiChartCardProps {
 }
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { getProtocolInfo, handleGroupingChange, handleCumulativeChange } = useProDashboard()
+	const { getProtocolInfo, handleGroupingChange, handleCumulativeChange, isReadOnly } = useProDashboard()
 	const [showPercentage, setShowPercentage] = useState(false)
 	const [showStacked, setShowStacked] = useState(true)
 	const showCumulative = multi.showCumulative || false
@@ -35,7 +35,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 	const series = useMemo(() => {
 		const uniqueChains = new Set(validItems.filter((item) => !item.protocol).map((item) => item.chain))
+		const uniqueProtocols = new Set(validItems.filter((item) => item.protocol).map((item) => item.protocol))
 		const isSingleChain = uniqueChains.size === 1 && validItems.every((item) => !item.protocol)
+		const isSingleProtocol = uniqueProtocols.size === 1 && validItems.every((item) => item.protocol)
 
 		const baseSeries = validItems.map((cfg, index) => {
 			const rawData = cfg.data as [string, number][]
@@ -54,9 +56,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			const itemIdentifier = cfg.protocol || cfg.chain || 'unknown'
 
-			const color = isSingleChain
-				? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
-				: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
+			const color =
+				isSingleChain || isSingleProtocol
+					? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
+					: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
 
 			return {
 				name: `${name} ${meta?.title || cfg.type}`,
@@ -232,9 +235,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 	return (
 		<div className="p-4 h-full min-h-[340px] flex flex-col">
-			<div className="mb-2 pr-[86px]">
-				<div className="flex flex-wrap items-start justify-between gap-3">
-					<div className="flex items-center gap-2 min-w-0">
+			<div className="mb-2">
+				<div className={`flex flex-wrap items-start justify-between gap-2 ${!isReadOnly ? 'pr-[86px]' : ''}`}>
+					<div className="flex items-center gap-2 min-w-0 flex-1">
 						<h3 className="text-sm font-medium text-(--text1) truncate">
 							{multi.name || `Multi-Chart (${multi.items.length})`}
 						</h3>
@@ -246,7 +249,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 							</div>
 						)}
 					</div>
-					<div className="flex items-center gap-2 shrink-0">
+					<div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
 						{allChartsGroupable && hasAnyData && (
 							<div className="flex border border-(--form-control-border) overflow-hidden">
 								{groupingOptions.map((option, index) => (
@@ -281,7 +284,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 										title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
 									>
 										<Icon name="trending-up" height={12} width={12} />
-										<span className="hidden sm:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
+										<span className="hidden lg:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
 									</button>
 								)}
 								{canStack && !showCumulative && (
@@ -294,7 +297,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 										title={showStacked ? 'Show separate' : 'Show stacked'}
 									>
 										<Icon name="layers" height={12} width={12} />
-										<span className="hidden sm:inline">{showStacked ? 'Stacked' : 'Separate'}</span>
+										<span className="hidden lg:inline">{showStacked ? 'Stacked' : 'Separate'}</span>
 									</button>
 								)}
 								<button
@@ -306,7 +309,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 									title={showPercentage ? 'Show absolute values' : 'Show percentage'}
 								>
 									<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
-									<span className="hidden sm:inline">{showPercentage ? 'Percentage' : 'Absolute'}</span>
+									<span className="hidden lg:inline">{showPercentage ? 'Percentage' : 'Absolute'}</span>
 								</button>
 							</>
 						)}
