@@ -109,7 +109,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 					</p>
 				</div>
 
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[360px]">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[370px] pt-2">
 					<Suspense fallback={<></>}>
 						<LineAndBarChart charts={charts} alwaysShowTooltip />
 					</Suspense>

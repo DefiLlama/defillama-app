@@ -1,5 +1,4 @@
 import { maxAgeForNext } from '~/api'
-import type { IChainTvl } from '~/api/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { Cexs } from '~/containers/Cexs'

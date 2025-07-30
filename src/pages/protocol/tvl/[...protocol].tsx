@@ -91,13 +91,13 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 		>
 			{isLoading ? (
-				<p className="flex items-center justify-center text-center min-h-[384px] bg-(--cards-bg) border border-(--cards-border) rounded-md  p-2">
+				<p className="flex items-center justify-center text-center min-h-[408px] bg-(--cards-bg) border border-(--cards-border) rounded-md  p-2">
 					Loading...
 				</p>
 			) : (
-				<div className="grid grid-cols-2 rounded-md min-h-[384px] gap-2">
+				<div className="grid grid-cols-2 rounded-md min-h-[408px] gap-2">
 					{chainsSplit && chainsUnique?.length > 1 && (
-						<LazyChart className="relative col-span-full min-h-[368px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<React.Suspense fallback={<></>}>
 								<AreaChart
 									chartData={chainsSplit}
@@ -112,7 +112,7 @@ export default function Protocols(props) {
 
 					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
 						<>
-							<LazyChart className="relative col-span-full min-h-[368px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<React.Suspense fallback={<></>}>
 									<AreaChart
 										chartData={tokenBreakdownUSD}
@@ -129,9 +129,9 @@ export default function Protocols(props) {
 					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
 						<>
 							{tokenBreakdownPieChart?.length > 0 && (
-								<LazyChart className="relative col-span-full min-h-[368px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<React.Suspense fallback={<></>}>
-										<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+										<PieChart title="Tokens Breakdown (USD)" chartData={tokenBreakdownPieChart} />
 									</React.Suspense>
 								</LazyChart>
 							)}
@@ -139,7 +139,7 @@ export default function Protocols(props) {
 					)}
 
 					{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
-						<LazyChart className="relative col-span-full min-h-[368px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<React.Suspense fallback={<></>}>
 								<AreaChart
 									chartData={tokenBreakdown}
@@ -152,7 +152,7 @@ export default function Protocols(props) {
 					)}
 
 					{usdInflows?.length > 0 && (
-						<LazyChart className="relative col-span-full min-h-[412px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<React.Suspense fallback={<></>}>
 								<BarChart chartData={usdInflows} color={props.backgroundColor} title="USD Inflows" valueSymbol="$" />
 							</React.Suspense>
@@ -160,7 +160,7 @@ export default function Protocols(props) {
 					)}
 
 					{tokenInflows?.length > 0 && tokensUnique?.length > 0 && (
-						<LazyChart className="relative col-span-full min-h-[412px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<React.Suspense fallback={<></>}>
 								<BarChart
 									chartData={tokenInflows}
