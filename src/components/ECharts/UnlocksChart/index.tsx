@@ -36,7 +36,6 @@ export default function AreaChart({
 
 	const defaultChartSettings = useDefaults({
 		color,
-		title,
 		valueSymbol,
 		tooltipSort,
 		hideLegend: true,
@@ -46,7 +45,6 @@ export default function AreaChart({
 
 	const usdChartSettings = useDefaults({
 		color,
-		title,
 		valueSymbol: '$',
 		tooltipSort,
 		hideLegend: true,
@@ -228,7 +226,7 @@ export default function AreaChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -239,17 +237,16 @@ export default function AreaChart({
 		}
 
 		chartInstance.setOption({
-			graphic: { ...graphic },
-			tooltip: {
-				...tooltip
+			graphic,
+			tooltip,
+			grid: {
+				left: 12,
+				bottom: 68,
+				top: 12,
+				right: 12,
+				containLabel: true
 			},
-			title: {
-				...titleDefaults
-			},
-			grid: { ...grid },
-			xAxis: {
-				...xAxis
-			},
+			xAxis,
 			yAxis: [
 				{
 					...yAxis,
@@ -277,7 +274,7 @@ export default function AreaChart({
 					}
 				}))
 			].filter(Boolean),
-			dataZoom: [...dataZoom],
+			dataZoom,
 			series
 		})
 
@@ -303,31 +300,33 @@ export default function AreaChart({
 	])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
-
+	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
 	return (
-		<div
-			className="relative *:[&[role='combobox']]:ml-auto *:[&[role='combobox']]:mr-3 *:[&[role='combobox']]:mt-3"
-			{...props}
-		>
-			{customLegendName && customLegendOptions?.length > 1 && (
-				<SelectWithCombobox
-					allValues={customLegendOptions}
-					selectedValues={legendOptions}
-					setSelectedValues={setLegendOptions}
-					selectOnlyOne={(newOption) => {
-						setLegendOptions([newOption])
-					}}
-					label={legendTitle}
-					clearAll={() => setLegendOptions([])}
-					toggleAll={() => setLegendOptions(customLegendOptions)}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium z-10'
-					}}
-					portal
-				/>
-			)}
+		<div className="relative" {...props}>
+			{title || showLegend ? (
+				<div className="flex justify-end items-center gap-2 mb-2 px-2">
+					{title && <h1 className="text-lg mr-auto font-bold">{title}</h1>}
+					{customLegendName && customLegendOptions?.length > 1 && (
+						<SelectWithCombobox
+							allValues={customLegendOptions}
+							selectedValues={legendOptions}
+							setSelectedValues={setLegendOptions}
+							selectOnlyOne={(newOption) => {
+								setLegendOptions([newOption])
+							}}
+							label={legendTitle}
+							clearAll={() => setLegendOptions([])}
+							toggleAll={() => setLegendOptions(customLegendOptions)}
+							labelType="smol"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+							}}
+							portal
+						/>
+					)}
+				</div>
+			) : null}
 			<div id={id} className="min-h-[360px] my-auto" style={height ? { height } : undefined} />
 		</div>
 	)

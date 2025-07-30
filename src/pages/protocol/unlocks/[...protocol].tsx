@@ -60,7 +60,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			tab="unlocks"
 			warningBanners={props.warningBanners}
 		>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="flex flex-col gap-2 rounded-md">
 				<UnlocksCharts protocolName={props.name} />
 			</div>
 		</ProtocolOverviewLayout>
