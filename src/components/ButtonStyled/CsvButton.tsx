@@ -25,10 +25,13 @@ export const CSVDownloadButton = ({
 }) => {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { loaders } = useAuthContext()
-	const isLoading = loaders.userLoading || isSubscriptionLoading || loading
+	const isLoading = loaders.userLoading || isSubscriptionLoading || loading ? true : false
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const isClient = useIsClient()
 	const router = useRouter()
+
+	// Show loading state only after client hydration to prevent hydration mismatch
+	const shouldShowLoading = isClient && isLoading
 
 	return (
 		<>
@@ -48,9 +51,9 @@ export const CSVDownloadButton = ({
 						setShowSubscribeModal(true)
 					}
 				}}
-				disabled={isLoading}
+				disabled={isClient ? isLoading : true}
 			>
-				{isClient && isLoading ? (
+				{shouldShowLoading ? (
 					<svg
 						className="animate-spin mx-auto h-[14px] w-[14px] shrink-0"
 						xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +72,7 @@ export const CSVDownloadButton = ({
 				) : (
 					<>
 						<Icon name="download-paper" className="h-3 w-3 shrink-0" />
-						<span>{smol ? '' : 'Download'} .csv</span>
+						{smol ? <span>.csv</span> : <span>Download .csv</span>}
 					</>
 				)}
 			</button>

@@ -7,7 +7,6 @@ import { matchSorter } from 'match-sorter'
 import { useQuery } from '@tanstack/react-query'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
-import Image from 'next/image'
 
 export interface ITotalTrackedByMetric {
 	tvl: { protocols: number; chains: number }
@@ -143,13 +142,13 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
 			<div className="relative w-full isolate rounded-md bg-(--cards-bg) p-1 h-10">
-				<Image
+				<img
 					src="/icons/metrics-l.svg"
-					width={189}
-					height={82}
+					width={92}
+					height={40}
 					alt=""
 					className="rounded-l-md absolute left-0 top-0 h-full w-auto object-cover"
-					priority
+					fetchPriority="high"
 				/>
 				<div className="flex items-center gap-1 justify-center flex-wrap h-full">
 					<span className="bg-(--old-blue) text-white text-xs rounded-md py-[7px] items-center gap-2 px-2 hidden lg:flex">
@@ -168,13 +167,13 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 						<span className="hidden sm:block">Click to change</span>
 					</Ariakit.DialogDisclosure>
 				</div>
-				<Image
+				<img
 					src="/icons/metrics-r.svg"
-					width={189}
-					height={82}
+					width={92}
+					height={40}
 					alt=""
 					className="rounded-r-md absolute right-0 top-0 h-full w-auto object-cover"
-					priority
+					fetchPriority="high"
 				/>
 				<svg
 					width="100%"

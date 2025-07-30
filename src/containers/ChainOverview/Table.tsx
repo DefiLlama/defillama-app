@@ -455,7 +455,6 @@ export const ChainProtocolsTable = ({
 						className="max-sm:w-full"
 						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 					/>
-
 					<div className="flex items-center gap-2 w-full sm:w-auto">
 						<SelectWithCombobox
 							allValues={mergedColumns}
