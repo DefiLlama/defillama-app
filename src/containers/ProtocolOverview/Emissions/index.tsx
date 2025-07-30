@@ -404,8 +404,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div className="flex flex-col gap-2">
 				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
-					<LazyChart className="bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[384px] p-3 relative">
-						<div className="absolute right-4 z-10">
+					<LazyChart className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-2 relative min-h-[406px]">
+						<div className="absolute right-2 z-10">
 							<SelectWithCombobox
 								allValues={availableCategories}
 								selectedValues={selectedCategories}
@@ -437,7 +437,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								labelType="smol"
 								triggerProps={{
 									className:
-										'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-[#E6E6E6] dark:border-[#2F3336] text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+										'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 								}}
 							/>
 						</div>
@@ -455,9 +455,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					</LazyChart>
 				)}
 
-				<div className="grid grid-cols-2 gap-2">
+				<div className="grid grid-cols-2 gap-2 min-h-[398px]">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
-						<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full pt-2 min-h-[398px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
 									showLegend
@@ -474,7 +474,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					)}
 
 					{unlockedPercent > 0 && (
-						<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full pt-2 min-h-[398px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
 									formatTooltip={unlockedPieChartFormatTooltip}
