@@ -402,7 +402,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</div>
 			)}
 
-			<div className="flex flex-col gap-1">
+			<div className="flex flex-col gap-2">
 				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
 					<LazyChart className="bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[384px] p-3 relative">
 						<div className="absolute right-4 z-10">
@@ -455,7 +455,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					</LazyChart>
 				)}
 
-				<div className="grid grid-cols-2 gap-1">
+				<div className="grid grid-cols-2 gap-2">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
 						<LazyChart className="relative col-span-full p-3 min-h-[384px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
@@ -553,7 +553,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</div>
 			) : null}
 
-			<div className="flex flex-wrap *:flex-1 gap-4">
+			<div className="flex flex-wrap *:flex-1 gap-2">
 				{data.sources?.length > 0 ? (
 					<div className="flex flex-col items-center justify-start p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md h-full">
 						<h1 className="text-center text-xl font-medium">Sources</h1>
