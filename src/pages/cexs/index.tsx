@@ -6,6 +6,8 @@ import { Cexs } from '~/containers/Cexs'
 import { fetchJson } from '~/utils/async'
 import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 
+//trigger caches
+
 interface ICex {
 	name: string
 	slug?: string
