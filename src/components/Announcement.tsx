@@ -52,6 +52,12 @@ export function Announcement({
 	const routeAnnouncementKey = router.pathname + key
 	const routeAnnouncementValue = router.pathname + value
 
+	const [hydrated, setHydrated] = React.useState(false)
+
+	React.useEffect(() => {
+		setHydrated(true)
+	}, [])
+
 	const closeAnnouncement = () => {
 		localStorage.setItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
 		window.dispatchEvent(new Event('storage'))
@@ -59,11 +65,21 @@ export function Announcement({
 
 	const store = React.useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(routeAnnouncementKey) ?? null,
+		() => (typeof window !== 'undefined' ? localStorage.getItem(routeAnnouncementKey) ?? null : null),
 		() => null
 	)
 
-	if (notCancellable ? false : JSON.parse(store)?.value === routeAnnouncementValue) {
+	let parsed
+	try {
+		parsed = store ? JSON.parse(store) : null
+	} catch {
+		parsed = null
+	}
+
+	// Wait for hydration before rendering
+	if (!hydrated) return null
+
+	if (notCancellable ? false : parsed?.value === routeAnnouncementValue) {
 		return null
 	}
 
