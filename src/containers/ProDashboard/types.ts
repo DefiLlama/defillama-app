@@ -16,6 +16,7 @@ export interface MultiChartConfig {
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	colSpan?: 1 | 2
 	showCumulative?: boolean
+	showPercentage?: boolean
 }
 
 export interface TextConfig {

@@ -77,6 +77,7 @@ interface ProDashboardContextType {
 	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => void
 	handleColSpanChange: (chartId: string, newColSpan: 1 | 2) => void
 	handleCumulativeChange: (itemId: string, showCumulative: boolean) => void
+	handlePercentageChange: (itemId: string, showPercentage: boolean) => void
 	handleTableFiltersChange: (tableId: string, filters: TableFilters) => void
 	handleTableColumnsChange: (
 		tableId: string,
@@ -121,7 +122,7 @@ export function ProDashboardAPIProvider({
 
 	const chains: Chain[] = rawChains
 	const [items, setItems] = useState<DashboardItemConfig[]>([])
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('365d')
+	const [timePeriod, setTimePeriodState] = useState<TimePeriod>('365d')
 	const [dashboardName, setDashboardName] = useState<string>('My Dashboard')
 	const [dashboardId, setDashboardId] = useState<string | null>(initialDashboardId || null)
 	const [currentDashboard, setCurrentDashboard] = useState<Dashboard | null>(null)
@@ -151,6 +152,7 @@ export function ProDashboardAPIProvider({
 		dashboardVisibility,
 		dashboardTags,
 		dashboardDescription,
+		timePeriod,
 		isAuthenticated,
 		isReadOnly: isReadOnly || (initialDashboardId ? !currentDashboard : false), // Force read-only until dashboard is loaded
 		currentDashboard,
@@ -181,6 +183,7 @@ export function ProDashboardAPIProvider({
 				setDashboardId(dashboard.id)
 				setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
 				setItems(dashboard.data.items)
+				setTimePeriodState(dashboard.data.timePeriod || '365d')
 				setCurrentDashboard(dashboard)
 				setDashboardVisibility(dashboard.visibility || 'private')
 				setDashboardTags(dashboard.tags || [])
@@ -212,6 +215,7 @@ export function ProDashboardAPIProvider({
 			const data = {
 				items: cleanedItems,
 				dashboardName,
+				timePeriod,
 				visibility: overrides?.visibility ?? dashboardVisibility,
 				tags: overrides?.tags ?? dashboardTags,
 				description: overrides?.description ?? dashboardDescription
@@ -227,6 +231,7 @@ export function ProDashboardAPIProvider({
 		[
 			items,
 			dashboardName,
+			timePeriod,
 			dashboardId,
 			dashboardVisibility,
 			dashboardTags,
@@ -234,7 +239,8 @@ export function ProDashboardAPIProvider({
 			isAuthenticated,
 			isReadOnly,
 			updateDashboard,
-			createDashboard
+			createDashboard,
+			cleanItemsForSaving
 		]
 	)
 
@@ -245,6 +251,7 @@ export function ProDashboardAPIProvider({
 			const data = {
 				items: cleanedItems,
 				dashboardName,
+				timePeriod,
 				visibility: dashboardVisibility,
 				tags: dashboardTags,
 				description: dashboardDescription
@@ -261,10 +268,12 @@ export function ProDashboardAPIProvider({
 		isReadOnly,
 		items,
 		dashboardName,
+		timePeriod,
 		dashboardVisibility,
 		dashboardTags,
 		dashboardDescription,
-		updateDashboard
+		updateDashboard,
+		cleanItemsForSaving
 	])
 
 	// Copy dashboard
@@ -277,7 +286,8 @@ export function ProDashboardAPIProvider({
 		const cleanedItems = cleanItemsForSaving(items)
 		const data = {
 			items: cleanedItems,
-			dashboardName: `${dashboardName} (Copy)`
+			dashboardName: `${dashboardName} (Copy)`,
+			timePeriod
 		}
 
 		try {
@@ -285,7 +295,7 @@ export function ProDashboardAPIProvider({
 		} catch (error) {
 			console.error('Failed to copy dashboard:', error)
 		}
-	}, [items, dashboardName, isAuthenticated, createDashboard])
+	}, [items, dashboardName, timePeriod, isAuthenticated, createDashboard])
 
 	const createNewDashboard = useCallback(async () => {
 		if (!isAuthenticated) {
@@ -302,6 +312,7 @@ export function ProDashboardAPIProvider({
 				const dashboardData = {
 					items: [],
 					dashboardName: data.dashboardName,
+					timePeriod: '365d' as TimePeriod,
 					visibility: data.visibility,
 					tags: data.tags,
 					description: data.description
@@ -541,6 +552,20 @@ export function ProDashboardAPIProvider({
 		[autoSave, isReadOnly]
 	)
 
+	const setTimePeriod = useCallback(
+		(period: TimePeriod) => {
+			if (isReadOnly) {
+				return
+			}
+			setTimePeriodState(period)
+			setItems((currentItems) => {
+				autoSave(currentItems)
+				return currentItems
+			})
+		},
+		[autoSave, isReadOnly]
+	)
+
 	const handleChartsReordered = useCallback(
 		(newCharts: DashboardItemConfig[]) => {
 			if (isReadOnly) {
@@ -611,6 +636,25 @@ export function ProDashboardAPIProvider({
 						return { ...item, showCumulative }
 					} else if (item.id === itemId && item.kind === 'multi') {
 						return { ...item, showCumulative }
+					}
+					return item
+				})
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[autoSave, isReadOnly]
+	)
+
+	const handlePercentageChange = useCallback(
+		(itemId: string, showPercentage: boolean) => {
+			if (isReadOnly) {
+				return
+			}
+			setItems((prev) => {
+				const newItems = prev.map((item) => {
+					if (item.id === itemId && item.kind === 'multi') {
+						return { ...item, showPercentage }
 					}
 					return item
 				})
@@ -705,6 +749,7 @@ export function ProDashboardAPIProvider({
 		handleGroupingChange,
 		handleColSpanChange,
 		handleCumulativeChange,
+		handlePercentageChange,
 		handleTableFiltersChange,
 		handleTableColumnsChange,
 		getChainInfo,

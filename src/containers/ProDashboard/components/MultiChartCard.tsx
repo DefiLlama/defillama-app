@@ -12,8 +12,8 @@ interface MultiChartCardProps {
 }
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { getProtocolInfo, handleGroupingChange, handleCumulativeChange, isReadOnly } = useProDashboard()
-	const [showPercentage, setShowPercentage] = useState(false)
+	const { getProtocolInfo, handleGroupingChange, handleCumulativeChange, handlePercentageChange, isReadOnly } =
+		useProDashboard()
 	const [showStacked, setShowStacked] = useState(true)
 	const showCumulative = multi.showCumulative || false
 
@@ -33,12 +33,13 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 	const loadingItems = multi.items.filter((cfg) => cfg.isLoading)
 
+	const showPercentage = multi.showPercentage || false
+
 	const series = useMemo(() => {
 		const uniqueChains = new Set(validItems.filter((item) => !item.protocol).map((item) => item.chain))
 		const uniqueProtocols = new Set(validItems.filter((item) => item.protocol).map((item) => item.protocol))
 		const isSingleChain = uniqueChains.size === 1 && validItems.every((item) => !item.protocol)
 		const isSingleProtocol = uniqueProtocols.size === 1 && validItems.every((item) => item.protocol)
-
 		const baseSeries = validItems.map((cfg, index) => {
 			const rawData = cfg.data as [string, number][]
 			const meta = CHART_TYPES[cfg.type]
@@ -85,7 +86,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				return chartType?.chartType === 'area'
 			})
 
-		if ((allBarType || allAreaType) && showStacked && !showCumulative) {
+		if ((allBarType || allAreaType) && showStacked && !showCumulative && !showPercentage) {
 			const allTimestamps = new Set<number>()
 			baseSeries.forEach((serie) => {
 				serie.data.forEach(([timestamp]) => allTimestamps.add(timestamp))
@@ -168,12 +169,13 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			'#D7BDE2'
 		]
 
-		const seriesWithAverages = baseSeries.map((serie) => {
+		const seriesWithAverages = baseSeries.map((serie, serieIndex) => {
 			const percentageData: [number, number][] = sortedTimestamps.map((timestamp) => {
 				const dataPoint = serie.data.find(([t]) => t === timestamp)
 				const value = dataPoint ? dataPoint[1] : 0
 				const total = totals.get(timestamp) || 0
 				const percentage = total > 0 ? (value / total) * 100 : 0
+
 				return [timestamp, percentage]
 			})
 
@@ -190,7 +192,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 		const sortedSeries = seriesWithAverages.sort((a, b) => a.avgPercentage - b.avgPercentage)
 
-		return sortedSeries.map((serie, index) => {
+		const finalSeries = sortedSeries.map((serie, index) => {
 			const color = percentageColors[index % percentageColors.length]
 			return {
 				...serie,
@@ -201,7 +203,11 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				}
 			}
 		})
+
+		return finalSeries
 	}, [validItems, showPercentage, showStacked, showCumulative, getProtocolInfo])
+
+	const dataHash = series.length > 0 && showPercentage ? series[0].data[0]?.[1]?.toFixed(0) || '0' : 'abs'
 
 	const hasAnyData = validItems.length > 0
 	const isAllLoading = loadingItems.length === multi.items.length
@@ -291,7 +297,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 									<button
 										onClick={() => {
 											setShowStacked(!showStacked)
-											setShowPercentage(false)
+											handlePercentageChange(multi.id, false)
 										}}
 										className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
 										title={showStacked ? 'Show separate' : 'Show stacked'}
@@ -302,7 +308,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 								)}
 								<button
 									onClick={() => {
-										setShowPercentage(!showPercentage)
+										handlePercentageChange(multi.id, !showPercentage)
 										setShowStacked(false)
 									}}
 									className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
@@ -359,7 +365,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				) : (
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart
-							key={`${showStacked}-${showPercentage}`}
+							key={`${multi.id}-${showStacked}-${showPercentage}`}
 							series={series}
 							valueSymbol={showPercentage ? '%' : '$'}
 							groupBy={

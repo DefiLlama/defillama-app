@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { DashboardItemConfig } from '../types'
+import { TimePeriod } from '../ProDashboardAPIContext'
 
 interface UseAutoSaveOptions {
 	dashboardId: string | null
@@ -7,6 +8,7 @@ interface UseAutoSaveOptions {
 	dashboardVisibility: 'private' | 'public'
 	dashboardTags: string[]
 	dashboardDescription: string
+	timePeriod: TimePeriod
 	isAuthenticated: boolean
 	isReadOnly: boolean
 	currentDashboard: { user: string } | null
@@ -16,6 +18,7 @@ interface UseAutoSaveOptions {
 		data: {
 			items: DashboardItemConfig[]
 			dashboardName: string
+			timePeriod?: TimePeriod
 			visibility: 'private' | 'public'
 			tags: string[]
 			description: string
@@ -31,6 +34,7 @@ export function useAutoSave({
 	dashboardVisibility,
 	dashboardTags,
 	dashboardDescription,
+	timePeriod,
 	isAuthenticated,
 	isReadOnly,
 	currentDashboard,
@@ -60,6 +64,7 @@ export function useAutoSave({
 			const data = {
 				items: cleanedItems,
 				dashboardName,
+				timePeriod,
 				visibility: dashboardVisibility,
 				tags: dashboardTags,
 				description: dashboardDescription
@@ -82,6 +87,7 @@ export function useAutoSave({
 			dashboardVisibility,
 			dashboardTags,
 			dashboardDescription,
+			timePeriod,
 			cleanItemsForSaving,
 			updateDashboard,
 			delay

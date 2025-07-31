@@ -1,5 +1,6 @@
 import { AUTH_SERVER } from '../../../constants'
 import { DashboardItemConfig } from '../types'
+import { TimePeriod } from '../ProDashboardAPIContext'
 
 export interface Dashboard {
 	id: string
@@ -7,6 +8,7 @@ export interface Dashboard {
 	data: {
 		items: DashboardItemConfig[]
 		dashboardName: string
+		timePeriod?: TimePeriod
 	}
 	visibility?: 'private' | 'public'
 	tags?: string[]
@@ -63,6 +65,7 @@ class DashboardAPIService {
 		data: {
 			items: DashboardItemConfig[]
 			dashboardName: string
+			timePeriod?: TimePeriod
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
@@ -91,6 +94,7 @@ class DashboardAPIService {
 		data: {
 			items: DashboardItemConfig[]
 			dashboardName: string
+			timePeriod?: TimePeriod
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
