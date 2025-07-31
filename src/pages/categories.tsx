@@ -304,7 +304,8 @@ export const descriptions = {
 		'Projects that analyze DeFi risks and help users choose strategies across lending, trading, or staking systems to improve safety and returns.',
 	'DAO Service Provider': 'Protocols that provide services to DAOs',
 	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights',
-	'Canonical Bridge': 'The official bridge designated by a blockchain for transferring its assets across networks'
+	'Canonical Bridge': 'The official bridge designated by a blockchain for transferring its assets across networks',
+	Interface: 'Projects that provide a user interface to interact with external protocols'
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
