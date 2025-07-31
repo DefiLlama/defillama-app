@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 
 // change 'value' for new announcements
 export const ANNOUNCEMENT = {
@@ -52,11 +53,7 @@ export function Announcement({
 	const routeAnnouncementKey = router.pathname + key
 	const routeAnnouncementValue = router.pathname + value
 
-	const [hydrated, setHydrated] = React.useState(false)
-
-	React.useEffect(() => {
-		setHydrated(true)
-	}, [])
+	const isClient = useIsClient()
 
 	const closeAnnouncement = () => {
 		localStorage.setItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
@@ -65,21 +62,15 @@ export function Announcement({
 
 	const store = React.useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => (typeof window !== 'undefined' ? localStorage.getItem(routeAnnouncementKey) ?? null : null),
+		() => localStorage.getItem(routeAnnouncementKey) ?? null,
 		() => null
 	)
 
-	let parsed
-	try {
-		parsed = store ? JSON.parse(store) : null
-	} catch {
-		parsed = null
-	}
-
 	// Wait for hydration before rendering
-	if (!hydrated) return null
 
-	if (notCancellable ? false : parsed?.value === routeAnnouncementValue) {
+	if (!isClient) return null
+
+	if (notCancellable ? false : JSON.parse(store)?.value === routeAnnouncementValue) {
 		return null
 	}
 
