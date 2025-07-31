@@ -21,7 +21,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { ICONS_CDN, removedCategories } from '~/constants'
+import { ICONS_CDN, removedCategoriesFromChainTvl } from '~/constants'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { subscribeToLocalStorage, useLocalStorageSettingsManager, useCustomColumns } from '~/contexts/LocalStorage'
@@ -1258,7 +1258,7 @@ const Tvl = ({ rowValues }) => {
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		removedCategories.forEach((removedCategory) => {
+		removedCategoriesFromChainTvl.forEach((removedCategory) => {
 			if (rowValues.category === removedCategory) {
 				text = `${removedCategory} protocols are not counted into Chain TVL`
 			}

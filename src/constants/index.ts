@@ -163,7 +163,7 @@ export const POCKETBASE_URL = 'https://pb.llama.fi'
 
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
-export const removedCategories = [
+export const removedCategoriesFromChainTvl = [
 	'Chain',
 	'CEX',
 	'Infrastructure',
@@ -172,7 +172,8 @@ export const removedCategories = [
 	'Basis Trading',
 	'CeDeFi',
 	'Bridge',
-	'Canonical Bridge'
+	'Canonical Bridge',
+	'Farm'
 ]
 
 export const REV_PROTOCOLS = {

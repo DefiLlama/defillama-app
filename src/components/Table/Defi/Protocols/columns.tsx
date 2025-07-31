@@ -9,7 +9,7 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDaysAgo } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
-import { removedCategories } from '~/constants'
+import { removedCategoriesFromChainTvl } from '~/constants'
 import { Icon } from '~/components/Icon'
 
 const columnHelper = createColumnHelper<IProtocolRow>()
@@ -1112,7 +1112,7 @@ const Tvl = ({ value, rowValues }) => {
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		removedCategories.forEach((removedCategory) => {
+		removedCategoriesFromChainTvl.forEach((removedCategory) => {
 			if (rowValues.category === removedCategory) {
 				text = `${removedCategory} protocols are not counted into Chain TVL`
 			}
