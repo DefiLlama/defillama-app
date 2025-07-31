@@ -24,6 +24,7 @@ interface IChainMetadata {
 	tokenSymbol?: string
 	github?: boolean
 	id: string
+	protocolCount?: number
 }
 
 interface IProtocolMetadata {

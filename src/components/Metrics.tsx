@@ -481,7 +481,7 @@ export const protocolsMetrics: Array<{
 		]
 	},
 	{
-		category: 'TVL',
+		category: 'Total Value',
 		pages: [
 			{
 				name: 'TVL',
