@@ -173,7 +173,18 @@ export const removedCategoriesFromChainTvl = [
 	'CeDeFi',
 	'Bridge',
 	'Canonical Bridge',
-	'Farm'
+	'Farm',
+	'Yield Aggregator',
+	'Yield',
+	'Liquidity manager',
+	'Onchain Capital Allocator',
+	'Risk Curators',
+	'Treasury Manager',
+	'Anchor BTC',
+	'CDP Manager',
+	'Restaked BTC',
+	'RWA Lending',
+	'RWA'
 ]
 
 export const REV_PROTOCOLS = {
