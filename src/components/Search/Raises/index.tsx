@@ -20,7 +20,7 @@ export function RaisesSearch({ list }) {
 	const [open, setOpen] = useState(false)
 
 	return (
-		<div className="relative hidden lg:flex flex-col rounded-md shadow-sm data-[alwaysdisplay=true]:flex">
+		<div className="relative hidden lg:flex flex-col rounded-md data-[alwaysdisplay=true]:flex">
 			<Ariakit.ComboboxProvider
 				resetValueOnHide
 				setValue={(value) => {
@@ -96,16 +96,16 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 	return (
 		<>
 			{!hideIcon ? (
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[14px] left-3 opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[9px] opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={20} width={20} />
+							<Icon name="x" height={16} width={16} />
 						</>
 					) : (
 						<>
 							<span className="sr-only">Open Search</span>
-							<Icon name="search" height={18} width={18} />
+							<Icon name="search" height={14} width={14} />
 						</>
 					)}
 				</button>
@@ -118,11 +118,11 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="p-3 pl-9 rounded-md text-base bg-white text-black dark:bg-black dark:text-white"
+				className="w-full text-sm rounded-md border border-(--cards-border) text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-8"
 			/>
 
 			{!hideIcon ? (
-				<span className="absolute top-2 right-3 p-[6px] bg-[#f5f5f5] dark:bg-[#151515] text-(--link) font-medium rounded-md">
+				<span className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
 					⌘K
 				</span>
 			) : null}

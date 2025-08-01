@@ -63,8 +63,8 @@ export function RaisesTable({ raises, downloadCsv }) {
 
 	return (
 		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="flex items-center gap-2 flex-wrap p-3">
-				<label className="relative w-full sm:max-w-[280px]">
+			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
+				<label className="relative w-full sm:max-w-[280px] mr-auto">
 					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
@@ -86,19 +86,22 @@ export function RaisesTable({ raises, downloadCsv }) {
 					target="_blank"
 					rel="noreferrer noopener"
 					href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093"
-					className="min-h-[34px] ml-auto flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 justify-center rounded-md px-2 py-[6px] text-xs"
 				>
 					<span>Methodology & biases</span>
-					<Icon name="external-link" height={14} width={14} />
+					<Icon name="external-link" height={12} width={12} />
 				</a>
 				<CSVDownloadButton
 					customText="Download .json"
 					onClick={() => {
 						window.open('https://api.llama.fi/raises')
 					}}
-					className="min-h-[34px]"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
-				<CSVDownloadButton onClick={downloadCsv} className="min-h-[34px]" />
+				<CSVDownloadButton
+					onClick={downloadCsv}
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+				/>
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

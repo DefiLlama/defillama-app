@@ -56,7 +56,10 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 				columnToSearch={['name']}
 				customFilters={
 					<>
-						<CSVDownloadButton onClick={onCSVDownload} className="min-h-[34px]" />
+						<CSVDownloadButton
+							onClick={onCSVDownload}
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						/>
 					</>
 				}
 			/>
