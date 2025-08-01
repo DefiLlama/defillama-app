@@ -390,7 +390,7 @@ export function useModalActions(
 				} else if (state.selectedTableType === 'bridge-aggregators') {
 					handleAddTable(state.selectedChains, 'dataset', 'bridge-aggregators')
 				} else if (state.selectedTableType === 'trending-contracts' && state.selectedDatasetChain) {
-					handleAddTable([state.selectedDatasetChain], 'dataset', 'trending-contracts', state.selectedDatasetChain)
+					handleAddTable([state.selectedDatasetChain], 'dataset', 'trending-contracts', state.selectedDatasetChain, undefined, undefined, state.selectedDatasetTimeframe || '1d')
 				} else if (state.selectedTableType === 'chains') {
 					handleAddTable([], 'dataset', 'chains', state.selectedDatasetChain)
 				}

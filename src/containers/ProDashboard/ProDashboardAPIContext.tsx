@@ -67,7 +67,8 @@ interface ProDashboardContextType {
 			| 'fees',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
-		includeCex?: boolean
+		includeCex?: boolean,
+		datasetTimeframe?: string
 	) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
@@ -455,7 +456,8 @@ export function ProDashboardAPIProvider({
 			| 'fees',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
-		includeCex?: boolean
+		includeCex?: boolean,
+		datasetTimeframe?: string
 	) => {
 		if (isReadOnly) {
 			return
@@ -475,7 +477,7 @@ export function ProDashboardAPIProvider({
 					includeCex
 				}),
 				...(datasetType === 'trending-contracts' && {
-					datasetTimeframe: '1d'
+					datasetTimeframe: datasetTimeframe || '1d'
 				})
 			})
 		}
