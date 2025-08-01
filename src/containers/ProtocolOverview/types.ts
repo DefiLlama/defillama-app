@@ -1,3 +1,4 @@
+import { IHack } from '../Hacks/queries'
 import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
 
 export interface IProtocolMetadata {
@@ -246,22 +247,6 @@ export interface IProtocolOverviewPageData {
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IUpdatedProtocol['warningBanners']
-}
-
-export interface IHack {
-	date: number
-	name: string
-	classification: string
-	technique: string
-	amount: number
-	chain?: Array<string>
-	bridgeHack: boolean
-	targetType: string
-	source: string
-	returnedFunds: number | null
-	defillamaId: number
-	parentProtocolId: string
-	language: string | null
 }
 
 interface ICredit {

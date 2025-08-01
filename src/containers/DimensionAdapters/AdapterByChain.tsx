@@ -455,7 +455,7 @@ export function AdapterByChain(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
 					<SelectWithCombobox
@@ -470,7 +470,7 @@ export function AdapterByChain(props: IProps) {
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+								'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 						}}
 					/>
 					{props.categories.length > 0 && (
@@ -486,12 +486,15 @@ export function AdapterByChain(props: IProps) {
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
 					)}
 					<FullOldViewButton type={props.type} />
-					<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
+					<CSVDownloadButton
+						onClick={downloadCsv}
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					/>
 				</div>
 
 				<VirtualTable instance={instance} rowSize={64} compact />

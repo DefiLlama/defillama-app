@@ -77,7 +77,8 @@ function RaisesTable({ raises, downloadCsv }) {
 	return (
 		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
-				<div className="relative w-full sm:max-w-[280px] mr-auto">
+				<label className="relative w-full sm:max-w-[280px] mr-auto">
+					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
 						height={16}
@@ -85,14 +86,15 @@ function RaisesTable({ raises, downloadCsv }) {
 						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
+						name="search"
 						value={projectName}
 						onChange={(e) => {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</div>
+				</label>
 				<CSVDownloadButton onClick={downloadCsv} className="min-h-[34px]" />
 				<CSVDownloadButton
 					customText="Download .json"

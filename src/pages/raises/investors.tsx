@@ -152,7 +152,8 @@ const ActiveInvestors = ({ data }) => {
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center gap-2 justify-end flex-wrap p-3">
 					<h1 className="text-xl font-semibold mr-auto">Investors</h1>
-					<div className="relative w-full sm:max-w-[280px]">
+					<label className="relative w-full sm:max-w-[280px]">
+						<span className="sr-only">Search investors...</span>
 						<Icon
 							name="search"
 							height={16}
@@ -160,14 +161,15 @@ const ActiveInvestors = ({ data }) => {
 							className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 						/>
 						<input
+							name="search"
 							value={investorName}
 							onChange={(e) => {
 								setInvestorName(e.target.value)
 							}}
 							placeholder="Search investors..."
-							className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
-					</div>
+					</label>
 					<TagGroup
 						setValue={(val) => onPeriodClick(val)}
 						values={['All', '30d', '180d', '1 year']}

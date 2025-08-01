@@ -23,8 +23,7 @@ import {
 	IUpdatedProtocol,
 	IArticlesResponse,
 	IArticle,
-	IProtocolExpenses,
-	IHack
+	IProtocolExpenses
 } from './types'
 import { getAdapterChainOverview, getAdapterProtocolSummary, IAdapterOverview } from '../DimensionAdapters/queries'
 import { cg_volume_cexs } from '~/pages/cexs'
@@ -34,6 +33,7 @@ import { allColors, ProtocolChartsLabels } from './Chart/constants'
 import dayjs from 'dayjs'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import { getProtocolWarningBanners } from './utils'
+import { IHack } from '../Hacks/queries'
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()

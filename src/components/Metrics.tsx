@@ -34,6 +34,7 @@ export interface ITotalTrackedByMetric {
 	pf: { protocols: number; chains: number }
 	ps: { protocols: number; chains: number }
 	price: { protocols: number; chains: number }
+	totalValueLostInHacks: { protocols: number; chains: number }
 }
 
 export type TMetric =
@@ -68,6 +69,7 @@ export type TMetric =
 	| 'P/S'
 	| 'Token Price'
 	| 'Treasury'
+	| 'Total Value Lost in Hacks'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -577,6 +579,13 @@ export const protocolsMetrics: Array<{
 				chainRoute: null,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.cexs?.protocols ?? 0,
 				description: 'Sum of assets held on a centralized exchange such as Binance'
+			},
+			{
+				name: 'Total Value Lost in Hacks',
+				mainRoute: '/hacks/total-value-lost',
+				chainRoute: null,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.totalValueLostInHacks?.protocols ?? 0,
+				description: 'Total value lost in hacks by a protocol'
 			}
 		]
 	}

@@ -5,56 +5,46 @@ import {
 	SortingState,
 	getCoreRowModel,
 	getSortedRowModel,
-	ColumnOrderState,
 	ColumnFiltersState,
-	getFilteredRowModel
+	getFilteredRowModel,
+	ColumnDef
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
-import { hacksColumns, hacksColumnOrders } from '~/components/Table/Defi/columns'
-import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import useWindowSize from '~/hooks/useWindowSize'
+import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import * as Ariakit from '@ariakit/react'
-import { FormattedName } from '~/components/FormattedName'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { TagGroup } from '~/components/TagGroup'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { downloadChart } from '~/components/ECharts/utils'
+import { capitalizeFirstLetter, download, formattedNum, toNiceDayMonthAndYear } from '~/utils'
+import { IHacksPageData } from './queries'
+import { IconsRow } from '~/components/IconsRow'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 const columnResizeMode = 'onChange'
 
-function HacksTable({ data }) {
+function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(hacksColumnOrders[0][1])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [projectName, setProjectName] = React.useState('')
-	const windowSize = useWindowSize()
 	const instance = useReactTable({
 		data: data,
 		columns: hacksColumns,
 		columnResizeMode,
 		state: {
 			columnFilters,
-			columnOrder,
 			sorting
 		},
 		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
-
-	React.useEffect(() => {
-		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
-
-		const order = windowSize.width
-			? hacksColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
-			: defaultOrder
-
-		instance.setColumnOrder(order)
-	}, [windowSize, instance])
 
 	React.useEffect(() => {
 		const projectsColumns = instance.getColumn('name')
@@ -68,8 +58,9 @@ function HacksTable({ data }) {
 
 	return (
 		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="p-3 flex items-center justify-end">
-				<div className="relative w-full sm:max-w-[280px]">
+			<div className="p-3 flex items-center justify-end gap-2">
+				<label className="relative w-full sm:max-w-[280px]">
+					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
 						height={16}
@@ -77,24 +68,82 @@ function HacksTable({ data }) {
 						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
+						name="search"
 						value={projectName}
 						onChange={(e) => {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</div>
+				</label>
+				<CSVDownloadButton
+					onClick={() => {
+						try {
+							let rows: Array<Array<string | number | boolean>> = [
+								[
+									'Name',
+									'Date',
+									'Amount',
+									'Chains',
+									'Classification',
+									'Target',
+									'Technique',
+									'Bridge',
+									'Language',
+									'Link'
+								]
+							]
+							for (const {
+								name,
+								date,
+								amount,
+								chains,
+								classification,
+								target,
+								technique,
+								bridge,
+								language,
+								link
+							} of data) {
+								rows.push([
+									name,
+									date,
+									amount,
+									chains?.join(','),
+									classification,
+									target,
+									technique,
+									bridge,
+									language,
+									link
+								])
+							}
+							download('hacks.csv', rows.map((r) => r.join(',')).join('\n'))
+						} catch (error) {
+							console.error('Error generating CSV:', error)
+						}
+					}}
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>
 	)
 }
 
-const chartTypeList = ['Total Value Hacked', 'Pie']
+const chartTypeList = ['Monthly Sum', 'Total Hacked by Technique']
 
-const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, totalRugs, pieChartData }) => {
-	const [chartType, setChartType] = React.useState('Total Value Hacked')
+export const HacksContainer = ({
+	data,
+	monthlyHacksChartData,
+	totalHacked,
+	totalHackedDefi,
+	totalRugs,
+	pieChartData
+}: IHacksPageData) => {
+	const [chartType, setChartType] = React.useState('Monthly Sum')
+
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
@@ -113,14 +162,35 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 						<span className="font-semibold text-2xl font-jetbrains">{totalRugs}b</span>
 					</p>
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[360px]">
-					<div className="flex items-center p-3">
-						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[412px]">
+					<div className="flex items-center justify-between flex-wrap gap-2 m-2">
+						<TagGroup setValue={setChartType} selectedValue={chartType} values={chartTypeList} />
+						<CSVDownloadButton
+							onClick={() => {
+								try {
+									if (chartType === 'Monthly Sum') {
+										downloadChart(
+											{ 'Total Value Hacked': monthlyHacksChartData['Total Value Hacked'].data },
+											`total-value-hacked.csv`
+										)
+									} else {
+										let rows: Array<Array<string | number>> = [['Technique', 'Value']]
+										for (const { name, value } of pieChartData) {
+											rows.push([name, value])
+										}
+										download('total-hacked-by-technique.csv', rows.map((r) => r.join(',')).join('\n'))
+									}
+								} catch (error) {
+									console.error('Error generating CSV:', error)
+								}
+							}}
+							smol
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+						/>
 					</div>
-
-					{chartType === 'Total Value Hacked' && monthlyHacks ? (
+					{chartType === 'Monthly Sum' ? (
 						<React.Suspense fallback={<></>}>
-							<BarChart chartData={monthlyHacks} title="Monthly sum" groupBy="monthly" />
+							<LineAndBarChart charts={monthlyHacksChartData} groupBy="monthly" />
 						</React.Suspense>
 					) : (
 						<React.Suspense fallback={<></>}>
@@ -134,41 +204,64 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 	)
 }
 
-function ChartSelector({ options, selectedChart, onClick }) {
-	const onItemClick = (chartType: string) => {
-		onClick(chartType)
-	}
-
-	return (
-		<Ariakit.SelectProvider value={selectedChart} setValue={onClick}>
-			<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium z-10">
-				<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
-				<Ariakit.SelectArrow />
-			</Ariakit.Select>
-			<Ariakit.SelectPopover
-				unmountOnHide
-				hideOnInteractOutside
-				gutter={6}
-				wrapperProps={{
-					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
-				}}
-				className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+export const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		size: 200
+	},
+	{
+		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue())}</>,
+		size: 120,
+		header: 'Date',
+		accessorKey: 'date'
+	},
+	{
+		header: 'Amount lost',
+		accessorKey: 'amount',
+		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : ''}</>,
+		size: 140
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		size: 60
+	},
+	...['classification', 'technique'].map((s) => ({
+		header: capitalizeFirstLetter(s),
+		accessorKey: s,
+		enableSorting: false,
+		size: s === 'classification' ? 140 : 200,
+		...(s === 'classification' && {
+			meta: {
+				headerHelperText:
+					'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
+			}
+		})
+	})),
+	{
+		header: 'Language',
+		accessorKey: 'language',
+		cell: ({ getValue }) => <>{(getValue() ?? null) as string | null}</>,
+		size: 140
+	},
+	{
+		header: 'Link',
+		accessorKey: 'link',
+		size: 40,
+		enableSorting: false,
+		cell: ({ getValue }) => (
+			<a
+				className="flex items-center justify-center gap-4 p-[6px] bg-(--btn2-bg) hover:bg-(--btn2-hover-bg) rounded-md"
+				href={getValue() as string}
+				target="_blank"
+				rel="noopener noreferrer"
 			>
-				{options.map((option) => (
-					<Ariakit.SelectItem
-						value={option}
-						key={option}
-						focusOnHover
-						setValueOnClick={false}
-						onClick={() => onItemClick(option)}
-						className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border)"
-					>
-						{option}
-					</Ariakit.SelectItem>
-				))}
-			</Ariakit.SelectPopover>
-		</Ariakit.SelectProvider>
-	)
-}
-
-export default HacksContainer
+				<Icon name="arrow-up-right" height={14} width={14} />
+			</a>
+		)
+	}
+]
