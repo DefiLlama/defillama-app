@@ -255,7 +255,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray =
-				protocol.name === 'Crypto.com Staked ETH'
+				protocol.name === 'Crypto.com Liquid Staking'
 					? protocol.chainTvls['Cronos'].tokens
 					: protocol.chainTvls['Ethereum'].tokens
 
@@ -325,7 +325,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	const tokenTvls = chartData
 		.map((protocol) => {
 			const p =
-				protocol.name === 'Crypto.com Staked ETH' ? protocol.chainTvls['Cronos'] : protocol.chainTvls['Ethereum']
+				protocol.name === 'Crypto.com Liquid Staking' ? protocol.chainTvls['Cronos'] : protocol.chainTvls['Ethereum']
 
 			if (p.tokens.length < 1) {
 				return {

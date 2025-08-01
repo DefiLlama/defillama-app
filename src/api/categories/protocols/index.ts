@@ -457,20 +457,11 @@ export async function getLSDPageData() {
 		.filter((p) => p.category === 'Liquid Staking' && p.chains.includes('Ethereum'))
 		.map((p) => p.name)
 		.filter((p) => !['StakeHound', 'Genius', 'SharedStake', 'VaultLayer'].includes(p))
-		.concat('Crypto.com Staked ETH')
+		.concat('Crypto.com Liquid Staking')
 
 	// get historical data
-	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
-	const history = (
-		await Promise.all(
-			lsdProtocolsSlug.map((p) =>
-				fetchJson(`${PROTOCOL_API}/${p}`).catch((e) => {
-					console.log(e)
-					return null
-				})
-			)
-		)
-	).filter(Boolean)
+	const lsdProtocolsSlug = lsdProtocols.map((p) => slug(p))
+	const history = await Promise.all(lsdProtocolsSlug.map((p) => fetchJson(`${PROTOCOL_API}/${p}`)))
 
 	let lsdApy = pools
 		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
@@ -498,12 +489,12 @@ export async function getLSDPageData() {
 				: p.project === 'mev-protocol'
 				? 'MEV Protocol'
 				: p.project === 'crypto.com-staked-eth'
-				? 'Crypto.com Staked ETH'
+				? 'Crypto.com Liquid Staking'
 				: p.project === 'dinero-(pxeth)'
 				? 'Dinero (pxETH)'
 				: p.name
 	}))
-
+	console.log(lsdApy)
 	const nameGeckoMapping = {}
 	for (const p of history) {
 		nameGeckoMapping[p.name] = p.name === 'Frax Ether' ? 'frax-share' : p.gecko_id
