@@ -75,7 +75,7 @@ export default function YieldBorrow(data) {
 	return (
 		<Layout title={`Borrow Aggregator - DefiLlama`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative lg:left-[-110px] lg:top-4 xl:top-11 bg-(--cards-bg) p-3">
+			<div className="flex flex-col gap-3 items-center w-full max-w-md mx-auto rounded-md relative lg:left-[-110px] lg:top-4 xl:top-11 bg-(--cards-bg) p-3">
 				<div className="flex flex-col gap-5 p-3 overflow-y-auto w-full">
 					<TokensSelect
 						label="Borrow"
@@ -305,7 +305,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 	const finalPools: Array<IPool> = Object.values(filteredPools2)
 
 	return (
-		<div className="rounded-md bg-white/60 dark:bg-black/60 flex flex-col overflow-y-auto">
+		<div className="rounded-md bg-white/60 dark:bg-black/60 flex flex-col overflow-y-auto w-full">
 			<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 				<button
 					className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-(--form-control-border) data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
@@ -326,16 +326,16 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 			{finalPools.length === 0 ? (
 				<p className="m-4 mb-6 text-center">Couldn't find any pools</p>
 			) : (
-				<tbody>
-					<table className="border-separate border-spacing-y-2 w-[calc(100%-32px)] m-4">
+				<table className="border-separate border-spacing-y-2 my-4">
+					<tbody>
 						{finalPools.map((pool) => (
 							<tr key={JSON.stringify(pool)} className="p-3">
-								<td className="rounded-l-md bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
-									<span className="flex items-center gap-1.5">
+								<th className="rounded-l-md bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
+									<span className="flex items-center flex-nowrap gap-1">
 										<TokenLogo logo={tokenIconUrl(pool.projectName)} size={20} />
-										<span>{pool.projectName}</span>
+										<span className="whitespace-nowrap">{pool.projectName}</span>
 									</span>
-								</td>
+								</th>
 
 								<td className="bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
 									<span className="flex flex-col">
@@ -345,7 +345,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 											})}
 											%
 										</span>
-										<span className="text-xs opacity-70">
+										<span className="text-xs whitespace-nowrap opacity-70">
 											{borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'}
 										</span>
 									</span>
@@ -358,8 +358,8 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 								</td>
 							</tr>
 						))}
-					</table>
-				</tbody>
+					</tbody>
+				</table>
 			)}
 		</div>
 	)
