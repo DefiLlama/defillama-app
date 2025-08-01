@@ -103,7 +103,7 @@ const columns: ColumnDef<IProtocolTotalValueLostInHacksByProtocol['protocols'][n
 					<TokenLogo logo={tokenIconUrl(row.original.slug)} data-lgonly />
 
 					<BasicLink
-						href={`/protocol/${row.original.slug}`}
+						href={row.original.route}
 						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 					>
 						{getValue() as string}

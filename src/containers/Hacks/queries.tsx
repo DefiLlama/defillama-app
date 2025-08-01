@@ -124,7 +124,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 }
 
 export interface IProtocolTotalValueLostInHacksByProtocol {
-	protocols: Array<{ name: string; slug: string; totalHacked: number; returnedFunds: number }>
+	protocols: Array<{ name: string; slug: string; route: string; totalHacked: number; returnedFunds: number }>
 }
 
 export async function getTotalValueLostInHacksByProtocol(): Promise<IProtocolTotalValueLostInHacksByProtocol> {
@@ -141,6 +141,7 @@ export async function getTotalValueLostInHacksByProtocol(): Promise<IProtocolTot
 					acc[name] = {
 						name,
 						slug: slug(name),
+						route: hack.targetType === 'CEX' ? `/cex/${slug(name)}` : `/protocol/${slug(name)}`,
 						totalHacked: 0,
 						returnedFunds: 0
 					}

@@ -38,12 +38,7 @@ import { IHack } from '../Hacks/queries'
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
 	try {
-		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${slug(protocolName)}`)
-
-		if (protocolName === 'hyperbloom') {
-			postRuntimeLogs(JSON.stringify(data))
-			postRuntimeLogs(JSON.stringify(data.chainTvls?.['Hyperliquid L1']?.tvl ?? []))
-		}
+		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${slug(protocolName)}`, { timeout: 15_000 })
 
 		let isNewlyListedProtocol = true
 
@@ -60,11 +55,6 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		if (isNewlyListedProtocol && !data.isParentProtocol) {
 			try {
 				const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
-
-				if (protocolName === 'hyperbloom') {
-					postRuntimeLogs(JSON.stringify(hourlyData))
-					postRuntimeLogs(JSON.stringify(hourlyData.chainTvls?.['Hyperliquid L1']?.tvl ?? []))
-				}
 
 				if (!hourlyData) {
 					return data
