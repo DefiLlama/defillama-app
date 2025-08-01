@@ -114,7 +114,7 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 					</p>
 				</div>
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[360px]">
-					<div className="flex items-center p-3 -mb-12">
+					<div className="flex items-center p-3">
 						<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 					</div>
 
