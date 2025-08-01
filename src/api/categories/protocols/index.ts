@@ -446,10 +446,11 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 
 // - used in /lsd
 export async function getLSDPageData() {
-	const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetchJson(url)))
-	const pools = (await fetchJson(YIELD_POOLS_API)).data
-
-	const lsdRates = await fetchJson(LSD_RATES_API)
+	const [{ protocols }, { data: pools }, lsdRates] = await Promise.all([
+		fetchJson(PROTOCOLS_API),
+		fetchJson(YIELD_POOLS_API),
+		fetchJson(LSD_RATES_API)
+	])
 
 	// filter for LSDs
 	const lsdProtocols = protocols
@@ -460,7 +461,16 @@ export async function getLSDPageData() {
 
 	// get historical data
 	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
-	const history = await Promise.all(lsdProtocolsSlug.map((p) => fetchJson(`${PROTOCOL_API}/${p}`)))
+	const history = (
+		await Promise.all(
+			lsdProtocolsSlug.map((p) =>
+				fetchJson(`${PROTOCOL_API}/${p}`).catch((e) => {
+					console.log(e)
+					return null
+				})
+			)
+		)
+	).filter(Boolean)
 
 	let lsdApy = pools
 		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))

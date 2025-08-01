@@ -3,6 +3,7 @@ import { useMemo, useEffect, useSyncExternalStore } from 'react'
 // import { trackGoal } from 'fathom-client'
 import { slug } from '~/utils'
 import { useIsClient } from '~/hooks'
+import { getThemeCookie, setThemeCookie, THEME_COOKIE_NAME } from '~/utils/cookies'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
@@ -77,9 +78,6 @@ const LIQS_CUMULATIVE = 'LIQS_CUMULATIVE'
 // BRIDGES
 export const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS'
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES'
-
-// DIMENSIONS (DEXS AND FEES)
-const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
 
 //custom columns
 const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS'
@@ -173,23 +171,30 @@ export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
 export const BRIDGES_SETTINGS_KEYS = Object.values(BRIDGES_SETTINGS)
 
 export function subscribeToLocalStorage(callback: () => void) {
+	// Listen for localStorage changes (for other settings)
 	window.addEventListener('storage', callback)
+
+	// Listen for theme changes
+	window.addEventListener('themeChange', callback)
 
 	return () => {
 		window.removeEventListener('storage', callback)
+		window.removeEventListener('themeChange', callback)
 	}
 }
 
 const toggleDarkMode = () => {
-	const isDarkMode = localStorage.getItem(DARK_MODE) === 'true'
-	localStorage.setItem(DARK_MODE, isDarkMode ? 'false' : 'true')
+	const isDarkMode = getThemeCookie() === 'true'
+	setThemeCookie(!isDarkMode)
+	// Dispatch both storage event (for localStorage) and a custom theme event
 	window.dispatchEvent(new Event('storage'))
+	window.dispatchEvent(new CustomEvent('themeChange'))
 }
 
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(DARK_MODE) ?? 'true',
+		() => getThemeCookie() ?? 'true',
 		() => 'true'
 	)
 
