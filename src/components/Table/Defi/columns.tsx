@@ -128,6 +128,15 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 	},
 	{ header: 'Round', accessorKey: 'round', enableSorting: false, size: 140 },
 	{
+		header: 'Category',
+		accessorKey: 'category',
+		size: 160,
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Tooltip content={getValue() as string}>{getValue() as string}</Tooltip>
+		}
+	},
+	{
 		header: 'Description',
 		accessorKey: 'sector',
 		size: 140,
@@ -1388,12 +1397,25 @@ export const hacksColumnOrders = formatColumnOrder({
 })
 
 export const raisesColumnOrders = formatColumnOrder({
-	0: ['name', 'amount', 'date', 'round', 'sector', 'leadInvestors', 'source', 'valuation', 'chains', 'otherInvestors'],
+	0: [
+		'name',
+		'amount',
+		'date',
+		'round',
+		'category',
+		'sector',
+		'leadInvestors',
+		'source',
+		'valuation',
+		'chains',
+		'otherInvestors'
+	],
 	1024: [
 		'name',
 		'date',
 		'amount',
 		'round',
+		'category',
 		'sector',
 		'leadInvestors',
 		'source',
