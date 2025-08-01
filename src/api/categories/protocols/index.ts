@@ -466,6 +466,7 @@ export async function getLSDPageData() {
 	let lsdApy = pools
 		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
 		.concat(pools.find((i) => i.project === 'crypto.com-staked-eth'))
+		.filter(Boolean)
 		.map((p) => ({
 			...p,
 			name: p.project
