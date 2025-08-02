@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Icon } from '~/components/Icon'
 import { MultiItemSelect } from '../../MultiItemSelect'
 
 export interface YieldsFilters {
@@ -10,6 +9,7 @@ export interface YieldsFilters {
 	baseApyMin?: number
 	baseApyMax?: number
 	chains?: string[]
+	tokens?: string[]
 	hasRewards?: boolean
 	stablesOnly?: boolean
 	activeLending?: boolean
@@ -22,6 +22,7 @@ interface YieldsFiltersPanelProps {
 	filters: YieldsFilters
 	setFilters: (filters: YieldsFilters) => void
 	availableChains: string[]
+	availableTokens: string[]
 	onApplyFilters: (filters?: YieldsFilters) => void
 	onResetFilters: () => void
 	activeFilterCount: number
@@ -33,6 +34,7 @@ export function YieldsFiltersPanel({
 	filters,
 	setFilters,
 	availableChains,
+	availableTokens,
 	onApplyFilters,
 	onResetFilters,
 	activeFilterCount
@@ -81,7 +83,7 @@ export function YieldsFiltersPanel({
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 				<div>
 					<h5 className="text-xs font-medium pro-text2 mb-3 uppercase tracking-wide">Yield Filters</h5>
 
@@ -262,6 +264,28 @@ export function YieldsFiltersPanel({
 								))}
 							</div>
 						</div>
+					</div>
+				</div>
+
+				<div>
+					<h5 className="text-xs font-medium pro-text2 mb-3 uppercase tracking-wide">Token Filters</h5>
+
+					<div className="space-y-3">
+						<MultiItemSelect
+							label="Pool Tokens"
+							options={availableTokens.map(token => ({ value: token, label: token }))}
+							selectedValues={localFilters.tokens || []}
+							onChange={(selectedOptions) => {
+								updateFilter('tokens', selectedOptions?.map(opt => opt.value) || undefined)
+							}}
+							isLoading={false}
+							placeholder="Select tokens..."
+							itemType="token"
+							noIcon={true}
+							customProps={{ 
+								menuPosition: 'absolute'
+							}}
+						/>
 					</div>
 				</div>
 			</div>

@@ -65,7 +65,7 @@ export function useYieldsTable({
 			if (filters.tvlMin !== undefined && row.tvl < filters.tvlMin) return false
 			if (filters.tvlMax !== undefined && row.tvl > filters.tvlMax) return false
 			if (filters.chains && filters.chains.length > 0) {
-				const hasMatchingChain = row.chains?.some((chain) => filters.chains.includes(chain))
+				const hasMatchingChain = row.chains?.some((chain: string) => filters.chains.includes(chain))
 				if (!hasMatchingChain) return false
 			}
 
@@ -110,6 +110,13 @@ export function useYieldsTable({
 				})
 
 				if (!hasMatchingType) return false
+			}
+
+			if (filters.tokens && filters.tokens.length > 0) {
+				if (!row.pool) return false
+				const poolUpper = row.pool.toUpperCase()
+				const hasMatchingToken = filters.tokens.some((token) => poolUpper.includes(token))
+				if (!hasMatchingToken) return false
 			}
 
 			return true
@@ -376,9 +383,32 @@ export function useYieldsTable({
 		if (!data) return []
 		const chainsSet = new Set<string>()
 		data.forEach((row) => {
-			row.chains?.forEach((chain) => chainsSet.add(chain))
+			row.chains?.forEach((chain: string) => chainsSet.add(chain))
 		})
 		return Array.from(chainsSet).sort()
+	}, [data])
+
+	const availableTokens = React.useMemo(() => {
+		if (!data) return []
+		const tokenTvlMap = new Map<string, number>()
+
+		data.forEach((row) => {
+			if (row.pool && row.tvl) {
+				const separators = /[-\s\/,+]/
+				const tokens = row.pool.split(separators)
+				tokens.forEach((token: string) => {
+					const cleaned = token.trim().toUpperCase()
+					if (cleaned && cleaned.length >= 2 && !['LP', 'V2', 'V3', 'POOL', 'VAULT', 'FARM'].includes(cleaned)) {
+						const currentTvl = tokenTvlMap.get(cleaned) || 0
+						tokenTvlMap.set(cleaned, currentTvl + row.tvl)
+					}
+				})
+			}
+		})
+
+		return Array.from(tokenTvlMap.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([token]) => token)
 	}, [data])
 
 	const activeFilterCount = React.useMemo(() => {
@@ -390,6 +420,7 @@ export function useYieldsTable({
 		if (filters.baseApyMin !== undefined) count++
 		if (filters.baseApyMax !== undefined) count++
 		if (filters.chains && filters.chains.length > 0) count++
+		if (filters.tokens && filters.tokens.length > 0) count++
 		if (filters.hasRewards) count++
 		if (filters.stablesOnly) count++
 		if (filters.activeLending) count++
@@ -397,12 +428,15 @@ export function useYieldsTable({
 		return count
 	}, [filters])
 
-	const applyFilters = React.useCallback((newFilters?: YieldsFilters) => {
-		const filtersToApply = newFilters !== undefined ? newFilters : filters
-		if (onFiltersChange) {
-			onFiltersChange(filtersToApply)
-		}
-	}, [filters, onFiltersChange])
+	const applyFilters = React.useCallback(
+		(newFilters?: YieldsFilters) => {
+			const filtersToApply = newFilters !== undefined ? newFilters : filters
+			if (onFiltersChange) {
+				onFiltersChange(filtersToApply)
+			}
+		},
+		[filters, onFiltersChange]
+	)
 
 	const resetFilters = React.useCallback(() => {
 		setFilters({})
@@ -438,6 +472,7 @@ export function useYieldsTable({
 		filters,
 		setFilters,
 		availableChains,
+		availableTokens,
 		activeFilterCount,
 		applyFilters,
 		resetFilters

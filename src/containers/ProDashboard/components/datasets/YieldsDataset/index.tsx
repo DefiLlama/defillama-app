@@ -54,6 +54,7 @@ export function YieldsDataset({
 		filters,
 		setFilters,
 		availableChains,
+		availableTokens,
 		activeFilterCount,
 		applyFilters,
 		resetFilters
@@ -162,6 +163,7 @@ export function YieldsDataset({
 				filters={filters}
 				setFilters={setFilters}
 				availableChains={availableChains}
+				availableTokens={availableTokens}
 				onApplyFilters={applyFilters}
 				onResetFilters={resetFilters}
 				activeFilterCount={activeFilterCount}
