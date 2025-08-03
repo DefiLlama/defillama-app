@@ -201,7 +201,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 										)}
 									</button>
 								))}
-								{props.hallmarks.length > 0 ? (
+								{props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0 ? (
 									<button
 										onClick={() => {
 											router
