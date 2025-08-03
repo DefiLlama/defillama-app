@@ -72,7 +72,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			...chartsByStaus
 		} as Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'>
 
-		if (!props.metrics.tvl) {
+		const historicalTvlsIsAlwaysZero = props.tvlChartData.every((tvl) => tvl[1] === 0)
+
+		if (!props.metrics.tvl || historicalTvlsIsAlwaysZero) {
 			if (props.metrics.dexs) {
 				defaultToggledCharts.push('DEX Volume')
 				toggled.dexVolume = queryParams.dexVolume === 'false' ? 'false' : 'true'
@@ -118,7 +120,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			...toggled,
 			...(props.isCEX
 				? { totalAssets: queryParams.totalAssets === 'false' ? 'false' : 'true' }
-				: { tvl: queryParams.tvl === 'false' || !props.metrics.tvl ? 'false' : 'true' }),
+				: { tvl: queryParams.tvl === 'false' || !props.metrics.tvl || historicalTvlsIsAlwaysZero ? 'false' : 'true' }),
 			events: queryParams.events === 'false' ? 'false' : 'true',
 			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
 		} as IToggledMetrics

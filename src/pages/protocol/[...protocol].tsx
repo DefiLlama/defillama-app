@@ -44,15 +44,13 @@ export const getStaticProps = withPerformanceLogging(
 export async function getStaticPaths() {
 	const res = await fetchJson(PROTOCOLS_API)
 	const slugs = new Set()
-	let index = 0
 	for (const protocol of res.protocols) {
 		if (protocol.parentProtocol) {
 			slugs.add(slug(protocol.parentProtocol.replace('parent#', '')))
 		} else {
 			slugs.add(slug(protocol.name))
 		}
-		index++
-		if (index > 30) {
+		if (slugs.size >= 30) {
 			break
 		}
 	}
