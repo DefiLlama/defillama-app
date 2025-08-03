@@ -495,7 +495,7 @@ export async function getLSDPageData() {
 				? 'Dinero (pxETH)'
 				: p.name
 	}))
-	console.log(lsdApy)
+
 	const nameGeckoMapping = {}
 	for (const p of history) {
 		nameGeckoMapping[p.name] = p.name === 'Frax Ether' ? 'frax-share' : p.gecko_id

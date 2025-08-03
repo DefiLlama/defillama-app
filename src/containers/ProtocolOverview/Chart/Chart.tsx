@@ -28,7 +28,6 @@ export default function ProtocolLineBarChart({
 	groupBy,
 	...props
 }) {
-	console.log(rangeHallmarks)
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
 
