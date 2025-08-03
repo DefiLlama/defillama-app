@@ -3,6 +3,7 @@ import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { formattedNum } from '~/utils'
 import { ProtocolChartsLabels, BAR_CHARTS, yAxisByChart } from './constants'
+import { MarkAreaComponent } from 'echarts/components'
 
 const customOffsets = {
 	Contributers: 60,
@@ -11,12 +12,15 @@ const customOffsets = {
 	'NFT Volume': 65
 }
 
+echarts.use([MarkAreaComponent])
+
 export default function ProtocolLineBarChart({
 	chartData,
 	chartColors,
 	valueSymbol = '',
 	color,
 	hallmarks,
+	rangeHallmarks,
 	chartOptions,
 	height,
 	unlockTokenSymbol = '',
@@ -24,6 +28,7 @@ export default function ProtocolLineBarChart({
 	groupBy,
 	...props
 }) {
+	console.log(rangeHallmarks)
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
 
@@ -94,7 +99,30 @@ export default function ProtocolLineBarChart({
 					  }
 					: {}),
 				markLine: {},
-				data: chartData[stack] ?? []
+				data: chartData[stack] ?? [],
+				...(index === 0 && rangeHallmarks?.length > 0
+					? {
+							markArea: {
+								itemStyle: {
+									color: isThemeDark ? 'rgba(15, 52, 105, 0.4)' : 'rgba(70, 130, 180, 0.3)'
+								},
+								label: {
+									fontFamily: 'sans-serif',
+									fontWeight: 600,
+									color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+								},
+								data: rangeHallmarks.map(([date, event]) => [
+									{
+										name: event,
+										xAxis: date[0]
+									},
+									{
+										xAxis: date[1]
+									}
+								])
+							}
+					  }
+					: {})
 			}
 		})
 
@@ -438,7 +466,7 @@ export default function ProtocolLineBarChart({
 			grid: {
 				left: 12,
 				bottom: 68,
-				top: 12,
+				top: rangeHallmarks?.length > 0 ? 18 : 12,
 				right: 12,
 				containLabel: true
 			},

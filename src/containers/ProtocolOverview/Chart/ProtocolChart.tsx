@@ -372,6 +372,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							valueSymbol={valueSymbol}
 							groupBy={groupBy}
 							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
+							rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
 							unlockTokenSymbol={props.token.symbol}
 						/>
 					</Suspense>

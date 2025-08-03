@@ -854,14 +854,18 @@ export const getProtocolOverviewPageData = async ({
 	})
 
 	const hallmarks = {}
+	const rangeHallmarks = []
 	for (const hack of hacks ?? []) {
 		hallmarks[hack.date] = `Hack: ${hack.classification ?? ''}`
 	}
 	for (const mark of protocolData.hallmarks ?? []) {
-		if (hallmarks[mark[0]] || typeof mark[1] !== 'string') {
-			continue
+		if (Array.isArray(mark[0])) {
+			rangeHallmarks.push(mark)
+		} else {
+			if (!hallmarks[mark[0]]) {
+				hallmarks[mark[0]] = mark[1]
+			}
 		}
-		hallmarks[mark[0]] = mark[1]
 	}
 
 	return {
@@ -957,6 +961,7 @@ export const getProtocolOverviewPageData = async ({
 		tvlChartData,
 		extraTvlCharts,
 		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string]),
+		rangeHallmarks: rangeHallmarks.map(([date, event]) => [[+date[0] * 1e3, +date[1] * 1e3], event as string]),
 		geckoId: protocolData.gecko_id ?? null,
 		governanceApis: governanceApis(protocolData.governanceID) ?? null,
 		incomeStatement,

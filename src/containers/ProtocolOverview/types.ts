@@ -99,7 +99,7 @@ export interface IUpdatedProtocol {
 	methodology?: string
 	raises: Array<IRaise>
 	otherProtocols?: Array<string>
-	hallmarks?: Array<[number, string]>
+	hallmarks?: Array<[number, string]> | Array<[[number, number], string]>
 	stablecoins?: Array<string>
 	misrepresentedTokens?: boolean
 	deprecated?: boolean
@@ -236,6 +236,7 @@ export interface IProtocolOverviewPageData {
 	chartColors: Record<string, string>
 	availableCharts: ProtocolChartsLabels[]
 	hallmarks: Array<[number, string]>
+	rangeHallmarks: Array<[[number, number], string]>
 	geckoId: string | null
 	governanceApis: Array<string> | null
 	incomeStatement?: {

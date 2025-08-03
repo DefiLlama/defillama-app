@@ -116,7 +116,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 						}).length > 0
 				)
 			}))
-			.filter((category) => category.pages.length > 0)
+			.filter((category) => category.category !== 'Trending 🔥' && category.pages.length > 0)
 
 		return { chains, protocols }
 	}, [searchValue])
@@ -165,8 +165,8 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 						{currentMetric === 'CEX Assets' ? 'Assets' : currentMetric}
 					</Ariakit.DialogDisclosure>
 					<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs z-10">
-						<Icon name="pencil" height={12} width={12} />
-						<span className="hidden sm:block">Click to change</span>
+						<Icon name="search" height={12} width={12} />
+						<span className="hidden sm:block">Click to browse & search</span>
 					</Ariakit.DialogDisclosure>
 				</div>
 				<img
