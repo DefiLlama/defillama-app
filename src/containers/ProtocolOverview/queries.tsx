@@ -38,7 +38,7 @@ import { IHack } from '../Hacks/queries'
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()
 	try {
-		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${slug(protocolName)}`, { timeout: 15_000 })
+		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${slug(protocolName)}`, { timeout: 30_000 })
 
 		let isNewlyListedProtocol = true
 

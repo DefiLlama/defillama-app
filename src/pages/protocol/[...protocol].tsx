@@ -43,10 +43,15 @@ export const getStaticProps = withPerformanceLogging(
 )
 export async function getStaticPaths() {
 	const res = await fetchJson(PROTOCOLS_API)
-
-	const paths: string[] = res.protocols.slice(0, 30).map(({ name }) => ({
-		params: { protocol: [slug(name)] }
-	}))
+	const slugs = new Set()
+	for (const protocol of res.protocols) {
+		if (protocol.parentProtocol) {
+			slugs.add(slug(protocol.parentProtocol.replace('parent#', '')))
+		} else {
+			slugs.add(slug(protocol.name))
+		}
+	}
+	const paths: string[] = Array.from(slugs).map((slug) => `/protocol/${slug}`)
 
 	return { paths, fallback: 'blocking' }
 }
