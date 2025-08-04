@@ -136,8 +136,8 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			groupBy: hasAtleasOneBarChart
 				? typeof queryParams.groupBy === 'string' && groupByOptions.includes(queryParams.groupBy as any)
 					? (queryParams.groupBy as any)
-					: 'daily'
-				: 'daily',
+					: props.defaultChartView ?? 'daily'
+				: props.defaultChartView ?? 'daily',
 			defaultToggledCharts
 		}
 	}, [queryParamsString, props.availableCharts, props.metrics])

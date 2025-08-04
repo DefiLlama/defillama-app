@@ -100,6 +100,13 @@ export interface IAdapterSummary {
 	totalDataChartBreakdown: Array<[number, Record<string, Record<string, number>>]>
 	totalDataChart: Array<[number, number]>
 	linkedProtocols?: string[]
+	childProtocols?: Array<{
+		defillamaId: string
+		displayName: string
+		methodologyURL: string
+		methodology: Record<string, string>
+	}>
+	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
 //breakdown is using chain internal name so we need to map it

@@ -120,6 +120,7 @@ interface IAdapterOverview {
 	methodology?: string | null
 	methodologyURL?: string | null
 	childMethodologies?: Array<[string, string | null, string | null]>
+	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
 export interface IProtocolOverviewPageData {
@@ -248,6 +249,7 @@ export interface IProtocolOverviewPageData {
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IUpdatedProtocol['warningBanners']
+	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
 interface ICredit {
