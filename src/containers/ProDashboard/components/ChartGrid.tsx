@@ -98,7 +98,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		if (item.kind === 'multi') {
 			return (
 				<Suspense fallback={<></>}>
-					<MultiChartCard multi={item} />
+					<MultiChartCard key={`${item.id}-${item.items?.map(i => i.id).join('-')}`} multi={item} />
 				</Suspense>
 			)
 		}
@@ -180,7 +180,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 			<div className="mt-2">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 					{chartsWithData.map((item) => (
-						<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
+						<div key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map(i => i.id).join('-')}` : ''}`} className={`${getColSpanClass(item.colSpan)}`}>
 							<div className={`pro-glass h-full relative ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
 								<div className={item.kind === 'table' ? 'pr-12' : ''}>{renderItemContent(item)}</div>
 							</div>
@@ -197,7 +197,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 						{chartsWithData.map((item) => (
-							<div key={`${item.id}-${item.colSpan}`} className={`${getColSpanClass(item.colSpan)}`}>
+							<div key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map(i => i.id).join('-')}` : ''}`} className={`${getColSpanClass(item.colSpan)}`}>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
 									<div
 										className={`pro-glass h-full relative ${item.kind === 'table' ? 'pt-6' : ''} ${

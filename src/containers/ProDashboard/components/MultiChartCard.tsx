@@ -365,7 +365,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				) : (
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart
-							key={`${multi.id}-${showStacked}-${showPercentage}`}
+							key={`${multi.id}-${showStacked}-${showPercentage}-${multi.items?.map(i => `${i.id}-${i.type}`).join('-')}`}
 							series={series}
 							valueSymbol={showPercentage ? '%' : '$'}
 							groupBy={
