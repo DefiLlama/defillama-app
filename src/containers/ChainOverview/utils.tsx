@@ -18,7 +18,7 @@ export const toFilterProtocol = ({
 					chainDisplayName
 			  )
 			: true) &&
-		!['Bridge', 'Cross Chain Bridge', 'Canonical Bridge'].includes(protocolData.category)
+		!['Bridge', 'Canonical Bridge'].includes(protocolData.category)
 		? true
 		: false
 }
