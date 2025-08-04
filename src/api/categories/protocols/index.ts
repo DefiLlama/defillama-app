@@ -633,7 +633,7 @@ export function formatGovernanceData(data: {
 export async function getChainsBridged(chain?: string) {
 	const [assets, flows1d, inflows] = await Promise.all([
 		fetchJson(CHAINS_ASSETS),
-		fetchJson(CHAIN_ASSETS_FLOWS + '/24h'),
+		fetchJson(CHAIN_ASSETS_FLOWS + '/24h').catch(() => null),
 		chain
 			? fetchJson(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
 					.then((data) => data.data.map((item) => ({ ...item.data, date: item.timestamp })))
