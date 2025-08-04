@@ -19,6 +19,7 @@ import { downloadChart } from '~/components/ECharts/utils'
 import { capitalizeFirstLetter, download, formattedNum, toNiceDayMonthAndYear } from '~/utils'
 import { IHacksPageData } from './queries'
 import { IconsRow } from '~/components/IconsRow'
+import { Tooltip } from '~/components/Tooltip'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const LineAndBarChart = React.lazy(
@@ -240,7 +241,14 @@ export const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 				headerHelperText:
 					'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
 			}
-		})
+		}),
+		cell: ({ getValue }) => {
+			return (
+				<Tooltip content={getValue() as string} className="inline text-ellipsis">
+					{getValue() as string}
+				</Tooltip>
+			)
+		}
 	})),
 	{
 		header: 'Language',
