@@ -36,10 +36,9 @@ export default function LineAndBarChart({
 			series.push({
 				name: charts[stack].name,
 				type: charts[stack].type,
-				stack: expandTo100Percent ? 'A' : stack,
+				stack: expandTo100Percent ? 'A' : charts[stack].stack,
 				symbol: 'none',
-				large: true,
-				largeThreshold: 0,
+				...(charts[stack].type === 'bar' ? { large: true, largeThreshold: 0 } : {}),
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10

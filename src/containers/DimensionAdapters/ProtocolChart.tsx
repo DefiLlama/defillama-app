@@ -284,6 +284,7 @@ const ChartByType = ({
 					groupBy={
 						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
 					}
+					valueSymbol="$"
 				/>
 			</React.Suspense>
 		</div>

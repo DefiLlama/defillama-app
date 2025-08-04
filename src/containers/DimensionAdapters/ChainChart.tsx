@@ -423,7 +423,7 @@ const getChartDataByChainAndInterval = ({
 			data: finalData[chain],
 			type: 'bar',
 			name: chain,
-			stack: chain,
+			stack: 'chain',
 			color: stackColors[chain]
 		}
 	}
