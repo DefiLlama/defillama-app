@@ -243,7 +243,11 @@ export const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 			}
 		}),
 		cell: ({ getValue }) => {
-			return <Tooltip content={getValue() as string}>{getValue() as string}</Tooltip>
+			return (
+				<Tooltip content={getValue() as string} className="inline text-ellipsis">
+					{getValue() as string}
+				</Tooltip>
+			)
 		}
 	})),
 	{
