@@ -56,7 +56,6 @@ export default function ScatterChart({ chartData }: IChartProps) {
 				type: 'scatter',
 				symbols: 5,
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series'
 				},

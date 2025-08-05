@@ -50,7 +50,6 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				step: true,
 				scale: true,
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
@@ -82,7 +81,6 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				step: true,
 				scale: true,
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10

@@ -72,7 +72,6 @@ export default function ProtocolLineBarChart({
 				...options,
 				scale: true,
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10

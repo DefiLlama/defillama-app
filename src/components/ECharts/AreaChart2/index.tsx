@@ -54,7 +54,6 @@ export default function AreaChart({
 				yAxisIndex: index,
 				scale: true,
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10

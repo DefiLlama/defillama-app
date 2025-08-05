@@ -93,7 +93,6 @@ export default function BarChart({
 					name: stack,
 					type: 'bar',
 					large: true,
-					largeThreshold: 0,
 					stack: defaultStacks[stack],
 					emphasis: {
 						focus: 'series',

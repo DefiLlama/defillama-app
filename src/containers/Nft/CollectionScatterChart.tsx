@@ -52,7 +52,6 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 							name: 'Sale Price',
 							type: 'scatter',
 							large: true,
-							largeThreshold: 0,
 							symbols: 5,
 							emphasis: {
 								focus: 'series'

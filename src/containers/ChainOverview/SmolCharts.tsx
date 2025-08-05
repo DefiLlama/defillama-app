@@ -377,7 +377,6 @@ export function UpcomingUnlocksChart({
 				name: name,
 				type: 'bar',
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10

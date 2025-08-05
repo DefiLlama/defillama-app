@@ -589,7 +589,6 @@ export const getOption = (
 	let series: {
 		type: string
 		large?: boolean
-		largeThreshold?: number
 		name: string
 		data: number[]
 		emphasis: {
