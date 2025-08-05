@@ -94,11 +94,18 @@ export default function NonTimeSeriesBarChart({
 					opacity: 0.1
 				}
 			},
-			axisLabel: { interval: 0, rotate: 45 }
+			axisLabel: {
+				interval: 0,
+				rotate: 45,
+				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			}
 		}
 
 		const yAxis = {
 			type: 'value',
+			axisLabel: {
+				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			},
 			axisLine: {
 				lineStyle: {
 					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -109,8 +116,7 @@ export default function NonTimeSeriesBarChart({
 			nameTextStyle: {
 				fontFamily: 'sans-serif',
 				fontSize: 14,
-				fontWeight: 400,
-				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				fontWeight: 400
 			},
 			splitLine: {
 				lineStyle: {

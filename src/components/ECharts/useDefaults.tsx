@@ -350,6 +350,9 @@ export function useDefaults({
 				fontSize: 14,
 				fontWeight: 400
 			},
+			axisLabel: {
+				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			},
 			axisLine: {
 				lineStyle: {
 					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -366,21 +369,21 @@ export function useDefaults({
 
 		const yAxis = {
 			type: 'value',
+			boundaryGap: false,
+			nameTextStyle: {
+				fontFamily: 'sans-serif',
+				fontSize: 14,
+				fontWeight: 400
+			},
 			axisLabel: {
-				formatter: (value) => formatTooltipValue(value, valueSymbol)
+				formatter: (value) => formatTooltipValue(value, valueSymbol),
+				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
 			axisLine: {
 				lineStyle: {
 					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 					opacity: 0.1
 				}
-			},
-			boundaryGap: false,
-			nameTextStyle: {
-				fontFamily: 'sans-serif',
-				fontSize: 14,
-				fontWeight: 400,
-				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
 			splitLine: {
 				lineStyle: {

@@ -39,15 +39,11 @@ export default function PieChart({
 		const series: Record<string, any> = {
 			name: '',
 			type: 'pie',
-			left: 0,
-			right: toRight,
-			top: 0,
-			bottom: 0,
 			label: {
 				fontFamily: 'sans-serif',
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 				formatter: (x) => {
-					return `${x.name.slice(0, 5)}${x.name.length > 5 ? '..' : ''}: (${x.percent}%)`
+					return `${x.name}: (${x.percent}%)`
 				},
 				show: showLegend ? false : true
 			},
