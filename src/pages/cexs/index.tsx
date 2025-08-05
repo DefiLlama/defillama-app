@@ -211,7 +211,7 @@ export const cexData: Array<ICex> = [
 		cgDeriv: 'huobi_dm'
 	},
 	{
-		name: 'Kucoin',
+		name: 'KuCoin',
 		slug: 'kucoin',
 		coin: 'KCS',
 		coinSymbol: 'KCS',
