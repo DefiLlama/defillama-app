@@ -5,7 +5,7 @@ import { PieChart as EPieChart } from 'echarts/charts'
 import { GridComponent, TitleComponent, TooltipComponent, GraphicComponent, LegendComponent } from 'echarts/components'
 import type { IPieChartProps } from '../types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { formattedNum, getRandomColor } from '~/utils'
+import { formattedNum } from '~/utils'
 
 echarts.use([
 	CanvasRenderer,
@@ -62,7 +62,7 @@ export default function PieChart({
 				name: item.name,
 				value: item.value,
 				itemStyle: {
-					color: stackColors?.[item.name] ?? idx > 8 ? getRandomColor() : null
+					color: stackColors?.[item.name] ?? undefined
 				}
 			}))
 		}
