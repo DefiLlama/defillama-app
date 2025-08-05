@@ -131,7 +131,7 @@ export const AdapterByChainChart = ({
 							className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 							onClick={() => setChartInterval(dataInterval)}
 							data-active={dataInterval === chartInterval}
-							key={`${dataInterval}-${chartName}`}
+							key={`${dataInterval}-${chartName}-${chain}`}
 						>
 							{dataInterval.slice(0, 1).toUpperCase()}
 						</Tooltip>

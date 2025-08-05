@@ -308,6 +308,7 @@ export default function Protocols(props) {
 									onClick={() => {
 										setGroupBy(dataInterval)
 									}}
+									key={`${props.name}-fees-groupBy-${dataInterval}`}
 								>
 									{dataInterval.slice(0, 1).toUpperCase()}
 								</Tooltip>
@@ -354,7 +355,7 @@ export default function Protocols(props) {
 			</div>
 			<div className="grid grid-cols-2 gap-2">
 				{props.hasMultipleChain ? (
-					<div className="col-span-full xl:col-span-1 xl:only:col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[418px]">
+					<div className="col-span-full xl:col-span-1 xl:only:col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[408px]">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
@@ -369,7 +370,7 @@ export default function Protocols(props) {
 					</div>
 				) : null}
 				{props.hasMultipleVersions ? (
-					<div className="col-span-full xl:col-span-1 xl:only:col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[418px]">
+					<div className="col-span-full xl:col-span-1 xl:only:col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[408px]">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}

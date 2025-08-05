@@ -45,12 +45,15 @@ export async function getStaticPaths() {
 	const res = await fetchJson(PROTOCOLS_API)
 	const slugs = new Set()
 	for (const protocol of res.protocols) {
+		if (protocol.name.startsWith('Uniswap')) {
+			slugs.add(slug(protocol.name))
+		}
 		if (protocol.parentProtocol) {
 			slugs.add(slug(protocol.parentProtocol.replace('parent#', '')))
 		} else {
 			slugs.add(slug(protocol.name))
 		}
-		if (slugs.size >= 30) {
+		if (slugs.size >= 35) {
 			break
 		}
 	}

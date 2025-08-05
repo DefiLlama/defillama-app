@@ -762,6 +762,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 									data-active={groupBy === dataInterval}
 									onClick={() => updateGroupBy(dataInterval)}
+									key={`${props.chain}-overview-groupBy-${dataInterval}`}
 								>
 									{dataInterval.slice(0, 1).toUpperCase()}
 								</Tooltip>

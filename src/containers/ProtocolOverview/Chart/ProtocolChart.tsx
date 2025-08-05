@@ -309,6 +309,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 											shallow: true
 										})
 									}}
+									key={`${props.name}-overview-groupBy-${dataInterval}`}
 								>
 									{dataInterval.slice(0, 1).toUpperCase()}
 								</Tooltip>

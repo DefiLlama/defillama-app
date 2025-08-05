@@ -57,6 +57,7 @@ export const DimensionProtocolChartByType = ({
 			allTypes={chartType === 'chain' ? data.chains : data.linkedProtocols.slice(1)}
 			title={title}
 			chartType={chartType}
+			protocolName={protocolName}
 		/>
 	)
 }
@@ -65,12 +66,14 @@ const ChartByType = ({
 	totalDataChartBreakdown,
 	title,
 	allTypes,
-	chartType
+	chartType,
+	protocolName
 }: {
 	totalDataChartBreakdown: any
 	title?: string
 	allTypes: string[]
 	chartType: 'chain' | 'version'
+	protocolName: string
 }) => {
 	const [chartInterval, changeChartInterval] = React.useState<typeof INTERVALS_LIST[number]>('Daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(allTypes)
@@ -189,6 +192,7 @@ const ChartByType = ({
 							className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 							data-active={dataInterval === chartInterval}
 							onClick={() => changeChartInterval(dataInterval as any)}
+							key={`${dataInterval}-${chartType}-${title}-${protocolName}`}
 						>
 							{dataInterval.slice(0, 1).toUpperCase()}
 						</Tooltip>
