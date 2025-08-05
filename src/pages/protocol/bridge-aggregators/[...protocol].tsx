@@ -1,7 +1,7 @@
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
@@ -101,8 +101,10 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
+const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
+
 export default function Protocols(props) {
-	const [groupBy, setGroupBy] = useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('daily')
+	const [groupBy, setGroupBy] = useState<typeof INTERVALS_LIST[number]>('daily')
 	const finalCharts = useMemo(() => {
 		return {
 			'Bridge Aggregator Volume': {
@@ -142,50 +144,19 @@ export default function Protocols(props) {
 				<div className="col-span-1 xl:col-[2/-1] bg-(--cards-bg) border border-(--cards-border) rounded-md xl:min-h-[360px]">
 					<div className="flex items-center justify-end gap-2 p-2">
 						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
-							<Tooltip
-								content="Daily"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'daily' || !groupBy}
-								onClick={() => {
-									setGroupBy('daily')
-								}}
-							>
-								D
-							</Tooltip>
-							<Tooltip
-								content="Weekly"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'weekly'}
-								onClick={() => {
-									setGroupBy('weekly')
-								}}
-							>
-								W
-							</Tooltip>
-							<Tooltip
-								content="Monthly"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'monthly'}
-								onClick={() => {
-									setGroupBy('monthly')
-								}}
-							>
-								M
-							</Tooltip>
-							<Tooltip
-								content="Cumulative"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'cumulative'}
-								onClick={() => {
-									setGroupBy('cumulative')
-								}}
-							>
-								C
-							</Tooltip>
+							{INTERVALS_LIST.map((dataInterval) => (
+								<Tooltip
+									content={capitalizeFirstLetter(dataInterval)}
+									render={<button />}
+									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+									data-active={groupBy === dataInterval}
+									onClick={() => {
+										setGroupBy(dataInterval)
+									}}
+								>
+									{dataInterval.slice(0, 1).toUpperCase()}
+								</Tooltip>
+							))}
 						</div>
 						<CSVDownloadButton
 							onClick={() => {
@@ -210,20 +181,22 @@ export default function Protocols(props) {
 			</div>
 			<div className="grid grid-cols-2 gap-2">
 				{props.hasMultipleChain ? (
-					<div className="col-span-full xl:col-span-1 xl:only:col-span-full border border-(--cards-border) rounded-md">
+					<div className="col-span-full xl:col-span-1 xl:only:col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[418px]">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
 							adapterType="bridge-aggregators"
+							title="Bridge Aggregator Volume by chain"
 						/>
 					</div>
 				) : null}
 				{props.hasMultipleVersions ? (
-					<div className="col-span-full xl:col-span-1 xl:only:col-span-full border border-(--cards-border) rounded-md">
+					<div className="col-span-full xl:col-span-1 xl:only:col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[418px]">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}
 							adapterType="bridge-aggregators"
+							title="Bridge Aggregator Volume by protocol version"
 						/>
 					</div>
 				) : null}

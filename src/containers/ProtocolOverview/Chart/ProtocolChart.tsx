@@ -5,7 +5,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
-import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
+import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
 import {
 	BRIDGEVOLUME_API_SLUG,
 	CACHE_SERVER,
@@ -48,7 +48,7 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 	return url.pathname + url.search
 }
 
-const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
+const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
@@ -134,7 +134,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			toggledCharts,
 			hasAtleasOneBarChart,
 			groupBy: hasAtleasOneBarChart
-				? typeof queryParams.groupBy === 'string' && groupByOptions.includes(queryParams.groupBy as any)
+				? typeof queryParams.groupBy === 'string' && INTERVALS_LIST.includes(queryParams.groupBy as any)
 					? (queryParams.groupBy as any)
 					: props.defaultChartView ?? 'daily'
 				: props.defaultChartView ?? 'daily',
@@ -298,52 +298,21 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 					) : null}
 					{hasAtleasOneBarChart ? (
 						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
-							<Tooltip
-								content="Daily"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'daily' || !groupBy}
-								onClick={() => {
-									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'daily'), undefined, { shallow: true })
-								}}
-							>
-								D
-							</Tooltip>
-							<Tooltip
-								content="Weekly"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'weekly'}
-								onClick={() => {
-									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'weekly'), undefined, { shallow: true })
-								}}
-							>
-								W
-							</Tooltip>
-							<Tooltip
-								content="Monthly"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'monthly'}
-								onClick={() => {
-									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'monthly'), undefined, { shallow: true })
-								}}
-							>
-								M
-							</Tooltip>
-							<Tooltip
-								content="Cumulative"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'cumulative'}
-								onClick={() => {
-									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'cumulative'), undefined, {
-										shallow: true
-									})
-								}}
-							>
-								C
-							</Tooltip>
+							{INTERVALS_LIST.map((dataInterval) => (
+								<Tooltip
+									content={capitalizeFirstLetter(dataInterval)}
+									render={<button />}
+									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+									data-active={groupBy === dataInterval}
+									onClick={() => {
+										router.push(updateQueryParamInUrl(router.asPath, 'groupBy', dataInterval), undefined, {
+											shallow: true
+										})
+									}}
+								>
+									{dataInterval.slice(0, 1).toUpperCase()}
+								</Tooltip>
+							))}
 						</div>
 					) : null}
 					<EmbedChart />

@@ -1,6 +1,6 @@
 import { TokenLogo } from '~/components/TokenLogo'
 import { IChainOverviewData } from './types'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, formattedNum, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { useRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -18,7 +18,7 @@ import { downloadChart } from '~/components/ECharts/utils'
 
 const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
-const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
+const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export const Stats = memo(function Stats(props: IChainOverviewData) {
 	const router = useRouter()
@@ -56,7 +56,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 		const groupBy =
 			hasAtleasOneBarChart && queryParams?.groupBy
-				? groupByOptions.includes(queryParams.groupBy as any)
+				? INTERVALS_LIST.includes(queryParams.groupBy as any)
 					? (queryParams.groupBy as any)
 					: 'daily'
 				: 'daily'
@@ -755,40 +755,17 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 					{hasAtleasOneBarChart ? (
 						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
-							<Tooltip
-								content="Daily"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'daily' || !groupBy}
-								onClick={() => updateGroupBy('daily')}
-							>
-								D
-							</Tooltip>
-							<Tooltip
-								content="Weekly"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'weekly'}
-								onClick={() => updateGroupBy('weekly')}
-							>
-								W
-							</Tooltip>
-							<Tooltip
-								content="Monthly"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'monthly'}
-								onClick={() => updateGroupBy('monthly')}
-							>
-								M
-							</Tooltip>
-							<button
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'cumulative'}
-								onClick={() => updateGroupBy('cumulative')}
-							>
-								Cumulative
-							</button>
+							{INTERVALS_LIST.map((dataInterval) => (
+								<Tooltip
+									content={capitalizeFirstLetter(dataInterval)}
+									render={<button />}
+									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+									data-active={groupBy === dataInterval}
+									onClick={() => updateGroupBy(dataInterval)}
+								>
+									{dataInterval.slice(0, 1).toUpperCase()}
+								</Tooltip>
+							))}
 						</div>
 					) : null}
 					<EmbedChart />

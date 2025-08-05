@@ -3,11 +3,11 @@ import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, download, toNiceCsvDate } from '~/utils'
 import { ADAPTER_TYPES } from './constants'
-import { LazyChart } from '~/components/LazyChart'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { oldBlue } from '~/constants/colors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useQuery } from '@tanstack/react-query'
+import { Tooltip } from '~/components/Tooltip'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
@@ -15,33 +15,18 @@ const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
 ) as React.FC<ILineAndBarChartProps>
 
-const chartTitleBy = ({
-	adapterType,
-	chartType
-}: {
-	adapterType: `${ADAPTER_TYPES}`
-	chartType: 'overview' | 'chain' | 'version'
-}) => {
-	switch (chartType) {
-		case 'chain':
-			return `${adapterType === 'fees' ? 'Fees' : 'Volume'} by chain`
-		case 'version':
-			return `${adapterType === 'fees' ? 'Fees' : 'Volume'} by protocol version`
-		default:
-			return `${adapterType === 'fees' ? 'Fees' : 'Volume'}`
-	}
-}
-
 export const DimensionProtocolChartByType = ({
 	protocolName,
 	adapterType,
 	chartType,
-	metadata
+	metadata,
+	title
 }: {
 	protocolName: string
 	adapterType: `${ADAPTER_TYPES}`
 	chartType: 'chain' | 'version'
 	metadata?: { revenue?: boolean; bribeRevenue?: boolean; tokenTax?: boolean }
+	title: string
 }) => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['dimension-adapter-chart', adapterType, protocolName, JSON.stringify(metadata)],
@@ -55,31 +40,24 @@ export const DimensionProtocolChartByType = ({
 	})
 
 	if (isLoading) {
-		return (
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[418px]" />
-		)
+		return <p className="text-sm text-center p-3">Loading...</p>
 	}
 
 	if (error) {
 		return (
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col items-center justify-center col-span-2 min-h-[418px]">
-				<p className="text-sm text-(--pct-red) p-3">Error : {error.message}</p>
+				<p className="text-sm text-center text-(--pct-red) p-3">Error : {error.message}</p>
 			</div>
 		)
 	}
 
 	return (
-		<LazyChart
-			enable
-			className="relative col-span-full min-h-[418px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
-		>
-			<ChartByType
-				totalDataChartBreakdown={data.totalDataChartBreakdown}
-				allTypes={chartType === 'chain' ? data.chains : data.linkedProtocols.slice(1)}
-				title={chartTitleBy({ adapterType, chartType })}
-				chartType={chartType}
-			/>
-		</LazyChart>
+		<ChartByType
+			totalDataChartBreakdown={data.totalDataChartBreakdown}
+			allTypes={chartType === 'chain' ? data.chains : data.linkedProtocols.slice(1)}
+			title={title}
+			chartType={chartType}
+		/>
 	)
 }
 
@@ -192,7 +170,7 @@ const ChartByType = ({
 				data: finalChartData[chartType],
 				type: chartInterval === 'Cumulative' ? 'line' : 'bar',
 				name: chartType,
-				stack: chartType,
+				stack: 'chartType',
 				color: stackColors[chartType]
 			}
 		}
@@ -200,19 +178,20 @@ const ChartByType = ({
 	}, [allTypes, chartInterval, chartType, selectedTypes, totalDataChartBreakdown])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[418px]">
-			<div className="flex items-center gap-1 justify-end flex-wrap p-3">
+		<>
+			<div className="flex items-center gap-1 justify-end flex-wrap p-2">
 				{title && <h2 className="text-base font-semibold mr-auto">{title}</h2>}
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 					{INTERVALS_LIST.map((dataInterval) => (
-						<button
-							key={dataInterval}
-							onClick={() => changeChartInterval(dataInterval as any)}
+						<Tooltip
+							content={dataInterval}
+							render={<button />}
+							className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 							data-active={dataInterval === chartInterval}
-							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+							onClick={() => changeChartInterval(dataInterval as any)}
 						>
-							{dataInterval}
-						</button>
+							{dataInterval.slice(0, 1).toUpperCase()}
+						</Tooltip>
 					))}
 				</div>
 				<SelectWithCombobox
@@ -228,7 +207,7 @@ const ChartByType = ({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium z-10'
+							'h-[30px] bg-transparent! border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
 					}}
 					portal
 				/>
@@ -275,10 +254,10 @@ const ChartByType = ({
 						}
 					}}
 					smol
-					className="bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
-			<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+			<React.Suspense fallback={<></>}>
 				<LineAndBarChart
 					charts={mainChartData.charts}
 					groupBy={
@@ -287,6 +266,6 @@ const ChartByType = ({
 					valueSymbol="$"
 				/>
 			</React.Suspense>
-		</div>
+		</>
 	)
 }
