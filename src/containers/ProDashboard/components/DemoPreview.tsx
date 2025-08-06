@@ -5,6 +5,7 @@ import { ProtocolsByChainTable } from './ProTable'
 import { ChartPreview } from './ChartPreview'
 import { Icon } from '~/components/Icon'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import type { ChartConfig, MultiChartConfig, TextConfig } from '../types'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from '../types'
 
@@ -393,13 +394,15 @@ const features = [
 ]
 
 export const DemoPreview = () => {
+	const router = useRouter()
+
 	return (
-		<div className="relative min-h-screen">
+		<div className="relative min-h-screen pro-dashboard">
 			<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl py-6 border-b border-(--divider)">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
 					<div className="text-center">
 						<h1 className="text-3xl font-bold text-(--text1) mb-2">Pro Dashboard Preview</h1>
-						<p className="text-lg text-(--text2)">See what you'll get with Pro access:</p>
+						<p className="text-lg text-(--text2)">See what you'll get with Llama+ access:</p>
 					</div>
 
 					<div className="flex items-center justify-center">
@@ -418,19 +421,90 @@ export const DemoPreview = () => {
 						</div>
 					</div>
 
-					<div className="flex items-center justify-center gap-6">
-						<div className="text-center">
-							<div className="text-3xl font-bold text-(--text1)">
-								$49<span className="text-lg font-normal text-(--text2)">/month</span>
+					<div className="max-w-5xl mx-auto">
+						<div className="grid md:grid-cols-2 gap-8 items-stretch">
+							<div className="bg-gray-50/50 dark:bg-(--bg7) backdrop-filter backdrop-blur-xl border border-gray-200 dark:border-(--divider) rounded-sm px-6 py-8 text-center flex flex-col">
+								<h3 className="text-2xl font-bold text-gray-700 dark:text-(--text1) mb-3">Free Account</h3>
+								<div className="text-3xl font-bold text-gray-800 dark:text-(--text1) mb-6">
+									$0<span className="text-base font-normal text-gray-600 dark:text-(--text2)">/month</span>
+								</div>
+								<ul className="text-left space-y-3 text-sm mb-8 flex-1">
+									<li className="flex items-start gap-2">
+										<Icon
+											name="check"
+											height={14}
+											width={14}
+											className="text-green-600 dark:text-green-500 shrink-0 mt-0.5"
+										/>
+										<span className="text-gray-700 dark:text-(--text2)">Access to public dashboards</span>
+									</li>
+									<li className="flex items-start gap-2">
+										<Icon
+											name="check"
+											height={14}
+											width={14}
+											className="text-green-600 dark:text-green-500 shrink-0 mt-0.5"
+										/>
+										<span className="text-gray-700 dark:text-(--text2)">View community-created dashboards</span>
+									</li>
+									<li className="flex items-start gap-2">
+										<Icon
+											name="check"
+											height={14}
+											width={14}
+											className="text-green-600 dark:text-green-500 shrink-0 mt-0.5"
+										/>
+										<span className="text-gray-700 dark:text-(--text2)">Basic DeFi data access</span>
+									</li>
+								</ul>
+								<Link href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}>
+									<span className="px-6 py-2.5 border border-(--primary1) text-(--primary1) font-medium hover:bg-(--primary1) hover:text-white transition-colors cursor-pointer rounded-sm inline-block text-sm">
+										Create Free Account
+									</span>
+								</Link>
 							</div>
-							<div className="text-sm text-(--text2)">Llama+ subscription</div>
+
+							<div className="bg-gradient-to-br from-(--primary1)/10 to-purple-600/10 backdrop-filter backdrop-blur-xl border-2 border-(--primary1) rounded-sm px-6 py-8 text-center relative shadow-xl shadow-(--primary1)/10 transform hover:scale-[1.02] transition-transform flex flex-col">
+								<h3 className="text-2xl font-bold bg-gradient-to-r from-(--primary1) to-purple-600 bg-clip-text text-transparent mb-3">
+									Llama+
+								</h3>
+								<div className="text-4xl font-bold text-(--primary1) mb-6">
+									$49<span className="text-base font-normal text-(--text2)">/month</span>
+								</div>
+								<ul className="text-left space-y-3 text-sm mb-8 flex-1">
+									<li className="flex items-start gap-2">
+										<Icon name="star" height={14} width={14} className="text-(--primary1) shrink-0 mt-0.5" />
+										<span className="pro-text1 font-semibold">Everything in Free, plus:</span>
+									</li>
+									<li className="flex items-start gap-2">
+										<Icon name="check" height={14} width={14} className="text-green-500 shrink-0 mt-0.5" />
+										<span className="pro-text1">Create unlimited custom dashboards</span>
+									</li>
+									<li className="flex items-start gap-2">
+										<Icon name="check" height={14} width={14} className="text-green-500 shrink-0 mt-0.5" />
+										<span className="pro-text1">CSV data downloads</span>
+									</li>
+									<li className="flex items-start gap-2">
+										<Icon name="check" height={14} width={14} className="text-green-500 shrink-0 mt-0.5" />
+										<span className="pro-text1">Advanced analytics & custom columns</span>
+									</li>
+									<li className="flex items-start gap-2">
+										<Icon name="check" height={14} width={14} className="text-green-500 shrink-0 mt-0.5" />
+										<span className="pro-text1">Full LlamaFeed access with AI summaries</span>
+									</li>
+									<li className="flex items-start gap-2">
+										<Icon name="check" height={14} width={14} className="text-green-500 shrink-0 mt-0.5" />
+										<span className="pro-text1">Priority access to new features</span>
+									</li>
+								</ul>
+								<Link href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}>
+									<span className="px-8 py-3 bg-gradient-to-r from-(--primary1) to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer rounded-sm inline-flex shadow-lg">
+										<Icon name="sparkles" height={16} width={16} />
+										Upgrade to Llama+
+									</span>
+								</Link>
+							</div>
 						</div>
-						<Link href="/subscription">
-							<span className="px-8 py-3 bg-(--primary1) text-white font-medium hover:bg-(--primary1-hover) transition-colors flex items-center gap-2 cursor-pointer rounded-md">
-								<Icon name="arrow-right" height={16} width={16} />
-								Upgrade Now
-							</span>
-						</Link>
 					</div>
 				</div>
 			</div>
