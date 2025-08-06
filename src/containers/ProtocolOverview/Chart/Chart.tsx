@@ -470,7 +470,7 @@ export default function ProtocolLineBarChart({
 			},
 			xAxis,
 			yAxis: finalYAxis,
-			dataZoom,
+			...(series.every((s) => s.data.length > 1) ? { dataZoom } : {}),
 			series
 		})
 

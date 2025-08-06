@@ -272,6 +272,34 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</span>
 					</label>
 				))}
+				{toggledMetrics.events === 'true' && (props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) ? (
+					<label className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto">
+						<input
+							type="checkbox"
+							value="events"
+							checked={true}
+							onChange={() => {
+								router.push(
+									updateQueryParamInUrl(router.asPath, 'events', toggledMetrics.events === 'true' ? 'false' : 'true'),
+									undefined,
+									{
+										shallow: true
+									}
+								)
+							}}
+							className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
+						/>
+						<span
+							className="text-xs flex items-center gap-1 border-2 border-(--old-blue) rounded-full px-2 py-1"
+							style={{
+								borderColor: props.chartColors['TVL']
+							}}
+						>
+							<span>Events</span>
+							<Icon name="x" className="h-[14px] w-[14px]" />
+						</span>
+					</label>
+				) : null}
 				<div className="ml-auto flex flex-wrap justify-end gap-1">
 					{props.chartDenominations?.length ? (
 						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
