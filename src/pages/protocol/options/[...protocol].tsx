@@ -116,7 +116,8 @@ export const getStaticProps = withPerformanceLogging(
 				defaultCharts,
 				hasMultipleChain: premiumVolumeData?.chains?.length > 1 ? true : false,
 				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				defaultChartView: premiumVolumeData?.defaultChartView ?? notionalVolumeData?.defaultChartView ?? 'daily'
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -130,7 +131,7 @@ export async function getStaticPaths() {
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export default function Protocols(props) {
-	const [groupBy, setGroupBy] = useState<typeof INTERVALS_LIST[number]>('daily')
+	const [groupBy, setGroupBy] = useState<typeof INTERVALS_LIST[number]>(props.defaultChartView)
 	const [charts, setCharts] = useState<string[]>(props.defaultCharts)
 
 	const finalCharts = useMemo(() => {
