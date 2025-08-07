@@ -747,13 +747,6 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Treasury')
 	}
 
-	if (metadata.activeUsers) {
-		availableCharts.push('Active Addresses')
-		availableCharts.push('New Addresses')
-		availableCharts.push('Transactions')
-		// availableCharts.push('Gas Used')
-	}
-
 	if (yields) {
 		availableCharts.push('Median APY')
 	}
