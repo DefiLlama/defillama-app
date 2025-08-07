@@ -104,7 +104,7 @@ function ProDashboardContent() {
 
 			<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 md:mb-2">
 				<Tooltip content={!hasChartItems ? 'Add chart items to enable time period selection' : null} placement="bottom">
-					<div className="flex gap-0 overflow-x-auto order-2 md:order-1">
+					<div className={`flex gap-0 overflow-x-auto order-2 md:order-1 ${isReadOnly ? 'invisible' : ''}`}>
 						{timePeriods.map((period) => (
 							<button
 								key={period.value}
@@ -196,7 +196,7 @@ function ProDashboardContent() {
 											title="Share dashboard"
 										>
 											<Icon name="link" height={16} width={16} />
-											<span>Share</span>
+											<span className="hidden xl:inline">Share</span>
 										</button>
 									</div>
 								)}
@@ -207,7 +207,7 @@ function ProDashboardContent() {
 											className="flex items-center gap-1 text-sm pro-text3 opacity-50 cursor-not-allowed"
 										>
 											<Icon name="link" height={16} width={16} />
-											<span>Share</span>
+											<span className="hidden xl:inline">Share</span>
 										</button>
 									</Tooltip>
 								)}
@@ -223,11 +223,11 @@ function ProDashboardContent() {
 										setShowSubscribeModal(true)
 									}
 								}}
-								className="flex items-center gap-2 px-3 py-2 border border-(--primary1) text-(--primary1) hover:bg-(--primary1) hover:text-white transition-colors"
+								className="flex items-center gap-2  ml-2 px-2 xl:px-3 py-2 border border-(--primary1) text-(--primary1) hover:bg-(--primary1) hover:text-white transition-colors"
 								title="Copy Dashboard"
 							>
 								<Icon name="copy" height={16} width={16} />
-								<span className="hidden sm:inline">Copy Dashboard</span>
+								<span className="hidden xl:inline">Copy</span>
 							</button>
 						)}
 
@@ -379,7 +379,9 @@ function ProDashboardContent() {
 					<button
 						className={`px-4 py-2 ${
 							!isReadOnly ? 'bg-(--primary1) hover:bg-(--primary1-hover)' : 'bg-(--bg3) cursor-not-allowed'
-						} text-white items-center gap-2 text-base whitespace-nowrap hidden md:flex`}
+						} text-white items-center gap-2 text-base whitespace-nowrap hidden md:flex ${
+							isReadOnly ? 'invisible' : ''
+						}`}
 						onClick={() => !isReadOnly && setShowAddModal(true)}
 						disabled={isReadOnly}
 					>
