@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { slug } from '~/utils'
 import { Icon } from '~/components/Icon'
 import { useRouter } from 'next/router'
@@ -7,13 +7,13 @@ import { matchSorter } from 'match-sorter'
 
 export function RaisesSearch({ list }) {
 	const [searchValue, setSearchValue] = useState('')
-
+	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
-		return matchSorter(list || [], searchValue, {
+		return matchSorter(list || [], deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [list, searchValue])
+	}, [list, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)
 

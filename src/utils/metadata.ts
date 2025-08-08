@@ -66,12 +66,7 @@ const metadataCache: {
 		categories: Array<string>
 		tags: Array<string>
 	}
-	searchList: {
-		protocols: Array<{ name: string; route: string }>
-		chains: Array<{ name: string; route: string }>
-		categories: Array<{ name: string; route: string }>
-		tags: Array<{ name: string; route: string }>
-	}
+	searchList: Array<{ category: string; pages: Array<{ name: string; route: string }>; route: string }>
 } = {
 	chainMetadata,
 	protocolMetadata,
@@ -126,5 +121,12 @@ function generateSearchList({ protocols, chains, categoriesAndTags }) {
 		searchList.tags.push({ name: tag, route: `/tag/${slug(tag)}` })
 	}
 
-	return searchList
+	const finalSearchList = [
+		{ category: 'Protocols', pages: searchList.protocols, route: '/protocols' },
+		{ category: 'Chains', pages: searchList.chains, route: '/chains' },
+		{ category: 'Categories', pages: searchList.categories, route: '/categories' },
+		{ category: 'Tags', pages: searchList.tags, route: '/categories' }
+	]
+
+	return finalSearchList
 }

@@ -23,15 +23,15 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	} = props
 
 	const [searchValue, setSearchValue] = React.useState('')
-
+	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const matches = React.useMemo(() => {
 		if (skipSearching) return data || []
-		return matchSorter(data || [], searchValue, {
+		return matchSorter(data || [], deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [data, searchValue, skipSearching])
+	}, [data, deferredSearchValue, skipSearching])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 

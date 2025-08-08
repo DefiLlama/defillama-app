@@ -1,13 +1,13 @@
+import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
-import { useInstantSearch, useSearchBox } from 'react-instantsearch'
-import { SearchV2 } from '../InstantSearch'
-import { useIsClient } from '~/hooks'
-import { useCallback, useMemo } from 'react'
+import { lazy, useMemo } from 'react'
 import { tvlOptions } from '~/components/Filters/options'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { Select } from '~/components/Select'
+import { Icon } from '~/components/Icon'
+
+const Results = lazy(() => import('../Results').then((mod) => ({ default: mod.Results })))
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -16,62 +16,24 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 	hideFilters?: boolean
 }
 
-const empty = []
-
-export const ProtocolsChainsSearch = ({ hideFilters, ...props }: IProtocolsChainsSearch) => {
-	const isClient = useIsClient()
-
-	if (!isClient) {
-		return <DesktopSearch {...props} data={empty} loading={true} filters={hideFilters ? null : <></>} />
-	}
-
+export const ProtocolsChainsSearch = ({ hideFilters, options }: IProtocolsChainsSearch) => {
 	return (
-		<span className="hidden lg:block min-h-[32px]">
-			<SearchV2 indexName="protocols">
-				<Search {...props} hideFilters={hideFilters} />
-			</SearchV2>
+		<span className="hidden lg:flex items-center justify-between gap-2">
+			<Ariakit.DialogProvider>
+				<Ariakit.DialogDisclosure className="relative w-full max-w-[50vw] flex items-center text-sm rounded-md border border-(--cards-border) text-[#7c7c7c] dark:text-[#818283] bg-(--app-bg) py-[5px] px-[10px] pl-8">
+					<span className="absolute top-[8px] left-[9px]">
+						<span className="sr-only">Open Search</span>
+						<Icon name="search" height={14} width={14} />
+					</span>
+					<span>Search...</span>
+					<span className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
+						⌘K
+					</span>
+				</Ariakit.DialogDisclosure>
+				<Results />
+			</Ariakit.DialogProvider>
+			{hideFilters || (options && options.length === 0) ? null : <TvlOptions options={options} />}
 		</span>
-	)
-}
-
-const Search = ({ hideFilters = false, options, ...props }: IProtocolsChainsSearch) => {
-	const { refine } = useSearchBox()
-
-	const { results, status } = useInstantSearch({ catchError: true })
-
-	const onSearchTermChange = useCallback(
-		(value: string) => {
-			refine(value)
-		},
-		[refine]
-	)
-
-	const sortedResults = results.hits.sort((a, b) => {
-		if (a.deprecated && !b.deprecated) {
-			return 1
-		}
-		if (b.deprecated && !a.deprecated) {
-			return -1
-		}
-		return 0
-	})
-
-	const memoizedFilters = useMemo(
-		() => (hideFilters || (options && options.length === 0) ? null : <TvlOptions options={options} />),
-		[hideFilters, options]
-	)
-
-	return (
-		<>
-			<DesktopSearch
-				{...props}
-				data={sortedResults}
-				loading={status !== 'idle'}
-				filters={memoizedFilters}
-				onSearchTermChange={onSearchTermChange}
-				skipSearching
-			/>
-		</>
 	)
 }
 

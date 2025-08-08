@@ -41,23 +41,23 @@ export function SelectWithCombobox({
 	portal
 }: ISelectWithCombobox) {
 	const [searchValue, setSearchValue] = React.useState('')
-
+	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
 	const matches = React.useMemo(() => {
 		if (valuesAreAnArrayOfStrings) {
-			return matchSorter(allValues as Array<string>, searchValue, {
+			return matchSorter(allValues as Array<string>, deferredSearchValue, {
 				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 				threshold: matchSorter.rankings.CONTAINS
 			})
 		}
 
-		return matchSorter(allValues as Array<{ name: string }>, searchValue, {
+		return matchSorter(allValues as Array<{ name: string }>, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [valuesAreAnArrayOfStrings, allValues, searchValue])
+	}, [valuesAreAnArrayOfStrings, allValues, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 

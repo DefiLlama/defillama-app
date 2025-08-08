@@ -96,7 +96,14 @@ function generateSearchList({ protocols, chains, categoriesAndTags }) {
 		searchList.tags.push({ name: tag, route: `/tag/${slug(tag)}` })
 	}
 
-	return searchList
+	const finalSearchList = [
+		{ category: 'Protocols', pages: searchList.protocols, route: '/protocols' },
+		{ category: 'Chains', pages: searchList.chains, route: '/chains' },
+		{ category: 'Categories', pages: searchList.categories, route: '/categories' },
+		{ category: 'Tags', pages: searchList.tags, route: '/categories' }
+	]
+
+	return finalSearchList
 }
 
 const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
