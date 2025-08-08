@@ -178,100 +178,106 @@ const protocolChartsKeys = {
 	fdv: 'fdv'
 }
 
-const NameColumn = (
+const defaultColumns = (
 	type: IProtocolsWithTokensByChainPageData['type']
-): ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]> => {
-	return {
-		id: 'name',
-		header: 'Name',
-		accessorFn: (protocol) => protocol.name,
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const Chains = () => (
-				<span className="flex flex-col gap-1">
-					{row.original.chains.map((chain) => (
-						<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
-							<TokenLogo logo={chainIconUrl(chain)} size={14} />
-							<span>{chain}</span>
+): ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] => {
+	return [
+		{
+			id: 'name',
+			header: 'Name',
+			accessorFn: (protocol) => protocol.name,
+			enableSorting: false,
+			cell: ({ getValue, row, table }) => {
+				const value = getValue() as string
+				const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+				const Chains = () => (
+					<span className="flex flex-col gap-1">
+						{row.original.chains.map((chain) => (
+							<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
+								<TokenLogo logo={chainIconUrl(chain)} size={14} />
+								<span>{chain}</span>
+							</span>
+						))}
+					</span>
+				)
+
+				const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
+				const chartKey =
+					(['Chain', 'Rollup'].includes(row.original.category) ? chainChartsKeys[type] : protocolChartsKeys[type]) ??
+					type
+
+				return (
+					<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
+						{row.subRows?.length > 0 ? (
+							<button
+								className="absolute -left-[18px]"
+								{...{
+									onClick: row.getToggleExpandedHandler()
+								}}
+							>
+								{row.getIsExpanded() ? (
+									<>
+										<Icon name="chevron-down" height={16} width={16} />
+										<span className="sr-only">View child protocols</span>
+									</>
+								) : (
+									<>
+										<Icon name="chevron-right" height={16} width={16} />
+										<span className="sr-only">Hide child protocols</span>
+									</>
+								)}
+							</button>
+						) : null}
+
+						<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
+							{index + 1}
 						</span>
-					))}
-				</span>
-			)
 
-			const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
-			const chartKey =
-				(['Chain', 'Rollup'].includes(row.original.category) ? chainChartsKeys[type] : protocolChartsKeys[type]) ?? type
+						<TokenLogo logo={row.original.logo} data-lgonly />
 
-			return (
-				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
-					{row.subRows?.length > 0 ? (
-						<button
-							className="absolute -left-[18px]"
-							{...{
-								onClick: row.getToggleExpandedHandler()
-							}}
-						>
-							{row.getIsExpanded() ? (
-								<>
-									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
-								</>
-							) : (
-								<>
-									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
-								</>
-							)}
-						</button>
-					) : null}
+						<span className="flex flex-col -my-2">
+							<BasicLink
+								href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
+								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							>
+								{value}
+							</BasicLink>
 
-					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-						{index + 1}
+							<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
+								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+							</Tooltip>
+						</span>
 					</span>
-
-					<TokenLogo logo={row.original.logo} data-lgonly />
-
-					<span className="flex flex-col -my-2">
-						<BasicLink
-							href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
-							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
-						>
-							{value}
-						</BasicLink>
-
-						<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
-							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip>
-					</span>
-				</span>
-			)
+				)
+			},
+			size: 280
 		},
-		size: 280
-	}
+		{
+			id: 'category',
+			header: 'Category',
+			accessorFn: (protocol) => protocol.category,
+			enableSorting: false,
+			cell: ({ getValue }) =>
+				getValue() ? (
+					<BasicLink
+						href={`/protocols/${slug(getValue() as string)}`}
+						className="text-sm font-medium text-(--link-text)"
+					>
+						{getValue() as string}
+					</BasicLink>
+				) : (
+					''
+				),
+			size: 128,
+			meta: {
+				align: 'end'
+			}
+		}
+	]
 }
 
 const mcapColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
-	NameColumn('mcap'),
-	{
-		id: 'category',
-		header: 'Category',
-		accessorFn: (protocol) => protocol.category,
-		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<BasicLink href={`/protocols/${slug(getValue() as string)}`} className="text-sm font-medium text-(--link-text)">
-					{getValue() as string}
-				</BasicLink>
-			) : (
-				''
-			),
-		size: 128,
-		meta: {
-			align: 'end'
-		}
-	},
+	...defaultColumns('mcap'),
 	{
 		id: 'mcap',
 		header: 'Market Cap',
@@ -286,25 +292,7 @@ const mcapColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]
 ]
 
 const fdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
-	NameColumn('fdv'),
-	{
-		id: 'category',
-		header: 'Category',
-		accessorFn: (protocol) => protocol.category,
-		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<BasicLink href={`/protocols/${slug(getValue() as string)}`} className="text-sm font-medium text-(--link-text)">
-					{getValue() as string}
-				</BasicLink>
-			) : (
-				''
-			),
-		size: 128,
-		meta: {
-			align: 'end'
-		}
-	},
+	...defaultColumns('fdv'),
 	{
 		id: 'fdv',
 		header: 'FDV',
@@ -319,25 +307,7 @@ const fdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>
 ]
 
 const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
-	NameColumn('price'),
-	{
-		id: 'category',
-		header: 'Category',
-		accessorFn: (protocol) => protocol.category,
-		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<BasicLink href={`/protocols/${slug(getValue() as string)}`} className="text-sm font-medium text-(--link-text)">
-					{getValue() as string}
-				</BasicLink>
-			) : (
-				''
-			),
-		size: 128,
-		meta: {
-			align: 'end'
-		}
-	},
+	...defaultColumns('price'),
 	{
 		id: 'price',
 		header: 'Token Price',
