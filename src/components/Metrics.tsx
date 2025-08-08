@@ -572,7 +572,7 @@ export const protocolsMetrics: Array<{
 				mainRoute: '/outstanding-fdv',
 				chainRoute: `/outstanding-fdv/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.adjustedFDV?.protocols ?? 0,
-				description: 'Token price multiplied by fully diluted supply'
+				description: `Token price multiplied by outstanding supply. \n\nOutstanding supply is the total supply minus the supply that not yet allocated to anything (eg coins in treasury or reserve).`
 			},
 			{
 				name: 'Token Price',
