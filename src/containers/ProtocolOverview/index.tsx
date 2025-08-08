@@ -1307,7 +1307,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 					<Tooltip
 						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-						content={`Outstanding FDV is calculated by taking the outstanding supply of the token and multiplying it by the price.\n\nOutstanding supply is the total supply minus the supply that not yet allocated to anything (eg coins in treasury or reserve).`}
+						content={`Outstanding FDV is calculated by taking the outstanding supply of the token and multiplying it by the price.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).`}
 					>
 						Outstanding FDV
 					</Tooltip>
