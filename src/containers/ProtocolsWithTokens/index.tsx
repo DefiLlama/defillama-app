@@ -1,6 +1,6 @@
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
+import { Metrics, TMetric } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -95,10 +95,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 		)
 	}
 
-	const metricName =
-		props.type === 'mcap' ? 'Market Cap' : props.type === 'price' ? 'Token Price' : props.type === 'fdv' ? 'FDV' : 'TVL'
-	const columns =
-		props.type === 'mcap' ? mcapColumns : props.type === 'price' ? priceColumns : props.type === 'fdv' ? fdvColumns : []
+	const { metricName, columns } = getMetricNameAndColumns(props.type)
 
 	return (
 		<>
@@ -235,18 +232,27 @@ const defaultColumns = (
 
 						<TokenLogo logo={row.original.logo} data-lgonly />
 
-						<span className="flex flex-col -my-2">
+						{row.original.chains.length ? (
+							<span className="flex flex-col -my-2">
+								<BasicLink
+									href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
+									className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								>
+									{value}
+								</BasicLink>
+
+								<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
+									{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+								</Tooltip>
+							</span>
+						) : (
 							<BasicLink
 								href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
 								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 							>
 								{value}
 							</BasicLink>
-
-							<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
-								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-							</Tooltip>
-						</span>
+						)}
 					</span>
 				)
 			},
@@ -320,3 +326,36 @@ const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0
 		size: 128
 	}
 ]
+
+const adjustedFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+	...defaultColumns('adjusted-fdv'),
+	{
+		id: 'adjusted-fdv',
+		header: 'Adjusted FDV',
+		accessorFn: (protocol) => protocol.value,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end'
+		},
+		size: 128
+	}
+]
+
+function getMetricNameAndColumns(type: IProtocolsWithTokensByChainPageData['type']): {
+	metricName: TMetric
+	columns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[]
+} {
+	switch (type) {
+		case 'mcap':
+			return { metricName: 'Market Cap', columns: mcapColumns }
+		case 'price':
+			return { metricName: 'Token Price', columns: priceColumns }
+		case 'fdv':
+			return { metricName: 'FDV', columns: fdvColumns }
+		case 'adjusted-fdv':
+			return { metricName: 'Adjusted FDV', columns: adjustedFdvColumns }
+		default:
+			return { metricName: 'TVL', columns: [] }
+	}
+}

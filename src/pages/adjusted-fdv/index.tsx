@@ -1,11 +1,11 @@
 import { maxAgeForNext } from '~/api'
 import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
-import { getProtocolsMarketCapsByChain } from '~/containers/ProtocolsWithTokens/queries'
+import { getProtocolsAdjustedFDVsByChain } from '~/containers/ProtocolsWithTokens/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging(`protocols-market-caps/index`, async () => {
-	const data = await getProtocolsMarketCapsByChain({ chain: 'All' })
+export const getStaticProps = withPerformanceLogging(`protocols-aFDV/index`, async () => {
+	const data = await getProtocolsAdjustedFDVsByChain({ chain: 'All' })
 
 	if (!data) return { notFound: true }
 
@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(`protocols-market-caps/inde
 
 export default function ProtocolsMarketCaps(props) {
 	return (
-		<Layout title="Market Caps - DefiLlama">
+		<Layout title="Adjusted FDV - DefiLlama">
 			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)
