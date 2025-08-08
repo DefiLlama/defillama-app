@@ -1,7 +1,7 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { McapsByChain } from '~/containers/ProtocolMcaps/McapsByChain'
-import { getProtocolsMarketCapsByChain } from '~/containers/ProtocolMcaps/queries'
+import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
+import { getProtocolsMarketCapsByChain } from '~/containers/ProtocolsWithTokens/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -33,7 +33,7 @@ export const getStaticProps = withPerformanceLogging(
 export default function ProtocolsMarketCapsByChain(props) {
 	return (
 		<Layout title="Market Caps - DefiLlama">
-			<McapsByChain {...props} />
+			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)
 }

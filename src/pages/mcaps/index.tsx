@@ -1,6 +1,6 @@
 import { maxAgeForNext } from '~/api'
-import { McapsByChain } from '~/containers/ProtocolMcaps/McapsByChain'
-import { getProtocolsMarketCapsByChain } from '~/containers/ProtocolMcaps/queries'
+import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
+import { getProtocolsMarketCapsByChain } from '~/containers/ProtocolsWithTokens/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -18,7 +18,7 @@ export const getStaticProps = withPerformanceLogging(`protocols-market-caps/inde
 export default function ProtocolsMarketCaps(props) {
 	return (
 		<Layout title="Market Caps - DefiLlama">
-			<McapsByChain {...props} />
+			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)
 }

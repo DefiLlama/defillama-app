@@ -1,7 +1,7 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { getProtocolsTokenPricesByChain } from '~/containers/ProtocolTokenPrices/queries'
-import { TokenPricesByChain } from '~/containers/ProtocolTokenPrices/TokenPricesByChain'
+import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
+import { getProtocolsTokenPricesByChain } from '~/containers/ProtocolsWithTokens/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -33,7 +33,7 @@ export const getStaticProps = withPerformanceLogging(
 export default function ProtocolsTokenPricesByChain(props) {
 	return (
 		<Layout title="Token Prices - DefiLlama">
-			<TokenPricesByChain {...props} />
+			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)
 }

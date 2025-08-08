@@ -1,7 +1,7 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { FDVsByChain } from '~/containers/ProtocolFDVs/FDVsByChain'
-import { getProtocolsFDVsByChain } from '~/containers/ProtocolFDVs/queries'
+import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
+import { getProtocolsFDVsByChain } from '~/containers/ProtocolsWithTokens/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -33,7 +33,7 @@ export const getStaticProps = withPerformanceLogging(
 export default function ProtocolsFdvByChain(props) {
 	return (
 		<Layout title="Fully Diluted Valuations - DefiLlama">
-			<FDVsByChain {...props} />
+			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)
 }
