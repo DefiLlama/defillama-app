@@ -37,6 +37,9 @@ export const Results = () => {
 		<Ariakit.Dialog
 			className="dialog p-0 gap-0 sm:w-full sm:max-w-[min(85vw,615px)] max-sm:drawer h-[min(515px,100vh-32px)]"
 			unmountOnHide
+			onClose={() => {
+				setSearchValue('')
+			}}
 		>
 			<Ariakit.ComboboxProvider
 				setValue={(value) => {
