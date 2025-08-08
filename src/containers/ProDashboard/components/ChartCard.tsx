@@ -140,7 +140,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 
 	return (
 		<div className="px-4 pb-4 pt-2 h-full flex flex-col">
-			<div className={`mb-2 ${!isReadOnly ? 'pr-20' : ''}`}>
+			<div>
 				<div className="flex items-center gap-2 mb-2">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
