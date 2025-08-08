@@ -10,11 +10,16 @@ import {
 import { fetchApi } from '~/utils/async'
 import { formatYieldsPageData } from '~/containers/Yields/queries/utils'
 
+const formatChain = (chain: string) => {
+	if (chain.toLowerCase().includes('hyperliquid')) return 'Hyperliquid'
+	return chain
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const { chains } = req.query
-		const chainList = typeof chains === 'string' ? [chains] : chains || []
-
+		let chainList = typeof chains === 'string' ? [chains] : chains || []
+		chainList = chainList.map(formatChain)
 		const poolsAndConfig = await fetchApi([
 			YIELD_POOLS_API,
 			YIELD_CONFIG_API,
