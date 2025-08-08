@@ -201,7 +201,7 @@ const defaultColumns = (
 				const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
 				const chartKey =
 					(['Chain', 'Rollup'].includes(row.original.category) ? chainChartsKeys[type] : protocolChartsKeys[type]) ??
-					type
+					null
 
 				return (
 					<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -235,7 +235,9 @@ const defaultColumns = (
 						{row.original.chains.length ? (
 							<span className="flex flex-col -my-2">
 								<BasicLink
-									href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
+									href={`/${basePath}/${row.original.slug}${
+										chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''
+									}`}
 									className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
 								>
 									{value}
