@@ -1,7 +1,7 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { McapsByChain } from '~/containers/ProtocolMcaps/McapsByChain'
-import { getProtocolsMarketCapsByChain } from '~/containers/ProtocolMcaps/queries'
+import { FDVsByChain } from '~/containers/ProtocolFDVs/FDVsByChain'
+import { getProtocolsFDVsByChain } from '~/containers/ProtocolFDVs/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -11,7 +11,7 @@ export const getStaticPaths = async () => {
 }
 
 export const getStaticProps = withPerformanceLogging(
-	`protocols-market-caps/chain/[chain]`,
+	`protocols-fdv/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getProtocolsMarketCapsByChain({ chain: metadataCache.chainMetadata[chain].name })
+		const data = await getProtocolsFDVsByChain({ chain: metadataCache.chainMetadata[chain].name })
 
 		if (!data) return { notFound: true }
 
@@ -30,10 +30,10 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export default function ProtocolsMarketCapsByChain(props) {
+export default function ProtocolsFdvByChain(props) {
 	return (
-		<Layout title="Market Caps - DefiLlama">
-			<McapsByChain {...props} />
+		<Layout title="Fully Diluted Valuations - DefiLlama">
+			<FDVsByChain {...props} />
 		</Layout>
 	)
 }

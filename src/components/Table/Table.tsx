@@ -164,7 +164,7 @@ export function VirtualTable({
 									className={`p-3 whitespace-nowrap overflow-hidden text-ellipsis border-t border-r last:border-r-0 border-(--divider)
                     ${
 											compact
-												? 'flex items-center px-5 h-[64px] border-t-black/10 dark:border-t-white/10 border-r-transparent'
+												? 'flex items-center px-5 min-h-[50px] border-t-black/10 dark:border-t-white/10 border-r-transparent'
 												: ''
 										}`}
 								>

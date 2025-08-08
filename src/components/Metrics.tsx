@@ -32,6 +32,7 @@ export interface ITotalTrackedByMetric {
 	staking: { protocols: number; chains: number }
 	pool2: { protocols: number; chains: number }
 	mcap: { protocols: number; chains: number }
+	fdv: { protocols: number; chains: number }
 	pf: { protocols: number; chains: number }
 	ps: { protocols: number; chains: number }
 	price: { protocols: number; chains: number }
@@ -72,6 +73,7 @@ export type TMetric =
 	| 'Token Price'
 	| 'Treasury'
 	| 'Total Value Lost in Hacks'
+	| 'FDV'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -555,6 +557,13 @@ export const protocolsMetrics: Array<{
 				chainRoute: `/mcaps/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.mcap?.protocols ?? 0,
 				description: 'Token price multiplied by circulating supply'
+			},
+			{
+				name: 'FDV',
+				mainRoute: '/fdv',
+				chainRoute: `/fdv/chain/{chain}`,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fdv?.protocols ?? 0,
+				description: 'Token price multiplied by fully diluted supply'
 			},
 			{
 				name: 'Token Price',
