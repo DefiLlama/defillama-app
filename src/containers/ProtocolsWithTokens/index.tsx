@@ -330,10 +330,10 @@ const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0
 ]
 
 const adjustedFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
-	...defaultColumns('adjusted-fdv'),
+	...defaultColumns('outstanding-fdv'),
 	{
-		id: 'adjusted-fdv',
-		header: 'Adjusted FDV',
+		id: 'outstanding-fdv',
+		header: 'Outstanding FDV',
 		accessorFn: (protocol) => protocol.value,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
@@ -355,8 +355,8 @@ function getMetricNameAndColumns(type: IProtocolsWithTokensByChainPageData['type
 			return { metricName: 'Token Price', columns: priceColumns }
 		case 'fdv':
 			return { metricName: 'FDV', columns: fdvColumns }
-		case 'adjusted-fdv':
-			return { metricName: 'Adjusted FDV', columns: adjustedFdvColumns }
+		case 'outstanding-fdv':
+			return { metricName: 'Outstanding FDV', columns: adjustedFdvColumns }
 		default:
 			return { metricName: 'TVL', columns: [] }
 	}

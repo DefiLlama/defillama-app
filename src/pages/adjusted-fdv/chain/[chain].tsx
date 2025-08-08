@@ -32,7 +32,7 @@ export const getStaticProps = withPerformanceLogging(
 
 export default function ProtocolsMarketCapsByChain(props) {
 	return (
-		<Layout title="Adjusted FDV - DefiLlama">
+		<Layout title="Outstanding FDV - DefiLlama">
 			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)

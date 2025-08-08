@@ -29,6 +29,7 @@ export const PROTOCOLS_TREASURY = `${SERVER_URL}/treasuries`
 export const PROTOCOL_EMISSIONS_API = `${SERVER_URL}/emissions`
 export const PROTOCOL_EMISSIONS_LIST_API = `${DATASETS_SERVER_URL}/emissionsProtocolsList`
 export const PROTOCOL_EMISSION_API = `${SERVER_URL}/emission`
+export const PROTOCOL_EMISSION_API2 = `${DATASETS_SERVER_URL}/emissions`
 export const EMISSION_BREAKDOWN_API = `${SERVER_URL}/emissionsBreakdown`
 export const EMISSION_SUPPLY_METRICS = `${DATASETS_SERVER_URL}/emissionsSupplyMetrics`
 export const INFLOWS_API = `${SERVER_URL}/inflows`

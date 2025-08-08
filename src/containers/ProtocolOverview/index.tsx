@@ -1303,6 +1303,17 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 					<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.fdv.current)}</span>
 				</p>
 			) : null}
+			{props.outstandingFDV ? (
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<Tooltip
+						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+						content={`Outstanding FDV is calculated by taking the outstanding supply of the token and multiplying it by the price.\n\nOutstanding supply is the total supply minus the supply that is locked or not yet allocated.`}
+					>
+						Outstanding FDV
+					</Tooltip>
+					<span className="font-jetbrains">{props.formatPrice(props.outstandingFDV)}</span>
+				</p>
+			) : null}
 			{props.tokenCGData.volume24h?.total ? (
 				<details className="group">
 					<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">

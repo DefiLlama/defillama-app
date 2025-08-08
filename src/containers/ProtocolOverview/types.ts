@@ -224,6 +224,7 @@ export interface IProtocolOverviewPageData {
 		}
 		symbol: string | null
 	} | null
+	outstandingFDV: number | null
 	audits: {
 		total: number
 		auditLinks: Array<string>

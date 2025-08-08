@@ -75,7 +75,7 @@ export type TMetric =
 	| 'Treasury'
 	| 'Total Value Lost in Hacks'
 	| 'FDV'
-	| 'Adjusted FDV'
+	| 'Outstanding FDV'
 
 export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
 	const router = useRouter()
@@ -568,9 +568,9 @@ export const protocolsMetrics: Array<{
 				description: 'Token price multiplied by fully diluted supply'
 			},
 			{
-				name: 'Adjusted FDV',
-				mainRoute: '/adjusted-fdv',
-				chainRoute: `/adjusted-fdv/chain/{chain}`,
+				name: 'Outstanding FDV',
+				mainRoute: '/outstanding-fdv',
+				chainRoute: `/outstanding-fdv/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.adjustedFDV?.protocols ?? 0,
 				description: 'Token price multiplied by fully diluted supply'
 			},

@@ -7,6 +7,7 @@ import {
 	HOURLY_PROTOCOL_API,
 	LIQUIDITY_API,
 	PROTOCOL_API,
+	PROTOCOL_EMISSION_API2,
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
 	PROTOCOL_GOVERNANCE_TALLY_API,
@@ -176,6 +177,7 @@ export const getProtocolOverviewPageData = async ({
 		yieldsData,
 		articles,
 		incentives,
+		adjustedSupply,
 		users,
 		expenses,
 		yieldsConfig,
@@ -230,6 +232,7 @@ export const getProtocolOverviewPageData = async ({
 		any,
 		IArticle[],
 		any,
+		number | null,
 		{
 			activeUsers: number | null
 			newUsers: number | null
@@ -436,6 +439,11 @@ export const getProtocolOverviewPageData = async ({
 								'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms.'
 						}
 					})
+					.catch(() => null)
+			: null,
+		metadata?.emissions && protocolId
+			? fetchJson(`${PROTOCOL_EMISSION_API2}/${slug(metadata.displayName)}`)
+					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
 					.catch(() => null)
 			: null,
 		metadata.activeUsers && protocolId
@@ -856,6 +864,10 @@ export const getProtocolOverviewPageData = async ({
 				? { pools: tokenLiquidity, total: tokenLiquidity.reduce((acc, curr) => acc + curr[2], 0) }
 				: null,
 		tokenCGData: protocolData.tokenCGData ?? null,
+		outstandingFDV:
+			adjustedSupply && protocolData.tokenCGData?.price?.current
+				? adjustedSupply * protocolData.tokenCGData.price.current
+				: null,
 		audits:
 			+protocolData.audits > 0
 				? {

@@ -25,7 +25,7 @@ export interface IProtocolsWithTokensByChainPageData {
 	chain: string
 	chains: Array<{ label: string; to: string }>
 	categories: Array<string>
-	type: 'mcap' | 'price' | 'fdv' | 'adjusted-fdv'
+	type: 'mcap' | 'price' | 'fdv' | 'outstanding-fdv'
 }
 
 export async function getProtocolsMarketCapsByChain({
@@ -407,12 +407,12 @@ export async function getProtocolsAdjustedFDVsByChain({
 			.sort((a, b) => (b.value ?? 0) - (a.value ?? 0)),
 		chain,
 		chains: [
-			{ label: 'All', to: '/adjusted-fdv' },
+			{ label: 'All', to: '/outstanding-fdv' },
 			...chains
 				.filter((chain) => chainsWithEmissions.has(chain))
-				.map((chain) => ({ label: chain, to: `/adjusted-fdv/chain/${slug(chain)}` }))
+				.map((chain) => ({ label: chain, to: `/outstanding-fdv/chain/${slug(chain)}` }))
 		],
 		categories: Array.from(categories),
-		type: 'adjusted-fdv'
+		type: 'outstanding-fdv'
 	}
 }
