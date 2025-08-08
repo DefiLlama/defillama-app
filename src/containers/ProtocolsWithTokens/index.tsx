@@ -329,7 +329,7 @@ const priceColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0
 	}
 ]
 
-const adjustedFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
+const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[] = [
 	...defaultColumns('outstanding-fdv'),
 	{
 		id: 'outstanding-fdv',
@@ -338,7 +338,9 @@ const adjustedFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['protoco
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText:
+				'Token price multiplied by outstanding supply.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).'
 		},
 		size: 128
 	}
@@ -356,7 +358,7 @@ function getMetricNameAndColumns(type: IProtocolsWithTokensByChainPageData['type
 		case 'fdv':
 			return { metricName: 'FDV', columns: fdvColumns }
 		case 'outstanding-fdv':
-			return { metricName: 'Outstanding FDV', columns: adjustedFdvColumns }
+			return { metricName: 'Outstanding FDV', columns: outstandingFdvColumns }
 		default:
 			return { metricName: 'TVL', columns: [] }
 	}

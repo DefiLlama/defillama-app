@@ -271,15 +271,17 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 												className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
 												href={metric.route}
 											>
-												<span className="flex items-center gap-2 flex-wrap justify-between w-full">
+												<p className="flex items-center gap-2 flex-wrap justify-between w-full">
 													<span className="font-medium">{metric.name}</span>
 													{totalTrackedByMetric && metric.chainsTracked(totalTrackedByMetric) ? (
 														<span className="text-xs text-(--link)">
 															{metric.chainsTracked(totalTrackedByMetric)} tracked
 														</span>
 													) : null}
-												</span>
-												<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
+												</p>
+												<p className="text-[#666] dark:text-[#919296] text-start whitespace-pre-wrap">
+													{metric.description}
+												</p>
 											</BasicLink>
 										))}
 									</div>
@@ -307,15 +309,17 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 														: metric.mainRoute
 												}
 											>
-												<span className="flex items-center gap-2 flex-wrap justify-between w-full">
+												<p className="flex items-center gap-2 flex-wrap justify-between w-full">
 													<span className="font-medium">{metric.name}</span>
 													{totalTrackedByMetric && metric.protocolsTracked(totalTrackedByMetric) ? (
 														<span className="text-xs text-(--link)">
 															{metric.protocolsTracked(totalTrackedByMetric)} tracked
 														</span>
 													) : null}
-												</span>
-												<span className="text-[#666] dark:text-[#919296] text-start">{metric.description}</span>
+												</p>
+												<p className="text-[#666] dark:text-[#919296] text-start whitespace-pre-wrap">
+													{metric.description}
+												</p>
 											</BasicLink>
 										))}
 									</div>
@@ -572,7 +576,7 @@ export const protocolsMetrics: Array<{
 				mainRoute: '/outstanding-fdv',
 				chainRoute: `/outstanding-fdv/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.adjustedFDV?.protocols ?? 0,
-				description: `Token price multiplied by outstanding supply. \n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).`
+				description: `Token price multiplied by outstanding supply. Outstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).`
 			},
 			{
 				name: 'Token Price',
