@@ -1,13 +1,13 @@
 import { maxAgeForNext } from '~/api'
 import { TMetric } from '~/components/Metrics'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.OPTIONS
-const dataType = 'dailyPremiumVolume'
+const dataType = ADAPTER_DATA_TYPES.PREMIUM_VOLUME
 const type: TMetric = 'Options Premium Volume'
 
 export const getStaticProps = withPerformanceLogging(`${type}/index`, async () => {

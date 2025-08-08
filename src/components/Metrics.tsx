@@ -17,6 +17,7 @@ export interface ITotalTrackedByMetric {
 	dexs: { protocols: number; chains: number }
 	dexAggregators: { protocols: number; chains: number }
 	perps: { protocols: number; chains: number }
+	perpsOpenInterest: { protocols: number; chains: number }
 	perpAggregators: { protocols: number; chains: number }
 	options: { protocols: number; chains: number }
 	bridgeAggregators: { protocols: number; chains: number }
@@ -45,6 +46,7 @@ export type TMetric =
 	| 'Holders Revenue'
 	| 'DEX Volume'
 	| 'Perp Volume'
+	| 'Open Interest'
 	| 'DEX Aggregator Volume'
 	| 'Perp Aggregator Volume'
 	| 'Options Premium Volume'
@@ -425,6 +427,13 @@ export const protocolsMetrics: Array<{
 				chainRoute: `/perps/chain/{chain}`,
 				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perps?.protocols ?? 0,
 				description: 'Notional volume of all trades in a perp exchange, includes leverage'
+			},
+			{
+				name: 'Open Interest',
+				mainRoute: '/open-interest',
+				chainRoute: `/open-interest/chain/{chain}`,
+				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perpsOpenInterest?.protocols ?? 0,
+				description: 'Total notional value of all outstanding perpetual futures positions'
 			},
 			{
 				name: 'DEX Aggregator Volume',

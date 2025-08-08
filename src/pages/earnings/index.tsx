@@ -1,13 +1,13 @@
 import { maxAgeForNext } from '~/api'
 import { TMetric } from '~/components/Metrics'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = 'dailyEarnings'
+const dataType = ADAPTER_DATA_TYPES.DAILY_EARNINGS
 const type: TMetric = 'Earnings'
 
 export const getStaticProps = withPerformanceLogging(`${type}/index`, async () => {

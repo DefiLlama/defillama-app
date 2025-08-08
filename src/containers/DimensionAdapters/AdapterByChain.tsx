@@ -40,6 +40,7 @@ interface IProps extends IAdapterByChainPageData {
 		| 'Holders Revenue'
 		| 'DEX Volume'
 		| 'Perp Volume'
+		| 'Open Interest'
 		| 'Bridge Aggregator Volume'
 		| 'Perp Aggregator Volume'
 		| 'DEX Aggregator Volume'
@@ -384,7 +385,7 @@ export function AdapterByChain(props: IProps) {
 			<AdaptorsSearch type={props.adapterType} dataType={props.dataType} />
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.adapterType !== 'fees' ? (
+			{props.adapterType !== 'fees' && props.type !== 'Open Interest' ? (
 				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{props.chain !== 'All' && (
@@ -523,6 +524,7 @@ const protocolChartsKeys: Record<IProps['type'], typeof protocolCharts[keyof typ
 	'Options Notional Volume': 'optionsNotionalVolume',
 	'DEX Volume': 'dexVolume',
 	'Perp Volume': 'perpVolume',
+	'Open Interest': 'perpVolume',
 	'Bridge Aggregator Volume': 'bridgeAggregatorVolume',
 	'Perp Aggregator Volume': 'perpAggregatorVolume',
 	'DEX Aggregator Volume': 'dexAggregatorVolume',
@@ -1033,6 +1035,48 @@ const getColumnsByType = (
 				meta: {
 					align: 'center',
 					headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage in the last 30 days'
+				},
+				size: 160
+			}
+		],
+		'Open Interest': [
+			NameColumn('Open Interest'),
+			{
+				id: 'total24h',
+				header: 'Open Interest 24h',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+				},
+				size: 160
+			},
+			{
+				id: 'total7d',
+				header: 'Open Interest 7d',
+				accessorFn: (protocol) => protocol.total7d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Total notional value of all outstanding perpetual futures positions, including leverage in the last 7 days'
+				},
+				size: 160
+			},
+			{
+				id: 'total30d',
+				header: 'Open Interest 30d',
+				accessorFn: (protocol) => protocol.total30d,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Total notional value of all outstanding perpetual futures positions, including leverage in the last 30 days'
 				},
 				size: 160
 			}

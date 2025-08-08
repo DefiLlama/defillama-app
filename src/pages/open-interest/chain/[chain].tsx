@@ -10,9 +10,9 @@ import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { TMetric } from '~/components/Metrics'
 
-const adapterType = ADAPTER_TYPES.OPTIONS
-const dataType = ADAPTER_DATA_TYPES.NOTIONAL_VOLUME
-const type: TMetric = 'Options Notional Volume'
+const adapterType = ADAPTER_TYPES.PERPS
+const dataType = ADAPTER_DATA_TYPES.OPEN_INTEREST
+const type: TMetric = 'Open Interest'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
@@ -45,16 +45,15 @@ export const getStaticProps = withPerformanceLogging(
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-		if (!metadataCache.chainMetadata[chain]?.options) {
+		if (!metadataCache.chainMetadata[chain]?.perps) {
 			return { notFound: true }
 		}
 
 		const data = await getAdapterByChainPageData({
 			adapterType,
-			dataType,
 			chain: metadataCache.chainMetadata[chain].name,
-			route: 'options/notional-volume'
-		}).catch((e) => console.info(`Chain page data not found ${adapterType}:${dataType} : chain:${chain}`, e))
+			route: 'open-interest'
+		}).catch((e) => console.info(`Chain page data not found ${adapterType} ${dataType} : chain:${chain}`, e))
 
 		if (!data) return { notFound: true }
 
@@ -65,7 +64,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const NotionalVolumeOnChain = (props) => {
+const OpenInterestOnChain = (props) => {
 	return (
 		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO>
 			<AdapterByChain {...props} type={type} />
@@ -73,4 +72,4 @@ const NotionalVolumeOnChain = (props) => {
 	)
 }
 
-export default NotionalVolumeOnChain
+export default OpenInterestOnChain

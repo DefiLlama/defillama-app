@@ -1,6 +1,6 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -8,7 +8,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = 'dailyRevenue'
+const dataType = ADAPTER_DATA_TYPES.REVENUE
 
 export const getStaticPaths = async () => {
 	return { paths: [], fallback: 'blocking' }
