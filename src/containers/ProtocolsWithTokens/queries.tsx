@@ -1,4 +1,4 @@
-import { PROTOCOL_EMISSIONS_LIST_API, PROTOCOLS_API } from '~/constants'
+import { EMISSION_SUPPLY_METRICS, PROTOCOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { ILiteProtocol } from '../ChainOverview/types'
 import { slug, tokenIconUrl } from '~/utils'
@@ -290,14 +290,26 @@ export async function getProtocolsAdjustedFDVsByChain({
 }: {
 	chain: string
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
-	const [{ protocols, chains, parentProtocols }, emissionsList]: [
+	const [{ protocols, chains, parentProtocols }, emissionsSupplyMetrics]: [
 		{
 			protocols: Array<ILiteProtocol>
 			chains: Array<string>
 			parentProtocols: Array<{ id: string; name: string; chains: Array<string>; gecko_id?: string }>
 		},
-		Array<string>
-	] = await Promise.all([fetchJson(PROTOCOLS_API), fetchJson(PROTOCOL_EMISSIONS_LIST_API)])
+		Record<
+			string,
+			{
+				name: string
+				supplyMetrics: {
+					maxSupply: number
+					adjustedSupply: number
+					tbdAmount: number
+					incentiveAmount: number
+					nonIncentiveAmount: number
+				}
+			}
+		>
+	] = await Promise.all([fetchJson(PROTOCOLS_API), fetchJson(EMISSION_SUPPLY_METRICS)])
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
@@ -309,32 +321,31 @@ export async function getProtocolsAdjustedFDVsByChain({
 	const emissionProtocolGeckoIds = {}
 
 	for (const protocol of protocols) {
-		const hasEmissions = emissionsList.includes(slug(protocol.name))
-
+		const hasEmissions = emissionsSupplyMetrics[slug(protocol.name)]
 		if (hasEmissions && protocol.geckoId) {
 			emissionProtocolGeckoIds[protocol.name] = `coingecko:${protocol.geckoId}`
 		}
 	}
 
 	for (const parentProtocol of parentProtocols) {
-		const hasEmissions = emissionsList.includes(slug(parentProtocol.name))
+		const hasEmissions = emissionsSupplyMetrics[slug(parentProtocol.name)]
 
 		if (hasEmissions && parentProtocol.gecko_id) {
 			emissionProtocolGeckoIds[parentProtocol.name] = `coingecko:${parentProtocol.gecko_id}`
 		}
 	}
 
-	const [prices, adjustedSupplies] = await Promise.all([
-		fetchCoinPrices(Object.values(emissionProtocolGeckoIds)),
-		fetchAdjustedSupplies(Object.keys(emissionProtocolGeckoIds))
-	])
+	const prices = await fetchCoinPrices(Object.values(emissionProtocolGeckoIds))
 
 	for (const protocol of protocols) {
 		if (['Bridge', 'Canonical Bridge', 'Foundation', 'Meme'].includes(protocol.category ?? '')) continue
 
+		const slugName = slug(protocol.name)
 		const adjustedFDV =
-			protocol.geckoId && adjustedSupplies[protocol.name] && prices[`coingecko:${protocol.geckoId}`]?.price
-				? prices[`coingecko:${protocol.geckoId}`].price * adjustedSupplies[protocol.name]
+			protocol.geckoId &&
+			emissionsSupplyMetrics[slugName]?.supplyMetrics?.adjustedSupply &&
+			prices[`coingecko:${protocol.geckoId}`]?.price
+				? prices[`coingecko:${protocol.geckoId}`].price * emissionsSupplyMetrics[slugName].supplyMetrics.adjustedSupply
 				: null
 
 		if (protocol.category) {
@@ -345,8 +356,8 @@ export async function getProtocolsAdjustedFDVsByChain({
 
 		const p = {
 			name: protocol.name,
-			logo: tokenIconUrl(slug(protocol.name)),
-			slug: slug(protocol.name),
+			logo: tokenIconUrl(slugName),
+			slug: slugName,
 			category: protocol.category,
 			chains:
 				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
@@ -369,15 +380,19 @@ export async function getProtocolsAdjustedFDVsByChain({
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
 			)
 
+			const slugName = slug(p.name)
+
 			const adjustedFDV =
-				p.gecko_id && adjustedSupplies[p.name] && prices[`coingecko:${p.gecko_id}`]?.price
-					? prices[`coingecko:${p.gecko_id}`].price * adjustedSupplies[p.name]
+				p.gecko_id &&
+				emissionsSupplyMetrics[slugName]?.supplyMetrics?.adjustedSupply &&
+				prices[`coingecko:${p.gecko_id}`]?.price
+					? prices[`coingecko:${p.gecko_id}`].price * emissionsSupplyMetrics[slugName].supplyMetrics.adjustedSupply
 					: null
 
 			finalProtocols.push({
 				name: p.name,
-				logo: tokenIconUrl(slug(p.name)),
-				slug: slug(p.name),
+				logo: tokenIconUrl(slugName),
+				slug: slugName,
 				category: categories.length > 1 ? null : categories[0] ?? null,
 				chains: Array.from(new Set(finalParentProtocols[parent].map((p) => p.chains).flat())),
 				subRows: finalParentProtocols[parent],
@@ -400,29 +415,4 @@ export async function getProtocolsAdjustedFDVsByChain({
 		categories: Array.from(categories),
 		type: 'adjusted-fdv'
 	}
-}
-
-const fetchAdjustedSupplies = async (protocols: Array<string>) => {
-	const batchSize = 10
-	const batches = []
-	for (let i = 0; i < protocols.length; i += batchSize) {
-		batches.push(protocols.slice(i, i + batchSize))
-	}
-
-	const batchPromises = batches.map(async (batch) => {
-		const adjustedSupplies = await Promise.all(
-			batch.map(async (protocol) => {
-				const adjustedSupply = await fetchJson(`https://defillama-datasets.llama.fi/emissions/${slug(protocol)}`)
-					.catch(() => ({}))
-					.then((res) => res?.supplyMetrics?.adjustedSupply ?? null)
-
-				return { [protocol]: adjustedSupply }
-			})
-		)
-		return adjustedSupplies.reduce((acc, curr) => ({ ...acc, ...curr }), {})
-	})
-
-	const adjustedSupplies = await Promise.all(batchPromises)
-
-	return adjustedSupplies.reduce((acc, curr) => ({ ...acc, ...curr }), {})
 }

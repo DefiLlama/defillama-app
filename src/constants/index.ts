@@ -30,6 +30,7 @@ export const PROTOCOL_EMISSIONS_API = `${SERVER_URL}/emissions`
 export const PROTOCOL_EMISSIONS_LIST_API = `${DATASETS_SERVER_URL}/emissionsProtocolsList`
 export const PROTOCOL_EMISSION_API = `${SERVER_URL}/emission`
 export const EMISSION_BREAKDOWN_API = `${SERVER_URL}/emissionsBreakdown`
+export const EMISSION_SUPPLY_METRICS = `${DATASETS_SERVER_URL}/emissionsSupplyMetrics`
 export const INFLOWS_API = `${SERVER_URL}/inflows`
 export const ACTIVE_USERS_API = `${SERVER_URL}/activeUsers`
 export const PROTOCOL_ACTIVE_USERS_API = `${SERVER_URL}/userData/users`
