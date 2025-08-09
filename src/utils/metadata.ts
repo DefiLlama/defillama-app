@@ -105,6 +105,7 @@ function generateSearchList({ protocols, chains, categoriesAndTags }) {
 		if (!protocols[protocol].displayName) continue
 		searchList.protocols.push({
 			name: protocols[protocol].displayName,
+			slug: protocols[protocol].displayName.replace(/[^a-zA-Z0-9]/g, ''),
 			route: `/protocol/${slug(protocols[protocol].name)}`
 		})
 	}

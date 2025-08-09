@@ -1,13 +1,12 @@
-import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
-import { lazy, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { tvlOptions } from '~/components/Filters/options'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { Select } from '~/components/Select'
 import { Icon } from '~/components/Icon'
 
-const Results = lazy(() => import('../Results').then((mod) => ({ default: mod.Results })))
+const GlobalSearch = lazy(() => import('..').then((mod) => ({ default: mod.GlobalSearch })))
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -18,22 +17,31 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 
 export const ProtocolsChainsSearch = ({ hideFilters, options }: IProtocolsChainsSearch) => {
 	return (
-		<span className="hidden lg:flex items-center justify-between gap-2">
-			<Ariakit.DialogProvider>
-				<Ariakit.DialogDisclosure className="relative w-full max-w-[50vw] flex items-center text-sm rounded-md border border-(--cards-border) text-[#7c7c7c] dark:text-[#818283] bg-(--app-bg) py-[5px] px-[10px] pl-8">
-					<span className="absolute top-[8px] left-[9px]">
-						<span className="sr-only">Open Search</span>
-						<Icon name="search" height={14} width={14} />
-					</span>
-					<span>Search...</span>
-					<span className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
-						⌘K
-					</span>
-				</Ariakit.DialogDisclosure>
-				<Results />
-			</Ariakit.DialogProvider>
-			{hideFilters || (options && options.length === 0) ? null : <TvlOptions options={options} />}
-		</span>
+		<>
+			<span className="hidden lg:flex items-center justify-between gap-2">
+				<Suspense
+					fallback={
+						<>
+							<div className="relative isolate w-full max-w-[50vw]">
+								<div className="absolute top-[8px] left-[8px] opacity-50">
+									<div className="sr-only">Open Search</div>
+									<Icon name="search" height={14} width={14} />
+								</div>
+								<div className="w-full text-sm rounded-md border border-(--cards-border) text-[#7c7c7c] dark:text-[#848585] bg-(--app-bg) py-[5px] px-[10px] pl-7">
+									Search...
+								</div>
+								<div className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
+									⌘K
+								</div>
+							</div>
+						</>
+					}
+				>
+					<GlobalSearch />
+				</Suspense>
+				{hideFilters || (options && options.length === 0) ? null : <TvlOptions options={options} />}
+			</span>
+		</>
 	)
 }
 

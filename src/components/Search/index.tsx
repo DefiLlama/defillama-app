@@ -1,13 +1,13 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
-import { startTransition, useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import metadataCache from '~/utils/metadata'
 import { BasicLink } from '../Link'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import { Icon } from '../Icon'
 const { searchList } = metadataCache
 
-export const Results = () => {
+export const GlobalSearch = () => {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
@@ -16,7 +16,7 @@ export const Results = () => {
 			return searchList.map((cat) => ({ category: cat.category, pages: cat.pages.slice(0, 3), route: cat.route }))
 		return matchSorter(searchList, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['category', 'pages.*.name'],
+			keys: ['category', 'pages.*.slug', 'pages.*.name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
 			.map((cat) => ({
@@ -24,7 +24,7 @@ export const Results = () => {
 				pages: cat.pages.filter(
 					(page) =>
 						matchSorter([page], deferredSearchValue, {
-							keys: ['name'],
+							keys: ['slug', 'name'],
 							threshold: matchSorter.rankings.CONTAINS
 						}).length > 0
 				),
@@ -33,39 +33,72 @@ export const Results = () => {
 			.filter((category) => category.pages.length > 0)
 	}, [deferredSearchValue])
 
+	const [open, setOpen] = useState(false)
+	const inputField = useRef<HTMLInputElement>(null)
+	useEffect(() => {
+		function focusSearchBar(e: KeyboardEvent) {
+			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
+				e.preventDefault()
+				inputField.current && inputField.current?.focus()
+				setOpen(true)
+			}
+		}
+
+		window.addEventListener('keydown', focusSearchBar)
+
+		return () => window.removeEventListener('keydown', focusSearchBar)
+	}, [setOpen])
+
 	return (
-		<Ariakit.Dialog
-			className="dialog p-0 gap-0 sm:w-full sm:max-w-[min(85vw,615px)] max-sm:drawer h-[min(515px,100vh-32px)]"
-			unmountOnHide
-			onClose={() => {
-				setSearchValue('')
-			}}
-		>
+		<>
 			<Ariakit.ComboboxProvider
+				resetValueOnHide
 				setValue={(value) => {
 					startTransition(() => {
 						setSearchValue(value)
 					})
 				}}
+				open={open}
+				setOpen={setOpen}
 			>
-				<span className="relative w-full">
+				<span className="relative isolate w-full max-w-[50vw]">
+					<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[8px] opacity-50">
+						{open ? (
+							<>
+								<span className="sr-only">Close Search</span>
+								<Icon name="x" height={16} width={16} />
+							</>
+						) : (
+							<>
+								<span className="sr-only">Open Search</span>
+								<Icon name="search" height={14} width={14} />
+							</>
+						)}
+					</button>
 					<Ariakit.Combobox
-						placeholder="Search across blockchains, protocols, metrics..."
-						autoFocus
-						className="bg-white dark:bg-black rounded-t-md p-4 border-b-2 border-(--cards-border) w-full"
+						placeholder="Search..."
+						autoSelect
+						ref={inputField}
+						className="w-full text-sm rounded-md border border-(--cards-border) text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-7"
 					/>
-					<Ariakit.DialogDismiss className="rounded-md text-xs text-(--link-text) bg-(--link-bg) px-[10px] absolute top-[10px] right-[10px] bottom-[10px] m-auto flex items-center justify-center">
-						Esc
-					</Ariakit.DialogDismiss>
+					<span className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
+						⌘K
+					</span>
 				</span>
-				<Ariakit.ComboboxList className="overflow-y-auto p-4 flex flex-col gap-2" alwaysVisible>
+				<Ariakit.ComboboxPopover
+					unmountOnHide
+					hideOnInteractOutside
+					gutter={6}
+					sameWidth
+					className="flex flex-col bg-(--cards-bg) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-(--cards-border) max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+				>
 					{finalSearchList.map((cat) => {
 						const getLogo = ['Chains', 'Protocols'].includes(cat.category)
 							? (name: string) => (cat.category === 'Chains' ? chainIconUrl(name) : tokenIconUrl(name))
 							: null
 						return (
 							<div className="flex flex-col" key={`global-search-${cat.category}`}>
-								<div className="flex items-center justify-between gap-1 flex-wrap">
+								<div className="flex items-center justify-between gap-1 flex-wrap px-[10px] pt-2">
 									<h1 className="text-sm font-medium mb-2">{cat.category}</h1>
 									{cat.route ? (
 										<BasicLink href={cat.route} className="text-(--link) ml-auto">
@@ -75,7 +108,7 @@ export const Results = () => {
 								</div>
 								{cat.pages.map((route) => (
 									<Ariakit.ComboboxItem
-										className="p-2 rounded-md hover:bg-(--cards-bg) flex items-center gap-2"
+										className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
 										key={`global-search-${route.name}-${route.route}`}
 										render={<BasicLink href={route.route} />}
 									>
@@ -90,8 +123,8 @@ export const Results = () => {
 							</div>
 						)
 					})}
-				</Ariakit.ComboboxList>
+				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-		</Ariakit.Dialog>
+		</>
 	)
 }
