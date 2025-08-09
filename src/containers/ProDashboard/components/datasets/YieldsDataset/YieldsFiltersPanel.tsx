@@ -52,6 +52,17 @@ export function YieldsFiltersPanel({
 		}))
 	}
 
+	const formatNumberWithCommas = (num: number | undefined): string => {
+		if (num === undefined || num === null) return ''
+		return num.toLocaleString('en-US', { maximumFractionDigits: 0 })
+	}
+
+	const parseFormattedNumber = (value: string): number | undefined => {
+		const cleaned = value.replace(/,/g, '')
+		const parsed = Number(cleaned)
+		return cleaned && !isNaN(parsed) ? parsed : undefined
+	}
+
 	const handleApply = () => {
 		setFilters(localFilters)
 		onApplyFilters(localFilters)
@@ -169,18 +180,18 @@ export function YieldsFiltersPanel({
 							<label className="text-xs pro-text2 mb-2 block font-medium">TVL Range (USD)</label>
 							<div className="flex items-center gap-2">
 								<input
-									type="number"
+									type="text"
 									placeholder="Min"
-									value={localFilters.tvlMin || ''}
-									onChange={(e) => updateFilter('tvlMin', e.target.value ? Number(e.target.value) : undefined)}
+									value={formatNumberWithCommas(localFilters.tvlMin)}
+									onChange={(e) => updateFilter('tvlMin', parseFormattedNumber(e.target.value))}
 									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
 								/>
 								<span className="pro-text3">-</span>
 								<input
-									type="number"
+									type="text"
 									placeholder="Max"
-									value={localFilters.tvlMax || ''}
-									onChange={(e) => updateFilter('tvlMax', e.target.value ? Number(e.target.value) : undefined)}
+									value={formatNumberWithCommas(localFilters.tvlMax)}
+									onChange={(e) => updateFilter('tvlMax', parseFormattedNumber(e.target.value))}
 									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
 								/>
 							</div>
