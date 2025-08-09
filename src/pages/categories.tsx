@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useRouter } from 'next/router'
 import { maxAgeForNext } from '~/api'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
@@ -11,9 +12,12 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
+import { fetchEvmAndNonEvmSets, computeCategoryIsEvm } from '~/constants/chains'
 import { fetchJson } from '~/utils/async'
 import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { Select } from '~/components/Select'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { tvlOptions } from '~/components/Filters/options'
 
 const LineAndBarChart = React.lazy(
@@ -21,7 +25,7 @@ const LineAndBarChart = React.lazy(
 ) as React.FC<ILineAndBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('categories', async () => {
-	const [{ protocols }, revenueData, { chart, categories: protocolsByCategory }] = await Promise.all([
+	const [{ protocols }, revenueData, { chart, categories: protocolsByCategory }, allProtocols] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		getAdapterChainOverview({
 			adapterType: 'fees',
@@ -30,7 +34,8 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			excludeTotalDataChart: true,
 			excludeTotalDataChartBreakdown: true
 		}),
-		fetchJson(CATEGORY_API)
+		fetchJson(CATEGORY_API),
+		fetchJson('https://api.llama.fi/protocols')
 	])
 
 	const categories = {}
@@ -188,12 +193,17 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 		}
 	}
 
+	const { evmSet, nonEvmSet } = await fetchEvmAndNonEvmSets()
+
+	const categoryIsEvm = computeCategoryIsEvm(allProtocols, evmSet, nonEvmSet)
+
 	return {
 		props: {
 			categories: Object.keys(protocolsByCategory),
 			tableData: finalCategories.sort((a, b) => b.tvl - a.tvl),
 			chartData,
-			extraTvlCharts
+			extraTvlCharts,
+			categoryIsEvm
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -310,77 +320,143 @@ export const descriptions = {
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
 
-export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
+export default function Protocols({ categories, tableData, chartData, extraTvlCharts, categoryIsEvm }) {
+	function isEvmCategory(cat) {
+		const result = categoryIsEvm && cat in categoryIsEvm ? categoryIsEvm[cat] : true
+		return result
+	}
+
+	function getCurrentFilterLabel() {
+		if (['All', 'EVM', 'Non-EVM'].includes(evmFilter)) return evmFilter
+		if (selectedCategories.length === 1) return selectedCategories[0]
+		if (selectedCategories.length === categories.length) return 'All'
+		if (selectedCategories.length === 0) return 'None'
+		return `${selectedCategories.length} selected`
+	}
+
+	const router = useRouter()
+	const categoryParam = Array.isArray(router.query.category) ? router.query.category[0] : router.query.category
+	const evmFilter = ['EVM', 'Non-EVM'].includes(categoryParam) ? categoryParam : 'All'
+	const allCategoryLinks = [
+		{ label: 'All', to: '/categories' },
+		{ label: 'Non-EVM', to: '/categories/Non-EVM' },
+		{ label: 'EVM', to: '/categories/EVM' },
+		...categories.map((cat) => ({ label: cat, to: `/categories/${cat}` }))
+	]
+
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
-	const clearAll = () => {
-		setSelectedCategories([])
-	}
-	const toggleAll = () => {
-		setSelectedCategories(categories)
-	}
-	const selectOnlyOne = (category: string) => {
-		setSelectedCategories([category])
-	}
+	const userInteractedRef = React.useRef(false)
+	React.useEffect(() => {
+		userInteractedRef.current = false
+	}, [evmFilter])
+
+	React.useEffect(() => {
+		if (userInteractedRef.current) return
+
+		let expected: string[] = categories
+		if (['EVM', 'Non-EVM'].includes(evmFilter)) {
+			if (evmFilter === 'EVM') expected = categories.filter((cat) => isEvmCategory(cat))
+			else if (evmFilter === 'Non-EVM') expected = categories.filter((cat) => !isEvmCategory(cat))
+		} else if (
+			evmFilter === 'All' &&
+			typeof categoryParam === 'string' &&
+			categoryParam &&
+			!['All', 'EVM', 'Non-EVM'].includes(categoryParam) &&
+			categories.includes(categoryParam)
+		) {
+			expected = [categoryParam]
+		}
+
+		const isDifferent =
+			selectedCategories.length !== expected.length || !expected.every((cat) => selectedCategories.includes(cat))
+
+		if (isDifferent) {
+			setSelectedCategories(expected)
+		}
+	}, [evmFilter, categories, categoryParam])
+
+	const [visibleColumns, setVisibleColumns] = React.useState<string[]>(
+		[
+			...categoriesColumn.map((c) => (typeof c === 'object' && 'accessorKey' in c ? (c.accessorKey as string) : ''))
+		].filter(Boolean)
+	)
+	const [tvlRange, setTvlRange] = React.useState<[number, number] | null>(null)
+	const [search, setSearch] = React.useState('')
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+
+	const clearAll = () => setSelectedCategories([])
+	const toggleAll = () => setSelectedCategories(categories)
+	const selectOnlyOne = (category: string) => setSelectedCategories([category])
+
+	const filteredCategories = React.useMemo(() => {
+		let base = selectedCategories
+		if (evmFilter === 'EVM') {
+			base = base.filter((cat) => isEvmCategory(cat))
+		} else if (evmFilter === 'Non-EVM') {
+			base = base.filter((cat) => !isEvmCategory(cat))
+		}
+
+		return base
+	}, [selectedCategories, evmFilter])
 
 	const charts = React.useMemo(() => {
 		if (!Object.values(extaTvlsEnabled).some((e) => e === true)) {
-			if (selectedCategories.length === categories.length) {
-				return chartData
+			if (!filteredCategories.length) {
+				return {}
 			}
-
 			const charts = {}
 			for (const cat in chartData) {
-				if (selectedCategories.includes(cat)) {
+				if (filteredCategories.includes(cat)) {
 					charts[cat] = chartData[cat]
 				}
 			}
-
 			return charts
 		}
-
 		const enabledTvls = Object.entries(extaTvlsEnabled)
 			.filter((e) => e[1] === true)
 			.map((e) => e[0])
-
+		if (!filteredCategories.length) {
+			return {}
+		}
 		const charts = {}
-
 		for (const cat in chartData) {
-			if (selectedCategories.includes(cat)) {
+			if (filteredCategories.includes(cat)) {
 				const data = chartData[cat].data.map(([date, val], index) => {
 					const extraTvls = enabledTvls.map((e) => extraTvlCharts?.[cat]?.[e]?.[date] ?? 0)
 					return [date, val + extraTvls.reduce((a, b) => a + b, 0)]
 				})
-
-				charts[cat] = {
-					...chartData[cat],
-					data
-				}
+				charts[cat] = { ...chartData[cat], data }
 			}
 		}
-
 		return charts
-	}, [chartData, selectedCategories, categories, extraTvlCharts, extaTvlsEnabled])
+	}, [chartData, filteredCategories, categories, extraTvlCharts, extaTvlsEnabled])
+
+	const filteredTableData = React.useMemo(() => {
+		let data = tableData.filter((row) => filteredCategories.includes(row.name))
+		if (tvlRange) {
+			data = data.filter((row) => row.tvl >= tvlRange[0] && row.tvl <= tvlRange[1])
+		}
+		if (search) {
+			data = data.filter((row) => row.name.toLowerCase().includes(search.toLowerCase()))
+		}
+		return data
+	}, [tableData, filteredCategories, tvlRange, search])
 
 	const finalCategoriesList = React.useMemo(() => {
 		const enabledTvls = Object.entries(extaTvlsEnabled)
 			.filter((e) => e[1] === true)
 			.map((e) => e[0])
-
 		if (enabledTvls.length === 0) {
-			return tableData
+			return filteredTableData
 		}
-
 		const finalList = []
-
-		for (const cat of tableData) {
+		for (const cat of filteredTableData) {
 			const subRows = []
 			for (const subRow of cat.subRows ?? []) {
 				let tvl = subRow.tvl
 				let tvlPrevDay = subRow.tvlPrevDay
 				let tvlPrevWeek = subRow.tvlPrevWeek
 				let tvlPrevMonth = subRow.tvlPrevMonth
-
 				for (const extra of enabledTvls) {
 					if (subRow.extraTvls[extra]) {
 						tvl += subRow.extraTvls[extra].tvl
@@ -389,7 +465,6 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 						tvlPrevMonth += subRow.extraTvls[extra].tvlPrevMonth
 					}
 				}
-
 				subRows.push({
 					...subRow,
 					tvl,
@@ -401,12 +476,10 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					change_1m: getPercentChange(tvl, tvlPrevMonth)
 				})
 			}
-
 			let tvl = cat.tvl
 			let tvlPrevDay = cat.tvlPrevDay
 			let tvlPrevWeek = cat.tvlPrevWeek
 			let tvlPrevMonth = cat.tvlPrevMonth
-
 			for (const extra of enabledTvls) {
 				if (cat.extraTvls[extra]) {
 					tvl += cat.extraTvls[extra].tvl
@@ -415,7 +488,6 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					tvlPrevMonth += cat.extraTvls[extra].tvlPrevMonth
 				}
 			}
-
 			finalList.push({
 				...cat,
 				tvl,
@@ -428,33 +500,40 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 				...(subRows.length > 0 ? { subRows } : {})
 			})
 		}
-
 		return finalList
-	}, [tableData, extaTvlsEnabled])
+	}, [filteredTableData, extaTvlsEnabled])
 
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch options={finalTvlOptions} />
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
-					<h1 className="text-xl font-semibold mr-auto">Categories</h1>
-					<SelectWithCombobox
-						allValues={categories}
-						selectedValues={selectedCategories}
-						setSelectedValues={setSelectedCategories}
-						label="Categories"
-						clearAll={clearAll}
-						toggleAll={toggleAll}
-						selectOnlyOne={selectOnlyOne}
-						labelType="smol"
-					/>
-				</div>
+			<RowLinksWithDropdown
+				links={allCategoryLinks}
+				activeLink={
+					['All', 'EVM', 'Non-EVM'].includes(evmFilter) &&
+					(!categoryParam || ['All', 'EVM', 'Non-EVM'].includes(categoryParam))
+						? evmFilter
+						: typeof categoryParam === 'string' && categories.includes(categoryParam)
+						? categoryParam
+						: undefined
+				}
+			/>
 
+			{(() => {
+				const label = getCurrentFilterLabel()
+				if (label === 'All') return null
+				return (
+					<div className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-(--text-primary) bg-(--cards-bg) border-b border-(--cards-border)">
+						<span>Current filter:</span>
+						<span className="inline-block px-2 py-0.5 rounded bg-(--accent-bg) text-(--accent-text)">{label}</span>
+					</div>
+				)
+			})()}
+
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
 					<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
 				</React.Suspense>
 			</div>
-
 			<React.Suspense
 				fallback={
 					<div
@@ -465,10 +544,72 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 			>
 				<TableWithSearch
 					data={finalCategoriesList}
-					columns={categoriesColumn}
+					columns={categoriesColumn.filter((col) =>
+						visibleColumns.includes(typeof col === 'object' && 'accessorKey' in col ? (col.accessorKey as string) : '')
+					)}
 					columnToSearch={'name'}
 					placeholder={'Search category...'}
 					defaultSorting={[{ id: 'tvl', desc: true }]}
+					header={
+						<div className="flex flex-wrap gap-2 items-center justify-end p-3">
+							<Select
+								allValues={
+									categoriesColumn
+										.map((col) =>
+											typeof col === 'object' && 'accessorKey' in col
+												? { key: col.accessorKey as string, name: col.header as string }
+												: null
+										)
+										.filter(Boolean) as { key: string; name: string }[]
+								}
+								selectedValues={visibleColumns}
+								setSelectedValues={setVisibleColumns}
+								label="Columns"
+								labelType="smol"
+							/>
+							<div className="flex items-center gap-1">
+								<span className="text-xs">TVL Range:</span>
+								<input
+									type="number"
+									placeholder="Min"
+									className="border rounded px-1 py-0.5 text-xs w-16 bg-(--input-bg)"
+									value={tvlRange ? tvlRange[0] : ''}
+									onChange={(e) => setTvlRange([Number(e.target.value) || 0, tvlRange ? tvlRange[1] : Infinity])}
+								/>
+								<span className="mx-1">-</span>
+								<input
+									type="number"
+									placeholder="Máx"
+									className="border rounded px-1 py-0.5 text-xs w-16 bg-(--input-bg)"
+									value={tvlRange ? tvlRange[1] : ''}
+									onChange={(e) => setTvlRange([tvlRange ? tvlRange[0] : 0, Number(e.target.value) || Infinity])}
+								/>
+								<button className="ml-1 text-xs underline" onClick={() => setTvlRange(null)}>
+									Clear
+								</button>
+							</div>
+							<input
+								type="text"
+								placeholder="Search category..."
+								className="border rounded px-2 py-1 text-xs bg-(--input-bg)"
+								value={search}
+								onChange={(e) => setSearch(e.target.value)}
+							/>
+							<SelectWithCombobox
+								allValues={categories}
+								selectedValues={selectedCategories}
+								setSelectedValues={(vals) => {
+									userInteractedRef.current = true
+									setSelectedCategories(vals)
+								}}
+								label="Categories"
+								clearAll={clearAll}
+								toggleAll={toggleAll}
+								selectOnlyOne={selectOnlyOne}
+								labelType="smol"
+							/>
+						</div>
+					}
 				/>
 			</React.Suspense>
 		</Layout>
