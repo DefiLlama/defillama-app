@@ -6,6 +6,9 @@ import { GridComponent, TitleComponent, TooltipComponent, GraphicComponent, Lege
 import type { IPieChartProps } from '../types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
+import { useMedia } from '~/hooks/useMedia'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 
 echarts.use([
 	CanvasRenderer,
@@ -34,6 +37,19 @@ export default function PieChart({
 }: IPieChartProps) {
 	const id = useId()
 	const [isDark] = useDarkModeManager()
+	const isSmall = useMedia(`(max-width: 37.5rem)`)
+
+	const graphic = {
+		type: 'image',
+		z: 999,
+		style: {
+			image: isDark ? logoLight.src : logoDark.src,
+			height: 40,
+			opacity: 0.3
+		},
+		left: isSmall ? '35%' : '40%',
+		top: '160px'
+	}
 
 	const series = useMemo(() => {
 		const series: Record<string, any> = {
@@ -84,6 +100,7 @@ export default function PieChart({
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
+			graphic,
 			tooltip: {
 				trigger: 'item',
 				confine: true,
