@@ -360,7 +360,7 @@ export async function getProtocolsAdjustedFDVsByChain({
 			slug: slugName,
 			category: protocol.category,
 			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
+				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
 				protocol.chains ??
 				[],
 			value: adjustedFDV
