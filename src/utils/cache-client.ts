@@ -7,27 +7,23 @@ const IS_RUNTIME = !!process.env.IS_RUNTIME
 
 if (typeof window === 'undefined' && USE_REDIS) {
 	// Server-side execution
+	const redisUrl = IS_RUNTIME ? REDIS_URL : EXT_REDIS_URL
 
-	import('ioredis').then((Redis) => {
-		const redisUrl = IS_RUNTIME ? REDIS_URL : EXT_REDIS_URL
+	redisUrl &&
+		import('ioredis').then((Redis) => {
+			console.log('[cache] [connecting to redis]', redisUrl)
 
-		console.log('[cache] [connecting to redis]', redisUrl)
-
-		try {
-			redis = redisUrl ? new Redis.default(redisUrl) : null
-
-			redis.on('connect', () => {
-				console.log('[cache] [redis] connected')
-			})
-
-			redis.on('error', (error) => {
-				console.error('[cache] [redis error]', redisUrl)
-				console.error(error)
-			})
-		} catch (e) {
-			console.log('[cache] [redis connection error]', e)
-		}
-	})
+			try {
+				redis = new Redis.default(redisUrl)
+				redis.on('connect', () => console.log('[cache] [redis] connected'))
+				redis.on('error', (error) => {
+					console.error('[cache] [redis error]', redisUrl)
+					console.error(error)
+				})
+			} catch (e) {
+				console.log('[cache] [redis connection error]', e)
+			}
+		})
 }
 
 export const sluggify = (input: string) => {
