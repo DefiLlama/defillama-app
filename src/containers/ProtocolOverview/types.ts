@@ -1,3 +1,4 @@
+import { IHack } from '../Hacks/queries'
 import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
 
 export interface IProtocolMetadata {
@@ -98,7 +99,7 @@ export interface IUpdatedProtocol {
 	methodology?: string
 	raises: Array<IRaise>
 	otherProtocols?: Array<string>
-	hallmarks?: Array<[number, string]>
+	hallmarks?: Array<[number, string]> | Array<[[number, number], string]>
 	stablecoins?: Array<string>
 	misrepresentedTokens?: boolean
 	deprecated?: boolean
@@ -119,6 +120,7 @@ interface IAdapterOverview {
 	methodology?: string | null
 	methodologyURL?: string | null
 	childMethodologies?: Array<[string, string | null, string | null]>
+	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
 export interface IProtocolOverviewPageData {
@@ -185,14 +187,6 @@ export interface IProtocolOverviewPageData {
 		}
 	} | null
 	articles: IArticle[] | null
-	devMetrics?: {
-		weeklyCommits: number | null
-		monthlyCommits: number | null
-		weeklyDevelopers: number | null
-		monthlyDevelopers: number | null
-		lastCommit: number | null
-		updatedAt: number | null
-	} | null
 	users?: {
 		activeUsers: number | null
 		newUsers: number | null
@@ -230,6 +224,7 @@ export interface IProtocolOverviewPageData {
 		}
 		symbol: string | null
 	} | null
+	outstandingFDV: number | null
 	audits: {
 		total: number
 		auditLinks: Array<string>
@@ -243,6 +238,7 @@ export interface IProtocolOverviewPageData {
 	chartColors: Record<string, string>
 	availableCharts: ProtocolChartsLabels[]
 	hallmarks: Array<[number, string]>
+	rangeHallmarks: Array<[[number, number], string]>
 	geckoId: string | null
 	governanceApis: Array<string> | null
 	incomeStatement?: {
@@ -254,22 +250,7 @@ export interface IProtocolOverviewPageData {
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IUpdatedProtocol['warningBanners']
-}
-
-export interface IHack {
-	date: number
-	name: string
-	classification: string
-	technique: string
-	amount: number
-	chain?: Array<string>
-	bridgeHack: boolean
-	targetType: string
-	source: string
-	returnedFunds: number | null
-	defillamaId: number
-	parentProtocolId: string
-	language: string | null
+	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
 interface ICredit {

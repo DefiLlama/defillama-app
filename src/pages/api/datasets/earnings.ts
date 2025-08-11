@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = 'dailyEarnings'
+const dataType = ADAPTER_DATA_TYPES.DAILY_EARNINGS
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const { chains } = req.query
 		const chainList = typeof chains === 'string' ? [chains] : chains || []
 
-		if (chainList.length === 0) {
+		if (chainList.length === 0 || chainList.includes('All')) {
 			// No chains selected, return all protocols
 			const data = await getAdapterChainOverview({
 				adapterType,

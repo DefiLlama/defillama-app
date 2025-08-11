@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = 'dailyHoldersRevenue'
+const dataType = ADAPTER_DATA_TYPES.HOLDERS_REVENUE
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {

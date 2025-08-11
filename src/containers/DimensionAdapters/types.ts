@@ -96,6 +96,8 @@ interface IProtocol {
 		total1y: number | null
 		totalAllTime: number | null
 	}
+	pf?: number | null
+	ps?: number | null
 	methodology?: string | null
 }
 

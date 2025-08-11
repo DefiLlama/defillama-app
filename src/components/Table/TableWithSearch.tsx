@@ -113,7 +113,8 @@ export function TableWithSearch({
 		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 				{header ? <h1 className="text-lg font-semibold mr-auto">{header}</h1> : null}
-				<div className="relative w-full sm:max-w-[280px]">
+				<label className="relative w-full sm:max-w-[280px]">
+					<span className="sr-only">{placeholder}</span>
 					<Icon
 						name="search"
 						height={16}
@@ -126,9 +127,9 @@ export function TableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder={placeholder}
-						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</div>
+				</label>
 				{customFilters}
 			</div>
 			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} rowSize={rowSize} compact={compact} />

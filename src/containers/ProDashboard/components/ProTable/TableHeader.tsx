@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { ProTableCSVButton } from './CsvButton'
+import { Tooltip } from '~/components/Tooltip'
 
 interface TableHeaderProps {
 	chains: string[]
@@ -53,14 +54,19 @@ export function TableHeader({
 
 			<ProTableCSVButton onClick={downloadCSV} smol />
 
-			<button
-				onClick={() => setShowColumnPanel(!showColumnPanel)}
-				className="flex items-center gap-2 px-3 py-1.5 text-sm border pro-border pro-hover-bg pro-text1 transition-colors pro-bg1"
-			>
-				<Icon name="settings" height={14} width={14} />
-				Customize Table
-				<Icon name={showColumnPanel ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
-			</button>
+			<Tooltip content="Create custom calculated columns with formulas like 'tvl / mcap' or '(fees_24h + revenue_24h) * 365'">
+				<button
+					onClick={() => setShowColumnPanel(!showColumnPanel)}
+					className="flex items-center gap-2 px-3 py-1.5 text-sm border pro-border pro-hover-bg pro-text1 transition-colors pro-bg1 relative"
+				>
+					<Icon name="settings" height={14} width={14} />
+					<span className="flex items-center gap-1">
+						Customize Table
+						<span className="text-xs px-1.5 py-0.5 bg-(--primary1) text-white rounded-sm">+ Custom Columns</span>
+					</span>
+					<Icon name={showColumnPanel ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
+				</button>
+			</Tooltip>
 		</div>
 	)
 }

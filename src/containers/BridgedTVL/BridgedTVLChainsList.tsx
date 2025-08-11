@@ -7,6 +7,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { Metrics } from '~/components/Metrics'
 
 export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	const data = Object.keys(assets)
@@ -46,6 +47,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	return (
 		<>
 			<ProtocolsChainsSearch />
+			<Metrics currentMetric="Bridged TVL" isChains={true} />
 			<RowLinksWithDropdown links={chains} activeLink="All" />
 			<TableWithSearch
 				data={data}
@@ -54,7 +56,10 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 				columnToSearch={['name']}
 				customFilters={
 					<>
-						<CSVDownloadButton onClick={onCSVDownload} className="min-h-[34px]" />
+						<CSVDownloadButton
+							onClick={onCSVDownload}
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						/>
 					</>
 				}
 			/>

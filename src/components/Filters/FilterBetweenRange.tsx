@@ -19,11 +19,11 @@ interface IFilterBetweenRange {
 const getVariantClasses = (variant: string) => {
 	switch (variant) {
 		case 'third':
-			return 'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+			return 'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 		case 'secondary':
-			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-(--text1) text-xs flex-nowrap'
+			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-md cursor-pointer text-(--text1) text-xs flex-nowrap'
 		default:
-			return 'bg-(--btn2-bg)  hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-lg cursor-pointer text-(--text1) flex-nowrap relative'
+			return 'bg-(--btn2-bg)  hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-lg cursor-pointer text-(--text1) flex-nowrap relative'
 	}
 }
 

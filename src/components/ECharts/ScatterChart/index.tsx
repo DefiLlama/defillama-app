@@ -56,7 +56,6 @@ export default function ScatterChart({ chartData }: IChartProps) {
 				type: 'scatter',
 				symbols: 5,
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series'
 				},
@@ -146,11 +145,11 @@ export default function ScatterChart({ chartData }: IChartProps) {
 					nameTextStyle: {
 						fontFamily: 'sans-serif',
 						fontSize: 14,
-						fontWeight: 500,
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+						fontWeight: 500
 					},
 					axisLabel: {
-						formatter: '{value}'
+						formatter: '{value}',
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 					},
 					splitLine: {
 						lineStyle: {
@@ -170,11 +169,11 @@ export default function ScatterChart({ chartData }: IChartProps) {
 					nameTextStyle: {
 						fontFamily: 'sans-serif',
 						fontSize: 14,
-						fontWeight: 500,
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+						fontWeight: 500
 					},
 					axisLabel: {
-						formatter: '{value}'
+						formatter: '{value}',
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 					},
 					splitLine: {
 						lineStyle: {

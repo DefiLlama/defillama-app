@@ -5,7 +5,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useQuery } from '@tanstack/react-query'
-import { firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
+import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
 import {
 	BRIDGEVOLUME_API_SLUG,
 	CACHE_SERVER,
@@ -16,7 +16,6 @@ import {
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
-	useFetchProtocolDevMetrics,
 	useFetchProtocolGovernanceData,
 	useFetchProtocolMedianAPY,
 	useFetchProtocolNewUsers,
@@ -49,7 +48,7 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 	return url.pathname + url.search
 }
 
-const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
+const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
@@ -73,7 +72,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			...chartsByStaus
 		} as Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'>
 
-		if (!props.metrics.tvl) {
+		const historicalTvlsIsAlwaysZero = props.tvlChartData.every((tvl) => tvl[1] === 0)
+
+		if (!props.metrics.tvl || historicalTvlsIsAlwaysZero) {
 			if (props.metrics.dexs) {
 				defaultToggledCharts.push('DEX Volume')
 				toggled.dexVolume = queryParams.dexVolume === 'false' ? 'false' : 'true'
@@ -119,7 +120,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			...toggled,
 			...(props.isCEX
 				? { totalAssets: queryParams.totalAssets === 'false' ? 'false' : 'true' }
-				: { tvl: queryParams.tvl === 'false' ? 'false' : 'true' }),
+				: { tvl: queryParams.tvl === 'false' || !props.metrics.tvl || historicalTvlsIsAlwaysZero ? 'false' : 'true' }),
 			events: queryParams.events === 'false' ? 'false' : 'true',
 			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
 		} as IToggledMetrics
@@ -133,10 +134,10 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			toggledCharts,
 			hasAtleasOneBarChart,
 			groupBy: hasAtleasOneBarChart
-				? typeof queryParams.groupBy === 'string' && groupByOptions.includes(queryParams.groupBy as any)
+				? typeof queryParams.groupBy === 'string' && INTERVALS_LIST.includes(queryParams.groupBy as any)
 					? (queryParams.groupBy as any)
-					: 'daily'
-				: 'daily',
+					: props.defaultChartView ?? 'daily'
+				: props.defaultChartView ?? 'daily',
 			defaultToggledCharts
 		}
 	}, [queryParamsString, props.availableCharts, props.metrics])
@@ -202,7 +203,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 										)}
 									</button>
 								))}
-								{props.hallmarks.length > 0 ? (
+								{props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0 ? (
 									<button
 										onClick={() => {
 											router
@@ -271,6 +272,34 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</span>
 					</label>
 				))}
+				{toggledMetrics.events === 'true' && (props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) ? (
+					<label className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto">
+						<input
+							type="checkbox"
+							value="events"
+							checked={true}
+							onChange={() => {
+								router.push(
+									updateQueryParamInUrl(router.asPath, 'events', toggledMetrics.events === 'true' ? 'false' : 'true'),
+									undefined,
+									{
+										shallow: true
+									}
+								)
+							}}
+							className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
+						/>
+						<span
+							className="text-xs flex items-center gap-1 border-2 border-(--old-blue) rounded-full px-2 py-1"
+							style={{
+								borderColor: props.chartColors['TVL']
+							}}
+						>
+							<span>Events</span>
+							<Icon name="x" className="h-[14px] w-[14px]" />
+						</span>
+					</label>
+				) : null}
 				<div className="ml-auto flex flex-wrap justify-end gap-1">
 					{props.chartDenominations?.length ? (
 						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
@@ -297,52 +326,22 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 					) : null}
 					{hasAtleasOneBarChart ? (
 						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
-							<Tooltip
-								content="Daily"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'daily' || !groupBy}
-								onClick={() => {
-									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'daily'), undefined, { shallow: true })
-								}}
-							>
-								D
-							</Tooltip>
-							<Tooltip
-								content="Weekly"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'weekly'}
-								onClick={() => {
-									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'weekly'), undefined, { shallow: true })
-								}}
-							>
-								W
-							</Tooltip>
-							<Tooltip
-								content="Monthly"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'monthly'}
-								onClick={() => {
-									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'monthly'), undefined, { shallow: true })
-								}}
-							>
-								M
-							</Tooltip>
-							<Tooltip
-								content="Cumulative"
-								render={<button />}
-								className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								data-active={groupBy === 'cumulative'}
-								onClick={() => {
-									router.push(updateQueryParamInUrl(router.asPath, 'groupBy', 'cumulative'), undefined, {
-										shallow: true
-									})
-								}}
-							>
-								C
-							</Tooltip>
+							{INTERVALS_LIST.map((dataInterval) => (
+								<Tooltip
+									content={capitalizeFirstLetter(dataInterval)}
+									render={<button />}
+									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+									data-active={groupBy === dataInterval}
+									onClick={() => {
+										router.push(updateQueryParamInUrl(router.asPath, 'groupBy', dataInterval), undefined, {
+											shallow: true
+										})
+									}}
+									key={`${props.name}-overview-groupBy-${dataInterval}`}
+								>
+									{dataInterval.slice(0, 1).toUpperCase()}
+								</Tooltip>
+							))}
 						</div>
 					) : null}
 					<EmbedChart />
@@ -373,6 +372,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							valueSymbol={valueSymbol}
 							groupBy={groupBy}
 							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
+							rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
 							unlockTokenSymbol={props.token.symbol}
 						/>
 					</Suspense>
@@ -836,18 +836,6 @@ export const useFetchAndFormatChartData = ({
 			: null
 	)
 
-	const { data: devMetricsData = null, isLoading: fetchingDevMetrics } = useFetchProtocolDevMetrics(
-		isRouterReady &&
-			[
-				toggledMetrics.devsMetrics,
-				toggledMetrics.devsCommits,
-				toggledMetrics.contributersMetrics,
-				toggledMetrics.contributersCommits
-			].some((v) => v === 'true')
-			? protocolId
-			: null
-	)
-
 	const isNftVolumeEnabled = toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady ? true : false
 	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery({
 		queryKey: ['nftVolume', name, isNftVolumeEnabled],
@@ -955,9 +943,6 @@ export const useFetchAndFormatChartData = ({
 		}
 		if (fetchingGovernanceData) {
 			loadingCharts.push('Governance')
-		}
-		if (fetchingDevMetrics) {
-			loadingCharts.push('Dev Metrics')
 		}
 		if (fetchingNftVolume) {
 			loadingCharts.push('NFT Volume')
@@ -1324,57 +1309,6 @@ export const useFetchAndFormatChartData = ({
 			charts[chartName3] = finalMaxVotes
 		}
 
-		if (devMetricsData && (toggledMetrics.devsMetrics === 'true' || toggledMetrics.devsCommits === 'true')) {
-			const developers = []
-			const commits = []
-
-			const metricKey = groupBy === 'monthly' ? 'monthly_devs' : 'weekly_devs'
-
-			for (const { k, v, cc } of devMetricsData.report?.[metricKey] ?? []) {
-				const date = Math.floor(nearestUtcZeroHour(new Date(k).getTime()) / 1000)
-
-				developers.push([+date * 1e3, v])
-				commits.push([+date * 1e3, cc])
-			}
-
-			if (toggledMetrics.devsMetrics === 'true') {
-				const chartName: ProtocolChartsLabels = 'Developers' as const
-				charts[chartName] = developers
-			}
-
-			if (toggledMetrics.devsCommits === 'true') {
-				const chartName: ProtocolChartsLabels = 'Devs Commits' as const
-				charts[chartName] = commits
-			}
-		}
-
-		if (
-			devMetricsData &&
-			(toggledMetrics.contributersMetrics === 'true' || toggledMetrics.contributersCommits === 'true')
-		) {
-			const contributers = []
-			const commits = []
-
-			const metricKey = groupBy === 'monthly' ? 'monthly_contributers' : 'weekly_contributers'
-
-			for (const { k, v, cc } of devMetricsData.report?.[metricKey] ?? []) {
-				const date = Math.floor(nearestUtcZeroHour(new Date(k).getTime()) / 1000)
-
-				contributers.push([+date * 1e3, v])
-				commits.push([+date * 1e3, cc])
-			}
-
-			if (toggledMetrics.contributersMetrics === 'true') {
-				const chartName: ProtocolChartsLabels = 'Contributers' as const
-				charts[chartName] = contributers
-			}
-
-			if (toggledMetrics.contributersCommits === 'true') {
-				const chartName: ProtocolChartsLabels = 'Contributers Commits' as const
-				charts[chartName] = commits
-			}
-		}
-
 		if (nftVolumeData && toggledMetrics.nftVolume === 'true') {
 			const chartName: ProtocolChartsLabels = 'NFT Volume' as const
 			charts[chartName] = formatBarChart({
@@ -1495,8 +1429,6 @@ export const useFetchAndFormatChartData = ({
 		transactionsData,
 		fetchingGovernanceData,
 		governanceData,
-		fetchingDevMetrics,
-		devMetricsData,
 		fetchingNftVolume,
 		nftVolumeData,
 		fetchingBridgeVolume,

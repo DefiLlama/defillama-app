@@ -33,7 +33,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 130,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="font-mono pro-text1">{value ? formattedNum(value) : '0'}</span>
+			return <span className="font-mono pro-text1">{value ? formattedNum(value) : ''}</span>
 		}
 	},
 	{

@@ -6,6 +6,9 @@ import { GridComponent, TitleComponent, TooltipComponent, GraphicComponent, Lege
 import type { IPieChartProps } from '../types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
+import { useMedia } from '~/hooks/useMedia'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 
 echarts.use([
 	CanvasRenderer,
@@ -29,24 +32,34 @@ export default function PieChart({
 	customLabel,
 	legendPosition,
 	legendTextStyle,
+	toRight = 0,
 	...props
 }: IPieChartProps) {
 	const id = useId()
 	const [isDark] = useDarkModeManager()
+	const isSmall = useMedia(`(max-width: 37.5rem)`)
+
+	const graphic = {
+		type: 'image',
+		z: 999,
+		style: {
+			image: isDark ? logoLight.src : logoDark.src,
+			height: 40,
+			opacity: 0.3
+		},
+		left: isSmall ? '35%' : '40%',
+		top: '160px'
+	}
 
 	const series = useMemo(() => {
 		const series: Record<string, any> = {
 			name: '',
 			type: 'pie',
-			left: 0,
-			right: 200,
-			top: title ? 25 : 0,
-			bottom: 0,
 			label: {
 				fontFamily: 'sans-serif',
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 				formatter: (x) => {
-					return `${x.name.slice(0, 5)}${x.name.length > 5 ? '..' : ''}: (${x.percent}%)`
+					return `${x.name}: (${x.percent}%)`
 				},
 				show: showLegend ? false : true
 			},
@@ -61,11 +74,11 @@ export default function PieChart({
 				}
 			},
 
-			data: chartData.map((item) => ({
+			data: chartData.map((item, idx) => ({
 				name: item.name,
 				value: item.value,
 				itemStyle: {
-					color: stackColors?.[item.name] ?? null
+					color: stackColors?.[item.name] ?? undefined
 				}
 			}))
 		}
@@ -87,16 +100,7 @@ export default function PieChart({
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
-			...(title && {
-				title: {
-					text: title,
-					textStyle: {
-						fontFamily: 'sans-serif',
-						fontWeight: 600,
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-					}
-				}
-			}),
+			graphic,
 			tooltip: {
 				trigger: 'item',
 				confine: true,
@@ -145,6 +149,7 @@ export default function PieChart({
 
 	return (
 		<div className="relative" {...props}>
+			{title && <h1 className="text-lg mr-auto font-bold px-2">{title}</h1>}
 			<div id={id} className="min-h-[360px] my-auto mx-0" style={height ? { height } : undefined}></div>
 		</div>
 	)

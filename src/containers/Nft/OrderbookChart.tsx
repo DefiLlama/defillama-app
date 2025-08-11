@@ -50,7 +50,6 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				step: true,
 				scale: true,
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
@@ -82,7 +81,6 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				step: true,
 				scale: true,
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
@@ -168,7 +166,8 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				name: 'Price',
 				type: 'log',
 				axisLabel: {
-					formatter: (value) => Number(value.toFixed(2)) + ' ETH'
+					formatter: (value) => Number(value.toFixed(2)) + ' ETH',
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},
 				boundaryGap: false,
 				nameTextStyle: {
@@ -192,6 +191,9 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 			yAxis: {
 				name: 'Amount',
 				type: 'value',
+				axisLabel: {
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				},
 				axisLine: {
 					lineStyle: {
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -202,8 +204,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				nameTextStyle: {
 					fontFamily: 'sans-serif',
 					fontSize: 14,
-					fontWeight: 400,
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					fontWeight: 400
 				},
 				splitLine: {
 					lineStyle: {

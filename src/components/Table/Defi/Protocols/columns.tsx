@@ -9,7 +9,7 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDaysAgo } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
-import { removedCategories } from '~/constants'
+import { removedCategoriesFromChainTvl } from '~/constants'
 import { Icon } from '~/components/Icon'
 
 const columnHelper = createColumnHelper<IProtocolRow>()
@@ -175,16 +175,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 110
 			}),
-			columnHelper.accessor('mcap', {
-				header: 'Market Cap',
-				cell: ({ getValue }) => <>{getValue() != null && getValue() > 0 ? formattedNum(getValue(), true) : null}</>,
-				sortUndefined: 'last',
-				meta: {
-					align: 'end',
-					headerHelperText: 'Market capitalization of the protocol token'
-				},
-				size: 120
-			}),
+
 			columnHelper.accessor('mcaptvl', {
 				header: 'Mcap/TVL',
 				cell: (info) => {
@@ -429,6 +420,17 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		meta: {
 			headerHelperText: 'Volume traded on the protocol'
 		}
+	}),
+
+	columnHelper.accessor('mcap', {
+		header: 'Market Cap',
+		cell: ({ getValue }) => <>{getValue() != null && getValue() > 0 ? formattedNum(getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Market capitalization of the protocol token'
+		},
+		size: 120
 	})
 ]
 
@@ -1110,7 +1112,7 @@ const Tvl = ({ value, rowValues }) => {
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		removedCategories.forEach((removedCategory) => {
+		removedCategoriesFromChainTvl.forEach((removedCategory) => {
 			if (rowValues.category === removedCategory) {
 				text = `${removedCategory} protocols are not counted into Chain TVL`
 			}

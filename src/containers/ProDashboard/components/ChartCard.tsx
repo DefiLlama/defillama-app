@@ -3,8 +3,10 @@ import { ChartConfig, CHART_TYPES, Chain, Protocol } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 import { getItemIconUrl, generateChartColor, convertToCumulative } from '../utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
-import { lazy, memo, Suspense, useState } from 'react'
+import { lazy, memo, Suspense, useCallback } from 'react'
 import { IChartProps, IBarChartProps } from '~/components/ECharts/types'
+import { ProTableCSVButton } from './ProTable/CsvButton'
+import { download } from '~/utils'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -91,7 +93,7 @@ const ChartRenderer = memo(function ChartRenderer({
 })
 
 export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
-	const { getChainInfo, getProtocolInfo, handleGroupingChange, handleCumulativeChange } = useProDashboard()
+	const { getChainInfo, getProtocolInfo, handleGroupingChange, handleCumulativeChange, isReadOnly } = useProDashboard()
 	const { data, isLoading, hasError, refetch } = chart
 	const chartTypeDetails = CHART_TYPES[chart.type]
 	const isGroupable = chartTypeDetails?.groupable
@@ -120,15 +122,31 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 
 	const processedData = showCumulative && data ? convertToCumulative(data) : data
 
+	const handleCsvExport = useCallback(() => {
+		if (!processedData || processedData.length === 0) return
+
+		const headers = ['Date', `${itemName} ${chartTypeDetails.title}`]
+		const rows = processedData.map(([timestamp, value]) => [
+			new Date(Number(timestamp) * 1000).toLocaleDateString(),
+			value
+		])
+
+		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
+		const fileName = `${itemName}_${chartTypeDetails.title.replace(/\s+/g, '_')}_${
+			new Date().toISOString().split('T')[0]
+		}.csv`
+		download(fileName, csvContent)
+	}, [processedData, itemName, chartTypeDetails])
+
 	return (
-		<div className="p-4 h-full flex flex-col">
-			<div className="flex justify-between items-center mb-2 pr-20">
-				<div className="flex items-center gap-2">
+		<div className="px-4 pb-4 pt-2 h-full flex flex-col">
+			<div>
+				<div className="flex items-center gap-2 mb-2">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
-							<img src={itemIconUrl} alt={itemName} className="w-6 h-6 rounded-full" />
+							<img src={itemIconUrl} alt={itemName} className="w-6 h-6 rounded-full shrink-0" />
 						) : (
-							<div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600">
+							<div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 shrink-0">
 								{itemName?.charAt(0)?.toUpperCase()}
 							</div>
 						))}
@@ -136,36 +154,47 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 						{itemName} {chartTypeDetails.title}
 					</h2>
 				</div>
-				<div className="flex items-center gap-2">
-					{isGroupable && (
-						<div className="flex border border-(--form-control-border) overflow-hidden">
-							{groupingOptions.map((option, index) => (
+				<div className="flex items-center justify-end gap-2 flex-wrap">
+					{!isReadOnly && (
+						<>
+							{isGroupable && (
+								<div className="flex border border-(--form-control-border) overflow-hidden">
+									{groupingOptions.map((option, index) => (
+										<button
+											key={option}
+											onClick={() => handleGroupingChange(chart.id, option)}
+											className={`px-2 xl:px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
+												${index > 0 ? 'border-l border-(--form-control-border)' : ''}
+												${
+													chart.grouping === option
+														? 'bg-(--primary1) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary1) focus:ring-opacity-50'
+														: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
+												}`}
+										>
+											<span className="xl:hidden">{option.charAt(0).toUpperCase()}</span>
+											<span className="hidden xl:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+										</button>
+									))}
+								</div>
+							)}
+							{isBarChart && (
 								<button
-									key={option}
-									onClick={() => handleGroupingChange(chart.id, option)}
-									className={`px-2 xl:px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
-										${index > 0 ? 'border-l border-(--form-control-border)' : ''}
-										${
-											chart.grouping === option
-												? 'bg-(--primary1) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary1) focus:ring-opacity-50'
-												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
-										}`}
+									onClick={() => handleCumulativeChange(chart.id, !showCumulative)}
+									className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+									title={showCumulative ? 'Show cumulative values' : 'Show individual values'}
 								>
-									<span className="xl:hidden">{option.charAt(0).toUpperCase()}</span>
-									<span className="hidden xl:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+									<Icon name="trending-up" height={12} width={12} />
+									<span className="hidden lg:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
 								</button>
-							))}
-						</div>
+							)}
+						</>
 					)}
-					{isBarChart && (
-						<button
-							onClick={() => handleCumulativeChange(chart.id, !showCumulative)}
-							className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
-							title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
-						>
-							<Icon name="trending-up" height={12} width={12} />
-							<span className="hidden sm:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
-						</button>
+					{processedData && processedData.length > 0 && (
+						<ProTableCSVButton
+							onClick={handleCsvExport}
+							smol
+							customClassName="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+						/>
 					)}
 				</div>
 			</div>

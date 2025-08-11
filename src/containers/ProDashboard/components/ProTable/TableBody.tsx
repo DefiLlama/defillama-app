@@ -43,7 +43,9 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 									<th
 										key={header.id}
 										colSpan={header.colSpan}
-										className="pro-bg1 font-medium px-1 sm:px-2 py-2 border-b border-r border-(--divider) last:border-r-0 relative"
+										className={`pro-bg1 font-medium px-1 sm:px-2 py-2 border-b border-r border-(--divider) last:border-r-0 relative ${
+											header.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
+										}`}
 										style={{
 											minWidth: columnIndex === 0 ? '120px' : '60px',
 											width: header.column.columnDef.size
@@ -75,7 +77,9 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 							{row.getVisibleCells().map((cell, cellIndex) => (
 								<td
 									key={cell.id}
-									className="px-1 sm:px-2 py-2 border-r border-(--divider) last:border-r-0"
+									className={`px-1 sm:px-2 py-2 border-r border-(--divider) last:border-r-0 ${
+										cell.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
+									}`}
 									style={{
 										minWidth: cellIndex === 0 ? '120px' : '60px',
 										maxWidth: cellIndex === 0 ? '250px' : '150px',

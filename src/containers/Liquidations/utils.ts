@@ -589,7 +589,6 @@ export const getOption = (
 	let series: {
 		type: string
 		large?: boolean
-		largeThreshold?: number
 		name: string
 		data: number[]
 		emphasis: {
@@ -708,7 +707,8 @@ export const getOption = (
 				}
 			},
 			axisLabel: {
-				formatter: (value: string) => `$${Number(value).toFixed(3)}`
+				formatter: (value: string) => `$${Number(value).toFixed(3)}`,
+				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
 			axisTick: {
 				alignWithLabel: true
@@ -720,7 +720,8 @@ export const getOption = (
 			position: isLiqsCumulative ? 'left' : 'right',
 			axisLabel: {
 				formatter: (value: string) =>
-					isLiqsUsingUsd ? `$${getReadableValue(Number(value))}` : `${getReadableValue(Number(value))}`
+					isLiqsUsingUsd ? `$${getReadableValue(Number(value))}` : `${getReadableValue(Number(value))}`,
+				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
 			splitLine: {
 				lineStyle: {

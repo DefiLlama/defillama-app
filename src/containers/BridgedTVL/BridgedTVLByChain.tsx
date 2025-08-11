@@ -3,15 +3,13 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import Layout from '~/layout'
 import { SEO } from '~/components/SEO'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { chainIconUrl, formattedNum, preparePieChartData } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { FormattedName } from '~/components/FormattedName'
 import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import useWindowSize from '~/hooks/useWindowSize'
 import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { Metrics } from '~/components/Metrics'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -19,25 +17,17 @@ const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as Re
 export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInflowNames, chainName = 'All Chains' }) {
 	const [chartType, setChartType] = React.useState('total')
 
-	const { tokens, tableData } = React.useMemo(() => {
-		const top10Tokens = Object.entries(chainData?.[chartType]?.breakdown ?? [])
-			.sort((a, b) => +b[1] - +a[1])
-			.slice(0, 10)
-		const otherTokens = Object.entries(chainData?.[chartType]?.breakdown ?? [])
-			.sort((a, b) => +b[1] - +a[1])
-			.slice(10)
-		const otherTotal = otherTokens.reduce((acc, [_, value]) => acc + +value, 0)
-		const tokens = [...top10Tokens, ['Other', otherTotal]]
+	const { pieChartData, tableData } = React.useMemo(() => {
+		const pieChartData = preparePieChartData({ data: chainData?.[chartType]?.breakdown ?? {}, limit: 10 })
 
-		const tableData = Object.entries(chainData?.[chartType]?.breakdown ?? []).map(([name, value]) => ({
+		const tableData = Object.entries(chainData?.[chartType]?.breakdown ?? {}).map(([name, value]) => ({
 			name: name?.toLowerCase() === name ? name?.toUpperCase() : name,
 			value
 		}))
 
-		return { tokens, tableData }
+		return { pieChartData, tableData }
 	}, [chainData, chartType])
 
-	const screenWidth = useWindowSize()
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'value', desc: true }])
 	const instance = useReactTable({
 		data: tableData,
@@ -55,7 +45,6 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 			<Layout title={`${chainName} Bridged TVL - DefiLlama`}>
 				<ProtocolsChainsSearch />
 				<SEO cardName={chainName} token={chain} />
-				<Metrics currentMetric="Bridged TVL" isChains={chainName === 'All Chains'} />
 				<RowLinksWithDropdown links={chains} activeLink={chainName} />
 				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
@@ -96,11 +85,11 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 							</p>
 						) : null}
 					</div>
-					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 flex flex-col items-center gap-4 min-h-[434px]">
+					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 flex flex-col items-center gap-4 min-h-[436px]">
 						<div className="w-full max-w-fit overflow-x-auto p-3">
 							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 								{chartTypes.map(({ type, name }) =>
-									chainData[type]?.total !== '0' ? (
+									Boolean(chainData[type]?.total) && chainData[type]?.total !== '0' ? (
 										<button
 											className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 											data-active={chartType === type}
@@ -131,21 +120,12 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								) : null}
 							</div>
 						</div>
-
-						{chartType !== 'inflows' ? (
-							<div style={{ width: Math.min(+screenWidth.width / 1.5, 600) + 'px' }}>
+						<div className="w-full">
+							{chartType !== 'inflows' ? (
 								<React.Suspense fallback={<></>}>
-									<PieChart
-										chartData={tokens.map(([name, value]: [string, string]) => ({
-											name,
-											value: +value
-										}))}
-										usdFormat={false}
-									/>
+									<PieChart chartData={pieChartData} usdFormat={false} />
 								</React.Suspense>
-							</div>
-						) : (
-							<div className="w-full">
+							) : (
 								<React.Suspense fallback={<></>}>
 									<BarChart
 										chartData={inflows}
@@ -156,8 +136,8 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 										// chartOptions={inflowsChartOptions}
 									/>
 								</React.Suspense>
-							</div>
-						)}
+							)}
+						</div>
 					</div>
 				</div>
 				{chartType !== 'inflows' ? <VirtualTable instance={instance} skipVirtualization /> : null}

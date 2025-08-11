@@ -20,6 +20,11 @@ import { LoadingSpinner } from '../../LoadingSpinner'
 import { useAggregatorsData } from './useAggregatorsData'
 import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { AggregatorItem } from '~/containers/ProDashboard/types'
+
+type AggregatorItemWithMarketShare = AggregatorItem & {
+	marketShare7d: number
+}
 
 export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
@@ -35,8 +40,19 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 	const { data, isLoading, error, refetch } = useAggregatorsData(chains)
 	const windowSize = useWindowSize()
 
+	const enrichedData = React.useMemo<AggregatorItemWithMarketShare[]>(() => {
+		if (!data || data.length === 0) return []
+
+		const total7dGlobal = data.reduce((sum: number, item: AggregatorItem) => sum + (item.total7d || 0), 0)
+
+		return data.map((item: AggregatorItem) => ({
+			...item,
+			marketShare7d: total7dGlobal > 0 ? (item.total7d / total7dGlobal) * 100 : 0
+		}))
+	}, [data])
+
 	const instance = useReactTable({
-		data: data || [],
+		data: enrichedData,
 		columns: aggregatorsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -71,7 +87,7 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 			change_7d: 100
 		}
 
-		const hasChains = chains && chains.length > 0
+		const hasChains = chains && chains.length > 0 && !chains.includes('All')
 		const defaultVisibility = {
 			change_1d: !hasChains,
 			change_7d: !hasChains
@@ -148,6 +164,7 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 									'24h Volume',
 									'% of Total',
 									'7d Volume',
+									'7d Market Share',
 									'30d Volume',
 									'Cumulative Volume',
 									'24h Change',
@@ -164,6 +181,7 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 											item.total24h,
 											percentage.toFixed(2),
 											item.total7d,
+											item.marketShare7d?.toFixed(2) || '0',
 											item.total30d,
 											cumulative,
 											item.change_1d,

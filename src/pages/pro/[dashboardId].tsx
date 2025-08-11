@@ -1,15 +1,15 @@
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { withPerformanceLogging } from '~/utils/perf'
 import ProDashboard from '~/containers/ProDashboard'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { Icon } from '~/components/Icon'
+import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashboardEngagement'
 
 export const getStaticPaths = async () => {
 	return {
@@ -56,8 +56,10 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 	const router = useRouter()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()
-	const { isLoadingDashboard } = useProDashboard()
+	const { isLoadingDashboard, dashboardVisibility, currentDashboard } = useProDashboard()
 	const [isValidating, setIsValidating] = useState(true)
+	const { trackView } = useDashboardEngagement(dashboardId === 'new' ? null : dashboardId)
+	const hasTrackedView = useRef(false)
 
 	useEffect(() => {
 		if (dashboardId === 'new') {
@@ -68,11 +70,45 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 		setIsValidating(false)
 	}, [dashboardId])
 
+	useEffect(() => {
+		if (
+			dashboardId &&
+			dashboardId !== 'new' &&
+			dashboardVisibility === 'public' &&
+			!isLoadingDashboard &&
+			!hasTrackedView.current
+		) {
+			hasTrackedView.current = true
+			trackView()
+		}
+	}, [dashboardId, dashboardVisibility, isLoadingDashboard, trackView])
+
 	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
 	const isLoading = isAccountLoading || isValidating || isLoadingDashboard
 
 	if (isLoading) {
 		return <ProDashboardLoader />
+	}
+
+	if (dashboardId === 'new' && !isAuthenticated) {
+		return (
+			<div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
+				<div className="max-w-md text-center space-y-6">
+					<h1 className="text-3xl font-bold pro-text1">Sign In Required</h1>
+					<p className="text-lg pro-text2">Please sign in to create a new dashboard</p>
+					<button
+						onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
+						className="px-6 py-3 bg-(--primary1) hover:bg-(--primary1-hover) text-white font-medium transition-colors rounded-md"
+					>
+						Sign In
+					</button>
+				</div>
+			</div>
+		)
+	}
+
+	if (dashboardVisibility === 'public' && currentDashboard) {
+		return <ProDashboard />
 	}
 
 	if (!isAuthenticated) {
@@ -92,7 +128,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 		)
 	}
 
-	if (subscription?.status !== 'active') {
+	if (subscription?.status !== 'active' && dashboardVisibility !== 'public') {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
 				<div className="max-w-2xl w-full bg-(--bg7) bg-opacity-30 backdrop-blur-xl border border-white/20 rounded-lg p-8 md:p-12 shadow-lg">

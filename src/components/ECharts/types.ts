@@ -103,6 +103,7 @@ export interface IPieChartProps {
 	usdFormat?: boolean
 	radius?: [string, string]
 	showLegend?: boolean
+	toRight?: number
 	formatTooltip?: (params: any) => string
 	customLabel?: Record<string, any>
 	legendPosition?: {

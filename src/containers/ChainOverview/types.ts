@@ -19,6 +19,7 @@ export interface IChainMetadata {
 	tokenSymbol?: string
 	github?: boolean
 	id: string
+	protocolCount?: number
 }
 
 export interface IChainOverviewData {

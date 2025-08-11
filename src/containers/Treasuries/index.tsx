@@ -16,6 +16,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { Metrics } from '~/components/Metrics'
 
 export function Treasuries({ data, entity }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -88,6 +89,7 @@ export function Treasuries({ data, entity }) {
 	return (
 		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
+			{!entity && <Metrics currentMetric="Treasury" />}
 			<TableWithSearch
 				data={data}
 				columns={tableColumns}
@@ -96,7 +98,10 @@ export function Treasuries({ data, entity }) {
 				header={'Treasuries'}
 				customFilters={
 					<>
-						<CSVDownloadButton onClick={downloadCSV} className="min-h-[34px]" />
+						<CSVDownloadButton
+							onClick={downloadCSV}
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						/>
 					</>
 				}
 			/>

@@ -128,6 +128,15 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 	},
 	{ header: 'Round', accessorKey: 'round', enableSorting: false, size: 140 },
 	{
+		header: 'Category',
+		accessorKey: 'category',
+		size: 160,
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Tooltip content={getValue() as string}>{getValue() as string}</Tooltip>
+		}
+	},
+	{
 		header: 'Description',
 		accessorKey: 'sector',
 		size: 140,
@@ -581,69 +590,6 @@ interface IHacksRow {
 	amount: number
 	chains: string[]
 }
-
-export const hacksColumns: ColumnDef<IHacksRow>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		size: 200
-	},
-	{
-		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue())}</>,
-		size: 120,
-		header: 'Date',
-		accessorKey: 'date'
-	},
-	{
-		header: 'Amount lost',
-		accessorKey: 'amount',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formatRaise(getValue()) : ''}</>,
-		size: 140
-	},
-	{
-		header: 'Chains',
-		accessorKey: 'chains',
-		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
-		size: 60
-	},
-	...['classification', 'technique'].map((s) => ({
-		header: capitalizeFirstLetter(s),
-		accessorKey: s,
-		enableSorting: false,
-		size: s === 'classification' ? 140 : 200,
-		...(s === 'classification' && {
-			meta: {
-				headerHelperText:
-					'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
-			}
-		})
-	})),
-	{
-		header: 'Language',
-		accessorKey: 'language',
-		cell: ({ getValue }) => <>{(getValue() ?? null) as string | null}</>,
-		size: 140
-	},
-	{
-		header: 'Link',
-		accessorKey: 'link',
-		size: 40,
-		enableSorting: false,
-		cell: ({ getValue }) => (
-			<ButtonLight
-				className="flex items-center justify-center gap-4 p-[6px]!"
-				as="a"
-				href={getValue() as string}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonLight>
-		)
-	}
-]
 
 export const bridgedChainColumns: ColumnDef<any>[] = [
 	{
@@ -1383,17 +1329,26 @@ export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	}
 ]
 
-export const hacksColumnOrders = formatColumnOrder({
-	0: ['name', 'date', 'amountLost', 'chains', 'classification', 'technique', 'link']
-})
-
 export const raisesColumnOrders = formatColumnOrder({
-	0: ['name', 'amount', 'date', 'round', 'sector', 'leadInvestors', 'source', 'valuation', 'chains', 'otherInvestors'],
+	0: [
+		'name',
+		'amount',
+		'date',
+		'round',
+		'category',
+		'sector',
+		'leadInvestors',
+		'source',
+		'valuation',
+		'chains',
+		'otherInvestors'
+	],
 	1024: [
 		'name',
 		'date',
 		'amount',
 		'round',
+		'category',
 		'sector',
 		'leadInvestors',
 		'source',

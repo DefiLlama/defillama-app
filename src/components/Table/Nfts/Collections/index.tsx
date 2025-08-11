@@ -44,8 +44,8 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="flex items-center gap-2 justify-end flex-wrap p-3">
 				<h1 className="text-xl font-semibold mr-auto">NFT Collections</h1>
-
-				<div className="relative w-full sm:max-w-[280px]">
+				<label className="relative w-full sm:max-w-[280px]">
+					<span className="sr-only">Search collections...</span>
 					<Icon
 						name="search"
 						height={16}
@@ -53,14 +53,15 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
+						name="search"
 						value={collectionName}
 						onChange={(e) => {
 							setCollectionName(e.target.value)
 						}}
 						placeholder="Search collections..."
-						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</div>
+				</label>
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

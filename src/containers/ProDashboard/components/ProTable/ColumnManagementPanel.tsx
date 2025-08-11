@@ -273,11 +273,17 @@ export function ColumnManagementPanel({
 						</button>
 						<button
 							onClick={() => setActiveTab('custom')}
-							className={`px-3 py-1 text-xs transition-colors ${
+							className={`px-3 py-1 text-xs transition-colors relative ${
 								activeTab === 'custom' ? 'bg-(--primary1) text-white' : 'pro-text2 pro-hover-bg'
 							}`}
 						>
-							Custom Columns
+							<span className="flex items-center gap-1">
+								Custom Columns
+								<span className="text-[10px] px-1 py-0.5 bg-blue-500 text-white rounded-sm ml-1">NEW!</span>
+								{activeTab !== 'custom' && (
+									<span className="w-2 h-2 bg-(--primary1) rounded-full animate-pulse absolute -top-1 -right-1"></span>
+								)}
+							</span>
 						</button>
 					</div>
 				</div>

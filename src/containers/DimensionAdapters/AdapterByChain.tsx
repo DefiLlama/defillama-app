@@ -30,6 +30,7 @@ import { AdapterByChainChart } from './ChainChart'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { chainCharts } from '../ChainOverview/constants'
+import { getAnnualizedRatio } from '~/api/categories/adaptors'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<
@@ -39,6 +40,7 @@ interface IProps extends IAdapterByChainPageData {
 		| 'Holders Revenue'
 		| 'DEX Volume'
 		| 'Perp Volume'
+		| 'Open Interest'
 		| 'Bridge Aggregator Volume'
 		| 'Perp Aggregator Volume'
 		| 'DEX Aggregator Volume'
@@ -107,6 +109,14 @@ export function AdapterByChain(props: IProps) {
 				? protocols.map((p) => {
 						const childProtocols = p.childProtocols
 							? p.childProtocols.map((cp) => {
+									const total30d =
+										cp.total30d +
+										(enabledSettings.bribes ? cp.bribes?.total30d ?? 0 : 0) +
+										(enabledSettings.tokentax ? cp.tokenTax?.total30d ?? 0 : 0)
+
+									let pf = cp.mcap && cp.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
+									let ps = cp.mcap && cp.revenue?.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
+
 									return {
 										...cp,
 										total24h:
@@ -117,10 +127,7 @@ export function AdapterByChain(props: IProps) {
 											cp.total7d +
 											(enabledSettings.bribes ? cp.bribes?.total7d ?? 0 : 0) +
 											(enabledSettings.tokentax ? cp.tokenTax?.total7d ?? 0 : 0),
-										total30d:
-											cp.total30d +
-											(enabledSettings.bribes ? cp.bribes?.total30d ?? 0 : 0) +
-											(enabledSettings.tokentax ? cp.tokenTax?.total30d ?? 0 : 0),
+										total30d,
 										total1y:
 											cp.total1y +
 											(enabledSettings.bribes ? cp.bribes?.total1y ?? 0 : 0) +
@@ -128,10 +135,20 @@ export function AdapterByChain(props: IProps) {
 										totalAllTime:
 											cp.totalAllTime +
 											(enabledSettings.bribes ? cp.bribes?.totalAllTime ?? 0 : 0) +
-											(enabledSettings.tokentax ? cp.tokenTax?.totalAllTime ?? 0 : 0)
+											(enabledSettings.tokentax ? cp.tokenTax?.totalAllTime ?? 0 : 0),
+										...(pf ? { pf } : {}),
+										...(ps ? { ps } : {})
 									}
 							  })
 							: null
+
+						const total30d =
+							p.total30d +
+							(enabledSettings.bribes ? p.bribes?.total30d ?? 0 : 0) +
+							(enabledSettings.tokentax ? p.tokenTax?.total30d ?? 0 : 0)
+
+						const pf = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
+						const ps = p.mcap && p.revenue?.total30d ? getAnnualizedRatio(p.mcap, total30d) : null
 
 						return {
 							...p,
@@ -143,10 +160,7 @@ export function AdapterByChain(props: IProps) {
 								p.total7d +
 								(enabledSettings.bribes ? p.bribes?.total7d ?? 0 : 0) +
 								(enabledSettings.tokentax ? p.tokenTax?.total7d ?? 0 : 0),
-							total30d:
-								p.total30d +
-								(enabledSettings.bribes ? p.bribes?.total30d ?? 0 : 0) +
-								(enabledSettings.tokentax ? p.tokenTax?.total30d ?? 0 : 0),
+							total30d,
 							total1y:
 								p.total1y +
 								(enabledSettings.bribes ? p.bribes?.total1y ?? 0 : 0) +
@@ -155,6 +169,8 @@ export function AdapterByChain(props: IProps) {
 								p.totalAllTime +
 								(enabledSettings.bribes ? p.bribes?.totalAllTime ?? 0 : 0) +
 								(enabledSettings.tokentax ? p.tokenTax?.totalAllTime ?? 0 : 0),
+							...(pf ? { pf } : {}),
+							...(ps ? { ps } : {}),
 							...(childProtocols ? { childProtocols } : {})
 						}
 				  })
@@ -167,7 +183,9 @@ export function AdapterByChain(props: IProps) {
 		}
 	}, [router.query, props, enabledSettings])
 
-	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'total24h' }])
+	const [sorting, setSorting] = useState<SortingState>([
+		{ desc: true, id: ['pf', 'ps'].includes(props.type) ? props.type : 'total24h' }
+	])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
@@ -251,8 +269,11 @@ export function AdapterByChain(props: IProps) {
 			'Total 1m',
 			'Total 1y',
 			'Total All Time',
-			'Market Cap'
+			'Market Cap',
+			'P/F',
+			'P/S'
 		]
+
 		const csvdata = protocols.map((protocol) => {
 			return [
 				protocol.name,
@@ -262,9 +283,12 @@ export function AdapterByChain(props: IProps) {
 				protocol.total30d,
 				protocol.total1y,
 				protocol.totalAllTime,
-				protocol.mcap
+				protocol.mcap,
+				protocol.pf,
+				protocol.ps
 			]
 		})
+
 		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
 
 		download(`${props.type}-${props.chain}-protocols.csv`, csv)
@@ -361,7 +385,7 @@ export function AdapterByChain(props: IProps) {
 			<AdaptorsSearch type={props.adapterType} dataType={props.dataType} />
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.adapterType !== 'fees' ? (
+			{props.adapterType !== 'fees' && props.type !== 'Open Interest' ? (
 				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 						{props.chain !== 'All' && (
@@ -432,7 +456,7 @@ export function AdapterByChain(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 						/>
 					</div>
 					<SelectWithCombobox
@@ -447,7 +471,7 @@ export function AdapterByChain(props: IProps) {
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+								'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 						}}
 					/>
 					{props.categories.length > 0 && (
@@ -463,12 +487,15 @@ export function AdapterByChain(props: IProps) {
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
 					)}
 					<FullOldViewButton type={props.type} />
-					<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
+					<CSVDownloadButton
+						onClick={downloadCsv}
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					/>
 				</div>
 
 				<VirtualTable instance={instance} rowSize={64} compact />
@@ -497,6 +524,7 @@ const protocolChartsKeys: Record<IProps['type'], typeof protocolCharts[keyof typ
 	'Options Notional Volume': 'optionsNotionalVolume',
 	'DEX Volume': 'dexVolume',
 	'Perp Volume': 'perpVolume',
+	'Open Interest': 'perpVolume',
 	'Bridge Aggregator Volume': 'bridgeAggregatorVolume',
 	'Perp Aggregator Volume': 'perpAggregatorVolume',
 	'DEX Aggregator Volume': 'dexAggregatorVolume',
@@ -633,7 +661,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 const getColumnsByType = (
 	isChain: boolean = false
-): Record<IProps['type'], ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
+): Record<IProps['type'] & 'P/F', ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
 	return {
 		Fees: [
 			NameColumn('Fees'),
@@ -1011,6 +1039,22 @@ const getColumnsByType = (
 				size: 160
 			}
 		],
+		'Open Interest': [
+			NameColumn('Open Interest'),
+			{
+				id: 'total24h',
+				header: 'Open Interest',
+				accessorFn: (protocol) => protocol.total24h,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+				},
+				size: 160
+			}
+		],
 		'Perp Aggregator Volume': [
 			NameColumn('Perp Aggregator Volume'),
 			{
@@ -1226,6 +1270,78 @@ const getColumnsByType = (
 						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
 				},
 				size: 160
+			}
+		],
+		'P/F': [
+			NameColumn('Fees'),
+			{
+				id: 'category',
+				header: 'Category',
+				accessorFn: (protocol) => protocol.category,
+				enableSorting: false,
+				cell: ({ getValue }) =>
+					getValue() ? (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-(--link-text)"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						''
+					),
+				meta: {
+					align: 'center'
+				},
+				size: 128
+			},
+			{
+				id: 'pf',
+				header: 'P/F',
+				accessorFn: (protocol) => protocol.pf,
+				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Market cap / annualized fees'
+				},
+				size: 120
+			}
+		],
+		'P/S': [
+			NameColumn('Revenue'),
+			{
+				id: 'category',
+				header: 'Category',
+				accessorFn: (protocol) => protocol.category,
+				enableSorting: false,
+				cell: ({ getValue }) =>
+					getValue() ? (
+						<BasicLink
+							href={`/protocols/${slug(getValue() as string)}`}
+							className="text-sm font-medium text-(--link-text)"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						''
+					),
+				meta: {
+					align: 'center'
+				},
+				size: 128
+			},
+			{
+				id: 'ps',
+				header: 'P/S',
+				accessorFn: (protocol) => protocol.ps,
+				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'center',
+					headerHelperText: 'Market cap / annualized revenue'
+				},
+				size: 120
 			}
 		]
 	}

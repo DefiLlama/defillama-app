@@ -16,6 +16,7 @@ interface MultiItemSelectProps {
 	itemType: 'chain' | 'protocol' | 'token'
 	onInputChange?: (value: string) => void
 	customProps?: any
+	noIcon?: boolean
 }
 
 const CustomChainOption = ({ innerProps, label, data }) => (
@@ -129,6 +130,12 @@ function VirtualizedMenuList(props) {
 	)
 }
 
+const SimpleOption = ({ innerProps, label }) => (
+	<div {...innerProps} className="flex items-center gap-2 p-2 cursor-pointer">
+		<span>{label}</span>
+	</div>
+)
+
 export function MultiItemSelect({
 	label,
 	options,
@@ -138,10 +145,12 @@ export function MultiItemSelect({
 	placeholder,
 	itemType,
 	onInputChange,
-	customProps
+	customProps,
+	noIcon = false
 }: MultiItemSelectProps) {
-	const OptionComponent =
-		itemType === 'chain' ? CustomChainOption : itemType === 'protocol' ? CustomProtocolOption : CustomTokenOption
+	const OptionComponent = noIcon 
+		? SimpleOption 
+		: itemType === 'chain' ? CustomChainOption : itemType === 'protocol' ? CustomProtocolOption : CustomTokenOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
 	const selectedOptions = useMemo(() => {

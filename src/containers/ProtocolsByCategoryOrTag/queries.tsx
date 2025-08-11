@@ -157,8 +157,8 @@ export async function getProtocolsByCategoryOrTag({
 			const extraTvls: Record<string, number> = {}
 			if (chain) {
 				for (const pchain in protocol.chainTvls) {
-					const chainName = slug(pchain.split('-')[0])
-					if (chainName !== chain) {
+					const chainName = pchain.split('-')[0]
+					if (chainName !== chainMetadata.name) {
 						continue
 					}
 
@@ -379,7 +379,9 @@ export async function getProtocolsByCategoryOrTag({
 			}
 		},
 		chain: chainMetadata?.name ?? 'All',
-		protocols: finalProtocols.sort((a, b) => b.tvl - a.tvl),
+		protocols: (chain ? finalProtocols.filter((p) => p.chains.includes(chainMetadata.name)) : finalProtocols).sort(
+			(a, b) => b.tvl - a.tvl
+		),
 		category: category ?? null,
 		tag: tag ?? null,
 		chains: [

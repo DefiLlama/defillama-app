@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchJson } from '~/utils/async'
+import { DexItem } from '~/containers/ProDashboard/types'
 
 export function useDexsData(chains?: string[]) {
 	const queryParams =
@@ -7,7 +8,7 @@ export function useDexsData(chains?: string[]) {
 
 	const sortedChains = chains ? [...chains].sort() : []
 
-	return useQuery({
+	return useQuery<DexItem[]>({
 		queryKey: ['dexs-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/dexs${queryParams}`),
 		staleTime: 5 * 60 * 1000,

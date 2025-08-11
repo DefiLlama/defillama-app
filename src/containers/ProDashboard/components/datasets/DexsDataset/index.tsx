@@ -20,6 +20,11 @@ import { LoadingSpinner } from '../../LoadingSpinner'
 import { useDexsData } from './useDexsData'
 import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { DexItem } from '~/containers/ProDashboard/types'
+
+type DexItemWithMarketShare = DexItem & {
+	marketShare7d: number
+}
 
 export function DexsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
@@ -35,8 +40,19 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 	const { data, isLoading, error, refetch } = useDexsData(chains)
 	const windowSize = useWindowSize()
 
+	const enrichedData = React.useMemo<DexItemWithMarketShare[]>(() => {
+		if (!data || data.length === 0) return []
+
+		const total7dGlobal = data.reduce((sum: number, item: DexItem) => sum + (item.total7d || 0), 0)
+
+		return data.map((item) => ({
+			...item,
+			marketShare7d: total7dGlobal > 0 ? ((item.total7d || 0) / total7dGlobal) * 100 : 0
+		}))
+	}, [data])
+
 	const instance = useReactTable({
-		data: data || [],
+		data: enrichedData,
 		columns: dexsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -71,7 +87,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 			change_7d: 100
 		}
 
-		const hasChains = chains && chains.length > 0
+		const hasChains = chains && chains.length > 0 && !chains.includes('All')
 		const defaultVisibility = {
 			change_1d: !hasChains,
 			change_7d: !hasChains
@@ -148,6 +164,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 									'24h Volume',
 									'% of Total',
 									'7d Volume',
+									'7d Market Share',
 									'30d Volume',
 									'Cumulative Volume',
 									'24h Change',
@@ -164,6 +181,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 											item.total24h,
 											percentage.toFixed(2),
 											item.total7d,
+											item.marketShare7d?.toFixed(2) || '0',
 											item.total30d,
 											cumulative,
 											item.change_1d,
@@ -177,6 +195,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 								const a = document.createElement('a')
 								a.href = url
 								a.download = `dexs-data-${new Date().toISOString().split('T')[0]}.csv`
+								document.body.appendChild(a)
 								a.click()
 								document.body.removeChild(a)
 								URL.revokeObjectURL(url)

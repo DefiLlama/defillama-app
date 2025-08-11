@@ -3,7 +3,9 @@ import { generateChartColor, convertToCumulative } from '../utils'
 import { EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { Icon } from '~/components/Icon'
-import { memo, useState, useMemo, lazy, Suspense } from 'react'
+import { memo, useState, useMemo, lazy, Suspense, useCallback } from 'react'
+import { ProTableCSVButton } from './ProTable/CsvButton'
+import { download } from '~/utils'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
@@ -12,8 +14,8 @@ interface MultiChartCardProps {
 }
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { getProtocolInfo, handleGroupingChange, handleCumulativeChange } = useProDashboard()
-	const [showPercentage, setShowPercentage] = useState(false)
+	const { getProtocolInfo, handleGroupingChange, handleCumulativeChange, handlePercentageChange, isReadOnly } =
+		useProDashboard()
 	const [showStacked, setShowStacked] = useState(true)
 	const showCumulative = multi.showCumulative || false
 
@@ -33,10 +35,13 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 	const loadingItems = multi.items.filter((cfg) => cfg.isLoading)
 
+	const showPercentage = multi.showPercentage || false
+
 	const series = useMemo(() => {
 		const uniqueChains = new Set(validItems.filter((item) => !item.protocol).map((item) => item.chain))
+		const uniqueProtocols = new Set(validItems.filter((item) => item.protocol).map((item) => item.protocol))
 		const isSingleChain = uniqueChains.size === 1 && validItems.every((item) => !item.protocol)
-
+		const isSingleProtocol = uniqueProtocols.size === 1 && validItems.every((item) => item.protocol)
 		const baseSeries = validItems.map((cfg, index) => {
 			const rawData = cfg.data as [string, number][]
 			const meta = CHART_TYPES[cfg.type]
@@ -54,9 +59,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			const itemIdentifier = cfg.protocol || cfg.chain || 'unknown'
 
-			const color = isSingleChain
-				? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
-				: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
+			const color =
+				isSingleChain || isSingleProtocol
+					? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
+					: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
 
 			return {
 				name: `${name} ${meta?.title || cfg.type}`,
@@ -82,7 +88,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				return chartType?.chartType === 'area'
 			})
 
-		if ((allBarType || allAreaType) && showStacked && !showCumulative) {
+		if ((allBarType || allAreaType) && showStacked && !showCumulative && !showPercentage) {
 			const allTimestamps = new Set<number>()
 			baseSeries.forEach((serie) => {
 				serie.data.forEach(([timestamp]) => allTimestamps.add(timestamp))
@@ -165,12 +171,13 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			'#D7BDE2'
 		]
 
-		const seriesWithAverages = baseSeries.map((serie) => {
+		const seriesWithAverages = baseSeries.map((serie, serieIndex) => {
 			const percentageData: [number, number][] = sortedTimestamps.map((timestamp) => {
 				const dataPoint = serie.data.find(([t]) => t === timestamp)
 				const value = dataPoint ? dataPoint[1] : 0
 				const total = totals.get(timestamp) || 0
 				const percentage = total > 0 ? (value / total) * 100 : 0
+
 				return [timestamp, percentage]
 			})
 
@@ -187,7 +194,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 		const sortedSeries = seriesWithAverages.sort((a, b) => a.avgPercentage - b.avgPercentage)
 
-		return sortedSeries.map((serie, index) => {
+		const finalSeries = sortedSeries.map((serie, index) => {
 			const color = percentageColors[index % percentageColors.length]
 			return {
 				...serie,
@@ -198,7 +205,36 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				}
 			}
 		})
+
+		return finalSeries
 	}, [validItems, showPercentage, showStacked, showCumulative, getProtocolInfo])
+
+	const handleCsvExport = useCallback(() => {
+		if (!series || series.length === 0) return
+
+		const timestampSet = new Set<number>()
+		series.forEach((s) => {
+			s.data.forEach(([timestamp]) => timestampSet.add(timestamp))
+		})
+		const timestamps = Array.from(timestampSet).sort((a, b) => a - b)
+
+		const headers = ['Date', ...series.map((s) => s.name)]
+
+		const rows = timestamps.map((timestamp) => {
+			const row = [new Date(timestamp * 1000).toLocaleDateString()]
+			series.forEach((s) => {
+				const dataPoint = s.data.find(([t]) => t === timestamp)
+				row.push(dataPoint ? dataPoint[1].toString() : '0')
+			})
+			return row
+		})
+
+		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
+		const fileName = `${multi.name || 'multi_chart'}_${new Date().toISOString().split('T')[0]}.csv`
+		download(fileName, csvContent)
+	}, [series, multi.name])
+
+	const dataHash = series.length > 0 && showPercentage ? series[0].data[0]?.[1]?.toFixed(0) || '0' : 'abs'
 
 	const hasAnyData = validItems.length > 0
 	const isAllLoading = loadingItems.length === multi.items.length
@@ -231,23 +267,23 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
 	return (
-		<div className="p-4 h-full min-h-[340px] flex flex-col">
-			<div className="mb-2 pr-[86px]">
-				<div className="flex flex-wrap items-start justify-between gap-3">
-					<div className="flex items-center gap-2 min-w-0">
-						<h3 className="text-sm font-medium text-(--text1) truncate">
+		<div className="px-4 pb-4 pt-2 h-full min-h-[340px] flex flex-col">
+			<div className="mb-2">
+				<div className={``}>
+					<div className="flex items-center gap-2 mb-2">
+						<h3 className="text-sm font-medium text-(--text1)">
 							{multi.name || `Multi-Chart (${multi.items.length})`}
 						</h3>
 						{hasPartialFailures && (
-							<div className="flex items-center gap-1 text-xs text-yellow-500 shrink-0">
+							<div className="flex items-center gap-1 text-xs text-yellow-500">
 								<Icon name="alert-triangle" height={12} width={12} />
 								<span className="hidden sm:inline">Partial data</span>
 								<span className="sm:hidden">!</span>
 							</div>
 						)}
 					</div>
-					<div className="flex items-center gap-2 shrink-0">
-						{allChartsGroupable && hasAnyData && (
+					<div className="flex items-center justify-end gap-2">
+						{!isReadOnly && allChartsGroupable && hasAnyData && (
 							<div className="flex border border-(--form-control-border) overflow-hidden">
 								{groupingOptions.map((option, index) => (
 									<button
@@ -267,48 +303,53 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 								))}
 							</div>
 						)}
-						{hasAnyData && !hasMultipleMetrics && (
-							<>
-								{allChartsAreBarType && (
-									<button
-										onClick={() => {
-											handleCumulativeChange(multi.id, !showCumulative)
-											if (!showCumulative) {
-												setShowStacked(false)
-											}
-										}}
-										className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
-										title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
-									>
-										<Icon name="trending-up" height={12} width={12} />
-										<span className="hidden sm:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
-									</button>
-								)}
-								{canStack && !showCumulative && (
-									<button
-										onClick={() => {
-											setShowStacked(!showStacked)
-											setShowPercentage(false)
-										}}
-										className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
-										title={showStacked ? 'Show separate' : 'Show stacked'}
-									>
-										<Icon name="layers" height={12} width={12} />
-										<span className="hidden sm:inline">{showStacked ? 'Stacked' : 'Separate'}</span>
-									</button>
-								)}
-								<button
-									onClick={() => {
-										setShowPercentage(!showPercentage)
+						{!isReadOnly && hasAnyData && !hasMultipleMetrics && allChartsAreBarType && (
+							<button
+								onClick={() => {
+									handleCumulativeChange(multi.id, !showCumulative)
+									if (!showCumulative) {
 										setShowStacked(false)
-									}}
-									className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
-									title={showPercentage ? 'Show absolute values' : 'Show percentage'}
-								>
-									<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
-									<span className="hidden sm:inline">{showPercentage ? 'Percentage' : 'Absolute'}</span>
-								</button>
-							</>
+									}
+								}}
+								className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+								title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
+							>
+								<Icon name="trending-up" height={12} width={12} />
+								<span className="hidden xl:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
+							</button>
+						)}
+						{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && (
+							<button
+								onClick={() => {
+									setShowStacked(!showStacked)
+									handlePercentageChange(multi.id, false)
+								}}
+								className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+								title={showStacked ? 'Show separate' : 'Show stacked'}
+							>
+								<Icon name="layers" height={12} width={12} />
+								<span className="hidden xl:inline">{showStacked ? 'Stacked' : 'Separate'}</span>
+							</button>
+						)}
+						{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
+							<button
+								onClick={() => {
+									handlePercentageChange(multi.id, !showPercentage)
+									setShowStacked(false)
+								}}
+								className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+								title={showPercentage ? 'Show absolute values' : 'Show percentage'}
+							>
+								<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
+								<span className="hidden xl:inline">{showPercentage ? 'Percentage' : 'Absolute'}</span>
+							</button>
+						)}
+						{series.length > 0 && (
+							<ProTableCSVButton
+								onClick={handleCsvExport}
+								smol
+								customClassName="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+							/>
 						)}
 					</div>
 				</div>
@@ -356,7 +397,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				) : (
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart
-							key={`${showStacked}-${showPercentage}`}
+							key={`${multi.id}-${showStacked}-${showPercentage}-${multi.items
+								?.map((i) => `${i.id}-${i.type}`)
+								.join('-')}`}
 							series={series}
 							valueSymbol={showPercentage ? '%' : '$'}
 							groupBy={

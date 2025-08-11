@@ -78,8 +78,8 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 						<span className="font-jetbrains font-semibold text-2xl">{dominance}%</span>
 					</p>
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[360px]">
-					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[370px] pt-2">
+					<Suspense fallback={<></>}>
 						<LineAndBarChart charts={charts} alwaysShowTooltip />
 					</Suspense>
 				</div>

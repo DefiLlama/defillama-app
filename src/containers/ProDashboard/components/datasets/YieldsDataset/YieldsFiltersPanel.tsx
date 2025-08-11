@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Icon } from '~/components/Icon'
 import { MultiItemSelect } from '../../MultiItemSelect'
 
 export interface YieldsFilters {
@@ -10,6 +9,7 @@ export interface YieldsFilters {
 	baseApyMin?: number
 	baseApyMax?: number
 	chains?: string[]
+	tokens?: string[]
 	hasRewards?: boolean
 	stablesOnly?: boolean
 	activeLending?: boolean
@@ -22,6 +22,7 @@ interface YieldsFiltersPanelProps {
 	filters: YieldsFilters
 	setFilters: (filters: YieldsFilters) => void
 	availableChains: string[]
+	availableTokens: string[]
 	onApplyFilters: (filters?: YieldsFilters) => void
 	onResetFilters: () => void
 	activeFilterCount: number
@@ -33,6 +34,7 @@ export function YieldsFiltersPanel({
 	filters,
 	setFilters,
 	availableChains,
+	availableTokens,
 	onApplyFilters,
 	onResetFilters,
 	activeFilterCount
@@ -48,6 +50,17 @@ export function YieldsFiltersPanel({
 			...prev,
 			[key]: value
 		}))
+	}
+
+	const formatNumberWithCommas = (num: number | undefined): string => {
+		if (num === undefined || num === null) return ''
+		return num.toLocaleString('en-US', { maximumFractionDigits: 0 })
+	}
+
+	const parseFormattedNumber = (value: string): number | undefined => {
+		const cleaned = value.replace(/,/g, '')
+		const parsed = Number(cleaned)
+		return cleaned && !isNaN(parsed) ? parsed : undefined
 	}
 
 	const handleApply = () => {
@@ -81,7 +94,7 @@ export function YieldsFiltersPanel({
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 				<div>
 					<h5 className="text-xs font-medium pro-text2 mb-3 uppercase tracking-wide">Yield Filters</h5>
 
@@ -167,18 +180,18 @@ export function YieldsFiltersPanel({
 							<label className="text-xs pro-text2 mb-2 block font-medium">TVL Range (USD)</label>
 							<div className="flex items-center gap-2">
 								<input
-									type="number"
+									type="text"
 									placeholder="Min"
-									value={localFilters.tvlMin || ''}
-									onChange={(e) => updateFilter('tvlMin', e.target.value ? Number(e.target.value) : undefined)}
+									value={formatNumberWithCommas(localFilters.tvlMin)}
+									onChange={(e) => updateFilter('tvlMin', parseFormattedNumber(e.target.value))}
 									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
 								/>
 								<span className="pro-text3">-</span>
 								<input
-									type="number"
+									type="text"
 									placeholder="Max"
-									value={localFilters.tvlMax || ''}
-									onChange={(e) => updateFilter('tvlMax', e.target.value ? Number(e.target.value) : undefined)}
+									value={formatNumberWithCommas(localFilters.tvlMax)}
+									onChange={(e) => updateFilter('tvlMax', parseFormattedNumber(e.target.value))}
 									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
 								/>
 							</div>
@@ -262,6 +275,28 @@ export function YieldsFiltersPanel({
 								))}
 							</div>
 						</div>
+					</div>
+				</div>
+
+				<div>
+					<h5 className="text-xs font-medium pro-text2 mb-3 uppercase tracking-wide">Token Filters</h5>
+
+					<div className="space-y-3">
+						<MultiItemSelect
+							label="Pool Tokens"
+							options={availableTokens.map(token => ({ value: token, label: token }))}
+							selectedValues={localFilters.tokens || []}
+							onChange={(selectedOptions) => {
+								updateFilter('tokens', selectedOptions?.map(opt => opt.value) || undefined)
+							}}
+							isLoading={false}
+							placeholder="Select tokens..."
+							itemType="token"
+							noIcon={true}
+							customProps={{ 
+								menuPosition: 'absolute'
+							}}
+						/>
 					</div>
 				</div>
 			</div>

@@ -100,6 +100,8 @@ export const getChainsByCategory = async ({
 		stackedDataset = sampledData
 	}
 
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 	return {
 		...rest,
 		stackedDataset,
@@ -116,9 +118,10 @@ export const getChainsByCategory = async ({
 			const totalVolume24h = dexs?.find((x) => x.chain === chain.name)?.total24h ?? null
 			const stablesMcap = stablesChainMcaps.find((x) => slug(x.name) === name)?.mcap ?? null
 			const users = activeUsers['chain#' + name]?.users?.value
-
+			const protocols = metadataCache.chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
 			return {
 				...chain,
+				protocols,
 				nftVolume: nftVolume ? +Number(nftVolume).toFixed(2) : null,
 				totalVolume24h,
 				totalFees24h,

@@ -52,7 +52,6 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 							name: 'Sale Price',
 							type: 'scatter',
 							large: true,
-							largeThreshold: 0,
 							symbols: 5,
 							emphasis: {
 								focus: 'series'
@@ -159,6 +158,9 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 					fontSize: 14,
 					fontWeight: 400
 				},
+				axisLabel: {
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				},
 				axisLine: {
 					lineStyle: {
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -177,7 +179,8 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 					type: 'value',
 					min: 'dataMin',
 					axisLabel: {
-						formatter: (value) => Number(value.toFixed(2)) + ' ETH'
+						formatter: (value) => Number(value.toFixed(2)) + ' ETH',
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 					},
 					axisLine: {
 						lineStyle: {
@@ -189,8 +192,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 					nameTextStyle: {
 						fontFamily: 'sans-serif',
 						fontSize: 14,
-						fontWeight: 400,
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+						fontWeight: 400
 					},
 					splitLine: {
 						lineStyle: {

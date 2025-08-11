@@ -21,7 +21,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { ICONS_CDN, removedCategories } from '~/constants'
+import { ICONS_CDN, removedCategoriesFromChainTvl } from '~/constants'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { subscribeToLocalStorage, useLocalStorageSettingsManager, useCustomColumns } from '~/contexts/LocalStorage'
@@ -455,7 +455,6 @@ export const ChainProtocolsTable = ({
 						className="max-sm:w-full"
 						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 					/>
-
 					<div className="flex items-center gap-2 w-full sm:w-auto">
 						<SelectWithCombobox
 							allValues={mergedColumns}
@@ -469,7 +468,7 @@ export const ChainProtocolsTable = ({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 							customFooter={
 								<button
@@ -1259,7 +1258,7 @@ const Tvl = ({ rowValues }) => {
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		removedCategories.forEach((removedCategory) => {
+		removedCategoriesFromChainTvl.forEach((removedCategory) => {
 			if (rowValues.category === removedCategory) {
 				text = `${removedCategory} protocols are not counted into Chain TVL`
 			}

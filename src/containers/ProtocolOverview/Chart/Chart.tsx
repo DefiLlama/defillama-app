@@ -2,7 +2,8 @@ import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { formattedNum } from '~/utils'
-import { ProtocolChartsLabels, BAR_CHARTS, yAxisByChart, DISABLED_CUMULATIVE_CHARTS } from './constants'
+import { ProtocolChartsLabels, BAR_CHARTS, yAxisByChart } from './constants'
+import { MarkAreaComponent } from 'echarts/components'
 
 const customOffsets = {
 	Contributers: 60,
@@ -11,12 +12,15 @@ const customOffsets = {
 	'NFT Volume': 65
 }
 
+echarts.use([MarkAreaComponent])
+
 export default function ProtocolLineBarChart({
 	chartData,
 	chartColors,
 	valueSymbol = '',
 	color,
 	hallmarks,
+	rangeHallmarks,
 	chartOptions,
 	height,
 	unlockTokenSymbol = '',
@@ -57,7 +61,6 @@ export default function ProtocolLineBarChart({
 			const stackColor = chartColors[stack]
 
 			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
-			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
 
 			const options = {
 				yAxisIndex: indexByYAxis[yAxisByChart[stack]]
@@ -69,7 +72,6 @@ export default function ProtocolLineBarChart({
 				...options,
 				scale: true,
 				large: true,
-				largeThreshold: 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
@@ -95,7 +97,30 @@ export default function ProtocolLineBarChart({
 					  }
 					: {}),
 				markLine: {},
-				data: chartData[stack] ?? []
+				data: chartData[stack] ?? [],
+				...(index === 0 && rangeHallmarks?.length > 0
+					? {
+							markArea: {
+								itemStyle: {
+									color: isThemeDark ? 'rgba(15, 52, 105, 0.4)' : 'rgba(70, 130, 180, 0.3)'
+								},
+								label: {
+									fontFamily: 'sans-serif',
+									fontWeight: 600,
+									color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+								},
+								data: rangeHallmarks.map(([date, event]) => [
+									{
+										name: event,
+										xAxis: date[0]
+									},
+									{
+										xAxis: date[1]
+									}
+								])
+							}
+					  }
+					: {})
 			}
 		})
 
@@ -416,64 +441,6 @@ export default function ProtocolLineBarChart({
 				})
 			}
 
-			if (type === 'Developers') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} devs`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Developers']
-						}
-					}
-				})
-			}
-			if (type === 'Contributers') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} contributers`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Contributers']
-						}
-					}
-				})
-			}
-
-			if (type === 'Devs Commits') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} commits`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Devs Commits']
-						}
-					}
-				})
-			}
-			if (type === 'Contributers Commits') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} commits`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Contributers Commits']
-						}
-					}
-				})
-			}
-
 			if (type === 'NFT Volume') {
 				finalYAxis.push({
 					...options,
@@ -497,13 +464,13 @@ export default function ProtocolLineBarChart({
 			grid: {
 				left: 12,
 				bottom: 68,
-				top: 12,
+				top: rangeHallmarks?.length > 0 ? 18 : 12,
 				right: 12,
 				containLabel: true
 			},
 			xAxis,
 			yAxis: finalYAxis,
-			dataZoom,
+			...(series.every((s) => s.data.length > 1) ? { dataZoom } : {}),
 			series
 		})
 

@@ -69,6 +69,15 @@ export const dexsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ getValue }) => <span className="font-mono pro-text2">{formattedNum(getValue() as number, true)}</span>
 	},
 	{
+		header: '7d Market Share',
+		accessorKey: 'marketShare7d',
+		size: 120,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="font-mono pro-text2">{formattedPercent(value, true)}</span>
+		}
+	},
+	{
 		header: '30d Volume',
 		accessorKey: 'total30d',
 		size: 120,

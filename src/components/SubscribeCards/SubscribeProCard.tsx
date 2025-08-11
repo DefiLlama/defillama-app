@@ -43,7 +43,7 @@ export function SubscribeProCard({
 						'linear-gradient(135deg, rgba(92, 92, 249, 0.05) 0%, rgba(138, 138, 255, 0.02) 50%, rgba(70, 42, 146, 0.03) 100%)'
 				}}
 			></div>
-			<h2 className="whitespace-nowrap text-[2rem] font-extrabold text-center text-[#5C5CF9] relative z-10">Pro</h2>
+			<h2 className="whitespace-nowrap text-[2rem] font-extrabold text-center text-[#5C5CF9] relative z-10">API</h2>
 			<div className="flex items-center justify-center mt-1 relative z-10">
 				<span className="text-center text-2xl font-medium bg-linear-to-r from-[#5C5CF9] to-[#8a8aff] bg-clip-text text-transparent">
 					300 USD

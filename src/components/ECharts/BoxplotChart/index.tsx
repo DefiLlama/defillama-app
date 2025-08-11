@@ -116,7 +116,9 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 				nameTextStyle: {
 					fontFamily: 'sans-serif',
 					fontSize: 14,
-					fontWeight: 500,
+					fontWeight: 500
+				},
+				axisLabel: {
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},
 				splitLine: {
@@ -132,7 +134,9 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 				nameTextStyle: {
 					fontFamily: 'sans-serif',
 					fontSize: 14,
-					fontWeight: 600,
+					fontWeight: 600
+				},
+				axisLabel: {
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},
 				splitLine: {

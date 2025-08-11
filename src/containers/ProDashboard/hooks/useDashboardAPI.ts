@@ -31,7 +31,13 @@ export function useDashboardAPI() {
 	})
 
 	const createDashboardMutation = useMutation({
-		mutationFn: async (data: { items: DashboardItemConfig[]; dashboardName: string }) => {
+		mutationFn: async (data: {
+			items: DashboardItemConfig[]
+			dashboardName: string
+			visibility?: 'private' | 'public'
+			tags?: string[]
+			description?: string
+		}) => {
 			return await dashboardAPI.createDashboard(data, authorizedFetch)
 		},
 		onSuccess: (dashboard) => {
@@ -43,7 +49,19 @@ export function useDashboardAPI() {
 	})
 
 	const updateDashboardMutation = useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: { items: DashboardItemConfig[]; dashboardName: string } }) => {
+		mutationFn: async ({
+			id,
+			data
+		}: {
+			id: string
+			data: {
+				items: DashboardItemConfig[]
+				dashboardName: string
+				visibility?: 'private' | 'public'
+				tags?: string[]
+				description?: string
+			}
+		}) => {
 			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)
 		},
 		onSuccess: () => {
@@ -73,20 +91,16 @@ export function useDashboardAPI() {
 		}
 	})
 
-	// Load a specific dashboard
 	const loadDashboard = useCallback(
 		async (id: string) => {
-			if (!isAuthenticated) {
-				toast.error('Please sign in to load dashboards')
-				return null
-			}
-
 			try {
-				const dashboard = await dashboardAPI.getDashboard(id, authorizedFetch)
-				return dashboard
-			} catch (error) {
-				console.error('Failed to load dashboard:', error)
+				if (isAuthenticated) {
+					const dashboard = await dashboardAPI.getDashboard(id, authorizedFetch)
+					return dashboard
+				}
 				return null
+			} catch (error: any) {
+				console.error('Failed to load dashboard:', error)
 			}
 		},
 		[isAuthenticated, authorizedFetch]

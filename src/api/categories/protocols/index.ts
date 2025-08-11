@@ -22,7 +22,8 @@ import {
 	CATEGORY_PERFORMANCE_API,
 	CATEGORY_COIN_PRICES_API,
 	CATEGORY_INFO_API,
-	COINS_INFO_API
+	COINS_INFO_API,
+	COINS_PRICES_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import { fetchJson } from '~/utils/async'
@@ -107,7 +108,7 @@ export const getAllProtocolEmissions = async ({
 	try {
 		const res = await fetchJson(PROTOCOL_EMISSIONS_API)
 		const coins = await fetchJson(
-			`https://coins.llama.fi/prices/current/${res
+			`${COINS_PRICES_API}/current/${res
 				.filter((p) => p.gecko_id)
 				.map((p) => 'coingecko:' + p.gecko_id)
 				.join(',')}`
@@ -255,12 +256,10 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const protocolEmissions = { documented: {}, realtime: {} }
 		const emissionCategories = { documented: [], realtime: [] }
 
-		const prices = await fetchJson(`https://coins.llama.fi/prices/current/${metadata.token}?searchWidth=4h`).catch(
-			(err) => {
-				console.log(err)
-				return {}
-			}
-		)
+		const prices = await fetchJson(`${COINS_PRICES_API}/current/${metadata.token}?searchWidth=4h`).catch((err) => {
+			console.log(err)
+			return {}
+		})
 
 		const tokenPrice = prices?.coins?.[metadata.token] ?? {}
 
@@ -447,25 +446,27 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 
 // - used in /lsd
 export async function getLSDPageData() {
-	const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetchJson(url)))
-	const pools = (await fetchJson(YIELD_POOLS_API)).data
-
-	const lsdRates = await fetchJson(LSD_RATES_API)
+	const [{ protocols }, { data: pools }, lsdRates] = await Promise.all([
+		fetchJson(PROTOCOLS_API),
+		fetchJson(YIELD_POOLS_API),
+		fetchJson(LSD_RATES_API)
+	])
 
 	// filter for LSDs
 	const lsdProtocols = protocols
 		.filter((p) => p.category === 'Liquid Staking' && p.chains.includes('Ethereum'))
 		.map((p) => p.name)
 		.filter((p) => !['StakeHound', 'Genius', 'SharedStake', 'VaultLayer'].includes(p))
-		.concat('Crypto.com Staked ETH')
+		.concat('Crypto.com Liquid Staking')
 
 	// get historical data
-	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
+	const lsdProtocolsSlug = lsdProtocols.map((p) => slug(p))
 	const history = await Promise.all(lsdProtocolsSlug.map((p) => fetchJson(`${PROTOCOL_API}/${p}`)))
 
 	let lsdApy = pools
 		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
 		.concat(pools.find((i) => i.project === 'crypto.com-staked-eth'))
+		.filter(Boolean)
 		.map((p) => ({
 			...p,
 			name: p.project
@@ -489,7 +490,7 @@ export async function getLSDPageData() {
 				: p.project === 'mev-protocol'
 				? 'MEV Protocol'
 				: p.project === 'crypto.com-staked-eth'
-				? 'Crypto.com Staked ETH'
+				? 'Crypto.com Liquid Staking'
 				: p.project === 'dinero-(pxeth)'
 				? 'Dinero (pxETH)'
 				: p.name
@@ -632,7 +633,7 @@ export function formatGovernanceData(data: {
 export async function getChainsBridged(chain?: string) {
 	const [assets, flows1d, inflows] = await Promise.all([
 		fetchJson(CHAINS_ASSETS),
-		fetchJson(CHAIN_ASSETS_FLOWS + '/24h'),
+		fetchJson(CHAIN_ASSETS_FLOWS + '/24h').catch(() => null),
 		chain
 			? fetchJson(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
 					.then((data) => data.data.map((item) => ({ ...item.data, date: item.timestamp })))

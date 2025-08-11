@@ -22,6 +22,7 @@ export const MobileNav = React.memo(function MobileNav() {
 					height={36}
 					width={105}
 					className="object-contain object-left mr-auto"
+					fetchPriority="high"
 				/>
 			</BasicLink>
 

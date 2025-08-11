@@ -36,8 +36,15 @@ interface ProDashboardContextType {
 	isLoadingDashboard: boolean
 	isReadOnly: boolean
 	dashboardOwnerId: string | null
+	dashboardVisibility: 'private' | 'public'
+	dashboardTags: string[]
+	dashboardDescription: string
+	currentDashboard: Dashboard | null
 	setTimePeriod: (period: TimePeriod) => void
 	setDashboardName: (name: string) => void
+	setDashboardVisibility: (visibility: 'private' | 'public') => void
+	setDashboardTags: (tags: string[]) => void
+	setDashboardDescription: (description: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
 	handleAddTable: (
 		chains: string[],
@@ -60,7 +67,8 @@ interface ProDashboardContextType {
 			| 'fees',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
-		includeCex?: boolean
+		includeCex?: boolean,
+		datasetTimeframe?: string
 	) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
@@ -70,6 +78,7 @@ interface ProDashboardContextType {
 	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => void
 	handleColSpanChange: (chartId: string, newColSpan: 1 | 2) => void
 	handleCumulativeChange: (itemId: string, showCumulative: boolean) => void
+	handlePercentageChange: (itemId: string, showPercentage: boolean) => void
 	handleTableFiltersChange: (tableId: string, filters: TableFilters) => void
 	handleTableColumnsChange: (
 		tableId: string,
@@ -82,9 +91,21 @@ interface ProDashboardContextType {
 	createNewDashboard: () => Promise<void>
 	loadDashboard: (id: string) => Promise<void>
 	deleteDashboard: (id: string) => Promise<void>
-	saveDashboard: () => Promise<void>
+	saveDashboard: (overrides?: {
+		visibility?: 'private' | 'public'
+		tags?: string[]
+		description?: string
+	}) => Promise<void>
 	saveDashboardName: () => Promise<void>
 	copyDashboard: () => Promise<void>
+	showCreateDashboardModal: boolean
+	setShowCreateDashboardModal: (show: boolean) => void
+	handleCreateDashboard: (data: {
+		dashboardName: string
+		visibility: 'private' | 'public'
+		tags: string[]
+		description: string
+	}) => Promise<void>
 }
 
 const ProDashboardContext = createContext<ProDashboardContextType | undefined>(undefined)
@@ -97,15 +118,19 @@ export function ProDashboardAPIProvider({
 	initialDashboardId?: string
 }) {
 	const router = useRouter()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, user } = useAuthContext()
 	const { data: { protocols = [], chains: rawChains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
 
 	const chains: Chain[] = rawChains
 	const [items, setItems] = useState<DashboardItemConfig[]>([])
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('365d')
+	const [timePeriod, setTimePeriodState] = useState<TimePeriod>('365d')
 	const [dashboardName, setDashboardName] = useState<string>('My Dashboard')
 	const [dashboardId, setDashboardId] = useState<string | null>(initialDashboardId || null)
 	const [currentDashboard, setCurrentDashboard] = useState<Dashboard | null>(null)
+	const [dashboardVisibility, setDashboardVisibility] = useState<'private' | 'public'>('private')
+	const [dashboardTags, setDashboardTags] = useState<string[]>([])
+	const [dashboardDescription, setDashboardDescription] = useState<string>('')
+	const [showCreateDashboardModal, setShowCreateDashboardModal] = useState(false)
 
 	// Use the dashboard API hook
 	const {
@@ -125,21 +150,32 @@ export function ProDashboardAPIProvider({
 	const { autoSave } = useAutoSave({
 		dashboardId,
 		dashboardName,
+		dashboardVisibility,
+		dashboardTags,
+		dashboardDescription,
+		timePeriod,
 		isAuthenticated,
+		isReadOnly: isReadOnly || (initialDashboardId ? !currentDashboard : false), // Force read-only until dashboard is loaded
+		currentDashboard,
+		userId: user?.id,
 		updateDashboard,
 		cleanItemsForSaving
 	})
 
 	// Load initial dashboard
 	const { isLoading: isLoadingDashboard } = useQuery({
-		queryKey: ['dashboard', initialDashboardId],
+		queryKey: ['dashboard', initialDashboardId, isAuthenticated],
 		queryFn: async () => {
-			if (!initialDashboardId || !isAuthenticated) {
+			if (!initialDashboardId) {
 				return null
 			}
 
 			try {
 				const dashboard = await loadDashboardData(initialDashboardId)
+
+				if (!dashboard) {
+					throw new Error('Dashboard not found')
+				}
 
 				if (!dashboard?.data?.items || !Array.isArray(dashboard.data.items)) {
 					throw new Error('Invalid dashboard data structure')
@@ -148,10 +184,14 @@ export function ProDashboardAPIProvider({
 				setDashboardId(dashboard.id)
 				setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
 				setItems(dashboard.data.items)
+				setTimePeriodState(dashboard.data.timePeriod || '365d')
 				setCurrentDashboard(dashboard)
+				setDashboardVisibility(dashboard.visibility || 'private')
+				setDashboardTags(dashboard.tags || [])
+				setDashboardDescription(dashboard.description || '')
 
 				return dashboard
-			} catch (error) {
+			} catch (error: any) {
 				console.error('Failed to load dashboard:', error)
 				router.push('/pro')
 				return null
@@ -161,35 +201,81 @@ export function ProDashboardAPIProvider({
 	})
 
 	// Save dashboard
-	const saveDashboard = useCallback(async () => {
-		if (!isAuthenticated) {
-			toast.error('Please sign in to save dashboards')
-			return
-		}
+	const saveDashboard = useCallback(
+		async (overrides?: { visibility?: 'private' | 'public'; tags?: string[]; description?: string }) => {
+			if (!isAuthenticated) {
+				toast.error('Please sign in to save dashboards')
+				return
+			}
 
-		const cleanedItems = cleanItemsForSaving(items)
-		const data = { items: cleanedItems, dashboardName }
+			if (isReadOnly) {
+				return
+			}
 
-		if (dashboardId) {
-			await updateDashboard({ id: dashboardId, data })
-		} else {
-			const newDashboard = await createDashboard(data)
-			setDashboardId(newDashboard.id)
-		}
-	}, [items, dashboardName, dashboardId, isAuthenticated, updateDashboard, createDashboard])
+			const cleanedItems = cleanItemsForSaving(items)
+			const data = {
+				items: cleanedItems,
+				dashboardName,
+				timePeriod,
+				visibility: overrides?.visibility ?? dashboardVisibility,
+				tags: overrides?.tags ?? dashboardTags,
+				description: overrides?.description ?? dashboardDescription
+			}
+
+			if (dashboardId) {
+				await updateDashboard({ id: dashboardId, data })
+			} else {
+				const newDashboard = await createDashboard(data)
+				setDashboardId(newDashboard.id)
+			}
+		},
+		[
+			items,
+			dashboardName,
+			timePeriod,
+			dashboardId,
+			dashboardVisibility,
+			dashboardTags,
+			dashboardDescription,
+			isAuthenticated,
+			isReadOnly,
+			updateDashboard,
+			createDashboard,
+			cleanItemsForSaving
+		]
+	)
 
 	// Save dashboard name
 	const saveDashboardName = useCallback(async () => {
-		if (dashboardId && isAuthenticated) {
+		if (dashboardId && isAuthenticated && !isReadOnly) {
 			const cleanedItems = cleanItemsForSaving(items)
-			const data = { items: cleanedItems, dashboardName }
+			const data = {
+				items: cleanedItems,
+				dashboardName,
+				timePeriod,
+				visibility: dashboardVisibility,
+				tags: dashboardTags,
+				description: dashboardDescription
+			}
 			try {
 				await updateDashboard({ id: dashboardId, data })
 			} catch (error) {
 				console.error('Failed to save dashboard name:', error)
 			}
 		}
-	}, [dashboardId, isAuthenticated, items, dashboardName, updateDashboard])
+	}, [
+		dashboardId,
+		isAuthenticated,
+		isReadOnly,
+		items,
+		dashboardName,
+		timePeriod,
+		dashboardVisibility,
+		dashboardTags,
+		dashboardDescription,
+		updateDashboard,
+		cleanItemsForSaving
+	])
 
 	// Copy dashboard
 	const copyDashboard = useCallback(async () => {
@@ -201,7 +287,8 @@ export function ProDashboardAPIProvider({
 		const cleanedItems = cleanItemsForSaving(items)
 		const data = {
 			items: cleanedItems,
-			dashboardName: `${dashboardName} (Copy)`
+			dashboardName: `${dashboardName} (Copy)`,
+			timePeriod
 		}
 
 		try {
@@ -209,7 +296,7 @@ export function ProDashboardAPIProvider({
 		} catch (error) {
 			console.error('Failed to copy dashboard:', error)
 		}
-	}, [items, dashboardName, isAuthenticated, createDashboard])
+	}, [items, dashboardName, timePeriod, isAuthenticated, createDashboard])
 
 	const createNewDashboard = useCallback(async () => {
 		if (!isAuthenticated) {
@@ -217,18 +304,29 @@ export function ProDashboardAPIProvider({
 			return
 		}
 
-		try {
-			const data = {
-				items: [],
-				dashboardName: 'My Dashboard'
-			}
+		setShowCreateDashboardModal(true)
+	}, [isAuthenticated])
 
-			await createDashboard(data)
-		} catch (error) {
-			console.error('Failed to create new dashboard:', error)
-			toast.error('Failed to create new dashboard')
-		}
-	}, [isAuthenticated, createDashboard])
+	const handleCreateDashboard = useCallback(
+		async (data: { dashboardName: string; visibility: 'private' | 'public'; tags: string[]; description: string }) => {
+			try {
+				const dashboardData = {
+					items: [],
+					dashboardName: data.dashboardName,
+					timePeriod: '365d' as TimePeriod,
+					visibility: data.visibility,
+					tags: data.tags,
+					description: data.description
+				}
+
+				await createDashboard(dashboardData)
+			} catch (error) {
+				console.error('Failed to create new dashboard:', error)
+				toast.error('Failed to create new dashboard')
+			}
+		},
+		[createDashboard]
+	)
 
 	// Load dashboard
 	const loadDashboard = useCallback(
@@ -297,6 +395,9 @@ export function ProDashboardAPIProvider({
 
 	// Handle adding items
 	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
+		if (isReadOnly || (initialDashboardId && !currentDashboard)) {
+			return
+		}
 		const newChartId = generateItemId(chartType, item)
 		const chartTypeDetails = CHART_TYPES[chartType]
 
@@ -355,8 +456,12 @@ export function ProDashboardAPIProvider({
 			| 'fees',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
-		includeCex?: boolean
+		includeCex?: boolean,
+		datasetTimeframe?: string
 	) => {
+		if (isReadOnly) {
+			return
+		}
 		const chainIdentifier = chains.length > 1 ? 'multi' : chains[0] || 'table'
 		const newTable: ProtocolsTableConfig = {
 			id: generateItemId('table', chainIdentifier),
@@ -372,7 +477,7 @@ export function ProDashboardAPIProvider({
 					includeCex
 				}),
 				...(datasetType === 'trending-contracts' && {
-					datasetTimeframe: '1d'
+					datasetTimeframe: datasetTimeframe || '1d'
 				})
 			})
 		}
@@ -384,6 +489,9 @@ export function ProDashboardAPIProvider({
 	}
 
 	const handleAddMultiChart = (chartItems: ChartConfig[], name?: string) => {
+		if (isReadOnly) {
+			return
+		}
 		const defaultGrouping = 'day'
 		const newMultiChart: MultiChartConfig = {
 			id: generateItemId('multi', ''),
@@ -404,6 +512,9 @@ export function ProDashboardAPIProvider({
 	}
 
 	const handleAddText = (title: string | undefined, content: string) => {
+		if (isReadOnly) {
+			return
+		}
 		const newText: TextConfig = {
 			id: generateItemId('text', ''),
 			kind: 'text',
@@ -419,6 +530,9 @@ export function ProDashboardAPIProvider({
 	}
 
 	const handleEditItem = (itemId: string, newItem: DashboardItemConfig) => {
+		if (isReadOnly) {
+			return
+		}
 		setItems((prev) => {
 			const newItems = prev.map((item) => (item.id === itemId ? newItem : item))
 			autoSave(newItems)
@@ -428,25 +542,48 @@ export function ProDashboardAPIProvider({
 
 	const handleRemoveItem = useCallback(
 		(itemId: string) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.filter((item) => item.id !== itemId)
 				autoSave(newItems)
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
+	)
+
+	const setTimePeriod = useCallback(
+		(period: TimePeriod) => {
+			if (isReadOnly) {
+				return
+			}
+			setTimePeriodState(period)
+			setItems((currentItems) => {
+				autoSave(currentItems)
+				return currentItems
+			})
+		},
+		[autoSave, isReadOnly]
 	)
 
 	const handleChartsReordered = useCallback(
 		(newCharts: DashboardItemConfig[]) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems(newCharts)
 			autoSave(newCharts)
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleGroupingChange = useCallback(
 		(chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === chartId && item.kind === 'chart') {
@@ -468,11 +605,14 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleColSpanChange = useCallback(
 		(chartId: string, newColSpan: 1 | 2) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === chartId) {
@@ -484,11 +624,14 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleCumulativeChange = useCallback(
 		(itemId: string, showCumulative: boolean) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === itemId && item.kind === 'chart') {
@@ -502,11 +645,33 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
+	)
+
+	const handlePercentageChange = useCallback(
+		(itemId: string, showPercentage: boolean) => {
+			if (isReadOnly) {
+				return
+			}
+			setItems((prev) => {
+				const newItems = prev.map((item) => {
+					if (item.id === itemId && item.kind === 'multi') {
+						return { ...item, showPercentage }
+					}
+					return item
+				})
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[autoSave, isReadOnly]
 	)
 
 	const handleTableFiltersChange = useCallback(
 		(tableId: string, filters: TableFilters) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === tableId && item.kind === 'table') {
@@ -518,11 +683,14 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleTableColumnsChange = useCallback(
 		(tableId: string, columnOrder?: string[], columnVisibility?: Record<string, boolean>, customColumns?: any[]) => {
+			if (isReadOnly) {
+				return
+			}
 			setItems((prev) => {
 				const newItems = prev.map((item) => {
 					if (item.id === tableId && item.kind === 'table') {
@@ -539,7 +707,7 @@ export function ProDashboardAPIProvider({
 				return newItems
 			})
 		},
-		[autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const getChainInfo = (chainName: string) => {
@@ -564,8 +732,15 @@ export function ProDashboardAPIProvider({
 		isLoadingDashboard,
 		isReadOnly,
 		dashboardOwnerId,
+		dashboardVisibility,
+		dashboardTags,
+		dashboardDescription,
+		currentDashboard,
 		setTimePeriod,
 		setDashboardName,
+		setDashboardVisibility,
+		setDashboardTags,
+		setDashboardDescription,
 		handleAddChart,
 		handleAddTable,
 		handleAddMultiChart,
@@ -576,6 +751,7 @@ export function ProDashboardAPIProvider({
 		handleGroupingChange,
 		handleColSpanChange,
 		handleCumulativeChange,
+		handlePercentageChange,
 		handleTableFiltersChange,
 		handleTableColumnsChange,
 		getChainInfo,
@@ -585,7 +761,10 @@ export function ProDashboardAPIProvider({
 		deleteDashboard: deleteDashboardWithConfirmation,
 		saveDashboard,
 		saveDashboardName,
-		copyDashboard
+		copyDashboard,
+		showCreateDashboardModal,
+		setShowCreateDashboardModal,
+		handleCreateDashboard
 	}
 
 	return <ProDashboardContext.Provider value={value}>{children}</ProDashboardContext.Provider>

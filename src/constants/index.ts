@@ -29,7 +29,9 @@ export const PROTOCOLS_TREASURY = `${SERVER_URL}/treasuries`
 export const PROTOCOL_EMISSIONS_API = `${SERVER_URL}/emissions`
 export const PROTOCOL_EMISSIONS_LIST_API = `${DATASETS_SERVER_URL}/emissionsProtocolsList`
 export const PROTOCOL_EMISSION_API = `${SERVER_URL}/emission`
+export const PROTOCOL_EMISSION_API2 = `${DATASETS_SERVER_URL}/emissions`
 export const EMISSION_BREAKDOWN_API = `${SERVER_URL}/emissionsBreakdown`
+export const EMISSION_SUPPLY_METRICS = `${DATASETS_SERVER_URL}/emissionsSupplyMetrics`
 export const INFLOWS_API = `${SERVER_URL}/inflows`
 export const ACTIVE_USERS_API = `${SERVER_URL}/activeUsers`
 export const PROTOCOL_ACTIVE_USERS_API = `${SERVER_URL}/userData/users`
@@ -143,8 +145,6 @@ export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
 
 export const HACKS_API = `${SERVER_URL}/hacks`
 
-export const DEV_METRICS_API = `${DATASETS_SERVER_URL}/dev-metrics/github`
-
 const COINS_SERVER_URL = process.env.COINS_SERVER_URL ?? 'https://coins.llama.fi'
 export const COINS_PRICES_API = `${COINS_SERVER_URL}/prices`
 export const COINS_CHART_API = `${COINS_SERVER_URL}/chart`
@@ -165,7 +165,7 @@ export const POCKETBASE_URL = 'https://pb.llama.fi'
 
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
-export const removedCategories = [
+export const removedCategoriesFromChainTvl = [
 	'Chain',
 	'CEX',
 	'Infrastructure',
@@ -174,7 +174,19 @@ export const removedCategories = [
 	'Basis Trading',
 	'CeDeFi',
 	'Bridge',
-	'Canonical Bridge'
+	'Canonical Bridge',
+	'Farm',
+	'Yield Aggregator',
+	'Yield',
+	'Liquidity manager',
+	'Onchain Capital Allocator',
+	'Risk Curators',
+	'Treasury Manager',
+	'Anchor BTC',
+	'CDP Manager',
+	'Restaked BTC',
+	'RWA Lending',
+	'RWA'
 ]
 
 export const REV_PROTOCOLS = {

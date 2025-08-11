@@ -155,15 +155,15 @@
 	--pro-text3: #4a4a4a;
 
 	--pro-bg1: #ffffff;
-	--pro-bg2: #f3f3f3;
-	--pro-bg3: #e5e5e5;
+	--pro-bg2: #f0f0f0;
+	--pro-bg3: #e0e0e0;
 	--pro-bg4: #cccccc;
 	--pro-bg7: rgba(255, 255, 255, 0.95);
 	--pro-bg8: rgba(35, 91, 255, 0.1);
 
-	--pro-divider: rgba(0, 0, 0, 0.15);
-	--pro-border: rgba(0, 0, 0, 0.12);
-	--pro-glass-border: rgba(0, 0, 0, 0.15);
+	--pro-divider: rgba(0, 0, 0, 0.3);
+	--pro-border: rgba(0, 0, 0, 0.3);
+	--pro-glass-border: rgba(0, 0, 0, 0.3);
 
 	html.dark & {
 		--pro-text1: var(--text1);

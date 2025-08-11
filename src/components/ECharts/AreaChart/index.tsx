@@ -44,7 +44,6 @@ export default function AreaChart({
 
 	const defaultChartSettings = useDefaults({
 		color,
-		title,
 		valueSymbol,
 		tooltipSort,
 		hideLegend,
@@ -227,7 +226,7 @@ export default function AreaChart({
 		}
 		chartRef.current = chartInstance
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (option === 'dataZoom') {
@@ -249,19 +248,16 @@ export default function AreaChart({
 		}
 
 		chartInstance.setOption({
-			graphic: { ...graphic },
-			tooltip: {
-				...tooltip
-			},
-			title: {
-				...titleDefaults
-			},
+			graphic,
+			tooltip,
 			grid: {
-				...grid
+				left: 12,
+				bottom: 68,
+				top: 12,
+				right: 12,
+				containLabel: true
 			},
-			xAxis: {
-				...xAxis
-			},
+			xAxis,
 			yAxis: {
 				...yAxis,
 				...(expandTo100Percent
@@ -311,57 +307,62 @@ export default function AreaChart({
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
+	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
+
 	return (
 		<div className="relative" {...props}>
-			<div className="flex justify-end items-center gap-2 mb-2 px-2">
-				{customLegendName && customLegendOptions?.length > 1 && (
-					<SelectWithCombobox
-						allValues={customLegendOptions}
-						selectedValues={legendOptions}
-						setSelectedValues={setLegendOptions}
-						selectOnlyOne={(newOption) => {
-							setLegendOptions([newOption])
-						}}
-						label={legendTitle}
-						clearAll={() => setLegendOptions([])}
-						toggleAll={() => setLegendOptions(customLegendOptions)}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-						portal
-					/>
-				)}
-				{hideDownloadButton ? null : (
-					<CSVDownloadButton
-						onClick={() => {
-							try {
-								let rows = []
-								if (!chartsStack || chartsStack.length === 0) {
-									rows = [['Timestamp', 'Date', 'Value']]
-									for (const [date, value] of chartData ?? []) {
-										rows.push([date, toNiceCsvDate(date), value])
+			{title || showLegend || !hideDownloadButton ? (
+				<div className="flex justify-end items-center gap-2 mb-2 px-2">
+					{title && <h1 className="text-lg mr-auto font-bold">{title}</h1>}
+					{customLegendName && customLegendOptions?.length > 1 && (
+						<SelectWithCombobox
+							allValues={customLegendOptions}
+							selectedValues={legendOptions}
+							setSelectedValues={setLegendOptions}
+							selectOnlyOne={(newOption) => {
+								setLegendOptions([newOption])
+							}}
+							label={legendTitle}
+							clearAll={() => setLegendOptions([])}
+							toggleAll={() => setLegendOptions(customLegendOptions)}
+							labelType="smol"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+							}}
+							portal
+						/>
+					)}
+					{hideDownloadButton ? null : (
+						<CSVDownloadButton
+							onClick={() => {
+								try {
+									let rows = []
+									if (!chartsStack || chartsStack.length === 0) {
+										rows = [['Timestamp', 'Date', 'Value']]
+										for (const [date, value] of chartData ?? []) {
+											rows.push([date, toNiceCsvDate(date), value])
+										}
+									} else {
+										rows = [['Timestamp', 'Date', ...chartsStack]]
+										for (const item of chartData ?? []) {
+											const { date, ...rest } = item
+											rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
+										}
 									}
-								} else {
-									rows = [['Timestamp', 'Date', ...chartsStack]]
-									for (const item of chartData ?? []) {
-										const { date, ...rest } = item
-										rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
-									}
+									const Mytitle = title ? slug(title) : 'data'
+									const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+									download(filename, rows.map((r) => r.join(',')).join('\n'))
+								} catch (error) {
+									console.error('Error generating CSV:', error)
 								}
-								const Mytitle = title ? slug(title) : 'data'
-								const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-								download(filename, rows.map((r) => r.join(',')).join('\n'))
-							} catch (error) {
-								console.error('Error generating CSV:', error)
-							}
-						}}
-						smol
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
-					/>
-				)}
-			</div>
+							}}
+							smol
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						/>
+					)}
+				</div>
+			) : null}
 			<div
 				id={id}
 				className={containerClassName ? containerClassName : 'min-h-[360px] my-auto mx-0'}

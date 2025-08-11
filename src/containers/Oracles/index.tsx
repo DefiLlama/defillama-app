@@ -62,13 +62,17 @@ export const OraclesByChain = ({
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="isolate relative rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px] flex flex-col">
-					<CSVDownloadButton onClick={downloadCsv} className="ml-auto absolute right-3 top-3 z-10" />
+				<div className="isolate relative rounded-md bg-(--cards-bg) flex-1 min-h-[406px] flex flex-col pt-2">
+					<CSVDownloadButton
+						onClick={downloadCsv}
+						smol
+						className="ml-auto mx-2 z-10 h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					/>
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
 					</React.Suspense>
 				</div>
-				<div className="rounded-md p-3 bg-(--cards-bg) flex-1 min-h-[360px]">
+				<div className="rounded-md bg-(--cards-bg) flex-1 min-h-[406px] pt-2">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -78,7 +82,6 @@ export const OraclesByChain = ({
 							valueSymbol="%"
 							title=""
 							expandTo100Percent={true}
-							chartOptions={chartOptions}
 						/>
 					</React.Suspense>
 				</div>
@@ -102,16 +105,6 @@ export const OraclesByChain = ({
 		</Layout>
 	)
 }
-
-const chartOptions = {
-	grid: {
-		top: 10,
-		bottom: 60,
-		left: 0,
-		right: 0
-	},
-	dataZoom: [{}, { bottom: 32, right: 6 }]
-} as any
 
 interface IOraclesRow {
 	name: string

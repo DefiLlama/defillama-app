@@ -24,7 +24,7 @@ export const AccountHeader = ({ isSubscribed, onLogout, isLoading, subscription 
 						<div className="absolute inset-0 w-full h-full bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.1)_50%,transparent_75%)] bg-size-[250%_250%] animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity"></div>
 						<Icon name="bookmark" height={14} width={14} className="text-[#5C5CF9]" />
 						<span className="text-sm font-semibold">
-							{subscription?.type === 'llamafeed' ? 'Llama+ subscription' : 'Pro subscription'}
+							{subscription?.type === 'llamafeed' ? 'Llama+ subscription' : 'API subscription'}
 						</span>
 					</div>
 				)}

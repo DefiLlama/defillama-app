@@ -138,7 +138,7 @@ export const formattedNum = (number, symbol = false) => {
 	const currencyMark = isNegative ? `-${currencySymbol}` : currencySymbol
 	const normalMark = isNegative ? '-' : ''
 
-	if (num > 1_000_000) {
+	if (num >= 1_000_000) {
 		return `${symbol ? currencyMark : normalMark}${toK(num)}`
 	}
 
@@ -295,12 +295,7 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 
 export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
 
-export const slug = (name = '') =>
-	name
-		?.toLowerCase()
-		.replace(/[()'"]/g, '') // Remove parentheses and quotes
-		.replace(/\s+/g, '-') // Replace spaces with hyphens
-		.replace(/[^\w.!&+-]/g, '') // Remove any other non-word chars except hyphens, !, & and .
+export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
 
 export function getRandomColor() {
 	var letters = '0123456789ABCDEF'
@@ -694,14 +689,14 @@ export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue
 		pieData = data.map((entry) => {
 			return {
 				name: entry[sliceIdentifier],
-				value: entry[sliceValue]
+				value: Number(entry[sliceValue])
 			}
 		})
 	} else {
 		pieData = Object.entries(data).map(([name, value]) => {
 			return {
 				name: name,
-				value: value
+				value: Number(value)
 			}
 		})
 	}

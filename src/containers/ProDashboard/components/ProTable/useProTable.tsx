@@ -626,24 +626,31 @@ export function useProTable(
 	const downloadCSV = () => {
 		if (!table) return
 
-		const headers = table
-			.getVisibleFlatColumns()
-			.filter((col) => col.id !== 'expand')
-			.map((col) => {
-				const hdr = col.columnDef.header
-				return typeof hdr === 'string' ? hdr : col.id
-			})
+		const visibleColumns = table.getVisibleFlatColumns().filter((col) => col.id !== 'expand')
 
-		const rows = table.getRowModel().rows.map((row) => {
-			return table
-				.getVisibleFlatColumns()
-				.filter((col) => col.id !== 'expand')
-				.map((col) => {
-					const value = row.getValue(col.id)
-					if (value === null || value === undefined) return ''
-					if (typeof value === 'object') return JSON.stringify(value)
-					return String(value)
-				})
+		const sortedColumns =
+			columnOrder.length > 0
+				? visibleColumns.sort((a, b) => {
+						const indexA = columnOrder.indexOf(a.id)
+						const indexB = columnOrder.indexOf(b.id)
+						if (indexA === -1) return 1
+						if (indexB === -1) return -1
+						return indexA - indexB
+				  })
+				: visibleColumns
+
+		const headers = sortedColumns.map((col) => {
+			const hdr = col.columnDef.header
+			return typeof hdr === 'string' ? hdr : col.id
+		})
+
+		const rows = table.getSortedRowModel().rows.map((row) => {
+			return sortedColumns.map((col) => {
+				const value = row.getValue(col.id)
+				if (value === null || value === undefined) return ''
+				if (typeof value === 'object') return JSON.stringify(value)
+				return String(value)
+			})
 		})
 
 		const csvContent = [

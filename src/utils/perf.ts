@@ -36,7 +36,7 @@ export const withPerformanceLogging = <T extends {}>(
 				`${(end - start).toFixed(0)}ms`
 			])
 			postRuntimeLogs(
-				`[ERROR] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
+				`[ERROR] [${(end - start).toFixed(0)}ms] < ${filename}> ` + (params ? ' ' + JSON.stringify(params) : '')
 			)
 			throw error
 		}
@@ -141,4 +141,22 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 		// 	postRuntimeLogs(`[fetch-cache] [MISS] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return new Response(blob, responseInit)
 	}
+}
+
+export type FetchWithPoolingOnServerOptions = RequestInit & { timeout?: number }
+
+export const fetchWithPoolingOnServer = async (
+	url: RequestInfo | URL,
+	options?: FetchWithPoolingOnServerOptions
+): Promise<Response> => {
+	const isServer = typeof window === 'undefined'
+	const controller = new AbortController()
+	const timeout = options?.timeout ?? 60_000
+	const id = setTimeout(() => controller.abort(), timeout)
+	const response =
+		isServer && typeof url === 'string'
+			? await fetchWithConnectionPooling(url, { ...options, signal: controller.signal })
+			: await fetch(url, { ...options, signal: controller.signal })
+	clearTimeout(id)
+	return response
 }

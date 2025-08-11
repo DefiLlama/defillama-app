@@ -1,6 +1,6 @@
 import { useQuery, useQueries } from '@tanstack/react-query'
 import { CHAINS_API, PROTOCOLS_API } from '~/constants'
-import { sluggify } from '~/utils/cache-client'
+import { sluggifyProtocol } from '~/utils/cache-client'
 import ProtocolCharts from './services/ProtocolCharts'
 import ChainCharts from './services/ChainCharts'
 import { getProtocolChartTypes, getChainChartTypes } from './types'
@@ -287,9 +287,12 @@ export function useProtocolsAndChains() {
 				...chain,
 				name: chain.name === 'Binance' ? 'BSC' : chain.name
 			}))
-
 			return {
-				protocols: protocolsData.protocols.map((p) => ({ ...p, slug: sluggify(p.name), geckoId: p.geckoId || null })),
+				protocols: protocolsData.protocols.map((p) => ({
+					...p,
+					slug: sluggifyProtocol(p.name),
+					geckoId: p.geckoId || null
+				})),
 				chains: transformedChains.sort((a, b) => b.tvl - a.tvl)
 			}
 		}

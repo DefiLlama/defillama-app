@@ -385,7 +385,8 @@ export const UnlocksTable = ({
 					}}
 				/>
 
-				<div className="relative w-full sm:max-w-[280px]">
+				<label className="relative w-full sm:max-w-[280px]">
+					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
 						height={16}
@@ -393,14 +394,15 @@ export const UnlocksTable = ({
 						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
+						name="search"
 						value={projectName}
 						onChange={(e) => {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</div>
+				</label>
 			</div>
 			<VirtualTable instance={instance} stripedBg rowSize={70} />
 		</div>

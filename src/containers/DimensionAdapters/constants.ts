@@ -16,7 +16,9 @@ export enum ADAPTER_DATA_TYPES {
 	NOTIONAL_VOLUME = 'dailyNotionalVolume',
 	PREMIUM_VOLUME = 'dailyPremiumVolume',
 	APP_FEES = 'dailyAppFees',
-	APP_REVENUE = 'dailyAppRevenue'
+	APP_REVENUE = 'dailyAppRevenue',
+	DAILY_EARNINGS = 'dailyEarnings',
+	OPEN_INTEREST = 'openInterestAtEnd'
 }
 
 export const VOLUME_TYPE_ADAPTERS = [

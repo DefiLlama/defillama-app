@@ -4,7 +4,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
-import { formattedNum, firstDayOfMonth, lastDayOfWeek } from '~/utils'
+import { formattedNum, firstDayOfMonth, lastDayOfWeek, preparePieChartData } from '~/utils'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { LSDColumn } from '~/components/Table/Defi/columns'
@@ -255,7 +255,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray =
-				protocol.name === 'Crypto.com Staked ETH'
+				protocol.name === 'Crypto.com Liquid Staking'
 					? protocol.chainTvls['Cronos'].tokens
 					: protocol.chainTvls['Ethereum'].tokens
 
@@ -325,7 +325,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	const tokenTvls = chartData
 		.map((protocol) => {
 			const p =
-				protocol.name === 'Crypto.com Staked ETH' ? protocol.chainTvls['Cronos'] : protocol.chainTvls['Ethereum']
+				protocol.name === 'Crypto.com Liquid Staking' ? protocol.chainTvls['Cronos'] : protocol.chainTvls['Ethereum']
 
 			if (p.tokens.length < 1) {
 				return {
@@ -411,7 +411,12 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 		}
 	})
 
-	const pieChartData = tokenTvls.map((p) => ({ name: p.name, value: p.stakedEth }))
+	const pieChartData = preparePieChartData({
+		data: tokenTvls,
+		sliceIdentifier: 'name',
+		sliceValue: 'stakedEth',
+		limit: 10
+	})
 
 	const tokens = tokensList.map((p) => p.name)
 

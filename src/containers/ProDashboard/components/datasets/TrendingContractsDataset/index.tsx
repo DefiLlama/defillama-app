@@ -148,6 +148,8 @@ export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', tim
 								}
 							}}
 							values={['1d', '7d', '30d']}
+							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
+							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary1) data-[active=true]:text-white"
 						/>
 						<TagGroup
 							selectedValue={chain}
@@ -158,6 +160,8 @@ export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', tim
 								}
 							}}
 							values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
+							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
+							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary1) data-[active=true]:text-white"
 						/>
 						<ProTableCSVButton
 							onClick={() => {
@@ -218,6 +222,8 @@ export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', tim
 					selectedValue={null}
 					setValue={(val) => (val === 'Next' ? instance.nextPage() : instance.previousPage())}
 					values={['Previous', 'Next']}
+					containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
+					buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2"
 				/>
 				<div className="flex items-center">
 					<div className="mr-2 text-xs">Per page</div>
@@ -225,6 +231,8 @@ export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', tim
 						selectedValue={String(pagination.pageSize)}
 						values={['10', '30', '50']}
 						setValue={(val) => setPagination((prev) => ({ ...prev, pageSize: Number(val), pageIndex: 0 }))}
+						containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
+						buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary1) data-[active=true]:text-white"
 					/>
 				</div>
 			</div>

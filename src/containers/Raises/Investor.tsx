@@ -77,7 +77,8 @@ function RaisesTable({ raises, downloadCsv }) {
 	return (
 		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
-				<div className="relative w-full sm:max-w-[280px] mr-auto">
+				<label className="relative w-full sm:max-w-[280px] mr-auto">
+					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
 						height={16}
@@ -85,19 +86,23 @@ function RaisesTable({ raises, downloadCsv }) {
 						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
+						name="search"
 						value={projectName}
 						onChange={(e) => {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
 					/>
-				</div>
-				<CSVDownloadButton onClick={downloadCsv} className="min-h-[34px]" />
+				</label>
+				<CSVDownloadButton
+					onClick={downloadCsv}
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+				/>
 				<CSVDownloadButton
 					customText="Download .json"
 					onClick={() => window.open('https://api.llama.fi/raises')}
-					className="min-h-[34px]"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
@@ -140,7 +145,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 			</Announcement>
 
 			<RaisesFilters
-				header={investorName ? `${investorName} raises` : 'Raises'}
+				header={'Raises'}
 				rounds={rounds}
 				selectedRounds={selectedRounds}
 				sectors={sectors}
@@ -154,7 +159,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
-					<h1 className="font-semibold text-2xl">{investorName}</h1>
+					<h1 className="text-xl font-semibold">{investorName}</h1>
 
 					<details className="group text-base">
 						<summary>
@@ -179,7 +184,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 						))}
 					</details>
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 min-h-[360px]">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 min-h-[408px] pt-2">
 					<React.Suspense fallback={<></>}>
 						<BarChart chartData={fundingRoundsByMonth} title="" groupBy="monthly" color={oldBlue} valueSymbol="" />
 					</React.Suspense>

@@ -131,7 +131,7 @@ export const AdapterByChainChart = ({
 							className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 							onClick={() => setChartInterval(dataInterval)}
 							data-active={dataInterval === chartInterval}
-							key={`${dataInterval}-${chartName}`}
+							key={`${dataInterval}-${chartName}-${chain}`}
 						>
 							{dataInterval.slice(0, 1).toUpperCase()}
 						</Tooltip>
@@ -172,7 +172,7 @@ export const ChainsByAdapterChart = ({
 	}, [chartData, chartInterval, selectedChains, chartType])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 border border-(--cards-border)">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2">
 			<>
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-2">
 					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296] mr-auto">
@@ -181,7 +181,7 @@ export const ChainsByAdapterChart = ({
 								key={`${dataInterval}-${type}`}
 								onClick={() => setChartInterval(dataInterval)}
 								data-active={dataInterval === chartInterval}
-								className="cursor-pointer shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="cursor-pointer shrink-0 py-[6px] px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								{dataInterval}
 							</a>
@@ -190,7 +190,7 @@ export const ChainsByAdapterChart = ({
 					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
 						{CHART_TYPES.map((dataType) => (
 							<button
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 py-[6px] px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={dataType === chartType}
 								key={`${dataType}-${type}`}
 								onClick={() => setChartType(dataType)}
@@ -212,7 +212,7 @@ export const ChainsByAdapterChart = ({
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium z-10'
+								'h-[30px] bg-transparent! border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
 						}}
 						portal
 					/>
@@ -423,7 +423,7 @@ const getChartDataByChainAndInterval = ({
 			data: finalData[chain],
 			type: 'bar',
 			name: chain,
-			stack: chain,
+			stack: 'chain',
 			color: stackColors[chain]
 		}
 	}
