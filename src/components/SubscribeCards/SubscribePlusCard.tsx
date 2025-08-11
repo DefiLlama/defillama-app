@@ -29,7 +29,7 @@ export function SubscribePlusCard({
 		>
 			<div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#5c5cf9] to-transparent opacity-20"></div>
 			<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-[#5c5cf9] opacity-5 blur-2xl"></div>
-			<h2 className="whitespace-nowrap text-[2rem] font-extrabold text-center text-[#5C5CF9] relative z-10">Llama+</h2>
+			<h2 className="whitespace-nowrap text-[2rem] font-extrabold text-center text-[#5C5CF9] relative z-10">Pro</h2>
 			<div className="flex items-center justify-center mt-1 relative z-10">
 				<span className="text-center text-2xl font-medium bg-linear-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-transparent">
 					49 USD

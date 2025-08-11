@@ -151,7 +151,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 						</div>
 
 						<p className="text-[#b4b7bc] mb-6 leading-relaxed">
-							You've been invited to experience Llama+ for free! Sign in or create an account to activate your exclusive
+							You've been invited to experience Pro for free! Sign in or create an account to activate your exclusive
 							24-hour trial access.
 						</p>
 
@@ -264,8 +264,8 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									subscription?.provider !== 'trial'
 								}
 							/>
-							<SubscribeProCard 
-								context="page" 
+							<SubscribeProCard
+								context="page"
 								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
 							/>
 							<SubscribeEnterpriseCard />

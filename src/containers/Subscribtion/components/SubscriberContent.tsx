@@ -250,7 +250,7 @@ export const SubscriberContent = ({
 											</div>
 
 											<div className="flex justify-between items-center text-xs text-[#8a8c90]">
-												<span>{isPro ? 'Pro' : isLlamaFeed ? 'Llama+' : ''}</span>
+												<span>{isPro ? 'Pro' : isLlamaFeed ? 'Pro' : ''}</span>
 											</div>
 										</div>
 									</div>
@@ -307,8 +307,8 @@ export const SubscriberContent = ({
 						<div>
 							<h3 className="text-xl font-bold">Subscription</h3>
 							<p className="text-sm text-[#b4b7bc]">
-								Manage your <span className="font-bold">{isLlamaFeed ? 'Llama+' : isPro ? 'API' : ''}</span>{' '}
-								subscription details
+								Manage your <span className="font-bold">{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''}</span> subscription
+								details
 							</p>
 						</div>
 					</div>
@@ -320,7 +320,7 @@ export const SubscriberContent = ({
 							<div className="flex justify-between items-center mb-4">
 								<h4 className="font-medium flex items-center gap-2">
 									<Icon name="bookmark" height={16} width={16} className="text-[#5C5CF9]" />
-									<span>{isLlamaFeed ? 'Llama+' : isPro ? 'API' : ''} Plan</span>
+									<span>{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''} Plan</span>
 								</h4>
 								<div className="flex items-center gap-4">
 									<div className="flex items-center gap-2">

@@ -95,7 +95,7 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 							{isSubscribed ? (
 								<span className="flex items-center gap-2">
 									<span>
-										{subscription.type === 'llamafeed' ? 'Llama+' : 'API'}
+										{subscription.type === 'llamafeed' ? 'Pro' : 'API'}
 										{subscription.provider === 'trial' && ' Trial'}
 									</span>
 									<Icon

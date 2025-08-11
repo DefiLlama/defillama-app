@@ -134,9 +134,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 				<div className="max-w-2xl w-full bg-(--bg7) bg-opacity-30 backdrop-blur-xl border border-white/20 rounded-lg p-8 md:p-12 shadow-lg">
 					<div className="text-center space-y-6">
 						<h1 className="text-3xl font-bold pro-text1">Pro Dashboard Access</h1>
-						<p className="text-lg pro-text2">
-							Subscribe to Llama+ to access this dashboard and unlock advanced features
-						</p>
+						<p className="text-lg pro-text2">Subscribe to Pro to access this dashboard and unlock advanced features</p>
 
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-8 py-4">
 							<div className="flex items-center gap-2 text-sm pro-text2">
@@ -159,7 +157,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 
 						<div className="text-3xl font-bold pro-text1">
 							$49<span className="text-lg font-normal pro-text2">/month</span>
-							<div className="text-sm pro-text2 font-normal">Llama+ subscription</div>
+							<div className="text-sm pro-text2 font-normal">Pro subscription</div>
 						</div>
 
 						<div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

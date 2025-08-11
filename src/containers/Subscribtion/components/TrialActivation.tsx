@@ -27,7 +27,7 @@ export function TrialActivation({ onSuccess, hasUsedTrial }: TrialActivationProp
 			})
 
 			if (response && response.ok) {
-				toast.success('Trial activated successfully! You now have 24 hours of Llama+ access.')
+				toast.success('Trial activated successfully! You now have 24 hours of Pro access.')
 				queryClient.invalidateQueries({ queryKey: ['subscription'] })
 				onSuccess?.()
 				setTimeout(() => {
@@ -66,7 +66,7 @@ export function TrialActivation({ onSuccess, hasUsedTrial }: TrialActivationProp
 					Trial Already Used
 				</h2>
 				<p className="text-[#919296] mb-6">
-					You've already experienced Llama+ premium features! Ready to continue with a full subscription?
+					You've already experienced Pro premium features! Ready to continue with a full subscription?
 				</p>
 				<div className="flex items-center gap-2 text-sm text-[#919296]">
 					<svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,11 +100,11 @@ export function TrialActivation({ onSuccess, hasUsedTrial }: TrialActivationProp
 					</svg>
 				</div>
 				<h2 className="text-2xl font-bold bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-transparent">
-					Activate Your 24-Hour Llama+ Trial
+					Activate Your 24-Hour Pro Trial
 				</h2>
 			</div>
 
-			<p className="text-[#b4b7bc] mb-6 leading-relaxed">Experience Llama+ for free!</p>
+			<p className="text-[#b4b7bc] mb-6 leading-relaxed">Experience Pro for free!</p>
 
 			<div className="bg-[#1a1b1f]/50 border border-[#39393E] rounded-lg p-3 mb-4">
 				<p className="text-xs text-[#919296] flex items-start gap-2">

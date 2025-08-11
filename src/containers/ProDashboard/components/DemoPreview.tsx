@@ -402,7 +402,7 @@ export const DemoPreview = () => {
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
 					<div className="text-center">
 						<h1 className="text-3xl font-bold text-(--text1) mb-2">Pro Dashboard Preview</h1>
-						<p className="text-lg text-(--text2)">See what you'll get with Llama+ access:</p>
+						<p className="text-lg text-(--text2)">See what you'll get with Pro access:</p>
 					</div>
 
 					<div className="flex items-center justify-center">
@@ -466,7 +466,7 @@ export const DemoPreview = () => {
 
 							<div className="bg-gradient-to-br from-(--primary1)/10 to-purple-600/10 backdrop-filter backdrop-blur-xl border-2 border-(--primary1) rounded-sm px-6 py-8 text-center relative shadow-xl shadow-(--primary1)/10 transform hover:scale-[1.02] transition-transform flex flex-col">
 								<h3 className="text-2xl font-bold bg-gradient-to-r from-(--primary1) to-purple-600 bg-clip-text text-transparent mb-3">
-									Llama+
+									Pro
 								</h3>
 								<div className="text-4xl font-bold text-(--primary1) mb-6">
 									$49<span className="text-base font-normal text-(--text2)">/month</span>
@@ -500,7 +500,7 @@ export const DemoPreview = () => {
 								<Link href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}>
 									<span className="px-8 py-3 bg-gradient-to-r from-(--primary1) to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer rounded-sm inline-flex shadow-lg">
 										<Icon name="sparkles" height={16} width={16} />
-										Upgrade to Llama+
+										Upgrade to Pro
 									</span>
 								</Link>
 							</div>
