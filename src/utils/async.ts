@@ -98,7 +98,7 @@ async function handleFetchResponse(
 	callerInfo?: string
 ) {
 	try {
-		if (res.status === 200) {
+		if (res.ok) {
 			const response = await res.json()
 			return response
 		}

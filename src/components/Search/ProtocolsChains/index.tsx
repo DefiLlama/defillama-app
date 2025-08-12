@@ -4,9 +4,9 @@ import { lazy, Suspense, useMemo } from 'react'
 import { tvlOptions } from '~/components/Filters/options'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { Select } from '~/components/Select'
-import { Icon } from '~/components/Icon'
+import { SearchFallback } from '../Fallback'
 
-const GlobalSearch = lazy(() => import('..').then((mod) => ({ default: mod.GlobalSearch })))
+const GlobalSearch = lazy(() => import('~/components/Search').then((mod) => ({ default: mod.GlobalSearch })))
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -18,25 +18,8 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 export const ProtocolsChainsSearch = ({ hideFilters, options }: IProtocolsChainsSearch) => {
 	return (
 		<>
-			<span className="hidden lg:flex items-center justify-between gap-2">
-				<Suspense
-					fallback={
-						<>
-							<div className="relative isolate w-full max-w-[50vw]">
-								<div className="absolute top-[8px] left-[8px] opacity-50">
-									<div className="sr-only">Open Search</div>
-									<Icon name="search" height={14} width={14} />
-								</div>
-								<div className="w-full text-sm rounded-md border border-(--cards-border) text-[#7c7c7c] dark:text-[#848585] bg-(--app-bg) py-[5px] px-[10px] pl-7">
-									Search...
-								</div>
-								<div className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
-									⌘K
-								</div>
-							</div>
-						</>
-					}
-				>
+			<span className="hidden lg:flex items-center justify-between gap-2 lg:min-h-8">
+				<Suspense fallback={<SearchFallback />}>
 					<GlobalSearch />
 				</Suspense>
 				{hideFilters || (options && options.length === 0) ? null : <TvlOptions options={options} />}
@@ -69,7 +52,7 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 					label={hasFees ? 'Include in TVL, Fees' : 'Include in TVL'}
 					triggerProps={{
 						className:
-							'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C]'
+							'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto'
 					}}
 					placement="bottom-end"
 				/>
@@ -89,7 +72,7 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 				label="Include in TVL"
 				triggerProps={{
 					className:
-						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C]'
+						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto'
 				}}
 				placement="bottom-end"
 			/>
