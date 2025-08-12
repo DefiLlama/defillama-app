@@ -1,8 +1,6 @@
 import chainMetadata from '../../.cache/chains.json'
 import protocolMetadata from '../../.cache/protocols.json'
 import categoriesAndTags from '../../.cache/categoriesAndTags.json'
-import searchList from '../../.cache/searchList.json'
-import { slug } from '~/utils'
 
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
@@ -66,17 +64,10 @@ const metadataCache: {
 		categories: Array<string>
 		tags: Array<string>
 	}
-	searchList: {
-		protocols: Array<{ name: string; route: string }>
-		chains: Array<{ name: string; route: string }>
-		categories: Array<{ name: string; route: string }>
-		tags: Array<{ name: string; route: string }>
-	}
 } = {
 	chainMetadata,
 	protocolMetadata,
-	categoriesAndTags,
-	searchList
+	categoriesAndTags
 }
 
 setInterval(async () => {
@@ -88,43 +79,9 @@ setInterval(async () => {
 		fetchJson(CATEGORIES_AND_TAGS_DATA_URL)
 	])
 
-	const searchList = generateSearchList({ protocols, chains, categoriesAndTags })
-
 	metadataCache.protocolMetadata = protocols
 	metadataCache.chainMetadata = chains
 	metadataCache.categoriesAndTags = categoriesAndTags
-	metadataCache.searchList = searchList
 }, 60 * 60 * 1000)
 
 export default metadataCache
-
-function generateSearchList({ protocols, chains, categoriesAndTags }) {
-	const searchList = {
-		protocols: [],
-		chains: [],
-		categories: [],
-		tags: []
-	}
-
-	for (const protocol in protocols) {
-		if (!protocols[protocol].displayName) continue
-		searchList.protocols.push({
-			name: protocols[protocol].displayName,
-			route: `/protocol/${slug(protocols[protocol].name)}`
-		})
-	}
-
-	for (const chain in chains) {
-		searchList.chains.push({ name: chains[chain].name, route: `/chain/${slug(chains[chain].name)}` })
-	}
-
-	for (const category of categoriesAndTags.categories) {
-		searchList.categories.push({ name: category, route: `/category/${slug(category)}` })
-	}
-
-	for (const tag of categoriesAndTags.tags) {
-		searchList.tags.push({ name: tag, route: `/tag/${slug(tag)}` })
-	}
-
-	return searchList
-}

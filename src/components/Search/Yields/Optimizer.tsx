@@ -7,18 +7,18 @@ import * as Ariakit from '@ariakit/react'
 
 export function YieldsSearch({ lend = false, searchData, value }) {
 	const [searchValue, setSearchValue] = React.useState('')
-
+	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const matches = React.useMemo(() => {
 		return matchSorter(
 			Object.values(searchData) as Array<{ name: string; symbol: string; logo?: string; fallbackLogo?: string }>,
-			searchValue,
+			deferredSearchValue,
 			{
 				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 				keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
 				threshold: matchSorter.rankings.CONTAINS
 			}
 		)
-	}, [searchData, searchValue])
+	}, [searchData, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 

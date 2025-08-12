@@ -1,13 +1,12 @@
 import { useRouter } from 'next/router'
-import { DesktopSearch } from '~/components/Search/Base/Desktop'
 import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
-import { useInstantSearch, useSearchBox } from 'react-instantsearch'
-import { SearchV2 } from '../InstantSearch'
-import { useIsClient } from '~/hooks'
-import { useCallback, useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { tvlOptions } from '~/components/Filters/options'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { Select } from '~/components/Select'
+import { SearchFallback } from '../Fallback'
+
+const GlobalSearch = lazy(() => import('~/components/Search').then((mod) => ({ default: mod.GlobalSearch })))
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -16,61 +15,15 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 	hideFilters?: boolean
 }
 
-const empty = []
-
-export const ProtocolsChainsSearch = ({ hideFilters, ...props }: IProtocolsChainsSearch) => {
-	const isClient = useIsClient()
-
-	if (!isClient) {
-		return <DesktopSearch {...props} data={empty} loading={true} filters={hideFilters ? null : <></>} />
-	}
-
-	return (
-		<span className="hidden lg:block min-h-[32px]">
-			<SearchV2 indexName="protocols">
-				<Search {...props} hideFilters={hideFilters} />
-			</SearchV2>
-		</span>
-	)
-}
-
-const Search = ({ hideFilters = false, options, ...props }: IProtocolsChainsSearch) => {
-	const { refine } = useSearchBox()
-
-	const { results, status } = useInstantSearch({ catchError: true })
-
-	const onSearchTermChange = useCallback(
-		(value: string) => {
-			refine(value)
-		},
-		[refine]
-	)
-
-	const sortedResults = results.hits.sort((a, b) => {
-		if (a.deprecated && !b.deprecated) {
-			return 1
-		}
-		if (b.deprecated && !a.deprecated) {
-			return -1
-		}
-		return 0
-	})
-
-	const memoizedFilters = useMemo(
-		() => (hideFilters || (options && options.length === 0) ? null : <TvlOptions options={options} />),
-		[hideFilters, options]
-	)
-
+export const ProtocolsChainsSearch = ({ hideFilters, options }: IProtocolsChainsSearch) => {
 	return (
 		<>
-			<DesktopSearch
-				{...props}
-				data={sortedResults}
-				loading={status !== 'idle'}
-				filters={memoizedFilters}
-				onSearchTermChange={onSearchTermChange}
-				skipSearching
-			/>
+			<span className="hidden lg:flex items-center justify-between gap-2 lg:min-h-8">
+				<Suspense fallback={<SearchFallback />}>
+					<GlobalSearch />
+				</Suspense>
+				{hideFilters || (options && options.length === 0) ? null : <TvlOptions options={options} />}
+			</span>
 		</>
 	)
 }
@@ -99,7 +52,7 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 					label={hasFees ? 'Include in TVL, Fees' : 'Include in TVL'}
 					triggerProps={{
 						className:
-							'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C]'
+							'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto'
 					}}
 					placement="bottom-end"
 				/>
@@ -119,7 +72,7 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 				label="Include in TVL"
 				triggerProps={{
 					className:
-						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C]'
+						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto'
 				}}
 				placement="bottom-end"
 			/>

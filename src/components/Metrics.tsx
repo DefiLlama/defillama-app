@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { matchSorter } from 'match-sorter'
 import { useQuery } from '@tanstack/react-query'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
@@ -84,13 +84,14 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 	const [tab, setTab] = useState<'Protocols' | 'Chains'>(isChains ? 'Chains' : 'Protocols')
 
 	const [searchValue, setSearchValue] = useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const { chains, protocols } = useMemo(() => {
 		if (searchValue.length < 2) {
 			return { chains: chainsMetrics, protocols: protocolsMetrics }
 		}
 
-		const chains = matchSorter(chainsMetrics, searchValue, {
+		const chains = matchSorter(chainsMetrics, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['category', 'pages.*.name', 'pages.*.description'],
 			threshold: matchSorter.rankings.CONTAINS
@@ -99,7 +100,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				...category,
 				pages: category.pages.filter(
 					(page) =>
-						matchSorter([page], searchValue, {
+						matchSorter([page], deferredSearchValue, {
 							keys: ['name', 'description'],
 							threshold: matchSorter.rankings.CONTAINS
 						}).length > 0
@@ -107,7 +108,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 			}))
 			.filter((category) => category.pages.length > 0)
 
-		const protocols = matchSorter(protocolsMetrics, searchValue, {
+		const protocols = matchSorter(protocolsMetrics, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['category', 'pages.*.name', 'pages.*.description'],
 			threshold: matchSorter.rankings.CONTAINS
@@ -116,7 +117,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				...category,
 				pages: category.pages.filter(
 					(page) =>
-						matchSorter([page], searchValue, {
+						matchSorter([page], deferredSearchValue, {
 							keys: ['name', 'description'],
 							threshold: matchSorter.rankings.CONTAINS
 						}).length > 0
@@ -125,7 +126,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 			.filter((category) => category.category !== 'Trending 🔥' && category.pages.length > 0)
 
 		return { chains, protocols }
-	}, [searchValue])
+	}, [deferredSearchValue])
 
 	useEffect(() => {
 		const handleRouteChange = () => {

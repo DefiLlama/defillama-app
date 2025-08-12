@@ -27,12 +27,9 @@ async function pullData() {
 			fs.mkdirSync(CACHE_DIR)
 		}
 
-		const searchList = generateSearchList({ protocols, chains, categoriesAndTags })
-
 		fs.writeFileSync(path.join(CACHE_DIR, 'chains.json'), JSON.stringify(chains))
 		fs.writeFileSync(path.join(CACHE_DIR, 'protocols.json'), JSON.stringify(protocols))
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
-		fs.writeFileSync(path.join(CACHE_DIR, 'searchList.json'), JSON.stringify(searchList))
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
 		console.log('Data pulled and cached successfully.')
@@ -67,36 +64,3 @@ if (shouldPullData()) {
 	console.log('Metadata was pulled recently. No need to pull again.')
 	process.exit(0) // Exit successfully
 }
-
-function generateSearchList({ protocols, chains, categoriesAndTags }) {
-	const searchList = {
-		protocols: [],
-		chains: [],
-		categories: [],
-		tags: []
-	}
-
-	for (const protocol in protocols) {
-		if (!protocols[protocol].displayName) continue
-		searchList.protocols.push({
-			name: protocols[protocol].displayName,
-			route: `/protocol/${slug(protocols[protocol].name)}`
-		})
-	}
-
-	for (const chain in chains) {
-		searchList.chains.push({ name: chains[chain].name, route: `/chain/${slug(chains[chain].name)}` })
-	}
-
-	for (const category of categoriesAndTags.categories) {
-		searchList.categories.push({ name: category, route: `/category/${slug(category)}` })
-	}
-
-	for (const tag of categoriesAndTags.tags) {
-		searchList.tags.push({ name: tag, route: `/tag/${slug(tag)}` })
-	}
-
-	return searchList
-}
-
-const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')

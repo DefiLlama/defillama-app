@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { startTransition, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 
@@ -12,14 +12,14 @@ interface IProps {
 
 export function OtherLinks({ options, name, isActive, className }: IProps) {
 	const [searchValue, setSearchValue] = useState('')
-
+	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
-		return matchSorter(options, searchValue, {
+		return matchSorter(options, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['label'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [options, searchValue])
+	}, [options, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)
 

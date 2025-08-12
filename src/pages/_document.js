@@ -6,7 +6,7 @@ export default function Document() {
 			<Head>
 				<link href="/fonts/inter.woff2" rel="preload" as="font" crossOrigin="anonymous" />
 				<link href="/fonts/jetbrains.ttf" rel="preload" as="font" crossOrigin="anonymous" />
-				<link href="/icons/v4.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
+				<link href="/icons/v5.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
 				<script
 					dangerouslySetInnerHTML={{
 						__html: `
