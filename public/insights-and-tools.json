@@ -1,0 +1,76 @@
+{
+  "Insights": [
+    {
+      "name": "All Chains",
+      "route": "/chains"
+    },
+    {
+      "name": "Stablecoin Supply by Chain",
+      "route": "/stablecoins/chains"
+    },
+    {
+      "name": "Fees by Chain",
+      "route": "/fees/chains"
+    },
+    {
+      "name": "Revenue by Chain",
+      "route": "/revenue/chains"
+    },
+    {
+      "name": "REV by Chain",
+      "route": "/rev/chains"
+    },
+    {
+      "name": "Bridged TVL by Chain",
+      "route": "/bridged"
+    },
+    {
+      "name": "App Revenue by Chain",
+      "route": "/app-revenue/chains"
+    },
+    {
+      "name": "DEX Volume by Chain",
+      "route": "/dexs/chains"
+    },
+    {
+      "name": "Perp Volume by Chain",
+      "route": "/perps/chains"
+    },
+    {
+      "name": "Bridge Volume by Chain",
+      "route": "/bridges/chains"
+    },
+    {
+      "name": "NFT Volume by Chain",
+      "route": "/nfts/chains"
+    },
+    {
+      "name": "Yields: All Pools",
+      "route": "/yields"
+    },
+    {
+      "name": "Yields: Delta Neutral Strategies",
+      "route": "/yields/strategies"
+    },
+    {
+      "name": "Yields: Long Short Strategies",
+      "route": "/yields/strategyLongShort"
+    },
+    {
+      "name": "Yields: Leveraged Lending",
+      "route": "/yields/loop"
+    },
+    {
+      "name": "Yields: Overview",
+      "route": "/yields/overview"
+    },
+    {
+      "name": "Yields: Projects",
+      "route": "/yields/projects"
+    },
+    {
+      "name": "Yields: Halal",
+      "route": "/yields/halal"
+    }
+  ]
+}

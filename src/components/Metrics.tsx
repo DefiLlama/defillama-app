@@ -639,20 +639,20 @@ export const chainsMetrics: Array<{
 				name: 'TVL',
 				route: `/chains`,
 				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.tvl?.chains ?? 0,
-				description: 'Total value of all coins held in smart contracts of the protocols'
+				description: 'Total value of all coins held in smart contracts of all protocols on the chain'
 			},
 			{
 				name: 'Fees',
 				route: '/fees/chains',
 				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.chains ?? 0,
-				description: 'Total fees paid by users when using the protocol'
+				description: 'Total fees paid by users when using the protocols on the chain'
 			},
 			{
 				name: 'Revenue',
 				route: '/revenue/chains',
 				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.chains ?? 0,
 				description:
-					"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
+					"Subset of fees that all protocols on the chain collect for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
 			},
 			{
 				name: 'REV',
@@ -670,7 +670,8 @@ export const chainsMetrics: Array<{
 				name: 'App Revenue',
 				route: '/app-revenue/chains',
 				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.chains ?? 0,
-				description: 'Total revenue earned by the apps on the chain. Excludes liquid staking apps and gas fees'
+				description:
+					'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees'
 			},
 			{
 				name: 'Stablecoin Supply',
@@ -682,19 +683,19 @@ export const chainsMetrics: Array<{
 				name: 'DEX Volume',
 				route: '/dexs/chains',
 				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.dexs?.chains ?? 0,
-				description: 'Volume of all spot token swaps that go through a DEX'
+				description: 'Volume of all spot token swaps that go through all DEXs on the chain'
 			},
 			{
 				name: 'Perp Volume',
 				route: '/perps/chains',
 				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perps?.chains ?? 0,
-				description: 'Notional volume of all trades in a perp exchange, includes leverage'
+				description: 'Notional volume of all trades in all perp exchanges on the chain, includes leverage'
 			},
 			{
 				name: 'NFT Volume',
 				route: '/nfts/chains',
 				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.nfts?.chains ?? 0,
-				description: 'Sum of volume across all NFT exchanges'
+				description: 'Sum of volume across all NFT exchanges on the chain'
 			},
 			{
 				name: 'Total Raised',
