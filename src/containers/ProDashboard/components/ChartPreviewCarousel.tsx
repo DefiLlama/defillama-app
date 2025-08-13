@@ -9,15 +9,11 @@ interface ChartPreviewCarouselProps {
 	itemName: string
 }
 
-export function ChartPreviewCarousel({ 
-	selectedChartTypes, 
-	chartData, 
-	itemName
-}: ChartPreviewCarouselProps) {
+export function ChartPreviewCarousel({ selectedChartTypes, chartData, itemName }: ChartPreviewCarouselProps) {
 	const [currentIndex, setCurrentIndex] = useState(0)
 
-	const validCharts = useMemo(() => 
-		selectedChartTypes.filter(type => chartData.has(type)),
+	const validCharts = useMemo(
+		() => selectedChartTypes.filter((type) => chartData.has(type)),
 		[selectedChartTypes, chartData]
 	)
 
@@ -83,7 +79,7 @@ export function ChartPreviewCarousel({
 							key={index}
 							onClick={() => setCurrentIndex(index)}
 							className={`w-1.5 h-1.5 rounded-full transition-colors ${
-								index === currentIndex ? 'bg-(--primary1)' : 'pro-bg3'
+								index === currentIndex ? 'bg-(--primary)' : 'pro-bg3'
 							}`}
 						/>
 					))}

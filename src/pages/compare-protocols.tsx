@@ -258,7 +258,7 @@ const CompactProtocolTVL = ({ tvl, name, category }) => {
 	return (
 		<div className="flex flex-col">
 			<span className="flex items-center flex-nowrap gap-2">
-				<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+				<span className="text-(--text-label)">Total Value Locked</span>
 				<Flag
 					protocol={name}
 					dataType="TVL"
@@ -309,15 +309,15 @@ const KeyMetrics = ({ change_1d, change_7d, change_1m, protocolName }) => {
 			<div className="grid grid-cols-1 gap-1">
 				{metrics.map((metric) => (
 					<div key={`${metric.name}-${protocolName}`} className="flex items-center justify-between gap-2 py-1 text-sm">
-						<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+						<span className="text-(--text-label)">{metric.name}</span>
 						<span
 							className={`font-jetbrains ${
 								metric.name.includes('Change')
 									? parseFloat(metric.value) > 0
-										? 'text-(--pct-green)'
+										? 'text-(--success)'
 										: parseFloat(metric.value) < 0
-										? 'text-(--pct-red)'
-										: ''
+											? 'text-(--error)'
+											: ''
 									: ''
 							}`}
 						>

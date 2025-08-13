@@ -69,13 +69,13 @@ export function Announcement({
 
 	return (
 		<p
-			className="relative p-3 text-sm text-black dark:text-white text-center rounded-md bg-(--bg)"
+			className="relative p-3 text-sm text-black dark:text-white text-center rounded-md bg-(--bg-input)"
 			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as any}
 		>
 			{children}
 			{!notCancellable ? (
 				<button
-					className="absolute top-0 bottom-0 my-auto right-0 h-10 w-10 flex items-center justify-center rounded-md hover:bg-(--bg)"
+					className="absolute top-0 bottom-0 my-auto right-0 h-10 w-10 flex items-center justify-center rounded-md hover:bg-(--bg-input)"
 					onClick={closeAnnouncement}
 				>
 					<Icon name="x" height={16} width={16} />

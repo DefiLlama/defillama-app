@@ -74,7 +74,7 @@ export default function AreaChart({
 									offset: 1,
 									color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
 								}
-						  ])
+							])
 						: null
 				},
 				markLine: {},
@@ -164,7 +164,7 @@ export default function AreaChart({
 									}
 								}
 							}
-					  ],
+						],
 			dataZoom: [...dataZoom],
 			series
 		})

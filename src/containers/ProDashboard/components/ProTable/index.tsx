@@ -53,19 +53,14 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		updateCustomColumn,
 		categories,
 		availableProtocols
-	} = useProTable(
-		memoizedChains, 
-		filters, 
-		() => setShowFilterModal(true),
-		{
-			initialColumnOrder: columnOrder,
-			initialColumnVisibility: columnVisibility,
-			initialCustomColumns: customColumns,
-			onColumnsChange: (newColumnOrder, newColumnVisibility, newCustomColumns) => {
-				handleTableColumnsChange(tableId, newColumnOrder, newColumnVisibility, newCustomColumns)
-			}
+	} = useProTable(memoizedChains, filters, () => setShowFilterModal(true), {
+		initialColumnOrder: columnOrder,
+		initialColumnVisibility: columnVisibility,
+		initialCustomColumns: customColumns,
+		onColumnsChange: (newColumnOrder, newColumnVisibility, newCustomColumns) => {
+			handleTableColumnsChange(tableId, newColumnOrder, newColumnVisibility, newCustomColumns)
 		}
-	)
+	})
 
 	const handleFiltersChange = (newFilters: TableFilters) => {
 		handleTableFiltersChange(tableId, newFilters)

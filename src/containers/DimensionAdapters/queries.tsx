@@ -192,13 +192,13 @@ export async function getAdapterChainOverview({
 						? (Object.values(protocol.breakdown24h[internalChainName]) as number[]).reduce(
 								(sum: number, val: number) => sum + (val || 0),
 								0
-						  )
+							)
 						: 0
 					const chainRevenue30d: number = protocol.breakdown30d?.[internalChainName]
 						? (Object.values(protocol.breakdown30d[internalChainName]) as number[]).reduce(
 								(sum: number, val: number) => sum + (val || 0),
 								0
-						  )
+							)
 						: 0
 
 					const totalRevenue24h: number = (
@@ -519,7 +519,7 @@ export const getAdapterByChainPageData = async ({
 					dataType: 'dailyBribesRevenue',
 					excludeTotalDataChart: false,
 					excludeTotalDataChartBreakdown: true
-			  })
+				})
 			: Promise.resolve(null),
 		adapterType === 'fees'
 			? getAdapterChainOverview({
@@ -528,7 +528,7 @@ export const getAdapterByChainPageData = async ({
 					dataType: 'dailyTokenTaxes',
 					excludeTotalDataChart: false,
 					excludeTotalDataChartBreakdown: true
-			  })
+				})
 			: Promise.resolve(null)
 	])
 
@@ -623,16 +623,16 @@ export const getAdapterByChainPageData = async ({
 		const methodology =
 			adapterType === 'fees'
 				? dataType === 'dailyRevenue'
-					? protocol.methodology?.['Revenue'] ??
-					  protocol.methodology?.['BribeRevenue'] ??
-					  protocol.methodology?.['TokenTaxes']
+					? (protocol.methodology?.['Revenue'] ??
+						protocol.methodology?.['BribeRevenue'] ??
+						protocol.methodology?.['TokenTaxes'])
 					: dataType === 'dailyHoldersRevenue'
-					? protocol.methodology?.['HoldersRevenue'] ??
-					  protocol.methodology?.['BribeRevenue'] ??
-					  protocol.methodology?.['TokenTaxes']
-					: protocol.methodology?.['Fees'] ??
-					  protocol.methodology?.['BribeRevenue'] ??
-					  protocol.methodology?.['TokenTaxes']
+						? (protocol.methodology?.['HoldersRevenue'] ??
+							protocol.methodology?.['BribeRevenue'] ??
+							protocol.methodology?.['TokenTaxes'])
+						: (protocol.methodology?.['Fees'] ??
+							protocol.methodology?.['BribeRevenue'] ??
+							protocol.methodology?.['TokenTaxes'])
 				: null
 
 		const pf =
@@ -717,7 +717,7 @@ export const getAdapterByChainPageData = async ({
 						total1y: 0,
 						totalAllTime: 0
 					}
-			  )
+				)
 			: null
 		const tokenTax = parentProtocols[protocol].some((p) => p.tokenTax != null)
 			? parentProtocols[protocol].reduce(
@@ -736,7 +736,7 @@ export const getAdapterByChainPageData = async ({
 						total1y: 0,
 						totalAllTime: 0
 					}
-			  )
+				)
 			: null
 
 		const methodology = Array.from(
@@ -766,7 +766,7 @@ export const getAdapterByChainPageData = async ({
 			...(methodology
 				? {
 						methodology
-				  }
+					}
 				: {})
 		}
 	}

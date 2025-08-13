@@ -48,14 +48,14 @@ export function NameYieldPool({
 		(windowSize?.width >= 1720
 			? 36
 			: windowSize?.width >= 1640
-			? 32
-			: windowSize?.width >= 1600
-			? 28
-			: windowSize?.width >= 1536
-			? 16
-			: windowSize?.width >= 1280
-			? 12
-			: 10)
+				? 32
+				: windowSize?.width >= 1600
+					? 28
+					: windowSize?.width >= 1536
+						? 16
+						: windowSize?.width >= 1280
+							? 12
+							: 10)
 
 	return (
 		<span className="flex items-center gap-2">
@@ -87,7 +87,7 @@ export function NameYieldPool({
 						<span className="shrink-0 overflow-hidden whitespace-nowrap text-ellipsis text-(--link-text) font-medium">
 							{value}
 						</span>
-						<span className="ml-1 flex-shrink-1 bg-(--bg3) text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
+						<span className="ml-1 flex-shrink-1 bg-(--bg-tertiary) text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
 							{poolMeta}
 						</span>
 					</>

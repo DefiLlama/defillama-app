@@ -165,7 +165,7 @@ export function ColumnManagementPanel({
 						<div className="flex items-center gap-2">
 							<Icon name="check" height={12} width={12} className="text-green-500" />
 							<span className="text-xs pro-text1">{column.name}</span>
-							{isCustom && <span className="text-xs px-1 py-0.5 bg-(--primary1) text-white rounded-sm">Custom</span>}
+							{isCustom && <span className="text-xs px-1 py-0.5 bg-(--primary) text-white rounded-sm">Custom</span>}
 							{column.key?.endsWith('_share') && (
 								<span className="text-xs px-1 py-0.5 bg-blue-600 text-white rounded-sm">%</span>
 							)}
@@ -266,7 +266,7 @@ export function ColumnManagementPanel({
 						<button
 							onClick={() => setActiveTab('columns')}
 							className={`px-3 py-1 text-xs transition-colors ${
-								activeTab === 'columns' ? 'bg-(--primary1) text-white' : 'pro-text2 pro-hover-bg'
+								activeTab === 'columns' ? 'bg-(--primary) text-white' : 'pro-text2 pro-hover-bg'
 							}`}
 						>
 							Standard Columns
@@ -274,14 +274,14 @@ export function ColumnManagementPanel({
 						<button
 							onClick={() => setActiveTab('custom')}
 							className={`px-3 py-1 text-xs transition-colors relative ${
-								activeTab === 'custom' ? 'bg-(--primary1) text-white' : 'pro-text2 pro-hover-bg'
+								activeTab === 'custom' ? 'bg-(--primary) text-white' : 'pro-text2 pro-hover-bg'
 							}`}
 						>
 							<span className="flex items-center gap-1">
 								Custom Columns
 								<span className="text-[10px] px-1 py-0.5 bg-blue-500 text-white rounded-sm ml-1">NEW!</span>
 								{activeTab !== 'custom' && (
-									<span className="w-2 h-2 bg-(--primary1) rounded-full animate-pulse absolute -top-1 -right-1"></span>
+									<span className="w-2 h-2 bg-(--primary) rounded-full animate-pulse absolute -top-1 -right-1"></span>
 								)}
 							</span>
 						</button>
@@ -323,7 +323,7 @@ export function ColumnManagementPanel({
 							placeholder="Search columns..."
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
-							className="w-full pl-9 pr-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
+							className="w-full pl-9 pr-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
 						/>
 					</div>
 
@@ -391,12 +391,12 @@ export function ColumnManagementPanel({
 					{activeTab === 'columns'
 						? `${Object.values(currentColumns).filter(Boolean).length} of ${
 								protocolsByChainTableColumns.length
-						  } columns visible`
+							} columns visible`
 						: `${customColumns.length} custom columns`}
 				</span>
 				<button
 					onClick={() => setShowColumnPanel(false)}
-					className="px-3 py-1 bg-(--primary1) text-white hover:bg-(--primary1-hover) transition-colors border border-(--primary1)"
+					className="px-3 py-1 bg-(--primary) text-white hover:bg-(--primary-hover) transition-colors border border-(--primary)"
 				>
 					Done
 				</button>

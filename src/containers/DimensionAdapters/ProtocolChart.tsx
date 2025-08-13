@@ -46,7 +46,7 @@ export const DimensionProtocolChartByType = ({
 	if (error) {
 		return (
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col items-center justify-center col-span-2 min-h-[418px]">
-				<p className="text-sm text-center text-(--pct-red) p-3">Error : {error.message}</p>
+				<p className="text-sm text-center text-(--error) p-3">Error : {error.message}</p>
 			</div>
 		)
 	}
@@ -75,7 +75,7 @@ const ChartByType = ({
 	chartType: 'chain' | 'version'
 	protocolName: string
 }) => {
-	const [chartInterval, changeChartInterval] = React.useState<typeof INTERVALS_LIST[number]>('Daily')
+	const [chartInterval, changeChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(allTypes)
 
 	const mainChartData = React.useMemo(() => {
@@ -91,8 +91,8 @@ const ChartByType = ({
 					chartInterval === 'Weekly'
 						? lastDayOfWeek(+date * 1e3) * 1e3
 						: chartInterval === 'Monthly'
-						? firstDayOfMonth(+date * 1e3) * 1e3
-						: +date * 1e3
+							? firstDayOfMonth(+date * 1e3) * 1e3
+							: +date * 1e3
 
 				const dataByVersion = {}
 				for (const chain in chains) {
@@ -123,8 +123,8 @@ const ChartByType = ({
 					chartInterval === 'Weekly'
 						? lastDayOfWeek(+date * 1e3) * 1e3
 						: chartInterval === 'Monthly'
-						? firstDayOfMonth(+date * 1e3) * 1e3
-						: +date * 1e3
+							? firstDayOfMonth(+date * 1e3) * 1e3
+							: +date * 1e3
 
 				const dataByChain = {}
 				for (const chain in chains) {
@@ -184,7 +184,7 @@ const ChartByType = ({
 		<>
 			<div className="flex items-center gap-1 justify-end flex-wrap p-2">
 				{title && <h2 className="text-base font-semibold mr-auto">{title}</h2>}
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 					{INTERVALS_LIST.map((dataInterval) => (
 						<Tooltip
 							content={dataInterval}
@@ -211,7 +211,7 @@ const ChartByType = ({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'h-[30px] bg-transparent! border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
+							'h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
 					}}
 					portal
 				/>
@@ -258,7 +258,7 @@ const ChartByType = ({
 						}
 					}}
 					smol
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<React.Suspense fallback={<></>}>

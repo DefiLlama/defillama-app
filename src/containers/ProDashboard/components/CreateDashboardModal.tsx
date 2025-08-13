@@ -81,7 +81,7 @@ export function CreateDashboardModal({ isOpen, onClose, onCreate }: CreateDashbo
 								value={dashboardName}
 								onChange={(e) => setDashboardName(e.target.value)}
 								placeholder="Enter dashboard name"
-								className="w-full px-3 py-2 bg-(--bg7) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1)"
+								className="w-full px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary)"
 								autoFocus
 							/>
 						</div>
@@ -93,7 +93,7 @@ export function CreateDashboardModal({ isOpen, onClose, onCreate }: CreateDashbo
 									onClick={() => setVisibility('public')}
 									className={`flex-1 px-4 py-3 border transition-colors ${
 										visibility === 'public'
-											? 'border-(--primary1) bg-(--primary1) bg-opacity-20 pro-text1'
+											? 'border-(--primary) bg-(--primary) bg-opacity-20 pro-text1'
 											: 'pro-border pro-text3 hover:pro-text1'
 									}`}
 								>
@@ -104,7 +104,7 @@ export function CreateDashboardModal({ isOpen, onClose, onCreate }: CreateDashbo
 									onClick={() => setVisibility('private')}
 									className={`flex-1 px-4 py-3 border transition-colors ${
 										visibility === 'private'
-											? 'border-(--primary1) bg-(--primary1) bg-opacity-20 pro-text1'
+											? 'border-(--primary) bg-(--primary) bg-opacity-20 pro-text1'
 											: 'pro-border pro-text3 hover:pro-text1'
 									}`}
 								>
@@ -126,14 +126,14 @@ export function CreateDashboardModal({ isOpen, onClose, onCreate }: CreateDashbo
 									onChange={(e) => setTagInput(e.target.value)}
 									onKeyDown={handleTagInputKeyDown}
 									placeholder="Enter tag name"
-									className="flex-1 px-3 py-2 bg-(--bg7) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1)"
+									className="flex-1 px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary)"
 								/>
 								<button
 									onClick={() => handleAddTag(tagInput)}
 									disabled={!tagInput.trim()}
 									className={`px-4 py-2 border transition-colors ${
 										tagInput.trim()
-											? 'border-(--primary1) text-(--primary1) hover:bg-(--primary1) hover:text-white'
+											? 'border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white'
 											: 'pro-border pro-text3 cursor-not-allowed'
 									}`}
 								>
@@ -148,10 +148,10 @@ export function CreateDashboardModal({ isOpen, onClose, onCreate }: CreateDashbo
 									{tags.map((tag) => (
 										<span
 											key={tag}
-											className="px-3 py-1 bg-(--bg7) bg-opacity-50 text-sm pro-text2 border pro-border flex items-center gap-1"
+											className="px-3 py-1 bg-(--bg-glass) bg-opacity-50 text-sm pro-text2 border pro-border flex items-center gap-1"
 										>
 											{tag}
-											<button onClick={() => handleRemoveTag(tag)} className="hover:text-(--primary1)">
+											<button onClick={() => handleRemoveTag(tag)} className="hover:text-(--primary)">
 												<Icon name="x" height={12} width={12} />
 											</button>
 										</span>
@@ -167,7 +167,7 @@ export function CreateDashboardModal({ isOpen, onClose, onCreate }: CreateDashbo
 								onChange={(e) => setDescription(e.target.value)}
 								placeholder="Describe your dashboard..."
 								rows={3}
-								className="w-full px-3 py-2 bg-(--bg7) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) resize-none"
+								className="w-full px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) resize-none"
 							/>
 							<p className="mt-1 text-xs pro-text3">{description.length}/200 characters</p>
 						</div>
@@ -176,7 +176,7 @@ export function CreateDashboardModal({ isOpen, onClose, onCreate }: CreateDashbo
 					<div className="flex gap-3 mt-8">
 						<button
 							onClick={onClose}
-							className="flex-1 px-4 py-2 border pro-border pro-text1 hover:bg-(--bg1) transition-colors"
+							className="flex-1 px-4 py-2 border pro-border pro-text1 hover:bg-(--bg-main) transition-colors"
 						>
 							Cancel
 						</button>
@@ -185,8 +185,8 @@ export function CreateDashboardModal({ isOpen, onClose, onCreate }: CreateDashbo
 							disabled={!dashboardName.trim()}
 							className={`flex-1 px-4 py-2 transition-colors ${
 								dashboardName.trim()
-									? 'bg-(--primary1) text-white hover:bg-(--primary1-hover)'
-									: 'bg-(--bg3) pro-text3 cursor-not-allowed'
+									? 'bg-(--primary) text-white hover:bg-(--primary-hover)'
+									: 'bg-(--bg-tertiary) pro-text3 cursor-not-allowed'
 							}`}
 						>
 							Create Dashboard

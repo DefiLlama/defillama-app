@@ -332,8 +332,8 @@ export const SubscriberContent = ({
 											isLlamaFeed
 												? () => handleManageSubscription('llamafeed')
 												: isPro
-												? () => handleManageSubscription('api')
-												: undefined
+													? () => handleManageSubscription('api')
+													: undefined
 										}
 										disabled={isPortalSessionLoading}
 										className="px-4 py-2 bg-[#5C5CF9]/10 hover:bg-[#5C5CF9]/20 text-[#5C5CF9] rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
@@ -372,14 +372,14 @@ export const SubscriberContent = ({
 													month: 'short',
 													day: 'numeric',
 													year: 'numeric'
-											  })
+												})
 											: isPro && apiSubscription?.expires_at
-											? new Date(+apiSubscription.expires_at * 1000).toLocaleDateString('en-US', {
-													month: 'short',
-													day: 'numeric',
-													year: 'numeric'
-											  })
-											: 'Not available'}
+												? new Date(+apiSubscription.expires_at * 1000).toLocaleDateString('en-US', {
+														month: 'short',
+														day: 'numeric',
+														year: 'numeric'
+													})
+												: 'Not available'}
 									</p>
 								</div>
 							</div>

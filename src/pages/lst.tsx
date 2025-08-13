@@ -89,14 +89,14 @@ const PageView = ({
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md w-full flex flex-col">
 				<div className="flex flex-wrap overflow-x-auto border-y border-(--form-control-border)">
 					<button
-						className="py-2 px-6 whitespace-nowrap border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						className="py-2 px-6 whitespace-nowrap border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						onClick={() => setTab('breakdown')}
 						data-selected={tab === 'breakdown'}
 					>
 						Breakdown
 					</button>
 					<button
-						className="py-2 px-6 whitespace-nowrap border-l border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						className="py-2 px-6 whitespace-nowrap border-l border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						onClick={() => setTab('inflows')}
 						data-selected={tab === 'inflows'}
 					>
@@ -126,7 +126,7 @@ const PageView = ({
 						</div>
 					) : (
 						<div className="flex flex-col w-full gap-1">
-							<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+							<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 								<button
 									data-active={groupBy === 'daily'}
 									className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -401,7 +401,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 			...p,
 			marketShare: (p.stakedEth / stakedEthSum) * 100,
 			lsdSymbol: lsd?.symbol ?? null,
-			ethPeg: p.name === 'SharedStake' ? null : lsd?.ethPeg ?? null,
+			ethPeg: p.name === 'SharedStake' ? null : (lsd?.ethPeg ?? null),
 			pegInfo,
 			marketRate: lsd?.marketRate ?? null,
 			expectedRate: lsd?.expectedRate ?? null,

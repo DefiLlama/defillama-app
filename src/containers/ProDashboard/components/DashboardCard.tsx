@@ -69,7 +69,7 @@ export function DashboardCard({
 		return (
 			<div
 				onClick={onClick}
-				className="pro-glass hover:bg-(--bg7) hover:bg-opacity-40 cursor-pointer transition-all p-4 flex items-center justify-between gap-4"
+				className="pro-glass hover:bg-(--bg-glass) hover:bg-opacity-40 cursor-pointer transition-all p-4 flex items-center justify-between gap-4"
 			>
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-3 mb-2">
@@ -102,7 +102,7 @@ export function DashboardCard({
 								<button
 									key={tag}
 									onClick={(e) => handleTagClick(e, tag)}
-									className="px-2 py-1 bg-(--bg1) bg-opacity-50 text-xs pro-text2 border pro-border hover:border-(--divider)"
+									className="px-2 py-1 bg-(--bg-main) bg-opacity-50 text-xs pro-text2 border pro-border hover:border-(--divider)"
 								>
 									{tag}
 								</button>
@@ -131,7 +131,7 @@ export function DashboardCard({
 	return (
 		<div
 			onClick={onClick}
-			className="pro-glass hover:bg-(--bg7) hover:bg-opacity-40 cursor-pointer transition-all p-4 group h-full flex flex-col"
+			className="pro-glass hover:bg-(--bg-glass) hover:bg-opacity-40 cursor-pointer transition-all p-4 group h-full flex flex-col"
 		>
 			<div className="flex items-start justify-between mb-3">
 				<div className="flex-1 min-w-0 flex items-center gap-2">
@@ -152,7 +152,7 @@ export function DashboardCard({
 					<button
 						onClick={(e) => onDelete(dashboard.id, e)}
 						disabled={isDeleting}
-						className="opacity-0 group-hover:opacity-100 text-(--text3) hover:text-red-500 transition-all p-1 shrink-0"
+						className="opacity-0 group-hover:opacity-100 text-(--text-tertiary) hover:text-red-500 transition-all p-1 shrink-0"
 						title="Delete dashboard"
 					>
 						{isDeleting ? (
@@ -175,7 +175,7 @@ export function DashboardCard({
 				</div>
 
 				{dashboard.data.items && dashboard.data.items.length > 0 && (
-					<div className="text-xs pro-text2 bg-(--bg7) bg-opacity-30 px-2 py-1 rounded inline-block">
+					<div className="text-xs pro-text2 bg-(--bg-glass) bg-opacity-30 px-2 py-1 rounded inline-block">
 						{getItemTypeCount()}
 					</div>
 				)}
@@ -204,7 +204,7 @@ export function DashboardCard({
 							<button
 								key={tag}
 								onClick={(e) => handleTagClick(e, tag)}
-								className="px-2 py-1 bg-(--bg1) bg-opacity-50 text-xs pro-text2 border pro-border hover:border-(--divider)"
+								className="px-2 py-1 bg-(--bg-main) bg-opacity-50 text-xs pro-text2 border pro-border hover:border-(--divider)"
 							>
 								{tag}
 							</button>

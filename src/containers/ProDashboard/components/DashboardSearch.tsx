@@ -17,7 +17,7 @@ export function DashboardSearch({ searchQuery, onSearchChange }: DashboardSearch
 						value={searchQuery}
 						onChange={(e) => onSearchChange(e.target.value)}
 						placeholder="Search dashboards by name or description or tags..."
-						className="w-full pl-10 pr-4 py-2 bg-(--bg7) border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1)"
+						className="w-full pl-10 pr-4 py-2 bg-(--bg-glass) border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary)"
 					/>
 				</div>
 			</div>

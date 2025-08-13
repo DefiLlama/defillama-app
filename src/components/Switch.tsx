@@ -45,9 +45,7 @@ export const Switch = ({
 			/>
 			<span
 				className={`border ${
-					checked
-						? 'border-(--btn-hover-bg) bg-(--btn-bg)'
-						: 'border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E]'
+					checked ? 'border-(--btn-hover-bg) bg-(--btn-bg)' : 'border-(--bg-input) bg-(--bg-input)'
 				} rounded p-[2px] h-[18px] w-[34px]`}
 			>
 				{!checked ? (

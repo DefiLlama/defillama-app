@@ -86,12 +86,12 @@ export default function Collection() {
 					</h1>
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">30d royalty earnings</span>
+						<span className="text-(--text-label)">30d royalty earnings</span>
 						<span className="font-jetbrains font-semibold text-2xl">{formattedNum(props.total30d, true)}</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Lifetime royalty earnings</span>
+						<span className="text-(--text-label)">Lifetime royalty earnings</span>
 						<span className="font-jetbrains font-semibold text-2xl">{formattedNum(props.totalAllTime, true)}</span>
 					</p>
 				</div>

@@ -32,7 +32,7 @@ const CustomTokenOption = ({ innerProps, label, data }) => (
 				}}
 			/>
 		) : (
-			<div className="w-5 h-5 rounded-full bg-(--bg3)" />
+			<div className="w-5 h-5 rounded-full bg-(--bg-tertiary)" />
 		)}
 		<span>{label}</span>
 	</div>
@@ -90,7 +90,7 @@ const TokenTag = ({ value, label, logo, onRemove }) => (
 				}}
 			/>
 		) : (
-			<div className="w-4 h-4 rounded-full bg-(--bg3)" />
+			<div className="w-4 h-4 rounded-full bg-(--bg-tertiary)" />
 		)}
 		<span className="text-sm pro-text1">{label}</span>
 		<button
@@ -136,12 +136,14 @@ export function SingleSelectWithTags({
 			) : (
 				<>
 					<ReactSelect
-						options={options.filter(opt => !selectedValues.includes(opt.value))}
+						options={options.filter((opt) => !selectedValues.includes(opt.value))}
 						value={null}
 						onChange={handleChange}
 						onInputChange={onInputChange}
 						components={{ Option: CustomTokenOption, MenuList: VirtualizedMenuList }}
-						placeholder={selectedValues.length >= maxSelections ? `Maximum ${maxSelections} tokens selected` : placeholder}
+						placeholder={
+							selectedValues.length >= maxSelections ? `Maximum ${maxSelections} tokens selected` : placeholder
+						}
 						className="w-full"
 						filterOption={filterOption}
 						styles={reactSelectStyles}
@@ -149,7 +151,7 @@ export function SingleSelectWithTags({
 						isDisabled={selectedValues.length >= maxSelections}
 						{...customProps}
 					/>
-					
+
 					{selectedValues.length > 0 && (
 						<div className="mt-2 flex flex-wrap gap-2">
 							{selectedOptions.map((option) => (

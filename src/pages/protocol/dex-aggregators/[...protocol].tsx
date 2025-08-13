@@ -105,7 +105,7 @@ export async function getStaticPaths() {
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export default function Protocols(props) {
-	const [groupBy, setGroupBy] = useState<typeof INTERVALS_LIST[number]>(props.defaultChartView)
+	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
 	const finalCharts = useMemo(() => {
 		return {
 			'DEX Aggregator Volume': {
@@ -144,7 +144,7 @@ export default function Protocols(props) {
 				</div>
 				<div className="col-span-1 xl:col-[2/-1] bg-(--cards-bg) border border-(--cards-border) rounded-md xl:min-h-[360px]">
 					<div className="flex items-center justify-end gap-2 p-2">
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<Tooltip
 									content={capitalizeFirstLetter(dataInterval)}
@@ -173,7 +173,7 @@ export default function Protocols(props) {
 								}
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>

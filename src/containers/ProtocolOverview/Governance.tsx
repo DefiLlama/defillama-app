@@ -28,8 +28,8 @@ export function GovernanceTable({ data, governanceType }) {
 			governanceType === 'compound'
 				? proposalsCompoundColumns
 				: governanceType === 'snapshot'
-				? proposalsSnapshotColumns
-				: proposalsTallyColumns,
+					? proposalsSnapshotColumns
+					: proposalsTallyColumns,
 		state: {
 			columnFilters,
 			sorting
@@ -67,7 +67,7 @@ export function GovernanceTable({ data, governanceType }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						name="search"
@@ -154,8 +154,8 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 		apiUrl.includes('governance-cache/snapshot')
 			? 'Snapshot'
 			: apiUrl.includes('governance-cache/compound')
-			? 'Compound'
-			: 'Tally'
+				? 'Compound'
+				: 'Tally'
 	)
 
 	return data && data.length > 0 ? (
@@ -183,8 +183,8 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 					apis[apiCategoryIndex].includes('governance-cache/snapshot')
 						? 'snapshot'
 						: apis[apiCategoryIndex].includes('governance-cache/compound')
-						? 'compound'
-						: 'tally'
+							? 'compound'
+							: 'tally'
 				}
 			/>
 		</div>
@@ -284,7 +284,7 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 		cell: (info) => (
 			<span
 				data-isactive={info.getValue() === 0 ? false : true}
-				className="text-(--pct-red) data-[isactive=true]:text-(--pct-green)"
+				className="text-(--error) data-[isactive=true]:text-(--success)"
 			>
 				{info.getValue() === 0 ? 'Closed' : 'Active'}
 			</span>

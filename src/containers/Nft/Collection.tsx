@@ -58,21 +58,21 @@ export function NFTCollectionContainer() {
 					</h1>
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Floor Price</span>
+						<span className="text-(--text-label)">Floor Price</span>
 						<span className="font-jetbrains font-semibold text-2xl">
 							{floorPrice ? floorPrice.toFixed(2) + ' ETH' : ''}
 						</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">24h Volume</span>
+						<span className="text-(--text-label)">24h Volume</span>
 						<span className="font-jetbrains font-semibold text-2xl">
 							{volume24h ? volume24h.toFixed(2) + ' ETH' : ''}
 						</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Supply</span>
+						<span className="text-(--text-label)">Total Supply</span>
 						<span className="font-jetbrains font-semibold text-2xl">{data?.[0]?.totalSupply}</span>
 					</p>
 

@@ -56,7 +56,7 @@ function RaisesTable({ raises, downloadCsv }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? raisesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? (raisesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		instance.setColumnOrder(order)
@@ -83,7 +83,7 @@ function RaisesTable({ raises, downloadCsv }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						name="search"
@@ -97,12 +97,12 @@ function RaisesTable({ raises, downloadCsv }) {
 				</label>
 				<CSVDownloadButton
 					onClick={downloadCsv}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 				<CSVDownloadButton
 					customText="Download .json"
 					onClick={() => window.open('https://api.llama.fi/raises')}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
@@ -171,14 +171,14 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 							/>
 
 							<span className="flex items-center justify-between gap-2 flex-wrap">
-								<span className="text-[#545757] dark:text-[#cccccc]">Total Investments</span>
+								<span className="text-(--text-label)">Total Investments</span>
 								<span className="font-jetbrains">{filteredRaisesList.length}</span>
 							</span>
 						</summary>
 
 						{raisesByCategory.map(({ name, value }) => (
 							<p className="flex items-center flex-wrap justify-between gap-2 my-1" key={'total' + name + value}>
-								<span className="text-[#545757] dark:text-[#cccccc]">{name}</span>
+								<span className="text-(--text-label)">{name}</span>
 								<span className="font-jetbrains">{value}</span>
 							</p>
 						))}

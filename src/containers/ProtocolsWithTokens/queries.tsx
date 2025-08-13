@@ -86,7 +86,7 @@ export async function getProtocolsMarketCapsByChain({
 				name: p.name,
 				logo: tokenIconUrl(slug(p.name)),
 				slug: slug(p.name),
-				category: categories.length > 1 ? null : categories[0] ?? null,
+				category: categories.length > 1 ? null : (categories[0] ?? null),
 				chains: Array.from(new Set(finalParentProtocols[parent].map((p) => p.chains).flat())),
 				subRows: finalParentProtocols[parent],
 				value: p.mcap ?? null
@@ -169,7 +169,7 @@ export async function getProtocolsFDVsByChain({
 				name: p.name,
 				logo: tokenIconUrl(slug(p.name)),
 				slug: slug(p.name),
-				category: categories.length > 1 ? null : categories[0] ?? null,
+				category: categories.length > 1 ? null : (categories[0] ?? null),
 				chains: Array.from(new Set(finalParentProtocols[parent].map((p) => p.chains).flat())),
 				subRows: finalParentProtocols[parent],
 				value: fdv ?? null
@@ -242,7 +242,7 @@ export async function getProtocolsTokenPricesByChain({
 				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
 				protocol.chains ??
 				[],
-			value: protocol.geckoId ? prices[`coingecko:${protocol.geckoId}`]?.price ?? null : null
+			value: protocol.geckoId ? (prices[`coingecko:${protocol.geckoId}`]?.price ?? null) : null
 		}
 
 		if (protocol.parentProtocol) {
@@ -263,10 +263,10 @@ export async function getProtocolsTokenPricesByChain({
 				name: p.name,
 				logo: tokenIconUrl(slug(p.name)),
 				slug: slug(p.name),
-				category: categories.length > 1 ? null : categories[0] ?? null,
+				category: categories.length > 1 ? null : (categories[0] ?? null),
 				chains: Array.from(new Set(finalParentProtocols[parent].map((p) => p.chains).flat())),
 				subRows: finalParentProtocols[parent],
-				value: p.gecko_id ? prices[`coingecko:${p.gecko_id}`]?.price ?? null : null
+				value: p.gecko_id ? (prices[`coingecko:${p.gecko_id}`]?.price ?? null) : null
 			})
 		}
 	}
@@ -393,7 +393,7 @@ export async function getProtocolsAdjustedFDVsByChain({
 				name: p.name,
 				logo: tokenIconUrl(slugName),
 				slug: slugName,
-				category: categories.length > 1 ? null : categories[0] ?? null,
+				category: categories.length > 1 ? null : (categories[0] ?? null),
 				chains: Array.from(new Set(finalParentProtocols[parent].map((p) => p.chains).flat())),
 				subRows: finalParentProtocols[parent],
 				value: adjustedFDV

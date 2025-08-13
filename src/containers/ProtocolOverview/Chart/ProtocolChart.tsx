@@ -70,7 +70,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 
 		const toggled = {
 			...chartsByStaus
-		} as Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'>
+		} as Record<(typeof protocolCharts)[keyof typeof protocolCharts], 'true' | 'false'>
 
 		const historicalTvlsIsAlwaysZero = props.tvlChartData.every((tvl) => tvl[1] === 0)
 
@@ -136,8 +136,8 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			groupBy: hasAtleasOneBarChart
 				? typeof queryParams.groupBy === 'string' && INTERVALS_LIST.includes(queryParams.groupBy as any)
 					? (queryParams.groupBy as any)
-					: props.defaultChartView ?? 'daily'
-				: props.defaultChartView ?? 'daily',
+					: (props.defaultChartView ?? 'daily')
+				: (props.defaultChartView ?? 'daily'),
 			defaultToggledCharts
 		}
 	}, [queryParamsString, props.availableCharts, props.metrics])
@@ -302,7 +302,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 				) : null}
 				<div className="ml-auto flex flex-wrap justify-end gap-1">
 					{props.chartDenominations?.length ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
 							{props.chartDenominations.map((denom) => (
 								<button
 									key={`denomination-${denom.symbol}`}
@@ -325,7 +325,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					{hasAtleasOneBarChart ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<Tooltip
 									content={capitalizeFirstLetter(dataInterval)}
@@ -354,7 +354,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							}
 						}}
 						smol
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 			</div>
@@ -509,7 +509,7 @@ export const useFetchAndFormatChartData = ({
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -527,7 +527,7 @@ export const useFetchAndFormatChartData = ({
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -546,7 +546,7 @@ export const useFetchAndFormatChartData = ({
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -570,7 +570,7 @@ export const useFetchAndFormatChartData = ({
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -592,7 +592,7 @@ export const useFetchAndFormatChartData = ({
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -609,7 +609,7 @@ export const useFetchAndFormatChartData = ({
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -626,7 +626,7 @@ export const useFetchAndFormatChartData = ({
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -645,7 +645,7 @@ export const useFetchAndFormatChartData = ({
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -665,7 +665,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-					  })
+						})
 					: Promise.resolve(null),
 			staleTime: 60 * 60 * 1000,
 			retry: 0,
@@ -683,7 +683,7 @@ export const useFetchAndFormatChartData = ({
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -702,7 +702,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-					  })
+						})
 					: Promise.resolve(null),
 			staleTime: 60 * 60 * 1000,
 			retry: 0,
@@ -721,7 +721,7 @@ export const useFetchAndFormatChartData = ({
 							protocol: name,
 							excludeTotalDataChart: false,
 							excludeTotalDataChartBreakdown: true
-					  })
+						})
 					: Promise.resolve(null),
 			staleTime: 60 * 60 * 1000,
 			retry: 0,
@@ -758,7 +758,7 @@ export const useFetchAndFormatChartData = ({
 							finalChart.push([+date * 1e3, store[date]])
 						}
 						return finalChart
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -775,7 +775,7 @@ export const useFetchAndFormatChartData = ({
 							buildProtocolAddlChartsData({ protocolData: data as any, extraTvlsEnabled: tvlSettings })?.usdInflows ??
 							null
 						)
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -866,7 +866,7 @@ export const useFetchAndFormatChartData = ({
 			: false
 
 	const valueSymbol = showNonUsdDenomination
-		? chartDenominations.find((d) => d.symbol === toggledMetrics.denomination)?.symbol ?? ''
+		? (chartDenominations.find((d) => d.symbol === toggledMetrics.denomination)?.symbol ?? '')
 		: '$'
 
 	const chartData = useMemo(() => {

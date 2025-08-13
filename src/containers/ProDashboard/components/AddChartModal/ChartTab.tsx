@@ -52,7 +52,7 @@ export function ChartTab({
 					<button
 						className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
 							selectedChartTab === 'chain'
-								? 'border-(--primary1) bg-(--primary1) text-white'
+								? 'border-(--primary) bg-(--primary) text-white'
 								: 'pro-border pro-hover-bg pro-text2'
 						}`}
 						onClick={() => onChartTabChange('chain')}
@@ -62,7 +62,7 @@ export function ChartTab({
 					<button
 						className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
 							selectedChartTab === 'protocol'
-								? 'border-(--primary1) bg-(--primary1) text-white'
+								? 'border-(--primary) bg-(--primary) text-white'
 								: 'pro-border pro-hover-bg pro-text2'
 						}`}
 						onClick={() => onChartTabChange('protocol')}

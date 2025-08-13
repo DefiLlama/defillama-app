@@ -30,7 +30,7 @@ export async function airdropsEligibilityCheck({ addresses }: { addresses: Array
 					tokenSymbol: config[airdrop[0]]?.tokenSymbol ?? null,
 					isActive: config[airdrop[0]]?.endTime
 						? new Date().getTime() < new Date(config[airdrop[0]].endTime * 1000).getTime()
-						: config[airdrop[0]]?.isActive ?? false
+						: (config[airdrop[0]]?.isActive ?? false)
 				}))
 				.filter((x) => x.isActive)
 		])

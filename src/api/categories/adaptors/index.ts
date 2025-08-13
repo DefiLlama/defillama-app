@@ -129,11 +129,11 @@ export const getDimensionProtocolPageData = async ({
 	return {
 		...firstType.value,
 		logo: getLlamaoLogo(firstType.value?.logo),
-		dailyRevenue: secondType?.status === 'fulfilled' ? secondType.value?.total24h ?? null : null,
-		dailyBribesRevenue: thirdType?.status === 'fulfilled' ? thirdType.value?.total24h ?? null : null,
-		dailyTokenTaxes: fourthType?.status === 'fulfilled' ? fourthType.value?.total24h ?? null : null,
-		totalAllTimeTokenTaxes: fourthType?.status === 'fulfilled' ? fourthType.value?.totalAllTime ?? null : null,
-		totalAllTimeBribes: thirdType?.status === 'fulfilled' ? thirdType.value?.totalAllTime ?? null : null,
+		dailyRevenue: secondType?.status === 'fulfilled' ? (secondType.value?.total24h ?? null) : null,
+		dailyBribesRevenue: thirdType?.status === 'fulfilled' ? (thirdType.value?.total24h ?? null) : null,
+		dailyTokenTaxes: fourthType?.status === 'fulfilled' ? (fourthType.value?.total24h ?? null) : null,
+		totalAllTimeTokenTaxes: fourthType?.status === 'fulfilled' ? (fourthType.value?.totalAllTime ?? null) : null,
+		totalAllTimeBribes: thirdType?.status === 'fulfilled' ? (thirdType.value?.totalAllTime ?? null) : null,
 		type: adapterType,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		blockExplorers
@@ -193,21 +193,24 @@ type IChartsList = Array<[string, IGetOverviewResponseBody['totalDataChart']]>
 export type IJoin2ReturnType = Array<IJSON<number | string> & { date: string }>
 export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>): IJoin2ReturnType =>
 	Object.values(
-		lists.reduce((acc, [name, list]) => {
-			list?.forEach(([timestamp, value]) => {
-				if (acc[timestamp])
-					acc[String(timestamp)] = {
-						...acc[String(timestamp)],
-						[name]: value
-					}
-				else
-					acc[String(timestamp)] = {
-						[name]: value,
-						date: String(timestamp)
-					}
-			})
-			return acc
-		}, {} as IJSON<IJoin2ReturnType[number]>)
+		lists.reduce(
+			(acc, [name, list]) => {
+				list?.forEach(([timestamp, value]) => {
+					if (acc[timestamp])
+						acc[String(timestamp)] = {
+							...acc[String(timestamp)],
+							[name]: value
+						}
+					else
+						acc[String(timestamp)] = {
+							[name]: value,
+							date: String(timestamp)
+						}
+				})
+				return acc
+			},
+			{} as IJSON<IJoin2ReturnType[number]>
+		)
 	).map<IJoin2ReturnType[number]>((bar) => {
 		const date = bar.date
 		delete bar.date

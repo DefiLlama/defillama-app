@@ -41,7 +41,7 @@ export const protocolCharts = {
 
 export type ProtocolChartsLabels = keyof typeof protocolCharts
 export const allCharts = Object.keys(protocolCharts) as ProtocolChartsLabels[]
-export type ProtocolChartsQueryParams = typeof protocolCharts[keyof typeof protocolCharts]
+export type ProtocolChartsQueryParams = (typeof protocolCharts)[keyof typeof protocolCharts]
 
 export const yAxisByChart: {
 	[K in keyof typeof protocolCharts]: ProtocolChartsLabels

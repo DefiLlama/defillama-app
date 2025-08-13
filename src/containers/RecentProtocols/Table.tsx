@@ -150,7 +150,7 @@ export function RecentlyListedProtocolsTable({
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={projectName}
@@ -175,7 +175,7 @@ export function RecentlyListedProtocolsTable({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
 						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />

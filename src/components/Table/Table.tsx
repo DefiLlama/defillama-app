@@ -217,7 +217,7 @@ export function VirtualTable({
 									height: `${row.size}px`,
 									opacity: rowTorender.original.disabled ? 0.3 : 1,
 									transform: `translateY(${row.start - rowVirtualizer.options.scrollMargin}px)`
-							  })
+								})
 					}
 
 					return (
@@ -243,8 +243,8 @@ export function VirtualTable({
 													? textAlign === 'center'
 														? 'center'
 														: textAlign === 'end'
-														? 'flex-end'
-														: 'flex-start'
+															? 'flex-end'
+															: 'flex-start'
 													: undefined,
 												position: isSticky ? 'sticky' : undefined,
 												left: isSticky ? 0 : undefined,

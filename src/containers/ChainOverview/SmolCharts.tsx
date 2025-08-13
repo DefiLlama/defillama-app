@@ -107,7 +107,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 
 		chartInstance.on('click', function (params) {
 			window.open(
-				`/fees/${slug(params.name ?? (typeof params.value === 'string' ? params.value : params.value?.[0] ?? ''))}`
+				`/fees/${slug(params.name ?? (typeof params.value === 'string' ? params.value : (params.value?.[0] ?? '')))}`
 			)
 		})
 

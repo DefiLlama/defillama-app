@@ -80,8 +80,8 @@ const YieldsStrategyPage = ({
 		lend && !borrow
 			? `(Supply: ${lend || ''} )`
 			: lend && borrow
-			? `(Supply: ${lend || ''} ➞ Borrow: ${borrow || ''} ➞ Farm: ${borrow || ''})`
-			: ''
+				? `(Supply: ${lend || ''} ➞ Borrow: ${borrow || ''} ➞ Farm: ${borrow || ''})`
+				: ''
 	}`
 
 	return (

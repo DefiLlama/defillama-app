@@ -54,7 +54,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 						</h1>
 
 						<p className="flex flex-col gap-1 text-base mb-3">
-							<span className="text-[#545757] dark:text-[#cccccc]">Total</span>
+							<span className="text-(--text-label)">Total</span>
 							<span className="font-jetbrains font-semibold text-2xl">
 								{formattedNum(
 									+chainData?.total.total + (+chainData?.ownTokens?.total ? +chainData?.ownTokens?.total : 0),
@@ -64,30 +64,30 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 						</p>
 
 						<p className="flex items-center justify-between gap-1 text-base">
-							<span className="text-[#545757] dark:text-[#cccccc]">Canonical</span>
+							<span className="text-(--text-label)">Canonical</span>
 							<span className="font-jetbrains">{formattedNum(chainData?.canonical?.total, true)}</span>
 						</p>
 
 						<p className="flex items-center justify-between gap-1 text-base">
-							<span className="text-[#545757] dark:text-[#cccccc]">Native</span>
+							<span className="text-(--text-label)">Native</span>
 							<span className="font-jetbrains">{formattedNum(chainData?.native?.total, true)}</span>
 						</p>
 
 						<p className="flex items-center justify-between gap-1 text-base">
-							<span className="text-[#545757] dark:text-[#cccccc]">Third Party</span>
+							<span className="text-(--text-label)">Third Party</span>
 							<span className="font-jetbrains">{formattedNum(chainData?.thirdParty?.total, true)}</span>
 						</p>
 
 						{chainData?.ownTokens?.total ? (
 							<p className="flex items-center justify-between gap-1 text-base">
-								<span className="text-[#545757] dark:text-[#cccccc]">Own Tokens</span>
+								<span className="text-(--text-label)">Own Tokens</span>
 								<span className="font-jetbrains">{formattedNum(chainData?.ownTokens.total, true)}</span>
 							</p>
 						) : null}
 					</div>
 					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 flex flex-col items-center gap-4 min-h-[436px]">
 						<div className="w-full max-w-fit overflow-x-auto p-3">
-							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 								{chartTypes.map(({ type, name }) =>
 									Boolean(chainData[type]?.total) && chainData[type]?.total !== '0' ? (
 										<button

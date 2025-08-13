@@ -447,18 +447,18 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					<div className="flex items-center gap-2 order-1 md:order-0">
 						<button
 							onClick={goToPrevMonth}
-							className="p-1.5 rounded-sm hover:bg-(--bg7) text-(--text2) hover:text-(--text1)"
+							className="p-1.5 rounded-sm hover:bg-(--bg-glass) text-(--text-secondary) hover:text-(--text-primary)"
 							aria-label="Previous Month"
 						>
 							←
 						</button>
 
-						<span className="text-sm font-medium text-(--text1) w-28 text-center">
+						<span className="text-sm font-medium text-(--text-primary) w-28 text-center">
 							{selectedDate.format('MMMM YYYY')}
 						</span>
 						<button
 							onClick={goToNextMonth}
-							className="p-1.5 rounded-sm hover:bg-(--bg7) text-(--text2) hover:text-(--text1)"
+							className="p-1.5 rounded-sm hover:bg-(--bg-glass) text-(--text-secondary) hover:text-(--text-primary)"
 							aria-label="Next Month"
 						>
 							→
@@ -466,7 +466,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					</div>
 				)}
 
-				<div className="mt-4 text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+				<div className="mt-4 text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 					<button
 						onClick={() => setTimeView('currentMonth')}
 						data-active={timeView === 'currentMonth'}

@@ -49,9 +49,9 @@ function ProPageContent() {
 
 	return (
 		<Layout title="DefiLlama - Pro Dashboard">
-			<AuthenticatedProContent 
-				activeTab={activeTab} 
-				setActiveTab={setActiveTab} 
+			<AuthenticatedProContent
+				activeTab={activeTab}
+				setActiveTab={setActiveTab}
 				hasActiveSubscription={subscription?.status === 'active'}
 			/>
 		</Layout>
@@ -91,7 +91,7 @@ function AuthenticatedProContent({
 	return (
 		<div className="p-6 pro-dashboard">
 			<div className="flex items-center justify-between mb-6">
-				<h1 className="text-2xl font-bold text-(--text1)">Pro Dashboard</h1>
+				<h1 className="text-2xl font-bold text-(--text-primary)">Pro Dashboard</h1>
 			</div>
 
 			<div className="mb-6">
@@ -106,7 +106,7 @@ function AuthenticatedProContent({
 							>
 								My Dashboards
 								{activeTab === 'my-dashboards' && (
-									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--primary1)" />
+									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--primary)" />
 								)}
 							</button>
 						)}
@@ -117,12 +117,12 @@ function AuthenticatedProContent({
 							}`}
 						>
 							Discover
-							{activeTab === 'discover' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--primary1)" />}
+							{activeTab === 'discover' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--primary)" />}
 						</button>
 					</div>
 					<button
 						onClick={hasActiveSubscription ? createNewDashboard : () => setShowSubscribeModal(true)}
-						className="px-4 py-2 bg-(--primary1) text-white flex items-center gap-2 hover:bg-(--primary1-hover) text-sm"
+						className="px-4 py-2 bg-(--primary) text-white flex items-center gap-2 hover:bg-(--primary-hover) text-sm"
 					>
 						<Icon name="plus" height={16} width={16} />
 						Create New Dashboard
@@ -147,7 +147,7 @@ function AuthenticatedProContent({
 				onClose={() => setShowCreateDashboardModal(false)}
 				onCreate={handleCreateDashboard}
 			/>
-			
+
 			<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
 				<SubscribePlusCard context="modal" returnUrl={router.asPath} />
 			</SubscribeModal>

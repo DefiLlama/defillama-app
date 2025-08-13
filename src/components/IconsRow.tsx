@@ -41,8 +41,8 @@ export const ChainLogo = ({
 							url.includes('/yields?chain')
 								? `${url}=${chain}`
 								: url.includes('/yields?project')
-								? `${url}=${chain.toLowerCase().split(' ').join('-')}`
-								: `${url}/${chain}`
+									? `${url}=${chain.toLowerCase().split(' ').join('-')}`
+									: `${url}/${chain}`
 						}
 						target="_blank"
 						rel="noopener noreferrer"
@@ -130,12 +130,12 @@ export const IconsRow = ({
 				<Ariakit.HovercardProvider>
 					<Ariakit.HovercardAnchor
 						render={<button />}
-						className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] text-(--text1) bg-(--bg3) shrink-0"
+						className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] text-(--text-primary) bg-(--bg-tertiary) shrink-0"
 					>
 						{`+${hoverChains.length}`}
 					</Ariakit.HovercardAnchor>
 					<Ariakit.Hovercard
-						className="max-w-xl z-10 p-1 shadow-sm rounded-md bg-(--bg2) border border-(--bg3) text-(--text1) flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden"
+						className="max-w-xl z-10 p-1 shadow-sm rounded-md bg-(--bg-secondary) border border-(--bg-tertiary) text-(--text-primary) flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden"
 						unmountOnHide
 						portal
 					>

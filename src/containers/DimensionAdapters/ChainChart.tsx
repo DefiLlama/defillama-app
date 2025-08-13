@@ -61,7 +61,7 @@ export const AdapterByChainChart = ({
 	chain,
 	chartName
 }: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'dataType' | 'chain'> & { chartName: string }) => {
-	const [chartInterval, setChartInterval] = React.useState<typeof INTERVALS_LIST_ADAPTER_BY_CHAIN[number]>('Daily')
+	const [chartInterval, setChartInterval] = React.useState<(typeof INTERVALS_LIST_ADAPTER_BY_CHAIN)[number]>('Daily')
 
 	const { charts } = React.useMemo(() => {
 		if (chartInterval !== 'Daily') {
@@ -73,8 +73,8 @@ export const AdapterByChainChart = ({
 					chartInterval === 'Weekly'
 						? Number(lastDayOfWeek(date)) * 1e3
 						: chartInterval === 'Monthly'
-						? Number(firstDayOfMonth(date)) * 1e3
-						: date
+							? Number(firstDayOfMonth(date)) * 1e3
+							: date
 				data[finalDate] = data[finalDate] || 0
 				data[finalDate] += value
 
@@ -123,7 +123,7 @@ export const AdapterByChainChart = ({
 	return (
 		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2">
 			<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-2">
-				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
 					{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
 						<Tooltip
 							content={dataInterval}
@@ -147,7 +147,7 @@ export const AdapterByChainChart = ({
 					}}
 					isLoading={isDownloadingBreakdownChart}
 					smol
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
@@ -162,8 +162,8 @@ export const ChainsByAdapterChart = ({
 	allChains,
 	type
 }: Pick<IChainsByAdapterPageData, 'chartData' | 'allChains'> & { type: string }) => {
-	const [chartType, setChartType] = React.useState<typeof CHART_TYPES[number]>('Volume')
-	const [chartInterval, setChartInterval] = React.useState<typeof INTERVALS_LIST[number]>('Daily')
+	const [chartType, setChartType] = React.useState<(typeof CHART_TYPES)[number]>('Volume')
+	const [chartInterval, setChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
 
 	const [selectedChains, setSelectedChains] = React.useState<string[]>(allChains)
 
@@ -175,7 +175,7 @@ export const ChainsByAdapterChart = ({
 		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2">
 			<>
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-2">
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296] mr-auto">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form) mr-auto">
 						{INTERVALS_LIST.map((dataInterval) => (
 							<a
 								key={`${dataInterval}-${type}`}
@@ -187,7 +187,7 @@ export const ChainsByAdapterChart = ({
 							</a>
 						))}
 					</div>
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 						{CHART_TYPES.map((dataType) => (
 							<button
 								className="shrink-0 py-[6px] px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -212,7 +212,7 @@ export const ChainsByAdapterChart = ({
 						labelType="smol"
 						triggerProps={{
 							className:
-								'h-[30px] bg-transparent! border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
+								'h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
 						}}
 						portal
 					/>
@@ -234,7 +234,7 @@ export const ChainsByAdapterChart = ({
 							)
 						}}
 						smol
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 			</>
@@ -354,8 +354,8 @@ const getChartDataByChainAndInterval = ({
 			chartInterval === 'Weekly'
 				? lastDayOfWeek(+date * 1e3) * 1e3
 				: chartInterval === 'Monthly'
-				? firstDayOfMonth(+date * 1e3) * 1e3
-				: +date * 1e3
+					? firstDayOfMonth(+date * 1e3) * 1e3
+					: +date * 1e3
 
 		const topByDate = {}
 		let others = 0

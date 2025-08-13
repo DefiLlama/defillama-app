@@ -14,7 +14,7 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 							token: data.token,
 							filteredProtocols: data.filteredProtocols,
 							parentTokens: []
-					  }
+						}
 					: null
 			),
 		staleTime: 60 * 60 * 1000

@@ -64,17 +64,17 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+						<span className="text-(--text-label)">Total Value Locked</span>
 						<span className="font-jetbrains font-semibold text-2xl">{tvl}</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Change (24h)</span>
+						<span className="text-(--text-label)">Change (24h)</span>
 						<span className="font-jetbrains font-semibold text-2xl">{percentChange || 0}%</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">{topToken.name} Dominance</span>
+						<span className="text-(--text-label)">{topToken.name} Dominance</span>
 						<span className="font-jetbrains font-semibold text-2xl">{dominance}%</span>
 					</p>
 				</div>

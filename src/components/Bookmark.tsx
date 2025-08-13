@@ -19,7 +19,7 @@ export function Bookmark({ readableProtocolName, ...props }) {
 		<button
 			ref={bookmarkRef}
 			onClick={onClick}
-			style={{ '--fill-icon': isSaved ? 'var(--text1)' : 'none' } as any}
+			style={{ '--fill-icon': isSaved ? 'var(--text-primary)' : 'none' } as any}
 			{...props}
 			className="shrink-0 data-[lgonly=true]:hidden lg:data-[lgonly=true]:inline-block data-[bookmark=true]:absolute -left-[2px]"
 		>

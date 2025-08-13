@@ -83,7 +83,7 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			totalPrevMonth,
 			change_1m:
 				totalPrevMonth != null && totalStaked != null
-					? getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0
+					? (getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
 					: null
 		}
 
@@ -109,13 +109,13 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 				name: p.name,
 				logo: tokenIconUrl(slug(p.name)),
 				slug: slug(p.name),
-				category: categories.length > 1 ? null : categories[0] ?? null,
+				category: categories.length > 1 ? null : (categories[0] ?? null),
 				chains: Array.from(new Set(finalParentProtocols[parent].map((p) => p.chains).flat())),
 				totalStaked: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalStaked ?? 0), 0),
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
 					totalPrevMonth != null && totalPrevMonth != null
-						? getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0
+						? (getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
 						: null,
 				subRows: finalParentProtocols[parent]
 			})

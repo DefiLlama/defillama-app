@@ -50,7 +50,7 @@ export const holdersRevenueDatasetColumns: ColumnDef<IHoldersRevenueRow>[] = [
 		accessorKey: 'category',
 		cell: ({ getValue }) => {
 			const value = getValue() as string
-			return <span className="text-sm text-(--text2)">{value || '-'}</span>
+			return <span className="text-sm text-(--text-secondary)">{value || '-'}</span>
 		},
 		size: 120
 	},

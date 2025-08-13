@@ -27,18 +27,18 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 							ol: ({ children }) => <ol className="list-decimal list-inside mb-2 pro-text2">{children}</ol>,
 							li: ({ children }) => <li className="mb-1">{children}</li>,
 							code: ({ children }) => (
-								<code className="bg-(--bg3) px-1 py-0.5 rounded-sm text-xs font-mono pro-text1">{children}</code>
+								<code className="bg-(--bg-tertiary) px-1 py-0.5 rounded-sm text-xs font-mono pro-text1">
+									{children}
+								</code>
 							),
 							pre: ({ children }) => (
-								<pre className="bg-(--bg3) p-3 rounded-sm mb-2 overflow-x-auto thin-scrollbar">{children}</pre>
+								<pre className="bg-(--bg-tertiary) p-3 rounded-sm mb-2 overflow-x-auto thin-scrollbar">{children}</pre>
 							),
 							blockquote: ({ children }) => (
-								<blockquote className="border-l-4 border-(--primary1) pl-4 italic pro-text3 mb-2">
-									{children}
-								</blockquote>
+								<blockquote className="border-l-4 border-(--primary) pl-4 italic pro-text3 mb-2">{children}</blockquote>
 							),
 							a: ({ children, href }) => (
-								<a href={href} className="text-(--primary1) hover:underline" target="_blank" rel="noopener noreferrer">
+								<a href={href} className="text-(--primary) hover:underline" target="_blank" rel="noopener noreferrer">
 									{children}
 								</a>
 							),

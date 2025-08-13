@@ -55,7 +55,7 @@ export function BridgesTable({ data }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? bridgesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? (bridgesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		const cSize = windowSize.width
@@ -99,7 +99,7 @@ export function BridgeChainsTable({ data }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? bridgeChainsColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? (bridgeChainsColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		const cSize = windowSize.width
@@ -132,7 +132,7 @@ export function BridgeChainsTable({ data }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						name="search"
@@ -175,7 +175,7 @@ export function BridgesLargeTxsTable({ data }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? largeTxsColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? (largeTxsColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		const cSize = windowSize.width

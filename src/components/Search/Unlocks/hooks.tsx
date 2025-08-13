@@ -21,7 +21,7 @@ export function useGetUnlocksSearchList({ disabled }: { disabled?: boolean }): I
 				name: protocol.name,
 				logo: tokenIconUrl(protocol.name),
 				route: `/unlocks/${slug(protocol.name)}`
-		  }))
+			}))
 
 	return { data: searchData, loading: isLoading, error: isError }
 }

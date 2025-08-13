@@ -13,7 +13,7 @@ export const LiquidableChanges24H = (props: { data: ChartData; prevData: ChartDa
 	)
 	return (
 		<>
-			<span className="text-[#545757] dark:text-[#cccccc]">Liquidatable value change (24h)</span>
+			<span className="text-(--text-label)">Liquidatable value change (24h)</span>
 			<span className="font-semibold text-2xl font-jetbrains">{(liquidableChanges * 100).toFixed(1) || 0}%</span>
 		</>
 	)

@@ -21,7 +21,7 @@ export const useGetBridgeChartDataByChain = (chain?: string) => {
 											volume?.date ?? null,
 											volume?.Deposits ?? null,
 											volume.Withdrawals ?? null
-									  ])
+										])
 									: null
 							)
 							.catch((err) => {

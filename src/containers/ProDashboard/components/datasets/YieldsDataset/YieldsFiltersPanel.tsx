@@ -107,7 +107,7 @@ export function YieldsFiltersPanel({
 									placeholder="Min %"
 									value={localFilters.apyMin || ''}
 									onChange={(e) => updateFilter('apyMin', e.target.value ? Number(e.target.value) : undefined)}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
+									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -115,7 +115,7 @@ export function YieldsFiltersPanel({
 									placeholder="Max %"
 									value={localFilters.apyMax || ''}
 									onChange={(e) => updateFilter('apyMax', e.target.value ? Number(e.target.value) : undefined)}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
+									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
 								/>
 							</div>
 						</div>
@@ -128,7 +128,7 @@ export function YieldsFiltersPanel({
 									placeholder="Min %"
 									value={localFilters.baseApyMin || ''}
 									onChange={(e) => updateFilter('baseApyMin', e.target.value ? Number(e.target.value) : undefined)}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
+									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -136,7 +136,7 @@ export function YieldsFiltersPanel({
 									placeholder="Max %"
 									value={localFilters.baseApyMax || ''}
 									onChange={(e) => updateFilter('baseApyMax', e.target.value ? Number(e.target.value) : undefined)}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
+									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
 								/>
 							</div>
 						</div>
@@ -152,8 +152,8 @@ export function YieldsFiltersPanel({
 								<div
 									className={`w-4 h-4 border-2 transition-all duration-150 ${
 										localFilters.hasRewards
-											? 'bg-(--primary1) border-(--primary1)'
-											: 'bg-transparent border-(--text3) group-hover:border-(--text2)'
+											? 'bg-(--primary) border-(--primary)'
+											: 'bg-transparent border-(--text-tertiary) group-hover:border-(--text-secondary)'
 									}`}
 								>
 									{localFilters.hasRewards && (
@@ -184,7 +184,7 @@ export function YieldsFiltersPanel({
 									placeholder="Min"
 									value={formatNumberWithCommas(localFilters.tvlMin)}
 									onChange={(e) => updateFilter('tvlMin', parseFormattedNumber(e.target.value))}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
+									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -192,7 +192,7 @@ export function YieldsFiltersPanel({
 									placeholder="Max"
 									value={formatNumberWithCommas(localFilters.tvlMax)}
 									onChange={(e) => updateFilter('tvlMax', parseFormattedNumber(e.target.value))}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
+									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
 								/>
 							</div>
 						</div>
@@ -214,8 +214,8 @@ export function YieldsFiltersPanel({
 								<div
 									className={`w-4 h-4 border-2 transition-all duration-150 ${
 										localFilters.stablesOnly
-											? 'bg-(--primary1) border-(--primary1)'
-											: 'bg-transparent border-(--text3) group-hover:border-(--text2)'
+											? 'bg-(--primary) border-(--primary)'
+											: 'bg-transparent border-(--text-tertiary) group-hover:border-(--text-secondary)'
 									}`}
 								>
 									{localFilters.stablesOnly && (
@@ -255,8 +255,8 @@ export function YieldsFiltersPanel({
 											<div
 												className={`w-4 h-4 border-2 transition-all duration-150 ${
 													localFilters.poolTypes?.includes(type)
-														? 'bg-(--primary1) border-(--primary1)'
-														: 'bg-transparent border-(--text3) group-hover:border-(--text2)'
+														? 'bg-(--primary) border-(--primary)'
+														: 'bg-transparent border-(--text-tertiary) group-hover:border-(--text-secondary)'
 												}`}
 											>
 												{localFilters.poolTypes?.includes(type) && (
@@ -284,16 +284,16 @@ export function YieldsFiltersPanel({
 					<div className="space-y-3">
 						<MultiItemSelect
 							label="Pool Tokens"
-							options={availableTokens.map(token => ({ value: token, label: token }))}
+							options={availableTokens.map((token) => ({ value: token, label: token }))}
 							selectedValues={localFilters.tokens || []}
 							onChange={(selectedOptions) => {
-								updateFilter('tokens', selectedOptions?.map(opt => opt.value) || undefined)
+								updateFilter('tokens', selectedOptions?.map((opt) => opt.value) || undefined)
 							}}
 							isLoading={false}
 							placeholder="Select tokens..."
 							itemType="token"
 							noIcon={true}
-							customProps={{ 
+							customProps={{
 								menuPosition: 'absolute'
 							}}
 						/>
@@ -307,7 +307,7 @@ export function YieldsFiltersPanel({
 				</button>
 				<button
 					onClick={handleApply}
-					className="px-3 py-1 text-xs bg-(--primary1) text-white hover:bg-(--primary1-hover) transition-colors border border-(--primary1)"
+					className="px-3 py-1 text-xs bg-(--primary) text-white hover:bg-(--primary-hover) transition-colors border border-(--primary)"
 				>
 					Apply Filters
 				</button>

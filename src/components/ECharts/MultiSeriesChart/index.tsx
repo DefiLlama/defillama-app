@@ -179,7 +179,7 @@ export default function MultiSeriesChart({
 								// Otherwise use default position
 								return pos
 							}
-					  }
+						}
 					: tooltip,
 			title: titleDefaults,
 			grid: {

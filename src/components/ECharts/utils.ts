@@ -25,10 +25,10 @@ export const formatBarChart = ({
 			const dateKey = isWeekly
 				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
 				: isMonthly
-				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
-				: dateInMs
-				? +date / 1e3
-				: +date
+					? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
+					: dateInMs
+						? +date / 1e3
+						: +date
 			// sum up values as it is bar chart
 			if (denominationPriceHistory) {
 				const price = denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]
@@ -78,10 +78,10 @@ export const formatLineChart = ({
 			const dateKey = isWeekly
 				? lastDayOfWeek(dateInMs ? +date : +date * 1e3)
 				: isMonthly
-				? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
-				: dateInMs
-				? +date / 1e3
-				: +date
+					? firstDayOfMonth(dateInMs ? +date : +date * 1e3)
+					: dateInMs
+						? +date / 1e3
+						: +date
 			// do not sum up values, just use the last value for each date
 			const finalValue = denominationPriceHistory
 				? denominationPriceHistory[String(dateInMs ? date : +date * 1e3)]

@@ -75,16 +75,16 @@ export async function getYieldPageData() {
 								t === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
 									? 'FLM'
 									: t === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
-									? 'NUDES'
-									: null
+										? 'NUDES'
+										: null
 							)
 						)
-				  ]
+					]
 				: [
 						...new Set(
 							rewardTokens.map((t) => coinsPrices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
 						)
-				  ]
+					]
 	}
 
 	for (let p of data.pools) {
@@ -95,22 +95,22 @@ export async function getYieldPageData() {
 			return t === 'WAVAX'
 				? data.tokenNameMapping['AVAX']
 				: t === 'WFTM'
-				? data.tokenNameMapping['FTM']
-				: t === 'WMATIC'
-				? data.tokenNameMapping['MATIC']
-				: t === 'WFTM'
-				? data.tokenNameMapping['FTM']
-				: t === 'WETH'
-				? data.tokenNameMapping['ETH']
-				: t === 'WBNB'
-				? data.tokenNameMapping['BNB']
-				: t === 'HOP' && p.project === 'hop-protocol'
-				? p.projectName
-				: t === 'WOO.E'
-				? data.tokenNameMapping['WOO']
-				: t === 'SOLID' && p.project === 'solidly-v3'
-				? p.projectName
-				: data.tokenNameMapping[t]
+					? data.tokenNameMapping['FTM']
+					: t === 'WMATIC'
+						? data.tokenNameMapping['MATIC']
+						: t === 'WFTM'
+							? data.tokenNameMapping['FTM']
+							: t === 'WETH'
+								? data.tokenNameMapping['ETH']
+								: t === 'WBNB'
+									? data.tokenNameMapping['BNB']
+									: t === 'HOP' && p.project === 'hop-protocol'
+										? p.projectName
+										: t === 'WOO.E'
+											? data.tokenNameMapping['WOO']
+											: t === 'SOLID' && p.project === 'solidly-v3'
+												? p.projectName
+												: data.tokenNameMapping[t]
 		})
 		p['rewardTokensNames'] = xy.filter((t) => t)
 	}

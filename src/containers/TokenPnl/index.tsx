@@ -239,26 +239,26 @@ export default function TokenPnl({ coinsData }) {
 											{pnlData.coinInfo && (
 												<div className="grid grid-cols-2 gap-4 w-full">
 													<p className="flex flex-col items-center">
-														<span className="text-(--text2)">Start Price:</span>
+														<span className="text-(--text-secondary)">Start Price:</span>
 														<span className="font-semibold text-lg">
 															{pnlData.startPrice ? `$${formattedNum(pnlData.startPrice)}` : 'N/A'}
 														</span>
 													</p>
 													<p className="flex flex-col items-center">
-														<span className="text-(--text2)">End Price:</span>
+														<span className="text-(--text-secondary)">End Price:</span>
 														<span className="font-semibold text-lg">
 															{pnlData.endPrice ? `$${formattedNum(pnlData.endPrice)}` : 'N/A'}
 														</span>
 													</p>
 													<p className="flex flex-col items-center">
-														<span className="text-(--text2)">Current Price:</span>
+														<span className="text-(--text-secondary)">Current Price:</span>
 														<span className="font-semibold text-lg">
 															${formattedNum(pnlData.coinInfo.current_price)}
 														</span>
 													</p>
 
 													<p className="flex flex-col items-center">
-														<span className="text-(--text2)">24h Change:</span>
+														<span className="text-(--text-secondary)">24h Change:</span>
 														<span
 															className="font-semibold text-lg"
 															style={{ color: pnlData.coinInfo.price_change_percentage_24h >= 0 ? 'green' : 'red' }}
@@ -267,7 +267,7 @@ export default function TokenPnl({ coinsData }) {
 														</span>
 													</p>
 													<p className="flex flex-col items-center">
-														<span className="text-(--text2)">All-Time High:</span>
+														<span className="text-(--text-secondary)">All-Time High:</span>
 														<span className="font-semibold text-lg">${formattedNum(pnlData.coinInfo.ath)}</span>
 													</p>
 												</div>

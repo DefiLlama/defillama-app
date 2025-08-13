@@ -59,7 +59,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
 						<CSVDownloadButton
@@ -78,7 +78,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 								download('total-value-lost-in-hacks.csv', rows.map((r) => r.join(',')).join('\n'))
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</>
 				}

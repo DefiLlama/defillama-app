@@ -84,7 +84,7 @@ const CustomTokenOption = ({ innerProps, label, data }) => (
 				}}
 			/>
 		) : (
-			<div className="w-5 h-5 rounded-full bg-(--bg3)" />
+			<div className="w-5 h-5 rounded-full bg-(--bg-tertiary)" />
 		)}
 		<span>{label}</span>
 	</div>
@@ -148,9 +148,13 @@ export function MultiItemSelect({
 	customProps,
 	noIcon = false
 }: MultiItemSelectProps) {
-	const OptionComponent = noIcon 
-		? SimpleOption 
-		: itemType === 'chain' ? CustomChainOption : itemType === 'protocol' ? CustomProtocolOption : CustomTokenOption
+	const OptionComponent = noIcon
+		? SimpleOption
+		: itemType === 'chain'
+			? CustomChainOption
+			: itemType === 'protocol'
+				? CustomProtocolOption
+				: CustomTokenOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
 	const selectedOptions = useMemo(() => {

@@ -70,18 +70,21 @@ const metadataCache: {
 	categoriesAndTags
 }
 
-setInterval(async () => {
-	const fetchJson = async (url) => fetch(url).then((res) => res.json())
+setInterval(
+	async () => {
+		const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
-	const [protocols, chains, categoriesAndTags] = await Promise.all([
-		fetchJson(PROTOCOLS_DATA_URL),
-		fetchJson(CHAINS_DATA_URL),
-		fetchJson(CATEGORIES_AND_TAGS_DATA_URL)
-	])
+		const [protocols, chains, categoriesAndTags] = await Promise.all([
+			fetchJson(PROTOCOLS_DATA_URL),
+			fetchJson(CHAINS_DATA_URL),
+			fetchJson(CATEGORIES_AND_TAGS_DATA_URL)
+		])
 
-	metadataCache.protocolMetadata = protocols
-	metadataCache.chainMetadata = chains
-	metadataCache.categoriesAndTags = categoriesAndTags
-}, 60 * 60 * 1000)
+		metadataCache.protocolMetadata = protocols
+		metadataCache.chainMetadata = chains
+		metadataCache.categoriesAndTags = categoriesAndTags
+	},
+	60 * 60 * 1000
+)
 
 export default metadataCache

@@ -98,7 +98,7 @@
 
 @utility thin-scrollbar {
 	scrollbar-width: thin;
-	scrollbar-color: var(--bg4) transparent;
+	scrollbar-color: var(--bg-border) transparent;
 	&::-webkit-scrollbar {
 		width: 6px;
 		height: 6px;
@@ -107,11 +107,11 @@
 		background: transparent;
 	}
 	&::-webkit-scrollbar-thumb {
-		background: var(--bg4);
+		background: var(--bg-border);
 		border-radius: 3px;
 	}
 	&::-webkit-scrollbar-thumb:hover {
-		background: var(--bg5);
+		background: var(--bg-muted);
 	}
 }
 
@@ -166,9 +166,9 @@
 	--pro-glass-border: rgba(0, 0, 0, 0.3);
 
 	html.dark & {
-		--pro-text1: var(--text1);
-		--pro-text2: var(--text2);
-		--pro-text3: var(--text3);
+		--pro-text1: var(--text-primary);
+		--pro-text2: var(--text-secondary);
+		--pro-text3: var(--text-tertiary);
 
 		--pro-bg1: #070e0f;
 		--pro-bg2: #0a1011;
@@ -232,9 +232,9 @@
 
 @utility dark {
 	&html .pro-dashboard {
-		--pro-text1: var(--text1);
-		--pro-text2: var(--text2);
-		--pro-text3: var(--text3);
+		--pro-text1: var(--text-primary);
+		--pro-text2: var(--text-secondary);
+		--pro-text3: var(--text-tertiary);
 
 		--pro-bg1: #070e0f;
 		--pro-bg2: #0a1011;
@@ -348,49 +348,59 @@
 		--font-jetbrains: 'JetBrains Mono', monospace;
 		--font-inter: 'Inter var', sans-serif;
 
-		--text-disabled: #757575;
-		--text1: #1f1f1f;
-		--text2: #565a69;
-		--text3: #888d9b;
+		/* Text Colors */
+		--text-primary: #1f1f1f; /* Main text */
+		--text-secondary: #565a69; /* Secondary text */
+		--text-tertiary: #888d9b; /* Tertiary text */
+		--text-form: #666; /* Form controls & buttons */
+		--text-label: #545757; /* Labels & descriptions */
+		--text-meta: #737373; /* Metadata & governance */
+		--text-disabled: #757575; /* Disabled text */
 
-		--bg1: #fafafa;
-		--bg2: #f7f8fa;
-		--bg3: #edeef2;
-		--bg4: #ced0d9;
-		--bg5: #888d9b;
-		--bg6: #ffffff;
-		--bg7: rgba(252, 252, 251, 1);
-		--bg8: #ffffff;
+		/* Background Colors */
+		--bg-main: #fafafa; /* Main background */
+		--bg-secondary: #f7f8fa; /* Secondary background */
+		--bg-tertiary: #edeef2; /* Tertiary background */
+		--bg-border: #ced0d9; /* Border background */
+		--bg-muted: #888d9b; /* Muted background */
+		--bg-card: #ffffff; /* Card background */
+		--bg-glass: rgba(252, 252, 251, 1); /* Glass background */
+		--bg-input: #e2e2e2; /* Input/form background */
 
-		--primary1: #445ed0;
+		/* Brand Colors */
+		--primary: #445ed0;
+		--primary-hover: rgba(68, 94, 208, 0.2);
+
+		/* Utility Colors */
 		--divider: rgba(43, 43, 43, 0.035);
 		--link: #2c71d2;
 		--blue: #2f80ed;
 		--dlnews: #002237;
 
+		/* Link Colors */
 		--link-bg: #e9f0fa;
 		--link-hover-bg: #d5e0f7;
 		--link-text: #1e68d2;
 		--link-active-bg: #1e68d2;
 
+		/* Button Colors */
 		--btn-bg: #eaeaea;
 		--btn-hover-bg: #efefef;
-
 		--btn2-bg: rgba(68, 94, 208, 0.1);
 		--btn2-hover-bg: rgba(33, 114, 229, 0.2);
 		--btn2-text: #445ed0;
 
-		--primary1-hover: rgba(68, 94, 208, 0.2);
-		--form-control-border: #e6e6e6;
+		/* Status Colors */
+		--success: #008a13;
+		--error: #e60d02;
+		--warning: #d97706;
 
+		/* Layout Colors */
 		--app-bg: #f7f7f7;
 		--cards-bg: #fffffe;
-		--old-blue: #1f67d2;
-		--pct-green: #008a13;
-		--pct-red: #e60d02;
-		--pct-yellow: #d97706;
-
 		--cards-border: #e6e6e6;
+		--form-control-border: #e6e6e6;
+		--old-blue: #1f67d2;
 	}
 
 	* {
@@ -407,46 +417,59 @@
 	}
 
 	html.dark {
-		--text-disabled: #999999;
-		--text1: #fafafa;
-		--text2: #c3c5cb;
-		--text3: #6c7284;
+		/* Text Colors */
+		--text-primary: #fafafa; /* Main text */
+		--text-secondary: #c3c5cb; /* Secondary text */
+		--text-tertiary: #6c7284; /* Tertiary text */
+		--text-form: #919296; /* Form controls & buttons */
+		--text-label: #cccccc; /* Labels & descriptions */
+		--text-meta: #a9a9a9; /* Metadata & governance */
+		--text-disabled: #999999; /* Disabled text */
 
-		--bg1: #212429;
-		--bg2: #2c2f36;
-		--bg3: #40444f;
-		--bg4: #565a69;
-		--bg5: #565a69;
-		--bg6: #000000;
-		--bg7: rgba(7, 14, 15, 0.7);
-		--bg8: #17181c;
+		/* Background Colors */
+		--bg-main: #212429; /* Main background */
+		--bg-secondary: #2c2f36; /* Secondary background */
+		--bg-tertiary: #40444f; /* Tertiary background */
+		--bg-border: #565a69; /* Border background */
+		--bg-muted: #565a69; /* Muted background */
+		--bg-card: #000000; /* Card background */
+		--bg-glass: rgba(7, 14, 15, 0.7); /* Glass background */
+		--bg-surface: #17181c; /* Surface background */
+		--bg-input: #2a2c2e; /* Input/form background */
 
-		--primary1: #2172e5;
+		/* Brand Colors */
+		--primary: #2172e5;
+		--primary-hover: rgba(33, 114, 229, 0.2);
+
+		/* Utility Colors */
 		--divider: rgba(43, 43, 43, 0.435);
-		--dlnews: #ffffff;
 		--link: #3689ff;
+		--dlnews: #ffffff;
+		--accent-pink: #fd3c99;
 
+		/* Link Colors */
 		--link-bg: #141d29;
 		--link-hover-bg: #1a2739;
 		--link-text: #629ff4;
 
+		/* Button Colors */
 		--btn-bg: #22242a;
 		--btn-hover-bg: #282a31;
-
 		--btn2-bg: rgba(33, 114, 229, 0.1);
 		--btn2-hover-bg: rgba(33, 114, 229, 0.2);
 		--btn2-text: #2172e5;
 
-		--primary1-hover: rgba(33, 114, 229, 0.2);
-		--form-control-border: #2f3336;
+		/* Status Colors */
+		--success: #3fb84f;
+		--error: #e24a42;
+		--warning: #f4b942;
 
+		/* Layout Colors */
 		--app-bg: #090b0c;
 		--cards-bg: #131516;
-		--pct-green: #3fb84f;
-		--pct-red: #e24a42;
-		--pct-yellow: #f4b942;
-
 		--cards-border: #222324;
+		--form-control-border: #2f3336;
+		--old-blue: #2172e5;
 	}
 
 	body {

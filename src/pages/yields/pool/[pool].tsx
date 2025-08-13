@@ -69,7 +69,7 @@ const PageView = (props) => {
 				chain: poolData.chain?.toLowerCase(),
 				project: poolData.project,
 				tvlUsd: poolData.tvlUsd.toString()
-		  })}&${poolData.underlyingTokens
+			})}&${poolData.underlyingTokens
 				?.map((token) => `underlyingTokens[]=${encodeURIComponent(token?.toLowerCase())}`)
 				.join('&')}`
 		: null
@@ -183,10 +183,10 @@ const PageView = (props) => {
 			category === 'CDP' && el.debtCeilingUsd
 				? el.debtCeilingUsd - el.totalBorrowUsd
 				: category === 'CDP'
-				? null
-				: el.totalSupplyUsd === null && el.totalBorrowUsd === null
-				? null
-				: el.totalSupplyUsd - el.totalBorrowUsd,
+					? null
+					: el.totalSupplyUsd === null && el.totalBorrowUsd === null
+						? null
+						: el.totalSupplyUsd - el.totalBorrowUsd,
 			el.apyBase?.toFixed(2) ?? null,
 			el.apyReward?.toFixed(2) ?? null,
 			// @ts-ignore
@@ -194,7 +194,7 @@ const PageView = (props) => {
 			el.apyRewardBorrow?.toFixed(2) ?? null,
 			el.apyBaseBorrow === null && el.apyRewardBorrow === null
 				? null
-				: (-el.apyBaseBorrow + el.apyRewardBorrow).toFixed(2) ?? null
+				: ((-el.apyBaseBorrow + el.apyRewardBorrow).toFixed(2) ?? null)
 		])
 
 		const dataBarSupply = dataBorrow?.filter((t) => t[4] !== null || t[5] !== null) ?? []
@@ -248,7 +248,7 @@ const PageView = (props) => {
 					<h1 className="flex items-center gap-2 text-xl flex-wrap">
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 							? `${poolData.symbol} (${poolData.poolMeta})`
-							: poolData.symbol ?? 'Loading'}
+							: (poolData.symbol ?? 'Loading')}
 
 						<span className="font-normal mr-auto">
 							({projectName} - {poolData.chain})
@@ -257,18 +257,18 @@ const PageView = (props) => {
 
 					<div className="flex items-end justify-between flex-wrap gap-5 relative">
 						<p className="flex flex-col gap-1">
-							<span className="text-base text-[#545757] dark:text-[#cccccc]">APY</span>
-							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#fd3c99]">{apy}%</span>
+							<span className="text-base text-(--text-label)">APY</span>
+							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-(--accent-pink)">{apy}%</span>
 						</p>
 						<p className="flex flex-col gap-1">
-							<span className="text-base text-[#545757] dark:text-[#cccccc]">30d Avg APY</span>
-							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#fd3c99]">{apyMean30d}%</span>
+							<span className="text-base text-(--text-label)">30d Avg APY</span>
+							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-(--accent-pink)">{apyMean30d}%</span>
 						</p>
 						<CSVDownloadButton onClick={downloadCsv} smol />
 					</div>
 
 					<p className="flex flex-col gap-1">
-						<span className="text-base text-[#545757] dark:text-[#cccccc]">Total Value Locked</span>
+						<span className="text-base text-(--text-label)">Total Value Locked</span>
 						<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#4f8fea]">
 							{formattedNum(poolData.tvlUsd ?? 0, true)}
 						</span>
@@ -276,7 +276,7 @@ const PageView = (props) => {
 
 					{hasRiskData && (
 						<p className="flex flex-col items-start gap-1">
-							<span className="text-base text-[#545757] dark:text-[#cccccc]">Total Risk Rating</span>
+							<span className="text-base text-(--text-label)">Total Risk Rating</span>
 							<span className="flex items-center gap-2 flex-nowrap">
 								<span
 									className={`w-7 h-7 rounded-full flex items-center justify-center text-base font-bold ${
@@ -301,7 +301,7 @@ const PageView = (props) => {
 					)}
 
 					<p className="flex flex-col gap-1">
-						<span className="text-base text-[#545757] dark:text-[#cccccc]">Outlook</span>
+						<span className="text-base text-(--text-label)">Outlook</span>
 						<span className="text-base leading-normal" style={isLoading ? { height: '60px' } : {}}>
 							{confidence !== null
 								? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`

@@ -46,7 +46,7 @@ const ChartRenderer = memo(function ChartRenderer({
 			<div className="flex flex-col items-center justify-center h-full pro-text3">
 				<Icon name="alert-triangle" height={24} width={24} className="mb-2 text-[#F2994A]" />
 				<p>Error loading data</p>
-				<button className="mt-2 text-sm text-(--primary1) hover:underline" onClick={() => refetch()}>
+				<button className="mt-2 text-sm text-(--primary) hover:underline" onClick={() => refetch()}>
 					Try again
 				</button>
 			</div>
@@ -167,7 +167,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 												${index > 0 ? 'border-l border-(--form-control-border)' : ''}
 												${
 													chart.grouping === option
-														? 'bg-(--primary1) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary1) focus:ring-opacity-50'
+														? 'bg-(--primary) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary) focus:ring-opacity-50'
 														: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
 												}`}
 										>

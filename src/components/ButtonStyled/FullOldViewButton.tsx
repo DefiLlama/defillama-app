@@ -68,7 +68,7 @@ export const FullOldViewButton = ({ type, className }: FullOldViewButtonProps) =
 					disabled={isLoading || isSubscriptionLoading}
 					className={
 						className ||
-						'flex items-center gap-2 p-2 text-xs rounded-md cursor-pointer border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+						'flex items-center gap-2 p-2 text-xs rounded-md cursor-pointer border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium disabled:opacity-50 disabled:cursor-not-allowed'
 					}
 				>
 					{isClient && (isLoading || isSubscriptionLoading) ? (

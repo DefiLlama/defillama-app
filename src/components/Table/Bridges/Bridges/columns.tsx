@@ -135,9 +135,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue() as any
 			if (value) {
 				return (
-					<span className={`${value > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}>
-						{formattedNum(value, true)}
-					</span>
+					<span className={`${value > 0 ? 'text-(--success)' : 'text-(--error)'}`}>{formattedNum(value, true)}</span>
 				)
 			}
 			return <>$0</>
@@ -172,9 +170,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 			const value = info.getValue() as any
 			if (value) {
 				return (
-					<span className={`${value > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}>
-						{formattedNum(value, true)}
-					</span>
+					<span className={`${value > 0 ? 'text-(--success)' : 'text-(--error)'}`}>{formattedNum(value, true)}</span>
 				)
 			}
 			return <>$0</>
@@ -248,9 +244,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as boolean
 			return (
-				<span className={`${value ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
-					{value ? 'Withdrawal' : 'Deposit'}
-				</span>
+				<span className={`${value ? 'text-(--error)' : 'text-(--success)'}`}>{value ? 'Withdrawal' : 'Deposit'}</span>
 			)
 		},
 		size: 120,

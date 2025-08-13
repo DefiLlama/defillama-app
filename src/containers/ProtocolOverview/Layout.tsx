@@ -77,10 +77,10 @@ export function ProtocolOverviewLayout({
 				<p
 					className={`relative p-2 text-xs text-black dark:text-white text-center rounded-md border ${
 						banner.level === 'rug'
-							? 'bg-(--pct-red)/20 border-(--pct-red)'
+							? 'bg-(--error)/20 border-(--error)'
 							: banner.level === 'alert'
-							? 'bg-(--pct-yellow)/20 border-(--pct-yellow)'
-							: 'bg-(--btn-bg) border-(--bg-color)'
+								? 'bg-(--warning)/20 border-(--warning)'
+								: 'bg-(--btn-bg) border-(--bg-color)'
 					}`}
 					key={`${banner.message}-${banner.level}-${name}`}
 				>
@@ -103,7 +103,7 @@ export function ProtocolOverviewLayout({
 								wrapperProps={{
 									className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 								}}
-								className="text-sm font-medium flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
+								className="text-sm font-medium flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
 								portal
 							>
 								{otherProtocols.map((value, i) => {
@@ -114,7 +114,7 @@ export function ProtocolOverviewLayout({
 											data-active={name === value}
 											className={`group flex items-center gap-2 py-2 relative ${
 												i === 0 ? 'px-3' : 'ml-[22px] pr-3'
-											} shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) data-[active=true]:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md whitespace-nowrap overflow-hidden text-ellipsis`}
+											} shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) data-[active=true]:bg-(--primary-hover) cursor-pointer first-of-type:rounded-t-md whitespace-nowrap overflow-hidden text-ellipsis`}
 										>
 											{i !== 0 && (
 												<>
@@ -126,7 +126,7 @@ export function ProtocolOverviewLayout({
 											{i === 0 ? (
 												<span className="flex flex-col">
 													<span>{`${value} (Combined)`}</span>
-													<span className="text-[10px] text-[#666] dark:text-[#919296]">Aggregated view</span>
+													<span className="text-[10px] text-(--text-form)">Aggregated view</span>
 												</span>
 											) : (
 												<span>{value}</span>

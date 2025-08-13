@@ -11,13 +11,23 @@ interface IProps extends React.ComponentProps<'div'> {
 	buttonClassName?: string
 }
 
-export const TagGroup = ({ selectedValue, setValue, values, style, className, triggerClassName, containerClassName, buttonClassName, ...props }: IProps) => {
+export const TagGroup = ({
+	selectedValue,
+	setValue,
+	values,
+	style,
+	className,
+	triggerClassName,
+	containerClassName,
+	buttonClassName,
+	...props
+}: IProps) => {
 	return (
 		<div
 			className={
-				containerClassName || 
+				containerClassName ||
 				cn(
-					'text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]',
+					'text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)',
 					className
 				)
 			}

@@ -72,36 +72,36 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 				? props.metrics.dexs
 					? { dexVolume: queryParams.dexVolume === 'false' ? 'false' : 'true' }
 					: props.metrics.perps
-					? { perpVolume: queryParams.perpVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.options
-					? {
-							optionsPremiumVolume: queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true',
-							optionsNotionalVolume: queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
-					  }
-					: props.metrics.dexAggregators
-					? { dexAggregatorVolume: queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.bridgeAggregators
-					? { bridgeAggregatorVolume: queryParams.bridgeAggregatorVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.perpsAggregators
-					? { perpAggregatorVolume: queryParams.perpAggregatorVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.bridge
-					? { bridgeVolume: queryParams.bridgeVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.fees
-					? {
-							fees: queryParams.fees === 'false' ? 'false' : 'true'
-					  }
-					: props.metrics.revenue
-					? {
-							revenue: queryParams.revenue === 'false' ? 'false' : 'true',
-							holdersRevenue: queryParams.holdersRevenue === 'false' ? 'false' : 'true'
-					  }
-					: props.metrics.unlocks
-					? { unlocks: queryParams.unlocks === 'false' ? 'false' : 'true' }
-					: props.metrics.treasury
-					? { treasury: queryParams.treasury === 'false' ? 'false' : 'true' }
-					: {}
+						? { perpVolume: queryParams.perpVolume === 'false' ? 'false' : 'true' }
+						: props.metrics.options
+							? {
+									optionsPremiumVolume: queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true',
+									optionsNotionalVolume: queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
+								}
+							: props.metrics.dexAggregators
+								? { dexAggregatorVolume: queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true' }
+								: props.metrics.bridgeAggregators
+									? { bridgeAggregatorVolume: queryParams.bridgeAggregatorVolume === 'false' ? 'false' : 'true' }
+									: props.metrics.perpsAggregators
+										? { perpAggregatorVolume: queryParams.perpAggregatorVolume === 'false' ? 'false' : 'true' }
+										: props.metrics.bridge
+											? { bridgeVolume: queryParams.bridgeVolume === 'false' ? 'false' : 'true' }
+											: props.metrics.fees
+												? {
+														fees: queryParams.fees === 'false' ? 'false' : 'true'
+													}
+												: props.metrics.revenue
+													? {
+															revenue: queryParams.revenue === 'false' ? 'false' : 'true',
+															holdersRevenue: queryParams.holdersRevenue === 'false' ? 'false' : 'true'
+														}
+													: props.metrics.unlocks
+														? { unlocks: queryParams.unlocks === 'false' ? 'false' : 'true' }
+														: props.metrics.treasury
+															? { treasury: queryParams.treasury === 'false' ? 'false' : 'true' }
+															: {}
 				: {}) as Record<string, 'true' | 'false'>)
-		} as Record<typeof protocolCharts[keyof typeof protocolCharts], 'true' | 'false'>
+		} as Record<(typeof protocolCharts)[keyof typeof protocolCharts], 'true' | 'false'>
 
 		const toggledMetrics = {
 			...toggled,

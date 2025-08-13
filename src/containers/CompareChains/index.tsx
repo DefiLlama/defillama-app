@@ -271,7 +271,7 @@ const ChainContainer = (
 								? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
 								: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 						}
-						className="!inline underline decoration-dotted text-[#545757] dark:text-[#cccccc]"
+						className="!inline underline decoration-dotted text-(--text-label)"
 					>
 						Total Value Locked in DeFi
 					</Tooltip>
@@ -287,12 +287,12 @@ const ChainContainer = (
 					>
 						<span
 							className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-								props.change24h >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+								props.change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
 							}`}
 						>
 							{`${props.change24h > 0 ? '+' : ''}${props.change24h.toFixed(2)}%`}
 						</span>
-						<span className="text-[#545757] dark:text-[#cccccc]">24h</span>
+						<span className="text-(--text-label)">24h</span>
 					</Tooltip>
 				) : null}
 			</div>
@@ -308,7 +308,7 @@ const ChainContainer = (
 											? 'Sum of market cap of all stablecoins circulating on all chains'
 											: 'Sum of market cap of all stablecoins circulating on the chain'
 									}
-									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+									className="text-(--text-label) underline decoration-dotted"
 								>
 									Stablecoins Mcap
 								</Tooltip>
@@ -323,11 +323,11 @@ const ChainContainer = (
 							<div className="flex flex-col mb-3">
 								{props.stablecoins.change7d != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Change (7d)</span>
+										<span className="text-(--text-label)">Change (7d)</span>
 										<Tooltip
 											content={`${formattedNum(props.stablecoins.change7dUsd, true)}`}
 											className={`ml-auto justify-end font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-												+props.stablecoins.change7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+												+props.stablecoins.change7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 											}`}
 										>
 											{`${+props.stablecoins.change7d > 0 ? '+' : ''}${props.stablecoins.change7d}%`}
@@ -336,9 +336,7 @@ const ChainContainer = (
 								) : null}
 								{props.stablecoins.dominance != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">
-											{props.stablecoins.topToken.symbol} Dominance
-										</span>
+										<span className="text-(--text-label)">{props.stablecoins.topToken.symbol} Dominance</span>
 										<span className="font-jetbrains ml-auto">{props.stablecoins.dominance}%</span>
 									</p>
 								) : null}
@@ -349,7 +347,7 @@ const ChainContainer = (
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 							<Tooltip
 								content="Total fees paid by users when using the chain"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+								className="text-(--text-label) underline decoration-dotted"
 							>
 								Chain Fees (24h)
 							</Tooltip>
@@ -360,7 +358,7 @@ const ChainContainer = (
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 							<Tooltip
 								content="Subset of fees that the chain collects for itself"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+								className="text-(--text-label) underline decoration-dotted"
 							>
 								Chain Revenue (24h)
 							</Tooltip>
@@ -371,7 +369,7 @@ const ChainContainer = (
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 							<Tooltip
 								content="REV is the sum of chain fees and MEV tips"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+								className="text-(--text-label) underline decoration-dotted"
 							>
 								Chain REV (24h)
 							</Tooltip>
@@ -382,7 +380,7 @@ const ChainContainer = (
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 							<Tooltip
 								content="Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms."
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+								className="text-(--text-label) underline decoration-dotted"
 							>
 								Token Incentives (24h)
 							</Tooltip>
@@ -395,7 +393,7 @@ const ChainContainer = (
 								content={
 									'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
 								}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+								className="text-(--text-label) underline decoration-dotted"
 							>
 								App Revenue (24h)
 							</Tooltip>
@@ -408,7 +406,7 @@ const ChainContainer = (
 								content={
 									'Total fees paid by users when using the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
 								}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+								className="text-(--text-label) underline decoration-dotted"
 							>
 								App Fees (24h)
 							</Tooltip>
@@ -424,7 +422,7 @@ const ChainContainer = (
 											? 'Sum of volume on all DEXs on all chains'
 											: 'Sum of volume on all DEXs on the chain'
 									}
-									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+									className="text-(--text-label) underline decoration-dotted"
 								>
 									DEXs Volume (24h)
 								</Tooltip>
@@ -439,16 +437,16 @@ const ChainContainer = (
 							<div className="flex flex-col mb-3">
 								{props.dexs.total7d != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Volume (7d)</span>
+										<span className="text-(--text-label)">Volume (7d)</span>
 										<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total7d, true)}</span>
 									</p>
 								) : null}
 								{props.dexs.change_7dover7d != null && (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Weekly Change</span>
+										<span className="text-(--text-label)">Weekly Change</span>
 										<span
 											className={`font-jetbrains ml-auto ${
-												props.dexs.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+												props.dexs.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 											}`}
 										>
 											{`${props.dexs.change_7dover7d >= 0 ? '+' : ''}${props.dexs.change_7dover7d}%`}
@@ -457,7 +455,7 @@ const ChainContainer = (
 								)}
 								{props.dexs.dexsDominance != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">DEX vs CEX dominance</span>
+										<span className="text-(--text-label)">DEX vs CEX dominance</span>
 										<span className="font-jetbrains ml-auto">{props.dexs.dexsDominance}%</span>
 									</p>
 								) : null}
@@ -469,7 +467,7 @@ const ChainContainer = (
 							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 								<Tooltip
 									content="Sum of volume on all perpetual exchanges on the chain"
-									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+									className="text-(--text-label) underline decoration-dotted"
 								>
 									Perps Volume (24h)
 								</Tooltip>
@@ -484,16 +482,16 @@ const ChainContainer = (
 							<div className="flex flex-col mb-3">
 								{props.perps.total7d != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Perps Volume (7d)</span>
+										<span className="text-(--text-label)">Perps Volume (7d)</span>
 										<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total7d, true)}</span>
 									</p>
 								) : null}
 								{props.perps.change_7dover7d != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Weekly Change</span>
+										<span className="text-(--text-label)">Weekly Change</span>
 										<span
 											className={`font-jetbrains ml-auto ${
-												props.perps.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+												props.perps.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 											}`}
 										>
 											{`${props.perps.change_7dover7d >= 0 ? '+' : ''}${props.perps.change_7dover7d}%`}
@@ -507,7 +505,7 @@ const ChainContainer = (
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 							<Tooltip
 								content="Net money bridged to the chain within the last 24h"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+								className="text-(--text-label) underline decoration-dotted"
 							>
 								Inflows (24h)
 							</Tooltip>
@@ -529,7 +527,7 @@ const ChainContainer = (
 											users that are interacting with the protocol through another product aren't likely to be sticky.
 										</p>
 									}
-									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+									className="text-(--text-label) underline decoration-dotted"
 								>
 									Active Addresses (24h)
 								</Tooltip>
@@ -544,13 +542,13 @@ const ChainContainer = (
 							<div className="flex flex-col mb-3">
 								{props.users.newUsers != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">New Addresses (24h)</span>
+										<span className="text-(--text-label)">New Addresses (24h)</span>
 										<span className="font-jetbrains ml-auto">{formattedNum(props.users.newUsers, false)}</span>
 									</p>
 								) : null}
 								{props.users.transactions != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Transactions (24h)</span>
+										<span className="text-(--text-label)">Transactions (24h)</span>
 										<span className="font-jetbrains ml-auto">{formattedNum(props.users.transactions, false)}</span>
 									</p>
 								) : null}
@@ -560,7 +558,7 @@ const ChainContainer = (
 					{props.treasury ? (
 						<details className="group">
 							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">Treasury</span>
+								<span className="text-(--text-label)">Treasury</span>
 								<Icon
 									name="chevron-down"
 									height={16}
@@ -572,7 +570,7 @@ const ChainContainer = (
 							<div className="flex flex-col mb-3">
 								{props.treasury.tokenBreakdowns?.stablecoins != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Stablecoins</span>
+										<span className="text-(--text-label)">Stablecoins</span>
 										<span className="font-jetbrains ml-auto">
 											{formattedNum(props.treasury.tokenBreakdowns?.stablecoins, true)}
 										</span>
@@ -580,7 +578,7 @@ const ChainContainer = (
 								) : null}
 								{props.treasury.tokenBreakdowns?.majors != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Major Tokens (ETH, BTC)</span>
+										<span className="text-(--text-label)">Major Tokens (ETH, BTC)</span>
 										<span className="font-jetbrains ml-auto">
 											{formattedNum(props.treasury.tokenBreakdowns?.majors, true)}
 										</span>
@@ -588,7 +586,7 @@ const ChainContainer = (
 								) : null}
 								{props.treasury.tokenBreakdowns?.others != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Other Tokens</span>
+										<span className="text-(--text-label)">Other Tokens</span>
 										<span className="font-jetbrains ml-auto">
 											{formattedNum(props.treasury.tokenBreakdowns?.others, true)}
 										</span>
@@ -596,7 +594,7 @@ const ChainContainer = (
 								) : null}
 								{props.treasury.tokenBreakdowns?.ownTokens != null ? (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
-										<span className="text-[#545757] dark:text-[#cccccc]">Own Tokens</span>
+										<span className="text-(--text-label)">Own Tokens</span>
 										<span className="font-jetbrains ml-auto">
 											{formattedNum(props.treasury.tokenBreakdowns?.ownTokens, true)}
 										</span>
@@ -610,7 +608,7 @@ const ChainContainer = (
 							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 								<Tooltip
 									content="Sum of all money raised by the chain, including VC funding rounds, public sales and ICOs."
-									className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+									className="text-(--text-label) underline decoration-dotted"
 								>
 									Total Raised
 								</Tooltip>
@@ -633,12 +631,10 @@ const ChainContainer = (
 											key={`${raise.date}-${raise.amount}-${raise.source}-${raise.round}`}
 										>
 											<span className="flex flex-wrap justify-between">
-												<span className="text-[#545757] dark:text-[#cccccc]">
-													{dayjs(raise.date * 1000).format('MMM D, YYYY')}
-												</span>
+												<span className="text-(--text-label)">{dayjs(raise.date * 1000).format('MMM D, YYYY')}</span>
 												<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
 											</span>
-											<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
+											<span className="flex gap-1 flex-wrap justify-between text-(--text-label)">
 												<span>Round: {raise.round}</span>
 												{(raise as any).leadInvestors?.length || (raise as any).otherInvestors?.length ? (
 													<span>
@@ -660,7 +656,7 @@ const ChainContainer = (
 					{props.chainAssets ? (
 						<details className="group">
 							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">Bridged TVL</span>
+								<span className="text-(--text-label)">Bridged TVL</span>
 								<Icon
 									name="chevron-down"
 									height={16}
@@ -680,7 +676,7 @@ const ChainContainer = (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 										<Tooltip
 											content="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)"
-											className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+											className="text-(--text-label) underline decoration-dotted"
 										>
 											Native
 										</Tooltip>
@@ -691,7 +687,7 @@ const ChainContainer = (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 										<Tooltip
 											content="Marketcap of the governance token of the chain"
-											className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+											className="text-(--text-label) underline decoration-dotted"
 										>
 											Own Tokens
 										</Tooltip>
@@ -704,7 +700,7 @@ const ChainContainer = (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 										<Tooltip
 											content="Tokens that were bridged to the chain through the canonical bridge"
-											className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+											className="text-(--text-label) underline decoration-dotted"
 										>
 											Canonical
 										</Tooltip>
@@ -717,7 +713,7 @@ const ChainContainer = (
 									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
 										<Tooltip
 											content="Tokens that were bridged to the chain through third party bridges"
-											className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+											className="text-(--text-label) underline decoration-dotted"
 										>
 											Third Party
 										</Tooltip>
@@ -733,7 +729,7 @@ const ChainContainer = (
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 							<Tooltip
 								content="Volume of Non Fungible Tokens traded in the last 24 hours"
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+								className="text-(--text-label) underline decoration-dotted"
 							>
 								NFT Volume (24h)
 							</Tooltip>
@@ -742,15 +738,13 @@ const ChainContainer = (
 					) : null}
 					{props.chainTokenInfo?.token_symbol ? (
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">${props.chainTokenInfo.token_symbol} Price</span>
+							<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} Price</span>
 							<span className="font-jetbrains ml-auto">{formattedNum(props.chainTokenInfo?.current_price, true)}</span>
 						</p>
 					) : null}
 					{props.chainTokenInfo?.token_symbol ? (
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">
-								${props.chainTokenInfo.token_symbol} Market Cap
-							</span>
+							<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} Market Cap</span>
 							<span className="font-jetbrains ml-auto">
 								{formattedNum(props.chainTokenInfo?.market_cap ?? 0, true)}
 							</span>
@@ -758,7 +752,7 @@ const ChainContainer = (
 					) : null}
 					{props.chainTokenInfo?.token_symbol ? (
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">${props.chainTokenInfo.token_symbol} FDV</span>
+							<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} FDV</span>
 							<span className="font-jetbrains ml-auto">
 								{formattedNum(props.chainTokenInfo?.fully_diluted_valuation ?? 0, true)}
 							</span>

@@ -494,7 +494,7 @@ export function YieldsOptimizerTable({ data }) {
 					borrowReward: false,
 					borrowUSDAmount: withAmount,
 					lendUSDAmount: withAmount
-			  }
+				}
 			: {
 					totalBase: false,
 					lendingBase: false,
@@ -504,7 +504,7 @@ export function YieldsOptimizerTable({ data }) {
 					borrowReward: true,
 					borrowUSDAmount: withAmount,
 					lendUSDAmount: withAmount
-			  }
+				}
 
 	return (
 		<YieldsTableWrapper

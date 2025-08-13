@@ -305,7 +305,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 					}}
 				/>
 				<TVLRange variant="third" />
@@ -341,7 +341,7 @@ export function ProtocolsTableWithSearch({
 				? [
 						...(columnsToUse as any).filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
 						...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
-				  ]
+					]
 				: columnsToUse,
 		[addlColumns, removeColumns, columnsToUse]
 	)
@@ -373,7 +373,7 @@ export function ProtocolsTableWithSearch({
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? (columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		const cSize = windowSize.width
@@ -406,7 +406,7 @@ export function ProtocolsTableWithSearch({
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={projectName}

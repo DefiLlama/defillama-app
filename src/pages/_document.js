@@ -37,7 +37,12 @@ export default function Document() {
 						`
 					}}
 				/>
-				<script defer src="/script2.js" data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae" data-host-url="https://tasty.defillama.com"></script>
+				<script
+					defer
+					src="/script2.js"
+					data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
+					data-host-url="https://tasty.defillama.com"
+				></script>
 			</Head>
 			<body>
 				<Main />

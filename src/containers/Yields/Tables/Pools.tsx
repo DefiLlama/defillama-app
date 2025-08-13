@@ -770,7 +770,7 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					totalBorrowUsd: showTotalBorrowed === 'true',
 					totalAvailableUsd: showAvailable === 'true',
 					ltv: showLTV === 'true'
-			  }
+				}
 			: {
 					apyBase7d: show7dBaseApy === 'true',
 					il7d: show7dIL === 'true',
@@ -788,7 +788,7 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					totalBorrowUsd: showTotalBorrowed === 'true',
 					totalAvailableUsd: showAvailable === 'true',
 					ltv: showLTV === 'true'
-			  }
+				}
 
 	return (
 		<YieldsTableWrapper

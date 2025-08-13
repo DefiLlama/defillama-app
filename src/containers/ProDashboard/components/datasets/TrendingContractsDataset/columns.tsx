@@ -26,12 +26,12 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 				chain === 'ethereum'
 					? 'etherscan.io'
 					: chain === 'arbitrum'
-					? 'arbiscan.io'
-					: chain === 'optimism'
-					? 'optimistic.etherscan.io'
-					: chain === 'base'
-					? 'basescan.org'
-					: 'polygonscan.com'
+						? 'arbiscan.io'
+						: chain === 'optimism'
+							? 'optimistic.etherscan.io'
+							: chain === 'base'
+								? 'basescan.org'
+								: 'polygonscan.com'
 			}/address/${value}`
 
 			return (
@@ -41,9 +41,7 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 					rel="noopener noreferrer"
 					className="flex items-center gap-3 text-blue-600 dark:text-blue-400 hover:underline"
 				>
-					<span className="font-medium">
-						{name || `${value.slice(0, 4)}...${value.slice(-4)}`}
-					</span>
+					<span className="font-medium">{name || `${value.slice(0, 4)}...${value.slice(-4)}`}</span>
 				</a>
 			)
 		}

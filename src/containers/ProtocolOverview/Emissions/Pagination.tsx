@@ -117,7 +117,10 @@ const Pagination = ({ items, startIndex = 0 }) => {
 				onTouchEnd={onTouchEnd}
 			>
 				{totalPages > 1 && (
-					<button onClick={handlePrevPage} className="bg-(--bg2) text-(--text1) p-2 rounded-xl hidden md:block">
+					<button
+						onClick={handlePrevPage}
+						className="bg-(--bg-secondary) text-(--text-primary) p-2 rounded-xl hidden md:block"
+					>
 						<Icon name="arrow-left" height={24} width={24} />
 					</button>
 				)}
@@ -131,7 +134,10 @@ const Pagination = ({ items, startIndex = 0 }) => {
 					</div>
 				</div>
 				{totalPages > 1 && (
-					<button onClick={handleNextPage} className="bg-(--bg2) text-(--text1) p-2 rounded-xl hidden md:block">
+					<button
+						onClick={handleNextPage}
+						className="bg-(--bg-secondary) text-(--text-primary) p-2 rounded-xl hidden md:block"
+					>
 						<Icon name="arrow-right" height={24} width={24} />
 					</button>
 				)}
@@ -141,19 +147,19 @@ const Pagination = ({ items, startIndex = 0 }) => {
 				<div className="flex items-center justify-center gap-3 mt-3">
 					<button
 						onClick={handlePrevPage}
-						className="text-(--text1) text-sm font-medium hover:text-[#5c5cf9] transition-colors"
+						className="text-(--text-primary) text-sm font-medium hover:text-[#5c5cf9] transition-colors"
 						aria-label="Previous page"
 					>
 						<Icon name="arrow-left" height={16} width={16} />
 					</button>
 
-					<span className="text-(--text1) text-sm font-medium">
+					<span className="text-(--text-primary) text-sm font-medium">
 						{currentPage + 1} / {totalPages}
 					</span>
 
 					<button
 						onClick={handleNextPage}
-						className="text-(--text1) text-sm font-medium hover:text-[#5c5cf9] transition-colors"
+						className="text-(--text-primary) text-sm font-medium hover:text-[#5c5cf9] transition-colors"
 						aria-label="Next page"
 					>
 						<Icon name="arrow-right" height={16} width={16} />

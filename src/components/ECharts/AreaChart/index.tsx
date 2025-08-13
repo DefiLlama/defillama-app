@@ -134,21 +134,21 @@ export default function AreaChart({
 					areaStyle: isStackedChart
 						? {}
 						: hideGradient
-						? { color: 'none' }
-						: ({
-								color: !customLegendName
-									? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-											{
-												offset: 0,
-												color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
-											},
-											{
-												offset: 1,
-												color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-											}
-									  ])
-									: null
-						  } as { color?: echarts.graphic.LinearGradient }),
+							? { color: 'none' }
+							: ({
+									color: !customLegendName
+										? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+												{
+													offset: 0,
+													color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
+												},
+												{
+													offset: 1,
+													color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+												}
+											])
+										: null
+								} as { color?: echarts.graphic.LinearGradient }),
 					data: [],
 					...(hallmarks && {
 						markLine: {
@@ -264,7 +264,7 @@ export default function AreaChart({
 					? {
 							max: 100,
 							min: 0
-					  }
+						}
 					: {}),
 				...(chartOptions?.['yAxis'] ?? {})
 			},
@@ -328,7 +328,7 @@ export default function AreaChart({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+									'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 							}}
 							portal
 						/>
@@ -358,7 +358,7 @@ export default function AreaChart({
 								}
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					)}
 				</div>

@@ -63,7 +63,7 @@ export function DashboardDiscovery() {
 									setSortBy(e.target.value as SortOption)
 									setPage(1)
 								}}
-								className="px-3 py-1.5 bg-(--bg7) border pro-border pro-text1 focus:outline-hidden focus:border-(--primary1)"
+								className="px-3 py-1.5 bg-(--bg-glass) border pro-border pro-text1 focus:outline-hidden focus:border-(--primary)"
 							>
 								<option value="popular">Most Popular</option>
 								<option value="recent">Recently Created</option>
@@ -74,14 +74,14 @@ export function DashboardDiscovery() {
 						<div className="flex items-center border pro-border">
 							<button
 								onClick={() => setViewMode('grid')}
-								className={`p-2 ${viewMode === 'grid' ? 'bg-(--primary1) text-white' : 'pro-text3 hover:pro-text1'}`}
+								className={`p-2 ${viewMode === 'grid' ? 'bg-(--primary) text-white' : 'pro-text3 hover:pro-text1'}`}
 								title="Grid view"
 							>
 								<Icon name="layers" height={16} width={16} />
 							</button>
 							<button
 								onClick={() => setViewMode('list')}
-								className={`p-2 ${viewMode === 'list' ? 'bg-(--primary1) text-white' : 'pro-text3 hover:pro-text1'}`}
+								className={`p-2 ${viewMode === 'list' ? 'bg-(--primary) text-white' : 'pro-text3 hover:pro-text1'}`}
 								title="List view"
 							>
 								<Icon name="align-left" height={16} width={16} />
@@ -98,7 +98,7 @@ export function DashboardDiscovery() {
 								<button
 									key={tag}
 									onClick={() => handleTagClick(tag)}
-									className="px-3 py-1 bg-(--bg7) border pro-border pro-text1 text-sm flex items-center gap-1 hover:border-(--pro-glass-border)"
+									className="px-3 py-1 bg-(--bg-glass) border pro-border pro-text1 text-sm flex items-center gap-1 hover:border-(--pro-glass-border)"
 								>
 									{tag}
 									<Icon name="x" height={12} width={12} />
@@ -155,7 +155,7 @@ export function DashboardDiscovery() {
 							<button
 								onClick={() => setPage((p) => Math.max(1, p - 1))}
 								disabled={page === 1}
-								className={`px-3 py-1 ${page === 1 ? 'pro-text3 cursor-not-allowed' : 'pro-text1 hover:bg-(--bg7)'}`}
+								className={`px-3 py-1 ${page === 1 ? 'pro-text3 cursor-not-allowed' : 'pro-text1 hover:bg-(--bg-glass)'}`}
 							>
 								<Icon name="chevron-left" height={16} width={16} />
 							</button>
@@ -167,7 +167,7 @@ export function DashboardDiscovery() {
 										key={pageNum}
 										onClick={() => setPage(pageNum)}
 										className={`px-3 py-1 ${
-											page === pageNum ? 'bg-(--primary1) text-white' : 'pro-text1 hover:bg-(--bg7)'
+											page === pageNum ? 'bg-(--primary) text-white' : 'pro-text1 hover:bg-(--bg-glass)'
 										}`}
 									>
 										{pageNum}
@@ -179,7 +179,7 @@ export function DashboardDiscovery() {
 								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
 								disabled={page === totalPages}
 								className={`px-3 py-1 ${
-									page === totalPages ? 'pro-text3 cursor-not-allowed' : 'pro-text1 hover:bg-(--bg7)'
+									page === totalPages ? 'pro-text3 cursor-not-allowed' : 'pro-text1 hover:bg-(--bg-glass)'
 								}`}
 							>
 								<Icon name="chevron-right" height={16} width={16} />

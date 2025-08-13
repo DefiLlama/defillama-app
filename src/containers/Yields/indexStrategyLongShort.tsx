@@ -34,7 +34,7 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 		return pools
 	}, [token, query, filteredPools, perps, selectedAttributes, selectedChains, minTvl, maxTvl])
 
-	const header = 'Strategy Finder' + (token ? `: ${typeof token === 'string' ? token : token?.join(', ') ?? ''}` : '')
+	const header = 'Strategy Finder' + (token ? `: ${typeof token === 'string' ? token : (token?.join(', ') ?? '')}` : '')
 
 	return (
 		<>

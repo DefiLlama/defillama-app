@@ -74,7 +74,7 @@ const CurrencyToggle = (props: { symbol: string }) => {
 	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 
 	return (
-		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 			<button
 				data-active={!isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}
@@ -117,7 +117,7 @@ const DangerousPositionsAmount = (props: { data: ChartData }) => {
 	)
 	return (
 		<>
-			<span className="text-[#545757] dark:text-[#cccccc]">Within -20% of current price</span>
+			<span className="text-(--text-label)">Within -20% of current price</span>
 			<span className="font-semibold text-2xl font-jetbrains">${getReadableValue(dangerousPositionsAmount)}</span>
 		</>
 	)

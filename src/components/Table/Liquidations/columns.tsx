@@ -37,7 +37,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 
 			if (isSmol) {
 				return (
-					<span className={`${isNegative ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
+					<span className={`${isNegative ? 'text-(--error)' : 'text-(--success)'}`}>
 						{'<'}
 						{isNegative ? '-' : '+'}
 						{'0.01%'}
@@ -47,7 +47,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 
 			const _value = (value as number).toFixed(2)
 			return (
-				<span className={`${isNegative ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
+				<span className={`${isNegative ? 'text-(--error)' : 'text-(--success)'}`}>
 					{isNegative ? '' : '+'}
 					{_value}%
 				</span>

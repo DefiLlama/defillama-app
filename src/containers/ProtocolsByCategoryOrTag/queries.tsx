@@ -57,7 +57,7 @@ export async function getProtocolsByCategoryOrTag({
 					adapterType: 'fees',
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
-			  })
+				})
 			: null,
 		chainMetadata?.fees
 			? getAdapterChainOverview({
@@ -66,7 +66,7 @@ export async function getProtocolsByCategoryOrTag({
 					dataType: 'dailyRevenue',
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
-			  })
+				})
 			: null,
 		chainMetadata?.dexs
 			? getAdapterChainOverview({
@@ -74,7 +74,7 @@ export async function getProtocolsByCategoryOrTag({
 					adapterType: 'dexs',
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
-			  })
+				})
 			: null,
 		chainMetadata?.perps
 			? getAdapterChainOverview({
@@ -82,7 +82,7 @@ export async function getProtocolsByCategoryOrTag({
 					adapterType: 'derivatives',
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
-			  })
+				})
 			: null,
 		tag
 			? fetchJson(`${TAGS_CHART_API}/${slug(tag)}${chain ? `/${slug(chain)}` : ''}`)
@@ -172,7 +172,7 @@ export async function getProtocolsByCategoryOrTag({
 					if (
 						extraKey
 							? ['doublecounted', 'liquidstaking', 'dcAndLsOverlap', 'offers'].includes(extraKey) ||
-							  !DEFI_SETTINGS_KEYS.includes(extraKey)
+								!DEFI_SETTINGS_KEYS.includes(extraKey)
 							: false
 					) {
 						continue

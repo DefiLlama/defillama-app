@@ -53,7 +53,7 @@ export function Menu() {
 			>
 				<nav
 					ref={navEl}
-					className="fixed top-0 right-0 bottom-0 overflow-auto flex flex-col w-full max-w-[300px] bg-(--bg1) text-black dark:text-white p-4 pl-5 animate-slidein"
+					className="fixed top-0 right-0 bottom-0 overflow-auto flex flex-col w-full max-w-[300px] bg-(--bg-main) text-black dark:text-white p-4 pl-5 animate-slidein"
 				>
 					<button onClick={(prev) => setShow(!prev)} className="ml-auto">
 						<span className="sr-only">Close Navigation Menu</span>

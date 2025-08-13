@@ -197,25 +197,23 @@ export const PeggedAssetInfo = ({
 								</h1>
 
 								<p className="flex flex-col gap-1">
-									<span className="text-base text-[#545757] dark:text-[#cccccc]">Market Cap</span>
+									<span className="text-base text-(--text-label)">Market Cap</span>
 									<span className="font-semibold text-2xl font-jetbrains min-h-8">
 										{formattedNum(mcap || '0', true)}
 									</span>
 								</p>
 
 								<p className="flex items-center flex-wrap justify-between gap-2 text-base">
-									<span className="text-[#545757] dark:text-[#cccccc]">Price</span>
+									<span className="text-(--text-label)">Price</span>
 									<span className="font-jetbrains">{price === null ? '-' : formattedNum(price, true)}</span>
 								</p>
 
 								{totalCirculating && (
 									<table className="w-full border-collapse text-base">
-										<caption className="text-xs text-[#545757] dark:text-[#cccccc] text-left pb-1">
-											Issuance Stats
-										</caption>
+										<caption className="text-xs text-(--text-label) text-left pb-1">Issuance Stats</caption>
 										<tbody>
 											<tr>
-												<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Total Circulating</th>
+												<th className="text-(--text-label) font-normal text-left">Total Circulating</th>
 												<td className="font-jetbrains text-right">{formattedNum(totalCirculating)}</td>
 											</tr>
 										</tbody>
@@ -224,14 +222,14 @@ export const PeggedAssetInfo = ({
 
 								{extraPeggeds.length > 0 && (
 									<table className="w-full border-collapse text-base">
-										<caption className="text-xs text-[#545757] dark:text-[#cccccc] text-left pb-1 flex items-center gap-1 flex-wrap">
+										<caption className="text-xs text-(--text-label) text-left pb-1 flex items-center gap-1 flex-wrap">
 											<span>Optional Circulating Counts</span>
 											<QuestionHelper text="Use this option to choose whether to include coins that have been minted but have never been circulating." />
 										</caption>
 										<tbody>
 											{extraPeggeds.map((option) => (
 												<tr key={option}>
-													<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
+													<th className="text-(--text-label) font-normal text-left">
 														<label className="flex items-center gap-2 cursor-pointer">
 															<input
 																type="checkbox"

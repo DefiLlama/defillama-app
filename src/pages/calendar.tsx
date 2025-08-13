@@ -40,7 +40,7 @@ export const getStaticProps = withPerformanceLogging('calendar', async () => {
 			return max
 		}, unlocksList[0])
 
-		const tSymbol = protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.[0]?.symbol ?? null
+		const tSymbol = protocol.name === 'LooksRare' ? 'LOOKS' : (protocol.tokenPrice?.[0]?.symbol ?? null)
 
 		return {
 			...protocol,
@@ -155,7 +155,7 @@ export default function Protocols({ emissions }) {
 							)
 						}}
 					>
-						<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-(--text1) flex-nowrap">
+						<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-(--text-primary) flex-nowrap">
 							{selectedOptions.length > 0 ? (
 								<>
 									<span>Type: </span>
@@ -177,9 +177,9 @@ export default function Protocols({ emissions }) {
 							wrapperProps={{
 								className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 							}}
-							className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+							className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 						>
-							<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg1) text-(--link) text-xs border-b border-(--form-control-border)">
+							<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg-main) text-(--link) text-xs border-b border-(--form-control-border)">
 								<button
 									onClick={() => {
 										router.push(
@@ -222,7 +222,7 @@ export default function Protocols({ emissions }) {
 								<Ariakit.SelectItem
 									key={`calendar-type-${value}`}
 									value={value}
-									className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+									className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
 								>
 									<span>{value}</span>
 									<Ariakit.SelectItemCheck className="h-3 w-3 flex items-center justify-center rounded-xs shrink-0 border border-[#28a2b5]" />
@@ -237,7 +237,7 @@ export default function Protocols({ emissions }) {
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+							className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 						/>
 						<input
 							name="search"

@@ -59,7 +59,7 @@ export function PeggedAssetsTable({ data }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? assetsColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? (assetsColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		const cSize = windowSize.width
@@ -93,7 +93,7 @@ export function PeggedAssetsTable({ data }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={projectName}
@@ -149,7 +149,7 @@ export function PeggedAssetByChainTable({ data }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? assetsByChainColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? (assetsByChainColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		const cSize = windowSize.width
@@ -183,7 +183,7 @@ export function PeggedAssetByChainTable({ data }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={projectName}
@@ -243,7 +243,7 @@ export function PeggedChainsTable({ data }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						value={projectName}

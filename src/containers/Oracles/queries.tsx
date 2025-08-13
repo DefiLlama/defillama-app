@@ -131,7 +131,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		let oracleLinks = oracle
 			? [{ label: 'All', to: `/oracles/${oracle}` }].concat(
 					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
-			  )
+				)
 			: [{ label: 'All', to: `/oracles` }].concat(uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${c}` })))
 
 		const colors = {}

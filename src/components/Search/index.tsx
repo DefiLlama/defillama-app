@@ -118,7 +118,7 @@ const Search = () => {
 					status === 'loading' ? (
 						<p className="flex items-center justify-center p-4">Loading...</p>
 					) : error ? (
-						<p className="flex items-center justify-center p-4 text-(--pct-red)">{`Error: ${error.message}`}</p>
+						<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
 					) : !results?.hits?.length ? (
 						<p className="flex items-center justify-center p-4">No results found</p>
 					) : (
@@ -143,7 +143,7 @@ const Search = () => {
 				) : isLoadingSearchList ? (
 					<p className="flex items-center justify-center p-4">Loading...</p>
 				) : errorSearchList ? (
-					<p className="flex items-center justify-center p-4 text-(--pct-red)">{`Error: ${errorSearchList.message}`}</p>
+					<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
 				) : !searchList?.length ? (
 					<p className="flex items-center justify-center p-4">No results found</p>
 				) : (

@@ -19,8 +19,7 @@ interface CalendarDayCellProps {
 export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unlocksData, maxUnlockValue }) => {
 	const [isDarkMode] = useDarkModeManager()
 
-	if (!dayInfo.date)
-		return <div className="h-24 w-full border border-(--divider) bg-(--bg6) opacity-40"></div>
+	if (!dayInfo.date) return <div className="h-24 w-full border border-(--divider) bg-(--bg-card) opacity-40"></div>
 
 	const dateStr = dayInfo.date.format('YYYY-MM-DD')
 	const dayData = unlocksData[dateStr]
@@ -43,13 +42,13 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 		interpolatedColorRgb = interpolateColor(baseColor, highlightColorRgb, intensityFactor)
 	}
 
-	const textColorClass = 'text-(--text1)'
+	const textColorClass = 'text-(--text-primary)'
 
 	const textColorClassToday = 'text-(--blue)'
 
 	const cellClasses = `h-24 w-full relative border transition-colors duration-150 ease-in-out ${
 		isToday ? 'border-(--blue)' : 'border-(--divider)'
-	} ${!dayInfo.isCurrentMonth ? 'bg-(--bg6) opacity-60 hover:opacity-80' : 'hover:brightness-110'}`
+	} ${!dayInfo.isCurrentMonth ? 'bg-(--bg-card) opacity-60 hover:opacity-80' : 'hover:brightness-110'}`
 
 	const cellStyle: React.CSSProperties = {}
 	if (dayInfo.isCurrentMonth && hasUnlocks) {
@@ -81,7 +80,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 		<Tooltip
 			content={
 				<div className="flex flex-col gap-3 p-3 max-w-xs">
-					<div className="font-semibold text-sm text-(--text1)">
+					<div className="font-semibold text-sm text-(--text-primary)">
 						Total Unlock Value: {formattedNum(dayData.totalValue, true)}
 					</div>
 					{dayData.events.length > 0 && (
@@ -98,7 +97,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 											<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
 											<span className="truncate group-hover:underline">{event.protocol}</span>
 										</BasicLink>
-										<span className="text-(--text2) font-medium whitespace-nowrap">
+										<span className="text-(--text-secondary) font-medium whitespace-nowrap">
 											{formattedNum(event.value, true)}
 										</span>
 									</div>

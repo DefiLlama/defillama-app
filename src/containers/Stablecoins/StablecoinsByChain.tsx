@@ -231,7 +231,7 @@ function PeggedAssetsOverview({
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total {title}</span>
+						<span className="text-(--text-label)">Total {title}</span>
 						<span className="font-semibold text-2xl font-jetbrains">{mcapToDisplay}</span>
 					</p>
 					<details className="group text-base">
@@ -243,13 +243,13 @@ function PeggedAssetsOverview({
 								className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
 							/>
 							<span className="flex flex-col w-full">
-								<span className="text-[#545757] dark:text-[#cccccc]">Change (7d)</span>
+								<span className="text-(--text-label)">Change (7d)</span>
 
 								<span className="flex items-end justify-between flex-nowrap gap-1">
 									<span className="font-semibold text-2xl font-jetbrains">{change7d_nol}</span>
 									<span
 										className={`${
-											change7d.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
+											change7d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 										} font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis`}
 									>{`${change7d}%`}</span>
 								</span>
@@ -257,22 +257,22 @@ function PeggedAssetsOverview({
 						</summary>
 
 						<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
-							<span className="text-[#545757] dark:text-[#cccccc]">Change (1d)</span>
+							<span className="text-(--text-label)">Change (1d)</span>
 							<Tooltip
 								content={change1d_nol}
 								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-									change1d.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
+									change1d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 								}`}
 							>
 								{`${change1d}%`}
 							</Tooltip>
 						</p>
 						<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
-							<span className="text-[#545757] dark:text-[#cccccc]">Change (30d)</span>
+							<span className="text-(--text-label)">Change (30d)</span>
 							<Tooltip
 								content={change30d_nol}
 								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-									change30d.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
+									change30d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 								}`}
 							>
 								{`${change30d}%`}
@@ -280,7 +280,7 @@ function PeggedAssetsOverview({
 						</p>
 					</details>
 					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">{topToken.symbol} Dominance</span>
+						<span className="text-(--text-label)">{topToken.symbol} Dominance</span>
 						<span className="font-semibold text-2xl font-jetbrains">{dominance}%</span>
 					</p>
 				</div>

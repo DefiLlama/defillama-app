@@ -27,10 +27,10 @@ interface UpcomingUnlockVolumeChartProps {
 }
 
 const TIME_PERIODS = ['Weekly', 'Monthly'] as const
-type TimePeriod = typeof TIME_PERIODS[number]
+type TimePeriod = (typeof TIME_PERIODS)[number]
 
 const VIEW_MODES = ['Total', 'Breakdown'] as const
-type ViewMode = typeof VIEW_MODES[number]
+type ViewMode = (typeof VIEW_MODES)[number]
 
 export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
@@ -142,7 +142,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 	return (
 		<>
 			<div className="flex items-center gap-2 p-3 flex-wrap">
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 					{VIEW_MODES.map((mode) => (
 						<button
 							key={mode}
@@ -185,7 +185,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 					/>
 				</Suspense>
 			) : (
-				<p className="flex items-center justify-center text-(--text3)" style={{ height: height ?? '360px' }}>
+				<p className="flex items-center justify-center text-(--text-tertiary)" style={{ height: height ?? '360px' }}>
 					No upcoming unlock data available for the selected period.
 				</p>
 			)}

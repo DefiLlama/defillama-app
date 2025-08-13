@@ -29,8 +29,8 @@ export const PaymentButton = ({
 				!isAuthenticated
 					? 'Please sign in first to subscribe'
 					: !user?.verified && !user?.address
-					? 'Please verify your email first to subscribe'
-					: null
+						? 'Please verify your email first to subscribe'
+						: null
 			}
 		>
 			<StyledButton

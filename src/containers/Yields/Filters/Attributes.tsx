@@ -158,16 +158,16 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			pathname === '/borrow'
 				? !option.disabledOnPages.includes('/borrow')
 				: pathname === '/yields/strategy'
-				? !option.disabledOnPages.includes('/yields/strategy')
-				: pathname === '/yields/strategyFR'
-				? !option.disabledOnPages.includes('/yields/strategyFR')
-				: pathname === '/yields'
-				? !option.disabledOnPages.includes('/yields')
-				: pathname === '/yields/stablecoins'
-				? !option.disabledOnPages.includes('/yields/stablecoins')
-				: pathname === '/yields/loop'
-				? !option.disabledOnPages.includes('/yields/loop')
-				: true
+					? !option.disabledOnPages.includes('/yields/strategy')
+					: pathname === '/yields/strategyFR'
+						? !option.disabledOnPages.includes('/yields/strategyFR')
+						: pathname === '/yields'
+							? !option.disabledOnPages.includes('/yields')
+							: pathname === '/yields/stablecoins'
+								? !option.disabledOnPages.includes('/yields/stablecoins')
+								: pathname === '/yields/loop'
+									? !option.disabledOnPages.includes('/yields/loop')
+									: true
 		)
 
 		const values = attributeOptionsFiltered

@@ -64,7 +64,7 @@ export default function Protocols({ protocols }) {
 				<Ariakit.ComboboxPopover
 					sameWidth
 					open={true}
-					className="h-full max-h-[320px] overflow-y-auto bg-(--bg1) border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] rounded-b-md shadow-sm z-10"
+					className="h-full max-h-[320px] overflow-y-auto bg-(--bg-main) border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] rounded-b-md shadow-sm z-10"
 				>
 					{matches.length ? (
 						<>
@@ -78,7 +78,7 @@ export default function Protocols({ protocols }) {
 									focusOnHover
 									hideOnClick={false}
 									setValueOnClick={false}
-									className="p-3 flex items-center gap-4 text-(--text1) cursor-pointer hover:bg-(--bg2) aria-selected:bg-(--bg2) aria-disabled:opacity-50 aria-disabled:bg-(--bg2)"
+									className="p-3 flex items-center gap-4 text-(--text-primary) cursor-pointer hover:bg-(--bg-secondary) aria-selected:bg-(--bg-secondary) aria-disabled:opacity-50 aria-disabled:bg-(--bg-secondary)"
 								>
 									{option.logo ? <TokenLogo logo={option.logo} /> : null}
 									<span>{option.name}</span>
@@ -87,7 +87,7 @@ export default function Protocols({ protocols }) {
 
 							{matches.length > viewableMatches ? (
 								<button
-									className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
+									className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
@@ -95,7 +95,7 @@ export default function Protocols({ protocols }) {
 							) : null}
 						</>
 					) : (
-						<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
+						<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
 					)}
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>

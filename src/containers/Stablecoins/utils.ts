@@ -233,10 +233,10 @@ export const formatPeggedAssetsData = ({
 		const priceSource = pegged.priceSource ?? null
 		if (chain) {
 			const chainCirculating = pegged.chainCirculating[chain]
-			pegged.circulating = chainCirculating ? chainCirculating.current[pegType] ?? 0 : 0
-			pegged.circulatingPrevDay = chainCirculating ? chainCirculating.circulatingPrevDay[pegType] ?? null : null
-			pegged.circulatingPrevWeek = chainCirculating ? chainCirculating.circulatingPrevWeek[pegType] ?? null : null
-			pegged.circulatingPrevMonth = chainCirculating ? chainCirculating.circulatingPrevMonth[pegType] ?? null : null
+			pegged.circulating = chainCirculating ? (chainCirculating.current[pegType] ?? 0) : 0
+			pegged.circulatingPrevDay = chainCirculating ? (chainCirculating.circulatingPrevDay[pegType] ?? null) : null
+			pegged.circulatingPrevWeek = chainCirculating ? (chainCirculating.circulatingPrevWeek[pegType] ?? null) : null
+			pegged.circulatingPrevMonth = chainCirculating ? (chainCirculating.circulatingPrevMonth[pegType] ?? null) : null
 		} else {
 			pegged.circulating = pegged.circulating?.[pegType] ?? 0
 			pegged.circulatingPrevDay = pegged.circulatingPrevDay?.[pegType] ?? null
@@ -347,7 +347,7 @@ export const formatPeggedChainsData = ({
 			? {
 					name: chainDominance.symbol,
 					value: getStablecoinDominance(chainDominance, chainData.mcap)
-			  }
+				}
 			: null
 
 		chainData.mcaptvl = (chainData.mcap && latestChainTVL && chainData.mcap / latestChainTVL) ?? null

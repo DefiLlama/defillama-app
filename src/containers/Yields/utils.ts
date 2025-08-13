@@ -74,7 +74,7 @@ export function toFilterPool({
 						} else if (token === 'eth') {
 							return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
 						} else return false
-				  })
+					})
 				: true
 
 		const excludeToken = !excludeTokens.find((token) => tokensInPool.includes(token))
@@ -171,7 +171,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 						(isStable(tokenToLend) ? p.stablecoin : removeMetaTag(p.symbol).includes(tokenToLend)) &&
 						// tokenToBorrow in the context of cdps -> minted stablecoin -> always true
 						(isStable(tokenToBorrow) ? true : removeMetaTag(p.borrow.symbol).includes(tokenToBorrow))
-			  )
+				)
 			: []
 
 	return lendBorrowPairs.concat(cdpPairs)
@@ -393,15 +393,15 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 				t === 'ALL_USD_STABLES'
 					? p.stablecoin
 					: t === 'ALL_BITCOINS'
-					? farmSymbol.includes('BTC')
-					: farmSymbol.includes(t)
+						? farmSymbol.includes('BTC')
+						: farmSymbol.includes(t)
 			) &&
 			!tokensToExclude?.some((t) =>
 				t === 'ALL_USD_STABLES'
 					? p.stablecoin
 					: t === 'ALL_BITCOINS'
-					? farmSymbol.includes('BTC')
-					: farmSymbol.includes(t)
+						? farmSymbol.includes('BTC')
+						: farmSymbol.includes(t)
 			) &&
 			p.apy > 0
 		)

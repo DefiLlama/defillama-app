@@ -50,7 +50,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						name="search"

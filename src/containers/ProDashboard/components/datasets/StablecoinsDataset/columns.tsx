@@ -40,7 +40,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{name}
-						{symbol && symbol !== '-' && <span className="text-(--text3)"> ({symbol})</span>}
+						{symbol && symbol !== '-' && <span className="text-(--text-tertiary)"> ({symbol})</span>}
 					</BasicLink>
 				</span>
 			)
@@ -58,11 +58,11 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 				<span className="flex items-center gap-1">
 					{pegDeviation && Math.abs(pegDeviation) >= 0.5 && (
 						<Tooltip content={`${pegDeviation > 0 ? '+' : ''}${pegDeviation.toFixed(2)}% from peg`}>
-							<Icon 
-								name="alert-triangle" 
-								height={14} 
-								width={14} 
-								className={pegDeviation > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}
+							<Icon
+								name="alert-triangle"
+								height={14}
+								width={14}
+								className={pegDeviation > 0 ? 'text-(--success)' : 'text-(--error)'}
 							/>
 						</Tooltip>
 					)}
@@ -93,7 +93,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
+				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
 					{formattedPercent(value)}
 				</span>
 			)
@@ -109,7 +109,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
+				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
 					{formattedPercent(value)}
 				</span>
 			)
@@ -125,7 +125,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
+				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
 					{formattedPercent(value)}
 				</span>
 			)
@@ -145,7 +145,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 
 			return (
 				<Tooltip content={chains.join(', ')}>
-					<span className="text-sm text-(--text2)">
+					<span className="text-sm text-(--text-secondary)">
 						{displayChains.join(', ')}
 						{remainingCount > 0 && ` +${remainingCount}`}
 					</span>

@@ -214,28 +214,42 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
 	const protocols = Object.keys(chartDataBinsByProtocol)
-	const liquidablesByProtocol = protocols.reduce((acc, protocol) => {
-		acc[protocol] = Object.values(chartDataBinsByProtocol[protocol].bins).reduce((a, b) => a + b['usd'], 0)
-		return acc
-	}, {} as { [protocol: string]: number })
+	const liquidablesByProtocol = protocols.reduce(
+		(acc, protocol) => {
+			acc[protocol] = Object.values(chartDataBinsByProtocol[protocol].bins).reduce((a, b) => a + b['usd'], 0)
+			return acc
+		},
+		{} as { [protocol: string]: number }
+	)
 
 	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
 	const chains = Object.keys(chartDataBinsByChain)
-	const liquidablesByChain = chains.reduce((acc, chain) => {
-		acc[chain] = Object.values(chartDataBinsByChain[chain].bins).reduce((a, b) => a + b['usd'], 0)
-		return acc
-	}, {} as { [chain: string]: number })
+	const liquidablesByChain = chains.reduce(
+		(acc, chain) => {
+			acc[chain] = Object.values(chartDataBinsByChain[chain].bins).reduce((a, b) => a + b['usd'], 0)
+			return acc
+		},
+		{} as { [chain: string]: number }
+	)
 
 	const dangerousPositions = validPositions.filter((p) => p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice)
 	const dangerousPositionsAmount = dangerousPositions.reduce((acc, p) => acc + p.collateralValue, 0)
-	const dangerousPositionsAmountByProtocol = protocols.reduce((acc, protocol) => {
-		acc[protocol] = dangerousPositions.filter((p) => p.protocol === protocol).reduce((a, p) => a + p.collateralValue, 0)
-		return acc
-	}, {} as { [protocol: string]: number })
-	const dangerousPositionsAmountByChain = chains.reduce((acc, chain) => {
-		acc[chain] = dangerousPositions.filter((p) => p.chain === chain).reduce((a, p) => a + p.collateralValue, 0)
-		return acc
-	}, {} as { [chain: string]: number })
+	const dangerousPositionsAmountByProtocol = protocols.reduce(
+		(acc, protocol) => {
+			acc[protocol] = dangerousPositions
+				.filter((p) => p.protocol === protocol)
+				.reduce((a, p) => a + p.collateralValue, 0)
+			return acc
+		},
+		{} as { [protocol: string]: number }
+	)
+	const dangerousPositionsAmountByChain = chains.reduce(
+		(acc, chain) => {
+			acc[chain] = dangerousPositions.filter((p) => p.chain === chain).reduce((a, p) => a + p.collateralValue, 0)
+			return acc
+		},
+		{} as { [chain: string]: number }
+	)
 
 	const topPositions = [...validPositions]
 		.sort((a, b) => b.collateralValue - a.collateralValue)

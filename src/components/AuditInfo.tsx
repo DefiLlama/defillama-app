@@ -25,7 +25,7 @@ export const AuditInfo = ({ audits, auditLinks = [], color, isLoading, ...props 
 						options={auditLinks}
 						color={color}
 						isExternal
-						className="bg-(--btn2-bg) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 py-1 px-3 rounded-md cursor-pointer text-(--text1) flex-nowrap relative max-w-fit"
+						className="bg-(--btn2-bg) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 py-1 px-3 rounded-md cursor-pointer text-(--text-primary) flex-nowrap relative max-w-fit"
 					/>
 				) : (
 					<span>No</span>

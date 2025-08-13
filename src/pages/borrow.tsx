@@ -165,7 +165,7 @@ const TokensSelect = ({
 			>
 				<Ariakit.SelectProvider value={selectedValue} setValue={onChange}>
 					<Ariakit.SelectLabel className="text-base">{label}</Ariakit.SelectLabel>
-					<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 p-3 text-base font-medium rounded-md cursor-pointer text-(--text1) flex-nowrap">
+					<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 p-3 text-base font-medium rounded-md cursor-pointer text-(--text-primary) flex-nowrap">
 						{tokenInSearchData ? (
 							<>
 								<span>
@@ -185,7 +185,7 @@ const TokensSelect = ({
 						wrapperProps={{
 							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+						className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 					>
 						<Ariakit.Combobox
 							placeholder="Search..."
@@ -200,7 +200,7 @@ const TokensSelect = ({
 										<Ariakit.SelectItem
 											key={`${queryParam}-${option.symbol}`}
 											value={option.symbol}
-											className="group flex items-center gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+											className="group flex items-center gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
 											render={<Ariakit.ComboboxItem />}
 										>
 											{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : `${option.symbol}`}
@@ -209,7 +209,7 @@ const TokensSelect = ({
 								</Ariakit.ComboboxList>
 								{matches.length > viewableMatches ? (
 									<button
-										className="w-full py-4 px-3 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
+										className="w-full py-4 px-3 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 										onClick={() => setViewableMatches((prev) => prev + 20)}
 									>
 										See more...
@@ -217,7 +217,7 @@ const TokensSelect = ({
 								) : null}
 							</>
 						) : (
-							<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
+							<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
 						)}
 					</Ariakit.SelectPopover>
 				</Ariakit.SelectProvider>
@@ -308,14 +308,14 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 		<div className="rounded-md bg-white/60 dark:bg-black/60 flex flex-col overflow-y-auto w-full">
 			<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 				<button
-					className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-(--form-control-border) data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-(--form-control-border) data-[selected=true]:border-b-(--primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					onClick={() => setTab('safe')}
 					data-selected={tab === 'safe'}
 				>
 					Safe
 				</button>
 				<button
-					className="py-2 px-6 whitespace-nowrap border-b border-l border-(--form-control-border) data-[selected=true]:border-b-(--primary1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="py-2 px-6 whitespace-nowrap border-b border-l border-(--form-control-border) data-[selected=true]:border-b-(--primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					onClick={() => setTab('degen')}
 					data-selected={tab === 'degen'}
 				>

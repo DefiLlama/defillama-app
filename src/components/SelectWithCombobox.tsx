@@ -84,7 +84,7 @@ export function SelectWithCombobox({
 							className="bg-white dark:bg-black rounded-md py-2 px-3 m-3 mb-0"
 						/>
 						{clearAll || toggleAll ? (
-							<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg1) text-(--link) text-xs border-b border-(--form-control-border)">
+							<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg-main) text-(--link) text-xs border-b border-(--form-control-border)">
 								{clearAll ? (
 									<button onClick={clearAll} className="p-3">
 										Clear
@@ -102,7 +102,7 @@ export function SelectWithCombobox({
 								key={valuesAreAnArrayOfStrings ? option : option.key}
 								render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
 								hideOnClick={false}
-								className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+								className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
 							>
 								{valuesAreAnArrayOfStrings ? (
 									<span>{option}</span>
@@ -119,7 +119,7 @@ export function SelectWithCombobox({
 						))}
 						{matches.length > viewableMatches ? (
 							<button
-								className="w-full py-4 px-3 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
+								className="w-full py-4 px-3 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 								onClick={() => setViewableMatches((prev) => prev + 20)}
 							>
 								See more...
@@ -147,7 +147,7 @@ export function SelectWithCombobox({
 				}}
 			>
 				<Ariakit.Select
-					className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-(--text1) flex-nowrap"
+					className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-(--text-primary) flex-nowrap"
 					{...triggerProps}
 				>
 					{labelType === 'smol' ? (
@@ -178,7 +178,7 @@ export function SelectWithCombobox({
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="lg:max-h-[var(--popover-available-height)]! flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="lg:max-h-[var(--popover-available-height)]! flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 					portal={portal || false}
 				>
 					<Ariakit.Combobox
@@ -190,7 +190,7 @@ export function SelectWithCombobox({
 					{matches.length > 0 ? (
 						<>
 							{clearAll || toggleAll ? (
-								<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg1) text-(--link) text-xs border-b border-(--form-control-border)">
+								<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg-main) text-(--link) text-xs border-b border-(--form-control-border)">
 									{clearAll ? (
 										<button onClick={clearAll} className="p-3">
 											Clear
@@ -210,7 +210,7 @@ export function SelectWithCombobox({
 										<Ariakit.SelectItem
 											key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 											value={valuesAreAnArrayOfStrings ? option : option.key}
-											className="group flex items-center gap-2 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+											className="group flex items-center gap-2 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
 											render={<Ariakit.ComboboxItem />}
 										>
 											{valuesAreAnArrayOfStrings ? (
@@ -269,7 +269,7 @@ export function SelectWithCombobox({
 							</Ariakit.ComboboxList>
 							{matches.length > viewableMatches ? (
 								<button
-									className="w-full py-4 px-3 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
+									className="w-full py-4 px-3 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
@@ -280,7 +280,7 @@ export function SelectWithCombobox({
 							) : null}
 						</>
 					) : (
-						<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
+						<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
 					)}
 				</Ariakit.SelectPopover>
 			</Ariakit.SelectProvider>

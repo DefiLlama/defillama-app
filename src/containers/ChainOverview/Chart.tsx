@@ -90,7 +90,7 @@ export default function ChainLineBarChart({
 									}
 								])
 							}
-					  }
+						}
 					: {}),
 				markLine: {},
 				data: chartData[stack] ?? []
@@ -170,10 +170,10 @@ export default function ChainLineBarChart({
 							color: chartData['Chain Fees']
 								? chainOverviewChartColors['Chain Fees']
 								: chartData['Chain Revenue']
-								? chainOverviewChartColors['Chain Revenue']
-								: chartData['App Fees']
-								? chainOverviewChartColors['App Fees']
-								: chainOverviewChartColors['App Revenue']
+									? chainOverviewChartColors['Chain Revenue']
+									: chartData['App Fees']
+										? chainOverviewChartColors['App Fees']
+										: chainOverviewChartColors['App Revenue']
 						}
 					}
 				})
@@ -239,10 +239,10 @@ export default function ChainLineBarChart({
 							color: chartData['Active Addresses']
 								? chainOverviewChartColors['Active Addresses']
 								: chartData['New Addresses']
-								? chainOverviewChartColors['New Addresses']
-								: isThemeDark
-								? '#fff'
-								: '#000'
+									? chainOverviewChartColors['New Addresses']
+									: isThemeDark
+										? '#fff'
+										: '#000'
 						}
 					}
 				})

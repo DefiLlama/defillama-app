@@ -101,12 +101,12 @@ export default function BarChart({
 					itemStyle: stackColors
 						? {
 								color: stackColors[stack]
-						  }
+							}
 						: chartData.length <= 1
-						? {
-								color: chartColor
-						  }
-						: undefined,
+							? {
+									color: chartColor
+								}
+							: undefined,
 					data: []
 				}
 			}
@@ -224,7 +224,7 @@ export default function BarChart({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+									'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 							}}
 							portal
 						/>
@@ -254,7 +254,7 @@ export default function BarChart({
 								}
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					)}
 				</div>

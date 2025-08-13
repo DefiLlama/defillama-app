@@ -130,7 +130,7 @@ const PageView = () => {
 					date: item.lendData.timestamp,
 					Base: item.lendData?.apyBase?.toFixed(2),
 					Reward: item.lendData?.apyReward?.toFixed(2)
-			  }))
+				}))
 			: []
 
 		const barChartDataBorrow = merged?.length
@@ -138,7 +138,7 @@ const PageView = () => {
 					date: item.borrowData.timestamp,
 					Base: -item.borrowData?.apyBaseBorrow?.toFixed(2),
 					Reward: item.borrowData?.apyRewardBorrow?.toFixed(2)
-			  }))
+				}))
 			: []
 
 		const barChartDataFarm = merged?.length
@@ -146,7 +146,7 @@ const PageView = () => {
 					date: item.farmData.timestamp,
 					Base: item.farmData?.apyBase?.toFixed(2) ?? item.farmData.apy?.toFixed(2),
 					Reward: item.farmData?.apyReward?.toFixed(2)
-			  }))
+				}))
 			: []
 
 		return {
@@ -172,39 +172,37 @@ const PageView = () => {
 					<table className="w-full text-base border-collapse">
 						<tbody>
 							<tr className="border-b border-(--divider)">
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Strategy APY:</th>
+								<th className="text-(--text-label) font-normal text-left pb-1">Strategy APY:</th>
 								<td className="font-jetbrains text-right pb-1">{finalAPY?.toFixed(2)}%</td>
 							</tr>
 
 							<tr>
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pt-1">Supply APY:</th>
+								<th className="text-(--text-label) font-normal text-left pt-1">Supply APY:</th>
 								<td className="font-jetbrains text-right">{lendApy?.toFixed(2)}%</td>
 							</tr>
 
 							<tr>
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Borrow APY:</th>
+								<th className="text-(--text-label) font-normal text-left">Borrow APY:</th>
 								<td className="font-jetbrains text-right">{borrowApy?.toFixed(2)}%</td>
 							</tr>
 
 							<tr>
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Farm APY:</th>
+								<th className="text-(--text-label) font-normal text-left">Farm APY:</th>
 								<td className="font-jetbrains text-right">{farmApy?.toFixed(2)}%</td>
 							</tr>
 
 							<tr>
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Max LTV:</th>
+								<th className="text-(--text-label) font-normal text-left">Max LTV:</th>
 								<td className="font-jetbrains text-right">{ltv?.toFixed(2) * 100}%</td>
 							</tr>
 
 							<tr>
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">
-									Available Borrow Liquidity:
-								</th>
+								<th className="text-(--text-label) font-normal text-left">Available Borrow Liquidity:</th>
 								<td className="font-jetbrains text-right">${formattedNum(borrowAvailable)}</td>
 							</tr>
 
 							<tr>
-								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Farm TVL:</th>
+								<th className="text-(--text-label) font-normal text-left">Farm TVL:</th>
 								<td className="font-jetbrains text-right">{formattedNum(farmTVL, true)}</td>
 							</tr>
 						</tbody>

@@ -151,7 +151,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						{text}
 					</>
 				) : (
-					text ?? 'Sign In'
+					(text ?? 'Sign In')
 				)}
 			</button>
 

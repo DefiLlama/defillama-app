@@ -95,15 +95,15 @@ export function DefiWatchlistContainer() {
 							{selectedPortfolio === DEFAULT_PORTFOLIO_NAME ? 'Watchlist' : `${selectedPortfolio} Portfolio`}
 						</h2>
 						{selectedProtocolNames.length > 0 && (
-							<span className="text-sm text-(--text2)">
+							<span className="text-sm text-(--text-secondary)">
 								{selectedProtocolNames.length} protocol{selectedProtocolNames.length === 1 ? '' : 's'}
 							</span>
 						)}
 					</div>
 					{fetchingProtocolsList || fetchingProtocolsVolumeByChain || fetchingProtocolsFeesAndRevenueByChain ? (
 						<div className="p-8 text-center">
-							<div className="inline-flex items-center gap-2 text-(--text2)">
-								<div className="animate-spin rounded-full h-4 w-4 border-2 border-(--text2) border-t-transparent"></div>
+							<div className="inline-flex items-center gap-2 text-(--text-secondary)">
+								<div className="animate-spin rounded-full h-4 w-4 border-2 border-(--text-secondary) border-t-transparent"></div>
 								<span>Loading protocols...</span>
 							</div>
 						</div>
@@ -112,9 +112,14 @@ export function DefiWatchlistContainer() {
 					) : (
 						<div className="p-8 text-center">
 							<div className="max-w-sm mx-auto">
-								<Icon name="bookmark" height={48} width={48} className="mx-auto mb-4 text-(--text2) opacity-50" />
-								<p className="text-(--text2) mb-2">No protocols in this portfolio</p>
-								<p className="text-sm text-(--text2) opacity-75">
+								<Icon
+									name="bookmark"
+									height={48}
+									width={48}
+									className="mx-auto mb-4 text-(--text-secondary) opacity-50"
+								/>
+								<p className="text-(--text-secondary) mb-2">No protocols in this portfolio</p>
+								<p className="text-sm text-(--text-secondary) opacity-75">
 									Use the protocol selector above to add protocols to your portfolio
 								</p>
 							</div>
@@ -145,13 +150,13 @@ function PortfolioSelection({
 		<div className="p-4 border-b border-(--cards-border)">
 			<h1 className="text-xl font-semibold mb-4">Portfolio</h1>
 			<div className="flex items-center flex-wrap gap-4">
-				<span className="text-sm font-medium text-(--text1)">Active portfolio:</span>
+				<span className="text-sm font-medium text-(--text-primary)">Active portfolio:</span>
 				<Menu
 					name={selectedPortfolio.length > 100 ? selectedPortfolio.substring(0, 100) + '...' : selectedPortfolio}
 					key={`${selectedPortfolio}-${portfolios.length}`}
 					options={portfolios}
 					onItemClick={(value) => setSelectedPortfolio(value)}
-					className="flex items-center justify-between gap-2 py-2 px-3 text-sm rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text1) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium min-w-[120px]"
+					className="flex items-center justify-between gap-2 py-2 px-3 text-sm rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium min-w-[120px]"
 				/>
 				<button
 					onClick={() => {
@@ -160,7 +165,7 @@ function PortfolioSelection({
 							addPortfolio(newPortfolio)
 						}
 					}}
-					className="flex items-center gap-2 py-2 px-3 text-sm rounded-md hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) transition-colors border border-(--form-control-border) text-(--text1)"
+					className="flex items-center gap-2 py-2 px-3 text-sm rounded-md hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) transition-colors border border-(--form-control-border) text-(--text-primary)"
 					title="Create new portfolio"
 				>
 					<Icon name="folder-plus" height={16} width={16} />
@@ -198,7 +203,9 @@ function ProtocolSelection({
 		<div className="p-4 border-b border-(--cards-border)">
 			<div className="mb-3">
 				<h2 className="text-lg font-medium mb-1">Manage Protocols</h2>
-				<p className="text-sm text-(--text2)">Select or deselect protocols for the "{selectedPortfolio}" portfolio</p>
+				<p className="text-sm text-(--text-secondary)">
+					Select or deselect protocols for the "{selectedPortfolio}" portfolio
+				</p>
 			</div>
 			<SelectWithCombobox
 				allValues={protocolOptions}
@@ -276,13 +283,13 @@ function TopMovers({ protocols }: TopMoversProps) {
 		<div className="p-4 border-b border-(--cards-border)">
 			<div className="mb-4">
 				<h2 className="text-lg font-medium mb-1">Top Movers</h2>
-				<p className="text-sm text-(--text2)">Biggest changes in your portfolio</p>
+				<p className="text-sm text-(--text-secondary)">Biggest changes in your portfolio</p>
 			</div>
 
 			{/* Filters */}
 			<div className="flex flex-wrap items-center gap-4 mb-4">
 				<div className="flex items-center gap-2">
-					<span className="text-sm font-medium text-(--text2)">Show:</span>
+					<span className="text-sm font-medium text-(--text-secondary)">Show:</span>
 					<label className="flex items-center gap-2 cursor-pointer">
 						<input
 							type="checkbox"
@@ -305,7 +312,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 
 				{availableChains.length > 0 && (
 					<div className="flex items-center gap-2">
-						<span className="text-sm font-medium text-(--text2)">Chains:</span>
+						<span className="text-sm font-medium text-(--text-secondary)">Chains:</span>
 						<SelectWithCombobox
 							allValues={chainOptions}
 							selectedValues={selectedChains}
@@ -324,8 +331,8 @@ function TopMovers({ protocols }: TopMoversProps) {
 			{/* Top Movers Cards */}
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 				{(['1d', '7d', '1m'] as const).map((period) => (
-					<div key={period} className="bg-(--bg2) rounded-lg p-4">
-						<h3 className="font-medium text-(--text1) mb-3 text-center">
+					<div key={period} className="bg-(--bg-secondary) rounded-lg p-4">
+						<h3 className="font-medium text-(--text-primary) mb-3 text-center">
 							{period === '1d' ? '24 Hours' : period === '7d' ? '7 Days' : '30 Days'}
 						</h3>
 
@@ -334,11 +341,11 @@ function TopMovers({ protocols }: TopMoversProps) {
 								{topMovers[period].map((mover, index) => (
 									<div
 										key={mover.name}
-										className="flex items-center justify-between p-2 rounded bg-(--bg1) hover:bg-(--primary1-hover) transition-colors"
+										className="flex items-center justify-between p-2 rounded bg-(--bg-main) hover:bg-(--primary-hover) transition-colors"
 									>
 										<div className="flex items-center gap-2 min-w-0 flex-1">
-											<span className="text-xs text-(--text2) font-medium w-4 shrink-0">#{index + 1}</span>
-											<span className="text-sm font-medium text-(--text1) truncate">{mover.name}</span>
+											<span className="text-xs text-(--text-secondary) font-medium w-4 shrink-0">#{index + 1}</span>
+											<span className="text-sm font-medium text-(--text-primary) truncate">{mover.name}</span>
 										</div>
 										<div className="flex items-center gap-1 shrink-0 ml-2">
 											<span className={`text-sm font-medium ${mover.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -357,8 +364,13 @@ function TopMovers({ protocols }: TopMoversProps) {
 							</div>
 						) : (
 							<div className="text-center py-4">
-								<Icon name="bar-chart" height={24} width={24} className="mx-auto mb-2 text-(--text2) opacity-50" />
-								<p className="text-sm text-(--text2)">No movers found</p>
+								<Icon
+									name="bar-chart"
+									height={24}
+									width={24}
+									className="mx-auto mb-2 text-(--text-secondary) opacity-50"
+								/>
+								<p className="text-sm text-(--text-secondary)">No movers found</p>
 							</div>
 						)}
 					</div>

@@ -7,14 +7,14 @@ const customStyles = {
 		padding: '2px',
 		borderRadius: '6px',
 		border: '1px solid var(--form-control-border)',
-		color: 'var(--text1)',
+		color: 'var(--text-primary)',
 		boxShadow: 'none',
 		margin: 0,
 		zIndex: 0
 	}),
 	input: (provided) => ({
 		...provided,
-		color: 'var(--text1)'
+		color: 'var(--text-primary)'
 	}),
 	menu: (provided) => ({
 		...provided,
@@ -23,7 +23,7 @@ const customStyles = {
 	}),
 	option: (provided, state) => ({
 		...provided,
-		color: state.isActive ? 'black' : 'var(--text1)'
+		color: state.isActive ? 'black' : 'var(--text-primary)'
 	}),
 	multiValue: (provided) => ({
 		...provided,
@@ -33,15 +33,15 @@ const customStyles = {
 	}),
 	multiValueLabel: (styles) => ({
 		...styles,
-		color: 'var(--text1)'
+		color: 'var(--text-primary)'
 	}),
 	placeholder: (provided) => ({
 		...provided,
-		color: 'var(--text3)'
+		color: 'var(--text-tertiary)'
 	}),
 	singleValue: (provided, state) => ({
 		...provided,
-		color: 'var(--text1)'
+		color: 'var(--text-primary)'
 	})
 }
 

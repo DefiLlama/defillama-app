@@ -12,7 +12,7 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 		{ id: 'chart' as const, label: 'Chart', subtitle: '(Single)', mobileLabel: 'Chart' },
 		{ id: 'composer' as const, label: 'Chart Composer', subtitle: '(Multi)', mobileLabel: 'Composer' },
 		{ id: 'table' as const, label: 'Table', subtitle: '(Dataset)', mobileLabel: 'Table' },
-		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' },
+		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' }
 	]
 
 	return (
@@ -22,7 +22,7 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 					key={tab.id}
 					className={`px-2 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-medium border transition-colors duration-200 ${
 						selectedMainTab === tab.id
-							? 'border-(--primary1) bg-(--primary1) text-white'
+							? 'border-(--primary) bg-(--primary) text-white'
 							: 'pro-border pro-hover-bg pro-text2'
 					}`}
 					onClick={() => !editItem && onTabChange(tab.id)}

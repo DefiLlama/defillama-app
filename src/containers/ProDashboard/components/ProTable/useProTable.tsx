@@ -300,8 +300,8 @@ export function useProTable(
 					e.stopPropagation()
 					onFilterClick()
 				}}
-				className={`p-1 rounded hover:bg-(--bg3) transition-colors ${
-					hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : 'text-(--text3)'
+				className={`p-1 rounded hover:bg-(--bg-tertiary) transition-colors ${
+					hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : 'text-(--text-tertiary)'
 				}`}
 				title="Filter protocols"
 			>
@@ -319,7 +319,7 @@ export function useProTable(
 							{filterButton}
 						</div>
 					)
-			  }
+				}
 			: null
 
 		const categoryColumn = originalCategoryColumn
@@ -332,7 +332,7 @@ export function useProTable(
 							{React.cloneElement(filterButton, { key: 'category-filter' })}
 						</div>
 					)
-			  }
+				}
 			: null
 
 		return { name: nameColumn, category: categoryColumn }
@@ -567,10 +567,13 @@ export function useProTable(
 	// Get current column visibility state
 	const currentColumns = React.useMemo(() => {
 		if (!table) return {}
-		return table.getAllLeafColumns().reduce((acc, col) => {
-			acc[col.id] = col.getIsVisible()
-			return acc
-		}, {} as Record<string, boolean>)
+		return table.getAllLeafColumns().reduce(
+			(acc, col) => {
+				acc[col.id] = col.getIsVisible()
+				return acc
+			},
+			{} as Record<string, boolean>
+		)
 	}, [
 		table
 			? table
@@ -636,7 +639,7 @@ export function useProTable(
 						if (indexA === -1) return 1
 						if (indexB === -1) return -1
 						return indexA - indexB
-				  })
+					})
 				: visibleColumns
 
 		const headers = sortedColumns.map((col) => {
@@ -666,8 +669,8 @@ export function useProTable(
 			chains.length === 1
 				? `${chains[0]}_protocols_${new Date().toISOString().split('T')[0]}.csv`
 				: chains.length <= 3
-				? `${chains.join('_')}_protocols_${new Date().toISOString().split('T')[0]}.csv`
-				: `multi_chain_${chains.length}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+					? `${chains.join('_')}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+					: `multi_chain_${chains.length}_protocols_${new Date().toISOString().split('T')[0]}.csv`
 		link.setAttribute('download', filename)
 		link.style.visibility = 'hidden'
 		document.body.appendChild(link)

@@ -27,8 +27,10 @@ export function CustomColumnPanel({
 	const [newColumnName, setNewColumnName] = React.useState('')
 	const [newColumnExpression, setNewColumnExpression] = React.useState('')
 	const [validationError, setValidationError] = React.useState('')
-	const [liveValidation, setLiveValidation] = React.useState<{ isValid: boolean; error?: string; result?: number }>({ isValid: true })
-	
+	const [liveValidation, setLiveValidation] = React.useState<{ isValid: boolean; error?: string; result?: number }>({
+		isValid: true
+	})
+
 	// Autocomplete state
 	const [showAutocomplete, setShowAutocomplete] = React.useState(false)
 	const [autocompleteIndex, setAutocompleteIndex] = React.useState(-1)
@@ -50,7 +52,7 @@ export function CustomColumnPanel({
 	const autocompleteSuggestions = React.useMemo(() => {
 		const suggestions = [
 			// Variables
-			...availableVariables.map(variable => ({
+			...availableVariables.map((variable) => ({
 				type: 'variable' as const,
 				value: variable.key,
 				display: variable.key,
@@ -65,17 +67,65 @@ export function CustomColumnPanel({
 			{ type: 'operator' as const, value: ' % ', display: '%', description: 'Modulo', category: 'Operators' },
 			{ type: 'operator' as const, value: ' ^ ', display: '^', description: 'Exponentiation', category: 'Operators' },
 			// Functions
-			{ type: 'function' as const, value: 'abs(', display: 'abs()', description: 'Absolute value', category: 'Functions' },
-			{ type: 'function' as const, value: 'sqrt(', display: 'sqrt()', description: 'Square root', category: 'Functions' },
-			{ type: 'function' as const, value: 'pow(', display: 'pow(x, y)', description: 'Power function', category: 'Functions' },
-			{ type: 'function' as const, value: 'max(', display: 'max()', description: 'Maximum value', category: 'Functions' },
-			{ type: 'function' as const, value: 'min(', display: 'min()', description: 'Minimum value', category: 'Functions' },
-			{ type: 'function' as const, value: 'round(', display: 'round()', description: 'Round to nearest integer', category: 'Functions' },
-			{ type: 'function' as const, value: 'floor(', display: 'floor()', description: 'Round down', category: 'Functions' },
+			{
+				type: 'function' as const,
+				value: 'abs(',
+				display: 'abs()',
+				description: 'Absolute value',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'sqrt(',
+				display: 'sqrt()',
+				description: 'Square root',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'pow(',
+				display: 'pow(x, y)',
+				description: 'Power function',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'max(',
+				display: 'max()',
+				description: 'Maximum value',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'min(',
+				display: 'min()',
+				description: 'Minimum value',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'round(',
+				display: 'round()',
+				description: 'Round to nearest integer',
+				category: 'Functions'
+			},
+			{
+				type: 'function' as const,
+				value: 'floor(',
+				display: 'floor()',
+				description: 'Round down',
+				category: 'Functions'
+			},
 			{ type: 'function' as const, value: 'ceil(', display: 'ceil()', description: 'Round up', category: 'Functions' },
 			// Parentheses
-			{ type: 'operator' as const, value: '(', display: '(', description: 'Opening parenthesis', category: 'Operators' },
-			{ type: 'operator' as const, value: ')', display: ')', description: 'Closing parenthesis', category: 'Operators' },
+			{
+				type: 'operator' as const,
+				value: '(',
+				display: '(',
+				description: 'Opening parenthesis',
+				category: 'Operators'
+			},
+			{ type: 'operator' as const, value: ')', display: ')', description: 'Closing parenthesis', category: 'Operators' }
 		]
 		return suggestions
 	}, [availableVariables])
@@ -142,13 +192,13 @@ export function CustomColumnPanel({
 		try {
 			const parser = new Parser()
 			const expr = parser.parse(expression)
-			
+
 			// Test with dummy data to catch variable issues
 			const testData: Record<string, number> = {}
 			availableVariables.forEach((variable) => {
 				testData[variable.key] = 100
 			})
-			
+
 			expr.evaluate(testData)
 			return { isValid: true }
 		} catch (error) {
@@ -184,29 +234,30 @@ export function CustomColumnPanel({
 	// Filter autocomplete suggestions based on current input
 	const filteredSuggestions = React.useMemo(() => {
 		if (!autocompleteFilter.trim()) return autocompleteSuggestions
-		
+
 		const filter = autocompleteFilter.toLowerCase()
-		return autocompleteSuggestions.filter(suggestion => 
-			suggestion.display.toLowerCase().includes(filter) ||
-			suggestion.description.toLowerCase().includes(filter) ||
-			suggestion.value.toLowerCase().includes(filter)
+		return autocompleteSuggestions.filter(
+			(suggestion) =>
+				suggestion.display.toLowerCase().includes(filter) ||
+				suggestion.description.toLowerCase().includes(filter) ||
+				suggestion.value.toLowerCase().includes(filter)
 		)
 	}, [autocompleteSuggestions, autocompleteFilter])
 
 	const insertVariable = (variableKey: string) => {
-		setNewColumnExpression(prev => prev + variableKey)
+		setNewColumnExpression((prev) => prev + variableKey)
 		setShowAutocomplete(false)
 		setAutocompleteIndex(-1)
 	}
 
 	const insertOperator = (operator: string) => {
-		setNewColumnExpression(prev => prev + ` ${operator} `)
+		setNewColumnExpression((prev) => prev + ` ${operator} `)
 		setShowAutocomplete(false)
 		setAutocompleteIndex(-1)
 	}
 
 	// Insert suggestion at cursor position
-	const insertSuggestion = (suggestion: typeof autocompleteSuggestions[0]) => {
+	const insertSuggestion = (suggestion: (typeof autocompleteSuggestions)[0]) => {
 		if (!inputRef.current) return
 
 		const input = inputRef.current
@@ -222,7 +273,7 @@ export function CustomColumnPanel({
 
 		const newValue = value.slice(0, wordStart) + suggestion.value + value.slice(end)
 		setNewColumnExpression(newValue)
-		
+
 		// Set cursor position after inserted text
 		setTimeout(() => {
 			const newPosition = wordStart + suggestion.value.length
@@ -239,7 +290,7 @@ export function CustomColumnPanel({
 	const handleExpressionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const newValue = e.target.value
 		const cursorPos = e.target.selectionStart || 0
-		
+
 		setNewColumnExpression(newValue)
 		setCursorPosition(cursorPos)
 
@@ -248,9 +299,9 @@ export function CustomColumnPanel({
 		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) {
 			wordStart--
 		}
-		
+
 		const currentWord = newValue.slice(wordStart, cursorPos)
-		
+
 		// Show autocomplete if we're typing a word (at least 1 character)
 		if (currentWord.length >= 1) {
 			setAutocompleteFilter(currentWord)
@@ -278,15 +329,11 @@ export function CustomColumnPanel({
 		switch (e.key) {
 			case 'ArrowDown':
 				e.preventDefault()
-				setAutocompleteIndex(prev => 
-					prev < filteredSuggestions.length - 1 ? prev + 1 : 0
-				)
+				setAutocompleteIndex((prev) => (prev < filteredSuggestions.length - 1 ? prev + 1 : 0))
 				break
 			case 'ArrowUp':
 				e.preventDefault()
-				setAutocompleteIndex(prev => 
-					prev > 0 ? prev - 1 : filteredSuggestions.length - 1
-				)
+				setAutocompleteIndex((prev) => (prev > 0 ? prev - 1 : filteredSuggestions.length - 1))
 				break
 			case 'Enter':
 			case 'Tab':
@@ -323,7 +370,7 @@ export function CustomColumnPanel({
 	// Format number for display
 	const formatPreviewNumber = (value: number | null): string => {
 		if (value === null || value === undefined) return '-'
-		
+
 		if (Math.abs(value) >= 1e9) {
 			return `$${(value / 1e9).toFixed(2)}B`
 		} else if (Math.abs(value) >= 1e6) {
@@ -334,8 +381,6 @@ export function CustomColumnPanel({
 			return value.toFixed(2)
 		}
 	}
-
-
 
 	const handleMouseDown = (e: React.MouseEvent) => {
 		// Prevent drag events from bubbling up to dashboard
@@ -349,7 +394,7 @@ export function CustomColumnPanel({
 	}
 
 	return (
-		<div 
+		<div
 			className="space-y-6"
 			onMouseDown={handleMouseDown}
 			onDragStart={handleDragStart}
@@ -358,7 +403,7 @@ export function CustomColumnPanel({
 			{/* Add New Custom Column */}
 			<div className="p-4 border pro-divider pro-bg2">
 				<h5 className="text-sm font-medium pro-text1 mb-3">Create Custom Column</h5>
-				
+
 				<div className="space-y-3">
 					<div>
 						<label className="block text-xs font-medium pro-text2 mb-1">Column Name</label>
@@ -367,7 +412,7 @@ export function CustomColumnPanel({
 							value={newColumnName}
 							onChange={(e) => setNewColumnName(e.target.value)}
 							placeholder="e.g., P/E Ratio, Custom Metric"
-							className="w-full px-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
+							className="w-full px-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
 							onMouseDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
@@ -389,22 +434,22 @@ export function CustomColumnPanel({
 								}}
 								placeholder="e.g., tvl / mcap, (fees_24h + revenue_24h) * 365, tvl * 0.1"
 								className={`w-full px-3 py-2 text-sm border pro-text1 placeholder:pro-text3 focus:outline-hidden transition-colors pro-bg2 ${
-									newColumnExpression && !liveValidation.isValid 
-										? 'border-red-500 focus:border-red-500' 
+									newColumnExpression && !liveValidation.isValid
+										? 'border-red-500 focus:border-red-500'
 										: newColumnExpression && liveValidation.isValid
-										? 'border-green-500 focus:border-green-500'
-										: 'pro-divider focus:border-(--primary1)'
+											? 'border-green-500 focus:border-green-500'
+											: 'pro-divider focus:border-(--primary)'
 								}`}
 								onMouseDown={(e) => e.stopPropagation()}
 								onDragStart={(e) => e.preventDefault()}
 								draggable={false}
 							/>
-							
+
 							{/* Autocomplete dropdown */}
 							{showAutocomplete && filteredSuggestions.length > 0 && (
-								<div 
+								<div
 									className="absolute z-50 mt-1 pro-bg2 border pro-divider rounded-sm shadow-lg max-h-64 overflow-y-auto thin-scrollbar"
-									style={{ 
+									style={{
 										width: '320px',
 										minWidth: '280px',
 										maxWidth: '400px'
@@ -418,25 +463,25 @@ export function CustomColumnPanel({
 											key={`${suggestion.type}-${suggestion.value}`}
 											onClick={() => insertSuggestion(suggestion)}
 											className={`px-3 py-1.5 cursor-pointer flex items-center gap-2 text-sm ${
-												index === autocompleteIndex 
-													? 'bg-(--primary1) text-white' 
-													: 'pro-hover-bg pro-text1'
+												index === autocompleteIndex ? 'bg-(--primary) text-white' : 'pro-hover-bg pro-text1'
 											}`}
 											onMouseEnter={() => setAutocompleteIndex(index)}
 										>
-											<span className={`w-1 h-1 rounded-full shrink-0 ${
-												suggestion.type === 'variable' ? 'bg-blue-500' :
-												suggestion.type === 'function' ? 'bg-purple-500' :
-												'bg-gray-500'
-											}`} />
+											<span
+												className={`w-1 h-1 rounded-full shrink-0 ${
+													suggestion.type === 'variable'
+														? 'bg-blue-500'
+														: suggestion.type === 'function'
+															? 'bg-purple-500'
+															: 'bg-gray-500'
+												}`}
+											/>
 											<code className="font-mono text-sm shrink-0 min-w-0">{suggestion.display}</code>
 											<span className="text-xs pro-text3 truncate ml-auto">{suggestion.description}</span>
 										</div>
 									))}
 									{filteredSuggestions.length === 0 && autocompleteFilter && (
-										<div className="px-3 py-2 text-sm pro-text3">
-											No suggestions found for "{autocompleteFilter}"
-										</div>
+										<div className="px-3 py-2 text-sm pro-text3">No suggestions found for "{autocompleteFilter}"</div>
 									)}
 								</div>
 							)}
@@ -451,18 +496,21 @@ export function CustomColumnPanel({
 								</div>
 							)}
 						</div>
-						
+
 						<p className="mt-1 text-xs pro-text3">
-							💡 Start typing to see autocomplete suggestions. Use ↑↓ to navigate, Enter/Tab to select, Esc to close, or Ctrl+Space to open.
+							💡 Start typing to see autocomplete suggestions. Use ↑↓ to navigate, Enter/Tab to select, Esc to close, or
+							Ctrl+Space to open.
 						</p>
-						
+
 						{/* Live Preview */}
 						{newColumnExpression && (
-							<div className={`mt-2 p-2 border rounded text-xs ${
-								liveValidation.isValid 
-									? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' 
-									: 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
-							}`}>
+							<div
+								className={`mt-2 p-2 border rounded text-xs ${
+									liveValidation.isValid
+										? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+										: 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
+								}`}
+							>
 								<div className="flex items-center justify-between">
 									<span className="font-medium pro-text2">Live Preview:</span>
 									{liveValidation.isValid ? (
@@ -470,19 +518,22 @@ export function CustomColumnPanel({
 											{formatPreviewNumber(liveValidation.result || null)}
 										</span>
 									) : (
-										<span className="text-red-700 dark:text-red-300">
-											{liveValidation.error}
-										</span>
+										<span className="text-red-700 dark:text-red-300">{liveValidation.error}</span>
 									)}
 								</div>
 								{liveValidation.isValid && (
 									<div className="mt-1 pro-text3 text-xs">
-										Using sample data: {Object.entries(sampleData).slice(0, 3).map(([key, value]) => `${key}=${formatPreviewNumber(value)}`).join(', ')}...
+										Using sample data:{' '}
+										{Object.entries(sampleData)
+											.slice(0, 3)
+											.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+											.join(', ')}
+										...
 									</div>
 								)}
 							</div>
 						)}
-						
+
 						{/* Quick Operator Buttons - Compact */}
 						<div className="mt-2 flex flex-wrap gap-1">
 							<span className="text-xs pro-text3 mr-2">Quick operators:</span>
@@ -511,7 +562,7 @@ export function CustomColumnPanel({
 					<button
 						onClick={handleAddColumn}
 						disabled={!newColumnName.trim() || !newColumnExpression.trim()}
-						className="px-3 py-1 bg-(--primary1) text-white hover:bg-(--primary1-hover) transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+						className="px-3 py-1 bg-(--primary) text-white hover:bg-(--primary-hover) transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
 					>
 						Add Custom Column
 					</button>
@@ -534,12 +585,16 @@ export function CustomColumnPanel({
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
 						>
-							<code className="text-(--primary1) font-mono text-xs block truncate">{variable.key}</code>
+							<code className="text-(--primary) font-mono text-xs block truncate">{variable.key}</code>
 						</button>
 					))}
 				</div>
 				<div className="mt-2 text-xs pro-text3">
-					Sample values: {Object.entries(sampleData).slice(0, 4).map(([key, value]) => `${key}=${formatPreviewNumber(value)}`).join(', ')}
+					Sample values:{' '}
+					{Object.entries(sampleData)
+						.slice(0, 4)
+						.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+						.join(', ')}
 				</div>
 			</div>
 
@@ -548,10 +603,7 @@ export function CustomColumnPanel({
 				<div className="space-y-3">
 					<h5 className="text-sm font-medium pro-text2">Custom Columns ({customColumns.length})</h5>
 					{customColumns.map((column) => (
-						<div
-							key={column.id}
-							className="p-3 border pro-divider pro-bg3"
-						>
+						<div key={column.id} className="p-3 border pro-divider pro-bg3">
 							<div className="flex items-center justify-between">
 								<div className="flex-1">
 									<div className="flex items-center gap-2 mb-1">
@@ -587,15 +639,15 @@ export function CustomColumnPanel({
 				<h5 className="text-sm font-medium pro-text2 mb-3">Example Expressions</h5>
 				<div className="space-y-2 text-xs">
 					<div>
-						<code className="text-(--primary1) font-mono">(fees_24h + revenue_24h) * 365</code>
+						<code className="text-(--primary) font-mono">(fees_24h + revenue_24h) * 365</code>
 						<span className="pro-text3 ml-2">Annualized fees + revenue</span>
 					</div>
 					<div>
-						<code className="text-(--primary1) font-mono">volume_24h / tvl</code>
+						<code className="text-(--primary) font-mono">volume_24h / tvl</code>
 						<span className="pro-text3 ml-2">Volume to TVL ratio</span>
 					</div>
 					<div>
-						<code className="text-(--primary1) font-mono">(change_1d + change_7d) / 2</code>
+						<code className="text-(--primary) font-mono">(change_1d + change_7d) / 2</code>
 						<span className="pro-text3 ml-2">Average price change</span>
 					</div>
 				</div>

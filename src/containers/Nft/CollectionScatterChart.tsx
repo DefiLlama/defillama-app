@@ -81,7 +81,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 							},
 							yAxisIndex: 1
 						}
-				  ]
+					]
 				: []
 
 		const option = {

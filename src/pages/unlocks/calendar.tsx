@@ -254,7 +254,7 @@ export default function UnlocksCalendar({
 							name="bookmark"
 							height={16}
 							width={16}
-							style={{ fill: showOnlyWatchlist ? 'var(--text1)' : 'none' }}
+							style={{ fill: showOnlyWatchlist ? 'var(--text-primary)' : 'none' }}
 						/>
 						{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
 					</button>
@@ -263,7 +263,12 @@ export default function UnlocksCalendar({
 						onClick={() => setShowOnlyInsider((prev) => !prev)}
 						className="border border-(--form-control-border) p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
 					>
-						<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text1)' : 'none' }} />
+						<Icon
+							name="key"
+							height={16}
+							width={16}
+							style={{ fill: showOnlyInsider ? 'var(--text-primary)' : 'none' }}
+						/>
 						{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}
 					</button>
 				</div>

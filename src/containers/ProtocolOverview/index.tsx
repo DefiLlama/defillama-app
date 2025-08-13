@@ -211,7 +211,7 @@ const ProtocolTVL = ({
 		<details className="group">
 			<summary className="flex flex-col">
 				<span className="flex items-center flex-nowrap gap-2">
-					<span className="text-[#545757] dark:text-[#cccccc]">{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
+					<span className="text-(--text-label)">{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
 					<Flag
 						protocol={name}
 						dataType="TVL"
@@ -238,7 +238,7 @@ const ProtocolTVL = ({
 						key={`${chain}-${tvl}-${name}`}
 						className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1"
 					>
-						<span className="text-[#545757] dark:text-[#cccccc]">{chain}</span>
+						<span className="text-(--text-label)">{chain}</span>
 						<span className="font-jetbrains">{formatPrice(tvl)}</span>
 					</p>
 				))}
@@ -282,7 +282,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<TokenCGData formatPrice={props.formatPrice} {...props} />
 				{props.currentTvlByChain?.staking != null ? (
 					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-						<span className="text-[#545757] dark:text-[#cccccc]">Staked</span>
+						<span className="text-(--text-label)">Staked</span>
 						<Flag
 							protocol={props.name}
 							dataType="Staked"
@@ -292,7 +292,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 						{props.tokenCGData?.marketCap?.current ? (
 							<span className="flex items-center gap-1">
 								<span className="font-jetbrains">{props.formatPrice(props.currentTvlByChain.staking)}</span>
-								<span className="text-xs text-[#545757] dark:text-[#cccccc]">
+								<span className="text-xs text-(--text-label)">
 									({formattedNum((props.currentTvlByChain.staking / props.tokenCGData.marketCap.current) * 100)}% of
 									mcap)
 								</span>
@@ -304,7 +304,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				) : null}
 				{props.currentTvlByChain?.borrowed != null ? (
 					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-						<span className="text-[#545757] dark:text-[#cccccc]">Borrowed</span>
+						<span className="text-(--text-label)">Borrowed</span>
 						<Flag
 							protocol={props.name}
 							dataType="Borrowed"
@@ -1119,7 +1119,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
-				<span className="text-[#545757] dark:text-[#cccccc]">Annual Operational Expenses</span>
+				<span className="text-(--text-label)">Annual Operational Expenses</span>
 				<Icon
 					name="chevron-down"
 					height={16}
@@ -1136,7 +1136,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 			</summary>
 			<div className="flex flex-col mb-3">
 				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
-					<span className="text-[#545757] dark:text-[#cccccc]">Headcount</span>
+					<span className="text-(--text-label)">Headcount</span>
 					<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
 				</p>
 				{props.expenses.annualUsdCost.map(([category, amount]) => (
@@ -1145,14 +1145,14 @@ const Expenses = (props: IKeyMetricsProps) => {
 						key={`${props.name}-expenses-${category}-${amount}`}
 					>
 						<span className="flex flex-wrap justify-between">
-							<span className="text-[#545757] dark:text-[#cccccc]">{category}</span>
+							<span className="text-(--text-label)">{category}</span>
 							<span className="font-jetbrains">{props.formatPrice(amount)}</span>
 						</span>
 					</p>
 				))}
 				{props.expenses?.sources?.length ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-						<span className="text-[#545757] dark:text-[#cccccc]">Sources</span>
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-(--text-label)">
+						<span className="text-(--text-label)">Sources</span>
 						{props.expenses.sources?.map((source) => (
 							<a
 								href={source}
@@ -1167,14 +1167,14 @@ const Expenses = (props: IKeyMetricsProps) => {
 					</p>
 				) : null}
 				{props.expenses?.notes?.length ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-						<span className="text-[#545757] dark:text-[#cccccc]">Notes</span>
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-(--text-label)">
+						<span className="text-(--text-label)">Notes</span>
 						<span>{props.expenses.notes?.join(', ') ?? ''}</span>
 					</p>
 				) : null}
 				{props.expenses?.lastUpdate ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-[#545757] dark:text-[#cccccc]">
-						<span className="text-[#545757] dark:text-[#cccccc]">Last Update</span>
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-(--text-label)">
+						<span className="text-(--text-label)">Last Update</span>
 						<span>{dayjs.utc(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
 					</p>
 				) : null}
@@ -1190,7 +1190,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 				<Tooltip
 					content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
-					className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+					className="text-(--text-label) underline decoration-dotted"
 				>
 					{`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
 				</Tooltip>
@@ -1214,7 +1214,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 						key={`${pool[0]}-${pool[1]}-${pool[2]}`}
 						className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
 					>
-						<span className="text-[#545757] dark:text-[#cccccc]">{pool[0]}</span>
+						<span className="text-(--text-label)">{pool[0]}</span>
 						<span className="font-jetbrains">{props.formatPrice(pool[2])}</span>
 					</p>
 				))}
@@ -1229,7 +1229,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 		<>
 			{props.tokenCGData?.marketCap?.current ? (
 				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-					<span className="text-[#545757] dark:text-[#cccccc]">Market Cap</span>
+					<span className="text-(--text-label)">Market Cap</span>
 					<Flag
 						protocol={props.name}
 						dataType="Market Cap"
@@ -1243,7 +1243,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
 					<details className="group">
 						<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">{`${
+							<span className="text-(--text-label)">{`${
 								props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 							} Price`}</span>
 							<Icon
@@ -1262,18 +1262,18 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 						</summary>
 						<div className="flex flex-col mb-3">
 							<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">All Time High</span>
+								<span className="text-(--text-label)">All Time High</span>
 								<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.price.ath)}</span>
 							</p>
 							<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
-								<span className="text-[#545757] dark:text-[#cccccc]">All Time Low</span>
+								<span className="text-(--text-label)">All Time Low</span>
 								<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.price.atl)}</span>
 							</p>
 						</div>
 					</details>
 				) : (
 					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-						<span className="text-[#545757] dark:text-[#cccccc]">{`${
+						<span className="text-(--text-label)">{`${
 							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 						} Price`}</span>
 						<Flag
@@ -1289,7 +1289,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 			{props.tokenCGData?.fdv?.current ? (
 				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 					<Tooltip
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+						className="text-(--text-label) underline decoration-dotted"
 						content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
 					>
 						Fully Diluted Valuation
@@ -1306,7 +1306,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 			{props.outstandingFDV ? (
 				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
 					<Tooltip
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+						className="text-(--text-label) underline decoration-dotted"
 						content={`Outstanding FDV is calculated by taking the outstanding supply of the token and multiplying it by the price.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).`}
 					>
 						Outstanding FDV
@@ -1317,7 +1317,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 			{props.tokenCGData.volume24h?.total ? (
 				<details className="group">
 					<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">{`${
+						<span className="text-(--text-label)">{`${
 							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 						} Volume 24h`}</span>
 						<Icon
@@ -1336,18 +1336,18 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 					</summary>
 					<div className="flex flex-col mb-3">
 						<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">CEX Volume</span>
+							<span className="text-(--text-label)">CEX Volume</span>
 							<span className="font-jetbrains">
 								{props.tokenCGData.volume24h.cex ? props.formatPrice(props.tokenCGData.volume24h.cex) : '-'}
 							</span>
 						</p>
 						<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
-							<span className="text-[#545757] dark:text-[#cccccc]">DEX Volume</span>
+							<span className="text-(--text-label)">DEX Volume</span>
 							<span className="flex items-center gap-1">
 								<span className="font-jetbrains">
 									{props.tokenCGData.volume24h.dex ? props.formatPrice(props.tokenCGData.volume24h.dex) : '-'}
 								</span>
-								<span className="text-xs text-[#545757] dark:text-[#cccccc]">
+								<span className="text-xs text-(--text-label)">
 									({formattedNum((props.tokenCGData.volume24h.dex / props.tokenCGData.volume24h.total) * 100)}% of
 									total)
 								</span>
@@ -1383,14 +1383,11 @@ const SmolStats = ({
 		return (
 			<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 				{data[0].tooltipContent ? (
-					<Tooltip
-						content={data[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
+					<Tooltip content={data[0].tooltipContent} className="text-(--text-label) underline decoration-dotted">
 						{data[0].name}
 					</Tooltip>
 				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{data[0].name}</span>
+					<span className="text-(--text-label)">{data[0].name}</span>
 				)}
 				<Flag
 					protocol={protocolName}
@@ -1407,14 +1404,11 @@ const SmolStats = ({
 		<details className="group" open={openSmolStatsSummaryByDefault}>
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
 				{data[0].tooltipContent ? (
-					<Tooltip
-						content={data[0].tooltipContent}
-						className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-					>
+					<Tooltip content={data[0].tooltipContent} className="text-(--text-label) underline decoration-dotted">
 						{data[0].name}
 					</Tooltip>
 				) : (
-					<span className="text-[#545757] dark:text-[#cccccc]">{data[0].name}</span>
+					<span className="text-(--text-label)">{data[0].name}</span>
 				)}
 				<Icon
 					name="chevron-down"
@@ -1437,14 +1431,11 @@ const SmolStats = ({
 						key={`${metric.name}-${metric.value}-${protocolName}`}
 					>
 						{metric.tooltipContent ? (
-							<Tooltip
-								content={metric.tooltipContent}
-								className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
-							>
+							<Tooltip content={metric.tooltipContent} className="text-(--text-label) underline decoration-dotted">
 								{metric.name}
 							</Tooltip>
 						) : (
-							<span className="text-[#545757] dark:text-[#cccccc]">{metric.name}</span>
+							<span className="text-(--text-label)">{metric.name}</span>
 						)}
 						<span className="font-jetbrains ml-auto">{formatPrice(metric.value)}</span>
 					</p>
@@ -1470,25 +1461,25 @@ function Users(props: IProtocolOverviewPageData) {
 				<div className="flex flex-col">
 					{users.activeUsers != null ? (
 						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-							<span className="text-[#545757] dark:text-[#cccccc]">Active Addresses (24h)</span>
+							<span className="text-(--text-label)">Active Addresses (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.activeUsers, false)}</span>
 						</p>
 					) : null}
 					{users.newUsers != null ? (
 						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-							<span className="text-[#545757] dark:text-[#cccccc]">New Addresses (24h)</span>
+							<span className="text-(--text-label)">New Addresses (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.newUsers, false)}</span>
 						</p>
 					) : null}
 					{users.transactions != null ? (
 						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-							<span className="text-[#545757] dark:text-[#cccccc]">Transactions (24h)</span>
+							<span className="text-(--text-label)">Transactions (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.transactions, false)}</span>
 						</p>
 					) : null}
 					{users.gasUsd != null ? (
 						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-							<span className="text-[#545757] dark:text-[#cccccc]">Gas Used (24h)</span>
+							<span className="text-(--text-label)">Gas Used (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.gasUsd, true)}</span>
 						</p>
 					) : null}
@@ -1503,7 +1494,7 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
-				<span className="text-[#545757] dark:text-[#cccccc]">Treasury</span>
+				<span className="text-(--text-label)">Treasury</span>
 				<Icon
 					name="chevron-down"
 					height={16}
@@ -1521,7 +1512,7 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 			<div className="flex flex-col mb-3">
 				{props.treasury.majors ? (
 					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">
+						<span className="text-(--text-label)">
 							<Tooltip content="BTC, ETH" className="underline decoration-dotted">
 								Majors
 							</Tooltip>
@@ -1531,19 +1522,19 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 				) : null}
 				{props.treasury.stablecoins ? (
 					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Stablecoins</span>
+						<span className="text-(--text-label)">Stablecoins</span>
 						<span className="font-jetbrains">{formattedNum(props.treasury.stablecoins, true)}</span>
 					</p>
 				) : null}
 				{props.treasury.ownTokens ? (
 					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Own Tokens</span>
+						<span className="text-(--text-label)">Own Tokens</span>
 						<span className="font-jetbrains">{formattedNum(props.treasury.ownTokens, true)}</span>
 					</p>
 				) : null}
 				{props.treasury.others ? (
 					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
-						<span className="text-[#545757] dark:text-[#cccccc]">Others</span>
+						<span className="text-(--text-label)">Others</span>
 						<span className="font-jetbrains">{formattedNum(props.treasury.others, true)}</span>
 					</p>
 				) : null}
@@ -1557,7 +1548,7 @@ const Raises = (props: IProtocolOverviewPageData) => {
 	return (
 		<details className="group">
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
-				<span className="text-[#545757] dark:text-[#cccccc]">Total Raised</span>
+				<span className="text-(--text-label)">Total Raised</span>
 				<Icon
 					name="chevron-down"
 					height={16}
@@ -1581,19 +1572,17 @@ const Raises = (props: IProtocolOverviewPageData) => {
 						key={`${raise.date}-${raise.amount}-${props.name}`}
 					>
 						<span className="flex flex-wrap justify-between">
-							<span className="text-[#545757] dark:text-[#cccccc]">
-								{dayjs.utc(raise.date * 1000).format('MMM D, YYYY')}
-							</span>
+							<span className="text-(--text-label)">{dayjs.utc(raise.date * 1000).format('MMM D, YYYY')}</span>
 							{raise.amount ? (
 								<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
 							) : null}
 						</span>
-						<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
+						<span className="flex gap-1 flex-wrap justify-between text-(--text-label)">
 							<span>Round: {raise.round}</span>
 							{raise.investors?.length ? <span>Investors: {raise.investors.join(', ')}</span> : null}
 						</span>
 						{raise.source ? (
-							<span className="flex gap-1 flex-wrap justify-between text-[#545757] dark:text-[#cccccc]">
+							<span className="flex gap-1 flex-wrap justify-between text-(--text-label)">
 								<span className="flex items-center gap-1 flex-nowrap">
 									Source:{' '}
 									<a
@@ -1720,7 +1709,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 								<Icon name="github" className="w-3 h-3" />
 								<span>{props.github.length === 1 ? 'GitHub' : github}</span>
 							</a>
-					  ))
+						))
 					: null}
 				{props.twitter ? (
 					<a
@@ -1923,8 +1912,8 @@ function Governance(props: IProtocolOverviewPageData) {
 				<p className="flex items-center justify-between gap-4">
 					<span>{governance.lastProposal.title}</span>
 					<span
-						className={`bg-(--app-bg) rounded-md text-xs px-2 py-1 border border-(--cards-border) text-(--pct-green) ${
-							governance.lastProposal.status === 'Passed' ? 'text-(--pct-green)' : 'text-(--pct-red)'
+						className={`bg-(--app-bg) rounded-md text-xs px-2 py-1 border border-(--cards-border) text-(--success) ${
+							governance.lastProposal.status === 'Passed' ? 'text-(--success)' : 'text-(--error)'
 						}`}
 					>
 						{governance.lastProposal.status}
@@ -1952,11 +1941,11 @@ function Yields(props: IProtocolOverviewPageData) {
 			</h2>
 			<div>
 				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-					<span className="text-[#545757] dark:text-[#cccccc]">Pools Tracked</span>
+					<span className="text-(--text-label)">Pools Tracked</span>
 					<span className="font-jetbrains">{yields.noOfPoolsTracked}</span>
 				</p>
 				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
-					<span className="text-[#545757] dark:text-[#cccccc]">Average APY</span>
+					<span className="text-(--text-label)">Average APY</span>
 					<span className="font-jetbrains">{formattedNum(yields.averageAPY, false)}%</span>
 				</p>
 			</div>
@@ -2081,7 +2070,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as const
 
 const IncomeStatement = (props: IProtocolOverviewPageData) => {
-	const [groupBy, setGroupBy] = useState<typeof incomeStatementGroupByOptions[number]>('Quarterly')
+	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 	const { monthDates, feesByMonth, revenueByMonth, holdersRevenueByMonth, incentivesByMonth } = useMemo(() => {
 		if (groupBy === 'Quarterly') {
 			const quarterlyDates = new Set<number>()
@@ -2162,7 +2151,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					/>
 					<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
 				</h2>
-				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
 					{incomeStatementGroupByOptions.map((groupOption) => (
 						<button
 							key={`income-statement-${groupOption}`}
@@ -2192,7 +2181,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 											<span className="whitespace-nowrap overflow-hidden text-ellipsis">{month[1]}</span>
 											<Tooltip
 												content={`Current ${groupBy.toLowerCase()} data is incomplete`}
-												className="text-(--pct-red) text-xs"
+												className="text-(--error) text-xs"
 											>
 												*
 											</Tooltip>
@@ -2339,7 +2328,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 									<td
 										key={`${props.name}-${groupBy}-earnings-${month[0]}`}
 										className={`py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center ${
-											earnings > 0 ? 'text-(--pct-green)' : earnings < 0 ? 'text-(--pct-red)' : ''
+											earnings > 0 ? 'text-(--success)' : earnings < 0 ? 'text-(--error)' : ''
 										}`}
 									>
 										{i !== 0 && monthDates[i + 1] ? (
@@ -2430,7 +2419,7 @@ const PerformanceTooltipContent = ({
 			: `${percentageChange.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`
 	return (
 		<p className="text-xs">
-			<span className={`${percentageChange > 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}>
+			<span className={`${percentageChange > 0 ? 'text-(--success)' : 'text-(--error)'}`}>
 				{`${percentageChangeText}`}
 			</span>{' '}
 			<span>

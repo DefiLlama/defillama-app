@@ -187,7 +187,7 @@ export function CustomColumnModal({
 							return 'number'
 						}
 						return 'string'
-				  })()
+					})()
 				: undefined
 
 		onSave({
@@ -216,7 +216,7 @@ export function CustomColumnModal({
 								return 'number'
 							}
 							return 'string'
-					  })()
+						})()
 					: state.formatType
 
 			if (determinedFormat === 'boolean' && typeof result.value === 'boolean') {
@@ -233,7 +233,7 @@ export function CustomColumnModal({
 				<Ariakit.Dialog className="dialog gap-3" unmountOnHide>
 					<Ariakit.DialogDismiss
 						onClick={dialogStore.toggle}
-						className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-(--divider) text-(--text3) hover:text-(--text1) transition-colors"
+						className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-(--divider) text-(--text-tertiary) hover:text-(--text-primary) transition-colors"
 						aria-label="Close modal"
 					>
 						<Icon name="x" height={20} width={20} />
@@ -268,7 +268,7 @@ export function CustomColumnModal({
 								ref={inputRef}
 								className={`w-full p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border ${
 									state.error ? 'border-red-400' : 'border-(--form-control-border)'
-								} text-(--text1) focus:outline-hidden focus:ring-2 focus:ring-(--primary1) focus:border-transparent`}
+								} text-(--text-primary) focus:outline-hidden focus:ring-2 focus:ring-(--primary) focus:border-transparent`}
 								value={state.formula}
 								onChange={handleFormulaChange}
 								onKeyDown={handleKeyDown}
@@ -280,8 +280,8 @@ export function CustomColumnModal({
 									{state.suggestions.map((s, i) => (
 										<li
 											key={s.name || s}
-											className={`px-3 py-2 cursor-pointer text-(--text1) flex items-center gap-2 ${
-												i === state.highlighted ? 'bg-(--primary1-hover)' : ''
+											className={`px-3 py-2 cursor-pointer text-(--text-primary) flex items-center gap-2 ${
+												i === state.highlighted ? 'bg-(--primary-hover)' : ''
 											}`}
 											onMouseDown={(e) => {
 												e.stopPropagation()
@@ -289,7 +289,7 @@ export function CustomColumnModal({
 											}}
 										>
 											{s.type === 'function' || s.type === 'operator' ? (
-												<span className="text-(--primary1)">ƒ</span>
+												<span className="text-(--primary)">ƒ</span>
 											) : (
 												''
 											)}
@@ -316,7 +316,7 @@ export function CustomColumnModal({
 								<option value="boolean">Boolean (checkmark)</option>
 							</select>
 							{state.formatType === 'auto' && state.formula.trim() && !hasFormulaError && (
-								<div className="mt-1 text-sm text-(--text2)">
+								<div className="mt-1 text-sm text-(--text-secondary)">
 									Auto will format as:{' '}
 									{(() => {
 										const formulaWithPaths = replaceAliases(state.formula)
@@ -342,7 +342,7 @@ export function CustomColumnModal({
 							{AVAILABLE_FIELDS.map((f) => (
 								<li key={f}>
 									<code
-										className="bg-(--bg1) px-1 py-0.5 rounded-sm text-(--primary1) cursor-pointer hover:bg-(--divider)"
+										className="bg-(--bg-main) px-1 py-0.5 rounded-sm text-(--primary) cursor-pointer hover:bg-(--divider)"
 										onClick={() => handleSuggestionClick({ name: f, type: 'field' })}
 									>
 										{f}
@@ -353,15 +353,15 @@ export function CustomColumnModal({
 					</div>
 					{state.formula.trim() && !hasFormulaError && (
 						<div className="mb-2 text-sm">
-							<span className="font-semibold text-(--text2)">Preview: </span>
-							<span className="bg-(--bg1) px-2 py-1 rounded-sm text-(--text1)">{preview}</span>
+							<span className="font-semibold text-(--text-secondary)">Preview: </span>
+							<span className="bg-(--bg-main) px-2 py-1 rounded-sm text-(--text-primary)">{preview}</span>
 						</div>
 					)}
-					<div className="text-sm text-(--text2)">
+					<div className="text-sm text-(--text-secondary)">
 						<a
 							href="https://docs.llama.fi/analysts/custom-columns"
 							target="_blank"
-							className="text-(--primary1) hover:underline"
+							className="text-(--primary) hover:underline"
 							rel="noreferrer"
 						>
 							Learn more on how to create custom columns
@@ -369,13 +369,13 @@ export function CustomColumnModal({
 					</div>
 					<div className="flex justify-end gap-2 mt-4">
 						<button
-							className="px-4 py-2 rounded-lg bg-transparent hover:bg-(--btn-hover-bg) text-(--text2) transition-colors"
+							className="px-4 py-2 rounded-lg bg-transparent hover:bg-(--btn-hover-bg) text-(--text-secondary) transition-colors"
 							onClick={dialogStore.toggle}
 						>
 							Cancel
 						</button>
 						<button
-							className="px-4 py-2 rounded-lg bg-(--primary1) hover:bg-(--primary1-hover) text-white shadow-md transition-colors"
+							className="px-4 py-2 rounded-lg bg-(--primary) hover:bg-(--primary-hover) text-white shadow-md transition-colors"
 							onClick={handleSave}
 						>
 							Save

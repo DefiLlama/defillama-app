@@ -112,7 +112,7 @@ export function ColumnManagementPanel({
 					placeholder="Search columns..."
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
-					className="w-full pl-9 pr-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary1) transition-colors pro-bg2"
+					className="w-full pl-9 pr-3 py-2 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
 				/>
 			</div>
 
@@ -215,7 +215,7 @@ export function ColumnManagementPanel({
 				</span>
 				<button
 					onClick={() => setShowColumnPanel(false)}
-					className="px-3 py-1 bg-(--primary1) text-white hover:bg-(--primary1-hover) transition-colors border border-(--primary1)"
+					className="px-3 py-1 bg-(--primary) text-white hover:bg-(--primary-hover) transition-colors border border-(--primary)"
 				>
 					Done
 				</button>

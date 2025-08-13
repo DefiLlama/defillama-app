@@ -284,7 +284,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				<Tooltip
 					content={info.row.original.change_1d_nol}
 					className={`justify-end overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-						info.row.original.change_1d_nol.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
+						info.row.original.change_1d_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
 					{formattedPercent(info.getValue())}
@@ -305,7 +305,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				<Tooltip
 					content={info.row.original.change_7d_nol}
 					className={`justify-end overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-						info.row.original.change_7d_nol.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
+						info.row.original.change_7d_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
 					{formattedPercent(info.getValue())}
@@ -326,7 +326,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 				<Tooltip
 					content={info.row.original.change_1m_nol}
 					className={`justify-end overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
-						info.row.original.change_1m_nol.startsWith('-') ? 'text-(--pct-red)' : 'text-(--pct-green)'
+						info.row.original.change_1m_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
 					{formattedPercent(info.getValue())}
@@ -464,7 +464,7 @@ function formattedPeggedPercent(percent, noSign = false) {
 
 	return (
 		<span
-			className={`${noSign ? '' : color === 'green' ? 'text-(--pct-green)' : 'text-(--pct-red)'}`}
+			className={`${noSign ? '' : color === 'green' ? 'text-(--success)' : 'text-(--error)'}`}
 			style={{ fontWeight: weight }}
 		>
 			{finalValue}

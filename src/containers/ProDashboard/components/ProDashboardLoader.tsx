@@ -13,11 +13,11 @@ export function ProDashboardLoader() {
 	return (
 		<div className="flex flex-col justify-center items-center min-h-[60vh] gap-8">
 			<div className="relative w-24 h-24">
-				<div className="absolute inset-0 rounded-full border border-(--primary1) opacity-10" />
+				<div className="absolute inset-0 rounded-full border border-(--primary) opacity-10" />
 
 				<div className="absolute inset-0 rounded-full animate-spin" style={{ animationDuration: '3s' }}>
 					<div
-						className="h-full w-full rounded-full border-2 border-transparent border-t-(--primary1) border-r-(--primary1)"
+						className="h-full w-full rounded-full border-2 border-transparent border-t-(--primary) border-r-(--primary)"
 						style={{
 							background: 'conic-gradient(from 0deg, transparent, var(--primary1) 90deg, transparent 180deg)',
 							opacity: 0.3
@@ -29,19 +29,19 @@ export function ProDashboardLoader() {
 					className="absolute inset-3 rounded-full animate-spin"
 					style={{ animationDuration: '2s', animationDirection: 'reverse' }}
 				>
-					<div className="h-full w-full rounded-full border-2 border-transparent border-b-(--primary1) border-l-(--primary1)" />
+					<div className="h-full w-full rounded-full border-2 border-transparent border-b-(--primary) border-l-(--primary)" />
 				</div>
 
-				<div className="absolute inset-6 rounded-full bg-(--primary1) opacity-10 animate-pulse" />
+				<div className="absolute inset-6 rounded-full bg-(--primary) opacity-10 animate-pulse" />
 
 				<div className="absolute inset-0 animate-spin" style={{ animationDuration: '4s' }}>
-					<div className="absolute top-0 left-1/2 w-2 h-2 -ml-1 rounded-full bg-(--primary1)" />
+					<div className="absolute top-0 left-1/2 w-2 h-2 -ml-1 rounded-full bg-(--primary)" />
 				</div>
 				<div
 					className="absolute inset-0 animate-spin"
 					style={{ animationDuration: '3s', animationDirection: 'reverse' }}
 				>
-					<div className="absolute bottom-0 left-1/2 w-1.5 h-1.5 -ml-0.75 rounded-full bg-(--primary1) opacity-60" />
+					<div className="absolute bottom-0 left-1/2 w-1.5 h-1.5 -ml-0.75 rounded-full bg-(--primary) opacity-60" />
 				</div>
 
 				<div className="absolute inset-0 flex items-center justify-center">
@@ -63,7 +63,7 @@ export function ProDashboardLoader() {
 				</div>
 			</div>
 
-			<div className="text-lg font-medium text-(--text2)">Loading{'.'.repeat(dotCount)}</div>
+			<div className="text-lg font-medium text-(--text-secondary)">Loading{'.'.repeat(dotCount)}</div>
 		</div>
 	)
 }

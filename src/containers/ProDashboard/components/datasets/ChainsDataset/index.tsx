@@ -461,7 +461,7 @@ export function ChainsDataset({
 					<select
 						value={pagination.pageSize}
 						onChange={(e) => setPagination((prev) => ({ ...prev, pageSize: Number(e.target.value), pageIndex: 0 }))}
-						className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1 focus:outline-hidden focus:ring-1 focus:ring-(--primary1)"
+						className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1 focus:outline-hidden focus:ring-1 focus:ring-(--primary)"
 					>
 						<option value="10">10</option>
 						<option value="30">30</option>

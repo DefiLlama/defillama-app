@@ -65,7 +65,7 @@ export const getStaticProps = withPerformanceLogging(
 						? {
 								noOfPoolsTracked: projectYields.length,
 								averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
-						  }
+							}
 						: null,
 				warningBanners: getProtocolWarningBanners(protocolData)
 			},

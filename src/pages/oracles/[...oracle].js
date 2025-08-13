@@ -101,11 +101,11 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<h1 className="text-xl font-semibold">{token}</h1>
 					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Secured (USD)</span>
+						<span className="text-(--text-label)">Total Value Secured (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{formattedNum(totalValue, true)}</span>
 					</p>
 					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">{topToken.name} Dominance</span>
+						<span className="text-(--text-label)">{topToken.name} Dominance</span>
 						<span className="font-semibold text-2xl font-jetbrains">{dominance}%</span>
 					</p>
 				</div>

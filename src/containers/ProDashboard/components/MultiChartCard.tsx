@@ -271,7 +271,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			<div className="mb-2">
 				<div className={``}>
 					<div className="flex items-center gap-2 mb-2">
-						<h3 className="text-sm font-medium text-(--text1)">
+						<h3 className="text-sm font-medium text-(--text-primary)">
 							{multi.name || `Multi-Chart (${multi.items.length})`}
 						</h3>
 						{hasPartialFailures && (
@@ -293,7 +293,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 										${index > 0 ? 'border-l border-(--form-control-border)' : ''}
 										${
 											multi.grouping === option
-												? 'bg-(--primary1) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary1) focus:ring-opacity-50'
+												? 'bg-(--primary) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary) focus:ring-opacity-50'
 												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
 										}`}
 									>
@@ -357,7 +357,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			{/* Status info for failures */}
 			{(failedItems.length > 0 || loadingItems.length > 0) && (
-				<div className="mb-2 text-xs text-(--text3)">
+				<div className="mb-2 text-xs text-(--text-tertiary)">
 					{loadingItems.length > 0 && (
 						<div>
 							Loading: {loadingItems.length} chart{loadingItems.length > 1 ? 's' : ''}
@@ -380,16 +380,16 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				{!hasAnyData && isAllLoading ? (
 					<div className="flex items-center justify-center h-full">
 						<div className="text-center">
-							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-(--primary1) mx-auto mb-2"></div>
-							<p className="text-sm text-(--text3)">Loading charts...</p>
+							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-(--primary) mx-auto mb-2"></div>
+							<p className="text-sm text-(--text-tertiary)">Loading charts...</p>
 						</div>
 					</div>
 				) : !hasAnyData ? (
 					<div className="flex items-center justify-center h-full">
 						<div className="text-center">
 							<Icon name="alert-triangle" height={24} width={24} className="mx-auto mb-2 text-red-500" />
-							<p className="text-sm text-(--text3)">Failed to load chart data</p>
-							<p className="text-xs text-(--text3) mt-1">
+							<p className="text-sm text-(--text-tertiary)">Failed to load chart data</p>
+							<p className="text-xs text-(--text-tertiary) mt-1">
 								{failedItems.length} of {multi.items.length} charts failed
 							</p>
 						</div>
@@ -406,10 +406,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 								multi.grouping === 'week'
 									? 'weekly'
 									: multi.grouping === 'month'
-									? 'monthly'
-									: multi.grouping === 'quarter'
-									? 'quarterly'
-									: 'daily'
+										? 'monthly'
+										: multi.grouping === 'quarter'
+											? 'quarterly'
+											: 'daily'
 							}
 							hideDataZoom={true}
 							chartOptions={
@@ -438,7 +438,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 												pageButtonPosition: 'end',
 												height: series.length > 5 ? 80 : 40
 											}
-									  }
+										}
 									: {
 											yAxis: {
 												max: undefined,
@@ -470,7 +470,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 												pageButtonPosition: 'end',
 												height: series.length > 5 ? 80 : 40
 											}
-									  }
+										}
 							}
 						/>
 					</Suspense>

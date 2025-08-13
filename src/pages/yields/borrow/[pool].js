@@ -168,37 +168,37 @@ const PageView = () => {
 // 					<table className="w-full text-base border-collapse">
 // 						<tbody>
 // 							<tr>
-// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Supply Base APY:</th>
+// 								<th className="text-(--text-label) font-normal text-left">Supply Base APY:</th>
 // 								<td className="font-jetbrains text-right">{apyBase.toFixed(2)}%</td>
 // 							</tr>
 // 							<tr className="border-b border-(--divider)">
-// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Supply Reward APY:</th>
+// 								<th className="text-(--text-label) font-normal text-left pb-1">Supply Reward APY:</th>
 // 								<td className="font-jetbrains text-right">{apyReward.toFixed(2)}%</td>
 // 							</tr>
 
 // 							<tr>
-// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pt-1">Net Borrow APY:</th>
+// 								<th className="text-(--text-label) font-normal text-left pt-1">Net Borrow APY:</th>
 // 								<td className="font-jetbrains text-right">{newBorrowApy.toFixed(2)}%</td>
 // 							</tr>
 // 							<tr>
-// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Borrow Base APY:</th>
+// 								<th className="text-(--text-label) font-normal text-left">Borrow Base APY:</th>
 // 								<td className="font-jetbrains text-right">{apyBaseBorrow.toFixed(2)}%</td>
 // 							</tr>
 // 							<tr className="border-b border-(--divider)">
-// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pb-1">Borrow Reward APY:</th>
+// 								<th className="text-(--text-label) font-normal text-left pb-1">Borrow Reward APY:</th>
 // 								<td className="font-jetbrains text-right">{apyRewardBorrow.toFixed(2)}%</td>
 // 							</tr>
 
 // 							<tr>
-// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left pt-1">Supplied:</th>
+// 								<th className="text-(--text-label) font-normal text-left pt-1">Supplied:</th>
 // 								<td className="font-jetbrains text-right">{formattedNum(totalSupplyUsd ?? 0, true)}</td>
 // 							</tr>
 // 							<tr>
-// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Borrowed:</th>
+// 								<th className="text-(--text-label) font-normal text-left">Borrowed:</th>
 // 								<td className="font-jetbrains text-right">{formattedNum(totalBorrowUsd ?? 0, true)}</td>
 // 							</tr>
 // 							<tr>
-// 								<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left">Available:</th>
+// 								<th className="text-(--text-label) font-normal text-left">Available:</th>
 // 								<td className="font-jetbrains text-right">{formattedNum(totalAvailableUsd ?? 0, true)}</td>
 // 							</tr>
 // 						</tbody>

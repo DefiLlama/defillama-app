@@ -11,11 +11,11 @@ export const percentageSortingFn = <T extends Record<string, any>>(
 	if ((a === null || a === undefined) && (b === null || b === undefined)) {
 		return 0
 	}
-	
+
 	if (a === null || a === undefined) {
 		return 1
 	}
-	
+
 	if (b === null || b === undefined) {
 		return -1
 	}

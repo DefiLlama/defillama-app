@@ -146,12 +146,15 @@ export async function fetchCoinPrices(coins: Array<string>) {
 		Object.assign(mergedPrices, batchResult)
 	})
 
-	return coins.reduce((acc, coin) => {
-		if (mergedPrices[coin]) {
-			acc[coin] = mergedPrices[coin] ?? null
-		}
-		return acc
-	}, {} as Record<string, PriceObject>)
+	return coins.reduce(
+		(acc, coin) => {
+			if (mergedPrices[coin]) {
+				acc[coin] = mergedPrices[coin] ?? null
+			}
+			return acc
+		},
+		{} as Record<string, PriceObject>
+	)
 }
 
 type PriceObject = {

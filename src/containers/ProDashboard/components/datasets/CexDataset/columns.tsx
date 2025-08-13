@@ -45,7 +45,7 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
 					>
 						{name}
-						{coinSymbol && coinSymbol !== '-' && <span className="text-(--text3)"> ({coinSymbol})</span>}
+						{coinSymbol && coinSymbol !== '-' && <span className="text-(--text-tertiary)"> ({coinSymbol})</span>}
 					</BasicLink>
 					{row.original.walletsLink && (
 						<a href={row.original.walletsLink} target="_blank" rel="noopener noreferrer" className="ml-1">
@@ -74,9 +74,9 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		accessorKey: '24hInflows',
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			if (value === null) return <span className="text-(--text3)">-</span>
+			if (value === null) return <span className="text-(--text-tertiary)">-</span>
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
+				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
 					{value > 0 ? '+' : ''}
 					{formattedNum(value, true)}
 				</span>
@@ -92,9 +92,9 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		accessorKey: '7dInflows',
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			if (value === null) return <span className="text-(--text3)">-</span>
+			if (value === null) return <span className="text-(--text-tertiary)">-</span>
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
+				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
 					{value > 0 ? '+' : ''}
 					{formattedNum(value, true)}
 				</span>
@@ -110,9 +110,9 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		accessorKey: '1mInflows',
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			if (value === null) return <span className="text-(--text3)">-</span>
+			if (value === null) return <span className="text-(--text-tertiary)">-</span>
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--pct-red)' : 'text-(--pct-green)'}`}>
+				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
 					{value > 0 ? '+' : ''}
 					{formattedNum(value, true)}
 				</span>
@@ -128,7 +128,7 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		accessorKey: 'spotVolume',
 		cell: ({ getValue }) => {
 			const value = getValue() as number | undefined
-			if (!value) return <span className="text-(--text3)">-</span>
+			if (!value) return <span className="text-(--text-tertiary)">-</span>
 			return <>{formattedNum(value, true)}</>
 		},
 		size: 120,
@@ -141,7 +141,7 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		accessorKey: 'oi',
 		cell: ({ getValue }) => {
 			const value = getValue() as number | undefined
-			if (!value) return <span className="text-(--text3)">-</span>
+			if (!value) return <span className="text-(--text-tertiary)">-</span>
 			return <>{formattedNum(value, true)}</>
 		},
 		size: 120,
@@ -154,7 +154,7 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		accessorKey: 'leverage',
 		cell: ({ getValue }) => {
 			const value = getValue() as number | undefined
-			if (!value) return <span className="text-(--text3)">-</span>
+			if (!value) return <span className="text-(--text-tertiary)">-</span>
 			return <span className="font-mono">{value.toFixed(2)}x</span>
 		},
 		size: 100,
@@ -168,7 +168,7 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		accessorFn: (row) => row.auditor,
 		cell: ({ row }) => {
 			const { auditor, lastAuditDate, auditLink } = row.original as ICexRow
-			if (!auditor && !lastAuditDate) return <span className="text-(--text3)">-</span>
+			if (!auditor && !lastAuditDate) return <span className="text-(--text-tertiary)">-</span>
 
 			const auditDateStr = lastAuditDate ? new Date(lastAuditDate * 1000).toLocaleDateString() : null
 

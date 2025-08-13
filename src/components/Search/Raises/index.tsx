@@ -40,7 +40,7 @@ export function RaisesSearch({ list }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! w-full!'
 					}}
-					className="flex flex-col bg-(--bg1) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="flex flex-col bg-(--bg-main) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 				>
 					{matches.length ? (
 						<>
@@ -50,7 +50,7 @@ export function RaisesSearch({ list }) {
 
 							{matches.length > viewableMatches ? (
 								<button
-									className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
+									className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
@@ -58,7 +58,7 @@ export function RaisesSearch({ list }) {
 							) : null}
 						</>
 					) : (
-						<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
+						<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
 					)}
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
@@ -149,7 +149,7 @@ const Row = ({ name, setOpen }) => {
 			hideOnClick={false}
 			setValueOnClick={false}
 			disabled={loading}
-			className="p-3 flex items-center gap-4 text-(--text1) cursor-pointer hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) aria-disabled:opacity-50 outline-hidden"
+			className="p-3 flex items-center gap-4 text-(--text-primary) cursor-pointer hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) aria-disabled:opacity-50 outline-hidden"
 		>
 			<span>{name}</span>
 			{loading ? (

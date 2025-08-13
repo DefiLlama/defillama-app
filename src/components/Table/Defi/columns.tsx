@@ -295,9 +295,9 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 								!row.original.historicalPrice?.length
 									? 'red'
 									: row.original.historicalPrice[Math.floor(row.original.historicalPrice.length / 2)][1] >=
-									  row.original.historicalPrice[row.original.historicalPrice.length - 1][1]
-									? 'red'
-									: 'green'
+										  row.original.historicalPrice[row.original.historicalPrice.length - 1][1]
+										? 'red'
+										: 'green'
 							}
 							className="my-auto h-[53px]"
 							extraData={{
@@ -696,11 +696,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: (info) => (
 			<span
 				className={`${
-					(info.getValue() as number) < 0
-						? 'text-(--pct-red)'
-						: (info.getValue() as number) > 0
-						? 'text-(--pct-green)'
-						: ''
+					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
@@ -719,11 +715,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: (info) => (
 			<span
 				className={`${
-					(info.getValue() as number) < 0
-						? 'text-(--pct-red)'
-						: (info.getValue() as number) > 0
-						? 'text-(--pct-green)'
-						: ''
+					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
@@ -742,11 +734,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: (info) => (
 			<span
 				className={`${
-					(info.getValue() as number) < 0
-						? 'text-(--pct-red)'
-						: (info.getValue() as number) > 0
-						? 'text-(--pct-green)'
-						: ''
+					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
@@ -798,11 +786,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: (info) => (
 			<span
 				className={`${
-					(info.getValue() as number) < 0
-						? 'text-(--pct-red)'
-						: (info.getValue() as number) > 0
-						? 'text-(--pct-green)'
-						: ''
+					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
 				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
@@ -1376,14 +1360,14 @@ const SimpleUpcomingEvent = ({ timestamp, name }) => {
 	return (
 		<span className="flex items-center gap-2">
 			<span>{name}</span>
-			<span className="h-10 w-px bg-(--bg4)" />
+			<span className="h-10 w-px bg-(--bg-border)" />
 			<span className="flex items-center gap-1">
-				<span className="bg-(--bg4) rounded-md text-sm h-8 w-8 flex items-center justify-center">{days}D</span>
-				<span className="bg-(--bg4) rounded-md text-sm h-8 w-8 flex items-center justify-center">{hours}H</span>
-				<span className="bg-(--bg4) rounded-md text-sm h-8 w-8 flex items-center justify-center">{minutes}M</span>
-				<span className="bg-(--bg4) rounded-md text-sm h-8 w-8 flex items-center justify-center">{seconds}S</span>
+				<span className="bg-(--bg-border) rounded-md text-sm h-8 w-8 flex items-center justify-center">{days}D</span>
+				<span className="bg-(--bg-border) rounded-md text-sm h-8 w-8 flex items-center justify-center">{hours}H</span>
+				<span className="bg-(--bg-border) rounded-md text-sm h-8 w-8 flex items-center justify-center">{minutes}M</span>
+				<span className="bg-(--bg-border) rounded-md text-sm h-8 w-8 flex items-center justify-center">{seconds}S</span>
 			</span>
-			<span className="h-10 w-px bg-(--bg4)" />
+			<span className="h-10 w-px bg-(--bg-border)" />
 			<span className="flex items-center justify-between gap-2">
 				<span>{toNiceDayMonthYear(timestamp)}</span>
 				<span>{toNiceHour(timestamp)}</span>

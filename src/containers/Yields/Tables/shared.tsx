@@ -60,7 +60,7 @@ export const YieldsTableWrapper = ({
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? (columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		const cSize = windowSize.width

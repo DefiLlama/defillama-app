@@ -123,12 +123,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 					{viewMode === 'month'
 						? currentDate.format('MMMM YYYY')
 						: viewMode === 'week'
-						? `${currentDate.startOf('week').format('MMM D')} - ${currentDate.endOf('week').format('MMM D, YYYY')}`
-						: viewMode === 'treemap'
-						? 'TreeMap Chart'
-						: `Unlocks starting ${currentDate.format('MMM D, YYYY')} (Next 30 Days)`}
+							? `${currentDate.startOf('week').format('MMM D')} - ${currentDate.endOf('week').format('MMM D, YYYY')}`
+							: viewMode === 'treemap'
+								? 'TreeMap Chart'
+								: `Unlocks starting ${currentDate.format('MMM D, YYYY')} (Next 30 Days)`}
 				</h2>
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 					<button
 						onClick={() => handleViewModeChange('month')}
 						data-active={viewMode === 'month'}
@@ -158,23 +158,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 						List
 					</button>
 				</div>
-				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 					<button
 						onClick={prev}
-						className="p-2 rounded-sm hover:bg-(--bg7) text-(--text2) hover:text-(--text1)"
+						className="p-2 rounded-sm hover:bg-(--bg-glass) text-(--text-secondary) hover:text-(--text-primary)"
 						aria-label={`Previous ${viewMode === 'list' ? '30 days' : viewMode}`}
 					>
 						←
 					</button>
 					<button
 						onClick={goToToday}
-						className="px-3 py-1 rounded-sm hover:bg-(--bg7) text-(--text2) hover:text-(--text1)"
+						className="px-3 py-1 rounded-sm hover:bg-(--bg-glass) text-(--text-secondary) hover:text-(--text-primary)"
 					>
 						Today
 					</button>
 					<button
 						onClick={next}
-						className="p-2 rounded-sm hover:bg-(--bg7) text-(--text2) hover:text-(--text1)"
+						className="p-2 rounded-sm hover:bg-(--bg-glass) text-(--text-secondary) hover:text-(--text-primary)"
 						aria-label={`Next ${viewMode === 'list' ? '30 days' : viewMode}`}
 					>
 						→
@@ -316,7 +316,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 							</LazyChart>
 						</div>
 					)}
-					<div className="grid grid-cols-7 text-center text-sm text-(--text2) font-medium py-2">
+					<div className="grid grid-cols-7 text-center text-sm text-(--text-secondary) font-medium py-2">
 						{DAYS_OF_WEEK.map((day) => (
 							<div key={day}>{day}</div>
 						))}

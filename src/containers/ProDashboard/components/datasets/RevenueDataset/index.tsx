@@ -153,7 +153,7 @@ export function RevenueDataset({ chains }: { chains?: string[] }) {
 												'24h Change',
 												'7d Change',
 												'Chains'
-										  ]
+											]
 
 								const csv = [
 									headers.join(','),
@@ -185,7 +185,7 @@ export function RevenueDataset({ chains }: { chains?: string[] }) {
 							value={protocolName}
 							onChange={(e) => setProtocolName(e.target.value)}
 							className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1
-								focus:outline-hidden focus:ring-1 focus:ring-(--primary1)"
+								focus:outline-hidden focus:ring-1 focus:ring-(--primary)"
 						/>
 					</div>
 				</div>

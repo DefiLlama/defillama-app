@@ -153,7 +153,7 @@ export function IncludeExcludeTokens({
 			<Ariakit.Dialog className="dialog sm:h-[70vh]">
 				<div className="flex items-center gap-2">
 					<Ariakit.DialogHeading className="text-lg font-bold">Search for</Ariakit.DialogHeading>
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-1">
+					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border-(--bg-input) bg-(--bg-input) p-1">
 						{['Tokens', 'Pairs'].map((dataType) => (
 							<button
 								onClick={() => {
@@ -169,7 +169,7 @@ export function IncludeExcludeTokens({
 						))}
 					</div>
 					<Ariakit.DialogDismiss
-						className="ml-auto p-2 -my-2 rounded-lg hover:bg-(--divider) text-(--text3) hover:text-(--text1)"
+						className="ml-auto p-2 -my-2 rounded-lg hover:bg-(--divider) text-(--text-tertiary) hover:text-(--text-primary)"
 						aria-label="Close modal"
 						onClick={() => {
 							setNewPairTokens([])
@@ -194,13 +194,13 @@ export function IncludeExcludeTokens({
 									name="search"
 									height={16}
 									width={16}
-									className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+									className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 								/>
 								<Ariakit.Combobox
 									autoSelect
 									autoFocus
 									placeholder="Search for a token to filter by..."
-									className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
+									className="w-full border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
 								/>
 							</div>
 							{matches.length ? (
@@ -253,14 +253,14 @@ export function IncludeExcludeTokens({
 									{matches.length > viewableMatches ? (
 										<button
 											onClick={() => setViewableMatches((prev) => prev + 20)}
-											className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2) rounded-md"
+											className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary) rounded-md"
 										>
 											See more...
 										</button>
 									) : null}
 								</div>
 							) : (
-								<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
+								<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
 							)}
 						</Ariakit.ComboboxProvider>
 					</>
@@ -283,13 +283,13 @@ export function IncludeExcludeTokens({
 									name="search"
 									height={16}
 									width={16}
-									className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+									className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 								/>
 								<Ariakit.Combobox
 									autoSelect
 									autoFocus
 									placeholder="Search for a token to add to current pair..."
-									className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
+									className="w-full border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
 								/>
 							</div>
 							{matches.length ? (
@@ -318,7 +318,7 @@ export function IncludeExcludeTokens({
 									{matches.length > viewableMatches ? (
 										<button
 											onClick={() => setViewableMatches((prev) => prev + 20)}
-											className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2) rounded-md"
+											className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary) rounded-md"
 										>
 											See more...
 										</button>
@@ -339,7 +339,7 @@ export function IncludeExcludeTokens({
 									</button>
 								</div>
 							) : (
-								<p className="text-(--text1) py-6 px-3 text-center">No results found</p>
+								<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
 							)}
 						</Ariakit.ComboboxProvider>
 					</>

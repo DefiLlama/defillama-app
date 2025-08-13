@@ -136,14 +136,14 @@ export default function CompareFdv({ coinsData, protocols }) {
 								onError={(e) => {
 									e.currentTarget.src = '/placeholder.png'
 								}}
-								className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg3) absolute top-0 bottom-0 my-auto left-2"
+								className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg-tertiary) absolute top-0 bottom-0 my-auto left-2"
 							/>
 						) : (
 							<Icon
 								name="search"
 								height={16}
 								width={16}
-								className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+								className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 							/>
 						)}
 						<input
@@ -261,14 +261,14 @@ export default function CompareFdv({ coinsData, protocols }) {
 								onError={(e) => {
 									e.currentTarget.src = '/placeholder.png'
 								}}
-								className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg3) absolute top-0 bottom-0 my-auto left-2"
+								className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg-tertiary) absolute top-0 bottom-0 my-auto left-2"
 							/>
 						) : (
 							<Icon
 								name="search"
 								height={16}
 								width={16}
-								className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+								className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 							/>
 						)}
 						<input
@@ -283,14 +283,14 @@ export default function CompareFdv({ coinsData, protocols }) {
 					</div>
 				</div>
 				<Ariakit.MenuProvider>
-					<Ariakit.MenuButton className="bg-(--btn2-bg) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-(--text1) flex-nowrap relative w-full">
+					<Ariakit.MenuButton className="bg-(--btn2-bg) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-(--text-primary) flex-nowrap relative w-full">
 						<span>{compareType?.label}</span>
 						<Ariakit.MenuButtonArrow />
 					</Ariakit.MenuButton>
 					<Ariakit.Menu
 						unmountOnHide
 						sameWidth
-						className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+						className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
 					>
 						{compareTypes.map((item) => {
 							return (
@@ -309,7 +309,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 											{ shallow: true }
 										)
 									}}
-									className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border)"
+									className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border)"
 								>
 									{item.label}
 								</Ariakit.MenuItem>
@@ -335,7 +335,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										onError={(e) => {
 											e.currentTarget.src = '/placeholder.png'
 										}}
-										className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg3)"
+										className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg-tertiary)"
 									/>
 									<span>{selectedCoins[0].symbol.toUpperCase()}</span>
 								</span>
@@ -350,7 +350,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										onError={(e) => {
 											e.currentTarget.src = '/placeholder.png'
 										}}
-										className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg3)"
+										className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg-tertiary)"
 									/>
 									<span>{selectedCoins[1].symbol.toUpperCase()}</span>
 								</span>

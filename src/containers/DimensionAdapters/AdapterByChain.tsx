@@ -89,10 +89,10 @@ export function AdapterByChain(props: IProps) {
 			props.categories.length > 0 && router.query.hasOwnProperty('category') && router.query.category === ''
 				? []
 				: router.query.category
-				? typeof router.query.category === 'string'
-					? [router.query.category]
-					: router.query.category
-				: props.categories
+					? typeof router.query.category === 'string'
+						? [router.query.category]
+						: router.query.category
+					: props.categories
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
@@ -100,10 +100,10 @@ export function AdapterByChain(props: IProps) {
 			props.categories.length === 0
 				? props.protocols
 				: selectedCategories.length === 0
-				? []
-				: categoriesToFilter.length > 0
-				? getProtocolsByCategory(props.protocols, categoriesToFilter)
-				: props.protocols
+					? []
+					: categoriesToFilter.length > 0
+						? getProtocolsByCategory(props.protocols, categoriesToFilter)
+						: props.protocols
 
 		const finalProtocols =
 			props.adapterType === 'fees' && (enabledSettings.bribes || enabledSettings.tokentax)
@@ -112,8 +112,8 @@ export function AdapterByChain(props: IProps) {
 							? p.childProtocols.map((cp) => {
 									const total30d =
 										cp.total30d +
-										(enabledSettings.bribes ? cp.bribes?.total30d ?? 0 : 0) +
-										(enabledSettings.tokentax ? cp.tokenTax?.total30d ?? 0 : 0)
+										(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
+										(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
 
 									let pf = cp.mcap && cp.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
 									let ps = cp.mcap && cp.revenue?.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
@@ -122,31 +122,31 @@ export function AdapterByChain(props: IProps) {
 										...cp,
 										total24h:
 											cp.total24h +
-											(enabledSettings.bribes ? cp.bribes?.total24h ?? 0 : 0) +
-											(enabledSettings.tokentax ? cp.tokenTax?.total24h ?? 0 : 0),
+											(enabledSettings.bribes ? (cp.bribes?.total24h ?? 0) : 0) +
+											(enabledSettings.tokentax ? (cp.tokenTax?.total24h ?? 0) : 0),
 										total7d:
 											cp.total7d +
-											(enabledSettings.bribes ? cp.bribes?.total7d ?? 0 : 0) +
-											(enabledSettings.tokentax ? cp.tokenTax?.total7d ?? 0 : 0),
+											(enabledSettings.bribes ? (cp.bribes?.total7d ?? 0) : 0) +
+											(enabledSettings.tokentax ? (cp.tokenTax?.total7d ?? 0) : 0),
 										total30d,
 										total1y:
 											cp.total1y +
-											(enabledSettings.bribes ? cp.bribes?.total1y ?? 0 : 0) +
-											(enabledSettings.tokentax ? cp.tokenTax?.total1y ?? 0 : 0),
+											(enabledSettings.bribes ? (cp.bribes?.total1y ?? 0) : 0) +
+											(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0),
 										totalAllTime:
 											cp.totalAllTime +
-											(enabledSettings.bribes ? cp.bribes?.totalAllTime ?? 0 : 0) +
-											(enabledSettings.tokentax ? cp.tokenTax?.totalAllTime ?? 0 : 0),
+											(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
+											(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0),
 										...(pf ? { pf } : {}),
 										...(ps ? { ps } : {})
 									}
-							  })
+								})
 							: null
 
 						const total30d =
 							p.total30d +
-							(enabledSettings.bribes ? p.bribes?.total30d ?? 0 : 0) +
-							(enabledSettings.tokentax ? p.tokenTax?.total30d ?? 0 : 0)
+							(enabledSettings.bribes ? (p.bribes?.total30d ?? 0) : 0) +
+							(enabledSettings.tokentax ? (p.tokenTax?.total30d ?? 0) : 0)
 
 						const pf = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
 						const ps = p.mcap && p.revenue?.total30d ? getAnnualizedRatio(p.mcap, total30d) : null
@@ -155,26 +155,26 @@ export function AdapterByChain(props: IProps) {
 							...p,
 							total24h:
 								p.total24h +
-								(enabledSettings.bribes ? p.bribes?.total24h ?? 0 : 0) +
-								(enabledSettings.tokentax ? p.tokenTax?.total24h ?? 0 : 0),
+								(enabledSettings.bribes ? (p.bribes?.total24h ?? 0) : 0) +
+								(enabledSettings.tokentax ? (p.tokenTax?.total24h ?? 0) : 0),
 							total7d:
 								p.total7d +
-								(enabledSettings.bribes ? p.bribes?.total7d ?? 0 : 0) +
-								(enabledSettings.tokentax ? p.tokenTax?.total7d ?? 0 : 0),
+								(enabledSettings.bribes ? (p.bribes?.total7d ?? 0) : 0) +
+								(enabledSettings.tokentax ? (p.tokenTax?.total7d ?? 0) : 0),
 							total30d,
 							total1y:
 								p.total1y +
-								(enabledSettings.bribes ? p.bribes?.total1y ?? 0 : 0) +
-								(enabledSettings.tokentax ? p.tokenTax?.total1y ?? 0 : 0),
+								(enabledSettings.bribes ? (p.bribes?.total1y ?? 0) : 0) +
+								(enabledSettings.tokentax ? (p.tokenTax?.total1y ?? 0) : 0),
 							totalAllTime:
 								p.totalAllTime +
-								(enabledSettings.bribes ? p.bribes?.totalAllTime ?? 0 : 0) +
-								(enabledSettings.tokentax ? p.tokenTax?.totalAllTime ?? 0 : 0),
+								(enabledSettings.bribes ? (p.bribes?.totalAllTime ?? 0) : 0) +
+								(enabledSettings.tokentax ? (p.tokenTax?.totalAllTime ?? 0) : 0),
 							...(pf ? { pf } : {}),
 							...(ps ? { ps } : {}),
 							...(childProtocols ? { childProtocols } : {})
 						}
-				  })
+					})
 				: protocols
 
 		return {
@@ -417,7 +417,7 @@ export function AdapterByChain(props: IProps) {
 						<div className="flex flex-col">
 							{props.total30d != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
-									<span className="text-[#545757] dark:text-[#cccccc]">{metricName} (30d)</span>
+									<span className="text-(--text-label)">{metricName} (30d)</span>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.total30d, true)}</span>
 								</p>
 							) : null}
@@ -425,13 +425,13 @@ export function AdapterByChain(props: IProps) {
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
 									<Tooltip
 										content="Change of last 7d volume over the previous 7d volume"
-										className="text-[#545757] dark:text-[#cccccc] underline decoration-dotted"
+										className="text-(--text-label) underline decoration-dotted"
 									>
 										Weekly Change
 									</Tooltip>
 									<span
 										className={`ml-auto font-jetbrains ${
-											props.change_7dover7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+											props.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 										}`}
 									>
 										{`${props.change_7dover7d >= 0 ? '+' : ''}${props.change_7dover7d}%`}
@@ -456,7 +456,7 @@ export function AdapterByChain(props: IProps) {
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+							className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 						/>
 						<input
 							value={projectName}
@@ -479,7 +479,7 @@ export function AdapterByChain(props: IProps) {
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+								'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 						}}
 					/>
 					{props.categories.length > 0 && (
@@ -495,14 +495,14 @@ export function AdapterByChain(props: IProps) {
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
 					)}
 					<FullOldViewButton type={props.type} />
 					<CSVDownloadButton
 						onClick={downloadCsv}
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 
@@ -524,7 +524,7 @@ const columnOrders = Object.entries({
 	640: ['name', 'category', 'definition', 'total24h', 'total7d', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const protocolChartsKeys: Record<IProps['type'], typeof protocolCharts[keyof typeof protocolCharts]> = {
+const protocolChartsKeys: Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]> = {
 	Fees: 'fees',
 	Revenue: 'revenue',
 	'Holders Revenue': 'holdersRevenue',
@@ -539,7 +539,7 @@ const protocolChartsKeys: Record<IProps['type'], typeof protocolCharts[keyof typ
 	Earnings: 'incentives'
 }
 
-const chainChartsKeys: Partial<Record<IProps['type'], typeof chainCharts[keyof typeof chainCharts]>> = {
+const chainChartsKeys: Partial<Record<IProps['type'], (typeof chainCharts)[keyof typeof chainCharts]>> = {
 	Fees: 'chainFees',
 	Revenue: 'chainRevenue',
 	'DEX Volume': 'dexsVolume',
@@ -616,7 +616,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 			const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
 			const chartKey = ['Chain', 'Rollup'].includes(row.original.category)
-				? chainChartsKeys[type] ?? protocolChartsKeys[type]
+				? (chainChartsKeys[type] ?? protocolChartsKeys[type])
 				: protocolChartsKeys[type]
 
 			return (

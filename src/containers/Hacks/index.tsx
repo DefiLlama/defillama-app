@@ -66,7 +66,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						name="search"
@@ -125,7 +125,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 							console.error('Error generating CSV:', error)
 						}
 					}}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
@@ -151,15 +151,15 @@ export const HacksContainer = ({
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked (USD)</span>
+						<span className="text-(--text-label)">Total Value Hacked (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{totalHacked}b</span>
 					</p>
 					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked in DeFi (USD)</span>
+						<span className="text-(--text-label)">Total Value Hacked in DeFi (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{totalHackedDefi}b</span>
 					</p>
 					<p className="flex flex-col">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Value Hacked in Bridges (USD)</span>
+						<span className="text-(--text-label)">Total Value Hacked in Bridges (USD)</span>
 						<span className="font-semibold text-2xl font-jetbrains">{totalRugs}b</span>
 					</p>
 				</div>
@@ -186,7 +186,7 @@ export const HacksContainer = ({
 								}
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
 						/>
 					</div>
 					{chartType === 'Monthly Sum' ? (

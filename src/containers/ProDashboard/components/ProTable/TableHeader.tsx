@@ -42,7 +42,7 @@ export function TableHeader({
 							onClick={() => applyPreset(preset)}
 							className={`flex items-center gap-1 px-3 py-1.5 text-sm border capitalize transition-colors ${
 								activePreset === preset
-									? 'bg-(--primary1) text-white border-(--primary1)'
+									? 'bg-(--primary) text-white border-(--primary)'
 									: 'pro-border pro-hover-bg pro-text1 pro-bg1'
 							}`}
 						>
@@ -62,7 +62,7 @@ export function TableHeader({
 					<Icon name="settings" height={14} width={14} />
 					<span className="flex items-center gap-1">
 						Customize Table
-						<span className="text-xs px-1.5 py-0.5 bg-(--primary1) text-white rounded-sm">+ Custom Columns</span>
+						<span className="text-xs px-1.5 py-0.5 bg-(--primary) text-white rounded-sm">+ Custom Columns</span>
 					</span>
 					<Icon name={showColumnPanel ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
 				</button>

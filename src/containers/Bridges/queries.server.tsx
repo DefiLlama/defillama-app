@@ -147,7 +147,7 @@ export async function getBridgeOverviewPageData(chain) {
 					correctedIsDeposit = chain.toLowerCase() === txChain.toLowerCase() ? isDeposit : !isDeposit
 				}
 				return { ...transaction, isDeposit: correctedIsDeposit, symbol: symbolAndTokenForExplorer }
-		  })
+			})
 		: []
 
 	const { bridges: filteredBridges, messagingProtocols } = formatBridgesData({
@@ -368,7 +368,7 @@ export async function getBridgePageDatanew(bridge: string) {
 	})
 
 	volumeDataByChain['All Chains'] =
-		destinationChain !== 'false' ? volumeDataByChain?.[destinationChain] ?? [] : Object.values(volumeOnAllChains)
+		destinationChain !== 'false' ? (volumeDataByChain?.[destinationChain] ?? []) : Object.values(volumeOnAllChains)
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this

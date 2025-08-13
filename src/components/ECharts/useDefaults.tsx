@@ -109,7 +109,7 @@ export function useDefaults({
 						color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 					},
 					left: 15
-			  }
+				}
 			: {}
 
 		const gridTop = valueSymbol === '%' ? 20 : hideLegend ? 0 : isSmall ? 60 : 10
@@ -168,16 +168,16 @@ export function useDefaults({
 							curr.seriesName === 'Unlocks'
 								? unlockTokenSymbol
 								: curr.seriesName.includes('Users')
-								? 'Addresses'
-								: curr.seriesName.includes('Addresses')
-								? ''
-								: curr.seriesName.includes('Transactions')
-								? 'TXs'
-								: curr.seriesName === 'TVL' && valueSymbol !== '$'
-								? valueSymbol
-								: Object.keys(CHART_SYMBOLS).includes(curr.seriesName)
-								? CHART_SYMBOLS[curr.seriesName]
-								: valueSymbol
+									? 'Addresses'
+									: curr.seriesName.includes('Addresses')
+										? ''
+										: curr.seriesName.includes('Transactions')
+											? 'TXs'
+											: curr.seriesName === 'TVL' && valueSymbol !== '$'
+												? valueSymbol
+												: Object.keys(CHART_SYMBOLS).includes(curr.seriesName)
+													? CHART_SYMBOLS[curr.seriesName]
+													: valueSymbol
 						) +
 						'</li>')
 				}, '')
@@ -231,7 +231,7 @@ export function useDefaults({
 						textStyle: {
 							color: isThemeDark ? 'white' : 'black'
 						}
-				  }
+					}
 				: {})
 		}
 
@@ -338,7 +338,7 @@ export function useDefaults({
 						textStyle: {
 							color: isThemeDark ? 'white' : 'black'
 						}
-				  }
+					}
 				: {})
 		}
 
@@ -496,19 +496,19 @@ export function formatTooltipChartDate(
 	return groupBy === 'monthly'
 		? `${monthNames[date.getUTCMonth()]} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
 		: groupBy === 'quarterly'
-		? getQuarterDateRange(value)
-		: groupBy === 'weekly'
-		? getStartAndEndDayOfTheWeek(value)
-		: date.getUTCHours() !== 0 && !hideTime
-		? `${date.toLocaleDateString(undefined, {
-				year: 'numeric',
-				month: '2-digit',
-				day: '2-digit',
-				hour: '2-digit',
-				minute: '2-digit',
-				timeZone: 'UTC'
-		  })}`
-		: `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
+			? getQuarterDateRange(value)
+			: groupBy === 'weekly'
+				? getStartAndEndDayOfTheWeek(value)
+				: date.getUTCHours() !== 0 && !hideTime
+					? `${date.toLocaleDateString(undefined, {
+							year: 'numeric',
+							month: '2-digit',
+							day: '2-digit',
+							hour: '2-digit',
+							minute: '2-digit',
+							timeZone: 'UTC'
+						})}`
+					: `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
 }
 
 function formatChartEmphasisDate(value: number) {

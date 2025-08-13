@@ -98,7 +98,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		if (item.kind === 'multi') {
 			return (
 				<Suspense fallback={<></>}>
-					<MultiChartCard key={`${item.id}-${item.items?.map(i => i.id).join('-')}`} multi={item} />
+					<MultiChartCard key={`${item.id}-${item.items?.map((i) => i.id).join('-')}`} multi={item} />
 				</Suspense>
 			)
 		}
@@ -180,7 +180,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 			<div className="mt-2">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 					{chartsWithData.map((item) => (
-						<div key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map(i => i.id).join('-')}` : ''}`} className={`${getColSpanClass(item.colSpan)}`}>
+						<div
+							key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
+							className={`${getColSpanClass(item.colSpan)}`}
+						>
 							<div className={`pro-glass h-full relative ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
 								<div className={item.kind === 'table' ? 'pr-12' : ''}>{renderItemContent(item)}</div>
 							</div>
@@ -197,7 +200,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 						{chartsWithData.map((item) => (
-							<div key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map(i => i.id).join('-')}` : ''}`} className={`${getColSpanClass(item.colSpan)}`}>
+							<div
+								key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
+								className={`${getColSpanClass(item.colSpan)}`}
+							>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
 									<div
 										className={`pro-glass h-full relative ${item.kind === 'table' ? 'pt-6' : ''} ${
@@ -253,12 +259,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								strokeWidth="2"
 								strokeLinecap="round"
 								strokeLinejoin="round"
-								className="text-(--primary1) mb-2"
+								className="text-(--primary) mb-2"
 							>
 								<line x1="12" y1="5" x2="12" y2="19"></line>
 								<line x1="5" y1="12" x2="19" y2="12"></line>
 							</svg>
-							<span className="text-(--primary1) font-medium text-lg">Add Item</span>
+							<span className="text-(--primary) font-medium text-lg">Add Item</span>
 						</div>
 					</div>
 				</SortableContext>

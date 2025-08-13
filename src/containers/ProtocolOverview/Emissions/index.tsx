@@ -107,7 +107,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const priceChart = usePriceChart(data.geckoId ?? geckoId)
 	const tokenMaxSupply = priceChart.data?.data.coinData.market_data?.max_supply_infinite
 		? Infinity
-		: priceChart.data?.data.coinData.market_data?.max_supply ?? undefined
+		: (priceChart.data?.data.coinData.market_data?.max_supply ?? undefined)
 	const tokenCircSupply = priceChart.data?.data.coinData.market_data?.circulating_supply ?? undefined
 	const tokenPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
 	const tokenMcap = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
@@ -330,7 +330,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-center w-full place-content-center">
 						{data?.tokenPrice?.price ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text3)">Price</span>
+								<span className="text-(--text-tertiary)">Price</span>
 								<div className="flex items-center gap-2">
 									<span className="text-lg font-medium">${formattedNum(data.tokenPrice.price)}</span>
 									{percentChange !== null && (
@@ -350,7 +350,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						{tokenCircSupply ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text3)">Circulating Supply</span>
+								<span className="text-(--text-tertiary)">Circulating Supply</span>
 								<span className="text-lg font-medium">
 									{formattedNum(tokenCircSupply)} {data.tokenPrice.symbol}
 								</span>
@@ -359,7 +359,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						{tokenMaxSupply ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text3)">Max Supply</span>
+								<span className="text-(--text-tertiary)">Max Supply</span>
 								<span className="text-lg font-medium">
 									{tokenMaxSupply != Infinity ? formattedNum(tokenMaxSupply) : '∞'} {data.tokenPrice.symbol}
 								</span>
@@ -368,14 +368,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						{tokenMcap ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text3)">Market Cap</span>
+								<span className="text-(--text-tertiary)">Market Cap</span>
 								<span className="text-lg font-medium">${formattedNum(tokenMcap)}</span>
 							</div>
 						) : null}
 
 						{tokenVolume ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text3)">Volume (24h)</span>
+								<span className="text-(--text-tertiary)">Volume (24h)</span>
 								<span className="text-lg font-medium">${formattedNum(tokenVolume)}</span>
 							</div>
 						) : null}
@@ -384,7 +384,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			) : null}
 
 			{data.chartData?.realtime?.length > 0 && (
-				<div className="text-xs font-medium p-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium p-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 					<button
 						data-active={dataType === 'documented'}
 						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -437,7 +437,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								labelType="smol"
 								triggerProps={{
 									className:
-										'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+										'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 								}}
 							/>
 						</div>
@@ -506,7 +506,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<div className="flex justify-between flex-wrap">
 								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<p className="text-base text-(--text3)" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
+										<p
+											className="text-base text-(--text-tertiary)"
+											key={cat}
+										>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
 							</div>
@@ -517,7 +520,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<div className="flex justify-between flex-wrap">
 								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<p className="text-base text-(--text3)" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
+										<p
+											className="text-base text-(--text-tertiary)"
+											key={cat}
+										>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
 							</div>

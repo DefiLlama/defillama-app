@@ -53,19 +53,19 @@ export const SmolStats = (props: IChainOverviewData) => {
 								>
 									Crypto Mcap
 								</Tooltip>
-								<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+								<p className="text-(--text-form) whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 									props.globalmcap.chart[props.globalmcap.chart.length - 1][1],
 									true
 								)}`}</p>
 								<p className="text-xs flex items-center gap-1">
 									<span
 										className={`whitespace-nowrap overflow-hidden text-ellipsis ${
-											+props.globalmcap.change7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+											+props.globalmcap.change7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 										}`}
 									>
 										{`${+props.globalmcap.change7d >= 0 ? '+' : ''}${props.globalmcap.change7d}%`}
 									</span>
-									<span className="text-[#666] dark:text-[#919296]">7d</span>
+									<span className="text-(--text-form)">7d</span>
 								</p>
 							</div>
 							<Suspense fallback={<></>}>
@@ -89,7 +89,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 									Upcoming Unlocks
 								</Tooltip>
 								{props.unlocks.chart?.length > 0 ? (
-									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+									<p className="text-(--text-form) whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 										props.unlocks.total14d,
 										true
 									)} over 14 days`}</p>
@@ -120,7 +120,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 									DEXs Volume
 								</Tooltip>
 								{props.dexs.chart?.length > 0 ? (
-									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+									<p className="text-(--text-form) whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 										props.dexs.total24h,
 										true
 									)} (24h)`}</p>
@@ -146,7 +146,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 									ETF Inflows
 								</Tooltip>
 								{props.etfs?.length > 0 ? (
-									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+									<p className="text-(--text-form) whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 										props.etfs[props.etfs.length - 1][1],
 										true
 									)} (24h)`}</p>
@@ -173,19 +173,19 @@ export const SmolStats = (props: IChainOverviewData) => {
 							</Tooltip>
 							{rwaTvl.chart.length > 0 ? (
 								<>
-									<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+									<p className="text-(--text-form) whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 										rwaTvl.chart[rwaTvl.chart.length - 1][1],
 										true
 									)}`}</p>
 									<p className="text-xs flex items-center gap-1">
 										<span
 											className={`whitespace-nowrap overflow-hidden text-ellipsis ${
-												+rwaTvl.change7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+												+rwaTvl.change7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 											}`}
 										>
 											{`${+rwaTvl.change7d >= 0 ? '+' : ''}${rwaTvl.change7d}%`}
 										</span>
-										<span className="text-[#666] dark:text-[#919296]">7d</span>
+										<span className="text-(--text-form)">7d</span>
 									</p>
 									<Suspense fallback={<></>}>
 										<SmolLineChart
@@ -213,7 +213,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						DEXs Volume
 					</Tooltip>
 					{props.dexs.chart?.length > 0 ? (
-						<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+						<p className="text-(--text-form) whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 							props.dexs.total24h,
 							true
 						)} (24h)`}</p>
@@ -240,10 +240,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 							Fees Paid
 						</Tooltip>
 						{props.chainFees.feesGenerated24h != null ? (
-							<p className="text-[#666] dark:text-[#919296]">{`${formattedNum(
-								props.chainFees.feesGenerated24h ?? 0,
-								true
-							)} (24h)`}</p>
+							<p className="text-(--text-form)">{`${formattedNum(props.chainFees.feesGenerated24h ?? 0, true)} (24h)`}</p>
 						) : null}
 					</div>
 					<Suspense fallback={<></>}>
@@ -269,19 +266,19 @@ export const SmolStats = (props: IChainOverviewData) => {
 					</Tooltip>
 					{props.stablecoins.mcap != null ? (
 						<>
-							<p className="text-[#666] dark:text-[#919296] whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
+							<p className="text-(--text-form) whitespace-nowrap overflow-hidden text-ellipsis">{`${formattedNum(
 								props.stablecoins.mcap,
 								true
 							)}`}</p>
 							<p className="text-xs flex items-center gap-1">
 								<span
 									className={`whitespace-nowrap overflow-hidden text-ellipsis ${
-										+props.stablecoins.change7d >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+										+props.stablecoins.change7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 									}`}
 								>
 									{`${+props.stablecoins.change7d >= 0 ? '+' : ''}${props.stablecoins.change7d}%`}
 								</span>
-								<span className="text-[#666] dark:text-[#919296]">7d</span>
+								<span className="text-(--text-form)">7d</span>
 							</p>
 						</>
 					) : null}

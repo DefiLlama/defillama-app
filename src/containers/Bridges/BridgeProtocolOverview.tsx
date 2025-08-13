@@ -68,7 +68,7 @@ const BridgeInfo = ({
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Deposited to {currentChain} (24h)</span>
+						<span className="text-(--text-label)">Deposited to {currentChain} (24h)</span>
 						<span className="font-jetbrains font-semibold text-2xl">
 							{formattedNum(
 								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentDepositsUSD || '0',
@@ -78,7 +78,7 @@ const BridgeInfo = ({
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Withdrawn from {currentChain} (24h)</span>
+						<span className="text-(--text-label)">Withdrawn from {currentChain} (24h)</span>
 						<span className="font-jetbrains font-semibold text-2xl">
 							{formattedNum(
 								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentWithdrawalsUSD || '0',
@@ -88,7 +88,7 @@ const BridgeInfo = ({
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Volume Change (24h)</span>
+						<span className="text-(--text-label)">Volume Change (24h)</span>
 						<span className="font-jetbrains font-semibold text-2xl">{volPercentChange + '%'}</span>
 					</p>
 					{config?.url ? (
@@ -105,7 +105,7 @@ const BridgeInfo = ({
 
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2">
 					<div className="w-full max-w-fit overflow-x-auto ml-auto p-3">
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
 							<button
 								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={chartType === 'Inflows'}

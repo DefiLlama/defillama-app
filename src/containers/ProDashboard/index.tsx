@@ -110,7 +110,7 @@ function ProDashboardContent() {
 								key={period.value}
 								className={`px-3 py-1.5 md:px-4 md:py-2 text-sm font-medium border transition-colors duration-200 flex-1 md:flex-initial ${
 									timePeriod === period.value
-										? 'border-(--primary1) bg-(--primary1) text-white'
+										? 'border-(--primary) bg-(--primary) text-white'
 										: 'pro-border pro-hover-bg pro-text2'
 								} ${!hasChartItems ? 'opacity-50 cursor-not-allowed' : ''}`}
 								onClick={() => hasChartItems && setTimePeriod(period.value)}
@@ -135,7 +135,7 @@ function ProDashboardContent() {
 										saveDashboardName()
 									}}
 									onKeyDown={handleNameKeyDown}
-									className="text-lg md:text-xl font-semibold bg-transparent border-b-2 border-(--primary1) pro-text1 focus:outline-hidden px-2 py-1 md:px-3 md:py-2 min-w-0 w-full md:text-center"
+									className="text-lg md:text-xl font-semibold bg-transparent border-b-2 border-(--primary) pro-text1 focus:outline-hidden px-2 py-1 md:px-3 md:py-2 min-w-0 w-full md:text-center"
 									autoFocus
 									placeholder="Dashboard Name"
 								/>
@@ -144,7 +144,7 @@ function ProDashboardContent() {
 							<div className="flex items-center gap-2">
 								<button
 									onClick={() => !isReadOnly && setIsEditingName(true)}
-									className={`group text-lg md:text-xl font-semibold pro-text1 px-2 py-1 md:px-3 md:py-2 bg-(--bg7) bg-opacity-30 ${
+									className={`group text-lg md:text-xl font-semibold pro-text1 px-2 py-1 md:px-3 md:py-2 bg-(--bg-glass) bg-opacity-30 ${
 										!isReadOnly ? 'pro-hover-bg hover:border-(--form-control-border)' : ''
 									} flex items-center gap-2 transition-colors min-w-0`}
 									disabled={isReadOnly}
@@ -156,8 +156,8 @@ function ProDashboardContent() {
 										<span
 											className={`text-xs px-2 py-0.5 ml-2 shrink-0 ${
 												dashboardVisibility === 'public'
-													? 'bg-(--primary1) bg-opacity-20'
-													: 'bg-(--bg1) bg-opacity-50 pro-text3'
+													? 'bg-(--primary) bg-opacity-20'
+													: 'bg-(--bg-main) bg-opacity-50 pro-text3'
 											}`}
 										>
 											{dashboardVisibility === 'public' ? 'Public' : 'Private'}
@@ -174,7 +174,7 @@ function ProDashboardContent() {
 											onClick={() => toggleLike()}
 											disabled={isLiking || !isAuthenticated}
 											className={`flex items-center gap-1 transition-colors ${
-												currentDashboard?.liked ? 'text-(--primary1)' : 'hover:text-(--primary1)'
+												currentDashboard?.liked ? 'text-(--primary)' : 'hover:text-(--primary)'
 											}`}
 											title={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
 										>
@@ -192,7 +192,7 @@ function ProDashboardContent() {
 												navigator.clipboard.writeText(url)
 												toast.success('Dashboard link copied to clipboard!')
 											}}
-											className="flex items-center gap-1 transition-colors hover:text-(--primary1)"
+											className="flex items-center gap-1 transition-colors hover:text-(--primary)"
 											title="Share dashboard"
 										>
 											<Icon name="link" height={16} width={16} />
@@ -223,7 +223,7 @@ function ProDashboardContent() {
 										setShowSubscribeModal(true)
 									}
 								}}
-								className="flex items-center gap-2  ml-2 px-2 xl:px-3 py-2 border border-(--primary1) text-(--primary1) hover:bg-(--primary1) hover:text-white transition-colors"
+								className="flex items-center gap-2  ml-2 px-2 xl:px-3 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors"
 								title="Copy Dashboard"
 							>
 								<Icon name="copy" height={16} width={16} />
@@ -235,7 +235,7 @@ function ProDashboardContent() {
 							<div className="relative">
 								<button
 									onClick={() => setShowDashboardMenu(!showDashboardMenu)}
-									className="p-2 bg-(--bg7) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors"
+									className="p-2 bg-(--bg-glass) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors"
 									title="Dashboard menu"
 								>
 									<Icon name="chevron-down" height={16} width={16} className="pro-text1" />
@@ -244,7 +244,7 @@ function ProDashboardContent() {
 								{showDashboardMenu && (
 									<>
 										<div className="fixed inset-0 z-10" onClick={() => setShowDashboardMenu(false)} />
-										<div className="absolute right-0 top-full mt-2 w-64 bg-(--bg7) bg-opacity-90 backdrop-filter backdrop-blur-xl border pro-glass-border shadow-lg z-[1000]">
+										<div className="absolute right-0 top-full mt-2 w-64 bg-(--bg-glass) bg-opacity-90 backdrop-filter backdrop-blur-xl border pro-glass-border shadow-lg z-[1000]">
 											<div className="p-2">
 												{isReadOnly ? (
 													<button
@@ -317,13 +317,13 @@ function ProDashboardContent() {
 																			setShowDashboardMenu(false)
 																		}}
 																		className={`w-full text-left px-3 py-2 pro-hover-bg text-sm ${
-																			dashboard.id === dashboardId ? 'bg-(--bg3)' : ''
+																			dashboard.id === dashboardId ? 'bg-(--bg-tertiary)' : ''
 																		}`}
 																	>
 																		<div className="flex items-center justify-between">
 																			<span className="truncate">{dashboard.data.dashboardName}</span>
 																			{dashboard.id === dashboardId && (
-																				<Icon name="check" height={14} width={14} className="text-(--primary1)" />
+																				<Icon name="check" height={14} width={14} className="text-(--primary)" />
 																			)}
 																		</div>
 																		<div className="text-xs pro-text3">
@@ -347,7 +347,7 @@ function ProDashboardContent() {
 						{dashboardId && !isReadOnly && (
 							<button
 								onClick={() => setShowSettingsModal(true)}
-								className="p-2 bg-(--bg7) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors"
+								className="p-2 bg-(--bg-glass) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors"
 								title="Dashboard Settings"
 							>
 								<Icon name="settings" height={16} width={16} className="pro-text1" />
@@ -355,7 +355,7 @@ function ProDashboardContent() {
 						)}
 						<button
 							className={`px-2.5 py-2 md:px-4 md:py-2 ${
-								!isReadOnly ? 'bg-(--primary1) hover:bg-(--primary1-hover)' : 'bg-(--bg3) cursor-not-allowed'
+								!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'bg-(--bg-tertiary) cursor-not-allowed'
 							} text-white flex items-center gap-2 text-sm md:text-base whitespace-nowrap`}
 							onClick={() => !isReadOnly && setShowAddModal(true)}
 							disabled={isReadOnly}
@@ -370,7 +370,7 @@ function ProDashboardContent() {
 					{dashboardId && !isReadOnly && (
 						<button
 							onClick={() => setShowSettingsModal(true)}
-							className="p-2 bg-(--bg7) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors hidden md:flex"
+							className="p-2 bg-(--bg-glass) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors hidden md:flex"
 							title="Dashboard Settings"
 						>
 							<Icon name="settings" height={20} width={20} className="pro-text1" />
@@ -378,7 +378,7 @@ function ProDashboardContent() {
 					)}
 					<button
 						className={`px-4 py-2 ${
-							!isReadOnly ? 'bg-(--primary1) hover:bg-(--primary1-hover)' : 'bg-(--bg3) cursor-not-allowed'
+							!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'bg-(--bg-tertiary) cursor-not-allowed'
 						} text-white items-center gap-2 text-base whitespace-nowrap hidden md:flex ${
 							isReadOnly ? 'invisible' : ''
 						}`}
@@ -392,7 +392,7 @@ function ProDashboardContent() {
 			</div>
 
 			{!isAuthenticated && (
-				<div className="bg-(--bg3) border border-(--divider) p-3 mb-4 text-sm pro-text2">
+				<div className="bg-(--bg-tertiary) border border-(--divider) p-3 mb-4 text-sm pro-text2">
 					<Icon name="help-circle" height={16} width={16} className="inline mr-2" />
 					Sign in to save and manage multiple dashboards
 				</div>
@@ -403,7 +403,7 @@ function ProDashboardContent() {
 					<Icon name="bookmark" height={14} width={14} className="pro-text3" />
 					<div className="flex flex-wrap gap-2">
 						{dashboardTags.map((tag) => (
-							<span key={tag} className="px-2 py-1 bg-(--bg1) bg-opacity-50 text-xs pro-text2 border pro-border">
+							<span key={tag} className="px-2 py-1 bg-(--bg-main) bg-opacity-50 text-xs pro-text2 border pro-border">
 								{tag}
 							</span>
 						))}

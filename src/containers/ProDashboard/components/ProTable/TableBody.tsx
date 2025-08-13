@@ -18,7 +18,7 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 				style={{ height: '100%' }}
 			>
 				<div className="flex items-center justify-center h-32">
-					<div className="text-(--text3)">Loading table...</div>
+					<div className="text-(--text-tertiary)">Loading table...</div>
 				</div>
 			</div>
 		)
@@ -29,7 +29,7 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 			className="relative w-full flex-1 min-h-0 overflow-auto thin-scrollbar -mx-2 sm:mx-0 px-2 sm:px-0"
 			style={{ height: '100%' }}
 		>
-			<table className="w-full min-w-[600px] text-(--text1) text-xs sm:text-sm border-collapse">
+			<table className="w-full min-w-[600px] text-(--text-primary) text-xs sm:text-sm border-collapse">
 				<thead className="sticky top-0 z-10">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id}>
@@ -73,7 +73,7 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 				</thead>
 				<tbody>
 					{table.getRowModel().rows.map((row) => (
-						<tr key={row.id} className="hover:bg-(--bg3) border-b border-(--divider)">
+						<tr key={row.id} className="hover:bg-(--bg-tertiary) border-b border-(--divider)">
 							{row.getVisibleCells().map((cell, cellIndex) => (
 								<td
 									key={cell.id}

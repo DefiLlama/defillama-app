@@ -73,7 +73,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					)}
 					{props.charts['TVL']?.data.length > 0 && (
 						<p className="flex flex-col">
-							<span className="text-[#545757] dark:text-[#cccccc] text-sm">Total Value Locked</span>
+							<span className="text-(--text-label) text-sm">Total Value Locked</span>
 							<span className="font-semibold text-2xl font-jetbrains min-h-8">
 								{formattedNum(charts['TVL']?.data[charts['TVL']?.data.length - 1][1], true)}
 							</span>
@@ -82,25 +82,25 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					<div className="flex flex-col flex-1 gap-2 mb-auto">
 						{props.fees7d != null && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
-								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Fees (7d)</span>
+								<span className="font-normal text-(--text-label)">Fees (7d)</span>
 								<span className="text-right font-jetbrains">{formattedNum(props.fees7d, true)}</span>
 							</p>
 						)}
 						{props.revenue7d != null && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
-								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Revenue (7d)</span>
+								<span className="font-normal text-(--text-label)">Revenue (7d)</span>
 								<span className="text-right font-jetbrains">{formattedNum(props.revenue7d, true)}</span>
 							</p>
 						)}
 						{props.dexVolume7d != null && ['Dexs', 'DEX Aggregators'].includes(props.category) && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
-								<span className="font-normal text-[#545757] dark:text-[#cccccc]">DEX Volume (7d)</span>
+								<span className="font-normal text-(--text-label)">DEX Volume (7d)</span>
 								<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 							</p>
 						)}
 						{props.perpVolume7d != null && ['Derivatives'].includes(props.category) && (
 							<p className="text-base flex items-center gap-4 justify-between flex-wrap">
-								<span className="font-normal text-[#545757] dark:text-[#cccccc]">Perp Volume (7d)</span>
+								<span className="font-normal text-(--text-label)">Perp Volume (7d)</span>
 								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume7d, true)}</span>
 							</p>
 						)}
@@ -112,7 +112,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								}
 								download(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
 							}}
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mr-auto mt-auto"
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mr-auto mt-auto"
 						/>
 					</div>
 				</div>
@@ -148,7 +148,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 							const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 							download(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
 						}}
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				}
 			/>
@@ -270,7 +270,7 @@ const columns = (
 					},
 					size: 140
 				}
-		  ]
+			]
 		: ([] as any)),
 	...(['Derivatives'].includes(category)
 		? [
@@ -285,7 +285,7 @@ const columns = (
 					},
 					size: 160
 				}
-		  ]
+			]
 		: ([] as any)),
 	{
 		id: 'mcap/tvl',
@@ -333,7 +333,7 @@ const columns = (
 					},
 					size: 148
 				}
-		  ]
+			]
 		: ([] as any)),
 	...(['Derivatives'].includes(category)
 		? [
@@ -348,7 +348,7 @@ const columns = (
 					},
 					size: 160
 				}
-		  ]
+			]
 		: ([] as any)),
 	{
 		id: 'fees_24h',
@@ -385,7 +385,7 @@ const columns = (
 					},
 					size: 148
 				}
-		  ]
+			]
 		: ([] as any)),
 	...(['Derivatives'].includes(category)
 		? [
@@ -400,7 +400,7 @@ const columns = (
 					},
 					size: 160
 				}
-		  ]
+			]
 		: ([] as any)),
 	...(['Lending'].includes(category)
 		? [
@@ -437,6 +437,6 @@ const columns = (
 					},
 					size: 140
 				}
-		  ]
+			]
 		: ([] as any))
 ]

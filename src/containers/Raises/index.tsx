@@ -60,16 +60,16 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Funding Rounds</span>
+						<span className="text-(--text-label)">Total Funding Rounds</span>
 						<span className="font-jetbrains font-semibold text-2xl">{filteredRaisesList.length}</span>
 					</p>
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-[#545757] dark:text-[#cccccc]">Total Funding Amount</span>
+						<span className="text-(--text-label)">Total Funding Amount</span>
 						<span className="font-jetbrains font-semibold text-2xl">${formattedNum(totalAmountRaised)}</span>
 					</p>
 					<CSVDownloadButton
 						onClick={() => downloadCsv({ raises })}
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mt-auto mr-auto"
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mt-auto mr-auto"
 					/>
 				</div>
 

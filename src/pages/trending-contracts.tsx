@@ -131,12 +131,12 @@ const columns = (chain: string) =>
 							chain === 'ethereum'
 								? 'etherscan.io'
 								: chain === 'arbitrum'
-								? 'arbiscan.io'
-								: chain === 'optimism'
-								? 'optimistic.etherscan.io'
-								: chain === 'base'
-								? 'basescan.org'
-								: 'polygonscan.com'
+									? 'arbiscan.io'
+									: chain === 'optimism'
+										? 'optimistic.etherscan.io'
+										: chain === 'base'
+											? 'basescan.org'
+											: 'polygonscan.com'
 						}/address/${value}`}
 						target="_blank"
 						rel="noopener noreferrer"

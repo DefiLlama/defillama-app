@@ -90,8 +90,8 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 			const date = ['daily', 'cumulative'].includes(groupBy)
 				? flowDate
 				: groupBy === 'weekly'
-				? lastDayOfWeek(+flowDate * 1000)
-				: firstDayOfMonth(+flowDate * 1000)
+					? lastDayOfWeek(+flowDate * 1000)
+					: firstDayOfMonth(+flowDate * 1000)
 
 			bitcoin[date] = (bitcoin[date] || 0) + (flows[flowDate]['Bitcoin'] ?? 0) + totalBitcoin
 			if (flows[flowDate]['Ethereum']) {
@@ -168,7 +168,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 				<div className="flex flex-col flex-1 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
 					<div className="flex flex-wrap justify-end gap-2 p-3">
 						<h2 className="text-lg font-semibold mr-auto">Flows (Source: Farside)</h2>
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 							<button
 								data-active={groupBy === 'daily'}
 								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -214,7 +214,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 							}}
 							portal
 						/>
@@ -234,7 +234,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 								}
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
 						/>
 					</div>
 					<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>

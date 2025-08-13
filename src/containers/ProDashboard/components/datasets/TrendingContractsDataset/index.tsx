@@ -29,7 +29,13 @@ interface TrendingContractsDatasetProps {
 	onTimeframeChange?: (timeframe: string) => void
 }
 
-export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', timeframe: initialTimeframe = '1d', tableId, onChainChange, onTimeframeChange }: TrendingContractsDatasetProps) {
+export function TrendingContractsDataset({
+	chain: initialChain = 'Ethereum',
+	timeframe: initialTimeframe = '1d',
+	tableId,
+	onChainChange,
+	onTimeframeChange
+}: TrendingContractsDatasetProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'gas_spend', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -149,7 +155,7 @@ export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', tim
 							}}
 							values={['1d', '7d', '30d']}
 							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
-							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary1) data-[active=true]:text-white"
+							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 						/>
 						<TagGroup
 							selectedValue={chain}
@@ -161,7 +167,7 @@ export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', tim
 							}}
 							values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
 							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
-							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary1) data-[active=true]:text-white"
+							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 						/>
 						<ProTableCSVButton
 							onClick={() => {
@@ -211,7 +217,7 @@ export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', tim
 							value={contractSearch}
 							onChange={(e) => setContractSearch(e.target.value)}
 							className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1
-								focus:outline-hidden focus:ring-1 focus:ring-(--primary1)"
+								focus:outline-hidden focus:ring-1 focus:ring-(--primary)"
 						/>
 					</div>
 				</div>
@@ -232,7 +238,7 @@ export function TrendingContractsDataset({ chain: initialChain = 'Ethereum', tim
 						values={['10', '30', '50']}
 						setValue={(val) => setPagination((prev) => ({ ...prev, pageSize: Number(val), pageIndex: 0 }))}
 						containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
-						buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary1) data-[active=true]:text-white"
+						buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 					/>
 				</div>
 			</div>

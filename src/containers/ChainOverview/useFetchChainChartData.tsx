@@ -89,7 +89,7 @@ export const useFetchChainChartData = ({
 						protocol: selectedChain,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -108,7 +108,7 @@ export const useFetchChainChartData = ({
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyRevenue'
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -126,7 +126,7 @@ export const useFetchChainChartData = ({
 						adapterType: 'dexs',
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -144,7 +144,7 @@ export const useFetchChainChartData = ({
 						adapterType: 'derivatives',
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -163,7 +163,7 @@ export const useFetchChainChartData = ({
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyAppFees'
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -182,7 +182,7 @@ export const useFetchChainChartData = ({
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyAppRevenue'
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -221,16 +221,19 @@ export const useFetchChainChartData = ({
 		queryFn: () =>
 			isRaisesEnabled
 				? fetchJson(`${RAISES_API}`).then((data) => {
-						const store = (data?.raises ?? []).reduce((acc, curr) => {
-							acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
-							return acc
-						}, {} as Record<string, number>)
+						const store = (data?.raises ?? []).reduce(
+							(acc, curr) => {
+								acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
+								return acc
+							},
+							{} as Record<string, number>
+						)
 						const chart = []
 						for (const date in store) {
 							chart.push([+date * 1e3, store[date] * 1e6])
 						}
 						return chart
-				  })
+					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,

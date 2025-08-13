@@ -336,7 +336,7 @@ export function useAvailableChartTypes(
 					geckoId &&
 					['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) && { geckoId }) ||
 					(itemType === 'chain' && geckoId && ['chainMcap', 'chainPrice'].includes(type) && { geckoId }))
-		  }))
+			}))
 		: []
 
 	const results = useChartsData(charts, timePeriod)

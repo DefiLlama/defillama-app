@@ -41,12 +41,12 @@ export function Pool2ByChain(props: IPool2ByChainPageData) {
 							<p className="flex items-center flex-nowrap gap-2 relative bottom-[2px] text-sm">
 								<span
 									className={`text-right font-jetbrains text-ellipsis ${
-										props.change24h >= 0 ? 'text-(--pct-green)' : 'text-(--pct-red)'
+										props.change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
 									}`}
 								>
 									{`${props.change24h >= 0 ? '+' : ''}${props.change24h}%`}
 								</span>
-								<span className="text-[#545757] dark:text-[#cccccc]">24h</span>
+								<span className="text-(--text-label)">24h</span>
 							</p>
 						) : null}
 					</div>

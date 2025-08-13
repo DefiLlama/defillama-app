@@ -52,13 +52,13 @@ const DemoChartCard = ({ chart }: { chart: ChartConfig }) => {
 	)
 
 	return (
-		<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+		<div className="bg-(--bg-glass) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 			<div className="p-4 h-full flex flex-col">
 				<div className="flex items-center gap-2 mb-2">
-					<div className="w-6 h-6 rounded-full bg-(--primary1) flex items-center justify-center text-xs text-white font-bold">
+					<div className="w-6 h-6 rounded-full bg-(--primary) flex items-center justify-center text-xs text-white font-bold">
 						{itemName.charAt(0).toUpperCase()}
 					</div>
-					<h2 className="text-lg font-semibold text-(--text1)">
+					<h2 className="text-lg font-semibold text-(--text-primary)">
 						{itemName} {chartTypeDetails.title}
 					</h2>
 				</div>
@@ -115,10 +115,10 @@ const DemoMultiChartCard = ({ multi }: { multi: MultiChartConfig }) => {
 	})
 
 	return (
-		<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+		<div className="bg-(--bg-glass) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 			<div className="p-4 h-full flex flex-col">
 				<div className="flex items-center gap-2 mb-2">
-					<h3 className="text-sm font-medium text-(--text1)">{multi.name}</h3>
+					<h3 className="text-sm font-medium text-(--text-primary)">{multi.name}</h3>
 				</div>
 
 				<div style={{ height: '300px', flexGrow: 1 }}>
@@ -398,11 +398,11 @@ export const DemoPreview = () => {
 
 	return (
 		<div className="relative min-h-screen pro-dashboard">
-			<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl py-6 border-b border-(--divider)">
+			<div className="bg-(--bg-glass) bg-opacity-30 backdrop-filter backdrop-blur-xl py-6 border-b border-(--divider)">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
 					<div className="text-center">
-						<h1 className="text-3xl font-bold text-(--text1) mb-2">Pro Dashboard Preview</h1>
-						<p className="text-lg text-(--text2)">See what you'll get with Pro access:</p>
+						<h1 className="text-3xl font-bold text-(--text-primary) mb-2">Pro Dashboard Preview</h1>
+						<p className="text-lg text-(--text-secondary)">See what you'll get with Pro access:</p>
 					</div>
 
 					<div className="flex items-center justify-center">
@@ -410,10 +410,10 @@ export const DemoPreview = () => {
 							{features.map((feature, index) => (
 								<div
 									key={index}
-									className="flex flex-wrap items-center gap-2 text-sm text-(--text2) px-8 py-15 pro-info-card justify-center"
+									className="flex flex-wrap items-center gap-2 text-sm text-(--text-secondary) px-8 py-15 pro-info-card justify-center"
 								>
 									<div className="flex align-center gap-2">
-										<Icon name={feature.icon as any} height={32} width={32} className="text-(--primary1) shrink-0" />
+										<Icon name={feature.icon as any} height={32} width={32} className="text-(--primary) shrink-0" />
 										<span className="whitespace-nowrap font-bold text-lg leading-[170%]">{feature.title}</span>
 									</div>
 								</div>
@@ -423,10 +423,10 @@ export const DemoPreview = () => {
 
 					<div className="max-w-5xl mx-auto">
 						<div className="grid md:grid-cols-2 gap-8 items-stretch">
-							<div className="bg-gray-50/50 dark:bg-(--bg7) backdrop-filter backdrop-blur-xl border border-gray-200 dark:border-(--divider) rounded-sm px-6 py-8 text-center flex flex-col">
-								<h3 className="text-2xl font-bold text-gray-700 dark:text-(--text1) mb-3">Free Account</h3>
-								<div className="text-3xl font-bold text-gray-800 dark:text-(--text1) mb-6">
-									$0<span className="text-base font-normal text-gray-600 dark:text-(--text2)">/month</span>
+							<div className="bg-gray-50/50 dark:bg-(--bg-glass) backdrop-filter backdrop-blur-xl border border-gray-200 dark:border-(--divider) rounded-sm px-6 py-8 text-center flex flex-col">
+								<h3 className="text-2xl font-bold text-gray-700 dark:text-(--text-primary) mb-3">Free Account</h3>
+								<div className="text-3xl font-bold text-gray-800 dark:text-(--text-primary) mb-6">
+									$0<span className="text-base font-normal text-gray-600 dark:text-(--text-secondary)">/month</span>
 								</div>
 								<ul className="text-left space-y-3 text-sm mb-8 flex-1">
 									<li className="flex items-start gap-2">
@@ -436,7 +436,7 @@ export const DemoPreview = () => {
 											width={14}
 											className="text-green-600 dark:text-green-500 shrink-0 mt-0.5"
 										/>
-										<span className="text-gray-700 dark:text-(--text2)">Access to public dashboards</span>
+										<span className="text-gray-700 dark:text-(--text-secondary)">Access to public dashboards</span>
 									</li>
 									<li className="flex items-start gap-2">
 										<Icon
@@ -445,7 +445,9 @@ export const DemoPreview = () => {
 											width={14}
 											className="text-green-600 dark:text-green-500 shrink-0 mt-0.5"
 										/>
-										<span className="text-gray-700 dark:text-(--text2)">View community-created dashboards</span>
+										<span className="text-gray-700 dark:text-(--text-secondary)">
+											View community-created dashboards
+										</span>
 									</li>
 									<li className="flex items-start gap-2">
 										<Icon
@@ -454,26 +456,26 @@ export const DemoPreview = () => {
 											width={14}
 											className="text-green-600 dark:text-green-500 shrink-0 mt-0.5"
 										/>
-										<span className="text-gray-700 dark:text-(--text2)">Basic DeFi data access</span>
+										<span className="text-gray-700 dark:text-(--text-secondary)">Basic DeFi data access</span>
 									</li>
 								</ul>
 								<Link href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}>
-									<span className="px-6 py-2.5 border border-(--primary1) text-(--primary1) font-medium hover:bg-(--primary1) hover:text-white transition-colors cursor-pointer rounded-sm inline-block text-sm">
+									<span className="px-6 py-2.5 border border-(--primary) text-(--primary) font-medium hover:bg-(--primary) hover:text-white transition-colors cursor-pointer rounded-sm inline-block text-sm">
 										Create Free Account
 									</span>
 								</Link>
 							</div>
 
-							<div className="bg-gradient-to-br from-(--primary1)/10 to-purple-600/10 backdrop-filter backdrop-blur-xl border-2 border-(--primary1) rounded-sm px-6 py-8 text-center relative shadow-xl shadow-(--primary1)/10 transform hover:scale-[1.02] transition-transform flex flex-col">
-								<h3 className="text-2xl font-bold bg-gradient-to-r from-(--primary1) to-purple-600 bg-clip-text text-transparent mb-3">
+							<div className="bg-gradient-to-br from-(--primary)/10 to-purple-600/10 backdrop-filter backdrop-blur-xl border-2 border-(--primary) rounded-sm px-6 py-8 text-center relative shadow-xl shadow-(--primary)/10 transform hover:scale-[1.02] transition-transform flex flex-col">
+								<h3 className="text-2xl font-bold bg-gradient-to-r from-(--primary) to-purple-600 bg-clip-text text-transparent mb-3">
 									Pro
 								</h3>
-								<div className="text-4xl font-bold text-(--primary1) mb-6">
-									$49<span className="text-base font-normal text-(--text2)">/month</span>
+								<div className="text-4xl font-bold text-(--primary) mb-6">
+									$49<span className="text-base font-normal text-(--text-secondary)">/month</span>
 								</div>
 								<ul className="text-left space-y-3 text-sm mb-8 flex-1">
 									<li className="flex items-start gap-2">
-										<Icon name="star" height={14} width={14} className="text-(--primary1) shrink-0 mt-0.5" />
+										<Icon name="star" height={14} width={14} className="text-(--primary) shrink-0 mt-0.5" />
 										<span className="pro-text1 font-semibold">Everything in Free, plus:</span>
 									</li>
 									<li className="flex items-start gap-2">
@@ -498,7 +500,7 @@ export const DemoPreview = () => {
 									</li>
 								</ul>
 								<Link href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}>
-									<span className="px-8 py-3 bg-gradient-to-r from-(--primary1) to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer rounded-sm inline-flex shadow-lg">
+									<span className="px-8 py-3 bg-gradient-to-r from-(--primary) to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer rounded-sm inline-flex shadow-lg">
 										<Icon name="sparkles" height={16} width={16} />
 										Upgrade to Pro
 									</span>
@@ -509,21 +511,21 @@ export const DemoPreview = () => {
 				</div>
 			</div>
 
-			<div className="bg-(--bg7) bg-opacity-20 border-t border-(--divider) py-2 pt-6">
+			<div className="bg-(--bg-glass) bg-opacity-20 border-t border-(--divider) py-2 pt-6">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6">
 					<div className="flex items-center justify-center">
-						<span className="text-xs text-(--text2) opacity-75 italic">
+						<span className="text-xs text-(--text-secondary) opacity-75 italic">
 							Demo Preview - All data shown below is simulated for demonstration purposes
 						</span>
 					</div>
 				</div>
 			</div>
 
-			<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl py-6">
+			<div className="bg-(--bg-glass) bg-opacity-30 backdrop-filter backdrop-blur-xl py-6">
 				<div className=" max-w-[1400px] mx-auto">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
 						<div className="md:col-span-1 min-h-[340px]">
-							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg-glass) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<TextCard text={demoTextCard} />
 							</div>
 						</div>
@@ -545,19 +547,19 @@ export const DemoPreview = () => {
 						))}
 
 						<div className="md:col-span-2 min-h-[400px]">
-							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg-glass) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<ProtocolsByChainTable tableId="demo-ethereum-protocols" chains={['Ethereum']} colSpan={2} />
 							</div>
 						</div>
 
 						<div className="md:col-span-1 min-h-[340px]">
-							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg-glass) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<TextCard text={demoTextCard2} />
 							</div>
 						</div>
 
 						<div className="md:col-span-1 min-h-[340px]">
-							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg-glass) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<TextCard text={demoTextCard3} />
 							</div>
 						</div>
@@ -573,7 +575,7 @@ export const DemoPreview = () => {
 						))}
 
 						<div className="md:col-span-1 min-h-[340px]">
-							<div className="bg-(--bg7) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
+							<div className="bg-(--bg-glass) bg-opacity-30 backdrop-filter backdrop-blur-xl border border-white/30 h-full">
 								<TextCard text={demoTextCard4} />
 							</div>
 						</div>

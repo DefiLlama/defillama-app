@@ -43,7 +43,7 @@ export function RaisesTable({ raises, downloadCsv }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? raisesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? (raisesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		instance.setColumnOrder(order)
@@ -70,7 +70,7 @@ export function RaisesTable({ raises, downloadCsv }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 					/>
 					<input
 						name="search"
@@ -86,7 +86,7 @@ export function RaisesTable({ raises, downloadCsv }) {
 					target="_blank"
 					rel="noreferrer noopener"
 					href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093"
-					className="border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 justify-center rounded-md px-2 py-[6px] text-xs"
+					className="border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 justify-center rounded-md px-2 py-[6px] text-xs"
 				>
 					<span>Methodology & biases</span>
 					<Icon name="external-link" height={12} width={12} />
@@ -96,11 +96,11 @@ export function RaisesTable({ raises, downloadCsv }) {
 					onClick={() => {
 						window.open('https://api.llama.fi/raises')
 					}}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 				<CSVDownloadButton
 					onClick={downloadCsv}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-[#666]! dark:text-[#919296]! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 

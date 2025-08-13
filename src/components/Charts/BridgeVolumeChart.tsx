@@ -12,7 +12,7 @@ interface BridgeVolumeChartProps {
 }
 
 const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
-type TimePeriod = typeof TIME_PERIODS[number]
+type TimePeriod = (typeof TIME_PERIODS)[number]
 type MetricType = 'Volume' | 'Transactions'
 type ViewType = 'Split' | 'Combined'
 
@@ -40,10 +40,10 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 					? {
 							Deposits: item.deposits,
 							Withdrawals: -1 * item.withdrawals
-					  }
+						}
 					: {
 							Total: item.deposits + item.withdrawals
-					  })
+						})
 			}))
 		}
 
@@ -73,10 +73,10 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 					? {
 							Deposits: values.deposits,
 							Withdrawals: -1 * values.withdrawals
-					  }
+						}
 					: {
 							Total: values.deposits + values.withdrawals
-					  })
+						})
 			}))
 			.sort((a, b) => a.date - b.date)
 	}, [data, timePeriod, metricType, viewType])
@@ -99,8 +99,8 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 		<>
 			<div className="flex justify-end flex-wrap max-w-2xl w-full mx-auto gap-4 p-3 overflow-x-auto">
 				<div className="flex-1 flex flex-col gap-1 ml-auto">
-					<h2 className="text-sm font-medium text-(--text2)">Time Period:</h2>
-					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+					<h2 className="text-sm font-medium text-(--text-secondary)">Time Period:</h2>
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 						{TIME_PERIODS.map((period) => (
 							<button
 								key={period}
@@ -115,8 +115,8 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 				</div>
 
 				<div className="flex-1 flex flex-col gap-1">
-					<h2 className="text-sm font-medium text-(--text2)">View:</h2>
-					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+					<h2 className="text-sm font-medium text-(--text-secondary)">View:</h2>
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 						<button
 							onClick={() => setViewType('Split')}
 							data-active={viewType === 'Split'}
@@ -135,8 +135,8 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 				</div>
 
 				<div className="flex-1 flex flex-col gap-1">
-					<h2 className="text-sm font-medium text-(--text2)">Metric:</h2>
-					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+					<h2 className="text-sm font-medium text-(--text-secondary)">Metric:</h2>
+					<div className="text-xs w-full font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 						<button
 							onClick={() => setMetricType('Volume')}
 							data-active={metricType === 'Volume'}
@@ -167,7 +167,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 							? {
 									Deposits: 'metric',
 									Withdrawals: 'metric'
-							  }
+								}
 							: undefined
 					}
 					stackColors={
@@ -175,10 +175,10 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 							? {
 									Deposits: '#3b82f6',
 									Withdrawals: '#ef4444'
-							  }
+								}
 							: {
 									Total: '#22c55e'
-							  }
+								}
 					}
 					chartOptions={{
 						overrides: {

@@ -421,7 +421,7 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 		} else return true
 	})
 
-	const chains = onlyChains.length === 0 ? protocolData?.chains ?? [] : [onlyChains[0][0]]
+	const chains = onlyChains.length === 0 ? (protocolData?.chains ?? []) : [onlyChains[0][0]]
 
 	return {
 		...protocolData,
@@ -482,18 +482,18 @@ export async function getLSDPageData() {
 			p.project === 'binance-staked-eth'
 				? 'Binance staked ETH'
 				: p.project === 'bedrock-unieth'
-				? 'Bedrock uniETH'
-				: p.project === 'mantle-staked-eth'
-				? 'Mantle Staked ETH'
-				: p.project === 'dinero-(pirex-eth)'
-				? 'Dinero (Pirex ETH)'
-				: p.project === 'mev-protocol'
-				? 'MEV Protocol'
-				: p.project === 'crypto.com-staked-eth'
-				? 'Crypto.com Liquid Staking'
-				: p.project === 'dinero-(pxeth)'
-				? 'Dinero (pxETH)'
-				: p.name
+					? 'Bedrock uniETH'
+					: p.project === 'mantle-staked-eth'
+						? 'Mantle Staked ETH'
+						: p.project === 'dinero-(pirex-eth)'
+							? 'Dinero (Pirex ETH)'
+							: p.project === 'mev-protocol'
+								? 'MEV Protocol'
+								: p.project === 'crypto.com-staked-eth'
+									? 'Crypto.com Liquid Staking'
+									: p.project === 'dinero-(pxeth)'
+										? 'Dinero (pxETH)'
+										: p.name
 	}))
 
 	const nameGeckoMapping = {}
@@ -640,7 +640,7 @@ export async function getChainsBridged(chain?: string) {
 					.catch(() => [])
 			: []
 	])
-	const chainData = chain ? Object.entries(assets ?? {}).find((a) => slug(a[0]) === slug(chain))?.[1] ?? null : null
+	const chainData = chain ? (Object.entries(assets ?? {}).find((a) => slug(a[0]) === slug(chain))?.[1] ?? null) : null
 
 	const tokenInflowNames = new Set<string>()
 	for (const inflow of inflows) {

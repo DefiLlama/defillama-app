@@ -94,7 +94,7 @@ export default function ProtocolLineBarChart({
 									}
 								])
 							}
-					  }
+						}
 					: {}),
 				markLine: {},
 				data: chartData[stack] ?? [],
@@ -119,7 +119,7 @@ export default function ProtocolLineBarChart({
 									}
 								])
 							}
-					  }
+						}
 					: {})
 			}
 		})
@@ -260,12 +260,12 @@ export default function ProtocolLineBarChart({
 							color: chartData['Fees']
 								? chartColors['Fees']
 								: chartData['Revenue']
-								? chartColors['Revenue']
-								: chartData['Holders Revenue']
-								? chartColors['Holders Revenue']
-								: chartData['Incentives']
-								? chartColors['Incentives']
-								: chartColors['Fees']
+									? chartColors['Revenue']
+									: chartData['Holders Revenue']
+										? chartColors['Holders Revenue']
+										: chartData['Incentives']
+											? chartColors['Incentives']
+											: chartColors['Fees']
 						}
 					}
 				})
@@ -280,18 +280,18 @@ export default function ProtocolLineBarChart({
 							color: chartData['DEX Volume']
 								? chartColors['DEX Volume']
 								: chartData['Perp Volume']
-								? chartColors['Perp Volume']
-								: chartData['Options Premium Volume']
-								? chartColors['Options Premium Volume']
-								: chartData['Options Notional Volume']
-								? chartColors['Options Notional Volume']
-								: chartData['Perp Aggregator Volume']
-								? chartColors['Perp Aggregator Volume']
-								: chartData['Bridge Aggregator Volume']
-								? chartColors['Bridge Aggregator Volume']
-								: chartData['DEX Aggregator Volume']
-								? chartColors['DEX Aggregator Volume']
-								: chartColors['DEX Volume']
+									? chartColors['Perp Volume']
+									: chartData['Options Premium Volume']
+										? chartColors['Options Premium Volume']
+										: chartData['Options Notional Volume']
+											? chartColors['Options Notional Volume']
+											: chartData['Perp Aggregator Volume']
+												? chartColors['Perp Aggregator Volume']
+												: chartData['Bridge Aggregator Volume']
+													? chartColors['Bridge Aggregator Volume']
+													: chartData['DEX Aggregator Volume']
+														? chartColors['DEX Aggregator Volume']
+														: chartColors['DEX Volume']
 						}
 					}
 				})
@@ -324,8 +324,8 @@ export default function ProtocolLineBarChart({
 							color: chartData['Active Addresses']
 								? chartColors['Active Addresses']
 								: chartData['New Addresses']
-								? chartColors['New Addresses']
-								: chartColors['Active Addresses']
+									? chartColors['New Addresses']
+									: chartColors['Active Addresses']
 						}
 					}
 				})

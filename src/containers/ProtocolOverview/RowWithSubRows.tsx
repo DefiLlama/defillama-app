@@ -8,7 +8,7 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 	return (
 		<>
 			<tr className="group">
-				<th className="text-[#545757] dark:text-[#cccccc] font-normal text-left flex items-center gap-1">
+				<th className="text-(--text-label) font-normal text-left flex items-center gap-1">
 					<button onClick={() => setOpen(!open)} className="flex items-center gap-[2px] whitespace-nowrap">
 						{helperText ? (
 							<Tooltip content={helperText} className="underline decoration-dotted whitespace-nowrap">

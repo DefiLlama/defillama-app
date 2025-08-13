@@ -55,12 +55,12 @@ export function ChainsByAdapter(props: IProps) {
 			return props.chains.map((chain) => {
 				const total24h =
 					(chain.total24h ?? 0) +
-					(enabledSettings.bribes ? chain.bribes?.total24h ?? 0 : 0) +
-					(enabledSettings.tokentax ? chain.tokenTax?.total24h ?? 0 : 0)
+					(enabledSettings.bribes ? (chain.bribes?.total24h ?? 0) : 0) +
+					(enabledSettings.tokentax ? (chain.tokenTax?.total24h ?? 0) : 0)
 				const total30d =
 					(chain.total30d ?? 0) +
-					(enabledSettings.bribes ? chain.bribes?.total30d ?? 0 : 0) +
-					(enabledSettings.tokentax ? chain.tokenTax?.total30d ?? 0 : 0)
+					(enabledSettings.bribes ? (chain.bribes?.total30d ?? 0) : 0) +
+					(enabledSettings.tokentax ? (chain.tokenTax?.total30d ?? 0) : 0)
 
 				return {
 					...chain,
@@ -178,7 +178,7 @@ export function ChainsByAdapter(props: IProps) {
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+							className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 						/>
 						<input
 							value={projectName}

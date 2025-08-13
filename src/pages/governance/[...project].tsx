@@ -51,10 +51,10 @@ export const getStaticProps = withPerformanceLogging(
 		let api = snapshotProjectId
 			? PROTOCOL_GOVERNANCE_SNAPSHOT_API + '/' + snapshotProjectId.replace(/(:|’|')/g, '/') + '.json'
 			: compoundProjectId
-			? PROTOCOL_GOVERNANCE_COMPOUND_API + '/' + compoundProjectId.replace(/(:|’|')/g, '/') + '.json'
-			: tallyProjectId
-			? PROTOCOL_GOVERNANCE_TALLY_API + '/' + tallyProjectId.replace(/(:|’|')/g, '/') + '.json'
-			: null
+				? PROTOCOL_GOVERNANCE_COMPOUND_API + '/' + compoundProjectId.replace(/(:|’|')/g, '/') + '.json'
+				: tallyProjectId
+					? PROTOCOL_GOVERNANCE_TALLY_API + '/' + tallyProjectId.replace(/(:|’|')/g, '/') + '.json'
+					: null
 
 		if (api) {
 			api = api.toLowerCase()
@@ -120,7 +120,7 @@ export default function Protocol({ data, governanceType }) {
 				<div className="flex flex-wrap justify-between gap-4">
 					{data.stats.chainName ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-[#737373] dark:text-[#a9a9a9]">Chain</span>
+							<span className="font-semibold text-sm text-(--text-meta)">Chain</span>
 							<span className="flex items-center gap-1 font-jetbrains font-semibold text-lg">
 								<TokenLogo logo={chainIconUrl(data.stats.chainName)} size={32} />
 								<span>{data.stats.chainName}</span>
@@ -130,35 +130,35 @@ export default function Protocol({ data, governanceType }) {
 
 					{data.stats.proposalsCount ? (
 						<p className="flex flex-col gap-1">
-							<span className="text-[#737373] dark:text-[#a9a9a9]">Total Proposals</span>
+							<span className="text-(--text-meta)">Total Proposals</span>
 							<span className="font-jetbrains font-semibold text-lg">{data.stats.proposalsCount}</span>
 						</p>
 					) : null}
 
 					{data.stats.successfulProposal ? (
 						<p className="flex flex-col gap-1">
-							<span className="text-[#737373] dark:text-[#a9a9a9]">Successful Proposals</span>
+							<span className="text-(--text-meta)">Successful Proposals</span>
 							<span className="font-jetbrains font-semibold text-lg">{data.stats.successfulProposals}</span>
 						</p>
 					) : null}
 
 					{data.stats.propsalsInLast30Days ? (
 						<p className="flex flex-col gap-1">
-							<span className="text-[#737373] dark:text-[#a9a9a9]">Successful Proposals in last 30 days</span>
+							<span className="text-(--text-meta)">Successful Proposals in last 30 days</span>
 							<span className="font-jetbrains font-semibold text-lg">{data.stats.propsalsInLast30Days}</span>
 						</p>
 					) : null}
 
 					{data.stats.highestTotalScore ? (
 						<p className="flex flex-col gap-1">
-							<span className="text-[#737373] dark:text-[#a9a9a9]">Max Total Votes</span>
+							<span className="text-(--text-meta)">Max Total Votes</span>
 							<span className="font-jetbrains font-semibold text-lg">{formattedNum(data.stats.highestTotalScore)}</span>
 						</p>
 					) : null}
 
 					{data.metadata.followersCount ? (
 						<p className="flex flex-col gap-1">
-							<span className="text-[#737373] dark:text-[#a9a9a9]">Followers</span>
+							<span className="text-(--text-meta)">Followers</span>
 							<span className="font-jetbrains font-semibold text-lg">{formattedNum(data.metadata.followersCount)}</span>
 						</p>
 					) : null}

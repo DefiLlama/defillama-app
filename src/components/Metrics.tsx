@@ -171,7 +171,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 					<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
 						{currentMetric === 'CEX Assets' ? 'Assets' : currentMetric}
 					</Ariakit.DialogDisclosure>
-					<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-[#666] dark:text-[#919296] text-xs z-10">
+					<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-(--text-form) text-xs z-10">
 						<Icon name="search" height={12} width={12} />
 						<span className="hidden sm:block">Click to browse & search</span>
 					</Ariakit.DialogDisclosure>
@@ -219,7 +219,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				<div className="p-1 bg-(--cards-bg) rounded-md flex flex-col gap-2">
 					<div className="flex items-center gap-2">
 						<Ariakit.DialogHeading className="text-2xl font-bold">Metrics for</Ariakit.DialogHeading>
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-1">
+						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border-(--bg-input) bg-(--bg-input) p-1">
 							{['Protocols', 'Chains'].map((dataType) => (
 								<button
 									onClick={() => setTab(dataType as 'Protocols' | 'Chains')}
@@ -232,7 +232,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							))}
 						</div>
 						<Ariakit.DialogDismiss
-							className="ml-auto p-2 -my-2 rounded-lg hover:bg-(--divider) text-(--text3) hover:text-(--text1)"
+							className="ml-auto p-2 -my-2 rounded-lg hover:bg-(--divider) text-(--text-tertiary) hover:text-(--text-primary)"
 							aria-label="Close modal"
 						>
 							<Icon name="x" height={20} width={20} />
@@ -243,12 +243,12 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-(--text3) top-0 bottom-0 my-auto left-2"
+							className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
 						/>
 						<input
 							type="text"
 							placeholder="Search..."
-							className="w-full border-[#E2E2E2] bg-[#E2E2E2] dark:bg-[#2A2C2E] dark:border-[#2A2C2E] p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
+							className="w-full border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
 						/>
@@ -280,9 +280,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 														</span>
 													) : null}
 												</p>
-												<p className="text-[#666] dark:text-[#919296] text-start whitespace-pre-wrap">
-													{metric.description}
-												</p>
+												<p className="text-(--text-form) text-start whitespace-pre-wrap">{metric.description}</p>
 											</BasicLink>
 										))}
 									</div>
@@ -318,9 +316,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 														</span>
 													) : null}
 												</p>
-												<p className="text-[#666] dark:text-[#919296] text-start whitespace-pre-wrap">
-													{metric.description}
-												</p>
+												<p className="text-(--text-form) text-start whitespace-pre-wrap">{metric.description}</p>
 											</BasicLink>
 										))}
 									</div>

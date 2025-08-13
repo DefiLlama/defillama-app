@@ -16,7 +16,7 @@ export const toFilterProtocol = ({
 		(chainDisplayName !== 'All'
 			? Array.from(new Set([...(protocolMetadata.chains ?? []), ...(protocolData.chains ?? [])])).includes(
 					chainDisplayName
-			  )
+				)
 			: true) &&
 		!['Bridge', 'Canonical Bridge'].includes(protocolData.category)
 		? true
@@ -45,20 +45,23 @@ const getStartOfTimeFrame = (date: Date, frame: string) => {
 
 export function groupByTimeFrame(data, timeFrame) {
 	if (timeFrame === 'daily') return data
-	const groupedData = data.reduce((acc, [timestamp, ...values]) => {
-		const date = new Date(parseInt(timestamp) * 1000)
-		const timeFrameStart = Math.trunc(getStartOfTimeFrame(date, timeFrame) / 1000)
+	const groupedData = data.reduce(
+		(acc, [timestamp, ...values]) => {
+			const date = new Date(parseInt(timestamp) * 1000)
+			const timeFrameStart = Math.trunc(getStartOfTimeFrame(date, timeFrame) / 1000)
 
-		if (!acc[timeFrameStart]) {
-			acc[timeFrameStart] = values.map(() => 0)
-		}
+			if (!acc[timeFrameStart]) {
+				acc[timeFrameStart] = values.map(() => 0)
+			}
 
-		values.forEach((value, index) => {
-			acc[timeFrameStart][index] += Number(value)
-		})
+			values.forEach((value, index) => {
+				acc[timeFrameStart][index] += Number(value)
+			})
 
-		return acc
-	}, {} as Record<number, number[]>)
+			return acc
+		},
+		{} as Record<number, number[]>
+	)
 
 	return Object.entries(groupedData)
 }

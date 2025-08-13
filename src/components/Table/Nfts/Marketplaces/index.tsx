@@ -43,7 +43,12 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 	return (
 		<>
 			<div className="relative w-full sm:max-w-[280px] ml-auto -mb-6">
-				<Icon name="search" height={16} width={16} className="absolute text-(--text3) top-0 bottom-0 my-auto left-2" />
+				<Icon
+					name="search"
+					height={16}
+					width={16}
+					className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+				/>
 				<input
 					value={collectionName}
 					onChange={(e) => {

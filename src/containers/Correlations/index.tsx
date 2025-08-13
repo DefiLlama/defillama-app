@@ -65,7 +65,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 									onError={(e) => {
 										e.currentTarget.src = '/placeholder.png'
 									}}
-									className="inline-block object-cover aspect-square rounded-full bg-(--bg3) shrink-0"
+									className="inline-block object-cover aspect-square rounded-full bg-(--bg-tertiary) shrink-0"
 								/>
 								<span>
 									{coin.name} ({coin.symbol.toUpperCase()})
@@ -76,7 +76,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 
 					{resultsLength < filteredCoins.length ? (
 						<button
-							className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg2) focus-visible:bg-(--bg2)"
+							className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 							onClick={showMoreResults}
 						>
 							See more...
@@ -130,7 +130,7 @@ export default function Correlations({ coinsData }) {
 							})
 							return [coin0.id, results]
 						})
-				  )
+					)
 				: [],
 		[isLoading, period, queryCoins]
 	)
@@ -167,7 +167,7 @@ export default function Correlations({ coinsData }) {
 			<ProtocolsChainsSearch />
 			<div className="p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center flex-wrap justify-between gap-4">
 				<h1 className="text-xl font-semibold">Correlations Matrix</h1>
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-[#666] dark:text-[#919296]">
+				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
 					<button
 						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						onClick={() => setPeriod(7)}
@@ -224,7 +224,7 @@ export default function Correlations({ coinsData }) {
 										onError={(e) => {
 											e.currentTarget.src = '/placeholder.png'
 										}}
-										className="inline-block object-cover aspect-square rounded-full bg-(--bg3) shrink-0"
+										className="inline-block object-cover aspect-square rounded-full bg-(--bg-tertiary) shrink-0"
 									/>
 									<span>{coin.symbol.toUpperCase()}</span>
 									<Icon name="x" height={14} width={14} className="ml-auto" />
@@ -275,7 +275,7 @@ export default function Correlations({ coinsData }) {
 													onError={(e) => {
 														e.currentTarget.src = '/placeholder.png'
 													}}
-													className="inline-block object-cover aspect-square rounded-full bg-(--bg3) shrink-0"
+													className="inline-block object-cover aspect-square rounded-full bg-(--bg-tertiary) shrink-0"
 												/>
 											</td>
 										) : (
@@ -325,7 +325,7 @@ export default function Correlations({ coinsData }) {
 						}}
 					/>
 				</div>
-				<p className="text-center mx-auto text-sm max-w-xl text-(--text2)">
+				<p className="text-center mx-auto text-sm max-w-xl text-(--text-secondary)">
 					Correlation is calculated by using each day as a single data point, and this calculation depends on the
 					selected period. For example, if you select a period of one year, the correlation will be computed from 365
 					data points.

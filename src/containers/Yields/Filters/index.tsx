@@ -53,7 +53,7 @@ function SavedFilters({ currentFilters }) {
 				Save Current Filters
 			</button>
 			<Ariakit.MenuProvider>
-				<Ariakit.MenuButton className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-(--text1) text-xs flex-nowrap">
+				<Ariakit.MenuButton className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-(--text-primary) text-xs flex-nowrap">
 					Saved Filters
 					<Ariakit.MenuButtonArrow />
 				</Ariakit.MenuButton>
@@ -63,13 +63,13 @@ function SavedFilters({ currentFilters }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
+					className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
 				>
 					{Object.entries(savedFilters).map(([name], i) => (
 						<Ariakit.MenuItem
 							key={`custom-filter-${name}-${i}`}
 							onClick={() => handleLoad(name)}
-							className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary1-hover) focus-visible:bg-(--primary1-hover) data-active-item:bg-(--primary1-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border) whitespace-nowrap overflow-hidden text-ellipsis"
+							className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border) whitespace-nowrap overflow-hidden text-ellipsis"
 						>
 							{name}
 							<button
@@ -107,10 +107,10 @@ export function YieldFiltersV2({
 		poolsNumber && projectsNumber && chainsNumber
 			? `Tracking ${poolsNumber + (poolsNumber > 1 ? ' pools' : ' pool')} over ${
 					projectsNumber + (projectsNumber > 1 ? ' protocols' : ' protocol')
-			  } on ${chainsNumber + (chainsNumber > 1 ? ' chains' : ' chain')}.`
+				} on ${chainsNumber + (chainsNumber > 1 ? ' chains' : ' chain')}.`
 			: noOfStrategies
-			? `: ${noOfStrategies} Strategies`
-			: null
+				? `: ${noOfStrategies} Strategies`
+				: null
 
 	const isSmall = useMedia(`(max-width: 639px)`)
 	const isClient = useIsClient()

@@ -45,7 +45,7 @@ export function ChartTypeMultiSelector({
 						<>
 							<button
 								onClick={() => onChange([])}
-								className="text-xs pro-text3 hover:text-(--primary1) transition-colors"
+								className="text-xs pro-text3 hover:text-(--primary) transition-colors"
 							>
 								Clear all
 							</button>
@@ -72,15 +72,13 @@ export function ChartTypeMultiSelector({
 										onClick={() => handleToggleChart(option.value)}
 										className={`flex items-center gap-2 px-3 py-2.5 border transition-all duration-200 ${
 											isSelected
-												? 'border-(--primary1) bg-(--primary1)/10 text-(--primary1)'
+												? 'border-(--primary) bg-(--primary)/10 text-(--primary)'
 												: 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 pro-text2'
 										}`}
 									>
 										<div
 											className={`w-4 h-4 border-2 flex items-center justify-center transition-all shrink-0 ${
-												isSelected
-													? 'border-(--primary1) bg-(--primary1)'
-													: 'border-gray-300 dark:border-gray-600'
+												isSelected ? 'border-(--primary) bg-(--primary)' : 'border-gray-300 dark:border-gray-600'
 											}`}
 										>
 											{isSelected && (

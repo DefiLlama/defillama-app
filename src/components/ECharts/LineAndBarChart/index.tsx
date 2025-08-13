@@ -49,26 +49,26 @@ export default function LineAndBarChart({
 				areaStyle: expandTo100Percent
 					? {}
 					: solidChartAreaStyle
-					? {
-							color: charts[stack].color ?? (isThemeDark ? '#000000' : '#ffffff'),
-							opacity: 0.7
-					  }
-					: {
-							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-								{
-									offset: 0,
-									color: charts[stack].color ?? (isThemeDark ? '#000000' : '#ffffff')
-								},
-								{
-									offset: 1,
-									color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-								}
-							])
-					  },
+						? {
+								color: charts[stack].color ?? (isThemeDark ? '#000000' : '#ffffff'),
+								opacity: 0.7
+							}
+						: {
+								color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+									{
+										offset: 0,
+										color: charts[stack].color ?? (isThemeDark ? '#000000' : '#ffffff')
+									},
+									{
+										offset: 1,
+										color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+									}
+								])
+							},
 				lineStyle: expandTo100Percent
 					? {
 							width: 0
-					  }
+						}
 					: {},
 				data: charts[stack].data
 			})

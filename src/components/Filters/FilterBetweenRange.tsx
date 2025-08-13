@@ -19,11 +19,11 @@ interface IFilterBetweenRange {
 const getVariantClasses = (variant: string) => {
 	switch (variant) {
 		case 'third':
-			return 'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-[#666] dark:text-[#919296] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+			return 'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 		case 'secondary':
-			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-md cursor-pointer text-(--text1) text-xs flex-nowrap'
+			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-md cursor-pointer text-(--text-primary) text-xs flex-nowrap'
 		default:
-			return 'bg-(--btn2-bg)  hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-lg cursor-pointer text-(--text1) flex-nowrap relative'
+			return 'bg-(--btn2-bg)  hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-lg cursor-pointer text-(--text-primary) flex-nowrap relative'
 	}
 }
 
@@ -66,7 +66,7 @@ export function FilterBetweenRange({
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="flex flex-col bg-(--bg1) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+				className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 			>
 				<div className="w-full sm:w-[260px] mx-auto">
 					<Form min={min} max={max} onSubmit={onSubmit} onClear={onClear} />
