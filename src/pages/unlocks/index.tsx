@@ -82,7 +82,7 @@ export default function Protocols({ data, unlockStats }) {
 	return (
 		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>
-				<span>Are we missing any protocol?</span>
+				<span>Are we missing any protocol?</span>{' '}
 				<a
 					href="https://airtable.com/shrD1bSGYNcdFQ6kd"
 					className="text-(--blue) underline font-medium"
