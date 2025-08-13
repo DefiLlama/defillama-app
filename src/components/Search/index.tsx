@@ -4,11 +4,23 @@ import { BasicLink } from '../Link'
 import { Icon } from '../Icon'
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
+import { fetchJson } from '~/utils/async'
+import { useQuery } from '@tanstack/react-query'
 
 const { searchClient } = instantMeiliSearch(
 	'https://search.defillama.com',
 	'ee4d49e767f84c0d1c4eabd841e015f02d403e5abf7ea2a523827a46b02d5ad5'
 )
+
+async function getSearchList() {
+	try {
+		const data = await fetchJson('https://defillama-datasets.llama.fi/searchlist.json')
+		return data
+	} catch (error) {
+		console.error('Error fetching search list', error)
+		return null
+	}
+}
 
 interface ISearchItem {
 	name: string
@@ -28,9 +40,20 @@ export const GlobalSearch = () => {
 }
 
 const Search = () => {
-	const { refine } = useSearchBox()
+	const { query, refine } = useSearchBox()
+
+	console.log(query)
 
 	const { results, status } = useInstantSearch({ catchError: true })
+
+	const { data: searchList, isLoading: isLoadingSearchList } = useQuery({
+		queryKey: ['searchlist'],
+		queryFn: getSearchList,
+		staleTime: 1000 * 60 * 60,
+		refetchOnMount: false,
+		refetchOnWindowFocus: false,
+		gcTime: 1000 * 60 * 60
+	})
 
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
@@ -90,16 +113,40 @@ const Search = () => {
 				sameWidth
 				className="flex flex-col bg-(--cards-bg) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-(--cards-border) max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
 			>
-				{status === 'loading' ? (
+				{query ? (
+					status === 'loading' ? (
+						<p className="flex items-center justify-center p-4">Loading...</p>
+					) : !results?.hits?.length ? (
+						<p className="flex items-center justify-center p-4">No results found</p>
+					) : (
+						results.hits.map((route: ISearchItem) => {
+							return (
+								<Ariakit.ComboboxItem
+									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
+									key={`global-search-${route.name}-${route.route}`}
+									render={<BasicLink href={route.route} />}
+								>
+									{route.logo ? (
+										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
+									) : (
+										<Icon name="file-text" className="w-6 h-6" />
+									)}
+									<span>{route.name}</span>
+									<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
+								</Ariakit.ComboboxItem>
+							)
+						})
+					)
+				) : isLoadingSearchList ? (
 					<p className="flex items-center justify-center p-4">Loading...</p>
-				) : !results?.hits?.length ? (
+				) : !searchList?.length ? (
 					<p className="flex items-center justify-center p-4">No results found</p>
 				) : (
-					results.hits.map((route: ISearchItem) => {
+					searchList.map((route: ISearchItem) => {
 						return (
 							<Ariakit.ComboboxItem
 								className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
-								key={`global-search-${route.name}-${route.route}`}
+								key={`global-search-dl-${route.name}-${route.route}`}
 								render={<BasicLink href={route.route} />}
 							>
 								{route.logo ? (
