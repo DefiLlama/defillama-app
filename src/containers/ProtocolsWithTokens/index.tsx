@@ -23,10 +23,10 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 			props.categories.length > 0 && router.query.hasOwnProperty('category') && category === ''
 				? []
 				: category
-				? typeof category === 'string'
-					? [category]
-					: category
-				: props.categories
+					? typeof category === 'string'
+						? [category]
+						: category
+					: props.categories
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
@@ -34,10 +34,10 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 			props.categories.length === 0
 				? props.protocols
 				: selectedCategories.length === 0
-				? []
-				: categoriesToFilter.length > 0
-				? getProtocolsByCategory(props.protocols, categoriesToFilter)
-				: props.protocols
+					? []
+					: categoriesToFilter.length > 0
+						? getProtocolsByCategory(props.protocols, categoriesToFilter)
+						: props.protocols
 
 		return {
 			selectedCategories,
@@ -99,7 +99,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 
 	return (
 		<>
-			<ProtocolsChainsSearch hideFilters />
+			<ProtocolsChainsSearch />
 			<Metrics currentMetric={metricName} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<TableWithSearch

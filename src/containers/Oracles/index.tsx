@@ -11,6 +11,7 @@ import { IconsRow } from '~/components/IconsRow'
 import type { ColumnDef } from '@tanstack/react-table'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Metrics } from '~/components/Metrics'
+import { tvlOptions } from '~/components/Filters/options'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -29,7 +30,7 @@ export const OraclesByChain = ({
 	const { tokenTvls, tokensList } = React.useMemo(() => {
 		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1])
 			.filter((item) => item[0] !== 'date')
-			.map((token) => ({ name: token[0], value: token[1] ?? 0 } as { name: string; value: number }))
+			.map((token) => ({ name: token[0], value: token[1] ?? 0 }) as { name: string; value: number })
 			.sort((a, b) => b.value - a.value)
 
 		const tokenTvls = preparePieChartData({
@@ -55,7 +56,7 @@ export const OraclesByChain = ({
 
 	return (
 		<Layout title={`Oracles - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
+			<ProtocolsChainsSearch options={tvlOptions} />
 
 			<Metrics currentMetric="Oracle TVS" />
 

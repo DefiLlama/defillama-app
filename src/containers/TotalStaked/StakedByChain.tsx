@@ -17,7 +17,7 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 export function StakedByChain(props: ITotalStakedByChainPageData) {
 	return (
 		<>
-			<ProtocolsChainsSearch hideFilters />
+			<ProtocolsChainsSearch />
 			<Metrics currentMetric="Total Staked" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">

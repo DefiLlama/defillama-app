@@ -46,7 +46,7 @@ export const getStaticProps = withPerformanceLogging(`net-project-treasury/index
 const NetProjectTreasuries = (props) => {
 	return (
 		<Layout title={`Net Project Treasury - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch hideFilters />
+			<ProtocolsChainsSearch />
 			<Metrics currentMetric="Net Project Treasury" />
 			<TableWithSearch
 				data={props.protocols}

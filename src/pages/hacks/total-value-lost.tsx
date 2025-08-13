@@ -38,7 +38,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 
 	return (
 		<Layout title="Total Value Lost in Hacks - DefiLlama">
-			<ProtocolsChainsSearch hideFilters />
+			<ProtocolsChainsSearch />
 			<Metrics currentMetric="Total Value Lost in Hacks" />
 			<TableWithSearch
 				data={protocols}

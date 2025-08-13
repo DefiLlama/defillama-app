@@ -10,6 +10,7 @@ import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import type { IFormattedProtocol } from '~/api/types'
+import { tvlOptions } from '~/components/Filters/options'
 
 export function DefiWatchlistContainer() {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -71,7 +72,7 @@ export function DefiWatchlistContainer() {
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
+			<ProtocolsChainsSearch options={tvlOptions} />
 			<WatchListTabs />
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<PortfolioSelection

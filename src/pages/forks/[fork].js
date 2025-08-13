@@ -7,6 +7,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { maxAgeForNext } from '~/api'
 import { slug } from '~/utils'
 import { Metrics } from '~/components/Metrics'
+import { tvlOptions } from '~/components/Filters/options'
 
 export const getStaticProps = withPerformanceLogging('forks', async ({ params: { fork } }) => {
 	const normalizedName = slug(fork)
@@ -43,7 +44,7 @@ export async function getStaticPaths() {
 export default function Forks(props) {
 	return (
 		<Layout title={`Forks - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
+			<ProtocolsChainsSearch options={tvlOptions} />
 			<Metrics currentMetric="TVL in forks" />
 			{props.tokenLinks?.length > 0 && (
 				<RowLinksWithDropdown links={props.tokenLinks} activeLink={props.token} alternativeOthersText="Others" />

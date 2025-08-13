@@ -12,6 +12,7 @@ import { getOraclePageData } from '~/containers/Oracles/queries'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { oldBlue } from '~/constants/colors'
 import { protocolsOracleColumns } from '~/components/Table/Defi/Protocols/columns'
+import { tvlOptions } from '~/components/Filters/options'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -92,7 +93,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
+			<ProtocolsChainsSearch options={tvlOptions} />
 
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
 

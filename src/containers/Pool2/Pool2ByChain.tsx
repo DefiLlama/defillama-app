@@ -17,7 +17,7 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 export function Pool2ByChain(props: IPool2ByChainPageData) {
 	return (
 		<>
-			<ProtocolsChainsSearch hideFilters />
+			<ProtocolsChainsSearch />
 			<Metrics currentMetric="Pool2 TVL" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">

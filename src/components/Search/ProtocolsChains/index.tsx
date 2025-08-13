@@ -10,20 +10,17 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
 	customPath?: IBaseSearchProps['customPath']
 	options?: { name: string; key: string }[]
-	hideFilters?: boolean
 	optionsLabel?: string
 }
 
-export const ProtocolsChainsSearch = ({ hideFilters, options, optionsLabel }: IProtocolsChainsSearch) => {
+export const ProtocolsChainsSearch = ({ options, optionsLabel }: IProtocolsChainsSearch) => {
 	return (
 		<>
 			<span className="hidden lg:flex items-center justify-between gap-2 lg:min-h-8">
 				<Suspense fallback={<SearchFallback />}>
 					<GlobalSearch />
 				</Suspense>
-				{hideFilters || !options || options.length === 0 ? null : (
-					<IncludeInMetricOptions options={options} label={optionsLabel} />
-				)}
+				{!options || options.length === 0 ? null : <IncludeInMetricOptions options={options} label={optionsLabel} />}
 			</span>
 		</>
 	)

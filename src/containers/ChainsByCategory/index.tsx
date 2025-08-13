@@ -13,6 +13,7 @@ import { IChainsByCategoryData } from './types'
 import { ChainsByCategoryTable } from './Table'
 import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Metrics } from '~/components/Metrics'
+import { tvlOptions } from '~/components/Filters/options'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -92,7 +93,7 @@ export function ChainsByCategory({
 
 	return (
 		<Layout title={`${category} Chains DeFi TVL - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
+			<ProtocolsChainsSearch options={tvlOptions} />
 
 			<Metrics currentMetric="TVL" isChains={true} />
 
