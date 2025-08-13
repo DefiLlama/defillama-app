@@ -54,7 +54,7 @@ export async function getStaticPaths() {
 
 export default function Protocols(props) {
 	return (
-		<Layout title={`${capitalizeFirstLetter(props.category ?? props.tag)} TVL Rankings - DefiLlama`} defaultSEO>
+		<Layout title={`${capitalizeFirstLetter(props.category ?? props.tag)} Protocols Rankings - DefiLlama`} defaultSEO>
 			<ProtocolsByCategoryOrTag {...props} />
 		</Layout>
 	)

@@ -137,8 +137,24 @@
       "route": "/airdrops"
     },
     {
+      "name": "Net Project Treasury",
+      "route": "/net-project-treasury"
+    },
+    {
       "name": "Treasuries",
       "route": "/treasuries"
+    },
+    {
+      "name": "Total Borrowed by Protocol",
+      "route": "/total-borrowed"
+    },
+    {
+      "name": "Total Staked by Protocol",
+      "route": "/total-staked"
+    },
+    {
+      "name": "Pool2 TVL by Protocol",
+      "route": "/pool2"
     },
     {
       "name": "Oracles",
@@ -217,6 +233,10 @@
       "route": "/nfts/chains"
     },
     {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/total-value-lost"
+    },
+    {
       "name": "Hacks",
       "route": "/hacks"
     },
@@ -239,6 +259,22 @@
     {
       "name": "Liquidations",
       "route": "/liquidations"
+    },
+    {
+      "name": "Protocols by Market Cap",
+      "route": "/mcaps"
+    },
+    {
+      "name": "Protocols by FDV",
+      "route": "/fdv"
+    },
+    {
+      "name": "Protocols by Outstanding FDV",
+      "route": "/outstanding-fdv"
+    },
+    {
+      "name": "Protocols by theit Token Price",
+      "route": "/token-prices"
     }
   ],
   "Tools": [
