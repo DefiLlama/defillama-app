@@ -135,6 +135,7 @@ const Search = () => {
 										<Icon name="file-text" className="w-6 h-6" />
 									)}
 									<span>{route.name}</span>
+									{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
 									<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
 								</Ariakit.ComboboxItem>
 							)
