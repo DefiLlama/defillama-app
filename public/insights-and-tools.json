@@ -5,16 +5,44 @@
       "route": "/chains"
     },
     {
+      "name": "Stablecoins",
+      "route": "/stablecoins"
+    },
+    {
       "name": "Stablecoin Supply by Chain",
       "route": "/stablecoins/chains"
+    },
+    {
+      "name": "Fees by Protocol",
+      "route": "/fees"
     },
     {
       "name": "Fees by Chain",
       "route": "/fees/chains"
     },
     {
+      "name": "Revenue by Protocol",
+      "route": "/revenue"
+    },
+    {
       "name": "Revenue by Chain",
       "route": "/revenue/chains"
+    },
+    {
+      "name": "Holders Revenue by Protocol",
+      "route": "/holders-revenue"
+    },
+    {
+      "name": "Earnings by Protocol",
+      "route": "/earnings"
+    },
+    {
+      "name": "P/F by Protocol",
+      "route": "/pf"
+    },
+    {
+      "name": "P/S by Protocol",
+      "route": "/ps"
     },
     {
       "name": "REV by Chain",
@@ -29,20 +57,52 @@
       "route": "/app-revenue/chains"
     },
     {
+      "name": "DEX Volume by Protocol",
+      "route": "/dexs"
+    },
+    {
       "name": "DEX Volume by Chain",
       "route": "/dexs/chains"
+    },
+    {
+      "name": "Perp Volume by Protocol",
+      "route": "/perps"
+    },
+    {
+      "name": "Open Interest by Protocol",
+      "route": "/open-interest"
     },
     {
       "name": "Perp Volume by Chain",
       "route": "/perps/chains"
     },
     {
-      "name": "Bridge Volume by Chain",
-      "route": "/bridges/chains"
+      "name": "DEX Aggregator Volume by Protocol",
+      "route": "/dex-aggregators"
     },
     {
-      "name": "NFT Volume by Chain",
-      "route": "/nfts/chains"
+      "name": "Bridge Aggregator Volume by Protocol",
+      "route": "/bridge-aggregators"
+    },
+    {
+      "name": "Perp Aggregator Volume by Protocol",
+      "route": "/perp-aggregators"
+    },
+    {
+      "name": "Options Premium Volume by Protocol",
+      "route": "/options/premium-volume"
+    },
+    {
+      "name": "Options Notional Volume by Protocol",
+      "route": "/options/notional-volume"
+    },
+    {
+      "name": "Bridges by Volume",
+      "route": "/bridges"
+    },
+    {
+      "name": "Bridge Volume by Chain",
+      "route": "/bridges/chains"
     },
     {
       "name": "Yields: All Pools",
@@ -71,6 +131,192 @@
     {
       "name": "Yields: Halal",
       "route": "/yields/halal"
+    },
+    {
+      "name": "Airdrops",
+      "route": "/airdrops"
+    },
+    {
+      "name": "Treasuries",
+      "route": "/treasuries"
+    },
+    {
+      "name": "Oracles",
+      "route": "/oracles"
+    },
+    {
+      "name": "Forks",
+      "route": "/forks"
+    },
+    {
+      "name": "Top Protocols by Chain & Category",
+      "route": "/top-protocols"
+    },
+    {
+      "name": "Expenses by Protocol",
+      "route": "/expenses"
+    },
+    {
+      "name": "Categories",
+      "route": "/categories"
+    },
+    {
+      "name": "Recently Listed Protocols",
+      "route": "/recent"
+    },
+    {
+      "name": "TVL Breakdown by Smart Contract Languages",
+      "route": "/languages"
+    },
+    {
+      "name": "CEXs",
+      "route": "/cexs"
+    },
+    {
+      "name": "Pro Dashboard",
+      "route": "/pro"
+    },
+    {
+      "name": "Unlocks Overview",
+      "route": "/unlocks"
+    },
+    {
+      "name": "Token Unlocks Calendar",
+      "route": "/unlocks/calendar"
+    },
+    {
+      "name": "Borrow Aggregator",
+      "route": "/borrow"
+    },
+    {
+      "name": "Borrow Aggregator (Advanced)",
+      "route": "/borrow/advanced"
+    },
+    {
+      "name": "Raises Overview",
+      "route": "/raises"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors"
+    },
+    {
+      "name": "NFTs Collections",
+      "route": "/nfts"
+    },
+    {
+      "name": "NFTs Marketplaces",
+      "route": "/nfts/marketplaces"
+    },
+    {
+      "name": "NFTs Collection Earnings",
+      "route": "/nfts/earnings"
+    },
+    {
+      "name": "NFT Volume by Chain",
+      "route": "/nfts/chains"
+    },
+    {
+      "name": "Hacks",
+      "route": "/hacks"
+    },
+    {
+      "name": "Staked ETH by Protocol",
+      "route": "/lst"
+    },
+    {
+      "name": "ETF",
+      "route": "/etfs"
+    },
+    {
+      "name": "Narrative Trackers",
+      "route": "/narrative-tracker"
+    },
+    {
+      "name": "Governance",
+      "route": "/governance"
+    },
+    {
+      "name": "Liquidations",
+      "route": "/liquidations"
+    }
+  ],
+  "Tools": [
+    {
+      "name": "Compare Chains",
+      "route": "/compare-chains?chains=OP+Mainnet&chains=Arbitrum"
+    },
+    {
+      "name": "Compare Protocols",
+      "route": "/compare-protocols?protocol=Sky+Lending&protocol=Curve+DEX"
+    },
+    {
+      "name": "Token Usage by Protocol",
+      "route": "/token-usage?token=ETH"
+    },
+    {
+      "name": "Token Holder Profit and Loss",
+      "route": "/token-pnl"
+    },
+    {
+      "name": "Transactions by Bridge",
+      "route": "/bridge-transactions"
+    },
+    {
+      "name": "Report Error",
+      "route": "/report-error"
+    },
+    {
+      "name": "DeFi Watchlist",
+      "route": "/watchlist"
+    },
+    {
+      "name": "Yields: Watchlist",
+      "route": "/yields/watchlist"
+    },
+    {
+      "name": "Protocols Website Directory",
+      "route": "/directory"
+    },
+    {
+      "name": "Daily Roundup",
+      "route": "/roundup"
+    },
+    {
+      "name": "Trending Contracts on Chain",
+      "route": "/trending-contracts"
+    },
+    {
+      "name": "Token Liquidity",
+      "route": "/liquidity"
+    },
+    {
+      "name": "Correlations Matrix by Coin",
+      "route": "/correlations"
+    },
+    {
+      "name": "LlamaSwap",
+      "route": "https://swap.defillama.com"
+    },
+    {
+      "name": "LlamaPay",
+      "route": "https://llamapay.io"
+    },
+    {
+      "name": "LlamaFeed",
+      "route": "https://llamafeed.io"
+    },
+    {
+      "name": "DefiLlama Extension",
+      "route": "https://chromewebstore.google.com/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg"
+    },
+    {
+      "name": "LlamaSearch Extension",
+      "route": "https://chromewebstore.google.com/detail/llamasearch/iophmfgnjmfjdkodekdffgckoloooaci"
+    },
+    {
+      "name": "DLNews",
+      "route": "https://www.dlnews.com"
     }
   ]
 }
