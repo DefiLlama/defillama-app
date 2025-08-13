@@ -28,7 +28,7 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 
 const EarningsOnAllChains = (props) => {
 	return (
-		<Layout title={`${type} - DefiLlama`} defaultSEO>
+		<Layout title={`${type} by Protocol - DefiLlama`} defaultSEO>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

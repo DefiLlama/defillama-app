@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 
 const FeesByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title="Fees by chain - DefiLlama">
+		<Layout title="Fees by Chain - DefiLlama">
 			<ChainsByAdapter {...props} type="Fees" />
 		</Layout>
 	)

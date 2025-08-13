@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 
 const DexAggregatorsByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title="DEX Aggregators by chain - DefiLlama">
+		<Layout title="DEX Aggregator Volume by Chain - DefiLlama">
 			<ChainsByAdapter {...props} type="DEX Aggregator Volume" />
 		</Layout>
 	)
