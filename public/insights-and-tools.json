@@ -273,7 +273,7 @@
       "route": "/outstanding-fdv"
     },
     {
-      "name": "Protocols by theit Token Price",
+      "name": "Protocols by Token Price",
       "route": "/token-prices"
     }
   ],
