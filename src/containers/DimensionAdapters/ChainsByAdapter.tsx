@@ -1,6 +1,5 @@
 import { Announcement } from '~/components/Announcement'
 import { Metrics, TMetric } from '~/components/Metrics'
-import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { IChainsByAdapterPageData } from './types'
 import { download, formattedNum, slug } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -24,6 +23,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { VirtualTable } from '~/components/Table/Table'
 import { Icon } from '~/components/Icon'
 import { ChainsByAdapterChart } from './ChainChart'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 interface IProps extends IChainsByAdapterPageData {
 	type: Extract<
@@ -166,7 +166,7 @@ export function ChainsByAdapter(props: IProps) {
 					</a>
 				</Announcement>
 			)}
-			<AdaptorsSearch type={props.adapterType} dataType={props.dataType} />
+			<ProtocolsChainsSearch />
 			<Metrics currentMetric={props.type} isChains={true} />
 			{props.adapterType !== 'fees' && (
 				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} type={props.type} />

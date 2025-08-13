@@ -20,7 +20,6 @@ import { BasicLink } from '~/components/Link'
 import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { TokenLogo } from '~/components/TokenLogo'
-import { AdaptorsSearch } from '~/components/Search/Adaptors'
 import { Metrics, TMetric } from '~/components/Metrics'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useRouter } from 'next/router'
@@ -31,6 +30,8 @@ import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { chainCharts } from '../ChainOverview/constants'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+import { feesOptions } from '~/components/Filters/options'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<
@@ -382,7 +383,14 @@ export function AdapterByChain(props: IProps) {
 
 	return (
 		<>
-			<AdaptorsSearch type={props.adapterType} dataType={props.dataType} />
+			<ProtocolsChainsSearch
+				options={props.adapterType === 'fees' ? feesOptions : null}
+				optionsLabel={
+					['dailyRevenue', 'dailyHoldersRevenue', 'dailyEarnings'].includes(props.dataType)
+						? 'Include in Revenue'
+						: 'Include in Fees'
+				}
+			/>
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' && props.type !== 'Open Interest' ? (

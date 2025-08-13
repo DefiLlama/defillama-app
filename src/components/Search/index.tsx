@@ -17,8 +17,7 @@ async function getSearchList() {
 		const data = await fetchJson('https://defillama-datasets.llama.fi/searchlist.json')
 		return data
 	} catch (error) {
-		console.error('Error fetching search list', error)
-		return null
+		throw new Error(error instanceof Error ? error.message : 'Unknown error')
 	}
 }
 
@@ -42,11 +41,13 @@ export const GlobalSearch = () => {
 const Search = () => {
 	const { query, refine } = useSearchBox()
 
-	console.log(query)
+	const { results, status, error } = useInstantSearch({ catchError: true })
 
-	const { results, status } = useInstantSearch({ catchError: true })
-
-	const { data: searchList, isLoading: isLoadingSearchList } = useQuery({
+	const {
+		data: searchList,
+		isLoading: isLoadingSearchList,
+		error: errorSearchList
+	} = useQuery({
 		queryKey: ['searchlist'],
 		queryFn: getSearchList,
 		staleTime: 1000 * 60 * 60,
@@ -116,6 +117,8 @@ const Search = () => {
 				{query ? (
 					status === 'loading' ? (
 						<p className="flex items-center justify-center p-4">Loading...</p>
+					) : error ? (
+						<p className="flex items-center justify-center p-4 text-(--pct-red)">{`Error: ${error.message}`}</p>
 					) : !results?.hits?.length ? (
 						<p className="flex items-center justify-center p-4">No results found</p>
 					) : (
@@ -139,6 +142,8 @@ const Search = () => {
 					)
 				) : isLoadingSearchList ? (
 					<p className="flex items-center justify-center p-4">Loading...</p>
+				) : errorSearchList ? (
+					<p className="flex items-center justify-center p-4 text-(--pct-red)">{`Error: ${errorSearchList.message}`}</p>
 				) : !searchList?.length ? (
 					<p className="flex items-center justify-center p-4">No results found</p>
 				) : (
