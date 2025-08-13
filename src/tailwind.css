@@ -349,58 +349,58 @@
 		--font-inter: 'Inter var', sans-serif;
 
 		/* Text Colors */
-		--text-primary: #1f1f1f; /* Main text */
-		--text-secondary: #565a69; /* Secondary text */
-		--text-tertiary: #888d9b; /* Tertiary text */
-		--text-form: #666; /* Form controls & buttons */
-		--text-label: #545757; /* Labels & descriptions */
-		--text-meta: #737373; /* Metadata & governance */
-		--text-disabled: #757575; /* Disabled text */
+		--text-primary: oklch(0.239 0 0); /* Main text */
+		--text-secondary: oklch(0.47 0.025 273.6); /* Secondary text */
+		--text-tertiary: oklch(0.644 0.022 270.1); /* Tertiary text */
+		--text-form: oklch(0.51 0 0); /* Form controls & buttons */
+		--text-label: oklch(0.454 0.004 197); /* Labels & descriptions */
+		--text-meta: oklch(0.556 0 0); /* Metadata & governance */
+		--text-disabled: oklch(0.562 0 0); /* Disabled text */
 
 		/* Background Colors */
-		--bg-main: #fafafa; /* Main background */
-		--bg-secondary: #f7f8fa; /* Secondary background */
-		--bg-tertiary: #edeef2; /* Tertiary background */
-		--bg-border: #ced0d9; /* Border background */
-		--bg-muted: #888d9b; /* Muted background */
-		--bg-card: #ffffff; /* Card background */
-		--bg-glass: rgba(252, 252, 251, 1); /* Glass background */
-		--bg-input: #e2e2e2; /* Input/form background */
+		--bg-main: oklch(0.985 0 0); /* Main background */
+		--bg-secondary: oklch(0.979 0.003 264.5); /* Secondary background */
+		--bg-tertiary: oklch(0.949 0.005 275); /* Tertiary background */
+		--bg-border: oklch(0.859 0.013 276.1); /* Border background */
+		--bg-muted: oklch(0.644 0.022 270.1); /* Muted background */
+		--bg-card: oklch(1 0 0); /* Card background */
+		--bg-glass: oklch(0.991 0.001 106.4); /* Glass background */
+		--bg-input: oklch(0.913 0 0); /* Input/form background */
 
 		/* Brand Colors */
-		--primary: #445ed0;
-		--primary-hover: rgba(68, 94, 208, 0.2);
+		--primary: oklch(0.527 0.178 269.6);
+		--primary-hover: oklch(0.527 0.178 269.6 / 0.2);
 
 		/* Utility Colors */
-		--divider: rgba(43, 43, 43, 0.035);
-		--link: #2c71d2;
-		--blue: #2f80ed;
-		--dlnews: #002237;
+		--divider: oklch(0.289 0 0 / 0.035);
+		--link: oklch(0.558 0.165 257.8);
+		--blue: oklch(0.609 0.182 257.3);
+		--dlnews: oklch(0.241 0.056 240.6);
 
 		/* Link Colors */
-		--link-bg: #e9f0fa;
-		--link-hover-bg: #d5e0f7;
-		--link-text: #1e68d2;
-		--link-active-bg: #1e68d2;
+		--link-bg: oklch(0.953 0.015 257.2);
+		--link-hover-bg: oklch(0.905 0.034 265.2);
+		--link-text: oklch(0.535 0.179 258.6);
+		--link-active-bg: oklch(0.535 0.179 258.6);
 
 		/* Button Colors */
-		--btn-bg: #eaeaea;
-		--btn-hover-bg: #efefef;
-		--btn2-bg: rgba(68, 94, 208, 0.1);
-		--btn2-hover-bg: rgba(33, 114, 229, 0.2);
-		--btn2-text: #445ed0;
+		--btn-bg: oklch(0.937 0 0);
+		--btn-hover-bg: oklch(0.952 0 0);
+		--btn2-bg: oklch(0.527 0.178 269.6 / 0.1);
+		--btn2-hover-bg: oklch(0.571 0.191 258.5 / 0.2);
+		--btn2-text: oklch(0.527 0.178 269.6);
 
 		/* Status Colors */
-		--success: #008a13;
-		--error: #e60d02;
-		--warning: #d97706;
+		--success: oklch(0.549 0.181 143.4);
+		--error: oklch(0.584 0.236 29.6);
+		--warning: oklch(0.666 0.157 58.3);
 
 		/* Layout Colors */
-		--app-bg: #f7f7f7;
-		--cards-bg: #fffffe;
-		--cards-border: #e6e6e6;
-		--form-control-border: #e6e6e6;
-		--old-blue: #1f67d2;
+		--app-bg: oklch(0.976 0 0);
+		--cards-bg: oklch(1 0.001 106.4);
+		--cards-border: oklch(0.925 0 0);
+		--form-control-border: oklch(0.925 0 0);
+		--old-blue: oklch(0.533 0.18 259);
 	}
 
 	* {
@@ -418,58 +418,58 @@
 
 	html.dark {
 		/* Text Colors */
-		--text-primary: #fafafa; /* Main text */
-		--text-secondary: #c3c5cb; /* Secondary text */
-		--text-tertiary: #6c7284; /* Tertiary text */
-		--text-form: #919296; /* Form controls & buttons */
-		--text-label: #cccccc; /* Labels & descriptions */
-		--text-meta: #a9a9a9; /* Metadata & governance */
-		--text-disabled: #999999; /* Disabled text */
+		--text-primary: oklch(0.985 0 0); /* Main text */
+		--text-secondary: oklch(0.824 0.009 271.3); /* Secondary text */
+		--text-tertiary: oklch(0.553 0.029 270.9); /* Tertiary text */
+		--text-form: oklch(0.66 0.006 274.9); /* Form controls & buttons */
+		--text-label: oklch(0.845 0 0); /* Labels & descriptions */
+		--text-meta: oklch(0.735 0 0); /* Metadata & governance */
+		--text-disabled: oklch(0.683 0 0); /* Disabled text */
 
 		/* Background Colors */
-		--bg-main: #212429; /* Main background */
-		--bg-secondary: #2c2f36; /* Secondary background */
-		--bg-tertiary: #40444f; /* Tertiary background */
-		--bg-border: #565a69; /* Border background */
-		--bg-muted: #565a69; /* Muted background */
-		--bg-card: #000000; /* Card background */
-		--bg-glass: rgba(7, 14, 15, 0.7); /* Glass background */
-		--bg-surface: #17181c; /* Surface background */
-		--bg-input: #2a2c2e; /* Input/form background */
+		--bg-main: oklch(0.259 0.01 260.7); /* Main background */
+		--bg-secondary: oklch(0.305 0.013 267.1); /* Secondary background */
+		--bg-tertiary: oklch(0.387 0.019 269.6); /* Tertiary background */
+		--bg-border: oklch(0.47 0.025 273.6); /* Border background */
+		--bg-muted: oklch(0.47 0.025 273.6); /* Muted background */
+		--bg-card: oklch(0 0 0); /* Card background */
+		--bg-glass: oklch(0.157 0.012 206.6 / 0.7); /* Glass background */
+		--bg-surface: oklch(0.21 0.008 274.5); /* Surface background */
+		--bg-input: oklch(0.292 0.005 248); /* Input/form background */
 
 		/* Brand Colors */
-		--primary: #2172e5;
-		--primary-hover: rgba(33, 114, 229, 0.2);
+		--primary: oklch(0.571 0.191 258.5);
+		--primary-hover: oklch(0.571 0.191 258.5 / 0.2);
 
 		/* Utility Colors */
-		--divider: rgba(43, 43, 43, 0.435);
-		--link: #3689ff;
-		--dlnews: #ffffff;
-		--accent-pink: #fd3c99;
+		--divider: oklch(0.289 0 0 / 0.435);
+		--link: oklch(0.642 0.193 258);
+		--dlnews: oklch(1 0 0);
+		--accent-pink: oklch(0.673 0.237 356.7);
 
 		/* Link Colors */
-		--link-bg: #141d29;
-		--link-hover-bg: #1a2739;
-		--link-text: #629ff4;
+		--link-bg: oklch(0.228 0.027 255.8);
+		--link-hover-bg: oklch(0.27 0.038 256.7);
+		--link-text: oklch(0.699 0.141 256.9);
 
 		/* Button Colors */
-		--btn-bg: #22242a;
-		--btn-hover-bg: #282a31;
-		--btn2-bg: rgba(33, 114, 229, 0.1);
-		--btn2-hover-bg: rgba(33, 114, 229, 0.2);
-		--btn2-text: #2172e5;
+		--btn-bg: oklch(0.261 0.012 270.9);
+		--btn-hover-bg: oklch(0.286 0.013 272.9);
+		--btn2-bg: oklch(0.571 0.191 258.5 / 0.1);
+		--btn2-hover-bg: oklch(0.571 0.191 258.5 / 0.2);
+		--btn2-text: oklch(0.571 0.191 258.5);
 
 		/* Status Colors */
-		--success: #3fb84f;
-		--error: #e24a42;
-		--warning: #f4b942;
+		--success: oklch(0.692 0.181 145.5);
+		--error: oklch(0.621 0.19 27.1);
+		--warning: oklch(0.82 0.147 81.2);
 
 		/* Layout Colors */
-		--app-bg: #090b0c;
-		--cards-bg: #131516;
-		--cards-border: #222324;
-		--form-control-border: #2f3336;
-		--old-blue: #2172e5;
+		--app-bg: oklch(0.148 0.004 228.8);
+		--cards-bg: oklch(0.194 0.004 229);
+		--cards-border: oklch(0.255 0.002 247.9);
+		--form-control-border: oklch(0.318 0.008 240.1);
+		--old-blue: oklch(0.571 0.191 258.5);
 	}
 
 	body {
