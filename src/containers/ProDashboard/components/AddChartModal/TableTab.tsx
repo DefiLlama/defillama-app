@@ -284,7 +284,6 @@ export function TableTab({
 						{ value: 'All', label: 'All Chains' },
 						{ value: 'EVM', label: 'EVM Chains' },
 						{ value: 'non-EVM', label: 'Non-EVM Chains' },
-						{ value: 'Layer 1', label: 'Layer 1' },
 						{ value: 'Layer 2', label: 'Layer 2' },
 						{ value: 'Rollup', label: 'Rollups' },
 						{ value: 'Parachain', label: 'Parachains' },
