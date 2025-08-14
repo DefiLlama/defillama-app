@@ -7,7 +7,6 @@ import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { cexData } from '~/pages/cexs'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -22,8 +21,11 @@ export const getStaticProps = withPerformanceLogging(
 			cex: [exchangeName]
 		}
 	}) => {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const cexs = metadataCache.cexs
+
 		// if cex is not string, return 404
-		const exchangeData = cexData.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())
+		const exchangeData = cexs.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())
 		if (typeof exchangeName !== 'string' || !exchangeData) {
 			return {
 				notFound: true

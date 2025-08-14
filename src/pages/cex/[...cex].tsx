@@ -1,10 +1,10 @@
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { maxAgeForNext } from '~/api'
-import { cexData } from '../cexs'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/[...cex]',
@@ -13,8 +13,10 @@ export const getStaticProps = withPerformanceLogging(
 			cex: [exchangeName]
 		}
 	}) => {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const cexs = metadataCache.cexs
 		// if cex is not string, return 404
-		const exchangeData = cexData.find(
+		const exchangeData = cexs.find(
 			(cex) => cex.slug && (slug(cex.slug) === slug(exchangeName) || slug(cex.name) === slug(exchangeName))
 		)
 
@@ -42,11 +44,14 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const paths = cexData
+	const { cexs } = await fetchJson('https://api.llama.fi/cexs')
+
+	const paths = cexs
 		.filter((cex) => cex.slug)
-		.map(({ slug }) => ({
-			params: { cex: [slug] }
+		.map((cex) => ({
+			params: { cex: [slug(cex.slug)] }
 		}))
+		.slice(0, 10)
 
 	return { paths, fallback: 'blocking' }
 }

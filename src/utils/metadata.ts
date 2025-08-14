@@ -1,10 +1,12 @@
 import chainMetadata from '../../.cache/chains.json'
 import protocolMetadata from '../../.cache/protocols.json'
 import categoriesAndTags from '../../.cache/categoriesAndTags.json'
+import cexs from '../../.cache/cexs.json'
 
 const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
 const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
 const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
+const CEXS_DATA_URL = 'https://api.llama.fi/cexs'
 
 interface IChainMetadata {
 	stablecoins?: boolean
@@ -57,6 +59,19 @@ interface IProtocolMetadata {
 	stablecoins?: boolean
 }
 
+interface ICexItem {
+	name: string
+	slug?: string
+	coin?: string | null
+	coinSymbol?: string | null
+	walletsLink?: string | null
+	cgId?: string | null
+	cgDeriv?: string | null
+	lastAuditDate?: number
+	auditor?: string | null
+	auditLink?: string | null
+}
+
 const metadataCache: {
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
@@ -64,25 +79,29 @@ const metadataCache: {
 		categories: Array<string>
 		tags: Array<string>
 	}
+	cexs: Array<ICexItem>
 } = {
 	chainMetadata,
 	protocolMetadata,
-	categoriesAndTags
+	categoriesAndTags,
+	cexs
 }
 
 setInterval(
 	async () => {
 		const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
-		const [protocols, chains, categoriesAndTags] = await Promise.all([
+		const [protocols, chains, categoriesAndTags, cexData] = await Promise.all([
 			fetchJson(PROTOCOLS_DATA_URL),
 			fetchJson(CHAINS_DATA_URL),
-			fetchJson(CATEGORIES_AND_TAGS_DATA_URL)
+			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
+			fetchJson(CEXS_DATA_URL)
 		])
 
 		metadataCache.protocolMetadata = protocols
 		metadataCache.chainMetadata = chains
 		metadataCache.categoriesAndTags = categoriesAndTags
+		metadataCache.cexs = cexData.cexs
 	},
 	60 * 60 * 1000
 )

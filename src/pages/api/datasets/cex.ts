@@ -1,7 +1,6 @@
 import { fetchJson } from '~/utils/async'
 import { IChainTvl } from '~/api/types'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { cexData as cexList } from '~/pages/cexs'
 import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
@@ -33,9 +32,10 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 	let spot = null
 	let derivs = null
 	let btcPrice = 0
+	let cexList = null
 
 	try {
-		const [spotData, derivsData, priceData] = await Promise.all([
+		const [spotData, derivsData, priceData, cexData] = await Promise.all([
 			fetchJson(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
 				headers: {
 					'x-cg-pro-api-key': process.env.CG_KEY
@@ -46,12 +46,14 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 					'x-cg-pro-api-key': process.env.CG_KEY
 				}
 			}),
-			fetchJson(`${COINS_PRICES_API}/current/coingecko:bitcoin`)
+			fetchJson(`${COINS_PRICES_API}/current/coingecko:bitcoin`),
+			fetchJson('https://api.llama.fi/cexs')
 		])
 
 		spot = spotData
 		derivs = derivsData
 		btcPrice = priceData.coins['coingecko:bitcoin']?.price || 0
+		cexList = cexData.cexs
 	} catch (error) {
 		console.error('Error fetching CoinGecko data:', error)
 	}

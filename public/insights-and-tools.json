@@ -165,7 +165,7 @@
       "route": "/forks"
     },
     {
-      "name": "Top Protocols by Chain & Category",
+      "name": "Top Protocols by chain on each category",
       "route": "/top-protocols"
     },
     {

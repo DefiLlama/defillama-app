@@ -27,7 +27,6 @@ import {
 	IProtocolExpenses
 } from './types'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
-import { cg_volume_cexs } from '~/pages/cexs'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { allColors, ProtocolChartsLabels } from './Chart/constants'
@@ -249,12 +248,17 @@ export const getProtocolOverviewPageData = async ({
 	] = await Promise.all([
 		getProtocol(slug(metadata.displayName)).then(async (data) => {
 			try {
-				const tokenCGData = data.gecko_id
-					? await fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
-							.then(({ data }) => data)
-							.catch(() => null as any)
-					: null
-				return { ...data, tokenCGData: tokenCGData ? getTokenCGData(tokenCGData) : null }
+				const [tokenCGData, cg_volume_cexs] = data.gecko_id
+					? await Promise.all([
+							fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
+								.then(({ data }) => data)
+								.catch(() => null as any),
+							fetchJson(`https://api.llama.fi/cexs`)
+								.then((data) => data.cg_volume_cexs)
+								.catch(() => [])
+						])
+					: [null]
+				return { ...data, tokenCGData: tokenCGData ? getTokenCGData(tokenCGData, cg_volume_cexs) : null }
 			} catch (e) {
 				console.log(e)
 				return data
@@ -994,7 +998,7 @@ export const fetchArticles = async ({ tags = '', size = 2 }) => {
 	return articles.slice(0, size)
 }
 
-export function getTokenCGData(tokenCGData: any) {
+export function getTokenCGData(tokenCGData: any, cg_volume_cexs: string[]) {
 	const tokenPrice = tokenCGData?.prices ? tokenCGData.prices[tokenCGData.prices.length - 1][1] : null
 	const tokenInfo = tokenCGData?.coinData
 

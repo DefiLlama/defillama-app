@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { cexColumn } from '~/components/Table/Defi/columns'
-import { cexData } from '~/pages/cexs'
 import { DateFilter } from './DateFilter'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import Layout from '~/layout'
@@ -11,7 +10,7 @@ import { INFLOWS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 
-const getOutflowsByTimerange = async (startTime, endTime) => {
+const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 	if (startTime && endTime) {
 		const cexsApiResults = await Promise.allSettled(
 			cexData.map(async (c) => {
@@ -93,7 +92,7 @@ export const Cexs = ({ cexs }) => {
 
 	const { data: customRangeInflows = {} } = useQuery({
 		queryKey: ['cexs', startTs, endTs],
-		queryFn: () => getOutflowsByTimerange(startTs, endTs),
+		queryFn: () => getOutflowsByTimerange(startTs, endTs, cexs),
 		staleTime: 60 * 60 * 1000
 	})
 

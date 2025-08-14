@@ -140,10 +140,10 @@ export default function Chains({ data, uniqueCategories }) {
 	}, [data, uniqueCategories])
 
 	return (
-		<Layout title="Top Protocols - DefiLlama" defaultSEO>
+		<Layout title="Top Protocols by chain on each category - DefiLlama" defaultSEO>
 			<ProtocolsChainsSearch />
 			<div className="bg-(--cards-bg) border border-(--cards-bg) rounded-md p-3 flex items-center gap-2 justify-between">
-				<h1 className="text-xl font-semibold mr-auto">Top Protocols by Chain</h1>
+				<h1 className="text-xl font-semibold mr-auto">Top Protocols by chain on each category</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>
 			<VirtualTable instance={table} />
