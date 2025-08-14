@@ -1,11 +1,9 @@
-import { useRef } from 'react'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 import { useRouter } from 'next/router'
 
 // readableProtocolName has proper caps and spaces
 export function Bookmark({ readableProtocolName, ...props }) {
-	const bookmarkRef = useRef(null)
 	const router = useRouter()
 	const { savedProtocols, addProtocol, removeProtocol } = useWatchlistManager(
 		router.pathname.includes('/yields') ? 'yields' : 'defi'
@@ -17,7 +15,6 @@ export function Bookmark({ readableProtocolName, ...props }) {
 
 	return (
 		<button
-			ref={bookmarkRef}
 			onClick={onClick}
 			style={{ '--fill-icon': isSaved ? 'var(--text-primary)' : 'none' } as any}
 			{...props}
