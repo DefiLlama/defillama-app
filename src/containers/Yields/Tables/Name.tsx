@@ -193,7 +193,7 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 	const chainIcon = chainIconUrl(chain)
 
 	return (
-		<span className="flex items-center gap-2">
+		<span className="flex items-center gap-1">
 			<span className="opacity-0 shrink-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
@@ -204,7 +204,7 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 				<TokenLogo logo={iconUrl1} />
 				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project1}</span>
 			</span>
-			<span>{'->'}</span>
+			<span className="shrink-0">{'->'}</span>
 			<span className="flex items-center gap-1">
 				{airdropProject2 ? (
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
@@ -222,7 +222,7 @@ export function FRStrategyRoute({ project1, airdropProject1, project2, airdropPr
 	const chainIcon = chainIconUrl(chain)
 
 	return (
-		<span className="flex items-center gap-2">
+		<span className="flex items-center gap-1 ml-1">
 			<span className="opacity-0 shrink-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
