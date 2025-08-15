@@ -4,7 +4,6 @@ import { ModalHeader } from './ModalHeader'
 import { TabNavigation } from './TabNavigation'
 import { ChartTab } from './ChartTab'
 import { ComposerTab } from './ComposerTab'
-import { ChartBuilderTab } from './ChartBuilderTab'
 import { TableTab } from './TableTab'
 import { TextTab } from './TextTab'
 import { SubmitButton } from './SubmitButton'
@@ -73,9 +72,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 			onClick={onClose}
 		>
 			<div
-				className={`pro-bg1 border pro-border p-4 md:p-6 w-full shadow-xl md:ml-0 lg:ml-[240px] overflow-hidden flex flex-col ${
-					state.selectedMainTab === 'builder' ? 'md:max-w-4xl lg:max-w-6xl max-h-[95vh] md:max-h-[90vh]' : 'md:max-w-2xl lg:max-w-4xl max-h-[90vh] md:max-h-[85vh]'
-				}`}
+				className="pro-bg1 border pro-border p-4 md:p-6 w-full md:max-w-2xl lg:max-w-4xl shadow-xl md:ml-0 lg:ml-[240px] max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<ModalHeader editItem={editItem} onClose={onClose} />
@@ -131,17 +128,6 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						/>
 					)}
 
-					{state.selectedMainTab === 'builder' && (
-						<ChartBuilderTab
-							chartBuilder={state.chartBuilder}
-							chartBuilderName={state.chartBuilderName}
-							chainOptions={computed.chainOptions}
-							protocolsLoading={computed.protocolsLoading}
-							onChartBuilderChange={actions.updateChartBuilder}
-							onChartBuilderNameChange={actions.setChartBuilderName}
-						/>
-					)}
-
 					{state.selectedMainTab === 'table' && (
 						<TableTab
 							selectedChains={state.selectedChains}
@@ -184,7 +170,6 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						selectedTableType={state.selectedTableType}
 						selectedDatasetChain={state.selectedDatasetChain}
 						selectedTokens={state.selectedTokens}
-						chartBuilder={state.chartBuilder}
 						onSubmit={actions.handleSubmit}
 					/>
 				</div>

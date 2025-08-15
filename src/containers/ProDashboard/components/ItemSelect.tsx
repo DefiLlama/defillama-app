@@ -13,7 +13,7 @@ interface ItemSelectProps {
 	onChange: (option: any) => void
 	isLoading: boolean
 	placeholder: string
-	itemType?: 'chain' | 'protocol' | 'text'
+	itemType: 'chain' | 'protocol' | 'text'
 }
 
 const CustomChainOption = ({ innerProps, label, data }) => (
@@ -125,7 +125,7 @@ export function ItemSelect({
 	itemType
 }: ItemSelectProps) {
 	const OptionComponent =
-		!itemType ? TextOption : itemType === 'chain' ? CustomChainOption : itemType === 'protocol' ? CustomProtocolOption : TextOption
+		itemType === 'chain' ? CustomChainOption : itemType === 'protocol' ? CustomProtocolOption : TextOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
 	return (

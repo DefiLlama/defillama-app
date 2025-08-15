@@ -1,4 +1,4 @@
-import { MainTabType, ChartTabType, CombinedTableType, ChartBuilderConfig } from './types'
+import { MainTabType, ChartTabType, CombinedTableType } from './types'
 import { DashboardItemConfig, ChartConfig } from '../../types'
 
 interface SubmitButtonProps {
@@ -15,7 +15,6 @@ interface SubmitButtonProps {
 	selectedTableType?: CombinedTableType
 	selectedDatasetChain?: string | null
 	selectedTokens?: string[]
-	chartBuilder?: ChartBuilderConfig
 	onSubmit: () => void
 }
 
@@ -33,7 +32,6 @@ export function SubmitButton({
 	selectedTableType = 'protocols',
 	selectedDatasetChain,
 	selectedTokens = [],
-	chartBuilder,
 	onSubmit
 }: SubmitButtonProps) {
 	const isDisabled =
@@ -53,17 +51,18 @@ export function SubmitButton({
 			selectedTableType === 'token-usage' &&
 			(!selectedTokens || selectedTokens.length === 0)) ||
 		(selectedMainTab === 'composer' && composerItems.length === 0) ||
-		(selectedMainTab === 'text' && !textContent.trim()) ||
-		(selectedMainTab === 'builder' && (!chartBuilder || chartBuilder.chains.length === 0))
+		(selectedMainTab === 'text' && !textContent.trim())
 
 	const getButtonText = () => {
 		if (editItem) return 'Save Changes'
 
 		switch (selectedMainTab) {
-			case 'table': return 'Add Table'
-			case 'composer': return 'Add Multi-Chart'
-			case 'text': return 'Add Text'
-			case 'builder': return 'Add Chart'
+			case 'table':
+				return 'Add Table'
+			case 'composer':
+				return 'Add Multi-Chart'
+			case 'text':
+				return 'Add Text'
 			case 'chart':
 				if (selectedChartTypes.length > 1) {
 					return `Add ${selectedChartTypes.length} Charts`

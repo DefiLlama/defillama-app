@@ -9,7 +9,6 @@ import {
 	ProtocolsTableConfig,
 	MultiChartConfig,
 	TextConfig,
-	ChartBuilderConfig,
 	Chain,
 	TableFilters
 } from './types'
@@ -73,21 +72,6 @@ interface ProDashboardContextType {
 	) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
-	handleAddChartBuilder: (
-		name: string | undefined,
-		config: {
-			metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
-				'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 
-				'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue'
-			chains: string[]
-			categories: string[]
-			groupBy: 'protocol'
-			limit: number
-			chartType: 'stackedBar' | 'stackedArea' | 'line'
-			displayAs: 'timeSeries' | 'percentage'
-			additionalFilters?: Record<string, any>
-		}
-	) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 	handleRemoveItem: (itemId: string) => void
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
@@ -95,7 +79,6 @@ interface ProDashboardContextType {
 	handleColSpanChange: (chartId: string, newColSpan: 1 | 2) => void
 	handleCumulativeChange: (itemId: string, showCumulative: boolean) => void
 	handlePercentageChange: (itemId: string, showPercentage: boolean) => void
-	handleHideOthersChange: (itemId: string, hideOthers: boolean) => void
 	handleTableFiltersChange: (tableId: string, filters: TableFilters) => void
 	handleTableColumnsChange: (
 		tableId: string,
@@ -546,38 +529,6 @@ export function ProDashboardAPIProvider({
 		})
 	}
 
-	const handleAddChartBuilder = (
-		name: string | undefined,
-		config: {
-			metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
-				'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 
-				'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue'
-			chains: string[]
-			categories: string[]
-			groupBy: 'protocol'
-			limit: number
-			chartType: 'stackedBar' | 'stackedArea' | 'line'
-			displayAs: 'timeSeries' | 'percentage'
-			additionalFilters?: Record<string, any>
-		}
-	) => {
-		if (isReadOnly) {
-			return
-		}
-		const newBuilder = {
-			id: generateItemId('builder', ''),
-			kind: 'builder' as const,
-			name,
-			config,
-			colSpan: 1 as const
-		}
-		setItems((prev) => {
-			const newItems = [...prev, newBuilder]
-			autoSave(newItems)
-			return newItems
-		})
-	}
-
 	const handleEditItem = (itemId: string, newItem: DashboardItemConfig) => {
 		if (isReadOnly) {
 			return
@@ -647,8 +598,6 @@ export function ProDashboardAPIProvider({
 							}))
 						}
 						return updatedMulti
-					} else if (item.kind === 'builder' && item.id === chartId) {
-						return { ...item, grouping: newGrouping }
 					}
 					return item
 				})
@@ -708,39 +657,6 @@ export function ProDashboardAPIProvider({
 				const newItems = prev.map((item) => {
 					if (item.id === itemId && item.kind === 'multi') {
 						return { ...item, showPercentage }
-					} else if (item.id === itemId && item.kind === 'builder') {
-						return {
-							...item,
-							config: {
-								...item.config,
-								displayAs: (showPercentage ? 'percentage' : 'timeSeries') as 'percentage' | 'timeSeries'
-							}
-						} as ChartBuilderConfig
-					}
-					return item
-				})
-				autoSave(newItems)
-				return newItems
-			})
-		},
-		[autoSave, isReadOnly]
-	)
-
-	const handleHideOthersChange = useCallback(
-		(itemId: string, hideOthers: boolean) => {
-			if (isReadOnly) {
-				return
-			}
-			setItems((prev) => {
-				const newItems = prev.map((item) => {
-					if (item.id === itemId && item.kind === 'builder') {
-						return {
-							...item,
-							config: {
-								...item.config,
-								hideOthers
-							}
-						} as ChartBuilderConfig
 					}
 					return item
 				})
@@ -829,7 +745,6 @@ export function ProDashboardAPIProvider({
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
-		handleAddChartBuilder,
 		handleEditItem,
 		handleRemoveItem,
 		handleChartsReordered,
@@ -837,7 +752,6 @@ export function ProDashboardAPIProvider({
 		handleColSpanChange,
 		handleCumulativeChange,
 		handlePercentageChange,
-		handleHideOthersChange,
 		handleTableFiltersChange,
 		handleTableColumnsChange,
 		getChainInfo,

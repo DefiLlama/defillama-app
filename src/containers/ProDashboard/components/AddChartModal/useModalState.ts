@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ModalState, MainTabType, ChartTabType, CombinedTableType, ChartBuilderConfig } from './types'
+import { ModalState, MainTabType, ChartTabType, CombinedTableType } from './types'
 import { DashboardItemConfig, ChartConfig } from '../../types'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
@@ -20,17 +20,6 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [selectedDatasetTimeframe, setSelectedDatasetTimeframe] = useState<string | null>(null)
 	const [selectedTokens, setSelectedTokens] = useState<string[]>([])
 	const [includeCex, setIncludeCex] = useState<boolean>(false)
-	const [chartBuilderName, setChartBuilderName] = useState<string>('')
-	const [chartBuilder, setChartBuilder] = useState<ChartBuilderConfig>({
-		metric: 'fees',
-		chains: [],
-		categories: [],
-		groupBy: 'protocol',
-		limit: 3,
-		chartType: 'stackedBar',
-		displayAs: 'timeSeries',
-		additionalFilters: {}
-	})
 
 	// Initialize state based on editItem
 	useEffect(() => {
@@ -68,10 +57,6 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setSelectedMainTab('text')
 				setTextTitle(editItem.title || '')
 				setTextContent(editItem.content)
-			} else if (editItem.kind === 'builder') {
-				setSelectedMainTab('builder')
-				setChartBuilderName(editItem.name || '')
-				setChartBuilder(editItem.config)
 			}
 		} else {
 			// Reset state when not editing
@@ -92,17 +77,6 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedDatasetTimeframe(null)
 			setSelectedTokens([])
 			setIncludeCex(false)
-			setChartBuilderName('')
-			setChartBuilder({
-				metric: 'fees',
-				chains: [],
-				categories: [],
-				groupBy: 'protocol',
-				limit: 10,
-				chartType: 'stackedBar',
-				displayAs: 'timeSeries',
-				additionalFilters: {}
-			})
 		}
 	}, [editItem, isOpen])
 
@@ -121,17 +95,6 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedDatasetTimeframe(null)
 		setSelectedTokens([])
 		setIncludeCex(false)
-		setChartBuilderName('')
-		setChartBuilder({
-			metric: 'fees',
-			chains: [],
-			categories: [],
-			groupBy: 'protocol',
-			limit: 10,
-			chartType: 'stackedBar',
-			displayAs: 'timeSeries',
-			additionalFilters: {}
-		})
 	}
 
 	const state: ModalState = {
@@ -151,9 +114,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedDatasetChain,
 		selectedDatasetTimeframe,
 		selectedTokens,
-		includeCex,
-		chartBuilderName,
-		chartBuilder
+		includeCex
 	}
 
 	return {
@@ -175,9 +136,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedDatasetChain,
 			setSelectedDatasetTimeframe,
 			setSelectedTokens,
-			setIncludeCex,
-			setChartBuilderName,
-			setChartBuilder
+			setIncludeCex
 		},
 		resetState
 	}

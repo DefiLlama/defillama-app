@@ -68,7 +68,7 @@ function ProDashboardContent() {
 		{ value: 'all', label: 'All' }
 	]
 
-	const hasChartItems = items?.some((item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder')
+	const hasChartItems = items?.some((item) => item?.kind === 'chart' || item?.kind === 'multi')
 
 	const handleNameSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
