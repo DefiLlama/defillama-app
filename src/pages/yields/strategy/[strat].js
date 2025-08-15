@@ -348,7 +348,7 @@ const barChartStacks = {
 
 export default function YieldPoolPage(props) {
 	return (
-		<Layout title={`Yield Strategy - DefiLlama`} defaultSEO>
+		<Layout title={`Yields - DefiLlama`} defaultSEO>
 			<PageView {...props} />
 		</Layout>
 	)

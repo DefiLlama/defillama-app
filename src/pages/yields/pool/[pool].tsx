@@ -2,7 +2,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
 import { AuditInfo } from '~/components/AuditInfo'
-import { download, formattedNum } from '~/utils'
+import { download, formattedNum, slug } from '~/utils'
 import { LazyChart } from '~/components/LazyChart'
 import {
 	useYieldChartData,
@@ -20,6 +20,7 @@ import { Icon } from '~/components/Icon'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { defaultProtocolPageStyles } from '~/containers/ProtocolOverview/Chart/constants'
+import { Menu } from '~/components/Menu'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -120,10 +121,7 @@ const PageView = (props) => {
 	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
 
 	const projectName = config?.name ?? ''
-	const audits = config?.audits ?? ''
-	const audit_links = config?.audit_links ?? []
 	const url = poolData.url ?? ''
-	const twitter = config?.twitter ?? ''
 	const category = config?.category ?? ''
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
@@ -258,15 +256,15 @@ const PageView = (props) => {
 					<div className="flex flex-col gap-2 text-base">
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">APY</span>
-							<span className="font-jetbrains text-(--accent-pink) ml-auto">{isLoading ? null : `${apy}%`}</span>
+							<span className="font-jetbrains text-(--apy-pink) ml-auto">{isLoading ? null : `${apy}%`}</span>
 						</p>
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">30d Avg APY</span>
-							<span className="font-jetbrains text-(--accent-pink) ml-auto">{isLoading ? null : `${apyMean30d}%`}</span>
+							<span className="font-jetbrains text-(--apy-pink) ml-auto">{isLoading ? null : `${apyMean30d}%`}</span>
 						</p>
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">Total Value Locked</span>
-							<span className="font-jetbrains text-[#4f8fea] ml-auto">
+							<span className="font-jetbrains text-(--apy-blue) ml-auto">
 								{isLoading ? null : formattedNum(poolData.tvlUsd ?? 0, true)}
 							</span>
 						</p>
@@ -531,38 +529,70 @@ const PageView = (props) => {
 				</div>
 			) : null}
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2">
-				<h3 className="font-semibold text-lg">Protocol Information</h3>
-				<p className="flex items-center gap-2">
-					<span>Category</span>
-					<span>:</span>
-					<BasicLink href={`/protocols/${category.toLowerCase()}`}>{category}</BasicLink>
+			<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
+				<h3 className="text-base font-semibold">Protocol Information</h3>
+				<p className="flex items-center gap-1">
+					<span>Category:</span>
+					<BasicLink href={`/protocols/${slug(category)}`} className="hover:underline">
+						{category}
+					</BasicLink>
 				</p>
 
-				<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
-
-				<div className="flex items-center gap-4 flex-wrap">
-					{(url || isLoading) && (
+				{config.audits ? (
+					<>
+						<p className="flex items-center gap-1">
+							<span className="shrink-0">Audits:</span>
+							{config.audit_links?.length > 0 ? (
+								<Menu
+									name="Yes"
+									options={config.audit_links}
+									isExternal
+									className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+								/>
+							) : (
+								<span>No</span>
+							)}
+						</p>
+						{config.audit_note ? <p>Audit Note: {config.audit_note}</p> : null}
+					</>
+				) : null}
+				<div className="flex flex-wrap gap-2">
+					{url ? (
 						<a
 							href={url}
+							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 						>
-							<span>Website</span> <Icon name="arrow-up-right" height={14} width={14} />
+							<Icon name="earth" className="w-3 h-3" />
+							<span>Website</span>
 						</a>
-					)}
-
-					{twitter && (
+					) : null}
+					{config.github?.length
+						? config.github.map((github) => (
+								<a
+									href={`https://github.com/${github}`}
+									className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+									target="_blank"
+									rel="noopener noreferrer"
+									key={`${config.name}-github-${github}`}
+								>
+									<Icon name="github" className="w-3 h-3" />
+									<span>{config.github.length === 1 ? 'GitHub' : github}</span>
+								</a>
+							))
+						: null}
+					{config.twitter ? (
 						<a
-							href={`https://twitter.com/${twitter}`}
+							href={`https://twitter.com/${config.twitter}`}
+							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
 						>
-							<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
+							<Icon name="twitter" className="w-3 h-3" />
+							<span>Twitter</span>
 						</a>
-					)}
+					) : null}
 				</div>
 			</div>
 		</>
@@ -610,7 +640,7 @@ function cleanPool(pool) {
 
 export default function YieldPoolPage(props) {
 	return (
-		<Layout title={`Yield Chart - DefiLlama`} style={defaultProtocolPageStyles} defaultSEO>
+		<Layout title={`Yields - DefiLlama`} style={defaultProtocolPageStyles} defaultSEO>
 			<PageView {...props} />
 		</Layout>
 	)

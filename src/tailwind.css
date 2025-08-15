@@ -376,7 +376,8 @@
 		--link: oklch(0.558 0.165 257.8);
 		--blue: oklch(0.609 0.182 257.3);
 		--dlnews: oklch(0.241 0.056 240.6);
-		--accent-pink: oklch(0.673 0.237 356.7);
+		--apy-pink: oklch(0.673 0.237 356.7);
+		--apy-blue: oklch(0.65 0.152 257.5);
 
 		/* Link Colors */
 		--link-bg: oklch(0.953 0.015 257.2);
@@ -446,7 +447,6 @@
 		--divider: oklch(0.289 0 0 / 0.435);
 		--link: oklch(0.642 0.193 258);
 		--dlnews: oklch(1 0 0);
-		--accent-pink: oklch(0.673 0.237 356.7);
 
 		/* Link Colors */
 		--link-bg: oklch(0.228 0.027 255.8);
