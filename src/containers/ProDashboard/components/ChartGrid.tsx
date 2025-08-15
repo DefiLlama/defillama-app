@@ -3,6 +3,7 @@ import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortab
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { ChartCard } from './ChartCard'
 import { TextCard } from './TextCard'
+import { ChartBuilderCard } from './ChartBuilderCard'
 import { ProtocolsByChainTable } from './ProTable'
 import {
 	StablecoinsDataset,
@@ -101,6 +102,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 					<MultiChartCard key={`${item.id}-${item.items?.map((i) => i.id).join('-')}`} multi={item} />
 				</Suspense>
 			)
+		}
+		
+		if (item.kind === 'builder') {
+			return <ChartBuilderCard builder={item} />
 		}
 
 		if (item.kind === 'text') {
