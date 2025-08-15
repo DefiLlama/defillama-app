@@ -1,16 +1,18 @@
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { GovernanceData } from '~/containers/ProtocolOverview/Governance'
 import { maxAgeForNext } from '~/api'
 import {
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
-	PROTOCOL_GOVERNANCE_TALLY_API
+	PROTOCOL_GOVERNANCE_TALLY_API,
+	PROTOCOL_MINI_API
 } from '~/constants'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { fetchJson } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/governance/[...protocol]',
@@ -34,7 +36,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchJson(`${PROTOCOL_MINI_API}/${slug(protocol)}`)
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 

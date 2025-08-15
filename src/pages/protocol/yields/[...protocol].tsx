@@ -1,9 +1,9 @@
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { ProtocolPools } from '~/containers/ProtocolOverview/Yields'
 import { maxAgeForNext } from '~/api'
-import { YIELD_POOLS_API } from '~/constants'
+import { PROTOCOL_MINI_API, YIELD_POOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
@@ -32,7 +32,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const [protocolData, yields] = await Promise.all([
-			getProtocol(protocol),
+			fetchJson(`${PROTOCOL_MINI_API}/${slug(protocol)}`),
 			fetchJson(YIELD_POOLS_API).catch((err) => {
 				console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
 				return {}

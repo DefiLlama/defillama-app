@@ -15,6 +15,7 @@ export const CHART_API = `${SERVER_URL}/lite/charts`
 export const CHAIN_TVL_API = `${SERVER_URL}/v2/chains`
 export const PROTOCOLS_API = `${SERVER_URL}/lite/protocols2?b=2`
 export const PROTOCOL_API = `${SERVER_URL}/updatedProtocol`
+export const PROTOCOL_MINI_API = `${SERVER_URL}/_fe/protocol-mini`
 export const CONFIG_API = `${SERVER_URL}/config`
 export const HOURLY_PROTOCOL_API = `${SERVER_URL}/hourly`
 export const LANGS_API = `${SERVER_URL}/langs`

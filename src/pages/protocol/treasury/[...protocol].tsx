@@ -1,5 +1,5 @@
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { preparePieChartData, slug } from '~/utils'
@@ -7,7 +7,7 @@ import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { buildProtocolAddlChartsData, getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { PROTOCOL_TREASURY_API } from '~/constants'
+import { PROTOCOL_MINI_API, PROTOCOL_TREASURY_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
@@ -38,7 +38,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchJson(`${PROTOCOL_MINI_API}/${slug(protocol)}`)
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 

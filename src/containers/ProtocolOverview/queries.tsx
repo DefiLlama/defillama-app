@@ -11,6 +11,7 @@ import {
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
 	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
 	PROTOCOL_GOVERNANCE_TALLY_API,
+	PROTOCOL_MINI_API,
 	PROTOCOLS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
@@ -24,7 +25,8 @@ import {
 	IUpdatedProtocol,
 	IArticlesResponse,
 	IArticle,
-	IProtocolExpenses
+	IProtocolExpenses,
+	IProtocolMini
 } from './types'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
@@ -80,40 +82,29 @@ export const getProtocolMetrics = ({
 	protocolData,
 	metadata
 }: {
-	protocolData: IUpdatedProtocol
+	protocolData: IProtocolMini
 	metadata: IProtocolMetadata
 }): IProtocolPageMetrics => {
 	let tvlChartExist = false
 	let inflowsExist = false
 	let multipleChains = false
 	let tokenBreakdownExist = false
-	if (!protocolData.misrepresentedTokens) {
-		for (const chain in protocolData.chainTvls ?? {}) {
-			if (protocolData.chainTvls[chain].tokensInUsd?.length > 0) {
-				inflowsExist = true
-				break
-			}
-		}
 
-		for (const chain in protocolData.chainTvls ?? {}) {
-			if (protocolData.chainTvls[chain].tokens?.length > 0) {
-				tokenBreakdownExist = true
-				break
-			}
-		}
+	if (!protocolData.misrepresentedTokens && protocolData.tvl?.length > 0) {
+		inflowsExist = true
+		tokenBreakdownExist = true
 	}
 
 	let chainsWithTvl = 0
-	for (const chain in protocolData.chainTvls ?? {}) {
-		if (protocolData.chainTvls[chain].tvl?.length > 0) {
-			tvlChartExist = true
-		}
-		if (chain.includes('-') || chain === 'offers' || DEFI_SETTINGS_KEYS.includes(chain)) {
+	for (const chain in protocolData.currentChainTvls ?? {}) {
+		tvlChartExist = true
+
+		if (chain.includes('-') || ['offers', 'excludeParent'].includes(chain) || DEFI_SETTINGS_KEYS.includes(chain)) {
 			continue
 		}
-		if (protocolData.chainTvls[chain].tvl?.length > 0) {
-			chainsWithTvl++
-		}
+
+		chainsWithTvl++
+
 		if (chainsWithTvl > 1) {
 			multipleChains = true
 		}
@@ -186,7 +177,7 @@ export const getProtocolOverviewPageData = async ({
 		bridgeVolumeData,
 		incomeStatement
 	]: [
-		IUpdatedProtocol & {
+		IProtocolMini & {
 			tokenCGData?: {
 				price: {
 					current: number | null
@@ -246,7 +237,7 @@ export const getProtocolOverviewPageData = async ({
 		any,
 		IProtocolOverviewPageData['incomeStatement']
 	] = await Promise.all([
-		getProtocol(slug(metadata.displayName)).then(async (data) => {
+		fetchJson(`${PROTOCOL_MINI_API}/${slug(metadata.displayName)}`).then(async (data) => {
 			try {
 				const [tokenCGData, cg_volume_cexs] = data.gecko_id
 					? await Promise.all([
@@ -606,21 +597,21 @@ export const getProtocolOverviewPageData = async ({
 
 	const tvlChart = {}
 	const extraTvlCharts = Object.fromEntries(DEFI_SETTINGS_KEYS.map((key) => [key, {}]))
-	if (metadata.tvl) {
-		for (const chain in protocolData.chainTvls ?? {}) {
-			if (!protocolData.chainTvls[chain].tvl?.length) continue
-			if (chain.includes('-') || chain === 'offers') continue
-			if (DEFI_SETTINGS_KEYS.includes(chain)) {
-				for (const item of protocolData.chainTvls[chain].tvl) {
-					extraTvlCharts[chain][item.date] = (extraTvlCharts[chain][item.date] ?? 0) + item.totalLiquidityUSD
-				}
-			} else {
-				for (const item of protocolData.chainTvls[chain].tvl) {
-					tvlChart[item.date] = (tvlChart[item.date] ?? 0) + item.totalLiquidityUSD
-				}
-			}
-		}
-	}
+	// if (metadata.tvl) {
+	// 	for (const chain in protocolData.chainTvls ?? {}) {
+	// 		if (!protocolData.chainTvls[chain].tvl?.length) continue
+	// 		if (chain.includes('-') || chain === 'offers') continue
+	// 		if (DEFI_SETTINGS_KEYS.includes(chain)) {
+	// 			for (const item of protocolData.chainTvls[chain].tvl) {
+	// 				extraTvlCharts[chain][item.date] = (extraTvlCharts[chain][item.date] ?? 0) + item.totalLiquidityUSD
+	// 			}
+	// 		} else {
+	// 			for (const item of protocolData.chainTvls[chain].tvl) {
+	// 				tvlChart[item.date] = (tvlChart[item.date] ?? 0) + item.totalLiquidityUSD
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	for (const type in extraTvlCharts) {
 		let hasKeys = false
@@ -635,10 +626,10 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
-	const tvlChartData: Array<[string, number]> = []
-	for (const date in tvlChart) {
-		tvlChartData.push([date, tvlChart[date]])
-	}
+	// const tvlChartData: Array<[string, number]> = []
+	// for (const date in tvlChart) {
+	// 	tvlChartData.push([date, tvlChart[date]])
+	// }
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const { chainMetadata } = metadataCache
@@ -671,7 +662,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const availableCharts: ProtocolChartsLabels[] = []
 
-	if (metadata.tvl && tvlChartData.length > 0) {
+	if (metadata.tvl && protocolData.tvl?.length > 0) {
 		availableCharts.push(isCEX ? 'Total Assets' : 'TVL')
 	}
 
@@ -743,13 +734,7 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Borrowed')
 	}
 
-	let inflowsExist = false
-	for (const chain in protocolData.chainTvls) {
-		if (protocolData.chainTvls[chain].tokensInUsd?.length) {
-			inflowsExist = true
-			break
-		}
-	}
+	let inflowsExist = !protocolData.misrepresentedTokens && protocolData.tvl?.length > 0 ? true : false
 
 	if (inflowsExist) {
 		availableCharts.push('USD Inflows')
@@ -887,7 +872,7 @@ export const getProtocolOverviewPageData = async ({
 		chartDenominations,
 		availableCharts,
 		chartColors,
-		tvlChartData,
+		tvlChartData: protocolData.tvl ?? null,
 		extraTvlCharts,
 		hallmarks: Object.entries(hallmarks).map(([date, event]) => [+date * 1e3, event as string]),
 		rangeHallmarks: rangeHallmarks.map(([date, event]) => [[+date[0] * 1e3, +date[1] * 1e3], event as string]),

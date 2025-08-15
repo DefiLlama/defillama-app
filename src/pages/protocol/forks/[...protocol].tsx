@@ -1,11 +1,13 @@
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { ForksData } from '~/containers/ProtocolOverview/Forks'
 import { slug } from '~/utils'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { PROTOCOL_MINI_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/forks/[...protocol]',
@@ -29,7 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchJson(`${PROTOCOL_MINI_API}/${slug(protocol)}`)
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 

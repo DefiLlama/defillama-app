@@ -112,6 +112,53 @@ export interface IUpdatedProtocol {
 	}>
 }
 
+export interface IProtocolMini {
+	id: string
+	name: string
+	address?: string | null
+	symbol?: string | null
+	url: string
+	referralUrl?: string | null
+	description: string
+	chain: string
+	logo: string
+	audits: string | null
+	audit_note: string | null
+	gecko_id: string | null
+	cmcId: string | null
+	category: string
+	tags?: Array<string> | null
+	chains: Array<string>
+	module: string
+	treasury?: string | null
+	twitter: string
+	audit_links: Array<string>
+	openSource?: boolean
+	forkedFrom: Array<string>
+	oraclesByChain: Record<string, Array<string>>
+	parentProtocol?: string
+	governanceID?: Array<string>
+	github?: Array<string>
+	tvl?: Array<[number, number]>
+	currentChainTvls?: Record<string, number>
+	isParentProtocol?: boolean
+	mcap: number | null
+	methodology?: string
+	raises: Array<IRaise>
+	otherProtocols?: Array<string>
+	hallmarks?: Array<[number, string]> | Array<[[number, number], string]>
+	stablecoins?: Array<string>
+	misrepresentedTokens?: boolean
+	deprecated?: boolean
+	rugged?: boolean
+	deadUrl?: boolean
+	warningBanners?: Array<{
+		message: string
+		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set
+		level: 'low' | 'alert' | 'rug'
+	}>
+}
+
 interface IAdapterOverview {
 	total24h: number | null
 	total7d: number | null
@@ -124,7 +171,7 @@ interface IAdapterOverview {
 }
 
 export interface IProtocolOverviewPageData {
-	tvlChartData: Array<[string, number]>
+	tvlChartData: Array<[number, number]> | null
 	extraTvlCharts: Record<string, Record<string, number>>
 	id: string
 	name: string

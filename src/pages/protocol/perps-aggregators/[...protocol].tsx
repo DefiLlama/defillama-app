@@ -4,7 +4,7 @@ import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/Pro
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -14,6 +14,8 @@ import { KeyMetrics } from '~/containers/ProtocolOverview'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { fetchJson } from '~/utils/async'
+import { PROTOCOL_MINI_API } from '~/constants'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -40,7 +42,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const [protocolData, adapterData] = await Promise.all([
-			getProtocol(protocol),
+			fetchJson(`${PROTOCOL_MINI_API}/${slug(protocol)}`),
 			getAdapterProtocolSummary({
 				adapterType: 'aggregator-derivatives',
 				protocol: metadata[1].displayName,

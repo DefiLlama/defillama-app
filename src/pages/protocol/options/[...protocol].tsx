@@ -4,7 +4,7 @@ import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/Pro
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { TokenLogo } from '~/components/TokenLogo'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
@@ -15,6 +15,8 @@ import { Tooltip } from '~/components/Tooltip'
 import { Select } from '~/components/Select'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { PROTOCOL_MINI_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -41,7 +43,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const [protocolData, premiumVolumeData, notionalVolumeData] = await Promise.all([
-			getProtocol(protocol),
+			fetchJson(`${PROTOCOL_MINI_API}/${slug(protocol)}`),
 			getAdapterProtocolSummary({
 				adapterType: 'options',
 				protocol: metadata[1].displayName,

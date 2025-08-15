@@ -1,12 +1,14 @@
 import * as React from 'react'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import { LazyChart } from '~/components/LazyChart'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { maxAgeForNext } from '~/api'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { PROTOCOL_MINI_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
+import { slug } from '~/utils'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -32,7 +34,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const protocolData = await getProtocol(exchangeName)
+		const protocolData = await fetchJson(`${PROTOCOL_MINI_API}/${slug(exchangeName)}`)
 
 		if (!protocolData) {
 			return { notFound: true, props: null }

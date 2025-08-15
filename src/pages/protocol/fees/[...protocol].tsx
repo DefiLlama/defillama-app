@@ -4,7 +4,7 @@ import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/Pro
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { feesOptions } from '~/components/Filters/options'
 import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
@@ -17,6 +17,8 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Tooltip } from '~/components/Tooltip'
 import { Select } from '~/components/Select'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { fetchJson } from '~/utils/async'
+import { PROTOCOL_MINI_API } from '~/constants'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -44,7 +46,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const [protocolData, feesData, revenueData, holdersRevenueData, bribeRevenueData, tokenTaxData] = await Promise.all(
 			[
-				getProtocol(protocol),
+				fetchJson(`${PROTOCOL_MINI_API}/${slug(protocol)}`),
 				getAdapterProtocolSummary({
 					adapterType: 'fees',
 					protocol: metadata[1].displayName,
