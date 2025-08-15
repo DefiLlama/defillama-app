@@ -284,28 +284,31 @@ function getSettingKeys(type: TSETTINGTYPE) {
 }
 
 export function useLocalStorageSettingsManager(type: TSETTINGTYPE): [Record<string, boolean>, (key) => void] {
-	const store = useSyncExternalStore(
+	const keys = useMemo(() => getSettingKeys(type), [type])
+	const isClient = useIsClient()
+
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => {
+			try {
+				const urlParams = isClient ? new URLSearchParams(window.location.search) : null
+
+				const ps = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				const obj = Object.fromEntries(
+					keys.map((s) => [s, (urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false])
+				)
+
+				return JSON.stringify(obj)
+			} catch {
+				return '{}'
+			}
+		},
 		() => '{}'
 	)
 
-	const isClient = useIsClient()
+	const settings = useMemo<Record<string, boolean>>(() => JSON.parse(snapshot), [snapshot])
 
-	return useMemo(() => {
-		const urlParams = isClient ? new URLSearchParams(window.location.search) : null
-
-		const ps = JSON.parse(store)
-		return [
-			Object.fromEntries(
-				getSettingKeys(type).map((s) => [
-					s,
-					(urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false
-				])
-			),
-			updateSetting
-		]
-	}, [store, type, isClient])
+	return [settings, updateSetting]
 }
 
 export const updateAllSettings = (keys: Record<string, boolean>) => {
