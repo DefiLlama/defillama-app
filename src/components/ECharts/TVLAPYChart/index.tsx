@@ -112,8 +112,6 @@ export default function AreaChart({
 			}
 		}
 
-		dataZoom[1] = { ...dataZoom[1], left: 20, right: 20 } as any
-
 		chartInstance.setOption({
 			graphic: { ...graphic },
 			tooltip: {
@@ -121,7 +119,7 @@ export default function AreaChart({
 				position: [60, 0],
 				backgroundColor: 'none',
 				borderWidth: '0',
-				padding: 0,
+				padding: 12,
 				boxShadow: 'none',
 				textStyle: {
 					color: isThemeDark ? 'white' : 'black'
@@ -131,7 +129,11 @@ export default function AreaChart({
 				...titleDefaults
 			},
 			grid: {
-				...grid
+				left: 12,
+				bottom: 68,
+				top: 12,
+				right: 12,
+				containLabel: true
 			},
 			xAxis: {
 				...xAxis
@@ -165,7 +167,7 @@ export default function AreaChart({
 								}
 							}
 						],
-			dataZoom: [...dataZoom],
+			dataZoom,
 			series
 		})
 

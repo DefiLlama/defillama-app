@@ -25,7 +25,7 @@ const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const Chart = lazy(() => import('~/components/ECharts/AreaChart2')) as React.FC<IChartProps>
+const TVLAPYChart = lazy(() => import('~/components/ECharts/TVLAPYChart')) as React.FC<IChartProps>
 
 const getRatingColor = (rating) => {
 	switch (rating?.toLowerCase()) {
@@ -58,7 +58,7 @@ const getRatingDescription = (rating) => {
 }
 
 const PageView = (props) => {
-	const { query } = useRouter()
+	const { query, isReady } = useRouter()
 
 	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
@@ -233,9 +233,9 @@ const PageView = (props) => {
 			riskData?.protocols?.underlying?.some((p) => p?.rating) ||
 			riskData?.chain?.underlying?.some((c) => c?.rating))
 
-	if (isLoading) {
+	if (!isReady || isLoading) {
 		return (
-			<div className="flex items-center justify-center h-full rounded-md bg-(--cards-bg)">
+			<div className="flex items-center justify-center h-full rounded-md bg-(--cards-bg) border border-(--cards-border)">
 				<p className="text-center">Loading...</p>
 			</div>
 		)
@@ -244,39 +244,37 @@ const PageView = (props) => {
 	return (
 		<>
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
-					<h1 className="flex items-center gap-2 text-xl flex-wrap">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+					<h1 className="flex items-center gap-2 text-xl font-bold flex-wrap">
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 							? `${poolData.symbol} (${poolData.poolMeta})`
-							: (poolData.symbol ?? 'Loading')}
+							: poolData.symbol}
 
 						<span className="font-normal mr-auto">
 							({projectName} - {poolData.chain})
 						</span>
 					</h1>
 
-					<div className="flex items-end justify-between flex-wrap gap-5 relative">
-						<p className="flex flex-col gap-1">
-							<span className="text-base text-(--text-label)">APY</span>
-							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-(--accent-pink)">{apy}%</span>
+					<div className="flex flex-col gap-2 text-base">
+						<p className="flex items-center justify-between gap-1">
+							<span className="font-semibold">APY</span>
+							<span className="font-jetbrains text-(--accent-pink) ml-auto">{isLoading ? null : `${apy}%`}</span>
 						</p>
-						<p className="flex flex-col gap-1">
-							<span className="text-base text-(--text-label)">30d Avg APY</span>
-							<span className="font-semibold text-2xl font-jetbrains min-h-8 text-(--accent-pink)">{apyMean30d}%</span>
+						<p className="flex items-center justify-between gap-1">
+							<span className="font-semibold">30d Avg APY</span>
+							<span className="font-jetbrains text-(--accent-pink) ml-auto">{isLoading ? null : `${apyMean30d}%`}</span>
 						</p>
-						<CSVDownloadButton onClick={downloadCsv} smol />
+						<p className="flex items-center justify-between gap-1">
+							<span className="font-semibold">Total Value Locked</span>
+							<span className="font-jetbrains text-[#4f8fea] ml-auto">
+								{isLoading ? null : formattedNum(poolData.tvlUsd ?? 0, true)}
+							</span>
+						</p>
 					</div>
-
-					<p className="flex flex-col gap-1">
-						<span className="text-base text-(--text-label)">Total Value Locked</span>
-						<span className="font-semibold text-2xl font-jetbrains min-h-8 text-[#4f8fea]">
-							{formattedNum(poolData.tvlUsd ?? 0, true)}
-						</span>
-					</p>
 
 					{hasRiskData && (
 						<p className="flex flex-col items-start gap-1">
-							<span className="text-base text-(--text-label)">Total Risk Rating</span>
+							<span className="font-semibold">Total Risk Rating</span>
 							<span className="flex items-center gap-2 flex-nowrap">
 								<span
 									className={`w-7 h-7 rounded-full flex items-center justify-center text-base font-bold ${
@@ -290,49 +288,55 @@ const PageView = (props) => {
 									href={riskData?.pool_url ? riskData?.pool_url : `https://exponential.fi/about-us`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center text-[#445ed0] dark:text-[#2172E5] hover:underline gap-1 font-semibold font-jetbrains text-xl"
+									className="flex items-center hover:underline gap-1 font-semibold font-jetbrains text-xl"
 								>
 									<span>{getRatingDescription(riskData?.pool_rating)}</span>
 									<Icon name="external-link" height={16} width={16} />
 								</a>
 							</span>
-							<span className="text-xs font-bold mt-1">Assessed by exponential.fi</span>
+							<span className="text-xs mt-1">Assessed by exponential.fi</span>
 						</p>
 					)}
 
 					<p className="flex flex-col gap-1">
-						<span className="text-base text-(--text-label)">Outlook</span>
-						<span className="text-base leading-normal" style={isLoading ? { height: '60px' } : {}}>
+						<span className="font-semibold">Outlook</span>
+						<span className="leading-normal">
 							{confidence !== null
 								? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
 								: 'No outlook available'}
 						</span>
 					</p>
+
+					<CSVDownloadButton
+						onClick={downloadCsv}
+						smol
+						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mr-auto mt-auto"
+					/>
 				</div>
 
-				<LazyChart className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-3 col-span-2 min-h-[480px]">
-					{!isLoading && (
-						<Chart
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-2 col-span-2 min-h-[478px]">
+					<Suspense fallback={<></>}>
+						<TVLAPYChart
 							height="468px"
 							chartData={finalChartData}
 							stackColors={mainChartStackColors}
 							stacks={mainChartStacks}
 							title=""
 						/>
-					)}
-				</LazyChart>
+					</Suspense>
+				</div>
 			</div>
 
-			<div className="grid grid-cols-2 gap-1 rounded-md bg-(--cards-bg)">
+			<div className="grid grid-cols-2 gap-2">
 				{hasRiskData && (
-					<div className="flex flex-col col-span-2 xl:col-span-1 p-5">
-						<h2 className="mb-6 flex items-center gap-3 text-lg font-bold">
+					<div className="flex flex-col gap-3 col-span-2 xl:col-span-1 p-2 bg-(--cards-bg) border border-(--cards-border) rounded-md">
+						<h2 className="flex items-center text-lg font-bold">
 							Risk Rating by exponential.fi{' '}
 							<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} alt="" />
 						</h2>
-						<div className="flex flex-col items-start relative">
-							<div className="flex flex-col justify-between flex-1 w-full relative">
-								<div className="flex items-center p-1 border border-(--form-control-border) mb-3 last:mb-0 rounded-2xl gap-2">
+						<div className="flex flex-col gap-3 items-start relative">
+							<div className="flex flex-col gap-3 justify-between flex-1 w-full relative">
+								<div className="flex items-center p-1 border border-(--form-control-border) rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.pool_design?.rating_color)}
@@ -341,7 +345,7 @@ const PageView = (props) => {
 									</p>
 									<p className="text-sm flex-1">Pool Design</p>
 								</div>
-								<div className="flex items-center p-1 border border-(--form-control-border) mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-(--form-control-border) rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.assets?.rating_color)}
@@ -364,7 +368,7 @@ const PageView = (props) => {
 										))}
 									</div>
 								</div>
-								<div className="flex items-center p-1 border border-(--form-control-border) mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-(--form-control-border) rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.protocols?.underlying[0]?.rating_color)}
@@ -389,7 +393,7 @@ const PageView = (props) => {
 											))}
 									</div>
 								</div>
-								<div className="flex items-center p-1 border border-(--form-control-border) mb-3 last:mb-0 rounded-2xl gap-2">
+								<div className="flex items-center p-1 border border-(--form-control-border) rounded-2xl gap-2">
 									<p
 										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
 										style={getRatingColor(riskData?.chain?.rating_color)}
@@ -415,8 +419,8 @@ const PageView = (props) => {
 									</div>
 								</div>
 							</div>
-							<div className="flex flex-col justify-between flex-1 w-full relative">
-								<div className="flex items-center justify-between rounded-xl min-w-[160px] mb-4 p-3">
+							<div className="flex flex-col gap-3 justify-between flex-1 w-full relative">
+								<div className="flex items-center justify-between rounded-xl min-w-[160px] px-1">
 									<h3 className="flex items-center gap-1 text-base font-bold">
 										<span
 											className={`w-7 h-7 rounded-full flex items-center justify-center ${
@@ -444,11 +448,13 @@ const PageView = (props) => {
 				)}
 
 				{isLoading ? (
-					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
+					<p className="flex items-center justify-center text-center h-[408px] col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+						Loading...
+					</p>
 				) : (
 					<>
 						{barChartData?.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<Suspense fallback={<></>}>
 									<BarChart
 										title="Supply APY"
@@ -461,7 +467,7 @@ const PageView = (props) => {
 							</LazyChart>
 						) : null}
 						{areaChartData.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<Suspense fallback={<></>}>
 									<AreaChart
 										title="7 day moving average of Supply APY"
@@ -476,55 +482,56 @@ const PageView = (props) => {
 				)}
 			</div>
 
-			<div className="grid grid-cols-2 gap-1 rounded-md bg-(--cards-bg)">
-				{fetchingChartDataBorrow ? (
-					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
-				) : (
-					<>
-						{areaChartDataBorrow?.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<Suspense fallback={<></>}>
-									<BarChart
-										title="Borrow APY"
-										chartData={barChartDataBorrow}
-										stacks={barChartStacks}
-										stackColors={barChartColors}
-										valueSymbol={'%'}
-									/>
-								</Suspense>
-							</LazyChart>
-						) : null}
-						{areaChartDataBorrow.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<Suspense fallback={<></>}>
-									<AreaChart
-										title="Net Borrow APY"
-										chartData={netBorrowChartData}
-										color={backgroundColor}
-										valueSymbol={'%'}
-									/>
-								</Suspense>
-							</LazyChart>
-						) : null}
+			{fetchingChartDataBorrow ? (
+				<p className="flex items-center justify-center text-center h-[408px] col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+					Loading...
+				</p>
+			) : areaChartDataBorrow?.length ? (
+				<div className="grid grid-cols-2 rounded-md min-h-[408px] gap-2">
+					{areaChartDataBorrow?.length ? (
+						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<Suspense fallback={<></>}>
+								<BarChart
+									title="Borrow APY"
+									chartData={barChartDataBorrow}
+									stacks={barChartStacks}
+									stackColors={barChartColors}
+									valueSymbol={'%'}
+								/>
+							</Suspense>
+						</LazyChart>
+					) : null}
+					{areaChartDataBorrow.length ? (
+						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<Suspense fallback={<></>}>
+								<AreaChart
+									title="Net Borrow APY"
+									chartData={netBorrowChartData}
+									color={backgroundColor}
+									valueSymbol={'%'}
+								/>
+							</Suspense>
+						</LazyChart>
+					) : null}
 
-						{areaChartDataBorrow?.length ? (
-							<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<Suspense fallback={<></>}>
-									<AreaChart
-										chartData={areaChartDataBorrow}
-										title="Pool Liquidity"
-										customLegendName="Filter"
-										customLegendOptions={['Supplied', 'Borrowed', 'Available']}
-										valueSymbol="$"
-										stackColors={liquidityChartColors}
-									/>
-								</Suspense>
-							</LazyChart>
-						) : null}
-					</>
-				)}
-			</div>
-			<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+					{areaChartDataBorrow?.length ? (
+						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<Suspense fallback={<></>}>
+								<AreaChart
+									chartData={areaChartDataBorrow}
+									title="Pool Liquidity"
+									customLegendName="Filter"
+									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
+									valueSymbol="$"
+									stackColors={liquidityChartColors}
+								/>
+							</Suspense>
+						</LazyChart>
+					) : null}
+				</div>
+			) : null}
+
+			<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2">
 				<h3 className="font-semibold text-lg">Protocol Information</h3>
 				<p className="flex items-center gap-2">
 					<span>Category</span>

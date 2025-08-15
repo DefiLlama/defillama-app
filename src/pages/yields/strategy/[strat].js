@@ -25,14 +25,13 @@ const PageView = () => {
 	const farmToken = tokens?.length ? tokens[2] : ''
 
 	const { data: lendHistory, isLoading: fetchingLendData } = useYieldChartData(lendToken)
-	const { data: borrowHistory } = useYieldChartLendBorrow(borrowToken)
-	const { data: farmHistory } = useYieldChartData(farmToken)
-
-	const { data: configData } = useConfigPool(tokens?.length ? tokens.join(',') : '')
+	const { data: borrowHistory, isLoading: fetchingBorrowData } = useYieldChartLendBorrow(borrowToken)
+	const { data: farmHistory, isLoading: fetchingFarmData } = useYieldChartData(farmToken)
+	const { data: configData, isLoading: fetchingConfigData } = useConfigPool(tokens?.length ? tokens.join(',') : '')
 
 	const project = configData?.data?.find((p) => p.config_id === lendToken)?.project
 
-	const { data: config } = useYieldConfigData(project ?? '')
+	const { data: config, isLoading: fetchingConfig } = useYieldConfigData(project ?? '')
 	const lendProjectCategory = config?.category
 
 	const parseTimestamp = (timestamp) => {
@@ -164,58 +163,67 @@ const PageView = () => {
 		}
 	}, [lendHistory, borrowHistory, farmHistory, configData, lendToken, borrowToken, lendProjectCategory])
 
+	const isLoading = fetchingLendData || fetchingBorrowData || fetchingFarmData || fetchingConfigData || fetchingConfig
+
 	return (
 		<>
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
-					<h1 className="text-xl">APY Breakdown:</h1>
-					<table className="w-full text-base border-collapse">
-						<tbody>
-							<tr className="border-b border-(--divider)">
-								<th className="text-(--text-label) font-normal text-left pb-1">Strategy APY:</th>
-								<td className="font-jetbrains text-right pb-1">{finalAPY?.toFixed(2)}%</td>
-							</tr>
-
-							<tr>
-								<th className="text-(--text-label) font-normal text-left pt-1">Supply APY:</th>
-								<td className="font-jetbrains text-right">{lendApy?.toFixed(2)}%</td>
-							</tr>
-
-							<tr>
-								<th className="text-(--text-label) font-normal text-left">Borrow APY:</th>
-								<td className="font-jetbrains text-right">{borrowApy?.toFixed(2)}%</td>
-							</tr>
-
-							<tr>
-								<th className="text-(--text-label) font-normal text-left">Farm APY:</th>
-								<td className="font-jetbrains text-right">{farmApy?.toFixed(2)}%</td>
-							</tr>
-
-							<tr>
-								<th className="text-(--text-label) font-normal text-left">Max LTV:</th>
-								<td className="font-jetbrains text-right">{ltv?.toFixed(2) * 100}%</td>
-							</tr>
-
-							<tr>
-								<th className="text-(--text-label) font-normal text-left">Available Borrow Liquidity:</th>
-								<td className="font-jetbrains text-right">${formattedNum(borrowAvailable)}</td>
-							</tr>
-
-							<tr>
-								<th className="text-(--text-label) font-normal text-left">Farm TVL:</th>
-								<td className="font-jetbrains text-right">{formattedNum(farmTVL, true)}</td>
-							</tr>
-						</tbody>
-					</table>
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto text-base">
+					<h1 className="text-xl font-bold">APY Breakdown:</h1>
+					<h2 className="flex items-center justify-between gap-1">
+						<span className="font-bold">Strategy APY</span>
+						<span className="font-jetbrains ml-auto">
+							{isLoading || finalAPY == null ? '' : `${finalAPY.toFixed(2)}%`}
+						</span>
+					</h2>
+					<div className="flex flex-col gap-1">
+						<p className="flex items-center gap-1">
+							<span>Supply APY:</span>
+							<span className="font-jetbrains ml-auto">
+								{isLoading || lendApy == null ? '' : `${lendApy.toFixed(2)}%`}
+							</span>
+						</p>
+						<p className="flex items-center gap-1">
+							<span>Borrow APY:</span>
+							<span className="font-jetbrains ml-auto">
+								{isLoading || borrowApy == null ? '' : `${borrowApy.toFixed(2)}%`}
+							</span>
+						</p>
+						<p className="flex items-center gap-1">
+							<span>Farm APY:</span>
+							<span className="font-jetbrains ml-auto">
+								{isLoading || farmApy == null ? '' : `${farmApy.toFixed(2)}%`}
+							</span>
+						</p>
+						<p className="flex items-center gap-1">
+							<span>Max LTV:</span>
+							<span className="font-jetbrains ml-auto">
+								{isLoading || ltv == null ? '' : `${ltv.toFixed(2) * 100}%`}
+							</span>
+						</p>
+						<p className="flex items-center gap-1">
+							<span>Available Borrow Liquidity:</span>
+							<span className="font-jetbrains ml-auto">
+								{isLoading || borrowAvailable == null ? '' : formattedNum(borrowAvailable, true)}
+							</span>
+						</p>
+						<p className="flex items-center gap-1">
+							<span>Farm TVL:</span>
+							<span className="font-jetbrains ml-auto">
+								{isLoading || farmTVL == null ? '' : formattedNum(farmTVL, true)}
+							</span>
+						</p>
+					</div>
 				</div>
-
-				<LazyChart className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-3 col-span-2 min-h-[480px]">
-					<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
-				</LazyChart>
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-2 col-span-2 min-h-[480px]">
+					<Suspense fallback={<></>}>
+						<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
+					</Suspense>
+				</div>
 			</div>
 
 			<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
-				<h3>Steps</h3>
+				<h3 className="font-bold">Steps</h3>
 				<p className="flex items-center gap-2">
 					<span>1.</span>
 					Lend {configData?.data.find((c) => c.config_id === lendToken)?.symbol} as collateral on{' '}
@@ -269,14 +277,16 @@ const PageView = () => {
 				)}
 			</div>
 
-			<div className="grid grid-cols-2 gap-1 rounded-md bg-(--cards-bg)">
+			<div className="grid grid-cols-2 rounded-md min-h-[408px] gap-2">
 				{fetchingLendData ? (
-					<p className="flex items-center justify-center text-center h-[400px] col-span-full">Loading...</p>
+					<p className="flex items-center justify-center text-center h-[408px] col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+						Loading...
+					</p>
 				) : (
 					lendHistory?.data?.length && (
 						<>
 							{barChartDataSupply?.length ? (
-								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<BarChart
 											title="Supply APY"
@@ -290,7 +300,7 @@ const PageView = () => {
 							) : null}
 
 							{barChartDataBorrow?.length ? (
-								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<BarChart
 											title="Borrow APY"
@@ -304,7 +314,7 @@ const PageView = () => {
 							) : null}
 
 							{barChartDataFarm?.length ? (
-								<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<BarChart
 											title="Farm APY"
@@ -338,7 +348,7 @@ const barChartStacks = {
 
 export default function YieldPoolPage(props) {
 	return (
-		<Layout title={`Yield Chart - DefiLlama`} defaultSEO>
+		<Layout title={`Yield Strategy - DefiLlama`} defaultSEO>
 			<PageView {...props} />
 		</Layout>
 	)
