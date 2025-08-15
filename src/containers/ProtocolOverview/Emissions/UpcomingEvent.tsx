@@ -39,6 +39,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 				unmountOnHide
 				gutter={8}
 				className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				portal
 			>
 				<Ariakit.MenuItem
 					render={
