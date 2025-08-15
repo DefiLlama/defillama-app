@@ -347,7 +347,7 @@ export function AdapterByChain(props: IProps) {
 		)
 	}
 
-	const metricName = ['Fees', 'Revenue', 'Holders Revenue'].includes(props.type) ? props.type : `${props.type} Volume`
+	const metricName = ['Fees', 'Revenue', 'Holders Revenue'].includes(props.type) ? props.type : props.type.includes('Volume') ? props.type : `${props.type} Volume`
 	const columnsKey = `columns-${props.type}`
 
 	const clearAllColumns = () => {
