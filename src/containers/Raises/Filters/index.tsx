@@ -1,7 +1,7 @@
 import { useMedia } from '~/hooks/useMedia'
 import { RaisesFilterDropdowns } from './Dropdowns'
 import { IDropdownMenusProps } from './types'
-import { RaisesSearch } from '~/components/Search/Raises'
+import { RaisesSearch } from '~/containers/Raises/Search'
 import { NestedMenu } from '~/components/NestedMenu'
 import * as React from 'react'
 import { useIsClient } from '~/hooks'
