@@ -5,9 +5,7 @@ import { Settings } from './Settings'
 import { BasicLink } from '~/components/Link'
 import { lazy } from 'react'
 
-const MobileSearch = lazy(() =>
-	import('~/components/Search/Base/Mobile').then((m) => ({ default: m.MobileSearch }))
-) as React.FC
+const MobileSearch = lazy(() => import('~/components/Search').then((m) => ({ default: m.MobileSearch }))) as React.FC
 
 export const MobileNav = React.memo(function MobileNav() {
 	const router = useRouter()
@@ -26,7 +24,7 @@ export const MobileNav = React.memo(function MobileNav() {
 				/>
 			</BasicLink>
 
-			{!router.pathname.startsWith('/yield') && !router.pathname.startsWith('/raises') ? (
+			{!router.pathname.startsWith('/yield') ? (
 				<React.Suspense fallback={<></>}>
 					<MobileSearch />
 				</React.Suspense>

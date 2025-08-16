@@ -1,8 +1,8 @@
-import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
+import { IBaseSearchProps, ICommonSearchProps, SETS } from './types'
 import { lazy, Suspense } from 'react'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { Select } from '~/components/Select'
-import { SearchFallback } from '../Fallback'
+import { SearchFallback } from './Fallback'
 
 const GlobalSearch = lazy(() => import('~/components/Search').then((mod) => ({ default: mod.GlobalSearch })))
 

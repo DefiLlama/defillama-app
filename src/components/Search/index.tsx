@@ -33,12 +33,138 @@ interface ISearchItem {
 export const GlobalSearch = () => {
 	return (
 		<InstantSearch indexName="pages" searchClient={searchClient as any} future={{ preserveSharedStateOnUnmount: true }}>
-			<Search />
+			<Desktop />
 		</InstantSearch>
 	)
 }
 
-const Search = () => {
+export const MobileSearch = () => {
+	return (
+		<InstantSearch indexName="pages" searchClient={searchClient as any} future={{ preserveSharedStateOnUnmount: true }}>
+			<Mobile />
+		</InstantSearch>
+	)
+}
+
+const Mobile = () => {
+	const { query, refine } = useSearchBox()
+
+	const { results, status, error } = useInstantSearch({ catchError: true })
+
+	const {
+		data: searchList,
+		isLoading: isLoadingSearchList,
+		error: errorSearchList
+	} = useQuery({
+		queryKey: ['searchlist'],
+		queryFn: getSearchList,
+		staleTime: 1000 * 60 * 60,
+		refetchOnMount: false,
+		refetchOnWindowFocus: false,
+		gcTime: 1000 * 60 * 60
+	})
+
+	const [open, setOpen] = useState(false)
+	const inputField = useRef<HTMLInputElement>(null)
+
+	return (
+		<Ariakit.ComboboxProvider
+			resetValueOnHide
+			setValue={(value) => {
+				startTransition(() => {
+					refine(value)
+				})
+			}}
+			open={open}
+			setOpen={setOpen}
+		>
+			<span className="lg:hidden">
+				{open ? (
+					<>
+						<Ariakit.Combobox
+							placeholder="Search..."
+							autoSelect
+							ref={inputField}
+							autoFocus
+							className="absolute top-2 left-2 right-2 p-3 rounded-t-md text-base bg-(--cards-bg) text-(--text-primary)"
+						/>
+						<button onClick={() => setOpen(false)} className="absolute z-10 top-5 right-5">
+							<span className="sr-only">Close Search</span>
+							<Icon name="x" height={24} width={24} />
+						</button>
+					</>
+				) : (
+					<button onClick={() => setOpen(true)} className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px]">
+						<span className="sr-only">Search</span>
+						<Icon name="search" height={16} width={16} />
+					</button>
+				)}
+			</span>
+			<Ariakit.ComboboxPopover
+				unmountOnHide
+				hideOnInteractOutside
+				gutter={6}
+				sameWidth
+				className="flex flex-col bg-(--cards-bg) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-(--cards-border) h-full max-h-[70vh] sm:max-h-[60vh]"
+			>
+				{query ? (
+					status === 'loading' ? (
+						<p className="flex items-center justify-center p-4">Loading...</p>
+					) : error ? (
+						<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
+					) : !results?.hits?.length ? (
+						<p className="flex items-center justify-center p-4">No results found</p>
+					) : (
+						results.hits.map((route: ISearchItem) => {
+							return (
+								<Ariakit.ComboboxItem
+									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
+									key={`global-search-${route.name}-${route.route}`}
+									render={<BasicLink href={route.route} />}
+								>
+									{route.logo ? (
+										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
+									) : (
+										<Icon name="file-text" className="w-6 h-6" />
+									)}
+									<span>{route.name}</span>
+									{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
+									<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
+								</Ariakit.ComboboxItem>
+							)
+						})
+					)
+				) : isLoadingSearchList ? (
+					<p className="flex items-center justify-center p-4">Loading...</p>
+				) : errorSearchList ? (
+					<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
+				) : !searchList?.length ? (
+					<p className="flex items-center justify-center p-4">No results found</p>
+				) : (
+					searchList.map((route: ISearchItem) => {
+						return (
+							<Ariakit.ComboboxItem
+								className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
+								key={`global-search-dl-${route.name}-${route.route}`}
+								render={<BasicLink href={route.route} />}
+							>
+								{route.logo ? (
+									<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
+								) : (
+									<Icon name="file-text" className="w-6 h-6" />
+								)}
+								<span>{route.name}</span>
+								<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
+							</Ariakit.ComboboxItem>
+						)
+					})
+				)}
+			</Ariakit.ComboboxPopover>
+		</Ariakit.ComboboxProvider>
+	)
+}
+
+const Desktop = () => {
 	const { query, refine } = useSearchBox()
 
 	const { results, status, error } = useInstantSearch({ catchError: true })
@@ -83,7 +209,7 @@ const Search = () => {
 			open={open}
 			setOpen={setOpen}
 		>
-			<span className="relative isolate w-full max-w-[50vw]">
+			<span className="hidden lg:inline-block relative isolate w-full lg:max-w-[50vw]">
 				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[8px] opacity-50">
 					{open ? (
 						<>
@@ -112,7 +238,7 @@ const Search = () => {
 				hideOnInteractOutside
 				gutter={6}
 				sameWidth
-				className="flex flex-col bg-(--cards-bg) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-(--cards-border) max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+				className="flex flex-col bg-(--cards-bg) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-(--cards-border) h-full max-h-[70vh] sm:max-h-[60vh]"
 			>
 				{query ? (
 					status === 'loading' ? (
