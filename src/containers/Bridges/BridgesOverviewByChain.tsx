@@ -2,7 +2,6 @@ import * as React from 'react'
 import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { BridgesSearchWithBreakdown } from '~/components/Search/Bridges'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { BridgesTable } from '~/components/Table/Bridges'
 import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
@@ -12,6 +11,7 @@ import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useEffect } from 'react'
 import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -218,7 +218,7 @@ export function BridgesOverviewByChain({
 
 	return (
 		<>
-			<BridgesSearchWithBreakdown onToggleClick={(enabled) => setEnableBreakdownChart(enabled)} />
+			<ProtocolsChainsSearch />
 
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 

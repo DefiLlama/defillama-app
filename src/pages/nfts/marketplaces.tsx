@@ -4,8 +4,8 @@ import { NftsMarketplaceTable } from '~/components/Table/Nfts/Marketplaces'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData } from '~/api/categories/nfts'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { NFTsSearch } from '~/components/Search/NFTs'
 import { withPerformanceLogging } from '~/utils/perf'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -37,7 +37,7 @@ function Marketplaces({
 
 	return (
 		<Layout title="NFT Marketplaces - DefiLlama" defaultSEO>
-			<NFTsSearch />
+			<ProtocolsChainsSearch />
 
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center gap-4 justify-between">

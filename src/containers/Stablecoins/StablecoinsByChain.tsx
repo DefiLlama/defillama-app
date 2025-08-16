@@ -3,9 +3,9 @@ import { useRouter } from 'next/router'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
-import { stablecoinAttributeOptions } from '~/components/Filters/stablecoins/Attribute'
-import { stablecoinPegTypeOptions } from '~/components/Filters/stablecoins/PegType'
-import { stablecoinBackingOptions } from '~/components/Filters/stablecoins/BackingType'
+import { stablecoinAttributeOptions } from '~/containers/Stablecoins/Filters/Attribute'
+import { stablecoinPegTypeOptions } from '~/containers/Stablecoins/Filters/PegType'
+import { stablecoinBackingOptions } from '~/containers/Stablecoins/Filters/BackingType'
 import { PeggedAssetsTable } from './Table'
 import {
 	useCalcCirculating,
@@ -14,11 +14,12 @@ import {
 } from '~/hooks/data/stablecoins'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { formattedNum, getPercentChange, toNiceCsvDate, download, slug, preparePieChartData } from '~/utils'
-import { PeggedFilters } from '~/components/Filters/stablecoins'
+import { PeggedFilters } from '~/containers/Stablecoins/Filters'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
 import { Metrics } from '~/components/Metrics'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -222,11 +223,13 @@ function PeggedAssetsOverview({
 
 	return (
 		<>
-			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
+			<ProtocolsChainsSearch />
 
 			<Metrics currentMetric="Stablecoin Supply" />
 
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
+
+			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">

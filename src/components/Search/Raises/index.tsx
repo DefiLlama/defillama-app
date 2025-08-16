@@ -79,20 +79,6 @@ interface IInputProps {
 function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IInputProps) {
 	const inputField = useRef<HTMLInputElement>(null)
 
-	useEffect(() => {
-		function focusSearchBar(e: KeyboardEvent) {
-			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
-				e.preventDefault()
-				inputField.current && inputField.current?.focus()
-				setOpen(true)
-			}
-		}
-
-		window.addEventListener('keydown', focusSearchBar)
-
-		return () => window.removeEventListener('keydown', focusSearchBar)
-	}, [setOpen])
-
 	return (
 		<>
 			{!hideIcon ? (
@@ -120,12 +106,6 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 				}}
 				className="w-full text-sm rounded-md border border-(--cards-border) text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-8"
 			/>
-
-			{!hideIcon ? (
-				<span className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
-					⌘K
-				</span>
-			) : null}
 		</>
 	)
 }

@@ -1,7 +1,6 @@
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
 import { Metrics } from '~/components/Metrics'
-import { NFTsSearch } from '~/components/Search/NFTs'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
@@ -9,6 +8,7 @@ import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 import { TEMP_CHAIN_NFTS } from '~/constants'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -39,7 +39,8 @@ export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => 
 export default function NftsOnAllChains(props) {
 	return (
 		<Layout title="NFTs - DefiLlama">
-			<NFTsSearch />
+			<ProtocolsChainsSearch />
+
 			<Metrics currentMetric="NFT Volume" isChains />
 			<TableWithSearch
 				data={props.chains}

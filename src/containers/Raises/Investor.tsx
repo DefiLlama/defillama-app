@@ -14,7 +14,7 @@ import { LazyChart } from '~/components/LazyChart'
 import { VirtualTable } from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import { Announcement } from '~/components/Announcement'
-import { RaisesFilters } from '~/components/Filters/raises'
+import { RaisesFilters } from '~/containers/Raises/Filters'
 import { useRouter } from 'next/router'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCsv } from './download'
@@ -22,6 +22,7 @@ import { useRaisesData } from './hooks'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { oldBlue } from '~/constants/colors'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -132,6 +133,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
+
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a

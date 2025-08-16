@@ -3,7 +3,6 @@
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import * as React from 'react'
 import Layout from '~/layout'
-import { LiquidationsSearch } from '~/components/Search/Liquidations'
 import { SEO } from '~/components/SEO'
 import { LiquidationsHeader } from '~/containers/Liquidations/LiquidationsHeader'
 import { LiquidationsContent } from '~/containers/Liquidations/LiquidationsContent'
@@ -23,6 +22,7 @@ import {
 } from '~/containers/Liquidations/utils'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { withPerformanceLogging } from '~/utils/perf'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = withPerformanceLogging(
 	'liquidations/[symbol]',
@@ -74,7 +74,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 
-			<LiquidationsSearch />
+			<ProtocolsChainsSearch />
 
 			{/* {!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
 				<>
@@ -97,7 +97,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				</>
 			)} */}
 
-			<div className="flex items-center justify-between gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+			<div className="p-[6px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
 				<h1 className="text-xl font-semibold">Liquidation levels in DeFi 💦</h1>
 				<LiquidationsHeader data={data} options={options} />
 			</div>

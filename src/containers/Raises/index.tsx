@@ -2,7 +2,7 @@ import * as React from 'react'
 import Layout from '~/layout'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { Announcement } from '~/components/Announcement'
-import { RaisesFilters } from '~/components/Filters/raises'
+import { RaisesFilters } from '~/containers/Raises/Filters'
 import { useRouter } from 'next/router'
 import { formattedNum } from '~/utils'
 import { RaisesTable } from './RaisesTable'
@@ -11,6 +11,7 @@ import { useRaisesData } from './hooks'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { oldBlue } from '~/constants/colors'
 import { Metrics } from '~/components/Metrics'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -30,6 +31,8 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
+			<ProtocolsChainsSearch />
+
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a

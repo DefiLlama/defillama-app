@@ -5,13 +5,13 @@ import { FormattedName } from '~/components/FormattedName'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 import { IChartProps } from '~/components/ECharts/types'
 import { useRouter } from 'next/router'
-import { NFTsSearch } from '~/components/Search/NFTs'
 import { getNFTCollection } from '~/api/categories/nfts'
 import { LocalLoader } from '~/components/LocalLoader'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { Switch } from '~/components/Switch'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const CollectionScatterChart = React.lazy(
 	() => import('./CollectionScatterChart')
@@ -48,7 +48,7 @@ export function NFTCollectionContainer() {
 
 	return (
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
-			<NFTsSearch />
+			<ProtocolsChainsSearch />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">

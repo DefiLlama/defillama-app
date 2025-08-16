@@ -2,13 +2,13 @@ import * as React from 'react'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getNFTCollectionEarnings } from '~/api/categories/nfts'
-import { NFTsSearch } from '~/components/Search/NFTs'
 import { withPerformanceLogging } from '~/utils/perf'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { ColumnDef } from '@tanstack/react-table'
 import { formattedNum } from '~/utils'
 import { TokenLogo, FallbackLogo } from '~/components/TokenLogo'
 import { Icon } from '~/components/Icon'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('nfts/earnings', async () => {
 	const data = await getNFTCollectionEarnings()
@@ -25,7 +25,7 @@ function Earnings({ earnings }) {
 	//x
 	return (
 		<Layout title="NFT Earnings - DefiLlama" defaultSEO>
-			<NFTsSearch />
+			<ProtocolsChainsSearch />
 
 			<TableWithSearch
 				data={earnings}

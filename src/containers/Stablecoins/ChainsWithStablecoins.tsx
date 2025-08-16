@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { GroupStablecoins } from '~/components/MultiSelect/Stablecoins'
-import { PeggedSearch } from '~/components/Search/Stablecoins'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { PeggedChainsTable } from './Table'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
@@ -15,6 +14,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { Metrics } from '~/components/Metrics'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -128,7 +128,7 @@ function PeggedChainsOverview({
 
 	return (
 		<>
-			<PeggedSearch />
+			<ProtocolsChainsSearch />
 
 			<Metrics currentMetric="Stablecoin Supply" isChains={true} />
 

@@ -10,9 +10,9 @@ export const TableSwitch = () => {
 
 	return (
 		<div className="p-3 flex items-center justify-start">
-			<div className="text-sm font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+			<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form) max-sm:w-full">
 				<button
-					className="flex items-center gap-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+					className="shrink-0 px-3 py-[6px] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 					data-active={!isLiqsShowingInspector}
 					onClick={() => toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}
 				>
@@ -20,7 +20,7 @@ export const TableSwitch = () => {
 					<span>Distribution</span>
 				</button>
 				<button
-					className="flex items-center gap-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+					className="shrink-0 px-3 py-[6px] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 					data-active={isLiqsShowingInspector}
 					onClick={() => toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}
 				>

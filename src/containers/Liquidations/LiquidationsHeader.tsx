@@ -43,7 +43,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 			}}
 		>
 			<Ariakit.MenuProvider>
-				<Ariakit.MenuButton className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium">
+				<Ariakit.MenuButton className="flex items-center justify-between gap-2 p-2 rounded-md cursor-pointer flex-nowrap relative bg-(--link-active-bg) text-white">
 					<TokenLogo logo={selectedAsset.logo} size={20} />
 					<FormattedName text={selectedAsset.name} maxCharacters={20} fontWeight={700} />
 					<span className="font-normal mr-auto">({selectedAsset.symbol})</span>

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { BridgesSearch } from '~/components/Search/Bridges'
 import { TokenLogo } from '~/components/TokenLogo'
 import { SEO } from '~/components/SEO'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -13,6 +12,7 @@ import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -58,7 +58,7 @@ const BridgeInfo = ({
 
 	return (
 		<>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
+			<div className="p-[6px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
 				<h1 className="flex flex-nowrap items-center gap-1 text-xl font-semibold">
 					<TokenLogo logo={logo} size={24} />
 					<span>{displayName}</span>
@@ -173,7 +173,7 @@ export function BridgeProtocolOverview(props) {
 		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`}>
 			<SEO cardName={props.displayName} token={props.displayName} />
 
-			<BridgesSearch />
+			<ProtocolsChainsSearch />
 
 			<BridgeInfo {...props} />
 		</Layout>
