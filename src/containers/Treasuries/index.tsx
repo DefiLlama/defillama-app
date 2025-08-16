@@ -15,7 +15,7 @@ import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { Metrics } from '~/components/Metrics'
 
 export function Treasuries({ data, entity }) {
@@ -88,7 +88,6 @@ export function Treasuries({ data, entity }) {
 
 	return (
 		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
 			{!entity && <Metrics currentMetric="Treasury" />}
 			<TableWithSearch
 				data={data}

@@ -7,7 +7,7 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { descriptions } from './categories'
 import { withPerformanceLogging } from '~/utils/perf'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { VirtualTable } from '~/components/Table/Table'
 import {
 	useReactTable,
@@ -141,8 +141,7 @@ export default function Chains({ data, uniqueCategories }) {
 
 	return (
 		<Layout title="Top Protocols by chain on each category - DefiLlama" defaultSEO>
-			<ProtocolsChainsSearch />
-			<div className="bg-(--cards-bg) border border-(--cards-bg) rounded-md p-3 flex items-center gap-2 justify-between">
+			<div className="bg-(--cards-bg) border border-(--cards-bg) rounded-md p-3 flex flex-wrap items-center gap-2 justify-between">
 				<h1 className="text-xl font-semibold mr-auto">Top Protocols by chain on each category</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>

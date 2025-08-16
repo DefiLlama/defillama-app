@@ -10,13 +10,11 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, getPercentChange, getPrevTvlFromChart, getRandomColor, slug } from '~/utils'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { IChainOverviewData } from '../ChainOverview/types'
 import { IAdapterOverview, IAdapterSummary } from '../DimensionAdapters/queries'
 import dayjs from 'dayjs'
 import { formatRaisedAmount } from '../ProtocolOverview/utils'
 import { Tooltip } from '~/components/Tooltip'
-import { tvlOptions } from '~/components/Filters/options'
 
 const LineAndBarChart: any = React.lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
@@ -171,8 +169,6 @@ export function CompareChains({ chains }) {
 
 	return (
 		<>
-			<ProtocolsChainsSearch options={tvlOptions} />
-
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center gap-3 p-3 *:last:-my-3">
 				<h2 className="font-semibold text-base">Compare chains: </h2>
 

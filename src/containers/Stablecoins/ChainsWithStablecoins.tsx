@@ -14,7 +14,6 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { Metrics } from '~/components/Metrics'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -128,8 +127,6 @@ function PeggedChainsOverview({
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
-
 			<Metrics currentMetric="Stablecoin Supply" isChains={true} />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">

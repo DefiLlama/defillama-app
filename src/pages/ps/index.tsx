@@ -1,4 +1,5 @@
 import { maxAgeForNext } from '~/api'
+import { feesOptions } from '~/components/Filters/options'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
@@ -26,7 +27,12 @@ export const getStaticProps = withPerformanceLogging(`revenue/ps/index`, async (
 
 const RevenueOnAllChains = (props) => {
 	return (
-		<Layout title={`P/S - DefiLlama`} defaultSEO>
+		<Layout
+			title={`P/S - DefiLlama`}
+			defaultSEO
+			includeInMetricsOptions={feesOptions}
+			includeInMetricsOptionslabel="Include in Metrics"
+		>
 			<AdapterByChain {...props} type="P/S" />
 		</Layout>
 	)

@@ -16,7 +16,6 @@ import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Flag } from '~/containers/ProtocolOverview/Flag'
 import { IconsRow } from '~/components/IconsRow'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -171,7 +170,6 @@ export default function CompareProtocolsTvls({ protocols }) {
 
 	return (
 		<Layout title={`Compare Protocols - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md isolate">
 				<div className="flex items-center justify-between flex-wrap gap-2 p-3">
 					<h1 className="text-lg font-semibold mr-auto">Compare Protocols</h1>

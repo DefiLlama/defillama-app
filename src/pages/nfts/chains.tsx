@@ -8,7 +8,6 @@ import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 import { TEMP_CHAIN_NFTS } from '~/constants'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -39,8 +38,6 @@ export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => 
 export default function NftsOnAllChains(props) {
 	return (
 		<Layout title="NFTs - DefiLlama">
-			<ProtocolsChainsSearch />
-
 			<Metrics currentMetric="NFT Volume" isChains />
 			<TableWithSearch
 				data={props.chains}

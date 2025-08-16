@@ -11,7 +11,6 @@ import { useRouter } from 'next/router'
 import { getChainsByCategory } from './queries'
 import { IChainsByCategoryData } from './types'
 import { ChainsByCategoryTable } from './Table'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Metrics } from '~/components/Metrics'
 import { tvlOptions } from '~/components/Filters/options'
 
@@ -92,9 +91,12 @@ export function ChainsByCategory({
 	const groupedChains = useGroupChainsByParent(dataByChain, showByGroup ? chainsGroupbyParent : {})
 
 	return (
-		<Layout title={`${category} Chains DeFi TVL - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch options={tvlOptions} />
-
+		<Layout
+			title={`${category} Chains DeFi TVL - DefiLlama`}
+			defaultSEO
+			includeInMetricsOptions={tvlOptions}
+			includeInMetricsOptionslabel="Include in TVL"
+		>
 			<Metrics currentMetric="TVL" isChains={true} />
 
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />

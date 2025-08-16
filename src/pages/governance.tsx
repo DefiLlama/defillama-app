@@ -18,7 +18,6 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchJson } from '~/utils/async'
 import { Icon } from '~/components/Icon'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('governance', async () => {
 	const [snapshot, compound, tally] = await Promise.all([
@@ -70,7 +69,6 @@ export default function Governance({ data }) {
 
 	return (
 		<Layout title={`Governance - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center gap-2 justify-end flex-wrap p-3">
 					<h1 className="text-xl font-semibold mr-auto">Governance</h1>

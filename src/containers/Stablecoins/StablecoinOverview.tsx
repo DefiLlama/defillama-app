@@ -25,7 +25,6 @@ import * as Ariakit from '@ariakit/react'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { defaultProtocolPageStyles } from '../ProtocolOverview/Chart/constants'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -59,9 +58,6 @@ export default function PeggedContainer(props) {
 				logo={props.logo}
 				tvl={formattedNum(props.mcap, true)?.toString()}
 			/>
-
-			<ProtocolsChainsSearch />
-
 			<PeggedAssetInfo {...props} />
 		</Layout>
 	)

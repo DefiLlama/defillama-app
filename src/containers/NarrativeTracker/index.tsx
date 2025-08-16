@@ -4,7 +4,6 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
 import { useScrollToTop } from '~/hooks'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 interface IChartProps {
 	chartData: any[]
@@ -118,8 +117,6 @@ export const CategoryPerformanceContainer = ({
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
-
 			<h1 className="text-xl font-semibold bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
 			</h1>

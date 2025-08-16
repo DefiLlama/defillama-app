@@ -18,7 +18,6 @@ import { fetchJson } from '~/utils/async'
 import { Switch } from '~/components/Switch'
 import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	const searchData = await getAllCGTokensList()
@@ -79,7 +78,6 @@ export default function Tokens({ searchData }) {
 
 	return (
 		<Layout title="Token Usage - DefiLlama" defaultSEO>
-			<ProtocolsChainsSearch />
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 
 			<Search searchData={searchData} />

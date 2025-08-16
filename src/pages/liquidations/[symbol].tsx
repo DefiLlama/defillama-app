@@ -22,7 +22,6 @@ import {
 } from '~/containers/Liquidations/utils'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { withPerformanceLogging } from '~/utils/perf'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = withPerformanceLogging(
 	'liquidations/[symbol]',
@@ -73,8 +72,6 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				logo={'https://defillama.com' + liquidationsIconUrl(data.symbol.toLowerCase(), true)}
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
-
-			<ProtocolsChainsSearch />
 
 			{/* {!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
 				<>

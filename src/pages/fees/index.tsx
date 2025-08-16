@@ -1,4 +1,5 @@
 import { maxAgeForNext } from '~/api'
+import { feesOptions } from '~/components/Filters/options'
 import { TMetric } from '~/components/Metrics'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
@@ -26,7 +27,12 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 
 const FeesOnAllChains = (props) => {
 	return (
-		<Layout title={`${type} by Protocol - DefiLlama`} defaultSEO>
+		<Layout
+			title={`${type} by Protocol - DefiLlama`}
+			defaultSEO
+			includeInMetricsOptions={feesOptions}
+			includeInMetricsOptionslabel="Include in Fees"
+		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

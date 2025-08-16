@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -76,8 +75,6 @@ const PageView = ({
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
-
 			<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				<span>Total Value Locked ETH LSTs</span>
 				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH (${formattedNum(

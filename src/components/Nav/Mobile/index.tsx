@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { useRouter } from 'next/router'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
 import { BasicLink } from '~/components/Link'
@@ -8,8 +7,6 @@ import { lazy } from 'react'
 const MobileSearch = lazy(() => import('~/components/Search').then((m) => ({ default: m.MobileSearch }))) as React.FC
 
 export const MobileNav = React.memo(function MobileNav() {
-	const router = useRouter()
-
 	return (
 		<nav className="flex items-center z-10 gap-2 py-3 px-4 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] lg:hidden">
 			<BasicLink href="/" className="shrink-0 mr-auto">
@@ -24,11 +21,10 @@ export const MobileNav = React.memo(function MobileNav() {
 				/>
 			</BasicLink>
 
-			{!router.pathname.startsWith('/yield') ? (
-				<React.Suspense fallback={<></>}>
-					<MobileSearch />
-				</React.Suspense>
-			) : null}
+			<React.Suspense fallback={<></>}>
+				<MobileSearch />
+			</React.Suspense>
+
 			<Settings />
 			<Menu />
 		</nav>

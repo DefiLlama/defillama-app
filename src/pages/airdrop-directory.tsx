@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { getAirdropDirectoryData } from '~/api/categories/protocols'
 import { withPerformanceLogging } from '~/utils/perf'
 import { maxAgeForNext } from '~/api'
@@ -21,8 +21,6 @@ export const getStaticProps = withPerformanceLogging('airdrop-directory', async 
 const PageView = ({ airdrops }) => {
 	return (
 		<>
-			<ProtocolsChainsSearch />
-
 			<TableWithSearch
 				data={airdrops}
 				columns={AirdropColumn}

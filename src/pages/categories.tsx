@@ -2,7 +2,6 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import Layout from '~/layout'
@@ -433,8 +432,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	}, [tableData, extaTvlsEnabled])
 
 	return (
-		<Layout title={`Categories - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch options={finalTvlOptions} />
+		<Layout title={`Categories - DefiLlama`} defaultSEO includeInMetricsOptions={finalTvlOptions}>
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
 					<h1 className="text-xl font-semibold mr-auto">Categories</h1>

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { slug, tokenIconUrl } from '~/utils'
 import { BasicLink } from '~/components/Link'
 import { IProtocolPageMetrics } from './types'
@@ -54,9 +54,7 @@ export function ProtocolOverviewLayout({
 	}>
 }) {
 	return (
-		<Layout title={`${name} - DefiLlama`} style={defaultProtocolPageStyles}>
-			<ProtocolsChainsSearch options={toggleOptions} />
-
+		<Layout title={`${name} - DefiLlama`} style={defaultProtocolPageStyles} includeInMetricsOptions={toggleOptions}>
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color)">
 					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this

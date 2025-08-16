@@ -6,6 +6,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 import { fetchJson } from '~/utils/async'
 import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
 import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
+import { tvlOptions } from '~/components/Filters/options'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocols/[...category]',
@@ -52,9 +53,15 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
+const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
+
 export default function Protocols(props) {
 	return (
-		<Layout title={`${capitalizeFirstLetter(props.category ?? props.tag)} Protocols Rankings - DefiLlama`} defaultSEO>
+		<Layout
+			title={`${capitalizeFirstLetter(props.category ?? props.tag)} Protocols Rankings - DefiLlama`}
+			defaultSEO
+			includeInMetricsOptions={toggleOptions}
+		>
 			<ProtocolsByCategoryOrTag {...props} />
 		</Layout>
 	)

@@ -116,7 +116,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 
 	return (
 		<>
-			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md relative xl:fixed xl:left-0 xl:right-0 lg:top-4 xl:top-11 bg-(--cards-bg) border border-(--cards-border) p-3">
+			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md bg-(--cards-bg) border border-(--cards-border) p-3">
 				<h1 className="text-xl font-semibold">Generate Bridge Transactions CSV</h1>
 
 				<form className="mx-auto my-8 flex flex-col gap-4" onSubmit={handleSubmit}>

@@ -12,7 +12,6 @@ import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -172,9 +171,6 @@ export function BridgeProtocolOverview(props) {
 	return (
 		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`}>
 			<SEO cardName={props.displayName} token={props.displayName} />
-
-			<ProtocolsChainsSearch />
-
 			<BridgeInfo {...props} />
 		</Layout>
 	)

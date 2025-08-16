@@ -4,7 +4,7 @@ import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { Metrics } from '~/components/Metrics'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { Select } from '~/components/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -38,7 +38,6 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 
 	return (
 		<Layout title="Total Value Lost in Hacks - DefiLlama">
-			<ProtocolsChainsSearch />
 			<Metrics currentMetric="Total Value Lost in Hacks" />
 			<TableWithSearch
 				data={protocols}

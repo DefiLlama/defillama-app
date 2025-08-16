@@ -9,6 +9,7 @@ import { fetchJson } from '~/utils/async'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { TMetric } from '~/components/Metrics'
+import { feesOptions } from '~/components/Filters/options'
 
 const adapterType = ADAPTER_TYPES.FEES
 const type: TMetric = 'Fees'
@@ -65,7 +66,12 @@ export const getStaticProps = withPerformanceLogging(
 
 const FeesOnChain = (props) => {
 	return (
-		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO>
+		<Layout
+			title={`${props.chain} - ${type} - DefiLlama`}
+			defaultSEO
+			includeInMetricsOptions={feesOptions}
+			includeInMetricsOptionslabel="Include in Fees"
+		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

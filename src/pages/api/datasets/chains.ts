@@ -10,13 +10,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			categoryParam = 'Rollup'
 		}
 
-
 		const data = await getChainsByCategory({
 			category: categoryParam,
 			sampledChart: true
 		})
-
-	
 
 		const chains = data.chains || []
 		const chainAssets = data.chainAssets || {}

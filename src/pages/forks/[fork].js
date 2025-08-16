@@ -2,7 +2,7 @@ import { getForkPageData } from '~/containers/Forks/queries'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ForksByProtocol } from '~/containers/Forks'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { maxAgeForNext } from '~/api'
 import { slug } from '~/utils'
@@ -43,8 +43,7 @@ export async function getStaticPaths() {
 
 export default function Forks(props) {
 	return (
-		<Layout title={`Forks - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch options={tvlOptions} />
+		<Layout title={`Forks - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
 			<Metrics currentMetric="TVL in forks" />
 			{props.tokenLinks?.length > 0 && (
 				<RowLinksWithDropdown links={props.tokenLinks} activeLink={props.token} alternativeOthersText="Others" />

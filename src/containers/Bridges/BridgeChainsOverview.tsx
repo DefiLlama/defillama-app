@@ -4,7 +4,6 @@ import type { IBarChartProps } from '~/components/ECharts/types'
 import { BridgeChainsTable } from '~/components/Table/Bridges'
 import { toNiceCsvDate, download } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -19,7 +18,6 @@ export function BridgeChainsOverview({ allChains, tableData, chartData, chartSta
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
 			<div className="p-[6px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
 				<h1 className="text-xl font-semibold">Bridge Inflows by Chain</h1>
 				<CSVDownloadButton onClick={downloadCsv} />

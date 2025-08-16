@@ -9,7 +9,7 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { getOraclePageData } from '~/containers/Oracles/queries'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { oldBlue } from '~/constants/colors'
 import { protocolsOracleColumns } from '~/components/Table/Defi/Protocols/columns'
 import { tvlOptions } from '~/components/Filters/options'
@@ -93,8 +93,6 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 	return (
 		<>
-			<ProtocolsChainsSearch options={tvlOptions} />
-
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain ?? 'All'} />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
@@ -124,7 +122,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 export default function Oracles(props) {
 	return (
-		<Layout title={`Oracles - DefiLlama`} defaultSEO>
+		<Layout title={`Oracles - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
 			<PageView {...props} />
 		</Layout>
 	)

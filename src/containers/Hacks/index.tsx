@@ -12,7 +12,7 @@ import {
 import { VirtualTable } from '~/components/Table/Table'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { TagGroup } from '~/components/TagGroup'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { downloadChart } from '~/components/ECharts/utils'
@@ -147,7 +147,6 @@ export const HacksContainer = ({
 
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<p className="flex flex-col">

@@ -3,8 +3,12 @@ import Head from 'next/head'
 import { SEO } from '~/components/SEO'
 import Nav from '~/components/Nav'
 import { useIsClient } from '~/hooks'
+import { SearchFallback } from '~/components/Search/Fallback'
+import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
+import { Select } from '~/components/Select'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
+const GlobalSearch = React.lazy(() => import('~/components/Search').then((m) => ({ default: m.GlobalSearch })))
 
 interface ILayoutProps {
 	title: string
@@ -13,6 +17,9 @@ interface ILayoutProps {
 	backgroundColor?: string
 	className?: string
 	style?: React.CSSProperties
+	includeInMetricsOptions?: { name: string; key: string }[]
+	includeInMetricsOptionslabel?: string
+	hideDesktopSearch?: boolean
 }
 
 export default function Layout({
@@ -21,6 +28,9 @@ export default function Layout({
 	defaultSEO = false,
 	backgroundColor,
 	className,
+	includeInMetricsOptions,
+	includeInMetricsOptionslabel,
+	hideDesktopSearch,
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
@@ -39,6 +49,17 @@ export default function Layout({
 					className ?? ''
 				}`}
 			>
+				{hideDesktopSearch ? null : (
+					<span className="hidden lg:flex items-center justify-between gap-2 lg:min-h-8">
+						<React.Suspense fallback={<SearchFallback />}>
+							<GlobalSearch />
+						</React.Suspense>
+						{!includeInMetricsOptions || includeInMetricsOptions.length === 0 ? null : (
+							<IncludeInMetricsOptions options={includeInMetricsOptions} label={includeInMetricsOptionslabel} />
+						)}
+					</span>
+				)}
+
 				{children}
 			</main>
 			{isClient ? (
@@ -46,6 +67,29 @@ export default function Layout({
 					<Toaster />
 				</React.Suspense>
 			) : null}
+		</>
+	)
+}
+
+const IncludeInMetricsOptions = ({ options, label }: { options: { name: string; key: string }[]; label?: string }) => {
+	const { selectedValues, setSelectedValues } = useProtocolsFilterState(options)
+
+	return (
+		<>
+			<Select
+				allValues={options}
+				selectedValues={selectedValues}
+				setSelectedValues={setSelectedValues}
+				selectOnlyOne={(newOption) => {
+					setSelectedValues([newOption])
+				}}
+				label={label || 'Include in TVL'}
+				triggerProps={{
+					className:
+						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto'
+				}}
+				placement="bottom-end"
+			/>
 		</>
 	)
 }

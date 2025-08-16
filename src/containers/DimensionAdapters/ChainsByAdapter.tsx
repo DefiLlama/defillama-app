@@ -23,7 +23,6 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { VirtualTable } from '~/components/Table/Table'
 import { Icon } from '~/components/Icon'
 import { ChainsByAdapterChart } from './ChainChart'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 interface IProps extends IChainsByAdapterPageData {
 	type: Extract<
@@ -166,7 +165,6 @@ export function ChainsByAdapter(props: IProps) {
 					</a>
 				</Announcement>
 			)}
-			<ProtocolsChainsSearch />
 			<Metrics currentMetric={props.type} isChains={true} />
 			{props.adapterType !== 'fees' && (
 				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} type={props.type} />

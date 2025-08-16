@@ -8,7 +8,6 @@ import type { IChartProps } from '~/components/ECharts/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 import { fetchJson } from '~/utils/async'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -79,8 +78,6 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (
 		<Layout title={`Languages - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
-
 			<h1 className="text-xl font-semibold bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
 				Breakdown by Smart Contract Languages
 			</h1>

@@ -10,7 +10,6 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { RecentlyListedProtocolsTable } from './Table'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -174,8 +173,6 @@ export function RecentProtocols({
 
 	return (
 		<Layout title={title} defaultSEO>
-			<ProtocolsChainsSearch />
-
 			{claimableAirdrops ? (
 				<span className="flex items-center gap-2 flex-wrap">
 					{claimableAirdrops.map((protocol) => (

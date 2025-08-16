@@ -3,7 +3,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -17,7 +17,6 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 export function StakedByChain(props: ITotalStakedByChainPageData) {
 	return (
 		<>
-			<ProtocolsChainsSearch />
 			<Metrics currentMetric="Total Staked" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">

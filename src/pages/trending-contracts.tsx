@@ -1,7 +1,7 @@
 import { useDeferredValue, useState } from 'react'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import Layout from '~/layout'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { VirtualTable } from '~/components/Table/Table'
 import { formattedPercent } from '~/utils'
 
@@ -94,7 +94,6 @@ export default function TrendingContracts() {
 
 	return (
 		<Layout title={`Trending Contracts - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex items-center flex-wrap gap-5 p-3">
 					<h1 className="text-xl font-semibold mr-auto">Trending Contracts</h1>

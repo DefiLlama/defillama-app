@@ -5,7 +5,6 @@ import { SmolStats } from './SmolStats'
 import { Suspense, lazy } from 'react'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Icon } from '~/components/Icon'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { Metrics } from '~/components/Metrics'
 
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
@@ -15,8 +14,9 @@ export function ChainOverview(props: IChainOverviewData) {
 		<Layout
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
 			defaultSEO
+			includeInMetricsOptions={props.tvlAndFeesOptions}
+			includeInMetricsOptionslabel="Include in TVL & Fees"
 		>
-			<ProtocolsChainsSearch options={props.tvlAndFeesOptions} />
 			<Metrics currentMetric="TVL" />
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
 			<Stats {...props} />

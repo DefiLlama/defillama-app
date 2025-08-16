@@ -2,7 +2,6 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Metrics, TMetric } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -99,7 +98,6 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
 			<Metrics currentMetric={metricName} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<TableWithSearch

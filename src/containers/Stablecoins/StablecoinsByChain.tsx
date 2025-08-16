@@ -19,7 +19,6 @@ import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
 import { Metrics } from '~/components/Metrics'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -223,8 +222,6 @@ function PeggedAssetsOverview({
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
-
 			<Metrics currentMetric="Stablecoin Supply" />
 
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />

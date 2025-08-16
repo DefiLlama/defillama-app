@@ -9,7 +9,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { IconsRow } from '~/components/IconsRow'
 import type { ColumnDef } from '@tanstack/react-table'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { Metrics } from '~/components/Metrics'
 import { tvlOptions } from '~/components/Filters/options'
 
@@ -55,9 +55,7 @@ export const OraclesByChain = ({
 	}
 
 	return (
-		<Layout title={`Oracles - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch options={tvlOptions} />
-
+		<Layout title={`Oracles - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
 			<Metrics currentMetric="Oracle TVS" />
 
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />

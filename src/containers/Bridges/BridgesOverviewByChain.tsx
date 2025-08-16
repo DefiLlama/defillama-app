@@ -11,7 +11,6 @@ import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useEffect } from 'react'
 import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -218,8 +217,6 @@ export function BridgesOverviewByChain({
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
-
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
 			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">

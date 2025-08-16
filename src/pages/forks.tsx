@@ -11,7 +11,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { forksColumn } from '~/components/Table/Defi/columns'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { download, preparePieChartData } from '~/utils'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { Metrics } from '~/components/Metrics'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -76,7 +76,6 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 
 	return (
 		<Layout title={`Forks - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
 			<Metrics currentMetric="TVL in forks" />
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">

@@ -19,7 +19,6 @@ import { fetchJson } from '~/utils/async'
 import { TagGroup } from '~/components/TagGroup'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const columns = ['name', 'medianAmount', 'chains', 'projects', 'deals', 'category', 'roundType']
 
@@ -143,7 +142,6 @@ const ActiveInvestors = ({ data }) => {
 
 	return (
 		<Layout title={`Investors - DefiLlama`} defaultSEO className="gap-4">
-			<ProtocolsChainsSearch />
 			{/* <Announcement notCancellable>
 				<span>Looking for investors?</span>{' '}
 				<a href="/pitch" className="text-(--blue) underline font-medium" target="_blank" rel="noopener noreferrer">

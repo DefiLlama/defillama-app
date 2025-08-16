@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import Layout from '~/layout'
 import { SEO } from '~/components/SEO'
@@ -43,7 +42,6 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 	return (
 		<>
 			<Layout title={`${chainName} Bridged TVL - DefiLlama`}>
-				<ProtocolsChainsSearch />
 				<SEO cardName={chainName} token={chain} />
 				<RowLinksWithDropdown links={chains} activeLink={chainName} />
 				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">

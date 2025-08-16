@@ -7,7 +7,6 @@ import { pearsonCorrelationCoefficient } from './util'
 import { Icon } from '~/components/Icon'
 import { useIsClient } from '~/hooks'
 import * as Ariakit from '@ariakit/react'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins, queryCoins }: any) {
 	const [search, setSearch] = useState('')
@@ -164,7 +163,6 @@ export default function Correlations({ coinsData }) {
 
 	return (
 		<>
-			<ProtocolsChainsSearch />
 			<div className="p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center flex-wrap justify-between gap-4">
 				<h1 className="text-xl font-semibold">Correlations Matrix</h1>
 				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">

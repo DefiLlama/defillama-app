@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { DIMENISIONS_OVERVIEW_API, YIELD_POOLS_API } from '~/constants'
 import Layout from '~/layout'
 import { fetchApi } from '~/utils/async'
@@ -30,7 +30,6 @@ export const getStaticProps = withPerformanceLogging('about', async () => {
 function AboutPage(props: any) {
 	return (
 		<Layout title="About - DeFiLlama" defaultSEO>
-			<ProtocolsChainsSearch />
 			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
 				<h1 className="font-semibold text-lg">About DeFiLlama</h1>
 				<hr className="border-black/20 dark:border-white/20" />

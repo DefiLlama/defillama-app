@@ -4,7 +4,6 @@ import Layout from '~/layout'
 import { NftsCollectionTable } from '~/components/Table/Nfts/Collections'
 import { useScrollToTop } from '~/hooks'
 import { withPerformanceLogging } from '~/utils/perf'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('nfts', async () => {
 	const data = await getNFTData()
@@ -21,8 +20,6 @@ export default function NFTHomePage(props) {
 	useScrollToTop()
 	return (
 		<Layout title="NFTs - DefiLlama" defaultSEO>
-			<ProtocolsChainsSearch />
-
 			<NftsCollectionTable data={props.collections || []} />
 		</Layout>
 	)

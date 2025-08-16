@@ -1,4 +1,5 @@
 import { maxAgeForNext } from '~/api'
+import { tvlOptions } from '~/components/Filters/options'
 import { PROTOCOLS_API } from '~/constants'
 import { CompareChains } from '~/containers/CompareChains'
 import Layout from '~/layout'
@@ -17,7 +18,7 @@ export const getStaticProps = async () => {
 
 export default function Compare({ chains }) {
 	return (
-		<Layout title={`Compare Chains - DefiLlama`}>
+		<Layout title={`Compare Chains - DefiLlama`} includeInMetricsOptions={tvlOptions}>
 			<CompareChains chains={chains} />
 		</Layout>
 	)

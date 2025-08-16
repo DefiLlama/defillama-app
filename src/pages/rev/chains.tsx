@@ -2,7 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
 import { Metrics } from '~/components/Metrics'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
+
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
@@ -26,7 +26,6 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 const REVByChain = (props: IChainsByREVPageData) => {
 	return (
 		<Layout title="REV by chain - DefiLlama">
-			<ProtocolsChainsSearch />
 			<Metrics currentMetric="REV" isChains />
 			<TableWithSearch
 				data={props.chains}

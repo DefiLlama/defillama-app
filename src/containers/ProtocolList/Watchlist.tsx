@@ -6,11 +6,9 @@ import { useGetProtocolsList } from '~/api/categories/protocols/client'
 import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { Icon } from '~/components/Icon'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import type { IFormattedProtocol } from '~/api/types'
-import { tvlOptions } from '~/components/Filters/options'
 
 export function DefiWatchlistContainer() {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -72,7 +70,6 @@ export function DefiWatchlistContainer() {
 
 	return (
 		<>
-			<ProtocolsChainsSearch options={tvlOptions} />
 			<WatchListTabs />
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<PortfolioSelection

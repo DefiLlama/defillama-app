@@ -6,6 +6,7 @@ import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
+import { feesOptions } from '~/components/Filters/options'
 
 const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.REVENUE
@@ -42,7 +43,12 @@ export const getStaticProps = withPerformanceLogging(
 
 const RevenueOnChain = (props) => {
 	return (
-		<Layout title={`P/S - ${props.chain} - DefiLlama`} defaultSEO>
+		<Layout
+			title={`P/S - ${props.chain} - DefiLlama`}
+			defaultSEO
+			includeInMetricsOptions={feesOptions}
+			includeInMetricsOptionslabel="Include in Metrics"
+		>
 			<AdapterByChain {...props} type="P/S" />
 		</Layout>
 	)

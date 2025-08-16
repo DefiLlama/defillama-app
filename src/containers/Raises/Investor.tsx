@@ -22,7 +22,6 @@ import { useRaisesData } from './hooks'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { oldBlue } from '~/constants/colors'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -133,8 +132,6 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
-			<ProtocolsChainsSearch />
-
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a

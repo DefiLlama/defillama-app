@@ -30,8 +30,6 @@ import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { chainCharts } from '../ChainOverview/constants'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
-import { feesOptions } from '~/components/Filters/options'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<
@@ -347,7 +345,11 @@ export function AdapterByChain(props: IProps) {
 		)
 	}
 
-	const metricName = ['Fees', 'Revenue', 'Holders Revenue'].includes(props.type) ? props.type : props.type.includes('Volume') ? props.type : `${props.type} Volume`
+	const metricName = ['Fees', 'Revenue', 'Holders Revenue'].includes(props.type)
+		? props.type
+		: props.type.includes('Volume')
+			? props.type
+			: `${props.type} Volume`
 	const columnsKey = `columns-${props.type}`
 
 	const clearAllColumns = () => {
@@ -383,14 +385,6 @@ export function AdapterByChain(props: IProps) {
 
 	return (
 		<>
-			<ProtocolsChainsSearch
-				options={props.adapterType === 'fees' ? feesOptions : null}
-				optionsLabel={
-					['dailyRevenue', 'dailyHoldersRevenue', 'dailyEarnings'].includes(props.dataType)
-						? 'Include in Revenue'
-						: 'Include in Fees'
-				}
-			/>
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' && props.type !== 'Open Interest' ? (
