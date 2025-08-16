@@ -1,7 +1,7 @@
-import { Suspense, useMemo, useState } from 'react'
+import { startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import { DesktopSearch } from '~/components/Search/Base/Desktop'
+import * as Ariakit from '@ariakit/react'
 import { LocalLoader } from '~/components/LocalLoader'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
@@ -15,8 +15,10 @@ import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTa
 import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
 import { fetchJson } from '~/utils/async'
-import { useMedia } from '~/hooks/useMedia'
 import { Switch } from '~/components/Switch'
+import { matchSorter } from 'match-sorter'
+import { Icon } from '~/components/Icon'
+import { ProtocolsChainsSearch } from '~/components/Search/ProtocolsChains'
 
 export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	const searchData = await getAllCGTokensList()
@@ -39,8 +41,6 @@ export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 
 export default function Tokens({ searchData }) {
 	const router = useRouter()
-	const isSmall = useMedia(`(max-width: 639px)`)
-
 	const { token, includecex } = router.query
 
 	const tokenSymbol = token ? (typeof token === 'string' ? token : token[0]) : null
@@ -55,10 +55,6 @@ export default function Tokens({ searchData }) {
 		queryFn: () => fetchProtocols(tokenSymbol),
 		staleTime: 60 * 60 * 1000
 	})
-
-	const onItemClick = (item) => {
-		router.push(item.route, undefined, { shallow: true })
-	}
 
 	const filteredProtocols = useMemo(() => {
 		return (
@@ -83,16 +79,10 @@ export default function Tokens({ searchData }) {
 
 	return (
 		<Layout title="Token Usage - DefiLlama" defaultSEO>
+			<ProtocolsChainsSearch />
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 
-			<DesktopSearch
-				data={searchData}
-				placeholder="Search tokens..."
-				data-alwaysdisplay
-				onItemClick={onItemClick}
-				customSearchRoute="/token-usage?token="
-				variant={isSmall ? 'secondary' : 'primary'}
-			/>
+			<Search searchData={searchData} />
 
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md w-full">
 				{isLoading ? (
@@ -211,3 +201,107 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 		}
 	}
 ]
+
+interface ISearchData {
+	name: string
+	route: string
+	symbol: string
+	logo: string
+	fallbackLogo: string
+}
+const Search = ({ searchData }: { searchData: ISearchData[] }) => {
+	const router = useRouter()
+
+	const [searchValue, setSearchValue] = useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
+	const matches = useMemo(() => {
+		return matchSorter(searchData || [], deferredSearchValue, {
+			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+			threshold: matchSorter.rankings.CONTAINS,
+			keys: ['name', 'symbol']
+		})
+	}, [searchData, deferredSearchValue])
+
+	const [viewableMatches, setViewableMatches] = useState(20)
+
+	const [open, setOpen] = useState(false)
+
+	return (
+		<Ariakit.ComboboxProvider
+			resetValueOnHide
+			setValue={(value) => {
+				startTransition(() => {
+					setSearchValue(value)
+				})
+			}}
+			open={open}
+			setOpen={setOpen}
+		>
+			<span className="relative isolate w-full lg:max-w-[50vw]">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[9px] opacity-50">
+					{open ? (
+						<>
+							<span className="sr-only">Close Search</span>
+							<Icon name="x" height={16} width={16} />
+						</>
+					) : (
+						<>
+							<span className="sr-only">Open Search</span>
+							<Icon name="search" height={14} width={14} />
+						</>
+					)}
+				</button>
+
+				<Ariakit.Combobox
+					placeholder="Search tokens..."
+					autoSelect
+					className="w-full text-sm rounded-md border border-(--cards-border) text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-8"
+				/>
+			</span>
+
+			<Ariakit.ComboboxPopover
+				unmountOnHide
+				hideOnInteractOutside
+				gutter={6}
+				sameWidth
+				className="flex flex-col bg-(--bg-main) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] h-full max-h-[70vh] sm:max-h-[60vh]"
+			>
+				{matches.length ? (
+					<>
+						{matches.slice(0, viewableMatches + 1).map((data) => (
+							<Ariakit.ComboboxItem
+								key={`token-usage-${data.name}`}
+								value={data.name}
+								onClick={() => {
+									router.push(data.route, undefined, { shallow: true }).then(() => {
+										setOpen(false)
+									})
+								}}
+								focusOnHover
+								hideOnClick={false}
+								setValueOnClick={true}
+								className="p-3 flex items-center gap-4 text-(--text-primary) cursor-pointer hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) aria-disabled:opacity-50 outline-hidden"
+							>
+								{data?.logo || data?.fallbackLogo ? (
+									<TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} />
+								) : null}
+								<span>{data.name}</span>
+							</Ariakit.ComboboxItem>
+						))}
+
+						{matches.length > viewableMatches ? (
+							<button
+								className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+								onClick={() => setViewableMatches((prev) => prev + 20)}
+							>
+								See more...
+							</button>
+						) : null}
+					</>
+				) : (
+					<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
+				)}
+			</Ariakit.ComboboxPopover>
+		</Ariakit.ComboboxProvider>
+	)
+}
