@@ -135,6 +135,14 @@ export const defaultToolsAndFooterLinks = {
 		{
 			name: 'Donate',
 			path: '/donations'
+		},
+		{
+			name: 'Terms of Service',
+			path: '/terms'
+		},
+		{
+			name: 'Privacy Policy',
+			path: '/subscription/privacy-policy'
 		}
 		// {
 		// 	name: 'Reports',
