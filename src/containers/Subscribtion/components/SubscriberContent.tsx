@@ -52,16 +52,7 @@ export const SubscriberContent = ({
 			<div className="flex flex-col items-center mb-4">
 				<span className="text-xl font-semibold text-white mb-1">Change Subscription</span>
 			</div>
-			<div className="mb-6 w-full">
-				<div className="flex items-center gap-3 bg-linear-to-r from-yellow-400/10 to-yellow-900/30 border border-yellow-500 text-yellow-100 rounded-xl px-6 py-4 w-full shadow-xs">
-					<Icon name="alert-triangle" className="text-yellow-400 shrink-0" height={24} width={24} />
 
-					<span className="text-base font-medium">
-						Before changing your subscription tier, you need to cancel your current subscription. Your current
-						subscription will remain active until the end of the billing period.
-					</span>
-				</div>
-			</div>
 			<div className="flex flex-row gap-4 justify-center mb-8">
 				<SubscribePlusCard
 					context="account"
