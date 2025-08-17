@@ -6,7 +6,7 @@ export interface AddChartModalProps {
 	editItem?: DashboardItemConfig | null
 }
 
-export type MainTabType = 'chart' | 'composer' | 'table' | 'text'
+export type MainTabType = 'chart' | 'composer' | 'table' | 'text' | 'builder'
 export type ChartTabType = 'chain' | 'protocol'
 export type CombinedTableType =
 	| 'protocols'
@@ -26,6 +26,20 @@ export type CombinedTableType =
 	| 'trending-contracts'
 	| 'chains'
 
+export interface ChartBuilderConfig {
+	metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
+		'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 
+		'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue'
+	chains: string[]
+	categories: string[]
+	groupBy: 'protocol'
+	limit: number
+	chartType: 'stackedBar' | 'stackedArea' | 'line'
+	displayAs: 'timeSeries' | 'percentage'
+	hideOthers?: boolean
+	additionalFilters?: Record<string, any>
+}
+
 export interface ModalState {
 	selectedMainTab: MainTabType
 	selectedChartTab: ChartTabType
@@ -44,6 +58,8 @@ export interface ModalState {
 	selectedDatasetTimeframe: string | null
 	selectedTokens: string[]
 	includeCex: boolean
+	chartBuilderName: string
+	chartBuilder: ChartBuilderConfig
 }
 
 export interface ModalActions {
@@ -64,6 +80,7 @@ export interface ModalActions {
 	setSelectedDatasetTimeframe: (timeframe: string | null) => void
 	setSelectedTokens: (tokens: string[]) => void
 	setIncludeCex: (include: boolean) => void
+	setChartBuilderName: (name: string) => void
 	handleChainChange: (option: any) => void
 	handleChainsChange: (options: any[]) => void // New handler for multi-chain selection
 	handleProtocolChange: (option: any) => void
@@ -75,4 +92,6 @@ export interface ModalActions {
 	handleSubmit: () => void
 	handleChartTabChange: (tab: ChartTabType) => void
 	handleComposerSubTypeChange: (type: ChartTabType) => void
+	setChartBuilder: React.Dispatch<React.SetStateAction<ChartBuilderConfig>>
+	updateChartBuilder: (updates: Partial<ChartBuilderConfig>) => void
 }

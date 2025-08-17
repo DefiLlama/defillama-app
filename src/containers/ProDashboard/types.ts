@@ -27,7 +27,27 @@ export interface TextConfig {
 	colSpan?: 1 | 2
 }
 
-export type DashboardItemConfig = ChartConfig | ProtocolsTableConfig | MultiChartConfig | TextConfig
+export interface ChartBuilderConfig {
+	id: string
+	kind: 'builder'
+	name?: string
+	config: {
+		metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
+			'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 
+			'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue'
+		chains: string[]
+		categories: string[]
+		groupBy: 'protocol'
+		limit: number
+		chartType: 'stackedBar' | 'stackedArea' | 'line'
+		displayAs: 'timeSeries' | 'percentage'
+		additionalFilters?: Record<string, any>
+	}
+	grouping?: 'day' | 'week' | 'month' | 'quarter'
+	colSpan?: 1 | 2
+}
+
+export type DashboardItemConfig = ChartConfig | ProtocolsTableConfig | MultiChartConfig | TextConfig | ChartBuilderConfig
 
 export interface ChartConfig {
 	id: string
