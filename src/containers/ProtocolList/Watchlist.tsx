@@ -2,23 +2,19 @@ import { useMemo, useState } from 'react'
 import { Menu } from '~/components/Menu'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlistManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { useGetProtocolsList } from '~/api/categories/protocols/client'
-import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { Icon } from '~/components/Icon'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import type { IFormattedProtocol } from '~/api/types'
 
-export function DefiWatchlistContainer() {
+export function DefiWatchlistContainer({
+	protocolsList,
+	parentProtocols,
+	protocolsVolumeByChain,
+	protocolsFeesAndRevenueByChain
+}) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-
-	const { fullProtocolsList, parentProtocols, isLoading: fetchingProtocolsList } = useGetProtocolsList({ chain: 'All' })
-
-	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain('All')
-
-	const { data: chainProtocolsFees, isLoading: fetchingProtocolsFeesAndRevenueByChain } =
-		useGetProtocolsFeesAndRevenueByChain('All')
 
 	const {
 		portfolios,
@@ -34,17 +30,24 @@ export function DefiWatchlistContainer() {
 	const formattedProtocols = useMemo(() => {
 		return formatProtocolsList({
 			extraTvlsEnabled,
-			protocols: fullProtocolsList,
-			volumeData: chainProtocolsVolumes,
-			feesData: chainProtocolsFees,
+			protocols: protocolsList,
+			volumeData: protocolsVolumeByChain,
+			feesData: protocolsFeesAndRevenueByChain,
 			parentProtocols: parentProtocols,
 			noSubrows: true
 		})
-	}, [fullProtocolsList, parentProtocols, extraTvlsEnabled, chainProtocolsVolumes, chainProtocolsFees])
+	}, [protocolsList, parentProtocols, extraTvlsEnabled, protocolsVolumeByChain, protocolsFeesAndRevenueByChain])
 
 	const filteredProtocols = useMemo(() => {
 		return formattedProtocols.filter((p) => savedProtocols.has(p.name))
-	}, [fullProtocolsList, savedProtocols, extraTvlsEnabled, parentProtocols, chainProtocolsVolumes, chainProtocolsFees])
+	}, [
+		protocolsList,
+		savedProtocols,
+		extraTvlsEnabled,
+		parentProtocols,
+		protocolsVolumeByChain,
+		protocolsFeesAndRevenueByChain
+	])
 
 	const protocolOptions = useMemo(() => {
 		return formattedProtocols.map((protocol) => ({
@@ -97,14 +100,7 @@ export function DefiWatchlistContainer() {
 							</span>
 						)}
 					</div>
-					{fetchingProtocolsList || fetchingProtocolsVolumeByChain || fetchingProtocolsFeesAndRevenueByChain ? (
-						<div className="p-8 text-center">
-							<div className="inline-flex items-center gap-2 text-(--text-secondary)">
-								<div className="animate-spin rounded-full h-4 w-4 border-2 border-(--text-secondary) border-t-transparent"></div>
-								<span>Loading protocols...</span>
-							</div>
-						</div>
-					) : filteredProtocols.length ? (
+					{filteredProtocols.length ? (
 						<ProtocolsByChainTable data={filteredProtocols} />
 					) : (
 						<div className="p-8 text-center">
