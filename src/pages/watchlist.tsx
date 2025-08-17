@@ -7,9 +7,25 @@ import { PROTOCOLS_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { getDexVolumeByChain, getFeesAndRevenueProtocolsByChain } from '~/api/categories/adaptors'
+import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 
 export const getStaticProps = withPerformanceLogging('watchlist', async () => {
-	const { protocols, parentProtocols } = await fetchJson(PROTOCOLS_API)
+	const [protocolsData, protocolsVolumeByChainData, protocolsFeesAndRevenueByChain, chainsData] = await Promise.all([
+		fetchJson(PROTOCOLS_API),
+		getDexVolumeByChain({
+			chain: 'All',
+			excludeTotalDataChart: false,
+			excludeTotalDataChartBreakdown: true
+		}),
+		getFeesAndRevenueProtocolsByChain({
+			chain: 'All'
+		}),
+		getChainsByCategory({ category: 'All', sampledChart: true })
+	])
+
+	const { protocols, parentProtocols } = protocolsData
+	const { chains, chainAssets } = chainsData
+	const { protocols: protocolsVolumeByChain } = protocolsVolumeByChainData
 
 	const protocolsList = formatProtocolsData({
 		chain: null,
@@ -17,22 +33,14 @@ export const getStaticProps = withPerformanceLogging('watchlist', async () => {
 		removeBridges: true
 	})
 
-	const { protocols: protocolsVolumeByChain } = await getDexVolumeByChain({
-		chain: 'All',
-		excludeTotalDataChart: false,
-		excludeTotalDataChartBreakdown: true
-	})
-
-	const protocolsFeesAndRevenueByChain = await getFeesAndRevenueProtocolsByChain({
-		chain: 'All'
-	})
-
 	return {
 		props: {
 			protocolsList,
 			parentProtocols,
 			protocolsVolumeByChain,
-			protocolsFeesAndRevenueByChain
+			protocolsFeesAndRevenueByChain,
+			chains,
+			chainAssets
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -42,8 +50,13 @@ export default function Portfolio({
 	protocolsList,
 	parentProtocols,
 	protocolsVolumeByChain,
-	protocolsFeesAndRevenueByChain
+	protocolsFeesAndRevenueByChain,
+	chains,
+	chainAssets
 }) {
+	console.log('chains', chains)
+	console.log('chainAssets', chainAssets)
+
 	return (
 		<Layout title={`Watchlist - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
 			<DefiWatchlistContainer
@@ -51,6 +64,8 @@ export default function Portfolio({
 				parentProtocols={parentProtocols}
 				protocolsVolumeByChain={protocolsVolumeByChain}
 				protocolsFeesAndRevenueByChain={protocolsFeesAndRevenueByChain}
+				chains={chains}
+				chainAssets={chainAssets}
 			/>
 		</Layout>
 	)
