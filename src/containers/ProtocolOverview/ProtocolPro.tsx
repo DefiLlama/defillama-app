@@ -29,7 +29,7 @@ export const ChartTypes = {
 	chainFees: 'Fees',
 	revenue: 'Revenue',
 	unlocks: 'Unlocks',
-	activeUsers: 'Active Users',
+	activeUsers: 'Active Wallets',
 	newUsers: 'New Users',
 	transactions: 'Transactions',
 	gasUsed: 'Gas Used',
