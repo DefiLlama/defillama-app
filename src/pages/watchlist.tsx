@@ -54,9 +54,6 @@ export default function Portfolio({
 	chains,
 	chainAssets
 }) {
-	console.log('chains', chains)
-	console.log('chainAssets', chainAssets)
-
 	return (
 		<Layout title={`Watchlist - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
 			<DefiWatchlistContainer
