@@ -79,6 +79,9 @@ export function SubscribeProCard({
 				<li className="px-[26px] flex flex-col gap-2">
 					<span>1M calls/month</span>
 				</li>
+				<li className="px-[26px] flex flex-col gap-2">
+					<span className="text-[#ff9966] font-medium">$0.60 per 1,000 additional calls after 1M limit</span>
+				</li>
 			</ul>
 			<div className="w-full max-w-[408px] mx-auto flex flex-col gap-3 relative z-10">
 				{active && !isLegacyActive ? (
