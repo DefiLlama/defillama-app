@@ -26,7 +26,7 @@ export function ReturnModal({ isOpen, onClose, returnUrl }: ReturnModalProps) {
 	return (
 		<SubscribeModal isOpen={isOpen} onClose={onClose}>
 			<div className="p-8 max-w-[400px]">
-				<h2 className="text-2xl font-bold mb-4 text-center">Welcome Back!</h2>
+				<h2 className="text-2xl font-bold mb-4 text-white text-center">Welcome Back!</h2>
 				<p className="text-gray-400 mb-6 text-center">
 					Would you like to return to the page you were on before signing in?
 				</p>
