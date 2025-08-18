@@ -18,7 +18,7 @@ export function BridgeChainsOverview({ allChains, tableData, chartData, chartSta
 
 	return (
 		<>
-			<div className="p-[6px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
+			<div className="p-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
 				<h1 className="text-xl font-semibold">Bridge Inflows by Chain</h1>
 				<CSVDownloadButton onClick={downloadCsv} />
 			</div>

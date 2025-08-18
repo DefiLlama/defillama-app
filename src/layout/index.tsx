@@ -59,7 +59,6 @@ export default function Layout({
 						)}
 					</span>
 				)}
-
 				{children}
 			</main>
 			{isClient ? (

@@ -57,7 +57,7 @@ const BridgeInfo = ({
 
 	return (
 		<>
-			<div className="p-[6px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
+			<div className="p-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
 				<h1 className="flex flex-nowrap items-center gap-1 text-xl font-semibold">
 					<TokenLogo logo={logo} size={24} />
 					<span>{displayName}</span>

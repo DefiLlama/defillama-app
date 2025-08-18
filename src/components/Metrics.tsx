@@ -272,15 +272,15 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 												className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
 												href={metric.route}
 											>
-												<p className="flex items-center gap-2 flex-wrap justify-between w-full">
+												<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 													<span className="font-medium">{metric.name}</span>
 													{totalTrackedByMetric && metric.chainsTracked(totalTrackedByMetric) ? (
 														<span className="text-xs text-(--link)">
 															{metric.chainsTracked(totalTrackedByMetric)} tracked
 														</span>
 													) : null}
-												</p>
-												<p className="text-(--text-form) text-start whitespace-pre-wrap">{metric.description}</p>
+												</span>
+												<span className="text-(--text-form) text-start whitespace-pre-wrap">{metric.description}</span>
 											</BasicLink>
 										))}
 									</div>
@@ -308,15 +308,15 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 														: metric.mainRoute
 												}
 											>
-												<p className="flex items-center gap-2 flex-wrap justify-between w-full">
+												<span className="flex items-center gap-2 flex-wrap justify-between w-full">
 													<span className="font-medium">{metric.name}</span>
 													{totalTrackedByMetric && metric.protocolsTracked(totalTrackedByMetric) ? (
 														<span className="text-xs text-(--link)">
 															{metric.protocolsTracked(totalTrackedByMetric)} tracked
 														</span>
 													) : null}
-												</p>
-												<p className="text-(--text-form) text-start whitespace-pre-wrap">{metric.description}</p>
+												</span>
+												<span className="text-(--text-form) text-start whitespace-pre-wrap">{metric.description}</span>
 											</BasicLink>
 										))}
 									</div>

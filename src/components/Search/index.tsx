@@ -52,39 +52,10 @@ const Mobile = () => {
 
 	const { results, status, error } = useInstantSearch({ catchError: true })
 
-	const {
-		data: searchList,
-		isLoading: isLoadingSearchList,
-		error: errorSearchList
-	} = useQuery({
-		queryKey: ['searchlist'],
-		queryFn: getSearchList,
-		staleTime: 1000 * 60 * 60,
-		refetchOnMount: false,
-		refetchOnWindowFocus: false,
-		gcTime: 1000 * 60 * 60
-	})
-
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
 
-	const recentSearch = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => window.localStorage.getItem('recentSearch') ?? '[]',
-		() => '[]'
-	)
-
-	const { defaultSearchList, recentSearchList } = useMemo(() => {
-		const recentSearchArray = JSON.parse(recentSearch)
-
-		return {
-			defaultSearchList:
-				searchList?.filter(
-					(route: ISearchItem) => !recentSearchArray.some((r: ISearchItem) => r.route === route.route)
-				) ?? [],
-			recentSearchList: recentSearchArray ?? []
-		}
-	}, [searchList, recentSearch])
+	const { searchList, isLoadingSearchList, errorSearchList, defaultSearchList, recentSearchList } = useSearchList()
 
 	return (
 		<Ariakit.ComboboxProvider
@@ -210,19 +181,6 @@ const Desktop = () => {
 
 	const { results, status, error } = useInstantSearch({ catchError: true })
 
-	const {
-		data: searchList,
-		isLoading: isLoadingSearchList,
-		error: errorSearchList
-	} = useQuery({
-		queryKey: ['searchlist'],
-		queryFn: getSearchList,
-		staleTime: 1000 * 60 * 60,
-		refetchOnMount: false,
-		refetchOnWindowFocus: false,
-		gcTime: 1000 * 60 * 60
-	})
-
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
 	useEffect(() => {
@@ -239,23 +197,7 @@ const Desktop = () => {
 		return () => window.removeEventListener('keydown', focusSearchBar)
 	}, [setOpen])
 
-	const recentSearch = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => window.localStorage.getItem('recentSearch') ?? '[]',
-		() => '[]'
-	)
-
-	const { defaultSearchList, recentSearchList } = useMemo(() => {
-		const recentSearchArray = JSON.parse(recentSearch)
-
-		return {
-			defaultSearchList:
-				searchList?.filter(
-					(route: ISearchItem) => !recentSearchArray.some((r: ISearchItem) => r.route === route.route)
-				) ?? [],
-			recentSearchList: recentSearchArray ?? []
-		}
-	}, [searchList, recentSearch])
+	const { searchList, isLoadingSearchList, errorSearchList, defaultSearchList, recentSearchList } = useSearchList()
 
 	return (
 		<Ariakit.ComboboxProvider
@@ -388,4 +330,45 @@ const setRecentSearch = (route: ISearchItem) => {
 		'recentSearch',
 		JSON.stringify([route, ...recentSearchArray.filter((r: ISearchItem) => r.route !== route.route).slice(0, 2)])
 	)
+}
+
+const useSearchList = () => {
+	const {
+		data: searchList,
+		isLoading: isLoadingSearchList,
+		error: errorSearchList
+	} = useQuery({
+		queryKey: ['searchlist'],
+		queryFn: getSearchList,
+		staleTime: 1000 * 60 * 60,
+		refetchOnMount: false,
+		refetchOnWindowFocus: false,
+		gcTime: 1000 * 60 * 60
+	})
+
+	const recentSearch = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => window.localStorage.getItem('recentSearch') ?? '[]',
+		() => '[]'
+	)
+
+	const { defaultSearchList, recentSearchList } = useMemo(() => {
+		const recentSearchArray = JSON.parse(recentSearch)
+
+		return {
+			defaultSearchList:
+				searchList?.filter(
+					(route: ISearchItem) => !recentSearchArray.some((r: ISearchItem) => r.route === route.route)
+				) ?? [],
+			recentSearchList: recentSearchArray ?? []
+		}
+	}, [searchList, recentSearch])
+
+	return {
+		searchList,
+		isLoadingSearchList,
+		errorSearchList,
+		defaultSearchList,
+		recentSearchList
+	}
 }
