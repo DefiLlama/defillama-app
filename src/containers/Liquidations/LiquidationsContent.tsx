@@ -172,7 +172,7 @@ const LastUpdated = ({ data }) => {
 	return (
 		<>
 			<p className="flex items-center justify-end gap-1 flex-nowrap italic -mt-4 opacity-60">
-				<Icon name="clock" height={12} width={13} />
+				<Icon name="clock" height={12} width={12} />
 				<span suppressHydrationWarning>Last updated {minutesAgo}min ago</span>
 			</p>
 		</>

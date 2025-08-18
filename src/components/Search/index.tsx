@@ -1,11 +1,12 @@
 import * as Ariakit from '@ariakit/react'
-import { startTransition, useEffect, useRef, useState } from 'react'
+import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { BasicLink } from '../Link'
 import { Icon } from '../Icon'
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { fetchJson } from '~/utils/async'
 import { useQuery } from '@tanstack/react-query'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 
 const { searchClient } = instantMeiliSearch(
 	'https://search.defillama.com',
@@ -66,6 +67,24 @@ const Mobile = () => {
 
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
+
+	const recentSearch = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => window.localStorage.getItem('recentSearch') ?? '[]',
+		() => '[]'
+	)
+
+	const { defaultSearchList, recentSearchList } = useMemo(() => {
+		const recentSearchArray = JSON.parse(recentSearch)
+
+		return {
+			defaultSearchList:
+				searchList?.filter(
+					(route: ISearchItem) => !recentSearchArray.some((r: ISearchItem) => r.route === route.route)
+				) ?? [],
+			recentSearchList: recentSearchArray ?? []
+		}
+	}, [searchList, recentSearch])
 
 	return (
 		<Ariakit.ComboboxProvider
@@ -141,23 +160,45 @@ const Mobile = () => {
 				) : !searchList?.length ? (
 					<p className="flex items-center justify-center p-4">No results found</p>
 				) : (
-					searchList.map((route: ISearchItem) => {
-						return (
-							<Ariakit.ComboboxItem
-								className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
-								key={`global-search-dl-${route.name}-${route.route}`}
-								render={<BasicLink href={route.route} />}
-							>
-								{route.logo ? (
-									<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
-								) : (
-									<Icon name="file-text" className="w-6 h-6" />
-								)}
-								<span>{route.name}</span>
-								<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
-							</Ariakit.ComboboxItem>
-						)
-					})
+					<>
+						{recentSearchList.map((route: ISearchItem) => {
+							return (
+								<Ariakit.ComboboxItem
+									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
+									key={`global-search-recent-${route.name}-${route.route}`}
+									render={<BasicLink href={route.route} />}
+								>
+									{route.logo ? (
+										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
+									) : (
+										<Icon name="file-text" className="w-6 h-6" />
+									)}
+									<span>{route.name}</span>
+									<Icon name="clock" height={12} width={12} className="ml-auto" />
+								</Ariakit.ComboboxItem>
+							)
+						})}
+						{defaultSearchList.map((route: ISearchItem) => {
+							return (
+								<Ariakit.ComboboxItem
+									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
+									key={`global-search-dl-${route.name}-${route.route}`}
+									render={<BasicLink href={route.route} />}
+									onClick={() => {
+										setRecentSearch(route)
+									}}
+								>
+									{route.logo ? (
+										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
+									) : (
+										<Icon name="file-text" className="w-6 h-6" />
+									)}
+									<span>{route.name}</span>
+									<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
+								</Ariakit.ComboboxItem>
+							)
+						})}
+					</>
 				)}
 			</Ariakit.ComboboxPopover>
 		</Ariakit.ComboboxProvider>
@@ -197,6 +238,24 @@ const Desktop = () => {
 
 		return () => window.removeEventListener('keydown', focusSearchBar)
 	}, [setOpen])
+
+	const recentSearch = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => window.localStorage.getItem('recentSearch') ?? '[]',
+		() => '[]'
+	)
+
+	const { defaultSearchList, recentSearchList } = useMemo(() => {
+		const recentSearchArray = JSON.parse(recentSearch)
+
+		return {
+			defaultSearchList:
+				searchList?.filter(
+					(route: ISearchItem) => !recentSearchArray.some((r: ISearchItem) => r.route === route.route)
+				) ?? [],
+			recentSearchList: recentSearchArray ?? []
+		}
+	}, [searchList, recentSearch])
 
 	return (
 		<Ariakit.ComboboxProvider
@@ -254,6 +313,9 @@ const Desktop = () => {
 									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
 									key={`global-search-${route.name}-${route.route}`}
 									render={<BasicLink href={route.route} />}
+									onClick={() => {
+										setRecentSearch(route)
+									}}
 								>
 									{route.logo ? (
 										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
@@ -274,25 +336,56 @@ const Desktop = () => {
 				) : !searchList?.length ? (
 					<p className="flex items-center justify-center p-4">No results found</p>
 				) : (
-					searchList.map((route: ISearchItem) => {
-						return (
-							<Ariakit.ComboboxItem
-								className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
-								key={`global-search-dl-${route.name}-${route.route}`}
-								render={<BasicLink href={route.route} />}
-							>
-								{route.logo ? (
-									<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
-								) : (
-									<Icon name="file-text" className="w-6 h-6" />
-								)}
-								<span>{route.name}</span>
-								<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
-							</Ariakit.ComboboxItem>
-						)
-					})
+					<>
+						{recentSearchList.map((route: ISearchItem) => {
+							return (
+								<Ariakit.ComboboxItem
+									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
+									key={`global-search-recent-${route.name}-${route.route}`}
+									render={<BasicLink href={route.route} />}
+								>
+									{route.logo ? (
+										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
+									) : (
+										<Icon name="file-text" className="w-6 h-6" />
+									)}
+									<span>{route.name}</span>
+									<Icon name="clock" height={12} width={12} className="ml-auto" />
+								</Ariakit.ComboboxItem>
+							)
+						})}
+						{defaultSearchList.map((route: ISearchItem) => {
+							return (
+								<Ariakit.ComboboxItem
+									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
+									key={`global-search-dl-${route.name}-${route.route}`}
+									render={<BasicLink href={route.route} />}
+									onClick={() => {
+										setRecentSearch(route)
+									}}
+								>
+									{route.logo ? (
+										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
+									) : (
+										<Icon name="file-text" className="w-6 h-6" />
+									)}
+									<span>{route.name}</span>
+									<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
+								</Ariakit.ComboboxItem>
+							)
+						})}
+					</>
 				)}
 			</Ariakit.ComboboxPopover>
 		</Ariakit.ComboboxProvider>
+	)
+}
+
+const setRecentSearch = (route: ISearchItem) => {
+	const recentSearch = window.localStorage.getItem('recentSearch')
+	const recentSearchArray = JSON.parse(recentSearch ?? '[]')
+	window.localStorage.setItem(
+		'recentSearch',
+		JSON.stringify([route, ...recentSearchArray.filter((r: ISearchItem) => r.route !== route.route).slice(0, 2)])
 	)
 }
