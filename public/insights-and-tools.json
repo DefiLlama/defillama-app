@@ -4,13 +4,15 @@
       "name": "Protocols by Chain",
       "route": "/",
       "category": "Combined Metrics",
-      "description": "TVL, Fees, Volume metrics of all protocols on each chain"
+      "description": "TVL, Fees, Volume metrics of all protocols on each chain", 
+      "totalTrackedKey": "tvl.protocols"
     },
     {
       "name": "All Chains",
       "route": "/chains",
       "category": "Combined Metrics",
-      "description": "Combined TVL, Fees, Volume and other metrics of all protocols on all chains"
+      "description": "Combined TVL, Fees, Volume and other metrics of all protocols on all chains",
+      "totalTrackedKey": "tvl.chains"
     },
     {
       "name": "Categories",
@@ -70,97 +72,113 @@
       "name": "DEX Volume by Protocol",
       "route": "/dexs",
       "category": "Volume",
-      "description": "Volume of all spot token swaps that go through a DEX"
+      "description": "Volume of all spot token swaps that go through a DEX",
+      "totalTrackedKey": "dexs.protocols"
     },
     {
       "name": "Perp Volume by Protocol",
       "route": "/perps",
       "category": "Volume",
-      "description": "Notional volume of all trades in a perp exchange, includes leverage"
+      "description": "Notional volume of all trades in a perp exchange, includes leverage",
+      "totalTrackedKey": "perps.protocols"
     },
     {
       "name": "DEX Volume by Chain",
       "route": "/dexs/chains",
       "category": "Volume",
-      "description": "Sum of all volume of all spot token swaps that go through all DEXs on the chain"
+      "description": "Sum of all volume of all spot token swaps that go through all DEXs on the chain",
+      "totalTrackedKey": "dexs.chains"
     },
     {
       "name": "Bridge Aggregator Volume by Protocol",
       "route": "/bridge-aggregators",
       "category": "Volume",
-      "description": "Sum of value of all assets that were bridged through a bridge aggregator"
+      "description": "Sum of value of all assets that were bridged through a bridge aggregator",
+      "totalTrackedKey": "bridgeAggregators.protocols"
     },
     {
       "name": "DEX Aggregator Volume by Protocol",
       "route": "/dex-aggregators",
       "category": "Volume",
-      "description": "Volume of spot token swaps that go through a DEX aggregator"
+      "description": "Volume of spot token swaps that go through a DEX aggregator",
+      "totalTrackedKey": "dexAggregators.protocols"
     },
     {
       "name": "Perp Volume by Chain",
       "route": "/perps/chains",
       "category": "Volume",
-      "description": "Sum of notional volume of all trades in all perp exchanges on the chain, includes leverage"
+      "description": "Sum of notional volume of all trades in all perp exchanges on the chain, includes leverage",
+      "totalTrackedKey": "perps.chains"
     },
     {
       "name": "Options Premium Volume by Protocol",
       "route": "/options/premium-volume",
       "category": "Volume",
-      "description": "Sum of value paid buying and selling options"
+      "description": "Sum of value paid buying and selling options",
+      "totalTrackedKey": "options.protocols"
     },
     {
       "name": "Options Notional Volume by Protocol",
       "route": "/options/notional-volume",
       "category": "Volume",
-      "description": "Sum of the notional value of all options that have been traded on an options exchange"
+      "description": "Sum of the notional value of all options that have been traded on an options exchange",
+      "totalTrackedKey": "options.protocols"
     },
     {
       "name": "Open Interest by Protocol",
       "route": "/open-interest",
       "category": "Volume",
-      "description": "Total notional value of all outstanding perpetual futures positions"
+      "description": "Total notional value of all outstanding perpetual futures positions",
+      "totalTrackedKey": "perpsOpenInterest.protocols"
     },
     {
       "name": "Perp Aggregator Volume by Protocol",
       "route": "/perp-aggregators",
       "category": "Volume",
-      "description": "Notional volume of all trades in a perp aggregator, includes leverage"
+      "description": "Notional volume of all trades in a perp aggregator, includes leverage",
+      "totalTrackedKey": "perpAggregators.protocols"
     },
     {
       "name": "Fees by Protocol",
       "route": "/fees",
       "category": "Fees & Revenue",
-      "description": "Total fees paid by users when using the protocol"
+      "description": "Total fees paid by users when using the protocol",
+      "totalTrackedKey": "fees.protocols"
     },
     {
       "name": "Revenue by Protocol",
       "route": "/revenue",
       "category": "Fees & Revenue",
-      "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to liquidity providers"
+      "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to liquidity providers",
+      "totalTrackedKey": "revenue.protocols"
     },
     {
       "name": "Holders Revenue by Protocol",
       "route": "/holders-revenue",
       "category": "Fees & Revenue",
-      "description": "Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers"
+      "description": "Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers",
+      "totalTrackedKey": "holdersRevenue.protocols"
     },
     {
       "name": "Earnings by Protocol",
       "route": "/earnings",
       "category": "Fees & Revenue",
-      "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself."
+      "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself.",
+      "totalTrackedKey": "revenue.protocols"
     },
     {
       "name": "Fees by Chain",
       "route": "/fees/chains",
       "category": "Fees & Revenue",
-      "description": "Sum of all fees paid by users when using protocols on the chain"
+      "description": "Sum of all fees paid by users when using protocols on the chain",
+      "totalTrackedKey": "fees.chains"
     },
     {
       "name": "Revenue by Chain",
       "route": "/revenue/chains",
       "category": "Fees & Revenue",
-      "description": "Sum of all revenue earned by protocols on the chain"
+      "description": "Sum of all revenue earned by protocols on the chain",
+      "totalTrackedKey": "revenue.chains"
     },
     {
       "name": "P/F by Protocol",
@@ -195,13 +213,15 @@
       "name": "Oracles",
       "route": "/oracles",
       "category": "Total Value",
-      "description": "Total Value Secured by an oracle, where oracle failure would lead to a loss equal to TVS"
+      "description": "Total Value Secured by an oracle, where oracle failure would lead to a loss equal to TVS",
+      "totalTrackedKey": "oracles.protocols"
     },
     {
       "name": "Forks",
       "route": "/forks",
       "category": "Total Value",
-      "description": "Sum of TVL across all forks of a protocol"
+      "description": "Sum of TVL across all forks of a protocol",
+      "totalTrackedKey": "forks.protocols"
     },
     {
       "name": "TVL Breakdown by Smart Contract Languages",
@@ -230,7 +250,8 @@
     {
       "name": "CEXs",
       "route": "/cexs",
-      "description": "Sum of assets held on a centralized exchanges"
+      "description": "Sum of assets held on a centralized exchanges",
+      "totalTrackedKey": "cexs.protocols"
     },
     {
       "name": "Narrative Trackers",
@@ -273,19 +294,22 @@
       "name": "Stablecoins by Market Cap",
       "route": "/stablecoins",
       "category": "Stablecoins",
-      "description": "Total market cap of stable assets"
+      "description": "Total market cap of stable assets",
+      "totalTrackedKey": "stablecoins.protocols"
     },
     {
       "name": "Stablecoin Supply by Chain",
       "route": "/stablecoins/chains",
       "category": "Stablecoins",
-      "description": "Total market cap of stable assets currently deployed on each chain"
+      "description": "Total market cap of stable assets currently deployed on each chain",
+      "totalTrackedKey": "stablecoins.chains"
     },
     {
       "name": "Bridged TVL by Chain",
       "route": "/bridged",
       "category": "Bridge",
-      "description": "Value of all tokens held on the chain"
+      "description": "Value of all tokens held on the chain",
+      "totalTrackedKey": "bridgedTVL.chains"
     },
     {
       "name": "Bridges by Volume",
@@ -333,19 +357,22 @@
       "name": "Treasuries",
       "route": "/treasuries",
       "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, including it's own token and breakdown of assets held"
+      "description": "Value of tokens owned by a protocol, including it's own token and breakdown of assets held",
+      "totalTrackedKey": "treasury.protocols"
     },
     {
       "name": "Net Project Treasury",
       "route": "/net-project-treasury",
       "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, excluding it's own token"
+      "description": "Value of tokens owned by a protocol, excluding it's own token",
+      "totalTrackedKey": "treasury.protocols"
     },
     {
       "name": "Unlocks: Overview",
       "route": "/unlocks",
       "category": "Unlocks",
-      "description": "Overview of token emissions by protocol"
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols"
     },
     {
       "name": "Token Unlocks Calendar",
