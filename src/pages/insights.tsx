@@ -5,20 +5,28 @@ import { BasicLink } from '~/components/Link'
 import Layout from '~/layout'
 import insightsAndTools from '~/public/insights-and-tools.json'
 
+const others = insightsAndTools.Insights.filter((insight) => !insight.category)
 const insightsByCategory = Object.entries(
 	insightsAndTools.Insights.reduce((acc, insight) => {
-		acc[insight.category] = acc[insight.category] || []
-		acc[insight.category].push({
+		if (!insight.category) return acc
+		const category = insight.category
+		acc[category] = acc[category] || []
+		acc[category].push({
 			...insight,
 			name: insight.name.replace('Yields: ', ''),
 			description: insight.description ?? ''
 		})
 		return acc
 	}, {})
-).map(([category, insights]: [string, Array<{ name: string; route: string; description: string }>]) => ({
-	category,
-	insights
-}))
+)
+	.map(([category, insights]: [string, Array<{ name: string; route: string; description: string }>]) => ({
+		category,
+		insights
+	}))
+	.concat({
+		category: 'Others',
+		insights: others
+	} as { category: string; insights: Array<{ name: string; route: string; description: string }> })
 
 export default function Insights() {
 	const [searchValue, setSearchValue] = useState('')
