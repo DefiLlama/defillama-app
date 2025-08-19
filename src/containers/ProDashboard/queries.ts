@@ -3,8 +3,9 @@ import { CHAINS_API, PROTOCOLS_API } from '~/constants'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import ProtocolCharts from './services/ProtocolCharts'
 import ChainCharts from './services/ChainCharts'
-import { getProtocolChartTypes, getChainChartTypes } from './types'
+import { getProtocolChartTypes, getChainChartTypes, CHART_TYPES } from './types'
 import { TimePeriod } from './ProDashboardAPIContext'
+import { groupData } from './utils'
 import dayjs from 'dayjs'
 
 function generateChartKey(
@@ -299,15 +300,45 @@ export function useProtocolsAndChains() {
 	})
 }
 
+function createMemoizedGroupData() {
+	let lastData: any = null
+	let lastGrouping: any = null
+	let lastResult: any = null
+
+	return (data: any, grouping: any) => {
+		if (data === lastData && grouping === lastGrouping) {
+			return lastResult
+		}
+		lastData = data
+		lastGrouping = grouping
+		lastResult = groupData(data, grouping)
+		return lastResult
+	}
+}
+
 export function useChartsData(charts, timePeriod?: TimePeriod) {
 	return useQueries({
 		queries: charts.map((chart) => {
 			const itemType = chart.protocol ? 'protocol' : 'chain'
 			const item = chart.protocol || chart.chain
+			const memoizedGroupData = createMemoizedGroupData()
 
 			return {
-				queryKey: [...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod), chart.id],
+				queryKey: [
+					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod),
+					chart.grouping,
+					chart.id
+				],
 				queryFn: getChartQueryFn(chart.type, itemType, item, chart.geckoId, timePeriod),
+				keepPreviousData: true,
+				placeholderData: (prev) => prev,
+				select: (data) => {
+					const chartTypeDetails = CHART_TYPES[chart.type]
+					if (chartTypeDetails?.groupable && chart.grouping && chart.grouping !== 'day') {
+						return memoizedGroupData(data, chart.grouping)
+					}
+					return data
+				},
 				enabled:
 					!!item &&
 					((itemType === 'protocol' &&

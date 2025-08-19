@@ -11,11 +11,10 @@ import {
 	TextConfig,
 	ChartBuilderConfig,
 	Chain,
-	TableFilters
+	TableFilters,
+	Protocol
 } from './types'
 import { useChartsData, useProtocolsAndChains } from './queries'
-import { groupData } from './utils'
-import { Protocol } from './types'
 import { Dashboard } from './services/DashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDashboardAPI, useAutoSave, useDashboardPermissions } from './hooks'
@@ -76,9 +75,20 @@ interface ProDashboardContextType {
 	handleAddChartBuilder: (
 		name: string | undefined,
 		config: {
-			metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
-				'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 
-				'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue'
+			metric:
+				| 'fees'
+				| 'revenue'
+				| 'volume'
+				| 'perps'
+				| 'options-notional'
+				| 'options-premium'
+				| 'bridge-aggregators'
+				| 'dex-aggregators'
+				| 'perps-aggregators'
+				| 'user-fees'
+				| 'holders-revenue'
+				| 'protocol-revenue'
+				| 'supply-side-revenue'
 			chains: string[]
 			categories: string[]
 			groupBy: 'protocol'
@@ -371,14 +381,9 @@ export function ProDashboardAPIProvider({
 					const chart = item
 					const idx = allChartItems.findIndex((c) => c.id === chart.id)
 					const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
-					const chartTypeDetails = CHART_TYPES[chart.type]
-					let processedData = query.data || []
-					if (chartTypeDetails?.groupable) {
-						processedData = groupData(query.data, chart.grouping)
-					}
 					return {
 						...chart,
-						data: processedData,
+						data: query.data || [],
 						isLoading: query.isLoading || false,
 						hasError: query.isError || false,
 						refetch: query.refetch || (() => {})
@@ -387,14 +392,9 @@ export function ProDashboardAPIProvider({
 					const processedItems = item.items.map((nestedChart) => {
 						const idx = allChartItems.findIndex((c) => c.id === nestedChart.id)
 						const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
-						const chartTypeDetails = CHART_TYPES[nestedChart.type]
-						let processedData = query.data || []
-						if (chartTypeDetails?.groupable) {
-							processedData = groupData(query.data, nestedChart.grouping)
-						}
 						return {
 							...nestedChart,
-							data: processedData,
+							data: query.data || [],
 							isLoading: query.isLoading || false,
 							hasError: query.isError || false,
 							refetch: query.refetch || (() => {})
@@ -549,9 +549,20 @@ export function ProDashboardAPIProvider({
 	const handleAddChartBuilder = (
 		name: string | undefined,
 		config: {
-			metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
-				'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 
-				'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue'
+			metric:
+				| 'fees'
+				| 'revenue'
+				| 'volume'
+				| 'perps'
+				| 'options-notional'
+				| 'options-premium'
+				| 'bridge-aggregators'
+				| 'dex-aggregators'
+				| 'perps-aggregators'
+				| 'user-fees'
+				| 'holders-revenue'
+				| 'protocol-revenue'
+				| 'supply-side-revenue'
 			chains: string[]
 			categories: string[]
 			groupBy: 'protocol'
