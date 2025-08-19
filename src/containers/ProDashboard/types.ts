@@ -32,9 +32,20 @@ export interface ChartBuilderConfig {
 	kind: 'builder'
 	name?: string
 	config: {
-		metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
-			'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 
-			'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue'
+		metric:
+			| 'fees'
+			| 'revenue'
+			| 'volume'
+			| 'perps'
+			| 'options-notional'
+			| 'options-premium'
+			| 'bridge-aggregators'
+			| 'dex-aggregators'
+			| 'perps-aggregators'
+			| 'user-fees'
+			| 'holders-revenue'
+			| 'protocol-revenue'
+			| 'supply-side-revenue'
 		chains: string[]
 		categories: string[]
 		groupBy: 'protocol'
@@ -47,7 +58,12 @@ export interface ChartBuilderConfig {
 	colSpan?: 1 | 2
 }
 
-export type DashboardItemConfig = ChartConfig | ProtocolsTableConfig | MultiChartConfig | TextConfig | ChartBuilderConfig
+export type DashboardItemConfig =
+	| ChartConfig
+	| ProtocolsTableConfig
+	| MultiChartConfig
+	| TextConfig
+	| ChartBuilderConfig
 
 export interface ChartConfig {
 	id: string
@@ -158,8 +174,8 @@ export const CHART_TYPES = {
 	tokenPrice: { id: 'tokenPrice', title: 'Token Price', chartType: 'area', color: '#16A34A' },
 	tokenMcap: { id: 'tokenMcap', title: 'Token Market Cap', chartType: 'area', color: '#2563EB' },
 	tokenVolume: { id: 'tokenVolume', title: 'Token Volume', chartType: 'bar', color: '#F59E0B', groupable: true },
-	activeUsers: { id: 'activeUsers', title: 'Active Wallets', chartType: 'bar', color: '#EC4899', groupable: true },
-	newUsers: { id: 'newUsers', title: 'New Users', chartType: 'bar', color: '#8B5CF6', groupable: true },
+	activeUsers: { id: 'activeUsers', title: 'Active Addresses', chartType: 'bar', color: '#EC4899', groupable: true },
+	newUsers: { id: 'newUsers', title: 'New Addresses', chartType: 'bar', color: '#8B5CF6', groupable: true },
 	gasUsed: { id: 'gasUsed', title: 'Gas Used', chartType: 'bar', color: '#F59E0B', groupable: true },
 	medianApy: { id: 'medianApy', title: 'Median APY', chartType: 'area', color: '#059669' },
 	stablecoins: { id: 'stablecoins', title: 'Stablecoins', chartType: 'area', color: '#06B6D4' },
