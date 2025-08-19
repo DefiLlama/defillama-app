@@ -288,6 +288,7 @@ export const ChainProtocolsTable = ({
 						}
 					},
 					sortUndefined: 'last',
+					sortingFn: 'alphanumericFalsyLast' as any,
 					size: 140,
 					meta: { align: 'end', headerHelperText: col.formula }
 				}
@@ -735,6 +736,7 @@ const columns: ColumnDef<IProtocol>[] = [
 						)
 					) : null,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Value of all coins held in smart contracts of the protocol'
@@ -746,6 +748,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: '1d Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 24 hours'
@@ -757,6 +760,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: '7d Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 7 days'
@@ -768,6 +772,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: '1m Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 30 days'
@@ -781,6 +786,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					return <>{info.getValue() ?? null}</>
 				},
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				size: 110,
 				meta: {
 					align: 'end',
@@ -799,6 +805,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Fees 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Fees paid by users in the last 24 hours'
@@ -810,6 +817,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Revenue 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
@@ -821,6 +829,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Incentives 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText:
@@ -833,6 +842,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Fees 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Fees paid by users in the last 7 days'
@@ -844,6 +854,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Revenue 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Revenue earned by the protocol in the last 7 days'
@@ -855,6 +866,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Incentives 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText:
@@ -867,6 +879,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Fees 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Fees paid by users in the last 30 days'
@@ -878,6 +891,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Revenue 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
@@ -889,6 +903,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Incentives 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText:
@@ -901,6 +916,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Fees 1Y',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Fees paid by users in the last 1 year'
@@ -912,6 +928,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Monthly Avg 1Y Fees',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Average monthly fees paid by users in the last 12 months'
@@ -923,6 +940,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Revenue 1Y',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
@@ -934,6 +952,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Monthly Avg 1Y Rev',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
@@ -945,6 +964,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Incentives 1Y',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText:
@@ -957,6 +977,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Monthly Avg 1Y Incentives',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Average monthly incentives distributed to users in the last 12 months'
@@ -968,6 +989,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Cumulative Fees',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Total fees paid by users since the protocol was launched'
@@ -979,6 +1001,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Cumulative Revenue',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Total revenue earned by the protocol since the protocol was launched'
@@ -990,6 +1013,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Cumulative Incentives',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Total incentives distributed to users since the protocol was launched'
@@ -1001,6 +1025,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'P/F',
 				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Market cap / annualized fees'
@@ -1012,6 +1037,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'P/S',
 				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Market cap / annualized revenue'
@@ -1029,6 +1055,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					header: 'Earnings 24h',
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
+					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
 						headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 24 hours'
@@ -1047,6 +1074,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					header: 'Earnings 7d',
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
+					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
 						headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 7 days'
@@ -1065,6 +1093,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					header: 'Earnings 30d',
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
+					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
 						headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 30 days'
@@ -1083,6 +1112,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					header: 'Earnings 1Y',
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
+					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
 						headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 12 months'
@@ -1101,6 +1131,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					header: 'Monthly Avg 1Y Earnings',
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
+					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
 						headerHelperText:
@@ -1120,6 +1151,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					header: 'Cumulative Earnings',
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
+					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
 						headerHelperText: 'Total earnings (Revenue - Incentives) earned by the protocol since it was launched'
@@ -1142,6 +1174,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Spot Volume 24h',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Volume of spot trades in the last 24 hours'
@@ -1153,6 +1186,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Spot Volume 7d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Volume of spot trades in the last 7 days'
@@ -1164,6 +1198,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Spot Change 7d',
 				cell: ({ getValue }) => <>{getValue() != 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change of last 7d volume over the previous 7d volume'
@@ -1175,6 +1210,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				header: 'Spot Cumulative Volume',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Total volume traded on the protocol since it was launched'

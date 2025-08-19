@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Layout from '~/layout'
-
 import { slug, tokenIconUrl } from '~/utils'
 import { BasicLink } from '~/components/Link'
 import { IProtocolPageMetrics } from './types'
@@ -8,7 +7,6 @@ import * as Ariakit from '@ariakit/react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { defaultProtocolPageStyles } from './Chart/constants'
 import { useMemo } from 'react'
-import { tvlOptions } from '~/components/Filters/options'
 import { DEFI_SETTINGS_KEYS, FEES_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 
 export function ProtocolOverviewLayout({

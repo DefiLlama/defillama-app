@@ -237,6 +237,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -250,6 +251,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: 'Fees paid by users to all the protocols on the chain in the last 30 days'
@@ -265,6 +267,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -278,6 +281,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: 'Revenue earned by all the protocols on the chain in the last 30 days'
@@ -293,6 +297,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -306,6 +311,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: 'Revenue earned by token holders of all the protocols on the chain in the last 30 days'
@@ -321,6 +327,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -334,6 +341,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -350,6 +358,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -363,6 +372,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -379,6 +389,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -392,6 +403,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -408,6 +420,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -421,6 +434,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: 'Volume of all spot swaps on all dexs on the chain in the last 30 days'
@@ -436,6 +450,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -449,6 +464,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -470,6 +486,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -488,6 +505,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -509,6 +527,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -527,6 +546,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -548,6 +568,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total24h,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText:
@@ -566,6 +587,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			accessorFn: (protocol) => protocol.total30d,
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
 				headerHelperText: 'Volume of spot token swaps on all the DEX aggregators on the chain in the last 30 days'
