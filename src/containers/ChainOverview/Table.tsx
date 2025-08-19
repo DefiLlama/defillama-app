@@ -288,7 +288,6 @@ export const ChainProtocolsTable = ({
 						}
 					},
 					sortUndefined: 'last',
-					sortingFn: 'alphanumericFalsyLast' as any,
 					size: 140,
 					meta: { align: 'end', headerHelperText: col.formula }
 				}
@@ -592,30 +591,6 @@ const columnOptions = [
 	{ name: 'Cumulative Fees', key: 'fees_cumulative', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Cumulative Revenue', key: 'cumulativeRevenue', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'Cumulative Incentives', key: 'cumulativeEmissions', category: TABLE_CATEGORIES.REVENUE },
-	{
-		name: 'Holders Revenue 24h',
-		key: 'holderRevenue_24h',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_DAY
-	},
-	{
-		name: 'Holders Revenue 30d',
-		key: 'holdersRevenue30d',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_MONTH
-	},
-	{
-		name: 'Treasury Revenue 24h',
-		key: 'treasuryRevenue_24h',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_DAY
-	},
-	{
-		name: 'Supply Side Revenue 24h',
-		key: 'supplySideRevenue_24h',
-		category: TABLE_CATEGORIES.REVENUE,
-		period: TABLE_PERIODS.ONE_DAY
-	},
 	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
 	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Spot Volume 24h', key: 'dex_volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
