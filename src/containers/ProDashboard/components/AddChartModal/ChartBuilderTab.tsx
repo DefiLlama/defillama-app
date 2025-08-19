@@ -383,7 +383,51 @@ export function ChartBuilderTab({
 									legend: {
 										show: true,
 										top: 10,
-										type: 'scroll'
+										type: 'scroll',
+										selectedMode: 'multiple',
+										pageButtonItemGap: 5,
+										pageButtonGap: 20,
+										data: (() => {
+											let filteredSeries = chartBuilder.hideOthers 
+												? previewData.series.filter(s => !s.name.startsWith('Others'))
+												: previewData.series
+											return filteredSeries?.map(s => s.name) || []
+										})()
+									},
+									tooltip: {
+										formatter: function (params: any) {
+											const chartdate = new Date(params[0].value[0]).toLocaleDateString()
+											
+											let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
+											filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+											
+											const formatValue = (value: number) => {
+												if (chartBuilder.displayAs === 'percentage') {
+													return `${Math.round(value * 100) / 100}%`
+												}
+												const absValue = Math.abs(value)
+												if (absValue >= 1e9) {
+													return '$' + (value / 1e9).toFixed(2) + 'B'
+												} else if (absValue >= 1e6) {
+													return '$' + (value / 1e6).toFixed(2) + 'M'
+												} else if (absValue >= 1e3) {
+													return '$' + (value / 1e3).toFixed(2) + 'K'
+												}
+												return '$' + value.toFixed(2)
+											}
+											
+											const vals = filteredParams.reduce((prev: string, curr: any) => {
+												return (prev +=
+													'<li style="list-style:none">' +
+													curr.marker +
+													curr.seriesName +
+													'&nbsp;&nbsp;' +
+													formatValue(curr.value[1]) +
+													'</li>')
+											}, '')
+											
+											return chartdate + vals
+										}
 									},
 									yAxis: chartBuilder.displayAs === 'percentage' ? {
 										max: 100,

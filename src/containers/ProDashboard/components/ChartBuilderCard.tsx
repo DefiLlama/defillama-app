@@ -9,15 +9,25 @@ import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
-
 interface ChartBuilderCardProps {
 	builder: {
 		id: string
 		kind: 'builder'
 		config: {
-			metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
-				'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 
-				'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue'
+			metric:
+				| 'fees'
+				| 'revenue'
+				| 'volume'
+				| 'perps'
+				| 'options-notional'
+				| 'options-premium'
+				| 'bridge-aggregators'
+				| 'dex-aggregators'
+				| 'perps-aggregators'
+				| 'user-fees'
+				| 'holders-revenue'
+				| 'protocol-revenue'
+				| 'supply-side-revenue'
 			chains: string[]
 			categories: string[]
 			groupBy: 'protocol'
@@ -31,7 +41,6 @@ interface ChartBuilderCardProps {
 		grouping?: 'day' | 'week' | 'month' | 'quarter'
 	}
 }
-
 
 function filterDataByTimePeriod(data: any[], timePeriod: string): any[] {
 	if (timePeriod === 'all' || !data.length) {
@@ -66,45 +75,54 @@ function filterDataByTimePeriod(data: any[], timePeriod: string): any[] {
 }
 
 export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
-	const { handlePercentageChange, handleGroupingChange, handleHideOthersChange, isReadOnly, timePeriod } = useProDashboard()
+	const { handlePercentageChange, handleGroupingChange, handleHideOthersChange, isReadOnly, timePeriod } =
+		useProDashboard()
 	const config = builder.config
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
-	
+
 	const { data: chartData, isLoading } = useQuery({
-		queryKey: ['chartBuilder', config.metric, config.chains, config.limit, config.categories, config.hideOthers, timePeriod],
+		queryKey: [
+			'chartBuilder',
+			config.metric,
+			config.chains,
+			config.limit,
+			config.categories,
+			config.hideOthers,
+			timePeriod
+		],
 		queryFn: async () => {
 			if (config.chains.length === 0) return { series: [] }
-			
+
 			const data = await ProtocolSplitCharts.getProtocolSplitData(
 				config.metric,
 				config.chains,
 				config.limit,
 				config.categories
 			)
-			
+
 			if (!data || !data.series) {
 				return { series: [] }
 			}
-			
+
 			let series = data.series
 			if (timePeriod && timePeriod !== 'all') {
-				series = series.map(s => ({
+				series = series.map((s) => ({
 					...s,
 					data: filterDataByTimePeriod(s.data, timePeriod)
 				}))
 			}
-			
+
 			if (config.hideOthers) {
-				series = series.filter(s => !s.name.startsWith('Others'))
+				series = series.filter((s) => !s.name.startsWith('Others'))
 			}
-			
+
 			return { series }
 		},
 		enabled: config.chains.length > 0,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
-	
+
 	const chartSeries = useMemo(() => {
 		if (!chartData || !chartData.series) return []
 
@@ -112,11 +130,11 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		if (builder.grouping && builder.grouping !== 'day') {
 			processedSeries = chartData.series.map((s: any) => {
 				const aggregatedData: Map<number, number> = new Map()
-				
+
 				s.data.forEach(([timestamp, value]: [number, number]) => {
 					const date = new Date(timestamp * 1000)
 					let groupKey: number
-					
+
 					switch (builder.grouping) {
 						case 'week':
 							const weekDate = new Date(date)
@@ -129,17 +147,17 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						case 'month':
 							groupKey = Math.floor(new Date(date.getFullYear(), date.getMonth(), 1).getTime() / 1000)
 							break
-						case 'quarter':	
+						case 'quarter':
 							const quarter = Math.floor(date.getMonth() / 3)
 							groupKey = Math.floor(new Date(date.getFullYear(), quarter * 3, 1).getTime() / 1000)
 							break
 						default:
 							groupKey = timestamp
 					}
-					
+
 					aggregatedData.set(groupKey, (aggregatedData.get(groupKey) || 0) + value)
 				})
-				
+
 				return {
 					...s,
 					data: Array.from(aggregatedData.entries()).sort((a, b) => a[0] - b[0])
@@ -154,7 +172,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					timestampTotals.set(timestamp, (timestampTotals.get(timestamp) || 0) + value)
 				})
 			})
-			
+
 			return processedSeries.map((s: any) => ({
 				name: s.name,
 				data: s.data.map(([timestamp, value]: [number, number]) => {
@@ -172,33 +190,33 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				})
 			}))
 		}
-		
-			return processedSeries.map((s: any) => ({
-				name: s.name,
-				data: s.data,
-				color: s.color,
-				type: config.chartType === 'stackedBar' ? 'bar' : 'line',
-				...(config.chartType === 'stackedArea' && {
-					areaStyle: { opacity: 0.7 },
-					stack: 'total'
-				}),
-				...(config.chartType === 'stackedBar' && {
-					stack: 'total'
-				})
-			}))
-		}, [chartData, config.displayAs, config.chartType, builder.grouping])
-	
+
+		return processedSeries.map((s: any) => ({
+			name: s.name,
+			data: s.data,
+			color: s.color,
+			type: config.chartType === 'stackedBar' ? 'bar' : 'line',
+			...(config.chartType === 'stackedArea' && {
+				areaStyle: { opacity: 0.7 },
+				stack: 'total'
+			}),
+			...(config.chartType === 'stackedBar' && {
+				stack: 'total'
+			})
+		}))
+	}, [chartData, config.displayAs, config.chartType, builder.grouping])
+
 	const handleCsvExport = useCallback(() => {
 		if (!chartSeries || chartSeries.length === 0) return
-		
+
 		const timestampSet = new Set<number>()
 		chartSeries.forEach((s: any) => {
 			s.data.forEach(([timestamp]: [number, number]) => timestampSet.add(timestamp))
 		})
 		const timestamps = Array.from(timestampSet).sort((a, b) => a - b)
-		
+
 		const headers = ['Date', ...chartSeries.map((s: any) => s.name)]
-		
+
 		const rows = timestamps.map((timestamp) => {
 			const row = [new Date(timestamp * 1000).toLocaleDateString()]
 			chartSeries.forEach((s: any) => {
@@ -207,20 +225,18 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			})
 			return row
 		})
-		
+
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		const fileName = `${builder.name || config.metric}_${config.chains.join('-')}_${config.categories.length > 0 ? config.categories.join('-') + '_' : ''}${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
 	}, [chartSeries, builder.name, config.metric, config.chains])
-	
+
 	return (
 		<div className="px-4 pb-4 pt-2 h-full min-h-[340px] flex flex-col">
 			<div className="mb-2">
 				<div className={``}>
 					<div className="flex items-center gap-2 mb-2">
-						<h3 className="text-sm font-medium text-(--text1)">
-							{builder.name || `${config.metric} by Protocol`}
-						</h3>
+						<h3 className="text-sm font-medium text-(--text1)">{builder.name || `${config.metric} by Protocol`}</h3>
 					</div>
 					<div className="flex items-center justify-end gap-2">
 						{!isReadOnly && (
@@ -250,7 +266,9 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								title={config.displayAs === 'percentage' ? 'Show absolute values' : 'Show percentage'}
 							>
 								<Icon name={config.displayAs === 'percentage' ? 'percent' : 'dollar-sign'} height={12} width={12} />
-								<span className="hidden xl:inline">{config.displayAs === 'percentage' ? 'Percentage' : 'Absolute'}</span>
+								<span className="hidden xl:inline">
+									{config.displayAs === 'percentage' ? 'Percentage' : 'Absolute'}
+								</span>
 							</button>
 						)}
 						{!isReadOnly && (
@@ -278,7 +296,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					{timePeriod && timePeriod !== 'all' && ` • ${timePeriod.toUpperCase()}`}
 				</div>
 			</div>
-			
+
 			<div style={{ height: '300px', flexGrow: 1 }}>
 				{isLoading ? (
 					<div className="flex items-center justify-center h-full">
@@ -297,10 +315,10 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								builder.grouping === 'week'
 									? 'weekly'
 									: builder.grouping === 'month'
-									? 'monthly'
-									: builder.grouping === 'quarter'
-									? 'quarterly'
-									: 'daily'
+										? 'monthly'
+										: builder.grouping === 'quarter'
+											? 'quarterly'
+											: 'daily'
 							}
 							hideDataZoom={true}
 							chartOptions={{
@@ -314,30 +332,72 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								legend: {
 									show: true,
 									top: 10,
-									type: 'scroll'
+									type: 'scroll',
+									selectedMode: 'multiple',
+									pageButtonItemGap: 5,
+									pageButtonGap: 20,
+									data: chartSeries?.map((s) => s.name) || []
 								},
-								yAxis: config.displayAs === 'percentage' ? {
-									max: 100,
-									min: 0,
-									axisLabel: {
-										formatter: '{value}%'
-									}
-								} : {
-									type: 'value',
-									axisLabel: {
-										formatter: (value: number) => {
+								tooltip: {
+									formatter: function (params: any) {
+										const chartdate = new Date(params[0].value[0]).toLocaleDateString()
+
+										let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
+										filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+
+										const formatValue = (value: number) => {
+											if (config.displayAs === 'percentage') {
+												return `${Math.round(value * 100) / 100}%`
+											}
 											const absValue = Math.abs(value)
 											if (absValue >= 1e9) {
-												return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+												return '$' + (value / 1e9).toFixed(2) + 'B'
 											} else if (absValue >= 1e6) {
-												return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+												return '$' + (value / 1e6).toFixed(2) + 'M'
 											} else if (absValue >= 1e3) {
-												return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+												return '$' + (value / 1e3).toFixed(2) + 'K'
 											}
-											return '$' + value.toFixed(0)
+											return '$' + value.toFixed(2)
 										}
+
+										const vals = filteredParams.reduce((prev: string, curr: any) => {
+											return (prev +=
+												'<li style="list-style:none">' +
+												curr.marker +
+												curr.seriesName +
+												'&nbsp;&nbsp;' +
+												formatValue(curr.value[1]) +
+												'</li>')
+										}, '')
+
+										return chartdate + vals
 									}
-								}
+								},
+								yAxis:
+									config.displayAs === 'percentage'
+										? {
+												max: 100,
+												min: 0,
+												axisLabel: {
+													formatter: '{value}%'
+												}
+											}
+										: {
+												type: 'value',
+												axisLabel: {
+													formatter: (value: number) => {
+														const absValue = Math.abs(value)
+														if (absValue >= 1e9) {
+															return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+														} else if (absValue >= 1e6) {
+															return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+														} else if (absValue >= 1e3) {
+															return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+														}
+														return '$' + value.toFixed(0)
+													}
+												}
+											}
 							}}
 						/>
 					</Suspense>
