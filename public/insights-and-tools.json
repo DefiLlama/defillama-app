@@ -1,58 +1,184 @@
 {
   "Insights": [
     {
+      "name": "Protocols by Chain",
+      "route": "/",
+      "category": "Combined Metrics",
+      "description": "TVL, Fees, Volume metrics of all protocols on each chain", 
+      "totalTrackedKey": "tvl.protocols"
+    },
+    {
       "name": "All Chains",
       "route": "/chains",
-      "category": "Total Value",
-      "description": "Total value of all coins held in smart contracts of the protocols on each chain"
+      "category": "Combined Metrics",
+      "description": "Combined TVL, Fees, Volume and other metrics of all protocols on all chains",
+      "totalTrackedKey": "tvl.chains"
     },
     {
-      "name": "Stablecoins by Market Cap",
-      "route": "/stablecoins",
-      "category": "Stablecoins",
-      "description": "Total market cap of stable assets"
+      "name": "Categories",
+      "route": "/categories",
+      "category": "Combined Metrics",
+      "description": "Combined TVL, Revenue and other metrics by category of all protocols that are tracked by DefiLlama"
     },
     {
-      "name": "Stablecoin Supply by Chain",
-      "route": "/stablecoins/chains",
-      "category": "Stablecoins",
-      "description": "Total market cap of stable assets currently deployed on each chain"
+      "name": "Yields: All Pools",
+      "route": "/yields",
+      "category": "Yields",
+      "description": "Pools by APY, TVL, and other metrics on all chains"
+    },
+    {
+      "name": "Yields: Stablecoin Pools",
+      "route": "/yields/stablecoins",
+      "category": "Yields",
+      "description": "APYs of pools with stablecoins"
+    },
+    {
+      "name": "Yields: Leveraged Lending",
+      "route": "/yields/loop",
+      "category": "Yields",
+      "description": "Pools by leveraged lending APY values"
+    },
+    {
+      "name": "Yields: Long Short Strategies",
+      "route": "/yields/strategyLongShort",
+      "category": "Yields",
+      "description": "Find 'long-short' strategies across all our tracked pools"
+    },
+    {
+      "name": "Yields: Projects",
+      "route": "/yields/projects",
+      "category": "Yields",
+      "description": "List of all projects that we track in our yields section"
+    },
+    {
+      "name": "Yields: APY Overview",
+      "route": "/yields/overview",
+      "category": "Yields",
+      "description": "Find APY trends, volatility, and other metrics across all our tracked pools"
+    },
+    {
+      "name": "Yields: Halal",
+      "route": "/yields/halal",
+      "category": "Yields",
+      "description": "Shariah-compliant yield pools"
+    },
+    {
+      "name": "Yields: Delta Neutral Strategies",
+      "route": "/yields/strategies",
+      "category": "Yields",
+      "description": "Find 'lend-borrow-farm' strategies across all our tracked pools"
+    },
+    {
+      "name": "DEX Volume by Protocol",
+      "route": "/dexs",
+      "category": "Volume",
+      "description": "Volume of all spot token swaps that go through a DEX",
+      "totalTrackedKey": "dexs.protocols"
+    },
+    {
+      "name": "Perp Volume by Protocol",
+      "route": "/perps",
+      "category": "Volume",
+      "description": "Notional volume of all trades in a perp exchange, includes leverage",
+      "totalTrackedKey": "perps.protocols"
+    },
+    {
+      "name": "DEX Volume by Chain",
+      "route": "/dexs/chains",
+      "category": "Volume",
+      "description": "Sum of all volume of all spot token swaps that go through all DEXs on the chain",
+      "totalTrackedKey": "dexs.chains"
+    },
+    {
+      "name": "Bridge Aggregator Volume by Protocol",
+      "route": "/bridge-aggregators",
+      "category": "Volume",
+      "description": "Sum of value of all assets that were bridged through a bridge aggregator",
+      "totalTrackedKey": "bridgeAggregators.protocols"
+    },
+    {
+      "name": "DEX Aggregator Volume by Protocol",
+      "route": "/dex-aggregators",
+      "category": "Volume",
+      "description": "Volume of spot token swaps that go through a DEX aggregator",
+      "totalTrackedKey": "dexAggregators.protocols"
+    },
+    {
+      "name": "Perp Volume by Chain",
+      "route": "/perps/chains",
+      "category": "Volume",
+      "description": "Sum of notional volume of all trades in all perp exchanges on the chain, includes leverage",
+      "totalTrackedKey": "perps.chains"
+    },
+    {
+      "name": "Options Premium Volume by Protocol",
+      "route": "/options/premium-volume",
+      "category": "Volume",
+      "description": "Sum of value paid buying and selling options",
+      "totalTrackedKey": "options.protocols"
+    },
+    {
+      "name": "Options Notional Volume by Protocol",
+      "route": "/options/notional-volume",
+      "category": "Volume",
+      "description": "Sum of the notional value of all options that have been traded on an options exchange",
+      "totalTrackedKey": "options.protocols"
+    },
+    {
+      "name": "Open Interest by Protocol",
+      "route": "/open-interest",
+      "category": "Volume",
+      "description": "Total notional value of all outstanding perpetual futures positions",
+      "totalTrackedKey": "perpsOpenInterest.protocols"
+    },
+    {
+      "name": "Perp Aggregator Volume by Protocol",
+      "route": "/perp-aggregators",
+      "category": "Volume",
+      "description": "Notional volume of all trades in a perp aggregator, includes leverage",
+      "totalTrackedKey": "perpAggregators.protocols"
     },
     {
       "name": "Fees by Protocol",
       "route": "/fees",
       "category": "Fees & Revenue",
-			"description": "Total fees paid by users when using the protocol"
-    },
-    {
-      "name": "Fees by Chain",
-      "route": "/fees/chains",
-      "category": "Fees & Revenue",
-			"description": "Sum of all fees paid by users when using protocols on the chain"
+      "description": "Total fees paid by users when using the protocol",
+      "totalTrackedKey": "fees.protocols"
     },
     {
       "name": "Revenue by Protocol",
       "route": "/revenue",
       "category": "Fees & Revenue",
-      "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to liquidity providers"
-    },
-    {
-      "name": "Revenue by Chain",
-      "route": "/revenue/chains",
-      "category": "Fees & Revenue",
-      "description": "Sum of all revenue earned by protocols on the chain"
+      "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to liquidity providers",
+      "totalTrackedKey": "revenue.protocols"
     },
     {
       "name": "Holders Revenue by Protocol",
       "route": "/holders-revenue",
       "category": "Fees & Revenue",
-      "description": "Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers"
+      "description": "Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers",
+      "totalTrackedKey": "holdersRevenue.protocols"
     },
     {
       "name": "Earnings by Protocol",
       "route": "/earnings",
-			"category": "Fees & Revenue",
-			"description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself."
+      "category": "Fees & Revenue",
+      "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself.",
+      "totalTrackedKey": "revenue.protocols"
+    },
+    {
+      "name": "Fees by Chain",
+      "route": "/fees/chains",
+      "category": "Fees & Revenue",
+      "description": "Sum of all fees paid by users when using protocols on the chain",
+      "totalTrackedKey": "fees.chains"
+    },
+    {
+      "name": "Revenue by Chain",
+      "route": "/revenue/chains",
+      "category": "Fees & Revenue",
+      "description": "Sum of all revenue earned by protocols on the chain",
+      "totalTrackedKey": "revenue.chains"
     },
     {
       "name": "P/F by Protocol",
@@ -79,148 +205,29 @@
       "description": "Sum of all revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees"
     },
     {
-      "name": "DEX Volume by Protocol",
-      "route": "/dexs",
-      "category": "Volume",
-      "description": "Volume of all spot token swaps that go through all DEXs on the chain"
+      "name": "Top Protocols by Chain on each Category",
+      "route": "/top-protocols",
+      "category": "Total Value"
     },
     {
-      "name": "DEX Volume by Chain",
-      "route": "/dexs/chains",
-      "category": "Volume",
-      "description": "Sum of all volume of all spot token swaps that go through all DEXs on the chain"
+      "name": "Oracles",
+      "route": "/oracles",
+      "category": "Total Value",
+      "description": "Total Value Secured by an oracle, where oracle failure would lead to a loss equal to TVS",
+      "totalTrackedKey": "oracles.protocols"
     },
     {
-      "name": "Perp Volume by Protocol",
-      "route": "/perps",
-      "category": "Volume",
-      "description": "Notional volume of all trades in all perp exchanges on the chain, includes leverage"
+      "name": "Forks",
+      "route": "/forks",
+      "category": "Total Value",
+      "description": "Sum of TVL across all forks of a protocol",
+      "totalTrackedKey": "forks.protocols"
     },
     {
-      "name": "Open Interest by Protocol",
-      "route": "/open-interest",
-      "category": "Volume",
-      "description": "Total notional value of all outstanding perpetual futures positions"
-    },
-    {
-      "name": "Perp Volume by Chain",
-      "route": "/perps/chains",
-      "category": "Volume",
-      "description": "Notional volume of all trades in all perp exchanges on the chain, includes leverage"
-    },
-    {
-      "name": "DEX Aggregator Volume by Protocol",
-      "route": "/dex-aggregators",
-      "category": "Volume",
-      "description": "Volume of spot token swaps that go through a DEX aggregator"
-    },
-    {
-      "name": "Bridge Aggregator Volume by Protocol",
-      "route": "/bridge-aggregators",
-      "category": "Volume",
-      "description": "Sum of value of all assets that were bridged through the bridge aggregators"
-    },
-    {
-      "name": "Perp Aggregator Volume by Protocol",
-      "route": "/perp-aggregators",
-      "category": "Volume",
-      "description": "Notional volume of all trades in a perp aggregator, includes leverage"
-    },
-    {
-      "name": "Options Premium Volume by Protocol",
-      "route": "/options/premium-volume",
-      "category": "Volume",
-      "description": "Sum of value paid buying and selling options"
-    },
-    {
-      "name": "Options Notional Volume by Protocol",
-      "route": "/options/notional-volume",
-      "category": "Volume",
-      "description": "Sum of the notional value of all options that have been traded on an options exchange"
-    },
-    {
-      "name": "Bridged TVL by Chain",
-      "route": "/bridged",
-      "category": "Bridge",
-      "description": "Value of all tokens held on the chain"
-    },
-    {
-      "name": "Bridges by Volume",
-      "route": "/bridges",
-      "category": "Bridge",
-      "description": "Sum of value of all assets that were bridged through the protocol"
-    },
-    {
-      "name": "Bridge Volume by Chain",
-      "route": "/bridges/chains",
-      "category": "Bridge",
-      "description": "Sum of value of all assets that were bridged through the protocol on each chain"
-    },
-    {
-      "name": "Yields: All Pools",
-      "route": "/yields",
-      "category": "Yields",
-      "description": "Pools by APY, TVL, and other metrics on all chains"
-    },
-    {
-      "name": "Yields: Delta Neutral Strategies",
-      "route": "/yields/strategies",
-      "category": "Yields",
-      "description": "Find 'lend-borrow-farm' strategies across all our tracked pools"
-    },
-    {
-      "name": "Yields: Long Short Strategies",
-      "route": "/yields/strategyLongShort",
-      "category": "Yields",
-      "description": "Find 'long-short' strategies across all our tracked pools"
-    },
-    {
-      "name": "Yields: Leveraged Lending",
-      "route": "/yields/loop",
-      "category": "Yields",
-      "description": "Pools by leveraged lending APY values"
-    },
-    {
-      "name": "Yields: APY Overview",
-      "route": "/yields/overview",
-      "category": "Yields",
-      "description": "Find APY trends, volatility, and other metrics across all our tracked pools"
-    },
-    {
-      "name": "Yields: Stablecoin Pools",
-      "route": "/yields/stablecoins",
-      "category": "Yields",
-      "description": "APYs of pools with stablecoins"
-    },
-    {
-      "name": "Yields: Projects",
-      "route": "/yields/projects",
-      "category": "Yields",
-      "description": "List of all projects that we track in our yields section"
-    },
-    {
-      "name": "Yields: Halal",
-      "route": "/yields/halal",
-      "category": "Yields",
-      "description": "Shariah-compliant yield pools"
-    },
-    {
-      "name": "Airdrops",
-      "route": "/airdrops",
-      "category": "Token",
-      "description": "Tokenless protocols that may airdrop tokens to their users"
-    },
-    {
-      "name": "Net Project Treasury",
-      "route": "/net-project-treasury",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, excluding it's own token"
-    },
-    {
-      "name": "Treasuries",
-      "route": "/treasuries",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, including it's own token and breakdown of assets held"
+      "name": "TVL Breakdown by Smart Contract Languages",
+      "route": "/languages",
+      "category": "Total Value",
+      "description": "TVL breakdown by languages that the smart contracts are written in"
     },
     {
       "name": "Total Borrowed by Protocol",
@@ -241,118 +248,15 @@
       "description": "Total value locked in pool2 of a protocol"
     },
     {
-      "name": "Oracles",
-      "route": "/oracles",
-      "category": "Total Value",
-      "description": "Total Value Secured by an oracle, where oracle failure would lead to a loss equal to TVS"
-    },
-    {
-      "name": "Forks",
-      "route": "/forks",
-      "category": "Total Value",
-      "description": "Sum of TVL across all forks of a protocol"
-    },
-    {
-      "name": "Top Protocols by Chain on each Category",
-      "route": "/top-protocols",
-      "category": "Total Value"
-    },
-    {
-      "name": "Expenses by Protocol",
-      "route": "/expenses"
-    },
-    {
-      "name": "Categories",
-      "route": "/categories",
-      "description": "Categories of all protocols that are tracked by DefiLlama"
-    },
-    {
-      "name": "Recently Listed Protocols",
-      "route": "/recent"
-    },
-    {
-      "name": "TVL Breakdown by Smart Contract Languages",
-      "route": "/languages",
-      "description": "TVL breakdown by languages that the smart contracts are written in"
-    },
-    {
       "name": "CEXs",
       "route": "/cexs",
-      "description": "Sum of assets held on a centralized exchanges"
+      "description": "Sum of assets held on a centralized exchanges",
+      "totalTrackedKey": "cexs.protocols"
     },
     {
-      "name": "DefiLlama Dashboard Builder",
-      "route": "/pro"
-    },
-    {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol"
-    },
-    {
-      "name": "Token Unlocks Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date"
-    },
-    {
-      "name": "Borrow Aggregator: Simple",
-      "route": "/borrow",
-      "category": "Borrow",
-      "description": "Simple view of optimal lending routes by collateral to borrow assets"
-    },
-    {
-      "name": "Borrow Aggregator: Advanced",
-      "route": "/borrow/advanced",
-      "category": "Borrow",
-      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
-    },
-    {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project"
-    },
-    {
-      "name": "NFTs: Collections",
-      "route": "/nfts",
-      "category": "NFTs",
-      "description": "Overview of all NFT collections"
-    },
-    {
-      "name": "NFTs: Marketplaces",
-      "route": "/nfts/marketplaces",
-      "category": "NFTs",
-      "description": "Overview of all NFT marketplaces"
-    },
-    {
-      "name": "NFTs: Collection Earnings",
-      "route": "/nfts/earnings",
-      "category": "NFTs",
-      "description": "Earnings of all NFT collections that are tracked by DefiLlama"
-    },
-    {
-      "name": "NFT Volume by Chain",
-      "route": "/nfts/chains",
-      "category": "NFTs",
-      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/total-value-lost",
-      "description": "Net user loss, Total value lost in hacks by a protocol"
-    },
-    {
-      "name": "Hacks",
-      "route": "/hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem"
+      "name": "Narrative Trackers",
+      "route": "/narrative-tracker",
+      "description": "MCap-Weighted category performance to track narrative changes in the ecosystem"
     },
     {
       "name": "Staked ETH by Protocol",
@@ -360,14 +264,21 @@
       "description": "Total value of ETH staked on LSTs"
     },
     {
+      "name": "DefiLlama Dashboard Builder",
+      "route": "/pro"
+    },
+    {
+      "name": "Recently Listed Protocols",
+      "route": "/recent"
+    },
+    {
+      "name": "Expenses by Protocol",
+      "route": "/expenses"
+    },
+    {
       "name": "ETF",
       "route": "/etfs",
       "description": "AUM, Flows, Volume metrics of all ETFs"
-    },
-    {
-      "name": "Narrative Trackers",
-      "route": "/narrative-tracker",
-      "description": "MCap-Weighted category performance to track narrative changes in the ecosystem"
     },
     {
       "name": "Governance",
@@ -378,6 +289,45 @@
       "name": "Liquidations",
       "route": "/liquidations",
       "description": "Overview of liquidatable amount by protocol"
+    },
+    {
+      "name": "Stablecoins by Market Cap",
+      "route": "/stablecoins",
+      "category": "Stablecoins",
+      "description": "Total market cap of stable assets",
+      "totalTrackedKey": "stablecoins.protocols"
+    },
+    {
+      "name": "Stablecoin Supply by Chain",
+      "route": "/stablecoins/chains",
+      "category": "Stablecoins",
+      "description": "Total market cap of stable assets currently deployed on each chain",
+      "totalTrackedKey": "stablecoins.chains"
+    },
+    {
+      "name": "Bridged TVL by Chain",
+      "route": "/bridged",
+      "category": "Bridge",
+      "description": "Value of all tokens held on the chain",
+      "totalTrackedKey": "bridgedTVL.chains"
+    },
+    {
+      "name": "Bridges by Volume",
+      "route": "/bridges",
+      "category": "Bridge",
+      "description": "Sum of value of all assets that were bridged through the protocol"
+    },
+    {
+      "name": "Bridge Volume by Chain",
+      "route": "/bridges/chains",
+      "category": "Bridge",
+      "description": "Sum of value of all assets that were bridged through the protocol on each chain"
+    },
+    {
+      "name": "Airdrops",
+      "route": "/airdrops",
+      "category": "Token",
+      "description": "Tokenless protocols that may airdrop tokens to their users"
     },
     {
       "name": "Protocols by Market Cap",
@@ -402,9 +352,120 @@
       "route": "/token-prices",
       "category": "Token",
       "description": "Price of the protocol token"
+    },
+    {
+      "name": "Treasuries",
+      "route": "/treasuries",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, including it's own token and breakdown of assets held",
+      "totalTrackedKey": "treasury.protocols"
+    },
+    {
+      "name": "Net Project Treasury",
+      "route": "/net-project-treasury",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, excluding it's own token",
+      "totalTrackedKey": "treasury.protocols"
+    },
+    {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols"
+    },
+    {
+      "name": "Token Unlocks Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date"
+    },
+    {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project"
+    },
+    {
+      "name": "Borrow Aggregator: Simple",
+      "route": "/borrow",
+      "category": "Borrow",
+      "description": "Simple view of optimal lending routes by collateral to borrow assets"
+    },
+    {
+      "name": "Borrow Aggregator: Advanced",
+      "route": "/borrow/advanced",
+      "category": "Borrow",
+      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
+    },
+    {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol"
+    },
+    {
+      "name": "NFTs: Collections",
+      "route": "/nfts",
+      "category": "NFTs",
+      "description": "Overview of all NFT collections"
+    },
+    {
+      "name": "NFTs: Marketplaces",
+      "route": "/nfts/marketplaces",
+      "category": "NFTs",
+      "description": "Overview of all NFT marketplaces"
+    },
+    {
+      "name": "NFTs: Collection Earnings",
+      "route": "/nfts/earnings",
+      "category": "NFTs",
+      "description": "Earnings of all NFT collections that are tracked by DefiLlama"
+    },
+    {
+      "name": "NFT Volume by Chain",
+      "route": "/nfts/chains",
+      "category": "NFTs",
+      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain"
     }
   ],
   "Tools": [
+    {
+      "name": "Token Holder Profit and Loss",
+      "route": "/token-pnl"
+    },
+    {
+      "name": "Token Liquidity",
+      "route": "/liquidity"
+    },
+    {
+      "name": "Transactions by Bridge",
+      "route": "/bridge-transactions"
+    },
+    {
+      "name": "Protocols Website Directory",
+      "route": "/directory"
+    },
+    {
+      "name": "Trending Contracts on Chain",
+      "route": "/trending-contracts"
+    },
+    {
+      "name": "DeFi Watchlist",
+      "route": "/watchlist"
+    },
     {
       "name": "Compare Chains",
       "route": "/compare-chains?chains=OP+Mainnet&chains=Arbitrum"
@@ -418,40 +479,16 @@
       "route": "/token-usage?token=ETH"
     },
     {
-      "name": "Token Holder Profit and Loss",
-      "route": "/token-pnl"
-    },
-    {
-      "name": "Transactions by Bridge",
-      "route": "/bridge-transactions"
-    },
-    {
       "name": "Report Error",
       "route": "/report-error"
-    },
-    {
-      "name": "DeFi Watchlist",
-      "route": "/watchlist"
     },
     {
       "name": "Yields: Watchlist",
       "route": "/yields/watchlist"
     },
     {
-      "name": "Protocols Website Directory",
-      "route": "/directory"
-    },
-    {
       "name": "Daily Roundup",
       "route": "/roundup"
-    },
-    {
-      "name": "Trending Contracts on Chain",
-      "route": "/trending-contracts"
-    },
-    {
-      "name": "Token Liquidity",
-      "route": "/liquidity"
     },
     {
       "name": "Correlations Matrix by Coin",
