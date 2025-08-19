@@ -2,8 +2,9 @@ import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { ORACLE_API, PROTOCOLS_API } from '~/constants'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getColorFromNumber } from '~/utils'
+import { getColorFromNumber, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 
 interface IOracleProtocols {
 	[key: string]: number
@@ -19,10 +20,23 @@ interface IOracleApiResponse {
 // - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null, chain = null) {
 	try {
-		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
+		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }, perps]: [
 			IOracleApiResponse,
-			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> }
-		] = await Promise.all([fetchJson(ORACLE_API), fetchJson(PROTOCOLS_API)])
+			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
+			IAdapterOverview | null
+		] = await Promise.all([
+			fetchJson(ORACLE_API),
+			fetchJson(PROTOCOLS_API),
+			getAdapterChainOverview({
+				adapterType: 'derivatives',
+				chain: 'All',
+				excludeTotalDataChart: true,
+				excludeTotalDataChartBreakdown: true
+			}).catch((err) => {
+				console.log(err)
+				return null
+			})
+		])
 
 		const oracleExists = oracle ? oraclesTVS[oracle] && (chain ? chainsByOracle[oracle].includes(chain) : true) : true
 
@@ -93,6 +107,29 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			.sort((a, b) => b[1].tvl - a[1].tvl)
 			.map((orc) => orc[0])
 
+		const oracleMonthlyVolumes =
+			perps?.protocols?.reduce((acc, protocol) => {
+				const p = protocols.find((p) => p.name === protocol.name)
+
+				if (!p) return acc
+
+				if (p.oraclesByChain) {
+					for (const ch in p.oraclesByChain) {
+						if (chain ? chain === ch : true) {
+							for (const oracle of p.oraclesByChain[ch]) {
+								acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(ch)]?.[protocol.name] ?? 0)
+							}
+						}
+					}
+				} else {
+					for (const oracle of p.oracles ?? []) {
+						acc[oracle] = (acc[oracle] ?? 0) + (protocol.total30d ?? 0)
+					}
+				}
+
+				return acc
+			}, {}) ?? {}
+
 		if (oracle) {
 			let data = []
 			chartData.forEach(([date, tokens]) => {
@@ -152,7 +189,8 @@ export async function getOraclePageData(oracle = null, chain = null) {
 			tokensProtocols: oraclesProtocols,
 			filteredProtocols: protocolsWithBreakdown,
 			chartData,
-			oraclesColors: colors
+			oraclesColors: colors,
+			oracleMonthlyVolumes
 		}
 	} catch (e) {
 		console.log(e)
@@ -162,10 +200,27 @@ export async function getOraclePageData(oracle = null, chain = null) {
 
 export async function getOraclePageDataByChain(chain: string) {
 	try {
-		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
+		const [
+			{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle },
+			{ protocols },
+			{ protocols: derivativeProtocols }
+		]: [
 			IOracleApiResponse,
-			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> }
-		] = await Promise.all([fetchJson(ORACLE_API), fetchJson(PROTOCOLS_API)])
+			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
+			IAdapterOverview | null
+		] = await Promise.all([
+			fetchJson(ORACLE_API),
+			fetchJson(PROTOCOLS_API),
+			getAdapterChainOverview({
+				adapterType: 'derivatives',
+				chain: 'All',
+				excludeTotalDataChart: true,
+				excludeTotalDataChartBreakdown: true
+			}).catch((err) => {
+				console.log(err)
+				return null
+			})
+		])
 
 		const filteredProtocols = formatProtocolsData({ protocols, chain })
 
@@ -231,6 +286,28 @@ export async function getOraclePageDataByChain(chain: string) {
 			.map((orc) => orc[0])
 			.filter((orc) => chainsByOracle[orc]?.includes(chain))
 
+		const oracleMonthlyVolumes = derivativeProtocols.reduce((acc, protocol) => {
+			const p = protocols.find((p) => p.name === protocol.name)
+
+			if (!p) return acc
+
+			if (p.oraclesByChain) {
+				for (const ch in p.oraclesByChain) {
+					if (chain ? chain === ch : true) {
+						for (const oracle of p.oraclesByChain[ch]) {
+							acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(chain)]?.[protocol.name] ?? 0)
+						}
+					}
+				}
+			} else {
+				for (const oracle of p.oracles ?? []) {
+					acc[oracle] = (acc[oracle] ?? 0) + (protocol.breakdown30d?.[slug(chain)]?.[protocol.name] ?? 0)
+				}
+			}
+
+			return acc
+		}, {})
+
 		const oraclesProtocols: IOracleProtocols = {}
 
 		for (const orc in oraclesTVS) {
@@ -275,7 +352,8 @@ export async function getOraclePageDataByChain(chain: string) {
 			tokensProtocols: oraclesProtocols,
 			filteredProtocols: protocolsWithBreakdown,
 			chartData: chainChartData,
-			oraclesColors: colors
+			oraclesColors: colors,
+			oracleMonthlyVolumes
 		}
 	} catch (e) {
 		console.log(e)
