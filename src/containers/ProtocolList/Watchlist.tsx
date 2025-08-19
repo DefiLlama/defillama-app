@@ -37,8 +37,6 @@ export function DefiWatchlistContainer({
 	} = useWatchlistManager('defi')
 
 	const {
-		portfolios: chainPortfolios,
-		selectedPortfolio: chainSelectedPortfolio,
 		savedProtocols: savedChains,
 		addProtocol: addChain,
 		removeProtocol: removeChain
@@ -88,7 +86,6 @@ export function DefiWatchlistContainer({
 		toRemove.forEach((name) => removeProtocol(name))
 	}
 
-	// Chains data
 	const formattedChains = useMemo(() => {
 		if (!chains) return []
 		return formatDataWithExtraTvls({
@@ -98,9 +95,6 @@ export function DefiWatchlistContainer({
 			chainAssets
 		})
 	}, [chains, chainAssets, extraTvlsEnabled])
-
-	console.log('chains!!!!', chains)
-	console.log('formattedChains', formattedChains)
 
 	const filteredChains = useMemo(() => {
 		return formattedChains.filter((c) => savedChains.has(c.name))
@@ -121,12 +115,10 @@ export function DefiWatchlistContainer({
 		toRemove.forEach((name) => removeChain(name))
 	}
 
-	console.log('chainOptions', chainOptions)
-
 	return (
 		<>
 			<WatchListTabs />
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-4">
 				<PortfolioSelection
 					portfolios={portfolios}
 					selectedPortfolio={selectedPortfolio}
@@ -148,11 +140,8 @@ export function DefiWatchlistContainer({
 				/>
 				<div className="p-4">
 					<div className="flex items-center justify-between mb-4">
-						{/* <h2 className="text-lg font-medium">
-							{selectedPortfolio === DEFAULT_PORTFOLIO_NAME ? 'Watchlist' : `${selectedPortfolio} Portfolio`}
-						</h2> */}
 						{selectedProtocolNames.length > 0 && (
-							<span className="text-sm text-(--text-secondary)">
+							<span className="text-sm text-(--text-secondary) ml-auto">
 								{selectedProtocolNames.length} protocol{selectedProtocolNames.length === 1 ? '' : 's'}
 							</span>
 						)}
@@ -219,7 +208,6 @@ export function DefiWatchlistContainer({
 							</div>
 						</div>
 					)}
-					<div className="h-[100px]"></div>
 				</div>
 			</div>
 		</>
