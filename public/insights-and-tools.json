@@ -1,10 +1,16 @@
 {
   "Insights": [
     {
+      "name": "Protocols by Chain",
+      "route": "/",
+      "category": "Combined Metrics",
+      "description": "TVL, Fees, Volume metrics of all protocols on each chain"
+    },
+    {
       "name": "All Chains",
       "route": "/chains",
-      "category": "Total Value",
-      "description": "Total value of all coins held in smart contracts of the protocols on each chain"
+      "category": "Combined Metrics",
+      "description": "Combined TVL, Fees, Volume and other metrics of all protocols on all chains"
     },
     {
       "name": "Stablecoins by Market Cap",
@@ -264,7 +270,8 @@
     {
       "name": "Categories",
       "route": "/categories",
-      "description": "Categories of all protocols that are tracked by DefiLlama"
+      "category": "Combined Metrics",
+      "description": "Combined TVL, Revenue and other metrics by category of all protocols that are tracked by DefiLlama"
     },
     {
       "name": "Recently Listed Protocols",
@@ -273,6 +280,7 @@
     {
       "name": "TVL Breakdown by Smart Contract Languages",
       "route": "/languages",
+      "category": "Total Value",
       "description": "TVL breakdown by languages that the smart contracts are written in"
     },
     {
@@ -347,11 +355,13 @@
     {
       "name": "Total Value Lost in Hacks by Protocol",
       "route": "/total-value-lost",
+      "category": "Hacks",
       "description": "Net user loss, Total value lost in hacks by a protocol"
     },
     {
-      "name": "Hacks",
+      "name": "Hacks: Overview",
       "route": "/hacks",
+      "category": "Hacks",
       "description": "Overview of all hacks that have happened in the ecosystem"
     },
     {
