@@ -587,7 +587,6 @@ const columnOptions = [
 		key: 'cumulativeEarnings',
 		category: TABLE_CATEGORIES.REVENUE
 	},
-	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Cumulative Fees', key: 'fees_cumulative', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Cumulative Revenue', key: 'cumulativeRevenue', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'Cumulative Incentives', key: 'cumulativeEmissions', category: TABLE_CATEGORIES.REVENUE },
