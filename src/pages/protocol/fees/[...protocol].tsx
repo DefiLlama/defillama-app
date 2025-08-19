@@ -175,6 +175,10 @@ export const getStaticProps = withPerformanceLogging(
 			defaultCharts.push('Revenue')
 		}
 
+		const toggleOptions = feesOptions.filter((option) =>
+			option.key === 'bribes' ? metrics.bribes : option.key === 'tokentax' ? metrics.tokenTax : true
+		)
+
 		return {
 			props: {
 				name: protocolData.name,
@@ -199,7 +203,8 @@ export const getStaticProps = withPerformanceLogging(
 					holdersRevenueData?.defaultChartView ??
 					bribeRevenueData?.defaultChartView ??
 					tokenTaxData?.defaultChartView ??
-					'daily'
+					'daily',
+				toggleOptions
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -275,10 +280,6 @@ export default function Protocols(props) {
 		return finalCharts
 	}, [props.charts, charts, feesSettings, groupBy])
 
-	const toggleOptions = feesOptions.filter((option) =>
-		option.key === 'bribes' ? props.metrics.bribes : option.key === 'tokentax' ? props.metrics.tokenTax : true
-	)
-
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -287,7 +288,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="fees"
 			warningBanners={props.warningBanners}
-			toggleOptions={toggleOptions}
+			toggleOptions={props.toggleOptions}
 		>
 			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
 				<div className="col-span-1 flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:min-h-[360px]">

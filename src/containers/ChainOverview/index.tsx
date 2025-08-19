@@ -15,7 +15,7 @@ export function ChainOverview(props: IChainOverviewData) {
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
 			defaultSEO
 			includeInMetricsOptions={props.tvlAndFeesOptions}
-			includeInMetricsOptionslabel="Include in TVL & Fees"
+			includeInMetricsOptionslabel="Include in TVL"
 		>
 			<Metrics currentMetric="TVL" />
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
