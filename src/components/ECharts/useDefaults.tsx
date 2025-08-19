@@ -17,7 +17,7 @@ import { formattedNum } from '~/utils'
 import { useMemo } from 'react'
 
 const CHART_SYMBOLS = {
-	'Active Users': '',
+	'Active Wallets': '',
 	'Returning Users': '',
 	'New Users': '',
 	'Active Addresses': '',
