@@ -13,7 +13,7 @@ const insightsByCategory = Object.entries(
 		acc[category] = acc[category] || []
 		acc[category].push({
 			...insight,
-			name: insight.name.replace('Yields: ', ''),
+			name: insight.name.includes(': ') ? insight.name.split(': ')[1] : insight.name,
 			description: insight.description ?? ''
 		})
 		return acc

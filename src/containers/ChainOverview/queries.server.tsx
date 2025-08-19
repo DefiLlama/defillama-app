@@ -612,8 +612,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 
 export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; metadata: IChainMetadata }) => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const [{ protocols, chains, parentProtocols }, fees, revenue, dexs, emissionsData]: [
+	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsData]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
+		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
@@ -638,6 +639,18 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true,
 					dataType: 'dailyRevenue'
+				}).catch((err) => {
+					console.log(err)
+					return null
+				})
+			: Promise.resolve(null),
+		metadata.fees
+			? getAdapterChainOverview({
+					adapterType: 'fees',
+					chain: metadata.name,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true,
+					dataType: 'dailyHoldersRevenue'
 				}).catch((err) => {
 					console.log(err)
 					return null
@@ -683,6 +696,22 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			dimensionProtocols[protocol.defillamaId] = {
 				...(dimensionProtocols[protocol.defillamaId] ?? {}),
 				revenue: {
+					total24h: protocol.total24h ?? null,
+					total7d: protocol.total7d ?? null,
+					total30d: protocol.total30d ?? null,
+					total1y: protocol.total1y ?? null,
+					average1y: protocol.average1y ?? null,
+					totalAllTime: protocol.totalAllTime ?? null
+				}
+			}
+		}
+	}
+
+	for (const protocol of holdersRevenue?.protocols ?? []) {
+		if (protocol.total24h != null) {
+			dimensionProtocols[protocol.defillamaId] = {
+				...(dimensionProtocols[protocol.defillamaId] ?? {}),
+				holdersRevenue: {
 					total24h: protocol.total24h ?? null,
 					total7d: protocol.total7d ?? null,
 					total30d: protocol.total30d ?? null,
@@ -830,6 +859,10 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					: null
 			}
 
+			if (dimensionProtocols[protocol.defillamaId]?.holdersRevenue) {
+				childStore.holdersRevenue = dimensionProtocols[protocol.defillamaId].holdersRevenue
+			}
+
 			if (dimensionProtocols[protocol.defillamaId]?.dexs) {
 				childStore.dexs = dimensionProtocols[protocol.defillamaId].dexs
 			}
@@ -907,6 +940,18 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			if (parentRevenue) {
 				parentRevenue.ps = getAnnualizedRatio(parentProtocol.mcap, parentRevenue.total30d)
 			}
+
+			const parentHoldersRevenue = parentStore[parentProtocol.id].some((child) => child.holdersRevenue !== null)
+				? parentStore[parentProtocol.id].reduce(
+						(acc, curr) => {
+							for (const key1 in curr.holdersRevenue ?? {}) {
+								acc[key1] = (acc[key1] ?? 0) + curr.holdersRevenue[key1]
+							}
+							return acc
+						},
+						{} as IChildProtocol['holdersRevenue']
+					)
+				: null
 
 			const parentDexs = parentStore[parentProtocol.id].some((child) => child.dexs !== null)
 				? parentStore[parentProtocol.id].reduce(
@@ -989,6 +1034,9 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			}
 			if (parentDexs) {
 				protocolsStore[parentProtocol.id].dexs = parentDexs
+			}
+			if (parentHoldersRevenue) {
+				protocolsStore[parentProtocol.id].holdersRevenue = parentHoldersRevenue
 			}
 			if (parentEmissions) {
 				protocolsStore[parentProtocol.id].emissions = parentEmissions

@@ -253,7 +253,7 @@
       "description": "Sum of TVL across all forks of a protocol"
     },
     {
-      "name": "Top Protocols by chain on each category",
+      "name": "Top Protocols by Chain on each Category",
       "route": "/top-protocols",
       "category": "Total Value"
     },
@@ -285,7 +285,7 @@
       "route": "/pro"
     },
     {
-      "name": "Unlocks Overview",
+      "name": "Unlocks: Overview",
       "route": "/unlocks",
       "category": "Unlocks",
       "description": "Overview of token emissions by protocol"
@@ -297,19 +297,19 @@
       "description": "Upcoming total token emissions by date"
     },
     {
-      "name": "Borrow Aggregator",
+      "name": "Borrow Aggregator: Simple",
       "route": "/borrow",
       "category": "Borrow",
       "description": "Simple view of optimal lending routes by collateral to borrow assets"
     },
     {
-      "name": "Borrow Aggregator (Advanced)",
+      "name": "Borrow Aggregator: Advanced",
       "route": "/borrow/advanced",
       "category": "Borrow",
       "description": "Advanced view of optimal lending routes by collateral to borrow assets"
     },
     {
-      "name": "Raises Overview",
+      "name": "Raises: Overview",
       "route": "/raises",
       "category": "Raises",
       "description": "Total amount of capital raised by a project"
@@ -321,19 +321,19 @@
       "description": "List of investors that have invested in a project"
     },
     {
-      "name": "NFTs Collections",
+      "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
       "description": "Overview of all NFT collections"
     },
     {
-      "name": "NFTs Marketplaces",
+      "name": "NFTs: Marketplaces",
       "route": "/nfts/marketplaces",
       "category": "NFTs",
       "description": "Overview of all NFT marketplaces"
     },
     {
-      "name": "NFTs Collection Earnings",
+      "name": "NFTs: Collection Earnings",
       "route": "/nfts/earnings",
       "category": "NFTs",
       "description": "Earnings of all NFT collections that are tracked by DefiLlama"

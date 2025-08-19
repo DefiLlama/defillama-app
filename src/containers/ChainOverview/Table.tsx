@@ -547,6 +547,7 @@ const columnOptions = [
 		key: 'average_fees_1y',
 		category: TABLE_CATEGORIES.FEES
 	},
+	{ name: 'Cumulative Fees', key: 'fees_cumulative', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Revenue 30d', key: 'revenue_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
@@ -556,6 +557,32 @@ const columnOptions = [
 		key: 'average_revenue_1y',
 		category: TABLE_CATEGORIES.REVENUE
 	},
+	{ name: 'Cumulative Revenue', key: 'cumulativeRevenue', category: TABLE_CATEGORIES.REVENUE },
+	{
+		name: 'Holders Revenue 24h',
+		key: 'holdersRevenue_24h',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Holders Revenue 7d',
+		key: 'holdersRevenue_7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Holders Revenue 30d',
+		key: 'holdersRevenue_30d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Holders Revenue 1y', key: 'holdersRevenue_1y', category: TABLE_CATEGORIES.REVENUE },
+	{
+		name: 'Monthly Avg 1Y Holders Revenue',
+		key: 'average_holdersRevenue_1y',
+		category: TABLE_CATEGORIES.REVENUE
+	},
+	{ name: 'Cumulative Holders Revenue', key: 'cumulativeHoldersRevenue', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'Incentives 24h', key: 'emissions_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Incentives 7d', key: 'emissions_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Incentives 30d', key: 'emissions_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
@@ -569,6 +596,7 @@ const columnOptions = [
 		key: 'average_emissions_1y',
 		category: TABLE_CATEGORIES.REVENUE
 	},
+	{ name: 'Cumulative Incentives', key: 'cumulativeEmissions', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'Earnings 24h', key: 'earnings_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Earnings 7d', key: 'earnings_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Earnings 30d', key: 'earnings_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
@@ -587,9 +615,6 @@ const columnOptions = [
 		key: 'cumulativeEarnings',
 		category: TABLE_CATEGORIES.REVENUE
 	},
-	{ name: 'Cumulative Fees', key: 'fees_cumulative', category: TABLE_CATEGORIES.FEES },
-	{ name: 'Cumulative Revenue', key: 'cumulativeRevenue', category: TABLE_CATEGORIES.REVENUE },
-	{ name: 'Cumulative Incentives', key: 'cumulativeEmissions', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
 	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Spot Volume 24h', key: 'dex_volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
@@ -798,6 +823,18 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 125
 			}),
+			columnHelper.accessor((row) => row.holdersRevenue?.total24h, {
+				id: 'holdersRevenue_24h',
+				header: 'Holders Revenue 24h',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end',
+					headerHelperText: 'Revenue earned by the token holders in the last 24 hours'
+				},
+				size: 180
+			}),
 			columnHelper.accessor((row) => row.emissions?.total24h, {
 				id: 'emissions_24h',
 				header: 'Incentives 24h',
@@ -835,6 +872,18 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 120
 			}),
+			columnHelper.accessor((row) => row.holdersRevenue?.total7d, {
+				id: 'holdersRevenue_7d',
+				header: 'Holders Revenue 7d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end',
+					headerHelperText: 'Revenue earned by the token holders in the last 7 days'
+				},
+				size: 180
+			}),
 			columnHelper.accessor((row) => row.emissions?.total7d, {
 				id: 'emissions_7d',
 				header: 'Incentives 7d',
@@ -871,6 +920,18 @@ const columns: ColumnDef<IProtocol>[] = [
 					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
 				},
 				size: 125
+			}),
+			columnHelper.accessor((row) => row.holdersRevenue?.total30d, {
+				id: 'holdersRevenue_30d',
+				header: 'Holders Revenue 30d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end',
+					headerHelperText: 'Revenue earned by the token holders in the last 30 days'
+				},
+				size: 180
 			}),
 			columnHelper.accessor((row) => row.emissions?.total30d, {
 				id: 'emissions_30d',
@@ -917,9 +978,21 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
+					headerHelperText: 'Revenue earned by the protocol in the last 12 months'
 				},
 				size: 120
+			}),
+			columnHelper.accessor((row) => row.holdersRevenue?.total1y, {
+				id: 'holdersRevenue_1y',
+				header: 'Holders Revenue 1Y',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end',
+					headerHelperText: 'Revenue earned by the token holders in the last 12 months'
+				},
+				size: 180
 			}),
 			columnHelper.accessor((row) => row.revenue?.average1y, {
 				id: 'average_revenue_1y',
@@ -932,6 +1005,18 @@ const columns: ColumnDef<IProtocol>[] = [
 					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
 				},
 				size: 180
+			}),
+			columnHelper.accessor((row) => row.holdersRevenue?.average1y, {
+				id: 'average_holdersRevenue_1y',
+				header: 'Monthly Avg 1Y Holders Revenue',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end',
+					headerHelperText: 'Average monthly revenue earned by the token holders in the last 12 months'
+				},
+				size: 260
 			}),
 			columnHelper.accessor((row) => row.emissions?.total1y, {
 				id: 'emissions_1y',
@@ -981,6 +1066,18 @@ const columns: ColumnDef<IProtocol>[] = [
 					headerHelperText: 'Total revenue earned by the protocol since the protocol was launched'
 				},
 				size: 180
+			}),
+			columnHelper.accessor((row) => row.holdersRevenue?.totalAllTime, {
+				id: 'cumulativeHoldersRevenue',
+				header: 'Cumulative Holders Revenue',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'end',
+					headerHelperText: 'Total revenue earned by the token holders since the protocol was launched'
+				},
+				size: 220
 			}),
 			columnHelper.accessor((row) => row.emissions?.totalAllTime, {
 				id: 'cumulativeEmissions',
@@ -1204,41 +1301,8 @@ const defaultColumns = JSON.stringify({
 	change_1d: true,
 	change_7d: true,
 	change_1m: true,
-	mcaptvl: false,
 	fees_24h: true,
-	revenue_24h: true,
-	fees_7d: false,
-	revenue_7d: false,
-	fees_30d: false,
-	revenue_30d: false,
-	holdersRevenue30d: false,
-	fees_1y: false,
-	average_fees_1y: false,
-	revenue_1y: false,
-	average_revenue_1y: false,
-	emissions_24h: false,
-	emissions_7d: false,
-	emissions_30d: false,
-	emissions_1y: false,
-	average_emissions_1y: false,
-	earnings_24h: false,
-	earnings_7d: false,
-	earnings_30d: false,
-	earnings_1y: false,
-	average_earnings_1y: false,
-	cumulativeEmissions: false,
-	cumulativeEarnings: false,
-	userFees_24h: false,
-	fees_cumulative: false,
-	holderRevenue_24h: false,
-	treasuryRevenue_24h: false,
-	supplySideRevenue_24h: false,
-	pf: false,
-	ps: false,
-	dex_volume_24h: true,
-	dex_volume_7d: false,
-	dex_volume_change_7d: false,
-	dex_cumulative_volume: false
+	revenue_24h: true
 })
 
 const Tvl = ({ rowValues }) => {

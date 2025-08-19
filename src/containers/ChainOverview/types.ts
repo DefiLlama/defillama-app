@@ -190,6 +190,14 @@ export interface IChildProtocol {
 		totalAllTime: number | null
 		ps: number | null
 	}
+	holdersRevenue?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		average1y: number | null
+		totalAllTime: number | null
+	}
 	dexs?: {
 		total24h: number | null
 		total7d: number | null
