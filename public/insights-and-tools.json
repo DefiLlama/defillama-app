@@ -2,171 +2,213 @@
   "Insights": [
     {
       "name": "All Chains",
-      "route": "/chains"
+      "route": "/chains",
+      "category": "Total Value"
     },
     {
-      "name": "Stablecoins",
-      "route": "/stablecoins"
+      "name": "Stablecoins by Market Cap",
+      "route": "/stablecoins",
+      "category": "Stablecoins"
     },
     {
       "name": "Stablecoin Supply by Chain",
-      "route": "/stablecoins/chains"
+      "route": "/stablecoins/chains",
+      "category": "Stablecoins"
     },
     {
       "name": "Fees by Protocol",
-      "route": "/fees"
+      "route": "/fees",
+      "category": "Fees & Revenue"
     },
     {
       "name": "Fees by Chain",
-      "route": "/fees/chains"
+      "route": "/fees/chains",
+      "category": "Fees & Revenue"
     },
     {
       "name": "Revenue by Protocol",
-      "route": "/revenue"
+      "route": "/revenue",
+      "category": "Fees & Revenue"
     },
     {
       "name": "Revenue by Chain",
-      "route": "/revenue/chains"
+      "route": "/revenue/chains",
+      "category": "Fees & Revenue"
     },
     {
       "name": "Holders Revenue by Protocol",
-      "route": "/holders-revenue"
+      "route": "/holders-revenue",
+      "category": "Fees & Revenue"
     },
     {
       "name": "Earnings by Protocol",
-      "route": "/earnings"
+      "route": "/earnings",
+      "category": "Fees & Revenue"
     },
     {
       "name": "P/F by Protocol",
-      "route": "/pf"
+      "route": "/pf",
+      "category": "Fees & Revenue"
     },
     {
       "name": "P/S by Protocol",
-      "route": "/ps"
+      "route": "/ps",
+      "category": "Fees & Revenue"
     },
     {
       "name": "REV by Chain",
-      "route": "/rev/chains"
-    },
-    {
-      "name": "Bridged TVL by Chain",
-      "route": "/bridged"
+      "route": "/rev/chains",
+      "category": "Fees & Revenue"
     },
     {
       "name": "App Revenue by Chain",
-      "route": "/app-revenue/chains"
+      "route": "/app-revenue/chains",
+      "category": "Fees & Revenue"
     },
     {
       "name": "DEX Volume by Protocol",
-      "route": "/dexs"
+      "route": "/dexs",
+      "category": "Volume"
     },
     {
       "name": "DEX Volume by Chain",
-      "route": "/dexs/chains"
+      "route": "/dexs/chains",
+      "category": "Volume"
     },
     {
       "name": "Perp Volume by Protocol",
-      "route": "/perps"
+      "route": "/perps",
+      "category": "Volume"
     },
     {
       "name": "Open Interest by Protocol",
-      "route": "/open-interest"
+      "route": "/open-interest",
+      "category": "Volume"
     },
     {
       "name": "Perp Volume by Chain",
-      "route": "/perps/chains"
+      "route": "/perps/chains",
+      "category": "Volume"
     },
     {
       "name": "DEX Aggregator Volume by Protocol",
-      "route": "/dex-aggregators"
+      "route": "/dex-aggregators",
+      "category": "Volume"
     },
     {
       "name": "Bridge Aggregator Volume by Protocol",
-      "route": "/bridge-aggregators"
+      "route": "/bridge-aggregators",
+      "category": "Volume"
     },
     {
       "name": "Perp Aggregator Volume by Protocol",
-      "route": "/perp-aggregators"
+      "route": "/perp-aggregators",
+      "category": "Volume"
     },
     {
       "name": "Options Premium Volume by Protocol",
-      "route": "/options/premium-volume"
+      "route": "/options/premium-volume",
+      "category": "Volume"
     },
     {
       "name": "Options Notional Volume by Protocol",
-      "route": "/options/notional-volume"
+      "route": "/options/notional-volume",
+      "category": "Volume"
+    },
+    {
+      "name": "Bridged TVL by Chain",
+      "route": "/bridged",
+      "category": "Bridge"
     },
     {
       "name": "Bridges by Volume",
-      "route": "/bridges"
+      "route": "/bridges",
+      "category": "Bridge"
     },
     {
       "name": "Bridge Volume by Chain",
-      "route": "/bridges/chains"
+      "route": "/bridges/chains",
+      "category": "Bridge"
     },
     {
       "name": "Yields: All Pools",
-      "route": "/yields"
+      "route": "/yields",
+      "category": "Yields"
     },
     {
       "name": "Yields: Delta Neutral Strategies",
-      "route": "/yields/strategies"
+      "route": "/yields/strategies",
+      "category": "Yields"
     },
     {
       "name": "Yields: Long Short Strategies",
-      "route": "/yields/strategyLongShort"
+      "route": "/yields/strategyLongShort",
+      "category": "Yields"
     },
     {
       "name": "Yields: Leveraged Lending",
-      "route": "/yields/loop"
+      "route": "/yields/loop",
+      "category": "Yields"
     },
     {
-      "name": "Yields: Overview",
-      "route": "/yields/overview"
+      "name": "Yields: APY Overview",
+      "route": "/yields/overview",
+      "category": "Yields"
     },
     {
       "name": "Yields: Projects",
-      "route": "/yields/projects"
+      "route": "/yields/projects",
+      "category": "Yields"
     },
     {
       "name": "Yields: Halal",
-      "route": "/yields/halal"
+      "route": "/yields/halal",
+      "category": "Yields"
     },
     {
       "name": "Airdrops",
-      "route": "/airdrops"
+      "route": "/airdrops",
+      "category": "Token"
     },
     {
       "name": "Net Project Treasury",
-      "route": "/net-project-treasury"
+      "route": "/net-project-treasury",
+      "category": "Treasury"
     },
     {
       "name": "Treasuries",
-      "route": "/treasuries"
+      "route": "/treasuries",
+      "category": "Treasury"
     },
     {
       "name": "Total Borrowed by Protocol",
-      "route": "/total-borrowed"
+      "route": "/total-borrowed",
+      "category": "Total Value"
     },
     {
       "name": "Total Staked by Protocol",
-      "route": "/total-staked"
+      "route": "/total-staked",
+      "category": "Total Value"
     },
     {
       "name": "Pool2 TVL by Protocol",
-      "route": "/pool2"
+      "route": "/pool2",
+      "category": "Total Value"
     },
     {
       "name": "Oracles",
-      "route": "/oracles"
+      "route": "/oracles",
+      "category": "Total Value"
     },
     {
       "name": "Forks",
-      "route": "/forks"
+      "route": "/forks",
+      "category": "Total Value"
     },
     {
       "name": "Top Protocols by chain on each category",
-      "route": "/top-protocols"
+      "route": "/top-protocols",
+      "category": "Total Value"
     },
     {
       "name": "Expenses by Protocol",
@@ -194,43 +236,53 @@
     },
     {
       "name": "Unlocks Overview",
-      "route": "/unlocks"
+      "route": "/unlocks",
+      "category": "Unlocks"
     },
     {
       "name": "Token Unlocks Calendar",
-      "route": "/unlocks/calendar"
+      "route": "/unlocks/calendar",
+      "category": "Unlocks"
     },
     {
       "name": "Borrow Aggregator",
-      "route": "/borrow"
+      "route": "/borrow",
+      "category": "Borrow"
     },
     {
       "name": "Borrow Aggregator (Advanced)",
-      "route": "/borrow/advanced"
+      "route": "/borrow/advanced",
+      "category": "Borrow"
     },
     {
       "name": "Raises Overview",
-      "route": "/raises"
+      "route": "/raises",
+      "category": "Raises"
     },
     {
       "name": "Investors",
-      "route": "/raises/investors"
+      "route": "/raises/investors",
+      "category": "Raises"
     },
     {
       "name": "NFTs Collections",
-      "route": "/nfts"
+      "route": "/nfts",
+      "category": "NFTs"
     },
     {
       "name": "NFTs Marketplaces",
-      "route": "/nfts/marketplaces"
+      "route": "/nfts/marketplaces",
+      "category": "NFTs"
     },
     {
       "name": "NFTs Collection Earnings",
-      "route": "/nfts/earnings"
+      "route": "/nfts/earnings",
+      "category": "NFTs"
     },
     {
       "name": "NFT Volume by Chain",
-      "route": "/nfts/chains"
+      "route": "/nfts/chains",
+      "category": "NFTs"
     },
     {
       "name": "Total Value Lost in Hacks by Protocol",
@@ -262,19 +314,23 @@
     },
     {
       "name": "Protocols by Market Cap",
-      "route": "/mcaps"
+      "route": "/mcaps",
+      "category": "Token"
     },
     {
       "name": "Protocols by FDV",
-      "route": "/fdv"
+      "route": "/fdv",
+      "category": "Token"
     },
     {
       "name": "Protocols by Outstanding FDV",
-      "route": "/outstanding-fdv"
+      "route": "/outstanding-fdv",
+      "category": "Token"
     },
     {
       "name": "Protocols by Token Price",
-      "route": "/token-prices"
+      "route": "/token-prices",
+      "category": "Token"
     }
   ],
   "Tools": [

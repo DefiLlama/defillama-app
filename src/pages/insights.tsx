@@ -5,16 +5,36 @@ import { BasicLink } from '~/components/Link'
 import Layout from '~/layout'
 import insightsAndTools from '~/public/insights-and-tools.json'
 
+const insightsByCategory = Object.entries(
+	insightsAndTools.Insights.reduce((acc, insight) => {
+		acc[insight.category] = acc[insight.category] || []
+		acc[insight.category].push(insight)
+		return acc
+	}, {})
+).map(([category, insights]: [string, Array<{ name: string; route: string; description: string }>]) => ({
+	category,
+	insights
+}))
+
 export default function Insights() {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const pages = useMemo(() => {
-		return matchSorter(insightsAndTools.Insights, deferredSearchValue, {
+		return matchSorter(insightsByCategory, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['name', 'description'],
+			keys: ['category', 'insights.name', 'insights.description'],
 			threshold: matchSorter.rankings.CONTAINS
-		})
+		}).map((item) => ({
+			...item,
+			insights: item.insights.filter(
+				(insight) =>
+					matchSorter([insight], deferredSearchValue, {
+						keys: ['name', 'description'],
+						threshold: matchSorter.rankings.CONTAINS
+					}).length > 0
+			)
+		}))
 	}, [deferredSearchValue])
 
 	return (
@@ -37,16 +57,26 @@ export default function Insights() {
 					/>
 				</div>
 			</div>
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
-				{pages.map((insight: any) => (
-					<BasicLink
-						key={`insight-${insight.name}-${insight.route}`}
-						className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
-						href={insight.route}
-					>
-						<span className="font-medium">{insight.name}</span>
-						<span className="text-(--text-form) text-start whitespace-pre-wrap">{insight.description ?? ''}</span>
-					</BasicLink>
+			<div className="flex flex-col gap-4">
+				{pages.map(({ category, insights }) => (
+					<div key={category} className="flex flex-col gap-2">
+						<div className="flex flex-row items-center gap-2">
+							<h2 className="text-lg font-bold">{category}</h2>
+							<hr className="border-black/20 dark:border-white/20 flex-1" />
+						</div>
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
+							{insights.map((insight: any) => (
+								<BasicLink
+									key={`insight-${insight.name}-${insight.route}`}
+									className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									href={insight.route}
+								>
+									<span className="font-medium">{insight.name}</span>
+									<span className="text-(--text-form) text-start whitespace-pre-wrap">{insight.description ?? ''}</span>
+								</BasicLink>
+							))}
+						</div>
+					</div>
 				))}
 			</div>
 		</Layout>
