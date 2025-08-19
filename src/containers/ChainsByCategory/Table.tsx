@@ -28,10 +28,12 @@ const optionsKey = 'chains-overview-table-columns'
 
 export function ChainsByCategoryTable({
 	data,
-	useStickyHeader = true
+	useStickyHeader = true,
+	borderless = false
 }: {
 	data: Array<IFormattedDataWithExtraTvl>
 	useStickyHeader?: boolean
+	borderless?: boolean
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
 		subscribeToLocalStorage,
@@ -166,7 +168,7 @@ export function ChainsByCategoryTable({
 	}, [groupTvls])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md isolate">
+		<div className={`isolate ${borderless ? '' : 'bg-(--cards-bg) border border-(--cards-border) rounded-md'}`}>
 			<div className="flex items-center justify-end flex-wrap gap-2 p-2">
 				<div className="relative w-full sm:max-w-[280px] mr-auto">
 					<Icon

@@ -118,7 +118,7 @@ export function DefiWatchlistContainer({
 	return (
 		<>
 			<WatchListTabs />
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-4">
+			<div className="flex flex-col gap-2">
 				<PortfolioSelection
 					portfolios={portfolios}
 					selectedPortfolio={selectedPortfolio}
@@ -138,10 +138,11 @@ export function DefiWatchlistContainer({
 					handleProtocolSelection={handleProtocolSelection}
 					selectedPortfolio={selectedPortfolio}
 				/>
-				<div className="p-4">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 					<div className="flex items-center justify-between mb-4">
+						<h2 className="text-lg font-medium">Protocols</h2>
 						{selectedProtocolNames.length > 0 && (
-							<span className="text-sm text-(--text-secondary) ml-auto">
+							<span className="text-sm text-(--text-secondary)">
 								{selectedProtocolNames.length} protocol{selectedProtocolNames.length === 1 ? '' : 's'}
 							</span>
 						)}
@@ -166,8 +167,7 @@ export function DefiWatchlistContainer({
 					)}
 				</div>
 
-				{/* Chains watchlist */}
-				<div className="p-4 border-t border-(--cards-border)">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 					<div className="mb-3">
 						<h2 className="text-lg font-medium mb-1">Manage Chains</h2>
 						<p className="text-sm text-(--text-secondary)">
@@ -186,7 +186,8 @@ export function DefiWatchlistContainer({
 						labelType="regular"
 					/>
 				</div>
-				<div className="p-4">
+
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 					<div className="flex items-center justify-between mb-4">
 						<h2 className="text-lg font-medium">Chains</h2>
 						{selectedChainNames.length > 0 && (
@@ -196,7 +197,7 @@ export function DefiWatchlistContainer({
 						)}
 					</div>
 					{filteredChains.length ? (
-						<ChainsByCategoryTable data={filteredChains} useStickyHeader={false} />
+						<ChainsByCategoryTable data={filteredChains} useStickyHeader={false} borderless />
 					) : (
 						<div className="p-8 text-center">
 							<div className="max-w-sm mx-auto">
@@ -314,10 +315,10 @@ function PortfolioNotifications({
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
-			<div className="p-4 border-b border-(--cards-border)">
+			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 				<h2 className="text-lg font-medium mb-1">Notifications</h2>
-				<p className="text-sm text-(--text-secondary)">
-					Select or deselect protocols for the "{selectedPortfolio}" portfolio
+				<p className="text-sm text-(--text-secondary) mb-3">
+					Set up notifications for the "{selectedPortfolio}" portfolio
 				</p>
 
 				<button
@@ -554,7 +555,7 @@ function PortfolioSelection({
 	removePortfolio
 }: PortfolioSelectionProps) {
 	return (
-		<div className="p-4 border-b border-(--cards-border)">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 			<h1 className="text-xl font-semibold mb-4">Portfolio</h1>
 			<div className="flex items-center flex-wrap gap-4">
 				<span className="text-sm font-medium text-(--text-primary)">Active portfolio:</span>
@@ -607,7 +608,7 @@ function ProtocolSelection({
 	selectedPortfolio
 }: ProtocolSelectionProps) {
 	return (
-		<div className="p-4 border-b border-(--cards-border)">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 			<div className="mb-3">
 				<h2 className="text-lg font-medium mb-1">Manage Protocols</h2>
 				<p className="text-sm text-(--text-secondary)">
@@ -687,7 +688,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 	}, [availableChains])
 
 	return (
-		<div className="p-4 border-b border-(--cards-border)">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 			<div className="mb-4">
 				<h2 className="text-lg font-medium mb-1">Top Movers</h2>
 				<p className="text-sm text-(--text-secondary)">Biggest changes in your portfolio</p>
