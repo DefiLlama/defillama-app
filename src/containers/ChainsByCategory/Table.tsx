@@ -25,7 +25,13 @@ import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 
 const optionsKey = 'chains-overview-table-columns'
 
-export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWithExtraTvl> }) {
+export function ChainsByCategoryTable({
+	data,
+	useStickyHeader = true
+}: {
+	data: Array<IFormattedDataWithExtraTvl>
+	useStickyHeader?: boolean
+}) {
 	const columnsInStorage = React.useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => localStorage.getItem(optionsKey) ?? defaultColumns,
@@ -215,7 +221,7 @@ export function ChainsByCategoryTable({ data }: { data: Array<IFormattedDataWith
 					<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
 				</div>
 			</div>
-			<VirtualTable instance={instance} />
+			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
 		</div>
 	)
 }

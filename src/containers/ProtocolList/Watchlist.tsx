@@ -158,7 +158,7 @@ export function DefiWatchlistContainer({
 						)}
 					</div>
 					{filteredProtocols.length ? (
-						<ProtocolsByChainTable data={filteredProtocols} />
+						<ProtocolsByChainTable data={filteredProtocols} useStickyHeader={false} />
 					) : (
 						<div className="p-8 text-center">
 							<div className="max-w-sm mx-auto">
@@ -207,7 +207,7 @@ export function DefiWatchlistContainer({
 						)}
 					</div>
 					{filteredChains.length ? (
-						<ChainsByCategoryTable data={filteredChains} />
+						<ChainsByCategoryTable data={filteredChains} useStickyHeader={false} />
 					) : (
 						<div className="p-8 text-center">
 							<div className="max-w-sm mx-auto">
