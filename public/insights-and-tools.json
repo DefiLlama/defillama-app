@@ -70,13 +70,13 @@
       "name": "DEX Volume by Protocol",
       "route": "/dexs",
       "category": "Volume",
-      "description": "Volume of all spot token swaps that go through all DEXs on the chain"
+      "description": "Volume of all spot token swaps that go through a DEX"
     },
     {
       "name": "Perp Volume by Protocol",
       "route": "/perps",
       "category": "Volume",
-      "description": "Notional volume of all trades in all perp exchanges on the chain, includes leverage"
+      "description": "Notional volume of all trades in a perp exchange, includes leverage"
     },
     {
       "name": "DEX Volume by Chain",
@@ -88,7 +88,7 @@
       "name": "Bridge Aggregator Volume by Protocol",
       "route": "/bridge-aggregators",
       "category": "Volume",
-      "description": "Sum of value of all assets that were bridged through the bridge aggregators"
+      "description": "Sum of value of all assets that were bridged through a bridge aggregator"
     },
     {
       "name": "DEX Aggregator Volume by Protocol",
@@ -100,7 +100,7 @@
       "name": "Perp Volume by Chain",
       "route": "/perps/chains",
       "category": "Volume",
-      "description": "Notional volume of all trades in all perp exchanges on the chain, includes leverage"
+      "description": "Sum of notional volume of all trades in all perp exchanges on the chain, includes leverage"
     },
     {
       "name": "Options Premium Volume by Protocol",
@@ -387,7 +387,7 @@
       "name": "Total Value Lost in Hacks by Protocol",
       "route": "/total-value-lost",
       "category": "Hacks",
-      "description": "Net user loss, Total value lost in hacks by a protocol"
+      "description": "Net user loss, total value lost in hacks by a protocol"
     },
     {
       "name": "NFTs: Collections",
