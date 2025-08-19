@@ -22,6 +22,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
+import { Bookmark } from '~/components/Bookmark'
 
 const optionsKey = 'chains-overview-table-columns'
 
@@ -325,6 +326,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 						</button>
 					)}
 					<span className="shrink-0">{index + 1}</span>
+					<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-[2px]" />
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<BasicLink
 						href={`/chain/${slug(getValue() as string)}`}

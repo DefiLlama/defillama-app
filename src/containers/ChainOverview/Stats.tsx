@@ -15,6 +15,7 @@ import { Icon } from '~/components/Icon'
 import dayjs from 'dayjs'
 import * as Ariakit from '@ariakit/react'
 import { downloadChart } from '~/components/ECharts/utils'
+import { Bookmark } from '~/components/Bookmark'
 
 const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
@@ -102,9 +103,10 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
 				{props.metadata.name !== 'All' && (
-					<h1 className="flex items-center flex-nowrap gap-2">
+					<h1 className="flex items-center flex-nowrap gap-2 *:last:ml-auto">
 						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
 						<span className="text-xl font-semibold">{props.metadata.name}</span>
+						<Bookmark readableName={props.metadata.name} isChain />
 					</h1>
 				)}
 				<div className="flex items-end flex-nowrap justify-between gap-8">
