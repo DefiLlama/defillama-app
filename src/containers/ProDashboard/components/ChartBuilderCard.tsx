@@ -340,7 +340,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								},
 								tooltip: {
 									formatter: function (params: any) {
-										const chartdate = new Date(params[0].value[0]).toLocaleDateString()
+										const date = new Date(params[0].value[0])
+										const chartdate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
 
 										let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
 										filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
@@ -351,27 +352,64 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 											}
 											const absValue = Math.abs(value)
 											if (absValue >= 1e9) {
-												return '$' + (value / 1e9).toFixed(2) + 'B'
+												return '$' + (value / 1e9).toFixed(1) + 'B'
 											} else if (absValue >= 1e6) {
-												return '$' + (value / 1e6).toFixed(2) + 'M'
+												return '$' + (value / 1e6).toFixed(1) + 'M'
 											} else if (absValue >= 1e3) {
-												return '$' + (value / 1e3).toFixed(2) + 'K'
+												return '$' + (value / 1e3).toFixed(0) + 'K'
 											}
-											return '$' + value.toFixed(2)
+											return '$' + value.toFixed(0)
 										}
 
-										const vals = filteredParams.reduce((prev: string, curr: any) => {
-											return (prev +=
-												'<li style="list-style:none">' +
-												curr.marker +
-												curr.seriesName +
-												'&nbsp;&nbsp;' +
-												formatValue(curr.value[1]) +
-												'</li>')
-										}, '')
+										const useTwoColumns = config.limit > 10
 
-										return chartdate + vals
-									}
+										const createItem = (curr: any, nameLength: number = 20) => {
+											let name = curr.seriesName
+											if (name.length > nameLength) {
+												name = name.substring(0, nameLength - 2) + '..'
+											}
+
+											return (
+												'<div style="display:flex;align-items:center;font-size:11px;line-height:1.4;white-space:nowrap">' +
+												curr.marker +
+												'<span style="margin-right:4px">' +
+												name +
+												'</span>' +
+												'<span style="margin-left:auto;font-weight:500">' +
+												formatValue(curr.value[1]) +
+												'</span>' +
+												'</div>'
+											)
+										}
+
+										let content = ''
+
+										if (useTwoColumns) {
+											const midpoint = Math.ceil(filteredParams.length / 2)
+											const leftColumn = filteredParams.slice(0, midpoint)
+											const rightColumn = filteredParams.slice(midpoint)
+
+											const leftColumnHtml = leftColumn.map((item: any) => createItem(item, 15)).join('')
+											const rightColumnHtml = rightColumn.map((item: any) => createItem(item, 15)).join('')
+
+											content =
+												`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
+												`<div>${leftColumnHtml}</div>` +
+												`<div>${rightColumnHtml}</div>` +
+												`</div>`
+										} else {
+											const singleColumnHtml = filteredParams.map((item: any) => createItem(item, 20)).join('')
+											content = `<div>${singleColumnHtml}</div>`
+										}
+
+										return (
+											`<div style="max-width:${useTwoColumns ? '400px' : '300px'}">` +
+											`<div style="font-size:12px;margin-bottom:4px;font-weight:500">${chartdate}</div>` +
+											content +
+											`</div>`
+										)
+									},
+									confine: true
 								},
 								yAxis:
 									config.displayAs === 'percentage'
