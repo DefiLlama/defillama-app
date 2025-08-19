@@ -211,7 +211,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 
 			return (
 				<span className="flex items-center gap-2 relative pl-6">
-					<Bookmark readableProtocolName={getValue() as string} data-bookmark className="absolute -left-[2px]" />
+					<Bookmark readableName={getValue() as string} data-bookmark className="absolute -left-[2px]" />
 					<TokenLogo logo={tokenIconUrl(getValue())} />
 					<BasicLink
 						href={`/unlocks/${slug(getValue() as string)}`}

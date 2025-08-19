@@ -672,7 +672,7 @@ const columns: ColumnDef<IProtocol>[] = [
 							)}
 						</button>
 					) : (
-						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
+						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
 					<span className="shrink-0">{index + 1}</span>

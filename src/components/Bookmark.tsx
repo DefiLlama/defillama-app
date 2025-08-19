@@ -2,16 +2,16 @@ import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 import { useRouter } from 'next/router'
 
-// readableProtocolName has proper caps and spaces
-export function Bookmark({ readableProtocolName, ...props }) {
+// readableName has proper caps and spaces
+export function Bookmark({ readableName, ...props }) {
 	const router = useRouter()
 	const { savedProtocols, addProtocol, removeProtocol } = useWatchlistManager(
 		router.pathname.includes('/yields') ? 'yields' : 'defi'
 	)
 
-	const isSaved: boolean = savedProtocols.has(readableProtocolName)
+	const isSaved: boolean = savedProtocols.has(readableName)
 
-	const onClick = isSaved ? () => removeProtocol(readableProtocolName) : () => addProtocol(readableProtocolName)
+	const onClick = isSaved ? () => removeProtocol(readableName) : () => addProtocol(readableName)
 
 	return (
 		<button

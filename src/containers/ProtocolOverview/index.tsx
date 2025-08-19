@@ -114,7 +114,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						{props.token.symbol && props.token.symbol !== '-' ? (
 							<span className="font-normal mr-auto">({props.token.symbol})</span>
 						) : null}
-						<Bookmark readableProtocolName={props.name} />
+						<Bookmark readableName={props.name} />
 					</h1>
 					<ProtocolTVL
 						hasTvl={props.metrics.tvl}
@@ -138,7 +138,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								{props.token.symbol && props.token.symbol !== '-' ? (
 									<span className="font-normal mr-auto">({props.token.symbol})</span>
 								) : null}
-								<Bookmark readableProtocolName={props.name} />
+								<Bookmark readableName={props.name} />
 							</h1>
 							<ProtocolTVL
 								hasTvl={props.metrics.tvl}
