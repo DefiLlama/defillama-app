@@ -276,11 +276,7 @@ export default function Protocols(props) {
 	}, [props.charts, charts, feesSettings, groupBy])
 
 	const toggleOptions = feesOptions.filter((option) =>
-		option.key === 'bribes'
-			? props.metrics.bribeRevenue?.totalAllTime
-			: option.key === 'tokentax'
-				? props.metrics.tokenTax?.totalAllTime
-				: true
+		option.key === 'bribes' ? props.metrics.bribes : option.key === 'tokentax' ? props.metrics.tokenTax : true
 	)
 
 	return (

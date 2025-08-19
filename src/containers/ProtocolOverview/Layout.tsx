@@ -7,6 +7,9 @@ import { IProtocolPageMetrics } from './types'
 import * as Ariakit from '@ariakit/react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { defaultProtocolPageStyles } from './Chart/constants'
+import { useMemo } from 'react'
+import { tvlOptions } from '~/components/Filters/options'
+import { DEFI_SETTINGS_KEYS, FEES_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 
 export function ProtocolOverviewLayout({
 	children,
@@ -53,8 +56,31 @@ export function ProtocolOverviewLayout({
 		level: 'low' | 'alert' | 'rug'
 	}>
 }) {
+	const includeInMetricsOptionslabel = useMemo(() => {
+		const hasTvl = toggleOptions?.some((option) => DEFI_SETTINGS_KEYS.includes(option.key))
+		const hasFees = toggleOptions?.some((option) => FEES_SETTINGS_KEYS.includes(option.key))
+
+		if (hasTvl && hasFees) {
+			return 'Include TVL & Fees'
+		}
+
+		if (hasTvl) {
+			return 'Include in TVL'
+		}
+
+		if (hasFees) {
+			return 'Include in Fees'
+		}
+
+		return null
+	}, [toggleOptions, metrics])
 	return (
-		<Layout title={`${name} - DefiLlama`} style={defaultProtocolPageStyles} includeInMetricsOptions={toggleOptions}>
+		<Layout
+			title={`${name} - DefiLlama`}
+			style={defaultProtocolPageStyles}
+			includeInMetricsOptions={toggleOptions}
+			includeInMetricsOptionslabel={includeInMetricsOptionslabel}
+		>
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color)">
 					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this

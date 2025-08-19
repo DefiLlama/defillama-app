@@ -34,7 +34,7 @@
       "name": "Revenue by Protocol",
       "route": "/revenue",
       "category": "Fees & Revenue",
-      "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
+      "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to liquidity providers"
     },
     {
       "name": "Revenue by Chain",
@@ -118,7 +118,7 @@
       "name": "Bridge Aggregator Volume by Protocol",
       "route": "/bridge-aggregators",
       "category": "Volume",
-      "description": "Sum of value of all assets that were bridged through the Bridge Aggregators"
+      "description": "Sum of value of all assets that were bridged through the bridge aggregators"
     },
     {
       "name": "Perp Aggregator Volume by Protocol",
@@ -226,7 +226,7 @@
       "name": "Total Borrowed by Protocol",
       "route": "/total-borrowed",
       "category": "Total Value",
-      "description": "Sum of value currently borrowed across all active loans on a Lending protocol"
+      "description": "Sum of value currently borrowed across all active loans on a lending protocol"
     },
     {
       "name": "Total Staked by Protocol",
