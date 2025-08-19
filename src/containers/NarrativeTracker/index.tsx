@@ -117,9 +117,21 @@ export const CategoryPerformanceContainer = ({
 
 	return (
 		<>
-			<h1 className="text-xl font-semibold bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
-				{isCoinPage ? `Category: ${categoryName ?? ''}` : 'MCap-Weighted Category Performance'}
-			</h1>
+			{isCoinPage ? (
+				<h1 className="text-xl font-semibold bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+					{isCoinPage ? `Category: ${categoryName ?? ''}` : 'Narrative Tracker: Change in market cap by category'}
+				</h1>
+			) : (
+				<div className="flex flex-col gap-3 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+					<h1 className="text-xl font-semibold">Narrative Tracker</h1>
+					<p className="text-sm text-(--text-secondary)">
+						MCap-Weighted Category Performance: Shows how a category of coins has performed over your chosen time period
+						and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each
+						individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3.
+						averaging these weighted changes to get the overall category performance.
+					</p>
+				</div>
+			)}
 
 			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
 				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">

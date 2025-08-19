@@ -8,7 +8,11 @@ import insightsAndTools from '~/public/insights-and-tools.json'
 const insightsByCategory = Object.entries(
 	insightsAndTools.Insights.reduce((acc, insight) => {
 		acc[insight.category] = acc[insight.category] || []
-		acc[insight.category].push(insight)
+		acc[insight.category].push({
+			...insight,
+			name: insight.name.replace('Yields: ', ''),
+			description: insight.description ?? ''
+		})
 		return acc
 	}, {})
 ).map(([category, insights]: [string, Array<{ name: string; route: string; description: string }>]) => ({
