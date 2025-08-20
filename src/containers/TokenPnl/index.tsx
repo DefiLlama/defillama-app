@@ -144,7 +144,7 @@ export default function TokenPnl({ coinsData }) {
 
 	return (
 		<>
-			<div className="mx-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			<div className="mx-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 xl:absolute xl:left-0 xl:right-0 xl:top-[116px] xl:m-auto">
 				<h1 className="text-center text-xl font-semibold">Token Holder Profit and Loss</h1>
 				<div className="flex w-full flex-col gap-3">
 					<DateInput

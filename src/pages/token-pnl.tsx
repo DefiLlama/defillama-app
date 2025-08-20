@@ -14,9 +14,11 @@ export const getStaticProps = withPerformanceLogging('token-pnl', async () => {
 	}
 })
 
+const pageName = ['Token PNL']
+
 export default function TokenPnlPage({ coinsData }) {
 	return (
-		<Layout title={`Token PNL - DefiLlama`}>
+		<Layout title={`Token PNL - DefiLlama`} pageName={pageName}>
 			<TokenPnl coinsData={coinsData} />
 		</Layout>
 	)

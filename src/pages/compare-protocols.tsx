@@ -6,7 +6,8 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { IconsRow } from '~/components/IconsRow'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { LocalLoader } from '~/components/LocalLoader'
+import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOL_API } from '~/constants'
 import { oldBlue } from '~/constants/colors'
@@ -46,6 +47,8 @@ const fetchProtocol = async (selectedProtocol: string | null) => {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
 	}
 }
+
+const pageName = ['Compare Protocols']
 
 export default function CompareProtocolsTvls({ protocols }) {
 	const router = useRouter()
@@ -136,29 +139,16 @@ export default function CompareProtocolsTvls({ protocols }) {
 		}
 	}, [results, extraTvlEnabled])
 
-	const setSelectedProtocols = (values) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					protocol: values
-				}
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
-	}
-
 	const sortedProtocols = React.useMemo(() => {
 		const selectedSet = new Set(selectedProtocols)
 		const unselectedProtocols = protocolsNames.filter((protocol) => !selectedSet.has(protocol))
 
-		return [...selectedProtocols, ...unselectedProtocols]
+		return [...selectedProtocols, ...unselectedProtocols].map((protocol) => ({
+			value: protocol,
+			label: protocol,
+			logo: tokenIconUrl(protocol)
+		}))
 	}, [selectedProtocols, protocolsNames])
-
-	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const selectedProtocolsData = React.useMemo(() => {
 		return selectedProtocols
@@ -166,41 +156,54 @@ export default function CompareProtocolsTvls({ protocols }) {
 				return protocols.find((p) => p.name === protocolName)
 			})
 			.filter(Boolean)
-	}, [selectedProtocols, protocols, extraTvlsEnabled])
+	}, [selectedProtocols, protocols])
 
 	return (
-		<Layout title={`Compare Protocols - DefiLlama`}>
-			<div className="isolate rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex flex-wrap items-center justify-between gap-2 p-3">
-					<h1 className="mr-auto text-lg font-semibold">Compare Protocols</h1>
-					<SelectWithCombobox
-						allValues={sortedProtocols}
-						selectedValues={selectedProtocols}
-						setSelectedValues={setSelectedProtocols}
-						label="Selected Protocols"
-						clearAll={() => setSelectedProtocols([])}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) text-black dark:text-white font-medium'
-						}}
-					/>
-				</div>
-				{isLoading ? (
-					<div className="flex min-h-[360px] flex-col items-center justify-center">
-						<p>Loading...</p>
-					</div>
-				) : (
-					<React.Suspense fallback={<div className="min-h-[360px]" />}>
-						<LineAndBarChart charts={charts} valueSymbol="$" />
-					</React.Suspense>
-				)}
+		<Layout title={`Compare Protocols - DefiLlama`} pageName={pageName}>
+			<div className="flex items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<MultiSelectCombobox
+					data={sortedProtocols}
+					placeholder="Select Protocols..."
+					selectedValues={selectedProtocols}
+					setSelectedValues={(values) => {
+						router.push(
+							{
+								pathname: router.pathname,
+								query: {
+									protocol: values
+								}
+							},
+							undefined,
+							{
+								shallow: true
+							}
+						)
+					}}
+				/>
 			</div>
-			{selectedProtocolsData.length > 0 && (
-				<div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3">
-					{selectedProtocolsData.map((protocolData) => (
-						<ProtocolInfoCard key={protocolData.name} protocolData={protocolData} />
-					))}
+
+			{selectedProtocols.length > 1 ? (
+				<div className="relative flex flex-col gap-1">
+					<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						{isLoading || !router.isReady ? (
+							<div className="flex items-center justify-center h-full w-full">
+								<LocalLoader />
+							</div>
+						) : (
+							<React.Suspense fallback={<></>}>
+								<LineAndBarChart charts={charts} valueSymbol="$" />
+							</React.Suspense>
+						)}
+					</div>
+					<div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3">
+						{selectedProtocolsData.map((protocolData) => (
+							<ProtocolInfoCard key={protocolData.name} protocolData={protocolData} />
+						))}
+					</div>
+				</div>
+			) : (
+				<div className="flex items-center justify-center min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<p className="text-sm text-(--text-secondary)">Select at least 2 protocols to compare</p>
 				</div>
 			)}
 		</Layout>

@@ -309,6 +309,8 @@ export const descriptions = {
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
 
+const pageName = ['Protocol Categories']
+
 export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
 	const clearAll = () => {
@@ -432,7 +434,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	}, [tableData, extaTvlsEnabled])
 
 	return (
-		<Layout title={`Categories - DefiLlama`} includeInMetricsOptions={finalTvlOptions}>
+		<Layout title={`Categories - DefiLlama`} includeInMetricsOptions={finalTvlOptions} pageName={pageName}>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Categories</h1>

@@ -38,6 +38,8 @@ export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	}
 })
 
+const pageName = ['Token', 'usage in', 'Protocols']
+
 export default function Tokens({ searchData }) {
 	const router = useRouter()
 	const { token, includecex } = router.query
@@ -77,7 +79,7 @@ export default function Tokens({ searchData }) {
 	}
 
 	return (
-		<Layout title="Token Usage - DefiLlama">
+		<Layout title="Token Usage - DefiLlama" pageName={pageName}>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 
 			<Search searchData={searchData} />
@@ -110,7 +112,10 @@ export default function Tokens({ searchData }) {
 										)
 									}
 								/>
-								<CSVDownloadButton onClick={downloadCSV} />
+								<CSVDownloadButton
+									onClick={downloadCSV}
+									className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+								/>
 							</div>
 						</div>
 

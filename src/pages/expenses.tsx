@@ -41,9 +41,11 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Expenses']
+
 export default function Protocols(props) {
 	return (
-		<Layout title={`Protocol Expenses - DefiLlama`}>
+		<Layout title={`Protocol Expenses - DefiLlama`} pageName={pageName}>
 			<TableWithSearch
 				data={props.expenses}
 				columns={columns}
