@@ -186,7 +186,7 @@ export default function CompareProtocolsTvls({ protocols }) {
 				<div className="relative flex flex-col gap-1">
 					<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						{isLoading || !router.isReady ? (
-							<div className="flex items-center justify-center h-full w-full">
+							<div className="flex h-full w-full items-center justify-center">
 								<LocalLoader />
 							</div>
 						) : (
@@ -202,7 +202,7 @@ export default function CompareProtocolsTvls({ protocols }) {
 					</div>
 				</div>
 			) : (
-				<div className="flex items-center justify-center min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex min-h-[362px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<p className="text-sm text-(--text-secondary)">Select at least 2 protocols to compare</p>
 				</div>
 			)}

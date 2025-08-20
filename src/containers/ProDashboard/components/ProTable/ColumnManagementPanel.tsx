@@ -449,7 +449,7 @@ export function ColumnManagementPanel({
 														onDeleteView?.(view.id)
 													}
 												}}
-												className="pro-text3 hover:text-red-500 p-2 transition-colors"
+												className="pro-text3 p-2 transition-colors hover:text-red-500"
 											>
 												<Icon name="trash-2" height={16} width={16} />
 											</button>

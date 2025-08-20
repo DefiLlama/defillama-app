@@ -1,12 +1,11 @@
 import * as React from 'react'
-import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { COLOR_PALETTE } from '../constants'
 import type { DailyUnlocks, PrecomputedData } from '../types'
 
 interface UseUnlockChartDataProps {
 	currentDate: Dayjs
-	viewMode: 'month' | 'week' | 'list' | 'treemap'
+	viewMode: 'Month' | 'Week' | 'List' | 'TreeMap'
 	unlocksData: {
 		[date: string]: DailyUnlocks
 	}
@@ -20,7 +19,7 @@ export const useUnlockChartData = ({
 	precomputedData
 }: UseUnlockChartDataProps) => {
 	const weekRange = React.useMemo(() => {
-		if (viewMode !== 'week') return null
+		if (viewMode !== 'Week') return null
 		const startOfWeek = currentDate.startOf('week')
 		return {
 			start: startOfWeek,
@@ -29,7 +28,7 @@ export const useUnlockChartData = ({
 	}, [currentDate, viewMode])
 
 	const monthRange = React.useMemo(() => {
-		if (viewMode !== 'month') return null
+		if (viewMode !== 'Month') return null
 		const startOfMonth = currentDate.startOf('month')
 		const endOfMonth = currentDate.endOf('month')
 		const daysInMonth = endOfMonth.date()
@@ -42,7 +41,7 @@ export const useUnlockChartData = ({
 	}, [currentDate, viewMode])
 
 	const weeklyChartData = React.useMemo(() => {
-		if (viewMode !== 'week' || !weekRange) return null
+		if (viewMode !== 'Week' || !weekRange) return null
 
 		const weekData: Array<any> = []
 		const protocolTotals: { [key: string]: number } = {}
@@ -106,7 +105,7 @@ export const useUnlockChartData = ({
 	}, [weekRange, unlocksData])
 
 	const monthlyChartData = React.useMemo(() => {
-		if (viewMode !== 'month' || !monthRange) return null
+		if (viewMode !== 'Month' || !monthRange) return null
 
 		const monthData: Array<any> = []
 		const protocolTotals: { [key: string]: number } = {}

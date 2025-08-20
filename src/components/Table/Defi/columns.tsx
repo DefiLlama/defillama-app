@@ -215,14 +215,14 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 					<TokenLogo logo={tokenIconUrl(getValue())} />
 					<BasicLink
 						href={`/unlocks/${slug(getValue() as string)}`}
-						className="overflow-hidden text-sm font-bold text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
 						{getValue() as string}
 					</BasicLink>
 				</span>
 			)
 		},
-		size: 140
+		size: 160
 	},
 	{
 		header: 'Price',
@@ -260,7 +260,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			const percetage = (100 - (row.original.totalLocked / row.original.maxSupply) * 100).toPrecision(2)
 
 			return (
-				<div className="flex flex-col gap-2 px-2">
+				<div className="flex flex-col items-end gap-2 px-2">
 					<span className="flex items-center justify-between gap-2">
 						<span className="text-[#3255d7]">{formattedNum(percetage)}%</span>
 					</span>
@@ -326,7 +326,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			return ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
 		},
 		cell: ({ getValue }) => {
-			return <span className="text-lg font-medium">{getValue() ? formattedPercent(getValue()) : ''}</span>
+			return <span>{getValue() ? formattedPercent(getValue()) : ''}</span>
 		},
 		meta: {
 			align: 'end',

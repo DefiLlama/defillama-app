@@ -43,6 +43,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	stacks?: {
 		[stack: string]: string
 	}
+	customComponents?: React.ReactNode
 }
 
 export interface ILineAndBarChartProps {

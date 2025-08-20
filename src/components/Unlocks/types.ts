@@ -15,10 +15,21 @@ export interface PrecomputedData {
 	listEvents: { [startDateKey: string]: Array<{ date: string; event: any }> }
 }
 
-export interface CalendarViewProps {
-	unlocksData: {
-		[date: string]: DailyUnlocks
+export interface UnlocksData {
+	[date: string]: {
+		totalValue: number
+		events: Array<{
+			protocol: string
+			value: number
+			details: string
+			category?: string
+			unlockType: string
+		}>
 	}
+}
+
+export interface CalendarViewProps {
+	initialUnlocksData: UnlocksData
 	precomputedData?: PrecomputedData
 }
 

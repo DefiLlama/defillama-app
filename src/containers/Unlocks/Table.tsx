@@ -15,7 +15,6 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
-import { slug } from '~/utils'
 
 const optionsKey = 'unlockTable'
 const filterStatekey = 'unlockTableFilterState'
@@ -321,11 +320,11 @@ export const UnlocksTable = ({
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				<h1 className="mr-auto text-xl font-semibold">Token Unlocks</h1>
+				<h1 className="mr-auto text-lg font-semibold">Token Unlocks</h1>
 
 				<button
 					onClick={() => setShowOnlyWatchlist(!showOnlyWatchlist)}
-					className="flex w-[200px] items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white p-[6px] px-3 text-sm text-black dark:bg-black dark:text-white"
+					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
 					<Icon
 						name="bookmark"
@@ -370,7 +369,7 @@ export const UnlocksTable = ({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+							'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 					}}
 				/>
 
@@ -386,7 +385,7 @@ export const UnlocksTable = ({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+							'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 					}}
 				/>
 

@@ -102,7 +102,7 @@ export function TableHeader({
 
 						{showCustomViewDropdown && (
 							<div
-								className="pro-bg3 pro-divider absolute right-0 top-full mt-1 min-w-[200px] border shadow-lg"
+								className="pro-bg3 pro-divider absolute top-full right-0 mt-1 min-w-[200px] border shadow-lg"
 								style={{ zIndex: 9999 }}
 							>
 								{customViews.length > 0 ? (
@@ -135,7 +135,7 @@ export function TableHeader({
 																onDeleteView?.(view.id)
 															}
 														}}
-														className="pro-text3 hover:text-red-500 p-1 transition-colors"
+														className="pro-text3 p-1 transition-colors hover:text-red-500"
 													>
 														<Icon name="trash-2" height={12} width={12} />
 													</button>

@@ -44,28 +44,28 @@ export const MultiSelectCombobox = ({
 			open={open}
 			setOpen={setOpen}
 		>
-			<span className="relative flex flex-wrap items-center gap-1 w-full flex-1 border-2 border-transparent rounded-md focus-within:border-2 focus-within:border-(--primary)">
+			<span className="relative flex w-full flex-1 flex-wrap items-center gap-1 rounded-md border-2 border-transparent focus-within:border-2 focus-within:border-(--primary)">
 				{selectedValues.length > 0 ? (
 					<div className="flex flex-wrap items-center gap-1 pl-1">
 						{selectedValues.map((value) => (
 							<button
 								key={`mutliselectcombobox-selected-${value}`}
-								className="flex items-center gap-1 text-xs font-medium rounded-md p-[6px] border-(--old-blue) bg-[rgba(31,103,210,0.12)]"
+								className="flex items-center gap-1 rounded-md border-(--old-blue) bg-[rgba(31,103,210,0.12)] p-[6px] text-xs font-medium"
 								onClick={() => {
 									setSelectedValues(selectedValues.filter((v) => v !== value))
 								}}
 							>
 								<span>{value}</span>
-								<Icon name="x" className="w-3 h-3" />
+								<Icon name="x" className="h-3 w-3" />
 							</button>
 						))}
 					</div>
 				) : null}
-				<Ariakit.Combobox placeholder={placeholder} className="flex-1 w-full px-3 py-2 outline-none" />
+				<Ariakit.Combobox placeholder={placeholder} className="w-full flex-1 px-3 py-2 outline-none" />
 				{open ? (
-					<Icon name="x" className="w-4 h-4 absolute right-2 top-0 bottom-0 my-auto" />
+					<Icon name="x" className="absolute top-0 right-2 bottom-0 my-auto h-4 w-4" />
 				) : (
-					<Icon name="chevron-down" className="w-4 h-4 absolute right-2 top-0 bottom-0 my-auto" />
+					<Icon name="chevron-down" className="absolute top-0 right-2 bottom-0 my-auto h-4 w-4" />
 				)}
 			</span>
 			<Ariakit.ComboboxPopover
