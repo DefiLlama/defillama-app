@@ -1,24 +1,29 @@
 import { useMemo, useState } from 'react'
 import { Menu } from '~/components/Menu'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlistManager } from '~/contexts/LocalStorage'
-import { formatProtocolsList } from '~/hooks/data/defi'
-import { useGetProtocolsList } from '~/api/categories/protocols/client'
-import { useGetProtocolsFeesAndRevenueByChain, useGetProtocolsVolumeByChain } from '~/api/categories/chains/client'
+import { formatProtocolsList, formatDataWithExtraTvls } from '~/hooks/data/defi'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { Icon } from '~/components/Icon'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import type { IFormattedProtocol } from '~/api/types'
+import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
+import * as Ariakit from '@ariakit/react'
+import { useIsClient } from '~/hooks'
+import { useSubscribe } from '~/hooks/useSubscribe'
+import { SubscribeModal } from '~/components/Modal/SubscribeModal'
+import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { useRouter } from 'next/router'
 
-export function DefiWatchlistContainer() {
+export function DefiWatchlistContainer({
+	protocolsList,
+	parentProtocols,
+	protocolsVolumeByChain,
+	protocolsFeesAndRevenueByChain,
+	chains,
+	chainAssets
+}) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-
-	const { fullProtocolsList, parentProtocols, isLoading: fetchingProtocolsList } = useGetProtocolsList({ chain: 'All' })
-
-	const { data: chainProtocolsVolumes, isLoading: fetchingProtocolsVolumeByChain } = useGetProtocolsVolumeByChain('All')
-
-	const { data: chainProtocolsFees, isLoading: fetchingProtocolsFeesAndRevenueByChain } =
-		useGetProtocolsFeesAndRevenueByChain('All')
 
 	const {
 		portfolios,
@@ -31,20 +36,33 @@ export function DefiWatchlistContainer() {
 		removeProtocol
 	} = useWatchlistManager('defi')
 
+	const {
+		savedProtocols: savedChains,
+		addProtocol: addChain,
+		removeProtocol: removeChain
+	} = useWatchlistManager('chains')
+
 	const formattedProtocols = useMemo(() => {
 		return formatProtocolsList({
 			extraTvlsEnabled,
-			protocols: fullProtocolsList,
-			volumeData: chainProtocolsVolumes,
-			feesData: chainProtocolsFees,
+			protocols: protocolsList,
+			volumeData: protocolsVolumeByChain,
+			feesData: protocolsFeesAndRevenueByChain,
 			parentProtocols: parentProtocols,
 			noSubrows: true
 		})
-	}, [fullProtocolsList, parentProtocols, extraTvlsEnabled, chainProtocolsVolumes, chainProtocolsFees])
+	}, [protocolsList, parentProtocols, extraTvlsEnabled, protocolsVolumeByChain, protocolsFeesAndRevenueByChain])
 
 	const filteredProtocols = useMemo(() => {
 		return formattedProtocols.filter((p) => savedProtocols.has(p.name))
-	}, [fullProtocolsList, savedProtocols, extraTvlsEnabled, parentProtocols, chainProtocolsVolumes, chainProtocolsFees])
+	}, [
+		protocolsList,
+		savedProtocols,
+		extraTvlsEnabled,
+		parentProtocols,
+		protocolsVolumeByChain,
+		protocolsFeesAndRevenueByChain
+	])
 
 	const protocolOptions = useMemo(() => {
 		return formattedProtocols.map((protocol) => ({
@@ -68,10 +86,39 @@ export function DefiWatchlistContainer() {
 		toRemove.forEach((name) => removeProtocol(name))
 	}
 
+	const formattedChains = useMemo(() => {
+		if (!chains) return []
+		return formatDataWithExtraTvls({
+			data: chains,
+			applyLqAndDc: true,
+			extraTvlsEnabled,
+			chainAssets
+		})
+	}, [chains, chainAssets, extraTvlsEnabled])
+
+	const filteredChains = useMemo(() => {
+		return formattedChains.filter((c) => savedChains.has(c.name))
+	}, [formattedChains, savedChains])
+
+	const chainOptions = useMemo(() => {
+		return (formattedChains || []).map((c) => ({ key: c.name, name: c.name }))
+	}, [formattedChains])
+
+	const selectedChainNames = useMemo(() => Array.from(savedChains), [savedChains])
+
+	const handleChainSelection = (selectedValues: string[]) => {
+		const currentSet = new Set(selectedChainNames)
+		const newSet = new Set(selectedValues)
+		const toAdd = selectedValues.filter((name) => !currentSet.has(name))
+		const toRemove = selectedChainNames.filter((name) => !newSet.has(name))
+		toAdd.forEach((name) => addChain(name))
+		toRemove.forEach((name) => removeChain(name))
+	}
+
 	return (
 		<>
 			<WatchListTabs />
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="flex flex-col gap-2">
 				<PortfolioSelection
 					portfolios={portfolios}
 					selectedPortfolio={selectedPortfolio}
@@ -79,33 +126,25 @@ export function DefiWatchlistContainer() {
 					addPortfolio={addPortfolio}
 					removePortfolio={removePortfolio}
 				/>
+				{filteredProtocols.length > 0 && <TopMovers protocols={filteredProtocols} />}
+
 				<ProtocolSelection
 					protocolOptions={protocolOptions}
 					selectedProtocolNames={selectedProtocolNames}
 					handleProtocolSelection={handleProtocolSelection}
 					selectedPortfolio={selectedPortfolio}
 				/>
-				{filteredProtocols.length > 0 && <TopMovers protocols={filteredProtocols} />}
-				<div className="p-4">
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 					<div className="flex items-center justify-between mb-4">
-						<h2 className="text-lg font-medium">
-							{selectedPortfolio === DEFAULT_PORTFOLIO_NAME ? 'Watchlist' : `${selectedPortfolio} Portfolio`}
-						</h2>
+						<h2 className="text-lg font-medium">Protocols</h2>
 						{selectedProtocolNames.length > 0 && (
 							<span className="text-sm text-(--text-secondary)">
 								{selectedProtocolNames.length} protocol{selectedProtocolNames.length === 1 ? '' : 's'}
 							</span>
 						)}
 					</div>
-					{fetchingProtocolsList || fetchingProtocolsVolumeByChain || fetchingProtocolsFeesAndRevenueByChain ? (
-						<div className="p-8 text-center">
-							<div className="inline-flex items-center gap-2 text-(--text-secondary)">
-								<div className="animate-spin rounded-full h-4 w-4 border-2 border-(--text-secondary) border-t-transparent"></div>
-								<span>Loading protocols...</span>
-							</div>
-						</div>
-					) : filteredProtocols.length ? (
-						<ProtocolsByChainTable data={filteredProtocols} />
+					{filteredProtocols.length ? (
+						<ProtocolsByChainTable data={filteredProtocols} useStickyHeader={false} />
 					) : (
 						<div className="p-8 text-center">
 							<div className="max-w-sm mx-auto">
@@ -118,6 +157,50 @@ export function DefiWatchlistContainer() {
 								<p className="text-(--text-secondary) mb-2">No protocols in this portfolio</p>
 								<p className="text-sm text-(--text-secondary) opacity-75">
 									Use the protocol selector above to add protocols to your portfolio
+								</p>
+							</div>
+						</div>
+					)}
+				</div>
+
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
+					<div className="mb-3">
+						<h2 className="text-lg font-medium mb-1">Manage Chains</h2>
+						<p className="text-sm text-(--text-secondary)">
+							Select or deselect chains for the "{selectedPortfolio}" portfolio
+						</p>
+					</div>
+					<SelectWithCombobox
+						allValues={chainOptions}
+						selectedValues={selectedChainNames}
+						setSelectedValues={handleChainSelection}
+						label={
+							selectedChainNames.length > 0
+								? `${selectedChainNames.length} chain${selectedChainNames.length === 1 ? '' : 's'} selected`
+								: 'Select chains...'
+						}
+						labelType="regular"
+					/>
+				</div>
+
+				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
+					<div className="flex items-center justify-between mb-4">
+						<h2 className="text-lg font-medium">Chains</h2>
+						{selectedChainNames.length > 0 && (
+							<span className="text-sm text-(--text-secondary)">
+								{selectedChainNames.length} chain{selectedChainNames.length === 1 ? '' : 's'}
+							</span>
+						)}
+					</div>
+					{filteredChains.length ? (
+						<ChainsByCategoryTable data={filteredChains} useStickyHeader={false} borderless />
+					) : (
+						<div className="p-8 text-center">
+							<div className="max-w-sm mx-auto">
+								<Icon name="map" height={48} width={48} className="mx-auto mb-4 text-(--text-secondary) opacity-50" />
+								<p className="text-(--text-secondary) mb-2">No chains in this portfolio</p>
+								<p className="text-sm text-(--text-secondary) opacity-75">
+									Use the chains selector above to add chains
 								</p>
 							</div>
 						</div>
@@ -144,7 +227,7 @@ function PortfolioSelection({
 	removePortfolio
 }: PortfolioSelectionProps) {
 	return (
-		<div className="p-4 border-b border-(--cards-border)">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 			<h1 className="text-xl font-semibold mb-4">Portfolio</h1>
 			<div className="flex items-center flex-wrap gap-4">
 				<span className="text-sm font-medium text-(--text-primary)">Active portfolio:</span>
@@ -197,7 +280,7 @@ function ProtocolSelection({
 	selectedPortfolio
 }: ProtocolSelectionProps) {
 	return (
-		<div className="p-4 border-b border-(--cards-border)">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 			<div className="mb-3">
 				<h2 className="text-lg font-medium mb-1">Manage Protocols</h2>
 				<p className="text-sm text-(--text-secondary)">
@@ -277,7 +360,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 	}, [availableChains])
 
 	return (
-		<div className="p-4 border-b border-(--cards-border)">
+		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
 			<div className="mb-4">
 				<h2 className="text-lg font-medium mb-1">Top Movers</h2>
 				<p className="text-sm text-(--text-secondary)">Biggest changes in your portfolio</p>

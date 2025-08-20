@@ -17,6 +17,7 @@ interface ITableProps {
 	stripedBg?: boolean
 	style?: React.CSSProperties
 	compact?: boolean
+	useStickyHeader?: boolean
 }
 
 declare module '@tanstack/table-core' {
@@ -34,6 +35,7 @@ export function VirtualTable({
 	renderSubComponent,
 	stripedBg = false,
 	compact = false,
+	useStickyHeader = true,
 	...props
 }: ITableProps) {
 	const router = useRouter()
@@ -76,6 +78,8 @@ export function VirtualTable({
 	}, [])
 
 	const onScrollOrResize = React.useCallback(() => {
+		if (!useStickyHeader) return
+
 		const tableWrapperEl = document.getElementById('table-wrapper')
 		const tableHeaderDuplicate = document.getElementById('table-header-dup')
 
@@ -98,7 +102,7 @@ export function VirtualTable({
 			tableHeaderRef.current.style['overflow-x'] = 'initial'
 			tableHeaderDuplicate.style.height = '0px'
 		}
-	}, [instance, skipVirtualization])
+	}, [instance, skipVirtualization, useStickyHeader])
 
 	useEffect(() => {
 		let resizeTimeout: NodeJS.Timeout

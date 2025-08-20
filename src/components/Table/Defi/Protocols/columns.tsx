@@ -59,7 +59,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 							)}
 						</button>
 					) : (
-						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
+						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
 					<span className="shrink-0">{index + 1}</span>
@@ -478,7 +478,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 							)}
 						</button>
 					) : (
-						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
+						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
 					<span className="shrink-0">{index + 1}</span>
@@ -628,7 +628,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 							)}
 						</button>
 					) : (
-						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
+						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
 
 					<span className="shrink-0">{index + 1}</span>
@@ -901,7 +901,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 					className="flex items-center gap-2 relative"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
-					<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
+					<Bookmark readableName={value} data-lgonly data-bookmark />
 					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink

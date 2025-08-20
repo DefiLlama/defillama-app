@@ -63,8 +63,10 @@ const DEPEGGED = 'DEPEGGED'
 // WATCHLISTS
 const DEFI_WATCHLIST = 'DEFI_WATCHLIST'
 const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
+const CHAINS_WATCHLIST = 'CHAINS_WATCHLIST'
 const DEFI_SELECTED_PORTFOLIO = 'DEFI_SELECTED_PORTFOLIO'
 const YIELDS_SELECTED_PORTFOLIO = 'YIELDS_SELECTED_PORTFOLIO'
+const CHAINS_SELECTED_PORTFOLIO = 'CHAINS_SELECTED_PORTFOLIO'
 export const DEFAULT_PORTFOLIO_NAME = 'main'
 
 // YIELDS SAVED FILTERS
@@ -356,7 +358,7 @@ export function useYieldFilters() {
 	}
 }
 
-export function useWatchlistManager(type: 'defi' | 'yields') {
+export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => localStorage.getItem(DEFILLAMA) ?? '{}',
@@ -364,8 +366,13 @@ export function useWatchlistManager(type: 'defi' | 'yields') {
 	)
 
 	return useMemo(() => {
-		const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : YIELDS_WATCHLIST
-		const selectedPortfolioKey = type === 'defi' ? DEFI_SELECTED_PORTFOLIO : YIELDS_SELECTED_PORTFOLIO
+		const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : type === 'yields' ? YIELDS_WATCHLIST : CHAINS_WATCHLIST
+		const selectedPortfolioKey =
+			type === 'defi'
+				? DEFI_SELECTED_PORTFOLIO
+				: type === 'yields'
+					? YIELDS_SELECTED_PORTFOLIO
+					: CHAINS_SELECTED_PORTFOLIO
 		const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
 
 		const portfolios = Object.keys(watchlist)

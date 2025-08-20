@@ -147,7 +147,15 @@ export const defaultColumns = JSON.stringify({
 
 const optionsKey = 'protocolsTableColumns'
 
-const ProtocolsTable = ({ data, columnsInStorage }: { data: Array<IProtocolRow>; columnsInStorage: string }) => {
+const ProtocolsTable = ({
+	data,
+	columnsInStorage,
+	useStickyHeader = true
+}: {
+	data: Array<IProtocolRow>
+	columnsInStorage: string
+	useStickyHeader?: boolean
+}) => {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -216,12 +224,18 @@ const ProtocolsTable = ({ data, columnsInStorage }: { data: Array<IProtocolRow>;
 
 	return (
 		<>
-			<VirtualTable instance={instance} />
+			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
 		</>
 	)
 }
 
-export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
+export function ProtocolsByChainTable({
+	data,
+	useStickyHeader = true
+}: {
+	data: Array<IProtocolRow>
+	useStickyHeader?: boolean
+}) {
 	const columnsInStorage = React.useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => localStorage.getItem(optionsKey) ?? defaultColumns,
@@ -310,7 +324,7 @@ export function ProtocolsByChainTable({ data }: { data: Array<IProtocolRow> }) {
 				/>
 				<TVLRange variant="third" />
 			</div>
-			<ProtocolsTable data={data} columnsInStorage={columnsInStorage} />
+			<ProtocolsTable data={data} columnsInStorage={columnsInStorage} useStickyHeader={useStickyHeader} />
 		</div>
 	)
 }
