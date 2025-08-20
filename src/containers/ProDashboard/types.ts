@@ -17,6 +17,7 @@ export interface MultiChartConfig {
 	colSpan?: 1 | 2
 	showCumulative?: boolean
 	showPercentage?: boolean
+	showStacked?: boolean
 }
 
 export interface TextConfig {

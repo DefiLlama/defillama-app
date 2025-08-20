@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { download } from '~/utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
@@ -14,9 +14,15 @@ interface MultiChartCardProps {
 }
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { getProtocolInfo, handleGroupingChange, handleCumulativeChange, handlePercentageChange, isReadOnly } =
-		useProDashboard()
-	const [showStacked, setShowStacked] = useState(true)
+	const {
+		getProtocolInfo,
+		handleGroupingChange,
+		handleCumulativeChange,
+		handlePercentageChange,
+		handleStackedChange,
+		isReadOnly
+	} = useProDashboard()
+	const showStacked = multi.showStacked !== false
 	const showCumulative = multi.showCumulative || false
 
 	// Filter valid items and create series data
@@ -306,7 +312,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 								onClick={() => {
 									handleCumulativeChange(multi.id, !showCumulative)
 									if (!showCumulative) {
-										setShowStacked(false)
+										handleStackedChange(multi.id, false)
 									}
 								}}
 								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
@@ -319,7 +325,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && (
 							<button
 								onClick={() => {
-									setShowStacked(!showStacked)
+									handleStackedChange(multi.id, !showStacked)
 									handlePercentageChange(multi.id, false)
 								}}
 								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
@@ -333,7 +339,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 							<button
 								onClick={() => {
 									handlePercentageChange(multi.id, !showPercentage)
-									setShowStacked(false)
+									handleStackedChange(multi.id, false)
 								}}
 								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
 								title={showPercentage ? 'Show absolute values' : 'Show percentage'}
