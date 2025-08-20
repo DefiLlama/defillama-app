@@ -14,6 +14,7 @@ import { useIsClient } from '~/hooks'
 import { formatDataWithExtraTvls, formatProtocolsList } from '~/hooks/data/defi'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { WatchListTabs } from '../Yields/Watchlist'
+import { chainMetrics, protocolMetrics } from './constants'
 
 export function DefiWatchlistContainer({
 	protocolsList,
@@ -55,14 +56,7 @@ export function DefiWatchlistContainer({
 
 	const filteredProtocols = useMemo(() => {
 		return formattedProtocols.filter((p) => savedProtocols.has(p.name))
-	}, [
-		protocolsList,
-		savedProtocols,
-		extraTvlsEnabled,
-		parentProtocols,
-		protocolsVolumeByChain,
-		protocolsFeesAndRevenueByChain
-	])
+	}, [savedProtocols, formattedProtocols])
 
 	const protocolOptions = useMemo(() => {
 		return formattedProtocols.map((protocol) => ({
@@ -227,51 +221,12 @@ function PortfolioNotifications({
 	const dialogStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
 	const router = useRouter()
-	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const { subscription } = useSubscribe()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 
-	// Notification settings state
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>('weekly')
 	const [selectedProtocolMetrics, setSelectedProtocolMetrics] = useState<Set<string>>(new Set())
 	const [selectedChainMetrics, setSelectedChainMetrics] = useState<Set<string>>(new Set())
-
-	// Available metrics for protocols and chains
-	const protocolMetrics = [
-		{ key: 'tvl', name: 'TVL (Total Value Locked)', description: 'Changes in total value locked' },
-		{ key: 'fees', name: 'Fees', description: 'Protocol fees generated' },
-		{ key: 'revenue', name: 'Revenue', description: 'Protocol revenue changes' },
-		{ key: 'volume', name: 'Volume', description: 'Trading volume changes' },
-		{ key: 'perp_volume', name: 'Perps Volume', description: 'Perpetual volume changes' },
-		{ key: 'mcap', name: 'Market Cap', description: 'Market capitalization changes' },
-		{ key: 'price', name: 'Price', description: 'Price changes' },
-		{ key: 'fdv', name: 'FDV', description: 'Fully Diluted Valuation' },
-		{ key: 'outstanding_fdv', name: 'Outstanding FDV', description: 'Outstanding Fully Diluted Valuation' }
-
-		// { key: 'change_1d', name: '24h Change', description: '24-hour percentage changes' },
-		// { key: 'change_7d', name: '7d Change', description: '7-day percentage changes' },
-		// { key: 'change_1m', name: '30d Change', description: '30-day percentage changes' },
-		// { key: 'users', name: 'Active Users', description: 'Active user count changes' },
-		// { key: 'txs', name: 'Transactions', description: 'Transaction count changes' }
-	]
-
-	const chainMetrics = [
-		{ key: 'tvl', name: 'TVL (Total Value Locked)', description: 'Changes in total value locked' },
-		{ key: 'volume', name: 'Volume', description: 'DEX volume changes' },
-		{ key: 'perp_volume', name: 'Perps Volume', description: 'Perpetual volume changes' },
-		{ key: 'fees', name: 'Fees', description: 'Chain fees generated' },
-		{ key: 'revenue', name: 'Revenue', description: 'Chain revenue changes' },
-		{ key: 'price', name: 'Price', description: 'Price changes' },
-		{ key: 'mcap', name: 'Market Cap', description: 'Market capitalization changes' },
-		{ key: 'fdv', name: 'FDV', description: 'Fully Diluted Valuation' },
-		{ key: 'inflows', name: 'Inflows', description: 'Inflows' },
-		// { key: 'change_1d', name: '24h Change', description: '24-hour TVL percentage changes' },
-		// { key: 'change_7d', name: '7d Change', description: '7-day TVL percentage changes' },
-		// { key: 'change_1m', name: '30d Change', description: '30-day TVL percentage changes' },
-		{ key: 'addresses', name: 'Active Addresses', description: 'Active address count changes' },
-		{ key: 'txs', name: 'Transactions', description: 'Transaction count changes' },
-		{ key: 'stablecoins', name: 'Stablecoins', description: 'Stablecoin volume changes' },
-		{ key: 'bridge_volume', name: 'Bridge Volume', description: 'Cross-chain bridge volume' }
-	]
 
 	const handleNotificationsButtonClick = () => {
 		if (!isClient) return
@@ -341,7 +296,6 @@ function PortfolioNotifications({
 					className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
 				>
 					<div className="bg-(--bg-main) border border-(--cards-border) rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
-						{/* Header */}
 						<div className="flex items-center justify-between p-6 border-b border-(--cards-border)">
 							<div>
 								<h2 className="text-xl font-semibold text-(--text-primary)">Notification Settings</h2>
@@ -355,7 +309,6 @@ function PortfolioNotifications({
 						</div>
 
 						<div className="overflow-y-auto max-h-[calc(80vh-180px)]">
-							{/* Frequency Selection */}
 							<div className="p-6 border-b border-(--cards-border)">
 								<h3 className="text-lg font-medium text-(--text-primary) mb-3">Notification Frequency</h3>
 								<div className="flex gap-4">
@@ -390,7 +343,6 @@ function PortfolioNotifications({
 								</div>
 							</div>
 
-							{/* Protocol Metrics */}
 							<div className="p-6 border-b border-(--cards-border)">
 								<h3 className="text-lg font-medium text-(--text-primary) mb-3">Protocol Metrics</h3>
 								{filteredProtocols.length > 0 ? (
@@ -399,22 +351,16 @@ function PortfolioNotifications({
 											Select which metrics you want to receive notifications for across your {filteredProtocols.length}{' '}
 											watchlisted protocol{filteredProtocols.length === 1 ? '' : 's'}
 										</p>
-										<div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
+										<div className="flex flex-wrap gap-3 max-h-60 overflow-y-auto">
 											{protocolMetrics.map((metric) => (
-												<label
-													key={metric.key}
-													className="flex items-center gap-3 p-3 rounded-lg border border-(--form-control-border) hover:bg-(--primary-hover) transition-colors cursor-pointer"
-												>
+												<label key={metric.key} className="flex items-center gap-2 cursor-pointer">
 													<input
 														type="checkbox"
 														checked={selectedProtocolMetrics.has(metric.key)}
 														onChange={() => handleProtocolMetricToggle(metric.key)}
 														className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
 													/>
-													<div className="min-w-0 flex-1">
-														<div className="text-sm font-medium text-(--text-primary)">{metric.name}</div>
-														<div className="text-xs text-(--text-secondary)">{metric.description}</div>
-													</div>
+													<span className="text-sm font-medium text-(--text-primary)">{metric.name}</span>
 												</label>
 											))}
 										</div>
@@ -449,7 +395,6 @@ function PortfolioNotifications({
 								)}
 							</div>
 
-							{/* Chain Metrics */}
 							<div className="p-6">
 								<h3 className="text-lg font-medium text-(--text-primary) mb-3">Chain Metrics</h3>
 								{filteredChains.length > 0 ? (
@@ -458,22 +403,16 @@ function PortfolioNotifications({
 											Select which metrics you want to receive notifications for across your {filteredChains.length}{' '}
 											watchlisted chain{filteredChains.length === 1 ? '' : 's'}
 										</p>
-										<div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
+										<div className="flex flex-wrap gap-3 max-h-60 overflow-y-auto">
 											{chainMetrics.map((metric) => (
-												<label
-													key={metric.key}
-													className="flex items-center gap-3 p-3 rounded-lg border border-(--form-control-border) hover:bg-(--primary-hover) transition-colors cursor-pointer"
-												>
+												<label key={metric.key} className="flex items-center gap-2 cursor-pointer">
 													<input
 														type="checkbox"
 														checked={selectedChainMetrics.has(metric.key)}
 														onChange={() => handleChainMetricToggle(metric.key)}
 														className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
 													/>
-													<div className="min-w-0 flex-1">
-														<div className="text-sm font-medium text-(--text-primary)">{metric.name}</div>
-														<div className="text-xs text-(--text-secondary)">{metric.description}</div>
-													</div>
+													<span className="text-sm font-medium text-(--text-primary)">{metric.name}</span>
 												</label>
 											))}
 										</div>
@@ -508,8 +447,6 @@ function PortfolioNotifications({
 								)}
 							</div>
 						</div>
-
-						{/* Footer */}
 						<div className="flex items-center justify-between p-6 border-t border-(--cards-border) bg-(--bg-secondary)">
 							<div className="text-sm text-(--text-secondary)">
 								{selectedProtocolMetrics.size + selectedChainMetrics.size} metric
