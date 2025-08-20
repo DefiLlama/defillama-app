@@ -101,7 +101,7 @@ export function PeggedAssetsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>
@@ -191,7 +191,7 @@ export function PeggedAssetByChainTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>
@@ -251,7 +251,7 @@ export function PeggedChainsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>

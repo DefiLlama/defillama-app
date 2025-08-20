@@ -97,7 +97,7 @@ export default function LineAndBarChart({
 			}
 		}
 		return series
-	}, [charts, isThemeDark, expandTo100Percent, hallmarks])
+	}, [charts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

@@ -39,7 +39,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-const pageName = ['Protocols', 'ranked by', 'TVL in forks']
+const pageName = ['Forked Protocols Rankings']
 
 export default function Forks(props) {
 	return (

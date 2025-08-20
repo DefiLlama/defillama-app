@@ -62,6 +62,8 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 	}
 })
 
+const pageName = ['Top Protocols']
+
 export default function Chains({ data, uniqueCategories }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
@@ -139,9 +141,9 @@ export default function Chains({ data, uniqueCategories }) {
 	}, [data, uniqueCategories])
 
 	return (
-		<Layout title="Top Protocols by chain on each category - DefiLlama">
+		<Layout title="Top Protocols by chain on each category - DefiLlama" pageName={pageName}>
 			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-bg) bg-(--cards-bg) p-3">
-				<h1 className="mr-auto text-xl font-semibold">Top Protocols by chain on each category</h1>
+				<h1 className="mr-auto text-xl font-semibold">Protocols with highest TVL by chain on each category</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>
 			<VirtualTable instance={table} />

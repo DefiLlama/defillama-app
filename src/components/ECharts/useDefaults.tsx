@@ -223,7 +223,7 @@ export function useDefaults({
 						position: [60, 0],
 						backgroundColor: 'none',
 						borderWidth: '0',
-						padding: 0,
+						padding: 8,
 						boxShadow: 'none',
 						textStyle: {
 							color: isThemeDark ? 'white' : 'black'
@@ -330,7 +330,7 @@ export function useDefaults({
 						position: [60, 0],
 						backgroundColor: 'none',
 						borderWidth: '0',
-						padding: 0,
+						padding: 8,
 						boxShadow: 'none',
 						textStyle: {
 							color: isThemeDark ? 'white' : 'black'
