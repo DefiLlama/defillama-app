@@ -1,4 +1,3 @@
- 
 import { useCallback, useContext, useEffect } from 'react'
 import * as echarts from 'echarts'
 import { LiquidationsContext } from '~/containers/Liquidations/context'

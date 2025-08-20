@@ -1,4 +1,3 @@
- 
 // eslint sucks at types
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import * as React from 'react'

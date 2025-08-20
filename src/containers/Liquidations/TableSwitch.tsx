@@ -1,4 +1,3 @@
- 
 import * as React from 'react'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
