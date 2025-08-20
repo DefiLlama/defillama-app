@@ -22,7 +22,7 @@ export function BridgesOverviewByChain({
 	selectedChain = 'All',
 	chains = [],
 	filteredBridges,
-	messagingProtocols,
+	messagingProtocols = [],
 	bridgeNames,
 	bridgeNameToChartDataIndex,
 	chartDataByBridge,

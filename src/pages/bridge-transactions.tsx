@@ -13,9 +13,11 @@ export const getStaticProps = withPerformanceLogging('bridge-transactions', asyn
 	}
 })
 
+const pageName = ['Bridge Transactions']
+
 export default function BridgeTransactions({ bridges }) {
 	return (
-		<Layout title={`Bridge Transactions - DefiLlama`}>
+		<Layout title={`Bridge Transactions - DefiLlama`} pageName={pageName}>
 			<BridgeTransactionsPage bridges={bridges} />
 		</Layout>
 	)

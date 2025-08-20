@@ -1,33 +1,46 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { maxAgeForNext } from '~/api'
 import { BridgesOverviewByChain } from '~/containers/Bridges/BridgesOverviewByChain'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const queryClient = new QueryClient()
+export const getStaticProps = withPerformanceLogging(
+	'bridges/[...chain]',
+	async ({
+		params: {
+			chain: [chain]
+		}
+	}) => {
+		const props = await getBridgeOverviewPageData(chain)
 
-export const getStaticProps = withPerformanceLogging('bridges', async () => {
-	const props = await getBridgeOverviewPageData(null)
-
-	/*
+		if (!props.filteredBridges || props.filteredBridges?.length === 0) {
+			return {
+				notFound: true
+			}
+		}
+		/*
 	const backgroundColor = await getPeggedColor({
 		peggedAsset: props.filteredPeggedAssets[0]?.name
 	})
 	*/
-	return {
-		props: {
-			...props
-			// backgroundColor
-		},
-		revalidate: maxAgeForNext([22])
+		return {
+			props: {
+				...props
+			},
+			revalidate: maxAgeForNext([22])
+		}
 	}
-})
+)
+
+export async function getStaticPaths() {
+	return { paths: [], fallback: 'blocking' }
+}
+
+const pageName = ['Bridges Volume', 'by', 'Chain']
 
 export default function Bridges({
 	chains,
 	filteredBridges,
-	messagingProtocols,
 	bridgeNames,
 	bridgeNameToChartDataIndex,
 	chartDataByBridge,
@@ -38,12 +51,11 @@ export default function Bridges({
 	//backgroundColor
 }) {
 	return (
-		<Layout title={`Bridge Volume - DefiLlama`}>
+		<Layout title={`Bridge Volume - DefiLlama`} pageName={pageName}>
 			<BridgesOverviewByChain
 				chains={chains}
 				selectedChain={chain}
 				filteredBridges={filteredBridges}
-				messagingProtocols={messagingProtocols}
 				bridgeNames={bridgeNames}
 				bridgeNameToChartDataIndex={bridgeNameToChartDataIndex}
 				chartDataByBridge={chartDataByBridge}

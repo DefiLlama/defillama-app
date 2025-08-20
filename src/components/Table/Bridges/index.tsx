@@ -125,7 +125,8 @@ export function BridgeChainsTable({ data }) {
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex items-center justify-end gap-2 p-3">
+			<div className="flex items-center justify-between gap-2 p-3">
+				<h1 className="mr-auto text-lg font-semibold">Chains</h1>
 				<label className="relative w-full sm:max-w-[280px]">
 					<span className="sr-only">Search...</span>
 					<Icon

@@ -1,28 +1,14 @@
 import * as React from 'react'
 import { lazy } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { BridgeChainsTable } from '~/components/Table/Bridges'
-import { download, toNiceCsvDate } from '~/utils'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 export function BridgeChainsOverview({ allChains, tableData, chartData, chartStacks }) {
-	const downloadCsv = () => {
-		const rows = [['Timestamp', 'Date', ...allChains]]
-		chartData.forEach(({ date, ...chains }) => {
-			rows.push([date, toNiceCsvDate(date), ...allChains.map((chain) => chains[chain] ?? '')])
-		})
-		download('bridge-chains.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
-
 	return (
 		<>
-			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-				<h1 className="text-xl font-semibold">Bridge Inflows by Chain</h1>
-				<CSVDownloadButton onClick={downloadCsv} />
-			</div>
-			<div className="min-h-[406px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 				{chartData && chartData.length > 0 && (
 					<BarChart
 						chartData={chartData}
