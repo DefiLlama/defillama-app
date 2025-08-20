@@ -957,7 +957,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 100
 			}),
-			columnHelper.accessor((row) => row.fees?.average1y, {
+			columnHelper.accessor((row) => row.fees?.monthlyAverage1y, {
 				id: 'average_fees_1y',
 				header: 'Monthly Avg 1Y Fees',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -993,7 +993,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.revenue?.average1y, {
+			columnHelper.accessor((row) => row.revenue?.monthlyAverage1y, {
 				id: 'average_revenue_1y',
 				header: 'Monthly Avg 1Y Rev',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -1005,7 +1005,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.holdersRevenue?.average1y, {
+			columnHelper.accessor((row) => row.holdersRevenue?.monthlyAverage1y, {
 				id: 'average_holdersRevenue_1y',
 				header: 'Monthly Avg 1Y Holders Revenue',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -1030,7 +1030,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 125
 			}),
-			columnHelper.accessor((row) => row.emissions?.average1y, {
+			columnHelper.accessor((row) => row.emissions?.monthlyAverage1y, {
 				id: 'average_emissions_1y',
 				header: 'Monthly Avg 1Y Incentives',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -1192,8 +1192,8 @@ const columns: ColumnDef<IProtocol>[] = [
 			),
 			columnHelper.accessor(
 				(row) => {
-					const revenue = row.revenue?.average1y ?? 0
-					const emissions = row.emissions?.average1y ?? 0
+					const revenue = row.revenue?.monthlyAverage1y ?? 0
+					const emissions = row.emissions?.monthlyAverage1y ?? 0
 					return revenue && emissions ? revenue - emissions : revenue || null
 				},
 				{

@@ -177,7 +177,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
-		average1y: number | null
+		monthlyAverage1y: number | null
 		totalAllTime: number | null
 		pf: number | null
 	}
@@ -186,7 +186,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
-		average1y: number | null
+		monthlyAverage1y: number | null
 		totalAllTime: number | null
 		ps: number | null
 	}
@@ -195,7 +195,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
-		average1y: number | null
+		monthlyAverage1y: number | null
 		totalAllTime: number | null
 	}
 	dexs?: {
@@ -209,7 +209,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
-		average1y: number | null
+		monthlyAverage1y: number | null
 		totalAllTime: number | null
 	}
 	deprecated?: boolean

@@ -35,6 +35,7 @@ export interface IAdapterOverview {
 		total1y: number
 		totalAllTime: number
 		average1y: number
+		monthlyAverage1y: number
 		change_1d: number
 		change_7d: number
 		change_1m: number

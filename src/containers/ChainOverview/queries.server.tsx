@@ -684,7 +684,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					total7d: protocol.total7d ?? null,
 					total30d: protocol.total30d ?? null,
 					total1y: protocol.total1y ?? null,
-					average1y: protocol.average1y ?? null,
+					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
 					totalAllTime: protocol.totalAllTime ?? null
 				}
 			}
@@ -700,7 +700,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					total7d: protocol.total7d ?? null,
 					total30d: protocol.total30d ?? null,
 					total1y: protocol.total1y ?? null,
-					average1y: protocol.average1y ?? null,
+					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
 					totalAllTime: protocol.totalAllTime ?? null
 				}
 			}
@@ -716,7 +716,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					total7d: protocol.total7d ?? null,
 					total30d: protocol.total30d ?? null,
 					total1y: protocol.total1y ?? null,
-					average1y: protocol.average1y ?? null,
+					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
 					totalAllTime: protocol.totalAllTime ?? null
 				}
 			}
@@ -877,7 +877,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					total7d: emissionsMatch.emissions7d,
 					total30d: emissionsMatch.emissions30d,
 					total1y: emissionsMatch.emissions1y,
-					average1y: emissionsMatch.emissionsAverage1y,
+					monthlyAverage1y: emissionsMatch.emissionsAverage1y,
 					totalAllTime: emissionsMatch.emissionsAllTime
 				}
 			}
@@ -985,7 +985,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 						total7d: parentEmissionsMatch.emissions7d,
 						total30d: parentEmissionsMatch.emissions30d,
 						total1y: parentEmissionsMatch.emissions1y,
-						average1y: parentEmissionsMatch.emissionsAverage1y,
+						monthlyAverage1y: parentEmissionsMatch.emissionsAverage1y,
 						totalAllTime: parentEmissionsMatch.emissionsAllTime
 					}
 				}
