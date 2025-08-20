@@ -75,6 +75,7 @@ export type ProtocolAdaptorSummary = {
 	total30d: number
 	total1y: number
 	average1y: number
+	monthlyAverage1y?: number
 	revenue24h?: number
 	revenue7d?: number
 	revenue30d?: number

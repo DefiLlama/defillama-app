@@ -347,7 +347,7 @@ export const formatProtocolsList = ({
 			fees_1y: protocol.total1y ?? undefined,
 			revenue_30d: protocol.revenue30d ?? undefined,
 			revenue_1y: protocol.revenue1y ?? undefined,
-			average_1y: protocol.average1y ?? undefined,
+			average_1y: protocol.monthlyAverage1y ?? undefined,
 			average_revenue_1y: protocol.averageRevenue1y || undefined,
 			holdersRevenue30d: protocol.holdersRevenue30d || undefined,
 			holderRevenue_24h: protocol.holdersRevenue24h || undefined,
