@@ -1,0 +1,97 @@
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
+import { matchSorter } from 'match-sorter'
+import { Icon } from './Icon'
+
+export const MultiSelectCombobox = ({
+	data,
+	placeholder,
+	selectedValues,
+	setSelectedValues
+}: {
+	data: Array<{ label: string; value: string; logo?: string }>
+	placeholder: string
+	selectedValues: string[]
+	setSelectedValues: (values: string[]) => void
+}) => {
+	const [searchValue, setSearchValue] = useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
+
+	const matches = useMemo(() => {
+		if (!deferredSearchValue) return data
+
+		return matchSorter(data, deferredSearchValue, {
+			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+			keys: ['label'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+	}, [data, deferredSearchValue])
+
+	const [viewableMatches, setResultsCount] = useState(10)
+	return (
+		<Ariakit.ComboboxProvider
+			resetValueOnHide
+			selectedValue={selectedValues}
+			setSelectedValue={setSelectedValues}
+			setValue={(value) => {
+				startTransition(() => {
+					setSearchValue(value)
+				})
+			}}
+		>
+			<span className="relative flex flex-wrap items-center gap-1 w-full flex-1 border-2 border-transparent rounded-md focus-within:border-2 focus-within:border-(--primary)">
+				{selectedValues.length > 0 ? (
+					<div className="flex flex-wrap items-center gap-1 pl-1">
+						{selectedValues.map((value) => (
+							<button
+								key={`mutliselectcombobox-selected-${value}`}
+								className="flex items-center gap-1 text-xs font-medium rounded-md p-[6px] border-(--old-blue) bg-[rgba(31,103,210,0.12)]"
+								onClick={() => {
+									setSelectedValues(selectedValues.filter((v) => v !== value))
+								}}
+							>
+								<span>{value}</span>
+								<Icon name="x" className="w-3 h-3" />
+							</button>
+						))}
+					</div>
+				) : null}
+				<Ariakit.Combobox placeholder={placeholder} className="flex-1 w-full px-3 py-2 outline-none" />
+			</span>
+			<Ariakit.ComboboxPopover
+				unmountOnHide
+				hideOnInteractOutside
+				gutter={6}
+				wrapperProps={{
+					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
+				}}
+				className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+				portal
+				sameWidth
+			>
+				<Ariakit.ComboboxList>
+					{matches.slice(0, viewableMatches).map((item) => (
+						<Ariakit.ComboboxItem
+							key={`multi-select-${item.value}`}
+							value={item.value}
+							hideOnClick
+							className="group flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+						>
+							{item.logo ? <img src={item.logo} alt={item.label} className="h-5 w-5 shrink-0 rounded-full" /> : null}
+							<span>{item.label}</span>
+							<Ariakit.ComboboxItemCheck />
+						</Ariakit.ComboboxItem>
+					))}
+				</Ariakit.ComboboxList>
+				{matches.length > viewableMatches ? (
+					<button
+						className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+						onClick={() => setResultsCount((prev) => prev + 20)}
+					>
+						See more...
+					</button>
+				) : null}
+			</Ariakit.ComboboxPopover>
+		</Ariakit.ComboboxProvider>
+	)
+}

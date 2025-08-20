@@ -132,13 +132,13 @@ export const InsightsAndTools = ({ currentMetric }: { currentMetric: Array<strin
 	return (
 		<>
 			<Ariakit.DialogProvider store={dialogStore}>
-				<div className="relative isolate h-10 w-full rounded-md bg-(--cards-bg) p-1">
+				<div className="relative isolate w-full rounded-md bg-(--cards-bg) p-1">
 					<img
 						src="/icons/metrics-l.svg"
 						width={92}
 						height={40}
 						alt=""
-						className="absolute top-0 left-0 h-full w-auto rounded-l-md object-cover"
+						className="absolute top-0 left-0 h-full w-auto rounded-l-md object-cover hidden md:block"
 						fetchPriority="high"
 					/>
 					<div className="flex h-full flex-wrap items-center justify-center gap-1">
@@ -157,7 +157,7 @@ export const InsightsAndTools = ({ currentMetric }: { currentMetric: Array<strin
 								)}
 							</Fragment>
 						))}
-						<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-[6px] py-1 text-xs text-(--text-form)">
+						<Ariakit.DialogDisclosure className="z-10 hidden md:flex items-center gap-1 px-[6px] py-1 text-xs text-(--text-form)">
 							<Icon name="search" height={12} width={12} />
 							<span className="hidden sm:block">Click to browse & search</span>
 						</Ariakit.DialogDisclosure>
@@ -167,7 +167,7 @@ export const InsightsAndTools = ({ currentMetric }: { currentMetric: Array<strin
 						width={92}
 						height={40}
 						alt=""
-						className="absolute top-0 right-0 h-full w-auto rounded-r-md object-cover"
+						className="absolute top-0 right-0 h-full w-auto rounded-r-md object-cover hidden md:block"
 						fetchPriority="high"
 					/>
 					<svg
