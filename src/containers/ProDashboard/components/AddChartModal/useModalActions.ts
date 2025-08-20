@@ -151,7 +151,7 @@ export function useModalActions(
 	}
 
 	const updateChartBuilder = (updates: Partial<typeof state.chartBuilder>) => {
-		actions.setChartBuilder(prev => ({ ...prev, ...updates }))
+		actions.setChartBuilder((prev) => ({ ...prev, ...updates }))
 	}
 
 	const handleSubmit = () => {

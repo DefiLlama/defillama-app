@@ -697,7 +697,7 @@ export const listedAtColumn = {
 	header: 'Listed At',
 	accessorKey: 'listedAt',
 	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
-	sortUndefined: 'last' as 'last',
+	sortUndefined: 'last' as const,
 	size: 140,
 	meta: {
 		align: 'end' as const
@@ -715,7 +715,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 			return <span className="font-bold">{index + 1}</span>
 		},
 		meta: {
-			align: 'center' as any
+			align: 'center' as const
 		}
 	},
 	{

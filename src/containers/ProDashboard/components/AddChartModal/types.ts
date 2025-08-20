@@ -27,9 +27,20 @@ export type CombinedTableType =
 	| 'chains'
 
 export interface ChartBuilderConfig {
-	metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
-		'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 
-		'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue'
+	metric:
+		| 'fees'
+		| 'revenue'
+		| 'volume'
+		| 'perps'
+		| 'options-notional'
+		| 'options-premium'
+		| 'bridge-aggregators'
+		| 'dex-aggregators'
+		| 'perps-aggregators'
+		| 'user-fees'
+		| 'holders-revenue'
+		| 'protocol-revenue'
+		| 'supply-side-revenue'
 	chains: string[]
 	categories: string[]
 	groupBy: 'protocol'

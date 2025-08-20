@@ -65,7 +65,7 @@ interface IChainTvl {
 type DataValue = number | null
 
 interface IGroupData {
-	[key: string]: {}
+	[key: string]: Record<string, string[]>
 }
 
 type ChainTvlsByDay = [string, IChainTvl]

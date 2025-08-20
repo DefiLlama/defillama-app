@@ -18,14 +18,9 @@ export interface ProtocolSplitData {
 
 export default class SProtocolSplitCharts {
 	private static cache: Map<string, { data: ProtocolSplitData; timestamp: number }> = new Map()
-	private static CACHE_DURATION = 60 * 60 * 1000 
+	private static CACHE_DURATION = 60 * 60 * 1000
 
-	private static getCacheKey(
-		metric: string,
-		chains: string[],
-		limit: number,
-		categories: string[]
-	): string {
+	private static getCacheKey(metric: string, chains: string[], limit: number, categories: string[]): string {
 		return `${metric}-${chains.join(',')}-${limit}-${categories.join(',') || 'all'}`
 	}
 
@@ -40,15 +35,15 @@ export default class SProtocolSplitCharts {
 		if (chains.length > 0) {
 			params.append('chains', chains.join(','))
 		}
-		
+
 		params.append('limit', limit.toString())
-		
+
 		if (categories.length > 0) {
 			params.append('categories', categories.join(','))
 		}
 
 		const response = await fetch(`/api/protocols/split/${metric}?${params.toString()}`)
-		
+
 		if (!response.ok) {
 			throw new Error(`Failed to fetch ${metric} split data: ${response.statusText}`)
 		}
@@ -57,9 +52,21 @@ export default class SProtocolSplitCharts {
 	}
 
 	static async getProtocolSplitData(
-		metric: 'fees' | 'revenue' | 'volume' | 'perps' | 'options-notional' | 'options-premium' | 
-			'bridge-aggregators' | 'dex-aggregators' | 'perps-aggregators' | 'earnings' | 
-			'user-fees' | 'holders-revenue' | 'protocol-revenue' | 'supply-side-revenue',
+		metric:
+			| 'fees'
+			| 'revenue'
+			| 'volume'
+			| 'perps'
+			| 'options-notional'
+			| 'options-premium'
+			| 'bridge-aggregators'
+			| 'dex-aggregators'
+			| 'perps-aggregators'
+			| 'earnings'
+			| 'user-fees'
+			| 'holders-revenue'
+			| 'protocol-revenue'
+			| 'supply-side-revenue',
 		chains: string[],
 		limit: number = 10,
 		categories: string[] = []
@@ -73,7 +80,7 @@ export default class SProtocolSplitCharts {
 
 		try {
 			const data = await this.fetchSplitData(metric, chains, limit, categories)
-			
+
 			this.cache.set(cacheKey, {
 				data,
 				timestamp: Date.now()
@@ -84,7 +91,7 @@ export default class SProtocolSplitCharts {
 			return data
 		} catch (error) {
 			console.error(`Error fetching ${metric} split data:`, error)
-			
+
 			return {
 				series: [],
 				metadata: {

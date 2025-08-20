@@ -103,9 +103,9 @@ export default function TreemapChart({ chartData }: IChartProps) {
 			},
 			tooltip: {
 				formatter: function (info) {
-					var treePathInfo = info.treePathInfo
-					var treePath = []
-					for (var i = 1; i < treePathInfo.length; i++) {
+					let treePathInfo = info.treePathInfo
+					let treePath = []
+					for (let i = 1; i < treePathInfo.length; i++) {
 						treePath.push(treePathInfo[i].name)
 					}
 					if (treePath.length > 1) {

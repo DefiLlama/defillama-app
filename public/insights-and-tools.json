@@ -4,7 +4,7 @@
       "name": "Protocols by Chain",
       "route": "/",
       "category": "Combined Metrics",
-      "description": "TVL, Fees, Volume metrics of all protocols on each chain", 
+      "description": "TVL, Fees, Volume metrics of all protocols on each chain",
       "totalTrackedKey": "tvl.protocols"
     },
     {

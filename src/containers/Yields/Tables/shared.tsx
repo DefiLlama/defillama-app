@@ -5,7 +5,8 @@ import {
 	getCoreRowModel,
 	getSortedRowModel,
 	ColumnOrderState,
-	ColumnSizingState
+	ColumnSizingState,
+	VisibilityState
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -18,7 +19,7 @@ interface IYieldsTableWrapper {
 	columnOrders: any
 	rowSize?: number
 	columnVisibility?: Record<string, boolean>
-	setColumnVisibility?: React.Dispatch<React.SetStateAction<{}>>
+	setColumnVisibility?: (value: React.SetStateAction<VisibilityState>) => void
 	sortingState?: SortingState
 }
 

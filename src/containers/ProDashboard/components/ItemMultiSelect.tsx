@@ -126,11 +126,16 @@ export function ItemMultiSelect({
 	itemType,
 	maxSelections = 10
 }: ItemMultiSelectProps) {
-	const OptionComponent =
-		!itemType ? TextOption : itemType === 'chain' ? CustomChainOption : itemType === 'protocol' ? CustomProtocolOption : TextOption
+	const OptionComponent = !itemType
+		? TextOption
+		: itemType === 'chain'
+			? CustomChainOption
+			: itemType === 'protocol'
+				? CustomProtocolOption
+				: TextOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
-	const selectedOptions = options.filter(option => selectedValues.includes(option.value))
+	const selectedOptions = options.filter((option) => selectedValues.includes(option.value))
 	const isMaxReached = selectedValues.length >= maxSelections
 
 	return (
@@ -138,7 +143,10 @@ export function ItemMultiSelect({
 			<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">
 				{label}
 				{selectedValues.length > 0 && (
-					<span className="ml-1 text-xs pro-text3">({selectedValues.length}{maxSelections < 100 && `/${maxSelections}`})</span>
+					<span className="ml-1 text-xs pro-text3">
+						({selectedValues.length}
+						{maxSelections < 100 && `/${maxSelections}`})
+					</span>
 				)}
 			</label>
 			{isLoading ? (

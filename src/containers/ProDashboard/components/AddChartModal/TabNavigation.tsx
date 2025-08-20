@@ -30,9 +30,7 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 					disabled={!!editItem}
 				>
 					<span className="lg:hidden">{tab.mobileLabel}</span>
-					<span className="hidden lg:inline">
-						{tab.label} 
-					</span>
+					<span className="hidden lg:inline">{tab.label}</span>
 				</button>
 			))}
 		</div>

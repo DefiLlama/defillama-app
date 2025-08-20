@@ -296,9 +296,9 @@ export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + wo
 export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
 
 export function getRandomColor() {
-	var letters = '0123456789ABCDEF'
-	var color = '#'
-	for (var i = 0; i < 6; i++) {
+	let letters = '0123456789ABCDEF'
+	let color = '#'
+	for (let i = 0; i < 6; i++) {
 		color += letters[Math.floor(Math.random() * 16)]
 	}
 	return color
@@ -475,7 +475,7 @@ export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows =
 }
 
 export function download(filename, text) {
-	var element = document.createElement('a')
+	let element = document.createElement('a')
 	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
 	element.setAttribute('download', filename)
 

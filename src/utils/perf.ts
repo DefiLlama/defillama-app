@@ -9,7 +9,7 @@ const isServer = typeof document === 'undefined'
 const REDIS_URL = process.env.REDIS_URL as string
 const IS_RUNTIME = !!process.env.IS_RUNTIME
 
-export const withPerformanceLogging = <T extends {}>(
+export const withPerformanceLogging = <T extends object>(
 	filename: string,
 	getStaticPropsFunction: GetStaticProps<T>
 ): GetStaticProps<T> => {

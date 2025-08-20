@@ -107,7 +107,7 @@ export const AdapterByChainChart = ({
 			charts: {
 				[chartName]: {
 					data: chartData,
-					type: 'bar' as 'bar',
+					type: 'bar' as const,
 					name: chartName,
 					stack: chartName,
 					color: oldBlue

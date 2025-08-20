@@ -257,6 +257,7 @@ export interface DexItem extends BaseDatasetItem {
 	}>
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface AggregatorItem extends BaseDatasetItem {}
 
 export const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'
