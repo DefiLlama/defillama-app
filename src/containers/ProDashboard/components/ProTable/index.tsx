@@ -16,7 +16,8 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	filters,
 	columnOrder,
 	columnVisibility,
-	customColumns
+	customColumns,
+	activeViewId
 }: {
 	tableId: string
 	chains: string[]
@@ -25,6 +26,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	columnOrder?: string[]
 	columnVisibility?: Record<string, boolean>
 	customColumns?: any[]
+	activeViewId?: string
 }) {
 	const { handleTableFiltersChange, handleTableColumnsChange } = useProDashboard()
 	const [showFilterModal, setShowFilterModal] = useState(false)
@@ -52,13 +54,18 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		removeCustomColumn,
 		updateCustomColumn,
 		categories,
-		availableProtocols
+		availableProtocols,
+		customViews: currentCustomViews,
+		saveCustomView,
+		deleteCustomView,
+		loadCustomView
 	} = useProTable(memoizedChains, filters, () => setShowFilterModal(true), {
 		initialColumnOrder: columnOrder,
 		initialColumnVisibility: columnVisibility,
 		initialCustomColumns: customColumns,
-		onColumnsChange: (newColumnOrder, newColumnVisibility, newCustomColumns) => {
-			handleTableColumnsChange(tableId, newColumnOrder, newColumnVisibility, newCustomColumns)
+		initialActiveViewId: activeViewId,
+		onColumnsChange: (newColumnOrder, newColumnVisibility, newCustomColumns, newActiveViewId) => {
+			handleTableColumnsChange(tableId, newColumnOrder, newColumnVisibility, newCustomColumns, newActiveViewId)
 		}
 	})
 
@@ -77,6 +84,13 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 				setShowColumnPanel={setShowColumnPanel}
 				downloadCSV={downloadCSV}
 				colSpan={colSpan}
+				customViews={currentCustomViews}
+				onSaveView={saveCustomView}
+				onLoadView={loadCustomView}
+				onDeleteView={deleteCustomView}
+				currentColumns={currentColumns}
+				columnOrder={currentColumnOrder}
+				customColumns={currentCustomColumns}
 			/>
 
 			<ColumnManagementPanel
@@ -94,6 +108,10 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 				onAddCustomColumn={addCustomColumn}
 				onRemoveCustomColumn={removeCustomColumn}
 				onUpdateCustomColumn={updateCustomColumn}
+				customViews={currentCustomViews}
+				onLoadView={loadCustomView}
+				onDeleteView={deleteCustomView}
+				activeViewId={activePreset}
 			/>
 
 			<TableBody table={table} moveColumnUp={moveColumnUp} moveColumnDown={moveColumnDown} />

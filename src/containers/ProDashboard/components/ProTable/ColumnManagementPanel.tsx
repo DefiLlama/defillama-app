@@ -58,6 +58,8 @@ interface CustomColumn {
 	errorMessage?: string
 }
 
+import { CustomView } from '../../types'
+
 interface ColumnManagementPanelProps {
 	showColumnPanel: boolean
 	setShowColumnPanel: (show: boolean) => void
@@ -73,6 +75,10 @@ interface ColumnManagementPanelProps {
 	onAddCustomColumn?: (column: CustomColumn) => void
 	onRemoveCustomColumn?: (columnId: string) => void
 	onUpdateCustomColumn?: (columnId: string, updates: Partial<CustomColumn>) => void
+	customViews?: CustomView[]
+	onLoadView?: (viewId: string) => void
+	onDeleteView?: (viewId: string) => void
+	activeViewId?: string
 }
 
 export function ColumnManagementPanel({
@@ -89,9 +95,13 @@ export function ColumnManagementPanel({
 	customColumns = [],
 	onAddCustomColumn,
 	onRemoveCustomColumn,
-	onUpdateCustomColumn
+	onUpdateCustomColumn,
+	customViews = [],
+	onLoadView,
+	onDeleteView,
+	activeViewId
 }: ColumnManagementPanelProps) {
-	const [activeTab, setActiveTab] = React.useState<'columns' | 'custom'>('columns')
+	const [activeTab, setActiveTab] = React.useState<'columns' | 'custom' | 'views'>('columns')
 
 	// Filter columns by search term (including custom columns in standard tab)
 	const filteredColumns = React.useMemo(() => {
@@ -273,15 +283,24 @@ export function ColumnManagementPanel({
 						</button>
 						<button
 							onClick={() => setActiveTab('custom')}
-							className={`relative px-3 py-1 text-xs transition-colors ${
+							className={`px-3 py-1 text-xs transition-colors ${
 								activeTab === 'custom' ? 'bg-(--primary) text-white' : 'pro-text2 pro-hover-bg'
 							}`}
 						>
+							Custom Columns
+						</button>
+						<button
+							onClick={() => setActiveTab('views')}
+							className={`relative px-3 py-1 text-xs transition-colors ${
+								activeTab === 'views' ? 'bg-(--primary) text-white' : 'pro-text2 pro-hover-bg'
+							}`}
+						>
 							<span className="flex items-center gap-1">
-								Custom Columns
-								<span className="ml-1 rounded-sm bg-blue-500 px-1 py-0.5 text-[10px] text-white">NEW!</span>
-								{activeTab !== 'custom' && (
-									<span className="absolute -top-1 -right-1 h-2 w-2 animate-pulse rounded-full bg-(--primary)"></span>
+								Saved Views
+								{customViews.length > 0 && (
+									<span className="ml-1 rounded-full bg-blue-500 px-1.5 py-0.5 text-[10px] text-white">
+										{customViews.length}
+									</span>
 								)}
 							</span>
 						</button>
@@ -385,14 +404,72 @@ export function ColumnManagementPanel({
 				/>
 			)}
 
-			{/* Summary */}
+			{activeTab === 'views' && (
+				<div className="space-y-4">
+					{customViews.length === 0 ? (
+						<div className="pro-text3 py-8 text-center">
+							<Icon name="eye" height={32} width={32} className="mx-auto mb-2 opacity-50" />
+							<p className="text-sm">No saved views yet</p>
+							<p className="mt-1 text-xs">Save your current column configuration as a view to quickly switch between different layouts</p>
+						</div>
+					) : (
+						<div className="space-y-2">
+							<p className="pro-text3 mb-3 text-xs">Click on a view to load it, or use the icons to manage views</p>
+							{customViews.map((view) => (
+								<div
+									key={view.id}
+									className={`pro-divider pro-hover-bg pro-bg2 flex items-center justify-between border p-3 transition-colors ${
+										activeViewId === view.id ? 'border-(--primary)' : ''
+									}`}
+								>
+									<button
+										onClick={() => onLoadView?.(view.id)}
+										className="flex flex-1 flex-col items-start gap-1"
+									>
+										<div className="flex items-center gap-2">
+											<span className="pro-text1 text-sm font-medium">{view.name}</span>
+											{activeViewId === view.id && (
+												<span className="rounded bg-green-600 px-1.5 py-0.5 text-xs text-white">Active</span>
+											)}
+										</div>
+										<div className="pro-text3 flex items-center gap-3 text-xs">
+											<span>{view.columnOrder?.length || 0} columns</span>
+											{view.customColumns && view.customColumns.length > 0 && (
+												<span>{view.customColumns.length} custom columns</span>
+											)}
+											<span>Created {new Date(view.createdAt).toLocaleDateString()}</span>
+										</div>
+									</button>
+									<div className="flex items-center gap-1">
+										<Tooltip content="Delete view">
+											<button
+												onClick={() => {
+													if (confirm(`Delete view "${view.name}"?`)) {
+														onDeleteView?.(view.id)
+													}
+												}}
+												className="pro-text3 hover:text-red-500 p-2 transition-colors"
+											>
+												<Icon name="trash-2" height={16} width={16} />
+											</button>
+										</Tooltip>
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+				</div>
+			)}
+
 			<div className="pro-divider mt-4 flex items-center justify-between border-t pt-3 text-xs">
 				<span className="pro-text3">
 					{activeTab === 'columns'
 						? `${Object.values(currentColumns).filter(Boolean).length} of ${
 								protocolsByChainTableColumns.length
 							} columns visible`
-						: `${customColumns.length} custom columns`}
+						: activeTab === 'custom'
+						? `${customColumns.length} custom columns`
+						: `${customViews.length} saved views`}
 				</span>
 				<button
 					onClick={() => setShowColumnPanel(false)}

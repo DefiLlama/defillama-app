@@ -98,6 +98,21 @@ export interface TableFilters {
 	[key: string]: any // Allow for future filter types
 }
 
+export interface CustomView {
+	id: string
+	name: string
+	columnOrder: string[]
+	columnVisibility: Record<string, boolean>
+	customColumns?: Array<{
+		id: string
+		name: string
+		expression: string
+		isValid: boolean
+		errorMessage?: string
+	}>
+	createdAt: number
+}
+
 export interface ProtocolsTableConfig {
 	id: string
 	kind: 'table'
@@ -114,6 +129,7 @@ export interface ProtocolsTableConfig {
 		isValid: boolean
 		errorMessage?: string
 	}>
+	activeViewId?: string
 	datasetType?:
 		| 'stablecoins'
 		| 'cex'

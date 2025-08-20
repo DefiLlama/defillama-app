@@ -111,7 +111,8 @@ interface ProDashboardContextType {
 		tableId: string,
 		columnOrder?: string[],
 		columnVisibility?: Record<string, boolean>,
-		customColumns?: any[]
+		customColumns?: any[],
+		activeViewId?: string
 	) => void
 	getChainInfo: (chainName: string) => Chain | undefined
 	getProtocolInfo: (protocolId: string) => Protocol | undefined
@@ -782,7 +783,7 @@ export function ProDashboardAPIProvider({
 	)
 
 	const handleTableColumnsChange = useCallback(
-		(tableId: string, columnOrder?: string[], columnVisibility?: Record<string, boolean>, customColumns?: any[]) => {
+		(tableId: string, columnOrder?: string[], columnVisibility?: Record<string, boolean>, customColumns?: any[], activeViewId?: string) => {
 			if (isReadOnly) {
 				return
 			}
@@ -793,7 +794,8 @@ export function ProDashboardAPIProvider({
 							...item,
 							columnOrder,
 							columnVisibility,
-							customColumns
+							customColumns,
+							activeViewId
 						} as ProtocolsTableConfig
 					}
 					return item

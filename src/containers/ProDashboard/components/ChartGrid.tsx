@@ -173,6 +173,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 					columnOrder={item.columnOrder}
 					columnVisibility={item.columnVisibility}
 					customColumns={item.customColumns}
+					activeViewId={item.activeViewId}
 				/>
 			)
 		}
