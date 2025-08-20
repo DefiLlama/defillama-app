@@ -47,6 +47,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let fees_7d = 0
 	let fees_30d = 0
 	let fees_1y = 0
+	let average_1y = 0
 	let revenue_24h = 0
 	let revenue_7d = 0
 	let revenue_30d = 0
@@ -72,6 +73,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		if (child.fees_7d) fees_7d += child.fees_7d
 		if (child.fees_30d) fees_30d += child.fees_30d
 		if (child.fees_1y) fees_1y += child.fees_1y
+		if (child.average_1y) average_1y += child.average_1y
 		if (child.revenue_24h) revenue_24h += child.revenue_24h
 		if (child.revenue_7d) revenue_7d += child.revenue_7d
 		if (child.revenue_30d) revenue_30d += child.revenue_30d
@@ -107,6 +109,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		fees_7d,
 		fees_30d,
 		fees_1y,
+		average_1y,
 		revenue_24h,
 		revenue_7d,
 		revenue_30d,
@@ -370,6 +373,7 @@ export function useProTable(
 			'fees_7d',
 			'fees_30d',
 			'fees_1y',
+			'average_1y',
 			'revenue_24h',
 			'revenue_7d',
 			'revenue_30d',
@@ -404,6 +408,7 @@ export function useProTable(
 			{ key: 'fees_7d', name: 'Fees 7d % Share' },
 			{ key: 'fees_30d', name: 'Fees 30d % Share' },
 			{ key: 'fees_1y', name: 'Fees 1y % Share' },
+			{ key: 'average_1y', name: 'Monthly Avg 1Y Fees % Share' },
 			{ key: 'revenue_24h', name: 'Revenue 24h % Share' },
 			{ key: 'revenue_7d', name: 'Revenue 7d % Share' },
 			{ key: 'revenue_30d', name: 'Revenue 30d % Share' },

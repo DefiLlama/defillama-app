@@ -59,9 +59,10 @@ export const protocolsByChainTableColumns = [
 	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
+	{ name: 'Fees 1y', key: 'fees_1y', category: TABLE_CATEGORIES.FEES },
 	{
 		name: 'Monthly Avg 1Y Fees',
-		key: 'fees_1y',
+		key: 'average_1y',
 		category: TABLE_CATEGORIES.FEES
 	},
 	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
@@ -130,6 +131,7 @@ export const defaultColumns = JSON.stringify({
 	revenue_30d: false,
 	holdersRevenue30d: false,
 	fees_1y: false,
+	average_1y: false,
 	revenue_1y: false,
 	average_revenue_1y: false,
 	userFees_24h: false,

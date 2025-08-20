@@ -261,6 +261,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
+					headerHelperText: 'Total fees paid by users in the last 12 months'
+				},
+				size: 120
+			}),
+			columnHelper.accessor('average_1y', {
+				header: 'Monthly Avg 1Y Fees',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
 					headerHelperText: 'Average monthly fees paid by users in the last 12 months'
 				},
 				size: 170
