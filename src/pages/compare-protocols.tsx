@@ -169,7 +169,7 @@ export default function CompareProtocolsTvls({ protocols }) {
 	}, [selectedProtocols, protocols, extraTvlsEnabled])
 
 	return (
-		<Layout title={`Compare Protocols - DefiLlama`} defaultSEO>
+		<Layout title={`Compare Protocols - DefiLlama`}>
 			<div className="isolate rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-between gap-2 p-3">
 					<h1 className="mr-auto text-lg font-semibold">Compare Protocols</h1>

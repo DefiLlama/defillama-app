@@ -40,7 +40,7 @@ export default function Protocols({ protocols }) {
 	const [viewableMatches, setViewableMatches] = useState(20)
 
 	return (
-		<Layout title={`Protocols Directory - DefiLlama`} defaultSEO>
+		<Layout title={`Protocols Directory - DefiLlama`}>
 			<Announcement notCancellable>
 				Search any protocol to go straight into their website, avoiding scam results from google. Bookmark this page for
 				better access and security

@@ -169,7 +169,7 @@ const BridgeInfo = ({
 
 export function BridgeProtocolOverview(props) {
 	return (
-		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`}>
+		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`} customSEO>
 			<SEO cardName={props.displayName} token={props.displayName} />
 			<BridgeInfo {...props} />
 		</Layout>

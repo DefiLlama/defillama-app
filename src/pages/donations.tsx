@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging('donations', async () => {
 
 function PressPage({ protocols }) {
 	return (
-		<Layout title="Donations - DefiLlama" defaultSEO>
+		<Layout title="Donations - DefiLlama">
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h1 className="text-lg font-semibold">Why donate?</h1>
 				<hr className="border-black/20 dark:border-white/20" />

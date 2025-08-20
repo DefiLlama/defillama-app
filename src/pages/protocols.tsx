@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging('protocols', async () => {
 
 export default function Protocols({ protocols }) {
 	return (
-		<Layout title={`TVL Rankings - DefiLlama`} defaultSEO>
+		<Layout title={`TVL Rankings - DefiLlama`}>
 			<ChainProtocolsTable protocols={protocols} />
 		</Layout>
 	)

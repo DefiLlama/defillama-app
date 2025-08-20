@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { CustomView } from '../../types'
 import { ProTableCSVButton } from './CsvButton'
 import { CustomViewModal } from './CustomViewModal'
-import { CustomView } from '../../types'
 
 interface TableHeaderProps {
 	chains: string[]
@@ -35,7 +35,7 @@ export function TableHeader({
 	customViews = [],
 	onSaveView,
 	onLoadView,
-	onDeleteView,
+	onDeleteView
 }: TableHeaderProps) {
 	const [showSaveModal, setShowSaveModal] = React.useState(false)
 	const displayTitle = React.useMemo(() => {
@@ -47,7 +47,7 @@ export function TableHeader({
 	const [showCustomViewDropdown, setShowCustomViewDropdown] = React.useState(false)
 	const dropdownRef = React.useRef<HTMLDivElement>(null)
 
-	const activeCustomView = customViews.find(v => v.id === activePreset)
+	const activeCustomView = customViews.find((v) => v.id === activePreset)
 	const isPresetActive = Object.keys(columnPresets).includes(activePreset as string)
 
 	React.useEffect(() => {
@@ -101,7 +101,7 @@ export function TableHeader({
 						</button>
 
 						{showCustomViewDropdown && (
-							<div 
+							<div
 								className="pro-bg3 pro-divider absolute right-0 top-full mt-1 min-w-[200px] border shadow-lg"
 								style={{ zIndex: 9999 }}
 							>
@@ -200,7 +200,7 @@ export function TableHeader({
 						onSaveView(name)
 						setShowSaveModal(false)
 					}}
-					existingViewNames={customViews.map(v => v.name)}
+					existingViewNames={customViews.map((v) => v.name)}
 				/>
 			)}
 		</div>

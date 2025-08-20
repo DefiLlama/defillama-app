@@ -31,7 +31,6 @@ const FeesOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`P/F - DefiLlama`}
-			defaultSEO
 			includeInMetricsOptions={feesOptions}
 			includeInMetricsOptionslabel="Include in Metrics"
 			pageName={pageName}

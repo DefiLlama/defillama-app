@@ -74,7 +74,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 	}
 
 	return (
-		<Layout title={`Forks - DefiLlama`} defaultSEO pageName={pageName}>
+		<Layout title={`Forks - DefiLlama`} pageName={pageName}>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[406px] flex-1 flex-col rounded-md bg-(--cards-bg) pt-2">

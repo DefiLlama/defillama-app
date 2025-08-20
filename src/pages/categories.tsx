@@ -432,7 +432,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	}, [tableData, extaTvlsEnabled])
 
 	return (
-		<Layout title={`Categories - DefiLlama`} defaultSEO includeInMetricsOptions={finalTvlOptions}>
+		<Layout title={`Categories - DefiLlama`} includeInMetricsOptions={finalTvlOptions}>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Categories</h1>

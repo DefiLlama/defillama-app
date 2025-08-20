@@ -30,7 +30,7 @@ const PageView = ({ airdrops }) => {
 
 export default function Airdrops(props) {
 	return (
-		<Layout title={`Airdrop Directory - DefiLlama`} defaultSEO>
+		<Layout title={`Airdrop Directory - DefiLlama`}>
 			<PageView {...props} />
 		</Layout>
 	)

@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging('yields/watchlist', async (
 
 export default function Portfolio({ pools }) {
 	return (
-		<Layout title={`Saved Pools - DefiLlama`} defaultSEO>
+		<Layout title={`Saved Pools - DefiLlama`}>
 			<Announcement>{disclaimer}</Announcement>
 			<YieldsWatchlistContainer protocolsDict={pools} />
 		</Layout>

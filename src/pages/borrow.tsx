@@ -73,7 +73,7 @@ export default function YieldBorrow(data) {
 	})
 
 	return (
-		<Layout title={`Borrow Aggregator - DefiLlama`} defaultSEO>
+		<Layout title={`Borrow Aggregator - DefiLlama`}>
 			<Announcement>{disclaimer}</Announcement>
 			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 lg:top-4 lg:left-[-110px] xl:top-11">
 				<div className="flex w-full flex-col gap-5 overflow-y-auto p-3">

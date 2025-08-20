@@ -41,7 +41,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 
 	return (
 		<>
-			<Layout title={`${chainName} Bridged TVL - DefiLlama`}>
+			<Layout title={`${chainName} Bridged TVL - DefiLlama`} customSEO>
 				<SEO cardName={chainName} token={chain} />
 				<RowLinksWithDropdown links={chains} activeLink={chainName} />
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">

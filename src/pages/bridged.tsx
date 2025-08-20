@@ -18,7 +18,7 @@ const pageName = ['Chains', 'ranked by', 'Bridged TVL']
 
 export default function Chains(props) {
 	return (
-		<Layout title={`Bridged TVL - DefiLlama`} defaultSEO pageName={pageName}>
+		<Layout title={`Bridged TVL - DefiLlama`} pageName={pageName}>
 			<BridgedTVLChainsList {...props} />
 		</Layout>
 	)

@@ -5,7 +5,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 export default function Roundup({ messages }: { messages: Array<string | Array<string>> }) {
 	return (
-		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
+		<Layout title={`Daily Roundup - DefiLlama`}>
 			<Announcement notCancellable>
 				Get the roundup delivered every day for free by subscribing on{' '}
 				<a

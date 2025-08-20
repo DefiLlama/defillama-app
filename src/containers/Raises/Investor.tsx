@@ -131,7 +131,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 	})
 
 	return (
-		<Layout title={`Raises - DefiLlama`} defaultSEO>
+		<Layout title={`Raises - DefiLlama`}>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a

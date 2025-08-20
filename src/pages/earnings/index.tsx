@@ -33,7 +33,6 @@ const EarningsOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`${type} by Protocol - DefiLlama`}
-			defaultSEO
 			includeInMetricsOptions={feesOptions}
 			includeInMetricsOptionslabel="Include in Earnings"
 			pageName={pageName}

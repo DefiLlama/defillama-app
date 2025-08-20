@@ -172,7 +172,7 @@ export function RecentProtocols({
 	const airdropCheckerDialog = Ariakit.useDialogStore()
 
 	return (
-		<Layout title={title} defaultSEO>
+		<Layout title={title}>
 			{claimableAirdrops ? (
 				<span className="flex flex-wrap items-center gap-2">
 					{claimableAirdrops.map((protocol) => (

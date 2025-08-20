@@ -23,7 +23,7 @@ import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useUserConfig } from '~/hooks/useUserConfig'
 import { formattedNum, getPercentChange } from '~/utils'
-import { TableFilters } from '../../types'
+import { CustomView, TableFilters } from '../../types'
 
 interface CustomColumn {
 	id: string
@@ -118,8 +118,6 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		subRows: filteredSubRows
 	}
 }
-
-import { CustomView } from '../../types'
 
 interface UseProTableOptions {
 	initialColumnOrder?: string[]
@@ -223,18 +221,17 @@ export function useProTable(
 	const [activeCustomView, setActiveCustomView] = React.useState<string | null>(options?.initialActiveViewId || null)
 
 	const { userConfig, saveUserConfig } = useUserConfig()
-	
-	
+
 	const customViews = React.useMemo(() => {
 		if (!userConfig || !userConfig?.tableViews) {
 			return []
 		}
 		return userConfig?.tableViews as CustomView[]
 	}, [userConfig])
-	
+
 	React.useEffect(() => {
 		if (options?.initialActiveViewId && customViews.length > 0) {
-			const view = customViews.find(v => v.id === options.initialActiveViewId)
+			const view = customViews.find((v) => v.id === options.initialActiveViewId)
 			if (view && !columnOrder.length && !Object.keys(columnVisibility).length) {
 				setColumnOrder(view.columnOrder)
 				setColumnVisibility(view.columnVisibility)
@@ -730,56 +727,65 @@ export function useProTable(
 		setCustomColumns(updatedColumns)
 	}
 
-	const saveCustomView = React.useCallback(async (name: string) => {
-		const newView: CustomView = {
-			id: `custom_view_${Date.now()}`,
-			name,
-			columnOrder: [...columnOrder],
-			columnVisibility: { ...columnVisibility },
-			customColumns: [...customColumns],
-			createdAt: Date.now()
-		}
+	const saveCustomView = React.useCallback(
+		async (name: string) => {
+			const newView: CustomView = {
+				id: `custom_view_${Date.now()}`,
+				name,
+				columnOrder: [...columnOrder],
+				columnVisibility: { ...columnVisibility },
+				customColumns: [...customColumns],
+				createdAt: Date.now()
+			}
 
-		const updatedViews = [...customViews, newView]
-		
-		if (saveUserConfig) {
-			await saveUserConfig({
-				...userConfig,
-				tableViews: updatedViews
-			})
-		}
-		
-		setActiveCustomView(newView.id)
-		setSelectedPreset(null)
-		
-		return newView
-	}, [columnOrder, columnVisibility, customColumns, customViews, saveUserConfig, userConfig])
+			const updatedViews = [...customViews, newView]
 
-	const deleteCustomView = React.useCallback(async (viewId: string) => {
-		const updatedViews = customViews.filter(view => view.id !== viewId)
-		
-		if (saveUserConfig) {
-			await saveUserConfig({
-				...userConfig,
-				tableViews: updatedViews
-			})
-		}
-		
-		if (activeCustomView === viewId) {
-			setActiveCustomView(null)
-		}
-	}, [customViews, activeCustomView, saveUserConfig, userConfig])
+			if (saveUserConfig) {
+				await saveUserConfig({
+					...userConfig,
+					tableViews: updatedViews
+				})
+			}
 
-	const loadCustomView = React.useCallback((viewId: string) => {
-		const view = customViews.find(v => v.id === viewId)
-		if (view) {
-			setColumnOrder(view.columnOrder)
-			setColumnVisibility(view.columnVisibility)
-			setCustomColumns(view.customColumns || [])
-			setActiveCustomView(viewId)
+			setActiveCustomView(newView.id)
 			setSelectedPreset(null)
-		}
-	}, [customViews])
+
+			return newView
+		},
+		[columnOrder, columnVisibility, customColumns, customViews, saveUserConfig, userConfig]
+	)
+
+	const deleteCustomView = React.useCallback(
+		async (viewId: string) => {
+			const updatedViews = customViews.filter((view) => view.id !== viewId)
+
+			if (saveUserConfig) {
+				await saveUserConfig({
+					...userConfig,
+					tableViews: updatedViews
+				})
+			}
+
+			if (activeCustomView === viewId) {
+				setActiveCustomView(null)
+			}
+		},
+		[customViews, activeCustomView, saveUserConfig, userConfig]
+	)
+
+	const loadCustomView = React.useCallback(
+		(viewId: string) => {
+			const view = customViews.find((v) => v.id === viewId)
+			if (view) {
+				setColumnOrder(view.columnOrder)
+				setColumnVisibility(view.columnVisibility)
+				setCustomColumns(view.customColumns || [])
+				setActiveCustomView(viewId)
+				setSelectedPreset(null)
+			}
+		},
+		[customViews]
+	)
 
 	// Extract unique categories from all protocols
 	const categories = React.useMemo(() => {

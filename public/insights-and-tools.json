@@ -31,7 +31,9 @@
       "route": "/yields/stablecoins",
       "category": "Yields",
       "description": "APYs of pools with stablecoins",
-      "keys": ["pegged"]
+      "keys": [
+        "pegged"
+      ]
     },
     {
       "name": "Yields: Leveraged Lending",
@@ -82,7 +84,10 @@
       "category": "Volume",
       "description": "Notional volume of all trades in a perp exchange, includes leverage",
       "totalTrackedKey": "perps.protocols",
-      "keys": ["derivatives", "futures"]
+      "keys": [
+        "derivatives",
+        "futures"
+      ]
     },
     {
       "name": "DEX Volume by Chain",
@@ -111,7 +116,10 @@
       "category": "Volume",
       "description": "Sum of notional volume of all trades in all perp exchanges on the chain, includes leverage",
       "totalTrackedKey": "perps.chains",
-      "keys": ["derivatives", "futures"]
+      "keys": [
+        "derivatives",
+        "futures"
+      ]
     },
     {
       "name": "Options Premium Volume by Protocol",
@@ -299,7 +307,9 @@
       "category": "Stablecoins",
       "description": "Total market cap of stable assets",
       "totalTrackedKey": "stablecoins.protocols",
-      "keys": ["pegged"]
+      "keys": [
+        "pegged"
+      ]
     },
     {
       "name": "Stablecoin Supply by Chain",
@@ -307,7 +317,9 @@
       "category": "Stablecoins",
       "description": "Total market cap of stable assets currently deployed on each chain",
       "totalTrackedKey": "stablecoins.chains",
-      "keys": ["pegged"]
+      "keys": [
+        "pegged"
+      ]
     },
     {
       "name": "Bridged TVL by Chain",
@@ -339,21 +351,28 @@
       "route": "/mcaps",
       "category": "Token",
       "description": "Token price multiplied by circulating supply of each protocol",
-      "keys": ["mcap"]
+      "keys": [
+        "mcap"
+      ]
     },
     {
       "name": "Protocols by FDV",
       "route": "/fdv",
       "category": "Token",
       "description": "Token price multiplied by fully diluted supply of each protocol",
-      "keys": ["fdv", "fully diluted valuation"]
+      "keys": [
+        "fdv",
+        "fully diluted valuation"
+      ]
     },
     {
       "name": "Protocols by Outstanding FDV",
       "route": "/outstanding-fdv",
       "category": "Token",
       "description": "Token price multiplied by outstanding supply of each protocol. Outstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).",
-      "keys": ["fully diluted valuation"]
+      "keys": [
+        "fully diluted valuation"
+      ]
     },
     {
       "name": "Protocols by Token Price",
@@ -381,14 +400,18 @@
       "category": "Unlocks",
       "description": "Overview of token emissions by protocol",
       "totalTrackedKey": "emissions.protocols",
-      "keys": ["emissions"]
+      "keys": [
+        "emissions"
+      ]
     },
     {
       "name": "Token Unlocks Calendar",
       "route": "/unlocks/calendar",
       "category": "Unlocks",
       "description": "Upcoming total token emissions by date",
-      "keys": ["emissions"]
+      "keys": [
+        "emissions"
+      ]
     },
     {
       "name": "Raises: Overview",

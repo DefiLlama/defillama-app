@@ -42,7 +42,7 @@ export default function PeggedContainer(props) {
 	let { name } = props.peggedAssetData
 
 	return (
-		<Layout title={`${name}: Circulating and stats - DefiLlama`}>
+		<Layout title={`${name}: Circulating and stats - DefiLlama`} customSEO>
 			<SEO
 				stablePage={true}
 				cardName={name}

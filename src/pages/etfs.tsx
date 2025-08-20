@@ -249,7 +249,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 export default function ETFs(props: PageViewProps) {
 	return (
-		<Layout title={`Exchange Traded Funds - DefiLlama`} defaultSEO>
+		<Layout title={`Exchange Traded Funds - DefiLlama`}>
 			<PageView {...props} />
 		</Layout>
 	)

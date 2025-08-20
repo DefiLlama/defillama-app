@@ -43,7 +43,7 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 
 export default function Protocols(props) {
 	return (
-		<Layout title={`Protocol Expenses - DefiLlama`} defaultSEO>
+		<Layout title={`Protocol Expenses - DefiLlama`}>
 			<TableWithSearch
 				data={props.expenses}
 				columns={columns}

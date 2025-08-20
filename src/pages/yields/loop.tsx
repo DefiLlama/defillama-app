@@ -59,7 +59,7 @@ export default function YieldBorrow(data) {
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
 
 	return (
-		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
+		<Layout title={`Lend/Borrow rates - DefiLlama Yield`}>
 			<Announcement>{disclaimer}</Announcement>
 
 			<p className="rounded-md bg-(--cards-bg) p-3 text-center whitespace-pre-line">

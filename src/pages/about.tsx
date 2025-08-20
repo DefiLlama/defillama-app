@@ -28,7 +28,7 @@ export const getStaticProps = withPerformanceLogging('about', async () => {
 
 function AboutPage(props: any) {
 	return (
-		<Layout title="About - DeFiLlama" defaultSEO>
+		<Layout title="About - DeFiLlama">
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h1 className="text-lg font-semibold">About DeFiLlama</h1>
 				<hr className="border-black/20 dark:border-white/20" />

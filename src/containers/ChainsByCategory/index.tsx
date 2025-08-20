@@ -94,7 +94,6 @@ export function ChainsByCategory({
 	return (
 		<Layout
 			title={`${category} Chains DeFi TVL - DefiLlama`}
-			defaultSEO
 			includeInMetricsOptions={tvlOptions}
 			includeInMetricsOptionslabel="Include in TVL"
 			pageName={pageName}

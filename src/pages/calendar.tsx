@@ -132,7 +132,7 @@ export default function Protocols({ emissions }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`Calendar - DefiLlama`} defaultSEO>
+		<Layout title={`Calendar - DefiLlama`}>
 			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

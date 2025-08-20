@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging('bridges/chains', async () 
 
 export default function BridgeChains(props) {
 	return (
-		<Layout title={`Bridges - DefiLlama`} defaultSEO>
+		<Layout title={`Bridges - DefiLlama`}>
 			<BridgeChainsOverview {...props} />
 		</Layout>
 	)

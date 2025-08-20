@@ -49,7 +49,7 @@ export default function Bridges({
 	//backgroundColor
 }) {
 	return (
-		<Layout title={`Bridge Volume - DefiLlama`} defaultSEO>
+		<Layout title={`Bridge Volume - DefiLlama`}>
 			<BridgesOverviewByChain
 				chains={chains}
 				selectedChain={chain}

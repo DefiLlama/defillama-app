@@ -121,7 +121,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 
 export default function Oracles(props) {
 	return (
-		<Layout title={`Oracles - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
+		<Layout title={`Oracles - DefiLlama`} includeInMetricsOptions={tvlOptions}>
 			<PageView {...props} />
 		</Layout>
 	)

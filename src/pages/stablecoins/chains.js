@@ -27,7 +27,7 @@ export default function PeggedAssets({
 	chainsGroupbyParent
 }) {
 	return (
-		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO pageName={pageName}>
+		<Layout title={`Stablecoins Circulating - DefiLlama`} pageName={pageName}>
 			<ChainsWithStablecoins
 				chainCirculatings={chainCirculatings}
 				chartData={chartData}

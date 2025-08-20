@@ -43,7 +43,7 @@ const pageName = ['Protocols', 'ranked by', 'TVL in forks']
 
 export default function Forks(props) {
 	return (
-		<Layout title={`Forks - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions} pageName={pageName}>
+		<Layout title={`Forks - DefiLlama`} includeInMetricsOptions={tvlOptions} pageName={pageName}>
 			{props.tokenLinks?.length > 0 && (
 				<RowLinksWithDropdown links={props.tokenLinks} activeLink={props.token} alternativeOthersText="Others" />
 			)}

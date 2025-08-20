@@ -135,7 +135,7 @@ const pageName = ['CEXs', 'ranked by', 'Assets']
 
 export default function CexsPage({ cexs }) {
 	return (
-		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO pageName={pageName}>
+		<Layout title={`CEX Transparency - DefiLlama`} pageName={pageName}>
 			<Cexs cexs={cexs} />
 		</Layout>
 	)

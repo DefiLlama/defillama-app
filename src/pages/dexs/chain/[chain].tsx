@@ -67,7 +67,7 @@ const pageName = ['Protocols', 'ranked by', type]
 
 const DexsVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
-		<Layout title={`${props.chain} ${type} - DefiLlama`} defaultSEO pageName={pageName}>
+		<Layout title={`${props.chain} ${type} - DefiLlama`} pageName={pageName}>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

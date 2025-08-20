@@ -63,7 +63,7 @@ export default function PeggedAssets({
 	backgroundColor
 }) {
 	return (
-		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO pageName={pageName}>
+		<Layout title={`Stablecoins Circulating - DefiLlama`} pageName={pageName}>
 			<StablecoinsByChain
 				chains={chains}
 				selectedChain={chain}

@@ -37,7 +37,7 @@ export function SubscribeLayout2({ children }) {
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<SEO />
-			<div className="col-span-full flex w-full flex-col">
+			<div className="col-span-full flex w-full flex-col bg-[oklch(0.148_0.004_228.8)]">
 				<header className="flex min-h-[64px] items-center justify-end gap-4 px-5 py-3"></header>
 				{children}
 				<footer className="mt-auto flex flex-wrap items-center justify-center gap-4 px-5 py-3 text-[#8a8c90]">

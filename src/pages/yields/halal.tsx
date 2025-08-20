@@ -128,7 +128,7 @@ export default function YieldPlots(data) {
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
 
 	return (
-		<Layout title={`Halal - DefiLlama Yield`} defaultSEO>
+		<Layout title={`Halal - DefiLlama Yield`}>
 			<Announcement>{disclaimer}</Announcement>
 			<p className="rounded-md bg-(--cards-bg) p-3 text-center">
 				This list aims to a practical tracker for halal defi yields.

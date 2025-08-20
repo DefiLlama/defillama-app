@@ -55,7 +55,7 @@ export const OraclesByChain = ({
 	}
 
 	return (
-		<Layout title={`Oracles - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions} pageName={pageName}>
+		<Layout title={`Oracles - DefiLlama`} includeInMetricsOptions={tvlOptions} pageName={pageName}>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">

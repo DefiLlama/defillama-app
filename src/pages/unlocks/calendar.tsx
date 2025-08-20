@@ -230,7 +230,7 @@ export default function UnlocksCalendar({
 	}, [initialUnlocksData, showOnlyWatchlist, showOnlyInsider, savedProtocols])
 
 	return (
-		<Layout title={`Token Unlocks Calendar - DefiLlama`} defaultSEO>
+		<Layout title={`Token Unlocks Calendar - DefiLlama`}>
 			<Announcement notCancellable>
 				<span>Are we missing any protocol?</span>{' '}
 				<a

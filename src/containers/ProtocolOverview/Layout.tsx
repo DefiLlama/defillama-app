@@ -77,6 +77,7 @@ export function ProtocolOverviewLayout({
 			title={`${name} - DefiLlama`}
 			includeInMetricsOptions={toggleOptions}
 			includeInMetricsOptionslabel={includeInMetricsOptionslabel}
+			customSEO
 		>
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<p className="relative rounded-md border border-(--bg-color) bg-(--btn-bg) p-2 text-center text-xs text-black dark:text-white">

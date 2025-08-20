@@ -642,7 +642,7 @@ function cleanPool(pool) {
 
 export default function YieldPoolPage(props) {
 	return (
-		<Layout title={`Yields - DefiLlama`} defaultSEO>
+		<Layout title={`Yields - DefiLlama`}>
 			<PageView {...props} />
 		</Layout>
 	)

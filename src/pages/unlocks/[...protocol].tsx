@@ -65,7 +65,7 @@ export async function getStaticPaths() {
 
 export default function Protocol({ emissions, totalUnlockValue, eventCountdown, noUpcomingEvent }) {
 	return (
-		<Layout title={`${emissions.name} Unlocks - DefiLlama`}>
+		<Layout title={`${emissions.name} Unlocks - DefiLlama`} customSEO>
 			<SEO
 				unlockPage={true}
 				cardName={emissions.name}

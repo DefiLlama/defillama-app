@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging('nfts', async () => {
 export default function NFTHomePage(props) {
 	useScrollToTop()
 	return (
-		<Layout title="NFTs - DefiLlama" defaultSEO>
+		<Layout title="NFTs - DefiLlama">
 			<NftsCollectionTable data={props.collections || []} />
 		</Layout>
 	)

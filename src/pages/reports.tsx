@@ -2,7 +2,7 @@ import Layout from '~/layout'
 
 export default function Protocols() {
 	return (
-		<Layout title={`Reports - DefiLlama`} defaultSEO>
+		<Layout title={`Reports - DefiLlama`}>
 			<h1 className="text-center font-semibold">Reports</h1>
 			<ul className="mx-auto my-6 list-none p-0">
 				<li className="text-center text-base font-medium">

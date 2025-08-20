@@ -27,7 +27,7 @@ const pageName = ['Protocols', 'ranked by', type]
 
 const PerpsVolumeOnAllChains = (props) => {
 	return (
-		<Layout title={`${type} by Protocol - DefiLlama`} defaultSEO pageName={pageName}>
+		<Layout title={`${type} by Protocol - DefiLlama`} pageName={pageName}>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

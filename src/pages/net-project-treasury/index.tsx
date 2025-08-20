@@ -45,7 +45,7 @@ const pageName = ['Protocols', 'ranked by', 'Net Project Treasury']
 
 const NetProjectTreasuries = (props) => {
 	return (
-		<Layout title={`Net Project Treasury - DefiLlama`} defaultSEO pageName={pageName}>
+		<Layout title={`Net Project Treasury - DefiLlama`} pageName={pageName}>
 			<TableWithSearch
 				data={props.protocols}
 				columns={columns}

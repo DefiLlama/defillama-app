@@ -3,7 +3,7 @@ import Layout from '~/layout'
 
 function PluginPage() {
 	return (
-		<Layout title="DefiLlama - ChatGPT Plugin" defaultSEO>
+		<Layout title="DefiLlama - ChatGPT Plugin">
 			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
 				DefiLlama ChatGPT Plugin
 			</h1>

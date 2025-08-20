@@ -48,7 +48,7 @@ function Support() {
 	}
 
 	return (
-		<Layout title="Support - DefiLlama" defaultSEO>
+		<Layout title="Support - DefiLlama">
 			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11">
 				<form
 					onSubmit={onSubmit}

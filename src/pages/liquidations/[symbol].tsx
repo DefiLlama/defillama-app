@@ -64,7 +64,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
 
 	return (
-		<Layout title={`${data.name} (${data.symbol.toUpperCase()}) Liquidation Levels - DefiLlama`}>
+		<Layout title={`${data.name} (${data.symbol.toUpperCase()}) Liquidation Levels - DefiLlama`} customSEO>
 			<SEO
 				liqsPage
 				cardName={`${data.name} (${data.symbol.toUpperCase()})`}

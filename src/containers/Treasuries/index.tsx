@@ -87,7 +87,7 @@ export function Treasuries({ data, entity }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} defaultSEO pageName={entity ? null : pageName}>
+		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} pageName={entity ? null : pageName}>
 			<TableWithSearch
 				data={data}
 				columns={tableColumns}

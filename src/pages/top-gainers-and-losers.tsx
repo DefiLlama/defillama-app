@@ -32,7 +32,7 @@ export default function TopGainersLosers({ protocols }) {
 	}, [data])
 
 	return (
-		<Layout title={`Top Gainers and Losers - DefiLlama`} defaultSEO>
+		<Layout title={`Top Gainers and Losers - DefiLlama`}>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Gainers</h1>
 				<TopGainersAndLosers data={topGainers} />

@@ -81,7 +81,7 @@ export default function Protocols({ data, unlockStats }) {
 	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
 
 	return (
-		<Layout title={`Unlocks - DefiLlama`} defaultSEO pageName={pageName}>
+		<Layout title={`Unlocks - DefiLlama`} pageName={pageName}>
 			<Announcement notCancellable>
 				<span>Are we missing any protocol?</span>{' '}
 				<a

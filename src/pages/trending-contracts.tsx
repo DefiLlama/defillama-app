@@ -91,7 +91,7 @@ export default function TrendingContracts() {
 	})
 
 	return (
-		<Layout title={`Trending Contracts - DefiLlama`} defaultSEO>
+		<Layout title={`Trending Contracts - DefiLlama`}>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center gap-5 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Trending Contracts</h1>

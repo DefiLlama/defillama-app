@@ -184,7 +184,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	}
 
 	return (
-		<Layout title="VC Filter - DefiLlama" defaultSEO>
+		<Layout title="VC Filter - DefiLlama">
 			<div className="mx-auto flex w-full max-w-4xl flex-col gap-5 rounded-md bg-(--cards-bg) p-3">
 				<h1 className="text-center text-xl font-semibold">Connect with Investors</h1>
 				<p className="text-center text-base text-(--text-secondary)">

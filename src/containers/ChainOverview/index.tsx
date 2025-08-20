@@ -14,7 +14,6 @@ export function ChainOverview(props: IChainOverviewData) {
 	return (
 		<Layout
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
-			defaultSEO
 			includeInMetricsOptions={props.tvlAndFeesOptions}
 			includeInMetricsOptionslabel="Include in TVL"
 			pageName={pageName}

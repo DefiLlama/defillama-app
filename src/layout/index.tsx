@@ -14,7 +14,7 @@ const GlobalSearch = React.lazy(() => import('~/components/Search').then((m) => 
 interface ILayoutProps {
 	title: string
 	children: React.ReactNode
-	defaultSEO?: boolean
+	customSEO?: boolean
 	className?: string
 	style?: React.CSSProperties
 	includeInMetricsOptions?: { name: string; key: string }[]
@@ -25,7 +25,7 @@ interface ILayoutProps {
 export default function Layout({
 	title,
 	children,
-	defaultSEO = false,
+	customSEO = false,
 	className,
 	pageName,
 	includeInMetricsOptions,
@@ -40,7 +40,7 @@ export default function Layout({
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 
-			{defaultSEO ? <SEO /> : null}
+			{customSEO ? null : <SEO />}
 			<Nav />
 			<main
 				{...props}

@@ -55,7 +55,7 @@ export default function Portfolio({
 	chainAssets
 }) {
 	return (
-		<Layout title={`Watchlist - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
+		<Layout title={`Watchlist - DefiLlama`} includeInMetricsOptions={tvlOptions}>
 			<DefiWatchlistContainer
 				protocolsList={protocolsList}
 				parentProtocols={parentProtocols}

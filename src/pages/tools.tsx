@@ -18,7 +18,7 @@ export default function Tools() {
 	}, [deferredSearchValue])
 
 	return (
-		<Layout title="Tools - DefiLlama" defaultSEO>
+		<Layout title="Tools - DefiLlama">
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h1 className="text-2xl font-bold">Tools</h1>
 				<div className="relative">

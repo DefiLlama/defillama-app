@@ -77,7 +77,7 @@ export default function Tokens({ searchData }) {
 	}
 
 	return (
-		<Layout title="Token Usage - DefiLlama" defaultSEO>
+		<Layout title="Token Usage - DefiLlama">
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 
 			<Search searchData={searchData} />

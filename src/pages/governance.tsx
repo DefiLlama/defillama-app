@@ -67,7 +67,7 @@ export default function Governance({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`Governance - DefiLlama`} defaultSEO>
+		<Layout title={`Governance - DefiLlama`}>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Governance</h1>

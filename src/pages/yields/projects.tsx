@@ -56,7 +56,7 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 
 export default function Protocols({ projects }) {
 	return (
-		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
+		<Layout title={`Projects - DefiLlama Yield`}>
 			<Announcement>{disclaimer}</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

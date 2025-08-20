@@ -47,7 +47,7 @@ export const getStaticProps = withPerformanceLogging('yields/strategy', async ()
 
 export default function YieldStrategies(data) {
 	return (
-		<Layout title={`Yield Strategies - DefiLlama Yield`} defaultSEO>
+		<Layout title={`Yield Strategies - DefiLlama Yield`}>
 			<Announcement>{disclaimer}</Announcement>
 			<YieldsStrategyPage {...data} />
 		</Layout>

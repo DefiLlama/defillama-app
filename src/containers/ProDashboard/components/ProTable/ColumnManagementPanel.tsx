@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns, TABLE_CATEGORIES } from '~/components/Table/Defi/Protocols'
 import { Tooltip } from '~/components/Tooltip'
+import { CustomView } from '../../types'
 import { CustomColumnPanel } from './CustomColumnPanel'
 
 const metricDescriptions: Record<string, string> = {
@@ -57,8 +58,6 @@ interface CustomColumn {
 	isValid: boolean
 	errorMessage?: string
 }
-
-import { CustomView } from '../../types'
 
 interface ColumnManagementPanelProps {
 	showColumnPanel: boolean
@@ -410,7 +409,9 @@ export function ColumnManagementPanel({
 						<div className="pro-text3 py-8 text-center">
 							<Icon name="eye" height={32} width={32} className="mx-auto mb-2 opacity-50" />
 							<p className="text-sm">No saved views yet</p>
-							<p className="mt-1 text-xs">Save your current column configuration as a view to quickly switch between different layouts</p>
+							<p className="mt-1 text-xs">
+								Save your current column configuration as a view to quickly switch between different layouts
+							</p>
 						</div>
 					) : (
 						<div className="space-y-2">
@@ -422,10 +423,7 @@ export function ColumnManagementPanel({
 										activeViewId === view.id ? 'border-(--primary)' : ''
 									}`}
 								>
-									<button
-										onClick={() => onLoadView?.(view.id)}
-										className="flex flex-1 flex-col items-start gap-1"
-									>
+									<button onClick={() => onLoadView?.(view.id)} className="flex flex-1 flex-col items-start gap-1">
 										<div className="flex items-center gap-2">
 											<span className="pro-text1 text-sm font-medium">{view.name}</span>
 											{activeViewId === view.id && (
@@ -468,8 +466,8 @@ export function ColumnManagementPanel({
 								protocolsByChainTableColumns.length
 							} columns visible`
 						: activeTab === 'custom'
-						? `${customColumns.length} custom columns`
-						: `${customViews.length} saved views`}
+							? `${customColumns.length} custom columns`
+							: `${customViews.length} saved views`}
 				</span>
 				<button
 					onClick={() => setShowColumnPanel(false)}
