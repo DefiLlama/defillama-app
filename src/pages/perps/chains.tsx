@@ -7,6 +7,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.PERPS
+const type = 'Perp Volume'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
 	const data = await getChainsByAdapterPageData({ adapterType, route: 'perps' })
@@ -17,10 +18,12 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 	}
 })
 
+const pageName = ['Chains', 'ranked by', type]
+
 const PerpsByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title="Perp Volume by Chain - DefiLlama">
-			<ChainsByAdapter {...props} type="Perp Volume" />
+		<Layout title={`${type} by Chain - DefiLlama`} pageName={pageName}>
+			<ChainsByAdapter {...props} type={type} />
 		</Layout>
 	)
 }

@@ -15,9 +15,11 @@ export const getStaticProps = withPerformanceLogging(`protocols-fdv/index`, asyn
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Fully Diluted Valuation']
+
 export default function ProtocolsFdv(props) {
 	return (
-		<Layout title="Fully Diluted Valuations - DefiLlama">
+		<Layout title="Fully Diluted Valuations - DefiLlama" pageName={pageName}>
 			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)

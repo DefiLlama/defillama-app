@@ -1,6 +1,5 @@
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { TEMP_CHAIN_NFTS } from '~/constants'
@@ -35,10 +34,11 @@ export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => 
 	}
 })
 
+const pageName = ['Chains', 'ranked by', 'NFT Volume']
+
 export default function NftsOnAllChains(props) {
 	return (
-		<Layout title="NFTs - DefiLlama">
-			<Metrics currentMetric="NFT Volume" isChains />
+		<Layout title="NFTs - DefiLlama" pageName={pageName}>
 			<TableWithSearch
 				data={props.chains}
 				columns={columns}

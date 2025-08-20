@@ -2,7 +2,6 @@ import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -45,7 +44,6 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 
 	return (
 		<>
-			<Metrics currentMetric="Bridged TVL" isChains={true} />
 			<RowLinksWithDropdown links={chains} activeLink="All" />
 			<TableWithSearch
 				data={data}

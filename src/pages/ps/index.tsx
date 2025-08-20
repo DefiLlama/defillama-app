@@ -3,11 +3,13 @@ import { feesOptions } from '~/components/Filters/options'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.REVENUE
+const type = 'P/S'
 
 export const getStaticProps = withPerformanceLogging(`revenue/ps/index`, async () => {
 	const data = await getAdapterByChainPageData({
@@ -25,15 +27,18 @@ export const getStaticProps = withPerformanceLogging(`revenue/ps/index`, async (
 	}
 })
 
-const RevenueOnAllChains = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`P/S - DefiLlama`}
 			defaultSEO
 			includeInMetricsOptions={feesOptions}
 			includeInMetricsOptionslabel="Include in Metrics"
+			pageName={pageName}
 		>
-			<AdapterByChain {...props} type="P/S" />
+			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)
 }

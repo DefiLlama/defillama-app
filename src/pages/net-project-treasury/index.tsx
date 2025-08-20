@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOLS_TREASURY } from '~/constants'
@@ -42,10 +41,11 @@ export const getStaticProps = withPerformanceLogging(`net-project-treasury/index
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Net Project Treasury']
+
 const NetProjectTreasuries = (props) => {
 	return (
-		<Layout title={`Net Project Treasury - DefiLlama`} defaultSEO>
-			<Metrics currentMetric="Net Project Treasury" />
+		<Layout title={`Net Project Treasury - DefiLlama`} defaultSEO pageName={pageName}>
 			<TableWithSearch
 				data={props.protocols}
 				columns={columns}

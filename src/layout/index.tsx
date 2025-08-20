@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Head from 'next/head'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
+import { InsightsAndTools } from '~/components/Insights'
 import Nav from '~/components/Nav'
 import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select'
@@ -18,6 +19,7 @@ interface ILayoutProps {
 	style?: React.CSSProperties
 	includeInMetricsOptions?: { name: string; key: string }[]
 	includeInMetricsOptionslabel?: string
+	pageName?: Array<string>
 }
 
 export default function Layout({
@@ -25,6 +27,7 @@ export default function Layout({
 	children,
 	defaultSEO = false,
 	className,
+	pageName,
 	includeInMetricsOptions,
 	includeInMetricsOptionslabel,
 	...props
@@ -53,6 +56,7 @@ export default function Layout({
 						<IncludeInMetricsOptions options={includeInMetricsOptions} label={includeInMetricsOptionslabel} />
 					)}
 				</span>
+				{pageName ? <InsightsAndTools currentMetric={pageName} /> : null}
 				{children}
 			</main>
 			{isClient ? (

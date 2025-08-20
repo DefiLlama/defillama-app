@@ -1,6 +1,6 @@
 import { maxAgeForNext } from '~/api'
 import { getTotalStakedByChain } from '~/containers/TotalStaked/queries'
-import { StakedByChain } from '~/containers/TotalStaked/StakedByChain'
+import { StakedProtocolsTVLByChain } from '~/containers/TotalStaked/StakedByChain'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -15,10 +15,12 @@ export const getStaticProps = withPerformanceLogging(`total-staked/index`, async
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Total Value Staked']
+
 export default function TotalBorrowed(props) {
 	return (
-		<Layout title="Total Staked - DefiLlama">
-			<StakedByChain {...props} />
+		<Layout title="Total Staked - DefiLlama" pageName={pageName}>
+			<StakedProtocolsTVLByChain {...props} />
 		</Layout>
 	)
 }

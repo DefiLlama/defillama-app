@@ -1,13 +1,13 @@
 import { maxAgeForNext } from '~/api'
-import { TMetric } from '~/components/Metrics'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.BRIDGE_AGGREGATORS
-const type: TMetric = 'Bridge Aggregator Volume'
+const type = 'Bridge Aggregator Volume'
 
 export const getStaticProps = withPerformanceLogging(`${type}/index`, async () => {
 	const data = await getAdapterByChainPageData({
@@ -24,9 +24,11 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 	}
 })
 
-const BridgeAggregatorsVolumeOnAllChains = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const BridgeAggregatorsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
-		<Layout title={`${type} by Protocol - DefiLlama`} defaultSEO>
+		<Layout title={`${type} by Protocol - DefiLlama`} defaultSEO pageName={pageName}>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

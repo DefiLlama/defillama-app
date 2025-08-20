@@ -10,12 +10,13 @@ import {
 } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
 import { download, formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
+
+const pageName = ['Protocols', 'ranked by', 'Treasury']
 
 export function Treasuries({ data, entity }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -86,8 +87,7 @@ export function Treasuries({ data, entity }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} defaultSEO>
-			{!entity && <Metrics currentMetric="Treasury" />}
+		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} defaultSEO pageName={entity ? null : pageName}>
 			<TableWithSearch
 				data={data}
 				columns={tableColumns}

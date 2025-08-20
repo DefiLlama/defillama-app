@@ -307,7 +307,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
-					{row.subRows?.length > 0 && (
+					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-[2px]"
 							{...{
@@ -326,9 +326,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 								</>
 							)}
 						</button>
+					) : (
+						<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-[2px]" />
 					)}
 					<span className="shrink-0">{index + 1}</span>
-					<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-[2px]" />
+
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<BasicLink
 						href={`/chain/${slug(getValue() as string)}`}

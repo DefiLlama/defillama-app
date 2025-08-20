@@ -3,20 +3,18 @@ import { ColumnDef } from '@tanstack/react-table'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
-import { IPool2ByChainPageData } from './queries'
+import { IPool2ProtocolsTVLByChainPageData } from './queries'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
-export function Pool2ByChain(props: IPool2ByChainPageData) {
+export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageData) {
 	return (
 		<>
-			<Metrics currentMetric="Pool2 TVL" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-3 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-base xl:col-span-1">
@@ -66,7 +64,7 @@ export function Pool2ByChain(props: IPool2ByChainPageData) {
 	)
 }
 
-const columns: ColumnDef<IPool2ByChainPageData['protocols'][0]>[] = [
+const columns: ColumnDef<IPool2ProtocolsTVLByChainPageData['protocols'][0]>[] = [
 	{
 		id: 'name',
 		header: 'Name',

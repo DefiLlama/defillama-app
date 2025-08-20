@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps } from '~/components/ECharts/types'
-import { Metrics } from '~/components/Metrics'
 import { oldBlue } from '~/constants/colors'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import Layout from '~/layout'
@@ -29,7 +28,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 	const totalAmountRaised = monthlyInvestment.reduce((acc, curr) => (acc += curr[1]), 0)
 
 	return (
-		<Layout title={`Raises - DefiLlama`} defaultSEO>
+		<Layout title={`Raises - DefiLlama`} defaultSEO pageName={['Raises Overview']}>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
@@ -43,7 +42,6 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				<br />
 				<span>Are you a VC and want to submit your investments in bulk? Email them to us at support@defillama.com</span>
 			</Announcement>
-			<Metrics currentMetric="Total Raised" />
 			<RaisesFilters
 				header={investorName ? `${investorName} raises` : 'Raises'}
 				rounds={rounds}

@@ -494,7 +494,7 @@ export const getAdapterByChainPageData = async ({
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	route: string
-}) => {
+}): Promise<IAdapterByChainPageData | null> => {
 	const [data, protocolsData, bribesData, tokenTaxesData]: [
 		IAdapterOverview,
 		{
@@ -618,7 +618,7 @@ export const getAdapterByChainPageData = async ({
 
 	const protocols = {}
 	const parentProtocols = {}
-	const categories = new Set()
+	const categories = new Set<string>()
 	for (const protocol of allProtocols) {
 		const methodology =
 			adapterType === 'fees'

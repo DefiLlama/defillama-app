@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
@@ -16,6 +15,8 @@ import { IChainsByCategoryData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
+
+const pageName = ['Chains', 'rankings by', 'Category']
 
 export function ChainsByCategory({
 	chainAssets,
@@ -96,9 +97,8 @@ export function ChainsByCategory({
 			defaultSEO
 			includeInMetricsOptions={tvlOptions}
 			includeInMetricsOptionslabel="Include in TVL"
+			pageName={pageName}
 		>
-			<Metrics currentMetric="TVL" isChains={true} />
-
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
 
 			<div className="flex flex-col gap-2 xl:flex-row">

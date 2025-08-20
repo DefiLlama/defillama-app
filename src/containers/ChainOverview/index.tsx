@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react'
 import { Icon } from '~/components/Icon'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import Layout from '~/layout'
 import { SmolStats } from './SmolStats'
@@ -9,6 +8,8 @@ import type { IChainOverviewData } from './types'
 
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
+const pageName = ['Protocols', 'rankings by', 'Chain']
+
 export function ChainOverview(props: IChainOverviewData) {
 	return (
 		<Layout
@@ -16,8 +17,8 @@ export function ChainOverview(props: IChainOverviewData) {
 			defaultSEO
 			includeInMetricsOptions={props.tvlAndFeesOptions}
 			includeInMetricsOptionslabel="Include in TVL"
+			pageName={pageName}
 		>
-			<Metrics currentMetric="TVL" />
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
 			<Stats {...props} />
 			<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>

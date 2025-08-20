@@ -5,7 +5,6 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
@@ -15,6 +14,8 @@ import { download, formattedNum, preparePieChartData } from '~/utils'
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
+
+const pageName = ['Oracles', 'ranked by', 'TVS']
 
 export const OraclesByChain = ({
 	chartData,
@@ -54,9 +55,7 @@ export const OraclesByChain = ({
 	}
 
 	return (
-		<Layout title={`Oracles - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
-			<Metrics currentMetric="Oracle TVS" />
-
+		<Layout title={`Oracles - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions} pageName={pageName}>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">

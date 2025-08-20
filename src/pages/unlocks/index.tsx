@@ -5,7 +5,6 @@ import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissions } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'
 import { UpcomingUnlockVolumeChart } from '~/components/Charts/UpcomingUnlockVolumeChart'
-import { Metrics } from '~/components/Metrics'
 import { PastUnlockPriceImpact } from '~/components/Unlocks/PastUnlockPriceImpact'
 import { TopUnlocks } from '~/components/Unlocks/TopUnlocks'
 import { UnlocksTable } from '~/containers/Unlocks/Table'
@@ -67,6 +66,8 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Token Unlocks']
+
 export default function Protocols({ data, unlockStats }) {
 	const [projectName, setProjectName] = React.useState('')
 	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
@@ -80,7 +81,7 @@ export default function Protocols({ data, unlockStats }) {
 	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
 
 	return (
-		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
+		<Layout title={`Unlocks - DefiLlama`} defaultSEO pageName={pageName}>
 			<Announcement notCancellable>
 				<span>Are we missing any protocol?</span>{' '}
 				<a
@@ -92,8 +93,6 @@ export default function Protocols({ data, unlockStats }) {
 					Add it here!
 				</a>
 			</Announcement>
-
-			<Metrics currentMetric="Unlocks" />
 
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">

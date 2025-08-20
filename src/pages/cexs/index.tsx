@@ -1,6 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { CEXS_API, COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 import { Cexs } from '~/containers/Cexs'
+import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -130,6 +131,12 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 	}
 })
 
-export default function Protocols({ cexs }) {
-	return <Cexs cexs={cexs} />
+const pageName = ['CEXs', 'ranked by', 'Assets']
+
+export default function CexsPage({ cexs }) {
+	return (
+		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO pageName={pageName}>
+			<Cexs cexs={cexs} />
+		</Layout>
+	)
 }

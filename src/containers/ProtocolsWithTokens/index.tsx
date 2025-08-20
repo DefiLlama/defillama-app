@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics, TMetric } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -94,11 +93,10 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 		)
 	}
 
-	const { metricName, columns } = getMetricNameAndColumns(props.type)
+	const { columns } = getMetricNameAndColumns(props.type)
 
 	return (
 		<>
-			<Metrics currentMetric={metricName} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<TableWithSearch
 				data={protocols}
@@ -345,19 +343,18 @@ const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['prot
 ]
 
 function getMetricNameAndColumns(type: IProtocolsWithTokensByChainPageData['type']): {
-	metricName: TMetric
 	columns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[]
 } {
 	switch (type) {
 		case 'mcap':
-			return { metricName: 'Market Cap', columns: mcapColumns }
+			return { columns: mcapColumns }
 		case 'price':
-			return { metricName: 'Token Price', columns: priceColumns }
+			return { columns: priceColumns }
 		case 'fdv':
-			return { metricName: 'FDV', columns: fdvColumns }
+			return { columns: fdvColumns }
 		case 'outstanding-fdv':
-			return { metricName: 'Outstanding FDV', columns: outstandingFdvColumns }
+			return { columns: outstandingFdvColumns }
 		default:
-			return { metricName: 'TVL', columns: [] }
+			return { columns: [] }
 	}
 }

@@ -1,15 +1,15 @@
 import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
-import { TMetric } from '~/components/Metrics'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.DAILY_EARNINGS
-const type: TMetric = 'Earnings'
+const type = 'Earnings'
 
 export const getStaticProps = withPerformanceLogging(`${type}/index`, async () => {
 	const data = await getAdapterByChainPageData({
@@ -27,13 +27,16 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 	}
 })
 
-const EarningsOnAllChains = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const EarningsOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`${type} by Protocol - DefiLlama`}
 			defaultSEO
 			includeInMetricsOptions={feesOptions}
 			includeInMetricsOptionslabel="Include in Earnings"
+			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>

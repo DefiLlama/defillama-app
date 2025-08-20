@@ -3,7 +3,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -13,10 +12,9 @@ import { ITotalStakedByChainPageData } from './queries'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
-export function StakedByChain(props: ITotalStakedByChainPageData) {
+export function StakedProtocolsTVLByChain(props: ITotalStakedByChainPageData) {
 	return (
 		<>
-			<Metrics currentMetric="Total Staked" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-3 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-base xl:col-span-1">

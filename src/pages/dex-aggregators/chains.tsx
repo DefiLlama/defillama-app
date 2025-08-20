@@ -7,6 +7,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.AGGREGATORS
+const type = 'DEX Aggregator Volume'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
 	const data = await getChainsByAdapterPageData({ adapterType, route: 'dex-aggregators' })
@@ -17,10 +18,12 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 	}
 })
 
+const pageName = ['Chains', 'ranked by', type]
+
 const DexAggregatorsByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title="DEX Aggregator Volume by Chain - DefiLlama">
-			<ChainsByAdapter {...props} type="DEX Aggregator Volume" />
+		<Layout title={`${type} by Chain - DefiLlama`} pageName={pageName}>
+			<ChainsByAdapter {...props} type={type} />
 		</Layout>
 	)
 }

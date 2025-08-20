@@ -1,4 +1,5 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { Fragment, useDeferredValue, useMemo, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
@@ -30,7 +31,7 @@ const insightsByCategory = Object.entries(
 		insights: others
 	} as { category: string; insights: Array<{ name: string; route: string; description: string }> })
 
-export function InsightsPages() {
+export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
@@ -60,7 +61,17 @@ export function InsightsPages() {
 	return (
 		<>
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-				<h1 className="text-2xl font-bold">Insights</h1>
+				<div className="flex items-center gap-2">
+					<h1 className="text-2xl font-bold">Insights</h1>
+					{canDismiss ? (
+						<Ariakit.DialogDismiss
+							className="-my-2 ml-auto rounded-lg p-2 text-(--text-tertiary) hover:bg-(--divider) hover:text-(--text-primary)"
+							aria-label="Close modal"
+						>
+							<Icon name="x" height={20} width={20} />
+						</Ariakit.DialogDismiss>
+					) : null}
+				</div>
 				<div className="relative">
 					<Icon
 						name="search"
@@ -114,4 +125,86 @@ const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => 
 	const value = totalTrackedKey.split('.').reduce((obj, key) => obj?.[key], totalTrackedByMetric)
 	if (!value) return null
 	return `${value} tracked`
+}
+
+export const InsightsAndTools = ({ currentMetric }: { currentMetric: Array<string> }) => {
+	const dialogStore = Ariakit.useDialogStore()
+	return (
+		<>
+			<Ariakit.DialogProvider store={dialogStore}>
+				<div className="relative isolate h-10 w-full rounded-md bg-(--cards-bg) p-1">
+					<img
+						src="/icons/metrics-l.svg"
+						width={92}
+						height={40}
+						alt=""
+						className="absolute top-0 left-0 h-full w-auto rounded-l-md object-cover"
+						fetchPriority="high"
+					/>
+					<div className="flex h-full flex-wrap items-center justify-center gap-1">
+						<span className="hidden items-center gap-2 rounded-md bg-(--old-blue) px-2 py-[7px] text-xs text-white lg:flex">
+							<Icon name="sparkles" height={12} width={12} />
+							<span>New</span>
+						</span>
+						{currentMetric.map((metric, i) => (
+							<Fragment key={`insight-name-${metric}`}>
+								{i === 1 ? (
+									<span>{metric}</span>
+								) : (
+									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] px-[10px] py-1 font-semibold">
+										{metric}
+									</Ariakit.DialogDisclosure>
+								)}
+							</Fragment>
+						))}
+						<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-[6px] py-1 text-xs text-(--text-form)">
+							<Icon name="search" height={12} width={12} />
+							<span className="hidden sm:block">Click to browse & search</span>
+						</Ariakit.DialogDisclosure>
+					</div>
+					<img
+						src="/icons/metrics-r.svg"
+						width={92}
+						height={40}
+						alt=""
+						className="absolute top-0 right-0 h-full w-auto rounded-r-md object-cover"
+						fetchPriority="high"
+					/>
+					<svg
+						width="100%"
+						height="100%"
+						className="absolute top-0 right-0 bottom-0 left-0 z-0 text-[#e6e6e6] dark:text-[#222324]"
+					>
+						<defs>
+							<linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+								<stop offset="0%" stopColor="#1f67d2" />
+								<stop offset="8%" stopColor="#1f67d2" />
+								<stop offset="18%" stopColor="currentColor" />
+								<stop offset="82%" stopColor="currentColor" />
+								<stop offset="92%" stopColor="#1f67d2" />
+								<stop offset="100%" stopColor="#1f67d2" />
+							</linearGradient>
+						</defs>
+						<rect
+							x="1"
+							y="1"
+							width="calc(100% - 1.5px)"
+							height="calc(100% - 1.5px)"
+							rx="6"
+							ry="6"
+							fill="none"
+							stroke="url(#border-gradient)"
+							strokeWidth="1"
+						/>
+					</svg>
+				</div>
+				<Ariakit.Dialog
+					className="dialog max-sm:drawer h-[70vh] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] lg:h-[calc(100vh-32px)]"
+					unmountOnHide
+				>
+					<Insights canDismiss={true} />
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+		</>
+	)
 }

@@ -1,7 +1,7 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { getTotalStakedByChain } from '~/containers/TotalStaked/queries'
-import { StakedByChain } from '~/containers/TotalStaked/StakedByChain'
+import { StakedProtocolsTVLByChain } from '~/containers/TotalStaked/StakedByChain'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -30,10 +30,12 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
+const pageName = ['Protocols', 'ranked by', 'Total Value Staked']
+
 export default function TotalStakedByChain(props) {
 	return (
-		<Layout title="Total Staked - DefiLlama">
-			<StakedByChain {...props} />
+		<Layout title="Total Staked - DefiLlama" pageName={pageName}>
+			<StakedProtocolsTVLByChain {...props} />
 		</Layout>
 	)
 }

@@ -2,7 +2,6 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
@@ -26,7 +25,7 @@ const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as Re
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-function PeggedAssetsOverview({
+export function StablecoinsByChain({
 	selectedChain = 'All',
 	chains = [],
 	filteredPeggedAssets,
@@ -222,8 +221,6 @@ function PeggedAssetsOverview({
 
 	return (
 		<>
-			<Metrics currentMetric="Stablecoin Supply" />
-
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
 			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
@@ -411,5 +408,3 @@ const tokenColors = {
 	FDUSD: '#00FF00',
 	Others: '#FF1493'
 }
-
-export default PeggedAssetsOverview

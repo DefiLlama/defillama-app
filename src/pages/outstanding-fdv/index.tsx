@@ -15,9 +15,11 @@ export const getStaticProps = withPerformanceLogging(`protocols-aFDV/index`, asy
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Outstanding FDV']
+
 export default function ProtocolsMarketCaps(props) {
 	return (
-		<Layout title="Outstanding FDV - DefiLlama">
+		<Layout title="Outstanding FDV - DefiLlama" pageName={pageName}>
 			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)

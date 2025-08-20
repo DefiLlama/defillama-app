@@ -15,9 +15,11 @@ export const getStaticProps = withPerformanceLogging(`protocols-market-caps/inde
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Market Cap']
+
 export default function ProtocolsMarketCaps(props) {
 	return (
-		<Layout title="Market Caps - DefiLlama">
+		<Layout title="Market Caps - DefiLlama" pageName={pageName}>
 			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)

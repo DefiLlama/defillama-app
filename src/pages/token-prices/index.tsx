@@ -15,9 +15,11 @@ export const getStaticProps = withPerformanceLogging(`protocols-token-prices/ind
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Token Price']
+
 export default function ProtocolsTokenPrices(props) {
 	return (
-		<Layout title="Token Prices - DefiLlama">
+		<Layout title="Token Prices - DefiLlama" pageName={pageName}>
 			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)

@@ -5,7 +5,7 @@ import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
 
-export interface IPool2ByChainPageData {
+export interface IPool2ProtocolsTVLByChainPageData {
 	protocols: Array<{
 		name: string
 		logo: string
@@ -31,7 +31,11 @@ export interface IPool2ByChainPageData {
 	change24h: number | null
 }
 
-export async function getPool2TVLByChain({ chain }: { chain: string }): Promise<IPool2ByChainPageData | null> {
+export async function getPool2TVLByChain({
+	chain
+}: {
+	chain: string
+}): Promise<IPool2ProtocolsTVLByChainPageData | null> {
 	const [{ protocols, parentProtocols }, chart, chains]: [
 		{
 			protocols: Array<ILiteProtocol>

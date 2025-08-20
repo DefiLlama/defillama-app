@@ -8,6 +8,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.HOLDERS_REVENUE
+const type = 'Holders Revenue'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
 	const data = await getChainsByAdapterPageData({ adapterType, dataType, route: 'holders-revenue' })
@@ -18,10 +19,12 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 	}
 })
 
+const pageName = ['Chains', 'ranked by', type]
+
 const HoldersRevenueByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title="Holders Revenue by Chain - DefiLlama">
-			<ChainsByAdapter {...props} type="Holders Revenue" />
+		<Layout title={`${type} by Chain - DefiLlama`} pageName={pageName}>
+			<ChainsByAdapter {...props} type={type} />
 		</Layout>
 	)
 }

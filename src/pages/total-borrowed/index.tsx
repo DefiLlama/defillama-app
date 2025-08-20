@@ -1,5 +1,5 @@
 import { maxAgeForNext } from '~/api'
-import { BorrowedByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
+import { BorrowedProtocolsTVLByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
 import { getTotalBorrowedByChain } from '~/containers/TotalBorrowed/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -15,10 +15,12 @@ export const getStaticProps = withPerformanceLogging(`total-borrowed/index`, asy
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
+
 export default function TotalBorrowed(props) {
 	return (
-		<Layout title="Total Borrowed - DefiLlama">
-			<BorrowedByChain {...props} />
+		<Layout title="Total Borrowed - DefiLlama" pageName={pageName}>
+			<BorrowedProtocolsTVLByChain {...props} />
 		</Layout>
 	)
 }

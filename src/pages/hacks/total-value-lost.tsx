@@ -3,7 +3,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { Select } from '~/components/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -23,6 +22,8 @@ export const getStaticProps = withPerformanceLogging('protocols/total-value-lost
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Total Value Lost in Hacks']
+
 export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostInHacksByProtocol) {
 	const [selectedColumns, setSelectedColumns] = React.useState<Array<string>>([
 		'Name',
@@ -36,8 +37,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 	}, [selectedColumns])
 
 	return (
-		<Layout title="Total Value Lost in Hacks - DefiLlama">
-			<Metrics currentMetric="Total Value Lost in Hacks" />
+		<Layout title="Total Value Lost in Hacks - DefiLlama" pageName={pageName}>
 			<TableWithSearch
 				data={protocols}
 				columns={filteredColumns}

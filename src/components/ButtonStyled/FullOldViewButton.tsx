@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-import { TMetric } from '~/components/Metrics'
 import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { Tooltip } from '~/components/Tooltip'
@@ -10,29 +9,15 @@ import { useDashboardCreation } from '~/hooks/useDashboardCreation'
 import { useSubscribe } from '~/hooks/useSubscribe'
 
 interface FullOldViewButtonProps {
-	type: TMetric
 	className?: string
 }
 
-const SUPPORTED_TYPES = [
-	'DEX Volume',
-	'Perp Volume',
-	'Options Premium Volume',
-	'Options Notional Volume',
-	'DEX Aggregator Volume',
-	'Bridge Aggregator Volume'
-]
-
-export const FullOldViewButton = ({ type, className }: FullOldViewButtonProps) => {
+export const FullOldViewButton = ({ className }: FullOldViewButtonProps) => {
 	const router = useRouter()
 	const { createDashboardWithDataset, isAuthenticated, isLoading } = useDashboardCreation()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const isClient = useIsClient()
-
-	if (!SUPPORTED_TYPES.includes(type)) {
-		return null
-	}
 
 	const handleClick = () => {
 		if (isLoading || isSubscriptionLoading) return

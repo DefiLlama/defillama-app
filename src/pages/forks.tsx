@@ -2,7 +2,6 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { forksColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -26,6 +25,8 @@ export const getStaticProps = withPerformanceLogging('forks', async () => {
 		revalidate: maxAgeForNext([22])
 	}
 })
+
+const pageName = ['Protocols', 'ranked by', 'TVL in forks']
 
 export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens, forkColors }) {
 	const forkedTokensData = useCalcStakePool2Tvl(parentTokens)
@@ -73,8 +74,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 	}
 
 	return (
-		<Layout title={`Forks - DefiLlama`} defaultSEO>
-			<Metrics currentMetric="TVL in forks" />
+		<Layout title={`Forks - DefiLlama`} defaultSEO pageName={pageName}>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[406px] flex-1 flex-col rounded-md bg-(--cards-bg) pt-2">

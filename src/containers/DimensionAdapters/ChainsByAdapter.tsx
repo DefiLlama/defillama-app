@@ -15,7 +15,6 @@ import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics, TMetric } from '~/components/Metrics'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -24,21 +23,21 @@ import { download, formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
 import { IChainsByAdapterPageData } from './types'
 
+type TPageType =
+	| 'Fees'
+	| 'Revenue'
+	| 'Holders Revenue'
+	| 'DEX Volume'
+	| 'Perp Volume'
+	| 'Bridge Aggregator Volume'
+	| 'Perp Aggregator Volume'
+	| 'DEX Aggregator Volume'
+	| 'Options Premium Volume'
+	| 'Options Notional Volume'
+	| 'App Revenue'
+
 interface IProps extends IChainsByAdapterPageData {
-	type: Extract<
-		TMetric,
-		| 'Fees'
-		| 'Revenue'
-		| 'Holders Revenue'
-		| 'DEX Volume'
-		| 'Perp Volume'
-		| 'Bridge Aggregator Volume'
-		| 'Perp Aggregator Volume'
-		| 'DEX Aggregator Volume'
-		| 'Options Premium Volume'
-		| 'Options Notional Volume'
-		| 'App Revenue'
-	>
+	type: TPageType
 }
 
 export function ChainsByAdapter(props: IProps) {
@@ -165,7 +164,6 @@ export function ChainsByAdapter(props: IProps) {
 					</a>
 				</Announcement>
 			)}
-			<Metrics currentMetric={props.type} isChains={true} />
 			{props.adapterType !== 'fees' && (
 				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} type={props.type} />
 			)}

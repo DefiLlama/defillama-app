@@ -1,6 +1,7 @@
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { FlatCompat } from '@eslint/eslintrc'
+import typescriptParser from '@typescript-eslint/parser'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -23,6 +24,12 @@ const eslintConfig = [
 			'@typescript-eslint/no-explicit-any': 0,
 			'@typescript-eslint/no-unused-vars': 1,
 			'prefer-const': 0
+		}
+	},
+	{
+		files: ['**/*.ts', '**/*.tsx'],
+		languageOptions: {
+			parser: typescriptParser
 		}
 	}
 ]

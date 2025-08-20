@@ -17,7 +17,6 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics, TMetric } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
@@ -31,23 +30,34 @@ import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { AdapterByChainChart } from './ChainChart'
 import { IAdapterByChainPageData } from './types'
 
+type TPageType =
+	| 'Fees'
+	| 'Revenue'
+	| 'Holders Revenue'
+	| 'DEX Volume'
+	| 'Perp Volume'
+	| 'Open Interest'
+	| 'Bridge Aggregator Volume'
+	| 'Perp Aggregator Volume'
+	| 'DEX Aggregator Volume'
+	| 'Options Premium Volume'
+	| 'Options Notional Volume'
+	| 'Earnings'
+	| 'P/F'
+	| 'P/S'
+
 interface IProps extends IAdapterByChainPageData {
-	type: Extract<
-		TMetric,
-		| 'Fees'
-		| 'Revenue'
-		| 'Holders Revenue'
-		| 'DEX Volume'
-		| 'Perp Volume'
-		| 'Open Interest'
-		| 'Bridge Aggregator Volume'
-		| 'Perp Aggregator Volume'
-		| 'DEX Aggregator Volume'
-		| 'Options Premium Volume'
-		| 'Options Notional Volume'
-		| 'Earnings'
-	>
+	type: TPageType
 }
+
+const SUPPORTED_OLD_VIEWS: TPageType[] = [
+	'DEX Volume',
+	'Perp Volume',
+	'Options Premium Volume',
+	'Options Notional Volume',
+	'DEX Aggregator Volume',
+	'Bridge Aggregator Volume'
+]
 
 const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'], categoriesToFilter: Array<string>) => {
 	const final = []
@@ -385,7 +395,6 @@ export function AdapterByChain(props: IProps) {
 
 	return (
 		<>
-			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' && props.type !== 'Open Interest' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
@@ -493,7 +502,7 @@ export function AdapterByChain(props: IProps) {
 							}}
 						/>
 					)}
-					<FullOldViewButton type={props.type} />
+					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
 					<CSVDownloadButton
 						onClick={downloadCsv}
 						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
@@ -518,7 +527,7 @@ const columnOrders = Object.entries({
 	640: ['name', 'category', 'definition', 'total24h', 'total7d', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const protocolChartsKeys: Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]> = {
+const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]>> = {
 	Fees: 'fees',
 	Revenue: 'revenue',
 	'Holders Revenue': 'holdersRevenue',
@@ -644,7 +653,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink
-							href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
+							href={`/${basePath}/${row.original.slug}${chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
 							{value}
@@ -663,7 +672,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 const getColumnsByType = (
 	isChain: boolean = false
-): Record<IProps['type'] & 'P/F', ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
+): Record<IProps['type'], ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
 	return {
 		Fees: [
 			NameColumn('Fees'),

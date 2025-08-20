@@ -1,6 +1,5 @@
 import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { ForksByProtocol } from '~/containers/Forks'
 import { getForkPageData } from '~/containers/Forks/queries'
@@ -40,10 +39,11 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
+const pageName = ['Protocols', 'ranked by', 'TVL in forks']
+
 export default function Forks(props) {
 	return (
-		<Layout title={`Forks - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
-			<Metrics currentMetric="TVL in forks" />
+		<Layout title={`Forks - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions} pageName={pageName}>
 			{props.tokenLinks?.length > 0 && (
 				<RowLinksWithDropdown links={props.tokenLinks} activeLink={props.token} alternativeOthersText="Others" />
 			)}

@@ -1,17 +1,17 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { TMetric } from '~/components/Metrics'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.PERPS_AGGREGATOR
-const type: TMetric = 'Perp Aggregator Volume'
+const type = 'Perp Aggregator Volume'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
@@ -63,9 +63,11 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const PerpsAggregatorsVolumeOnChain = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const PerpsAggregatorsVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
-		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO>
+		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO pageName={pageName}>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

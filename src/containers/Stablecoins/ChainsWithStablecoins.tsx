@@ -2,7 +2,6 @@ import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { Metrics } from '~/components/Metrics'
 import { GroupStablecoins } from '~/components/MultiSelect/Stablecoins'
 import { Tooltip } from '~/components/Tooltip'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
@@ -19,7 +18,7 @@ const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as 
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-function PeggedChainsOverview({
+export function ChainsWithStablecoins({
 	chainCirculatings,
 	chartData,
 	peggedChartDataByChain,
@@ -127,8 +126,6 @@ function PeggedChainsOverview({
 
 	return (
 		<>
-			<Metrics currentMetric="Stablecoin Supply" isChains={true} />
-
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col">
@@ -246,5 +243,3 @@ function PeggedChainsOverview({
 		</>
 	)
 }
-
-export default PeggedChainsOverview

@@ -4,12 +4,14 @@ import { feesOptions } from '~/components/Filters/options'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.REVENUE
+const type = 'P/S'
 
 export const getStaticPaths = async () => {
 	return { paths: [], fallback: 'blocking' }
@@ -41,15 +43,18 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const RevenueOnChain = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const RevenueOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`P/S - ${props.chain} - DefiLlama`}
 			defaultSEO
 			includeInMetricsOptions={feesOptions}
 			includeInMetricsOptionslabel="Include in Metrics"
+			pageName={pageName}
 		>
-			<AdapterByChain {...props} type="P/S" />
+			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)
 }

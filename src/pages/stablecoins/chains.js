@@ -1,5 +1,5 @@
 import { maxAgeForNext } from '~/api'
-import PeggedChainsOverview from '~/containers/Stablecoins/ChainsWithStablecoins'
+import { ChainsWithStablecoins } from '~/containers/Stablecoins/ChainsWithStablecoins'
 import { getPeggedChainsPageData } from '~/containers/Stablecoins/queries.server'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -17,6 +17,8 @@ export const getStaticProps = withPerformanceLogging('stablecoins/chains', async
 	}
 })
 
+const pageName = ['Chains', 'ranked by', 'Stablecoins Supply']
+
 export default function PeggedAssets({
 	chainCirculatings,
 	chartData,
@@ -25,8 +27,8 @@ export default function PeggedAssets({
 	chainsGroupbyParent
 }) {
 	return (
-		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>
-			<PeggedChainsOverview
+		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO pageName={pageName}>
+			<ChainsWithStablecoins
 				chainCirculatings={chainCirculatings}
 				chartData={chartData}
 				peggedChartDataByChain={peggedChartDataByChain}

@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Metrics } from '~/components/Metrics'
 import { cexColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { INFLOWS_API } from '~/constants'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
-import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { DateFilter } from './DateFilter'
 
@@ -66,11 +64,10 @@ export const Cexs = ({ cexs }) => {
 
 	const [hours, setHours] = useState([12, 12])
 
-	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange, validateDateRange } =
-		useDateRangeValidation({
-			initialStartDate,
-			initialEndDate
-		})
+	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange } = useDateRangeValidation({
+		initialStartDate,
+		initialEndDate
+	})
 
 	const handleStartChange = (value: string) => {
 		handleStartDateChange(value)
@@ -116,8 +113,7 @@ export const Cexs = ({ cexs }) => {
 	}
 
 	return (
-		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
-			<Metrics currentMetric="CEX Assets" />
+		<>
 			<TableWithSearch
 				data={cexsWithCustomRange}
 				columns={cexColumn}
@@ -136,6 +132,6 @@ export const Cexs = ({ cexs }) => {
 					/>
 				}
 			/>
-		</Layout>
+		</>
 	)
 }

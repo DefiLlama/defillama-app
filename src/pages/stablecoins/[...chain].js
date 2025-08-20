@@ -1,7 +1,7 @@
 import { maxAgeForNext } from '~/api'
 import { primaryColor } from '~/constants/colors'
 import { getPeggedAssets, getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
-import PeggedList from '~/containers/Stablecoins/StablecoinsByChain'
+import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -50,6 +50,8 @@ export async function getStaticPaths() {
 	return { paths: paths.slice(0, 11), fallback: 'blocking' }
 }
 
+const pageName = ['Stablecoins Supply', 'by', 'Chain']
+
 export default function PeggedAssets({
 	chains,
 	filteredPeggedAssets,
@@ -61,8 +63,8 @@ export default function PeggedAssets({
 	backgroundColor
 }) {
 	return (
-		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>
-			<PeggedList
+		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO pageName={pageName}>
+			<StablecoinsByChain
 				chains={chains}
 				selectedChain={chain}
 				filteredPeggedAssets={filteredPeggedAssets}
