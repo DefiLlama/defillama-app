@@ -57,6 +57,7 @@ export const MultiSelectCombobox = ({
 					</div>
 				) : null}
 				<Ariakit.Combobox placeholder={placeholder} className="flex-1 w-full px-3 py-2 outline-none" />
+				<Icon name="chevron-down" className="w-4 h-4 absolute right-2 top-0 bottom-0 my-auto" />
 			</span>
 			<Ariakit.ComboboxPopover
 				unmountOnHide

@@ -153,13 +153,17 @@ export function CompareChains({ chains }) {
 			<div className="relative flex flex-col gap-1">
 				<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{isLoading || !router.isReady ? (
-						<div className="m-auto flex items-center justify-center">
+						<div className="flex items-center justify-center h-full w-full">
 							<LocalLoader />
 						</div>
-					) : (
+					) : selectedChains.length > 1 ? (
 						<React.Suspense fallback={<></>}>
 							<LineAndBarChart title="" charts={chartData} />
 						</React.Suspense>
+					) : (
+						<div className="flex items-center justify-center h-full w-full">
+							<p className="text-sm text-(--text-secondary)">Select at least 2 chains to compare</p>
+						</div>
 					)}
 				</div>
 				<div className="grid grow grid-cols-1 gap-1 xl:grid-cols-2">
