@@ -1,10 +1,10 @@
+import * as React from 'react'
+import { NestedMenu } from '~/components/NestedMenu'
+import { RaisesSearch } from '~/containers/Raises/Search'
+import { useIsClient } from '~/hooks'
 import { useMedia } from '~/hooks/useMedia'
 import { RaisesFilterDropdowns } from './Dropdowns'
 import { IDropdownMenusProps } from './types'
-import { RaisesSearch } from '~/containers/Raises/Search'
-import { NestedMenu } from '~/components/NestedMenu'
-import * as React from 'react'
-import { useIsClient } from '~/hooks'
 
 export function RaisesFilters(props: IDropdownMenusProps) {
 	const isSmall = useMedia(`(max-width: 639px)`)

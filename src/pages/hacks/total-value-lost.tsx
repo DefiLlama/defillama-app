@@ -1,10 +1,9 @@
-import { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
+import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { Metrics } from '~/components/Metrics'
-
 import { Select } from '~/components/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'

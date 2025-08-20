@@ -1,14 +1,14 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
-import Layout from '~/layout'
 import { LazyChart } from '~/components/LazyChart'
 import {
+	useConfigPool,
 	useYieldChartData,
 	useYieldChartLendBorrow,
-	useConfigPool,
 	useYieldConfigData
 } from '~/containers/Yields/queries/client'
 import { calculateLoopAPY } from '~/containers/Yields/queries/index'
+import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart'))

@@ -1,16 +1,16 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
 	ColumnFiltersState,
-	getFilteredRowModel
+	getCoreRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
-import { columns } from './columns'
-import type { INftCollection } from '../types'
 import { Icon } from '~/components/Icon'
+import { VirtualTable } from '~/components/Table/Table'
+import type { INftCollection } from '../types'
+import { columns } from './columns'
 
 export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])

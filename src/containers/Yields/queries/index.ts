@@ -1,16 +1,16 @@
+import { fetchCoinPrices } from '~/api'
 import {
-	YIELD_CONFIG_API,
-	YIELD_POOLS_API,
-	YIELD_MEDIAN_API,
-	YIELD_URL_API,
+	PROTOCOLS_API,
 	YIELD_CHAIN_API,
+	YIELD_CONFIG_API,
 	YIELD_LEND_BORROW_API,
+	YIELD_MEDIAN_API,
 	YIELD_PERPS_API,
-	PROTOCOLS_API
+	YIELD_POOLS_API,
+	YIELD_URL_API
 } from '~/constants'
 import { fetchApi } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
-import { fetchCoinPrices } from '~/api'
 
 export async function getYieldPageData() {
 	let poolsAndConfig = await fetchApi([

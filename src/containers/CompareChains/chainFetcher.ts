@@ -1,5 +1,5 @@
-import { getAdapterChainOverview, getAdapterProtocolSummary } from '../DimensionAdapters/queries'
 import { getChainOverviewData } from '../ChainOverview/queries.server'
+import { getAdapterChainOverview, getAdapterProtocolSummary } from '../DimensionAdapters/queries'
 
 export const fetchChain = async ({ chain }) => {
 	const [chainOverviewData, dexVolumeData, chainFeesData, chainRevenueData] = await Promise.all([

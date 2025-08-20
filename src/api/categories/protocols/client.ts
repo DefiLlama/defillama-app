@@ -1,25 +1,24 @@
 import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
 	CACHE_SERVER,
 	COINS_PRICES_API,
-	PROTOCOLS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
+	PROTOCOLS_API,
 	TOKEN_LIQUIDITY_API,
 	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
+import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Governance'
+import { getProtocol } from '~/containers/ProtocolOverview/queries'
+import { buildProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import { slug } from '~/utils'
 import { fetchApi, fetchJson } from '~/utils/async'
 import { getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
-
-import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Governance'
-import { buildProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
-import { useQuery } from '@tanstack/react-query'
-import { getProtocol } from '~/containers/ProtocolOverview/queries'
-import { slug } from '~/utils'
 
 export const useFetchProtocolsList = () => {
 	return useQuery({

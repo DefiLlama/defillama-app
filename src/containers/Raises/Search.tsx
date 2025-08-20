@@ -1,9 +1,9 @@
-import * as Ariakit from '@ariakit/react'
 import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { slug } from '~/utils'
-import { Icon } from '~/components/Icon'
 import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { Icon } from '~/components/Icon'
+import { slug } from '~/utils'
 
 export function RaisesSearch({ list }) {
 	const [searchValue, setSearchValue] = useState('')

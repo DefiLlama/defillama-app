@@ -1,13 +1,13 @@
 import * as React from 'react'
-import MultiChartCard from './MultiChartCard'
-import { TextCard } from './TextCard'
-import { ProtocolsByChainTable } from './ProTable'
-import { ChartPreview } from './ChartPreview'
-import { Icon } from '~/components/Icon'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { Icon } from '~/components/Icon'
 import type { ChartConfig, MultiChartConfig, TextConfig } from '../types'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from '../types'
+import { ChartPreview } from './ChartPreview'
+import MultiChartCard from './MultiChartCard'
+import { ProtocolsByChainTable } from './ProTable'
+import { TextCard } from './TextCard'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart'))
 

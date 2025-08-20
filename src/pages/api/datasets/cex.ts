@@ -1,7 +1,7 @@
-import { fetchJson } from '~/utils/async'
-import { IChainTvl } from '~/api/types'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { IChainTvl } from '~/api/types'
 import { CEXS_API, COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
+import { fetchJson } from '~/utils/async'
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
 const hour7dms = ((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)

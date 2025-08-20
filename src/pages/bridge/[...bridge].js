@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { BridgeProtocolOverview } from '~/containers/Bridges/BridgeProtocolOverview'
 import { maxAgeForNext } from '~/api'
+import { BridgeProtocolOverview } from '~/containers/Bridges/BridgeProtocolOverview'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'
 

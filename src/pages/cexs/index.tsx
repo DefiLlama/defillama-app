@@ -1,9 +1,8 @@
 import { maxAgeForNext } from '~/api'
-import { withPerformanceLogging } from '~/utils/perf'
-
+import { CEXS_API, COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 import { Cexs } from '~/containers/Cexs'
 import { fetchJson } from '~/utils/async'
-import { CEXS_API, COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
+import { withPerformanceLogging } from '~/utils/perf'
 
 interface ICex {
 	name: string

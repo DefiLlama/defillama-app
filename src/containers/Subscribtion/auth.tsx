@@ -1,9 +1,10 @@
-import { createContext, useContext, useCallback, ReactNode, useState } from 'react'
-import toast from 'react-hot-toast'
-import pb, { AuthModel } from '~/utils/pocketbase'
+import { createContext, ReactNode, useCallback, useContext, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AUTH_SERVER } from '~/constants'
+import toast from 'react-hot-toast'
 import { createSiweMessage } from 'viem/siwe'
+import { AUTH_SERVER } from '~/constants'
+import pb, { AuthModel } from '~/utils/pocketbase'
+
 interface User extends AuthModel {
 	subscription_status: string
 	subscription: {

@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { TABLE_CATEGORIES, protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
-import { CustomColumnPanel } from './CustomColumnPanel'
+import { protocolsByChainTableColumns, TABLE_CATEGORIES } from '~/components/Table/Defi/Protocols'
 import { Tooltip } from '~/components/Tooltip'
+import { CustomColumnPanel } from './CustomColumnPanel'
 
 const metricDescriptions: Record<string, string> = {
 	name: 'Protocol name',

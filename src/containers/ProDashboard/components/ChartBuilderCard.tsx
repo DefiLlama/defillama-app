@@ -1,11 +1,11 @@
-import { useMemo, lazy, Suspense, useCallback } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useProDashboard } from '../ProDashboardAPIContext'
-import { download } from '~/utils'
-import { ProTableCSVButton } from './ProTable/CsvButton'
-import { Icon } from '~/components/Icon'
 import dayjs from 'dayjs'
+import { Icon } from '~/components/Icon'
+import { download } from '~/utils'
+import { useProDashboard } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
+import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 

@@ -1,13 +1,13 @@
 import * as React from 'react'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
-import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, download, toNiceCsvDate } from '~/utils'
-import { ADAPTER_TYPES } from './constants'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { oldBlue } from '~/constants/colors'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useQuery } from '@tanstack/react-query'
+import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
+import { oldBlue } from '~/constants/colors'
+import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { ADAPTER_TYPES } from './constants'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 

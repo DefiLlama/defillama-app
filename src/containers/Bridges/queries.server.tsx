@@ -1,15 +1,15 @@
-import { slug, chainIconUrl, tokenIconUrl, getRandomColor, preparePieChartData } from '~/utils'
-import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
 import {
-	CONFIG_API,
 	BRIDGEDAYSTATS_API,
+	BRIDGELARGETX_API,
 	BRIDGES_API,
 	BRIDGEVOLUME_API,
-	BRIDGELARGETX_API,
+	CONFIG_API,
 	NETFLOWS_API
 } from '~/constants'
+import { chainIconUrl, getRandomColor, preparePieChartData, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { formatBridgesData, formatChainsData } from './utils'
 
 export const getBridges = () =>
 	fetchJson(BRIDGES_API + '?includeChains=true').then(({ bridges, chains }) => ({

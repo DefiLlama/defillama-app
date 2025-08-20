@@ -1,3 +1,5 @@
+import { generateConsistentChartColor } from './utils/colorManager'
+
 export const convertToNumberFormat = (data: any[], convertToSeconds: boolean = false): [number, number][] => {
 	if (!Array.isArray(data)) return []
 
@@ -89,8 +91,6 @@ export const getItemIconUrl = (itemType: 'chain' | 'protocol', itemInfo: any, it
 		return itemInfo?.logo || `https://icons.llamao.fi/icons/protocols/${itemInfo?.id || itemIdentifier}.jpg`
 	}
 }
-
-import { generateConsistentChartColor } from './utils/colorManager'
 
 export const generateChartColor = (itemName: string, fallbackColor: string): string => {
 	const itemType = itemName?.includes('_') ? 'protocol' : 'chain'

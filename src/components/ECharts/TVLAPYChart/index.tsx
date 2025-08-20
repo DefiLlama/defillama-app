@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { stringToColour } from '../utils'
+import { formattedNum } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { formattedNum } from '~/utils'
+import { stringToColour } from '../utils'
 
 // AreaChart where tooltip is always shown
 export default function AreaChart({

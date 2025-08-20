@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { LoadingSpinner } from './LoadingSpinner'
 import { Dashboard } from '../services/DashboardAPI'
 import { DashboardCard } from './DashboardCard'
+import { LoadingSpinner } from './LoadingSpinner'
 
 interface DashboardListProps {
 	dashboards: Dashboard[]

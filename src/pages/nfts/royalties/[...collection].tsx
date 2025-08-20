@@ -1,14 +1,14 @@
-import { getNFTRoyaltyHistory } from '~/api/categories/nfts'
-import Layout from '~/layout'
-import { TokenLogo } from '~/components/TokenLogo'
-import { FormattedName } from '~/components/FormattedName'
-import { formattedNum } from '~/utils'
-import { LocalLoader } from '~/components/LocalLoader'
+import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useMemo } from 'react'
-import { oldBlue } from '~/constants/colors'
+import { getNFTRoyaltyHistory } from '~/api/categories/nfts'
 import { formatBarChart } from '~/components/ECharts/utils'
+import { FormattedName } from '~/components/FormattedName'
+import { LocalLoader } from '~/components/LocalLoader'
+import { TokenLogo } from '~/components/TokenLogo'
+import { oldBlue } from '~/constants/colors'
+import Layout from '~/layout'
+import { formattedNum } from '~/utils'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 

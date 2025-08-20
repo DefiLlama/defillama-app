@@ -1,27 +1,27 @@
 import * as React from 'react'
-import Layout from '~/layout'
-import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
-	getFilteredRowModel,
-	ColumnOrderState,
-	ColumnFiltersState
-} from '@tanstack/react-table'
-import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { LazyChart } from '~/components/LazyChart'
-import { VirtualTable } from '~/components/Table/Table'
-import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
-import { Announcement } from '~/components/Announcement'
-import { RaisesFilters } from '~/containers/Raises/Filters'
 import { useRouter } from 'next/router'
+import {
+	ColumnFiltersState,
+	ColumnOrderState,
+	getCoreRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
+} from '@tanstack/react-table'
+import { Announcement } from '~/components/Announcement'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { Icon } from '~/components/Icon'
+import { LazyChart } from '~/components/LazyChart'
+import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
+import { VirtualTable } from '~/components/Table/Table'
+import { oldBlue } from '~/constants/colors'
+import { RaisesFilters } from '~/containers/Raises/Filters'
 import useWindowSize from '~/hooks/useWindowSize'
+import Layout from '~/layout'
 import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { Icon } from '~/components/Icon'
-import { oldBlue } from '~/constants/colors'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 

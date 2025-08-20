@@ -1,10 +1,10 @@
 import { forwardRef } from 'react'
-import { defaultToolsAndFooterLinks, linksWithNoSubMenu, navLinks } from '../Links'
-import { isActiveCategory } from '../utils'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-import { NewTag } from '../NewTag'
 import { BasicLink } from '~/components/Link'
+import { defaultToolsAndFooterLinks, linksWithNoSubMenu, navLinks } from '../Links'
+import { NewTag } from '../NewTag'
+import { isActiveCategory } from '../utils'
 
 export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
 	const { pathname } = useRouter()

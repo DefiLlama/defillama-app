@@ -1,9 +1,9 @@
 import * as React from 'react'
-import Layout from '~/layout'
-import { LazyChart } from '~/components/LazyChart'
-import type { IBarChartProps } from '~/components/ECharts/types'
-import { Announcement } from '~/components/Announcement'
 import { useRouter } from 'next/router'
+import { Announcement } from '~/components/Announcement'
+import type { IBarChartProps } from '~/components/ECharts/types'
+import { LazyChart } from '~/components/LazyChart'
+import Layout from '~/layout'
 
 function decode(str: string) {
 	const digit = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'

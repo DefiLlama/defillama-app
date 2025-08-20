@@ -1,7 +1,7 @@
 import { CEXS_API, PEGGEDS_API, PROTOCOLS_API } from '~/constants/index'
+import insightsAndTools from '~/public/insights-and-tools.json'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import insightsAndTools from '~/public/insights-and-tools.json'
 
 const baseUrl = `https://defillama.com`
 const singleUrls = ['about', 'press', 'donations', 'subscription', 'terms', 'subscription/privacy-policy']

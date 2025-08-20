@@ -1,26 +1,26 @@
 import * as React from 'react'
-import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
-	ExpandedState,
-	getExpandedRowModel,
-	ColumnSizingState,
-	ColumnFiltersState,
-	getFilteredRowModel,
-	ColumnDef
-} from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
-import useWindowSize from '~/hooks/useWindowSize'
 import { useRouter } from 'next/router'
+import {
+	ColumnDef,
+	ColumnFiltersState,
+	ColumnSizingState,
+	ExpandedState,
+	getCoreRowModel,
+	getExpandedRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
+} from '@tanstack/react-table'
+import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
-import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
-import { listedAtColumn, protocolsColumns, columnSizes } from '~/components/Table/Defi/Protocols/columns'
-import { formattedNum } from '~/utils'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
-import { TVLRange } from '~/components/Filters/TVLRange'
+import { columnSizes, listedAtColumn, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
+import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
+import { VirtualTable } from '~/components/Table/Table'
+import useWindowSize from '~/hooks/useWindowSize'
+import { formattedNum } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
 	data,

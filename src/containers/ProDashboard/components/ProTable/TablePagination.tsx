@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Table } from '@tanstack/react-table'
-import { TagGroup } from '~/components/TagGroup'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
+import { TagGroup } from '~/components/TagGroup'
 
 interface TablePaginationProps {
 	table: Table<IProtocolRow> | null

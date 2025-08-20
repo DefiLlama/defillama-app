@@ -1,7 +1,7 @@
-import { useRouter } from 'next/router'
-import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 import { useMemo } from 'react'
+import { useRouter } from 'next/router'
 import { Select } from '~/components/Select'
+import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 
 export const stablecoinBackingOptions = [
 	{

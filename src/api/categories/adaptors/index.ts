@@ -1,9 +1,8 @@
 import type { IParentProtocol } from '~/api/types'
-import { DIMENISIONS_SUMMARY_BASE_API, DIMENISIONS_OVERVIEW_API } from '~/constants'
+import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
 import { capitalizeFirstLetter, getBlockExplorer, slug } from '~/utils'
-import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummaryResponse } from './types'
-
 import { fetchJson } from '~/utils/async'
+import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummaryResponse } from './types'
 
 export enum ADAPTOR_TYPES {
 	DEXS = 'dexs',

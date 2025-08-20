@@ -1,10 +1,10 @@
-import { Investors } from './Investors'
-import { Chains } from './chains'
-import { Sectors } from './sectors'
-import { Rounds } from './rounds'
-import { RaisedRange } from './RaisedRange'
-import type { IDropdownMenusProps } from './types'
 import { useRouter } from 'next/router'
+import { Chains } from './chains'
+import { Investors } from './Investors'
+import { RaisedRange } from './RaisedRange'
+import { Rounds } from './rounds'
+import { Sectors } from './sectors'
+import type { IDropdownMenusProps } from './types'
 
 export function RaisesFilterDropdowns({
 	investors,

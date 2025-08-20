@@ -1,5 +1,5 @@
-import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import dayjs from 'dayjs'
+import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
@@ -18,23 +18,23 @@ import {
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API
 } from '~/constants'
+import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
+import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
+import { IHack } from '../Hacks/queries'
+import { allColors, ProtocolChartsLabels } from './Chart/constants'
 import {
+	IArticle,
+	IArticlesResponse,
+	IProtocolExpenses,
 	IProtocolMetadata,
 	IProtocolOverviewPageData,
 	IProtocolPageMetrics,
-	IUpdatedProtocol,
-	IArticlesResponse,
-	IArticle,
-	IProtocolExpenses
+	IUpdatedProtocol
 } from './types'
-import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { allColors, ProtocolChartsLabels } from './Chart/constants'
-import dayjs from 'dayjs'
-import { getProtocolEmissons } from '~/api/categories/protocols'
 import { getProtocolWarningBanners } from './utils'
-import { IHack } from '../Hacks/queries'
 
 export const getProtocol = async (protocolName: string): Promise<IUpdatedProtocol> => {
 	const start = Date.now()

@@ -1,7 +1,7 @@
 import * as React from 'react'
-import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 

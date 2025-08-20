@@ -1,13 +1,13 @@
-import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
-import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
-import { withPerformanceLogging } from '~/utils/perf'
-import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
-import { slug } from '~/utils'
-import { IProtocolMetadata, IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
+import { useRouter } from 'next/router'
 import { maxAgeForNext } from '~/api'
-import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
+import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
+import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
+import { IProtocolMetadata, IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
+import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
+import { slug } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const ProtocolLineBarChart = lazy(() => import('~/containers/ProtocolOverview/Chart/Chart')) as React.FC<any>
 

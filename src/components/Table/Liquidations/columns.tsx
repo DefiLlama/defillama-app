@@ -1,14 +1,13 @@
+import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
+import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useStackBy } from '~/containers/Liquidations/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHAINS_API, CONFIG_API } from '~/constants'
+import { getReadableValue, useStackBy } from '~/containers/Liquidations/utils'
 import { chainIconUrl } from '~/utils'
-import { getReadableValue } from '~/containers/Liquidations/utils'
-import { ILiquidablePositionsRow, ILiquidableProtocolRow } from './types'
-import { useQuery } from '@tanstack/react-query'
-import { Icon } from '~/components/Icon'
 import { fetchJson } from '~/utils/async'
+import { ILiquidablePositionsRow, ILiquidableProtocolRow } from './types'
 
 export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] = [
 	{

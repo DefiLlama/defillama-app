@@ -1,5 +1,5 @@
-import { matchSorter } from 'match-sorter'
 import { useDeferredValue, useMemo, useState } from 'react'
+import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import Layout from '~/layout'

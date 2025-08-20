@@ -1,9 +1,9 @@
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Attribute } from './Attribute'
 import { BackingType } from './BackingType'
-import { PegType } from './PegType'
 import { McapRange } from './McapRange'
+import { PegType } from './PegType'
 import { ResetAllStablecoinFilters } from './ResetAll'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 export function PeggedFiltersDropdowns({
 	pathname,

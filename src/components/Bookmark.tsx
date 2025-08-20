@@ -1,6 +1,6 @@
-import { useWatchlistManager } from '~/contexts/LocalStorage'
-import { Icon } from '~/components/Icon'
 import { useRouter } from 'next/router'
+import { Icon } from '~/components/Icon'
+import { useWatchlistManager } from '~/contexts/LocalStorage'
 
 interface IBookmarkProps {
 	readableName: string

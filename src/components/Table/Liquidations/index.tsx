@@ -1,10 +1,10 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
 	getCoreRowModel,
+	getExpandedRowModel,
 	getSortedRowModel,
-	getExpandedRowModel
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'
 import { liquidatablePositionsColumns, liquidatableProtocolsColumns } from './columns'

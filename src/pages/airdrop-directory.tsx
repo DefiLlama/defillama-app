@@ -1,13 +1,10 @@
 import * as React from 'react'
-import Layout from '~/layout'
-
-import { getAirdropDirectoryData } from '~/api/categories/protocols'
-import { withPerformanceLogging } from '~/utils/perf'
 import { maxAgeForNext } from '~/api'
-
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
-
+import { getAirdropDirectoryData } from '~/api/categories/protocols'
 import { AirdropColumn } from '~/components/Table/Defi/columns'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import Layout from '~/layout'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('airdrop-directory', async () => {
 	const airdrops = await getAirdropDirectoryData()

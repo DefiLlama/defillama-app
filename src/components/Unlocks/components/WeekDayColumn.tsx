@@ -1,8 +1,8 @@
 import * as React from 'react'
 import dayjs from 'dayjs'
-import { formattedNum, tokenIconUrl, slug } from '~/utils'
-import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
+import { TokenLogo } from '~/components/TokenLogo'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import type { DailyUnlocks, DayInfo } from '../types'
 
 interface WeekDayColumnProps {

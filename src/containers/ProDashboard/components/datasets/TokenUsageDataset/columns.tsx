@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
+import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 
 interface TokenUsageRow {

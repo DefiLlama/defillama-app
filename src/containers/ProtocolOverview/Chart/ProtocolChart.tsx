@@ -1,18 +1,7 @@
-import { useRouter } from 'next/router'
-import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
-import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { lazy, Suspense, useMemo } from 'react'
-import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
-import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
+import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
-import {
-	BRIDGEVOLUME_API_SLUG,
-	CACHE_SERVER,
-	NFT_MARKETPLACES_VOLUME_API,
-	PROTOCOL_TREASURY_API,
-	TOKEN_LIQUIDITY_API
-} from '~/constants'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
@@ -21,14 +10,25 @@ import {
 	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
-import { fetchJson } from '~/utils/async'
-import { EmbedChart } from '~/components/EmbedChart'
-import { Tooltip } from '~/components/Tooltip'
-import { Icon } from '~/components/Icon'
-import * as Ariakit from '@ariakit/react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { buildProtocolAddlChartsData } from '../utils'
 import { downloadChart, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import { EmbedChart } from '~/components/EmbedChart'
+import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
+import {
+	BRIDGEVOLUME_API_SLUG,
+	CACHE_SERVER,
+	NFT_MARKETPLACES_VOLUME_API,
+	PROTOCOL_TREASURY_API,
+	TOKEN_LIQUIDITY_API
+} from '~/constants'
+import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
+import { buildProtocolAddlChartsData } from '../utils'
+import { BAR_CHARTS, protocolCharts, ProtocolChartsLabels } from './constants'
 
 const ProtocolLineBarChart = lazy(() => import('./Chart')) as React.FC<any>
 

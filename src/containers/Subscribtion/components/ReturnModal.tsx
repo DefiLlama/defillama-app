@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { BasicLink } from '~/components/Link'
+import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 
 interface ReturnModalProps {
 	isOpen: boolean

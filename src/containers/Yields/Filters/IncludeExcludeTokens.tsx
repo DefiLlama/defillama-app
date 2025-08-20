@@ -1,9 +1,9 @@
-import { useState, useMemo, startTransition, useDeferredValue } from 'react'
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
-import { TokenLogo } from '~/components/TokenLogo'
-import { Icon } from '~/components/Icon'
-import { matchSorter } from 'match-sorter'
 import * as Ariakit from '@ariakit/react'
+import { matchSorter } from 'match-sorter'
+import { Icon } from '~/components/Icon'
+import { TokenLogo } from '~/components/TokenLogo'
 
 export function IncludeExcludeTokens({
 	tokens,

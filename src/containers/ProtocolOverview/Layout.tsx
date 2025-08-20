@@ -1,12 +1,12 @@
 import * as React from 'react'
+import { useMemo } from 'react'
+import * as Ariakit from '@ariakit/react'
+import { BasicLink } from '~/components/Link'
+import { TokenLogo } from '~/components/TokenLogo'
+import { DEFI_SETTINGS_KEYS, FEES_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { slug, tokenIconUrl } from '~/utils'
-import { BasicLink } from '~/components/Link'
 import { IProtocolPageMetrics } from './types'
-import * as Ariakit from '@ariakit/react'
-import { TokenLogo } from '~/components/TokenLogo'
-import { useMemo } from 'react'
-import { DEFI_SETTINGS_KEYS, FEES_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 
 export function ProtocolOverviewLayout({
 	children,

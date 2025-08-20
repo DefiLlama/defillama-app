@@ -1,8 +1,8 @@
 import * as React from 'react'
-import Layout from '~/layout'
-import { BridgedTVLChainsList } from '~/containers/BridgedTVL/BridgedTVLChainsList'
 import { maxAgeForNext } from '~/api'
 import { getChainsBridged } from '~/api/categories/protocols'
+import { BridgedTVLChainsList } from '~/containers/BridgedTVL/BridgedTVLChainsList'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridged', async () => {

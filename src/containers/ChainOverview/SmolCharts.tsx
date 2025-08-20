@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
-import * as echarts from 'echarts/core'
-import { formattedNum, slug } from '~/utils'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { SVGRenderer } from 'echarts/renderers'
-import { LineChart, BarChart } from 'echarts/charts'
+import { BarChart, LineChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
+import * as echarts from 'echarts/core'
+import { SVGRenderer } from 'echarts/renderers'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
 import { oldBlue, purple } from '~/constants/colors'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { formattedNum, slug } from '~/utils'
 
 echarts.use([SVGRenderer, LineChart, BarChart, TooltipComponent, GridComponent])
 

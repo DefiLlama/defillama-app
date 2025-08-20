@@ -1,26 +1,25 @@
-import { fetchApi } from '~/utils/async'
+import { useDeferredValue } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
 	NFT_CHAINS_API,
 	NFT_CHART_API,
-	NFT_COLLECTIONS_API,
-	NFT_VOLUME_API,
 	NFT_COLLECTION_API,
-	NFT_MARKETPLACES_STATS_API,
-	NFT_SEARCH_API,
+	NFT_COLLECTION_FLOOR_HISTORY_API,
 	NFT_COLLECTION_SALES_API,
 	NFT_COLLECTION_STATS_API,
-	NFT_COLLECTION_FLOOR_HISTORY_API,
-	NFT_MARKETPLACES_VOLUME_API,
+	NFT_COLLECTIONS_API,
 	NFT_COLLECTIONS_ORDERBOOK_API,
+	NFT_MARKETPLACES_STATS_API,
+	NFT_MARKETPLACES_VOLUME_API,
 	NFT_ROYALTIES_API,
+	NFT_ROYALTY_API,
 	NFT_ROYALTY_HISTORY_API,
-	NFT_ROYALTY_API
+	NFT_SEARCH_API,
+	NFT_VOLUME_API
 } from '~/constants'
 import { getColorFromNumber, getDominancePercent } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { fetchApi, fetchJson } from '~/utils/async'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
-import { useQuery } from '@tanstack/react-query'
-import { useDeferredValue } from 'react'
 
 interface IResponseNFTSearchAPI {
 	hits: Array<{

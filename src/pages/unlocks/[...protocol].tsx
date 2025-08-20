@@ -1,11 +1,11 @@
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getProtocolEmissons } from '~/api/categories/protocols'
-import { Emissions } from '~/containers/ProtocolOverview/Emissions/index'
-import * as React from 'react'
-import Layout from '~/layout'
-import { withPerformanceLogging } from '~/utils/perf'
 import { SEO } from '~/components/SEO'
+import { Emissions } from '~/containers/ProtocolOverview/Emissions/index'
+import Layout from '~/layout'
 import { formattedNum, tokenIconUrl } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const calculateTotalUnlockValue = (emissions) => {
 	if (!emissions.upcomingEvent || !emissions.tokenPrice.price) return 0

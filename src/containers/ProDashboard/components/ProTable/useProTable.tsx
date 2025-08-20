@@ -1,25 +1,28 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
 	ExpandedState,
+	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
-	ColumnDef
+	getSortedRowModel,
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
-import { formatProtocolsList } from '~/hooks/data/defi'
 import {
+	useGetProtocolsFeesAndRevenueByMultiChain,
 	useGetProtocolsListMultiChain,
-	useGetProtocolsVolumeByMultiChain,
-	useGetProtocolsFeesAndRevenueByMultiChain
+	useGetProtocolsVolumeByMultiChain
 } from '~/api/categories/chains/multiChainClient'
+import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
-import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/columns'
+import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
+import { formatProtocolsList } from '~/hooks/data/defi'
+import { formattedNum, getPercentChange } from '~/utils'
+import { TableFilters } from '../../types'
 
 interface CustomColumn {
 	id: string
@@ -28,10 +31,6 @@ interface CustomColumn {
 	isValid: boolean
 	errorMessage?: string
 }
-
-import { TableFilters } from '../../types'
-import { formattedNum, getPercentChange } from '~/utils'
-import { Icon } from '~/components/Icon'
 
 // Helper function to recalculate parent protocol metrics based on filtered children
 function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {

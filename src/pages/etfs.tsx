@@ -1,13 +1,13 @@
 import * as React from 'react'
-import { lastDayOfWeek, firstDayOfMonth, download, toNiceCsvDate, formattedNum } from '~/utils'
-import type { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { ETFColumn } from '~/components/Table/Defi/columns'
-import { withPerformanceLogging } from '~/utils/perf'
 import { getETFData } from '~/api/categories/protocols'
-import Layout from '~/layout'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Select } from '~/components/Select'
+import { ETFColumn } from '~/components/Table/Defi/columns'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import Layout from '~/layout'
+import { download, firstDayOfMonth, formattedNum, lastDayOfWeek, toNiceCsvDate } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')

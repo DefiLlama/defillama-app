@@ -1,11 +1,11 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
 	ColumnOrderState,
 	ColumnSizingState,
+	getCoreRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
 import { VirtualTable } from '~/components/Table/Table'

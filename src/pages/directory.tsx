@@ -1,14 +1,14 @@
-import Layout from '~/layout'
-import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { tokenIconUrl } from '~/utils'
-import { Announcement } from '~/components/Announcement'
-import { withPerformanceLogging } from '~/utils/perf'
 import { startTransition, useDeferredValue, useMemo, useState } from 'react'
-import { TokenLogo } from '~/components/TokenLogo'
-import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { maxAgeForNext } from '~/api'
+import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { Announcement } from '~/components/Announcement'
+import { Icon } from '~/components/Icon'
+import { TokenLogo } from '~/components/TokenLogo'
+import Layout from '~/layout'
+import { tokenIconUrl } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('directory', async () => {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url'])

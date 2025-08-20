@@ -1,5 +1,5 @@
-import { darken, transparentize } from 'polished'
 import { ComponentProps, ElementType, forwardRef, ReactNode } from 'react'
+import { darken, transparentize } from 'polished'
 import { primaryColor } from '~/constants/colors'
 
 const defaultButtonType = 'button' as const

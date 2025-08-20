@@ -1,25 +1,25 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
+	getSortedRowModel,
 	PaginationState,
-	ColumnDef
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
+import { Icon } from '~/components/Icon'
+import { TagGroup } from '~/components/TagGroup'
+import useWindowSize from '~/hooks/useWindowSize'
+import { LoadingSpinner } from '../../LoadingSpinner'
+import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
 import { stablecoinsDatasetColumns } from './columns'
-import useWindowSize from '~/hooks/useWindowSize'
-import { Icon } from '~/components/Icon'
-import { LoadingSpinner } from '../../LoadingSpinner'
 import { useStablecoinsData } from './useStablecoinsData'
-import { TagGroup } from '~/components/TagGroup'
-import { ProTableCSVButton } from '../../ProTable/CsvButton'
 
 interface StablecoinsDatasetProps {
 	chain: string

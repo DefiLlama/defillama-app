@@ -1,6 +1,6 @@
 import { ActionMeta, components, GroupProps } from 'react-select'
+import { DEFI_CHAINS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { ReactSelect } from './ReactSelect'
-import { useLocalStorageSettingsManager, DEFI_CHAINS_SETTINGS } from '~/contexts/LocalStorage'
 
 const tvlOptions = [{ label: 'Unreleased', value: 'unreleased' }]
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { FormattedName } from '~/components/FormattedName'
 import * as Ariakit from '@ariakit/react'
+import { FormattedName } from '~/components/FormattedName'
 
 interface IProps {
 	options: string[]

@@ -1,15 +1,15 @@
 import * as React from 'react'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download, toNiceCsvDate, slug, lastDayOfWeek, firstDayOfMonth, getNDistinctColors } from '~/utils'
-import { getAdapterChainOverview } from './queries'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 import { useMutation } from '@tanstack/react-query'
-import { oldBlue } from '~/constants/colors'
-import { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
+import { oldBlue } from '~/constants/colors'
+import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
+import { getAdapterChainOverview } from './queries'
+import { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly'] as const
 const CHART_TYPES = ['Volume', 'Dominance'] as const

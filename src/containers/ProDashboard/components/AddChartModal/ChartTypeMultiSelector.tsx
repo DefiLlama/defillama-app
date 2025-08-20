@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { LoadingSpinner } from '../LoadingSpinner'
 import { CHART_TYPES } from '../../types'
+import { LoadingSpinner } from '../LoadingSpinner'
 
 interface ChartTypeMultiSelectorProps {
 	selectedChartTypes: string[]

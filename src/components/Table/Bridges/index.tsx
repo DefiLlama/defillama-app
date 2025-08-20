@@ -1,30 +1,30 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
-	getFilteredRowModel
+	getCoreRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
+import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
+import useWindowSize from '~/hooks/useWindowSize'
 import {
-	bridgesColumnSizes,
-	bridgesColumn,
-	bridgesColumnOrders,
-	bridgeChainsColumnSizes,
+	bridgeAddressesColumn,
 	bridgeChainsColumn,
 	bridgeChainsColumnOrders,
+	bridgeChainsColumnSizes,
+	bridgesColumn,
+	bridgesColumnOrders,
+	bridgesColumnSizes,
+	bridgeTokensColumn,
 	largeTxsColumn,
 	largeTxsColumnOrders,
-	largeTxsColumnSizes,
-	bridgeTokensColumn,
-	bridgeAddressesColumn
+	largeTxsColumnSizes
 } from './Bridges/columns'
-import useWindowSize from '~/hooks/useWindowSize'
-import { Icon } from '~/components/Icon'
 
 const columnSizesKeys = Object.keys(bridgesColumnSizes)
 	.map((x) => Number(x))

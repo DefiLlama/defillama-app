@@ -1,12 +1,12 @@
-import { useEffect, useId, useMemo, useState, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
-import { stringToColour } from '../utils'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { download, slug, toNiceCsvDate } from '~/utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download, toNiceCsvDate, slug } from '~/utils'
+import { stringToColour } from '../utils'
 
 export default function BarChart({
 	chartData,

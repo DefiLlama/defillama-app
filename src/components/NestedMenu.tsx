@@ -1,5 +1,5 @@
-import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
+import * as Ariakit from '@ariakit/react'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface NestedMenuItemProps extends Ariakit.MenuItemProps {}

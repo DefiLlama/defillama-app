@@ -1,25 +1,25 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
-	VisibilityState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
+	getSortedRowModel,
 	PaginationState,
-	ColumnDef
+	SortingState,
+	useReactTable,
+	VisibilityState
 } from '@tanstack/react-table'
-import { TableBody } from '../../ProTable/TableBody'
-import { trendingContractsColumns } from './columns'
+import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
-import { useTrendingContractsData } from './useTrendingContractsData'
-import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { TableBody } from '../../ProTable/TableBody'
+import { trendingContractsColumns } from './columns'
+import { useTrendingContractsData } from './useTrendingContractsData'
 
 interface TrendingContractsDatasetProps {
 	chain?: string

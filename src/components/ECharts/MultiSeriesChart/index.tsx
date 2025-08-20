@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
-import { useDefaults } from '../useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useDefaults } from '../useDefaults'
 
 interface IMultiSeriesChartProps {
 	series?: Array<{

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-
 import { DIMENISIONS_OVERVIEW_API, YIELD_POOLS_API } from '~/constants'
 import Layout from '~/layout'
 import { fetchApi } from '~/utils/async'

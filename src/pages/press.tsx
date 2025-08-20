@@ -1,6 +1,6 @@
 import * as React from 'react'
-import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
+import Layout from '~/layout'
 
 const PressPanel = ({ imageFilename }) => (
 	<div className="rounded-md border border-(--cards-border) p-4 text-center">

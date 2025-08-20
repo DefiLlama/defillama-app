@@ -1,22 +1,21 @@
-import Layout from '~/layout'
-import { BasicLink } from '~/components/Link'
-import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, download, slug } from '~/utils'
-import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { descriptions } from './categories'
-import { withPerformanceLogging } from '~/utils/perf'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-
-import { VirtualTable } from '~/components/Table/Table'
+import * as React from 'react'
 import {
-	useReactTable,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	SortingState,
-	createColumnHelper
+	useReactTable
 } from '@tanstack/react-table'
-import * as React from 'react'
+import { maxAgeForNext } from '~/api'
+import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { BasicLink } from '~/components/Link'
+import { VirtualTable } from '~/components/Table/Table'
+import { TokenLogo } from '~/components/TokenLogo'
+import Layout from '~/layout'
+import { chainIconUrl, download, slug } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
+import { descriptions } from './categories'
 
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])

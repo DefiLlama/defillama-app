@@ -1,21 +1,21 @@
 import * as React from 'react'
+import { BarChart as EChartBar, LineChart as EChartLine, ScatterChart as EChartScatter } from 'echarts/charts'
+import {
+	DataZoomComponent,
+	GraphicComponent,
+	GridComponent,
+	LegendComponent,
+	TitleComponent,
+	TooltipComponent
+} from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { ScatterChart as EChartScatter, LineChart as EChartLine, BarChart as EChartBar } from 'echarts/charts'
-import {
-	TooltipComponent,
-	TitleComponent,
-	GridComponent,
-	GraphicComponent,
-	LegendComponent,
-	DataZoomComponent
-} from 'echarts/components'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import type { ICollectionScatterChartProps } from './types'
-import { useMedia } from '~/hooks/useMedia'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useMedia } from '~/hooks/useMedia'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import type { ICollectionScatterChartProps } from './types'
 
 echarts.use([
 	CanvasRenderer,

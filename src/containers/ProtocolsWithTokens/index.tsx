@@ -1,16 +1,16 @@
+import { useMemo } from 'react'
+import { useRouter } from 'next/router'
+import { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Metrics, TMetric } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { IProtocolsWithTokensByChainPageData } from './queries'
-import { ColumnDef } from '@tanstack/react-table'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { useRouter } from 'next/router'
-import { useMemo } from 'react'
 
 export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) {
 	const router = useRouter()

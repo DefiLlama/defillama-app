@@ -1,24 +1,24 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
-	VisibilityState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
+	getSortedRowModel,
 	PaginationState,
-	ColumnDef
+	SortingState,
+	useReactTable,
+	VisibilityState
 } from '@tanstack/react-table'
+import { TagGroup } from '~/components/TagGroup'
+import { LoadingSpinner } from '../../LoadingSpinner'
+import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
 import { bridgeAggregatorsDatasetColumns } from './columns'
-import { LoadingSpinner } from '../../LoadingSpinner'
 import { useBridgeAggregatorsData } from './useBridgeAggregatorsData'
-import { ProTableCSVButton } from '../../ProTable/CsvButton'
-import { TagGroup } from '~/components/TagGroup'
 
 export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])

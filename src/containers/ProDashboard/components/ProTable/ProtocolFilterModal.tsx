@@ -1,13 +1,12 @@
 import * as React from 'react'
-import ReactDOM from 'react-dom'
-import { Icon } from '~/components/Icon'
-import { Protocol } from '../../types'
-import { TableFilters } from '../../types'
-import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { reactSelectStyles } from '../../utils/reactSelectStyles'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import ReactDOM from 'react-dom'
 import { createFilter } from 'react-select'
+import { Icon } from '~/components/Icon'
+import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { slug } from '~/utils'
+import { Protocol, TableFilters } from '../../types'
+import { reactSelectStyles } from '../../utils/reactSelectStyles'
 
 const CustomProtocolOption = ({ innerProps, label, data }: any) => {
 	const protocolSlug = slug(data.label)

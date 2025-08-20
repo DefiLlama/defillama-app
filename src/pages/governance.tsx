@@ -1,23 +1,22 @@
-import { maxAgeForNext } from '~/api'
 import * as React from 'react'
-import Layout from '~/layout'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
-	getFilteredRowModel,
 	ColumnFiltersState,
-	getExpandedRowModel
+	getCoreRowModel,
+	getExpandedRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
-import { governanceColumns } from '~/components/Table/Defi/columns'
-import { GOVERNANCE_SNAPSHOT_API, GOVERNANCE_COMPOUND_API, GOVERNANCE_TALLY_API } from '~/constants'
-import { capitalizeFirstLetter } from '~/utils'
-import { withPerformanceLogging } from '~/utils/perf'
-
-import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
+import { governanceColumns } from '~/components/Table/Defi/columns'
+import { VirtualTable } from '~/components/Table/Table'
+import { GOVERNANCE_COMPOUND_API, GOVERNANCE_SNAPSHOT_API, GOVERNANCE_TALLY_API } from '~/constants'
+import Layout from '~/layout'
+import { capitalizeFirstLetter } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('governance', async () => {
 	const [snapshot, compound, tally] = await Promise.all([

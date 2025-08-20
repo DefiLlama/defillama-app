@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export default function NonTimeSeriesBarChart({
 	chartData,

@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { dashboardAPI, Dashboard } from '../services/DashboardAPI'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useCallback, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
 interface SearchParams {
 	query?: string

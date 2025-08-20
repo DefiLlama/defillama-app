@@ -1,9 +1,9 @@
 import { IOverviewProps } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
 import { removedCategoriesFromChainTvl } from '~/constants'
+import { IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
 import { formattedNum, getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
-import { IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
 
 interface IData {
 	tvl: number

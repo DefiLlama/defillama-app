@@ -1,6 +1,5 @@
 import { useMemo, useState, useSyncExternalStore } from 'react'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { VirtualTable } from '~/components/Table/Table'
+import { useRouter } from 'next/router'
 import {
 	ColumnSizingState,
 	ExpandedState,
@@ -10,12 +9,13 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { Icon } from '~/components/Icon'
-import { slug } from '~/utils'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
-import { emissionsColumns } from '~/components/Table/Defi/columns'
-import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import { Icon } from '~/components/Icon'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { emissionsColumns } from '~/components/Table/Defi/columns'
+import { VirtualTable } from '~/components/Table/Table'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { slug } from '~/utils'
 
 const optionsKey = 'unlockTable'
 const filterStatekey = 'unlockTableFilterState'

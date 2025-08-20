@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import Head from 'next/head'
-import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
-import { useIsClient } from '~/hooks'
 import { ADAPTOR_TYPES } from '~/api/categories/adaptors'
+import { useIsClient } from '~/hooks'
+import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
 
 interface SEOProps {
 	cardName?: string

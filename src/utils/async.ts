@@ -1,4 +1,4 @@
-import { FetchWithPoolingOnServerOptions, fetchWithPoolingOnServer } from './perf'
+import { fetchWithPoolingOnServer, FetchWithPoolingOnServerOptions } from './perf'
 
 export function withErrorLogging<T extends any[], R>(
 	fn: (...args: T) => Promise<R>,

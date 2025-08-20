@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { fetchChain } from '~/containers/CompareChains/chainFetcher'
-import { setObjectCache } from '~/utils/cache-client'
-import { getObjectCache } from '~/utils/cache-client'
+import { getObjectCache, setObjectCache } from '~/utils/cache-client'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	res.setHeader('Access-Control-Allow-Origin', '*')

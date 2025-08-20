@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
-import { getYieldPageData } from '~/containers/Yields/queries/index'
-import { sluggify } from '~/utils/cache-client'
 import { useQuery } from '@tanstack/react-query'
+import { getYieldPageData } from '~/containers/Yields/queries/index'
+import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
+import { sluggify } from '~/utils/cache-client'
 
 export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }) {
 	const { data: poolsList, isLoading } = useQuery({

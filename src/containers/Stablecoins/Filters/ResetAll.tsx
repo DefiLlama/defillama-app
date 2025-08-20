@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { useManageAppSettings, STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
+import { STABLECOINS_SETTINGS, useManageAppSettings } from '~/contexts/LocalStorage'
 
 export function ResetAllStablecoinFilters({ pathname }: { pathname: string; nestedMenu: boolean }) {
 	const router = useRouter()

@@ -1,6 +1,6 @@
-import { generateICSContent } from '~/utils/calendar'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { slug } from '~/utils'
+import { generateICSContent } from '~/utils/calendar'
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
 	const { token } = req.query

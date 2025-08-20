@@ -1,9 +1,9 @@
 import * as React from 'react'
-import Layout from '~/layout'
-import { NftsMarketplaceTable } from '~/components/Table/Nfts/Marketplaces'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData } from '~/api/categories/nfts'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { NftsMarketplaceTable } from '~/components/Table/Nfts/Marketplaces'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>

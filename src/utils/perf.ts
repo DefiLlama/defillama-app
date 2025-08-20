@@ -1,8 +1,8 @@
 // import { performance } from 'perf_hooks'
 import { GetStaticProps, GetStaticPropsContext } from 'next'
-import { RedisCachePayload, getCache, setCache, setPageBuildTimes } from './cache-client'
 import { maxAgeForNext } from '~/api'
 import { postRuntimeLogs } from './async'
+import { getCache, RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
 import { fetchWithConnectionPooling } from './http-client'
 
 const isServer = typeof document === 'undefined'

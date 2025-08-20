@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { download, toNiceCsvDate } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { download, toNiceCsvDate } from '~/utils'
 
 export const LargeTxDownloadButton = ({ data }: { data: any }) => {
 	return (

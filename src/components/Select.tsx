@@ -1,8 +1,8 @@
-import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
+import * as Ariakit from '@ariakit/react'
+import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import { Tooltip } from './Tooltip'
-import { Icon } from './Icon'
 
 interface ISelect {
 	allValues: Array<{ key: string; name: string; help?: string }> | Array<string>

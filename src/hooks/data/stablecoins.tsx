@@ -1,9 +1,8 @@
 import * as React from 'react'
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { formattedNum, getDominancePercent } from '~/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getDominancePercent } from '~/utils'
 
 interface IPegged {
 	circulating: number

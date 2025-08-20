@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { ProTableCSVButton } from './CsvButton'
 import { Tooltip } from '~/components/Tooltip'
+import { ProTableCSVButton } from './CsvButton'
 
 interface TableHeaderProps {
 	chains: string[]

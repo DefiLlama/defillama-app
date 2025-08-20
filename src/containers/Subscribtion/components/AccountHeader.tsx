@@ -1,5 +1,6 @@
 import { Icon } from '~/components/Icon'
 import { Subscription } from '~/hooks/useSubscribe'
+
 interface AccountHeaderProps {
 	isSubscribed: boolean
 	onLogout: () => void

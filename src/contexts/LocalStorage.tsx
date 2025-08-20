@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars*/
-import { useMemo, useEffect, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import { useIsClient } from '~/hooks'
 // import { trackGoal } from 'fathom-client'
 import { slug } from '~/utils'
-import { useIsClient } from '~/hooks'
 import { getThemeCookie, setThemeCookie, THEME_COOKIE_NAME } from '~/utils/cookies'
 
 const DEFILLAMA = 'DEFILLAMA'

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { Tooltip } from '~/components/Tooltip'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 
 export const QuestionHelper = React.memo(function QuestionHelper({
 	text,

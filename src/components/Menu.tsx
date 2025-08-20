@@ -1,6 +1,6 @@
+import { useMemo } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { transparentize } from 'polished'
-import { useMemo } from 'react'
 import { BasicLink } from './Link'
 
 interface IMenuProps {

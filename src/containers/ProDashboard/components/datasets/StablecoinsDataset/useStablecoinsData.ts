@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { PEGGEDS_API, PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API, PEGGEDS_API } from '~/constants'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
+import { fetchJson } from '~/utils/async'
 
 export function useStablecoinsData(chain: string) {
 	return useQuery({

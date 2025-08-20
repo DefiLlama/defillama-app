@@ -1,16 +1,16 @@
 import * as React from 'react'
-import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { useEffect } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { ChartSelector } from '~/containers/Bridges/ChartSelector'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { BridgesTable } from '~/components/Table/Bridges'
+import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
 import { TxsTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
-import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { useEffect } from 'react'
-import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
+import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { download, formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 

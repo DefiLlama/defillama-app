@@ -2,7 +2,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
 import { Metrics } from '~/components/Metrics'
-
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'

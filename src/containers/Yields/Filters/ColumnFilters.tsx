@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router'
 import { useMemo } from 'react'
+import { useRouter } from 'next/router'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 interface IColumnFiltersProps {

@@ -1,12 +1,12 @@
-import { useMemo, useEffect, useState, lazy, Suspense } from 'react'
-import { ChartBuilderConfig } from './types'
-import { ItemSelect } from '../ItemSelect'
-import { ItemMultiSelect } from '../ItemMultiSelect'
-import { Icon } from '~/components/Icon'
-import { ChartPreview } from '../ChartPreview'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Icon } from '~/components/Icon'
 import { PROTOCOLS_API } from '~/constants'
 import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
+import { ChartPreview } from '../ChartPreview'
+import { ItemMultiSelect } from '../ItemMultiSelect'
+import { ItemSelect } from '../ItemSelect'
+import { ChartBuilderConfig } from './types'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 

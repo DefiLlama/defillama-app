@@ -1,12 +1,12 @@
 import { Bookmark } from '~/components/Bookmark'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { FormattedName } from '~/components/FormattedName'
+import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, tokenIconUrl } from '~/utils'
 import { Tooltip } from '~/components/Tooltip'
-import { FormattedName } from '~/components/FormattedName'
 import useWindowSize from '~/hooks/useWindowSize'
-import { Icon } from '~/components/Icon'
-import { ButtonLight } from '~/components/ButtonStyled'
+import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 interface INameYieldPoolProps {
 	value: string

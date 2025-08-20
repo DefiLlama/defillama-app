@@ -1,10 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
 import { useCallback } from 'react'
+import { useRouter } from 'next/router'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { dashboardAPI, Dashboard } from '../services/DashboardAPI'
-import { DashboardItemConfig } from '../types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import { DashboardItemConfig } from '../types'
 
 export function useDashboardAPI() {
 	const router = useRouter()

@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-import { Tooltip } from '~/components/Tooltip'
+import { TMetric } from '~/components/Metrics'
 import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
-import { useSubscribe } from '~/hooks/useSubscribe'
-import { useDashboardCreation } from '~/hooks/useDashboardCreation'
+import { Tooltip } from '~/components/Tooltip'
 import { useIsClient } from '~/hooks'
-import { TMetric } from '~/components/Metrics'
+import { useDashboardCreation } from '~/hooks/useDashboardCreation'
+import { useSubscribe } from '~/hooks/useSubscribe'
 
 interface FullOldViewButtonProps {
 	type: TMetric

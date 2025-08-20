@@ -1,32 +1,32 @@
-import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
-import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable'
-import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
-import { ChartCard } from './ChartCard'
-import { TextCard } from './TextCard'
-import { ChartBuilderCard } from './ChartBuilderCard'
-import { ProtocolsByChainTable } from './ProTable'
-import {
-	StablecoinsDataset,
-	CexDataset,
-	RevenueDataset,
-	HoldersRevenueDataset,
-	EarningsDataset,
-	FeesDataset,
-	TokenUsageDataset,
-	YieldsDataset,
-	AggregatorsDataset,
-	PerpsDataset,
-	OptionsDataset,
-	DexsDataset,
-	BridgeAggregatorsDataset,
-	TrendingContractsDataset,
-	ChainsDataset
-} from './datasets'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { Icon } from '~/components/Icon'
+import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
-import { lazy, Suspense, useState, useEffect } from 'react'
+import { ChartBuilderCard } from './ChartBuilderCard'
+import { ChartCard } from './ChartCard'
 import { ConfirmationModal } from './ConfirmationModal'
+import {
+	AggregatorsDataset,
+	BridgeAggregatorsDataset,
+	CexDataset,
+	ChainsDataset,
+	DexsDataset,
+	EarningsDataset,
+	FeesDataset,
+	HoldersRevenueDataset,
+	OptionsDataset,
+	PerpsDataset,
+	RevenueDataset,
+	StablecoinsDataset,
+	TokenUsageDataset,
+	TrendingContractsDataset,
+	YieldsDataset
+} from './datasets'
+import { ProtocolsByChainTable } from './ProTable'
+import { TextCard } from './TextCard'
 
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
 

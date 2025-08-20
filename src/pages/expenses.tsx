@@ -1,15 +1,14 @@
-import { maxAgeForNext } from '~/api'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import Layout from '~/layout'
-import { withPerformanceLogging } from '~/utils/perf'
 import type { ColumnDef } from '@tanstack/react-table'
-import { fetchJson } from '~/utils/async'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
-import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
-
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOLS_API } from '~/constants'
+import Layout from '~/layout'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
 	const { protocols, parentProtocols } = await fetchJson(PROTOCOLS_API)

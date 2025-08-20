@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react'
-import { ChartPreview } from './ChartPreview'
+import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHART_TYPES } from '../types'
+import { ChartPreview } from './ChartPreview'
 
 interface ChartPreviewCarouselProps {
 	selectedChartTypes: string[]

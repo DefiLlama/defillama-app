@@ -1,12 +1,12 @@
 import * as React from 'react'
 import dayjs from 'dayjs'
-import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, tokenIconUrl, slug } from '~/utils'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { TokenLogo } from '~/components/TokenLogo'
 import { BasicLink } from '~/components/Link'
-import { interpolateColor } from '../utils/colorUtils'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import type { DailyUnlocks, DayInfo } from '../types'
+import { interpolateColor } from '../utils/colorUtils'
 
 interface CalendarDayCellProps {
 	dayInfo: DayInfo

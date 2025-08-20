@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { capitalizeFirstLetter } from '~/utils'
 import { maxAgeForNext } from '~/api'
-import { withPerformanceLogging } from '~/utils/perf'
 import { getChainsBridged } from '~/api/categories/protocols'
 import { BridgedTVLByChain } from '~/containers/BridgedTVL/BridgedTVLByChain'
+import { capitalizeFirstLetter } from '~/utils'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'bridged/[...chain]',

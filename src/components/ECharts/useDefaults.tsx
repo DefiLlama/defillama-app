@@ -1,20 +1,20 @@
-import * as echarts from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { LineChart, BarChart } from 'echarts/charts'
+import { useMemo } from 'react'
+import { BarChart, LineChart } from 'echarts/charts'
 import {
-	TooltipComponent,
-	TitleComponent,
-	GridComponent,
 	DataZoomComponent,
 	GraphicComponent,
+	GridComponent,
+	LegendComponent,
 	MarkLineComponent,
-	LegendComponent
+	TitleComponent,
+	TooltipComponent
 } from 'echarts/components'
+import * as echarts from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
 import { useMedia } from '~/hooks/useMedia'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import { formattedNum } from '~/utils'
-import { useMemo } from 'react'
 
 const CHART_SYMBOLS = {
 	'Active Addresses': '',

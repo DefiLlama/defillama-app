@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
+import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import { matchSorter } from 'match-sorter'
-import * as Ariakit from '@ariakit/react'
 
 export function YieldsSearch({ lend = false, searchData, value }) {
 	const [searchValue, setSearchValue] = React.useState('')

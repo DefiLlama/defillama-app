@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { withPerformanceLogging } from '~/utils/perf'
 import { ChainsByCategory } from '~/containers/ChainsByCategory'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'chains/[...category]',

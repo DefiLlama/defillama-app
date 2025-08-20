@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuthContext } from '../containers/Subscribtion/auth'
 import { useCallback } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AUTH_SERVER } from '../constants'
+import { useAuthContext } from '../containers/Subscribtion/auth'
+
 const USER_CONFIG_QUERY_KEY = ['userConfig']
 
 type UserConfig = Record<string, any>

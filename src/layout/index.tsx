@@ -1,11 +1,11 @@
 import * as React from 'react'
 import Head from 'next/head'
-import { SEO } from '~/components/SEO'
-import Nav from '~/components/Nav'
-import { useIsClient } from '~/hooks'
-import { SearchFallback } from '~/components/Search/Fallback'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
+import Nav from '~/components/Nav'
+import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select'
+import { SEO } from '~/components/SEO'
+import { useIsClient } from '~/hooks'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
 const GlobalSearch = React.lazy(() => import('~/components/Search').then((m) => ({ default: m.GlobalSearch })))

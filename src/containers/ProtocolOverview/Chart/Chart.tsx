@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
+import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { formattedNum } from '~/utils'
-import { ProtocolChartsLabels, BAR_CHARTS, yAxisByChart } from './constants'
-import { MarkAreaComponent } from 'echarts/components'
+import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
 
 const customOffsets = {
 	Contributers: 60,

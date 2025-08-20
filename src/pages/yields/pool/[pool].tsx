@@ -1,25 +1,24 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
-import Layout from '~/layout'
-import { download, formattedNum, slug } from '~/utils'
-import { LazyChart } from '~/components/LazyChart'
-import {
-	useYieldChartData,
-	useYieldConfigData,
-	useYieldPoolData,
-	useYieldChartLendBorrow
-} from '~/containers/Yields/queries/client'
-import { getColorFromNumber } from '~/utils'
-import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
-import exponentialLogo from '~/assets/exponential.avif'
-import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { useQuery } from '@tanstack/react-query'
-import { fetchApi } from '~/utils/async'
-import { Icon } from '~/components/Icon'
+import exponentialLogo from '~/assets/exponential.avif'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { Icon } from '~/components/Icon'
+import { LazyChart } from '~/components/LazyChart'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
+import {
+	useYieldChartData,
+	useYieldChartLendBorrow,
+	useYieldConfigData,
+	useYieldPoolData
+} from '~/containers/Yields/queries/client'
+import Layout from '~/layout'
+import { download, formattedNum, getColorFromNumber, slug } from '~/utils'
+import { fetchApi } from '~/utils/async'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 

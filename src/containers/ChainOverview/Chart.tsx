@@ -3,11 +3,11 @@ import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { formattedNum, getRandomColor } from '~/utils'
 import {
-	ChainChartLabels,
 	BAR_CHARTS,
-	yAxisByChart,
+	ChainChartLabels,
+	chainOverviewChartColors,
 	DISABLED_CUMULATIVE_CHARTS,
-	chainOverviewChartColors
+	yAxisByChart
 } from './constants'
 
 const customOffsets = {}

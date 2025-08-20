@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useId } from 'react'
-import * as echarts from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { BoxplotChart as EChartBoxPlot } from 'echarts/charts'
-import { UniversalTransition } from 'echarts/features'
 import { aggregate } from 'echarts-simple-transform'
+import { BoxplotChart as EChartBoxPlot } from 'echarts/charts'
 import {
-	TooltipComponent,
-	ToolboxComponent,
-	TitleComponent,
-	GridComponent,
-	DataZoomComponent,
-	LegendComponent,
 	DatasetComponent,
+	DataZoomComponent,
+	GridComponent,
+	LegendComponent,
+	TitleComponent,
+	ToolboxComponent,
+	TooltipComponent,
 	TransformComponent
 } from 'echarts/components'
+import * as echarts from 'echarts/core'
+import { UniversalTransition } from 'echarts/features'
+import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 echarts.use([

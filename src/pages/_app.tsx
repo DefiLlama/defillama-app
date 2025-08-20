@@ -5,9 +5,9 @@ import { useAnalytics } from '~/hooks/useAnalytics'
 import '~/tailwind.css'
 import '~/nprogress.css'
 import { useEffect } from 'react'
+import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
-import { AppProps } from 'next/app'
 
 NProgress.configure({ showSpinner: false })
 

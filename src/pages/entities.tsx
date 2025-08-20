@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { withPerformanceLogging } from '~/utils/perf'
-import { Treasuries } from '~/containers/Treasuries'
 import { maxAgeForNext } from '~/api'
+import { Treasuries } from '~/containers/Treasuries'
 import { getEntitiesData } from '~/containers/Treasuries/queries'
+import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('entities', async () => {
 	const data = await getEntitiesData()

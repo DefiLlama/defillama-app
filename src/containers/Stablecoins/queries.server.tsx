@@ -1,21 +1,21 @@
-import { getPercentChange, slug } from '~/utils'
 import {
 	CONFIG_API,
+	PEGGED_API,
 	PEGGEDCHART_API,
+	PEGGEDCHART_COINS_RECENT_DATA_API,
+	PEGGEDCHART_DOMINANCE_ALL_API,
 	PEGGEDCONFIG_API,
 	PEGGEDPRICES_API,
 	PEGGEDRATES_API,
-	PEGGEDS_API,
-	PEGGED_API,
-	PEGGEDCHART_DOMINANCE_ALL_API,
-	PEGGEDCHART_COINS_RECENT_DATA_API
+	PEGGEDS_API
 } from '~/constants'
-import { fetchJson } from '~/utils/async'
 import {
-	getPrevStablecoinTotalFromChart,
 	formatPeggedAssetsData,
-	formatPeggedChainsData
+	formatPeggedChainsData,
+	getPrevStablecoinTotalFromChart
 } from '~/containers/Stablecoins/utils'
+import { getPercentChange, slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
 
 export const getPeggedAssets = () =>
 	fetchJson(PEGGEDS_API).then(({ peggedAssets, chains }) => ({

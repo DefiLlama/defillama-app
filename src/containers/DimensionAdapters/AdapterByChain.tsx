@@ -1,10 +1,6 @@
-import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { IAdapterByChainPageData } from './types'
-import { VirtualTable } from '~/components/Table/Table'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { Icon } from '~/components/Icon'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
 import {
-	type ColumnDef,
 	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
@@ -12,24 +8,28 @@ import {
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	type SortingState,
-	useReactTable
+	useReactTable,
+	type ColumnDef,
+	type SortingState
 } from '@tanstack/react-table'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { getAnnualizedRatio } from '~/api/categories/adaptors'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
+import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { chainIconUrl, download, formattedNum, slug } from '~/utils'
-import { Tooltip } from '~/components/Tooltip'
-import { TokenLogo } from '~/components/TokenLogo'
 import { Metrics, TMetric } from '~/components/Metrics'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { useRouter } from 'next/router'
+import { VirtualTable } from '~/components/Table/Table'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { AdapterByChainChart } from './ChainChart'
-import { protocolCharts } from '../ProtocolOverview/Chart/constants'
-import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
+import { chainIconUrl, download, formattedNum, slug } from '~/utils'
 import { chainCharts } from '../ChainOverview/constants'
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
+import { protocolCharts } from '../ProtocolOverview/Chart/constants'
+import { AdapterByChainChart } from './ChainChart'
+import { IAdapterByChainPageData } from './types'
 
 interface IProps extends IAdapterByChainPageData {
 	type: Extract<

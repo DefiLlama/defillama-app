@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
-import { formattedNum, formattedPercent, chainIconUrl } from '~/utils'
 import { TokenLogo } from '~/components/TokenLogo'
+import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
 
 export const chainsDatasetColumns: ColumnDef<any>[] = [
 	{

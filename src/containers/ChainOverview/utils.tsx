@@ -1,6 +1,6 @@
 import { removedCategoriesFromChainTvl } from '~/constants'
-import type { IChainAsset, IFormattedChainAsset, ILiteProtocol } from './types'
 import { IProtocolMetadata } from '../ProtocolOverview/types'
+import type { IChainAsset, IFormattedChainAsset, ILiteProtocol } from './types'
 
 export const toFilterProtocol = ({
 	protocolMetadata,

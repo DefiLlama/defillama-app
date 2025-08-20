@@ -1,9 +1,9 @@
 import { Icon } from '~/components/Icon'
+import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
 import { ItemSelect } from '../ItemSelect'
-import { ChartTypeSelector } from './ChartTypeSelector'
 import { LoadingSpinner } from '../LoadingSpinner'
+import { ChartTypeSelector } from './ChartTypeSelector'
 import { ChartTabType } from './types'
-import { ChartConfig, CHART_TYPES, getProtocolChartTypes, getChainChartTypes } from '../../types'
 
 interface ComposerTabProps {
 	composerChartName: string

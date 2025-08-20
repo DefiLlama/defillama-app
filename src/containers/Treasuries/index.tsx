@@ -1,22 +1,21 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
-	getFilteredRowModel,
+	ColumnDef,
 	ColumnFiltersState,
-	ColumnDef
+	getCoreRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download, formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
-import Layout from '~/layout'
 import { BasicLink } from '~/components/Link'
+import { Metrics } from '~/components/Metrics'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
-
-import { Metrics } from '~/components/Metrics'
+import Layout from '~/layout'
+import { download, formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
 
 export function Treasuries({ data, entity }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])

@@ -1,9 +1,9 @@
 import * as React from 'react'
+import { maxAgeForNext } from '~/api'
+import { primaryColor } from '~/constants/colors'
+import { getPeggedAssetPageData, getPeggedAssets } from '~/containers/Stablecoins/queries.server'
 import PeggedContainer from '~/containers/Stablecoins/StablecoinOverview'
 import { slug } from '~/utils'
-import { maxAgeForNext } from '~/api'
-import { getPeggedAssetPageData, getPeggedAssets } from '~/containers/Stablecoins/queries.server'
-import { primaryColor } from '~/constants/colors'
 import { withErrorLogging } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 

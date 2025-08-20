@@ -1,5 +1,5 @@
-import type { IBaseSearchProps } from '~/components/Search/types'
 import { useEffect, useState } from 'react'
+import type { IBaseSearchProps } from '~/components/Search/types'
 import { getAvailableAssetsList } from '~/containers/Liquidations/utils'
 
 export const useAssetsList = () => {

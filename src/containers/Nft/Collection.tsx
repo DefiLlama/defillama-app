@@ -1,16 +1,16 @@
 import * as React from 'react'
-import Layout from '~/layout'
-import { TokenLogo } from '~/components/TokenLogo'
-import { FormattedName } from '~/components/FormattedName'
-import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
-import { IChartProps } from '~/components/ECharts/types'
 import { useRouter } from 'next/router'
-import { getNFTCollection } from '~/api/categories/nfts'
-import { LocalLoader } from '~/components/LocalLoader'
 import { useQuery } from '@tanstack/react-query'
+import { getNFTCollection } from '~/api/categories/nfts'
+import { IChartProps } from '~/components/ECharts/types'
+import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
+import { LocalLoader } from '~/components/LocalLoader'
 import { Switch } from '~/components/Switch'
+import { TokenLogo } from '~/components/TokenLogo'
+import Layout from '~/layout'
+import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 
 const CollectionScatterChart = React.lazy(
 	() => import('./CollectionScatterChart')

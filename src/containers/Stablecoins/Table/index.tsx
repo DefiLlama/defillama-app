@@ -1,28 +1,28 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
-	getFilteredRowModel,
 	ExpandedState,
-	getExpandedRowModel
+	getCoreRowModel,
+	getExpandedRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
+import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
+import useWindowSize from '~/hooks/useWindowSize'
 import {
-	assetsColumnSizes,
-	peggedAssetsColumns,
-	assetsColumnOrders,
-	assetsByChainColumnSizes,
-	peggedAssetsByChainColumns,
 	assetsByChainColumnOrders,
+	assetsByChainColumnSizes,
+	assetsColumnOrders,
+	assetsColumnSizes,
+	peggedAssetsByChainColumns,
+	peggedAssetsColumns,
 	peggedChainsColumns
 } from './columns'
-import useWindowSize from '~/hooks/useWindowSize'
-import { Icon } from '~/components/Icon'
 import { IPeggedAssetByChainRow, IPeggedChain } from './types'
 
 const assetsColumnSizesKeys = Object.keys(assetsColumnSizes)

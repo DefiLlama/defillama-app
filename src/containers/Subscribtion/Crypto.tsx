@@ -1,11 +1,11 @@
+import { useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
-import { useState, useEffect } from 'react'
+import { StyledButton } from '~/components/ButtonStyled/StyledButton'
 import { Icon } from '~/components/Icon'
+import { Tooltip as CustomTooltip } from '~/components/Tooltip'
+import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { AUTH_SERVER } from '~/constants'
-import { Tooltip as CustomTooltip } from '~/components/Tooltip'
-import { StyledButton } from '~/components/ButtonStyled/StyledButton'
 
 export const PaymentButton = ({
 	paymentMethod,

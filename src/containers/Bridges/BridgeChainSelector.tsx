@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
-import type { ISearchItem } from '~/components/Search/types'
 import { matchSorter } from 'match-sorter'
+import type { ISearchItem } from '~/components/Search/types'
 
 interface IProps {
 	options: ISearchItem[]

@@ -1,26 +1,26 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
+	ColumnDef,
+	ColumnFiltersState,
 	ColumnOrderState,
 	ColumnSizingState,
-	ColumnFiltersState,
-	VisibilityState,
+	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
+	getSortedRowModel,
 	PaginationState,
-	ColumnDef
+	SortingState,
+	useReactTable,
+	VisibilityState
 } from '@tanstack/react-table'
-import { TableBody } from '../../ProTable/TableBody'
-import { dexsDatasetColumns } from './columns'
+import { TagGroup } from '~/components/TagGroup'
+import { DexItem } from '~/containers/ProDashboard/types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
-import { useDexsData } from './useDexsData'
-import { TagGroup } from '~/components/TagGroup'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
-import { DexItem } from '~/containers/ProDashboard/types'
+import { TableBody } from '../../ProTable/TableBody'
+import { dexsDatasetColumns } from './columns'
+import { useDexsData } from './useDexsData'
 
 type DexItemWithMarketShare = DexItem & {
 	marketShare7d: number

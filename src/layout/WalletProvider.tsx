@@ -1,8 +1,8 @@
 import '@rainbow-me/rainbowkit/styles.css'
+import { ReactNode } from 'react'
 import { darkTheme, getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import { WagmiProvider } from 'wagmi'
 import { optimism } from 'wagmi/chains'
-import { ReactNode } from 'react'
 
 export const config = getDefaultConfig({
 	appName: 'DefiLlama',

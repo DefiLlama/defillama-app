@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
-import { DashboardItemConfig } from '../types'
 import { TimePeriod } from '../ProDashboardAPIContext'
+import { DashboardItemConfig } from '../types'
 
 interface UseAutoSaveOptions {
 	dashboardId: string | null

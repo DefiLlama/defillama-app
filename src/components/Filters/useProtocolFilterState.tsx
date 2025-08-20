@@ -1,6 +1,6 @@
+import { useMemo } from 'react'
 import { updateAllSettingsInLsAndUrl, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { feesOptions } from './options'
-import { useMemo } from 'react'
 
 export function useProtocolsFilterState(options) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')

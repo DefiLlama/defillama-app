@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchJson } from '~/utils/async'
 import { AggregatorItem } from '~/containers/ProDashboard/types'
+import { fetchJson } from '~/utils/async'
 
 export function useAggregatorsData(chains?: string[]) {
 	const queryParams =

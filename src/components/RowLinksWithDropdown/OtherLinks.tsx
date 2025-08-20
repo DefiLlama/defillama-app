@@ -1,7 +1,7 @@
-import * as Ariakit from '@ariakit/react'
 import { startTransition, useDeferredValue, useMemo, useState } from 'react'
-import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
+import { matchSorter } from 'match-sorter'
 
 interface IProps {
 	options: { label: string; to: string }[]

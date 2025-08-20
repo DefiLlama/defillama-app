@@ -1,14 +1,14 @@
 import * as React from 'react'
-import { bridgedChainColumns } from '~/components/Table/Defi/columns'
-import Layout from '~/layout'
-import { SEO } from '~/components/SEO'
-import { chainIconUrl, formattedNum, preparePieChartData } from '~/utils'
-import { TokenLogo } from '~/components/TokenLogo'
-import { FormattedName } from '~/components/FormattedName'
+import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { SortingState, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
+import { FormattedName } from '~/components/FormattedName'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { SEO } from '~/components/SEO'
+import { bridgedChainColumns } from '~/components/Table/Defi/columns'
+import { VirtualTable } from '~/components/Table/Table'
+import { TokenLogo } from '~/components/TokenLogo'
+import Layout from '~/layout'
+import { chainIconUrl, formattedNum, preparePieChartData } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>

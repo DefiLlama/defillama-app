@@ -1,6 +1,6 @@
 import { AUTH_SERVER } from '../../../constants'
-import { DashboardItemConfig } from '../types'
 import { TimePeriod } from '../ProDashboardAPIContext'
+import { DashboardItemConfig } from '../types'
 
 export interface Dashboard {
 	id: string

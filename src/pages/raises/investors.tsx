@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {
 	ColumnFiltersState,
 	getCoreRowModel,
@@ -6,19 +7,17 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import * as React from 'react'
 import { countBy, flatten, mapValues, sumBy, uniq } from 'lodash'
 import { maxAgeForNext } from '~/api'
-import { activeInvestorsColumns } from '~/components/Table/Defi/columns'
-import { VirtualTable } from '~/components/Table/Table'
-import { RAISES_API } from '~/constants'
-import Layout from '~/layout'
-import { withPerformanceLogging } from '~/utils/perf'
-
-import { fetchJson } from '~/utils/async'
-import { TagGroup } from '~/components/TagGroup'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
+import { activeInvestorsColumns } from '~/components/Table/Defi/columns'
+import { VirtualTable } from '~/components/Table/Table'
+import { TagGroup } from '~/components/TagGroup'
+import { RAISES_API } from '~/constants'
+import Layout from '~/layout'
+import { fetchJson } from '~/utils/async'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const columns = ['name', 'medianAmount', 'chains', 'projects', 'deals', 'category', 'roundType']
 

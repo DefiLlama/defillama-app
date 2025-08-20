@@ -1,24 +1,24 @@
-import { useState, useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
+	flexRender,
 	getCoreRowModel,
-	getSortedRowModel,
-	getPaginationRowModel,
 	getFilteredRowModel,
-	useReactTable,
+	getPaginationRowModel,
+	getSortedRowModel,
+	PaginationState,
 	SortingState,
-	PaginationState
+	useReactTable
 } from '@tanstack/react-table'
-import { download, formattedNum } from '~/utils'
-import { ProTableCSVButton } from '../../ProTable/CsvButton'
-import { flexRender } from '@tanstack/react-table'
-import { SortIcon } from '~/components/Table/SortIcon'
-import { LoadingSpinner } from '../../LoadingSpinner'
-import { useTokenUsageData } from './useTokenUsageData'
-import { getColumns } from './columns'
-import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { useTokenSearch } from './useTokenSearch'
-import { reactSelectStyles } from '../../../utils/reactSelectStyles'
 import { components } from 'react-select'
+import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
+import { SortIcon } from '~/components/Table/SortIcon'
+import { download, formattedNum } from '~/utils'
+import { reactSelectStyles } from '../../../utils/reactSelectStyles'
+import { LoadingSpinner } from '../../LoadingSpinner'
+import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { getColumns } from './columns'
+import { useTokenSearch } from './useTokenSearch'
+import { useTokenUsageData } from './useTokenUsageData'
 
 interface TokenOption {
 	value: string

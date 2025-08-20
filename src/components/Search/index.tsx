@@ -1,12 +1,12 @@
-import * as Ariakit from '@ariakit/react'
 import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { BasicLink } from '../Link'
-import { Icon } from '../Icon'
+import * as Ariakit from '@ariakit/react'
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
-import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
-import { fetchJson } from '~/utils/async'
 import { useQuery } from '@tanstack/react-query'
+import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { fetchJson } from '~/utils/async'
+import { Icon } from '../Icon'
+import { BasicLink } from '../Link'
 
 const { searchClient } = instantMeiliSearch(
 	'https://search.defillama.com',

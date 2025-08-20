@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useId } from 'react'
-import { formattedNum } from '~/utils'
-import * as echarts from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
 import { ScatterChart as EChartScatter } from 'echarts/charts'
 import {
-	TooltipComponent,
-	ToolboxComponent,
-	TitleComponent,
-	GridComponent,
-	GraphicComponent,
 	AxisPointerComponent,
 	BrushComponent,
+	DataZoomComponent,
+	GraphicComponent,
+	GridComponent,
 	LegendComponent,
-	DataZoomComponent
+	TitleComponent,
+	ToolboxComponent,
+	TooltipComponent
 } from 'echarts/components'
+import * as echarts from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { formattedNum } from '~/utils'
 
 echarts.use([
 	CanvasRenderer,

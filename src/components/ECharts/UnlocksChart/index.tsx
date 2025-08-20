@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { stringToColour } from '../utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { stringToColour } from '../utils'
 
 // TODO remove color prop and use stackColors by default
 export default function AreaChart({

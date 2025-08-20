@@ -1,10 +1,10 @@
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useQuery } from '@tanstack/react-query'
+import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { matchSorter } from 'match-sorter'
-import { useQuery } from '@tanstack/react-query'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 

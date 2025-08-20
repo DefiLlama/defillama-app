@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { YieldsBorrowTable } from './Tables/Borrow'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
+import { YieldsBorrowTable } from './Tables/Borrow'
 import { toFilterPool } from './utils'
 
 const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {

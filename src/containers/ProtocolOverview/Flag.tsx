@@ -1,7 +1,7 @@
 import { useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
-import * as Ariakit from '@ariakit/react'
 import { fetchJson } from '~/utils/async'
 
 export function Flag({

@@ -1,18 +1,18 @@
 import * as React from 'react'
 import {
-	useReactTable,
-	SortingState,
-	getCoreRowModel,
-	getSortedRowModel,
 	ColumnFiltersState,
-	getFilteredRowModel,
-	ExpandedState,
-	getExpandedRowModel,
 	ColumnOrderState,
-	ColumnSizingState
+	ColumnSizingState,
+	ExpandedState,
+	getCoreRowModel,
+	getExpandedRowModel,
+	getFilteredRowModel,
+	getSortedRowModel,
+	SortingState,
+	useReactTable
 } from '@tanstack/react-table'
-import { VirtualTable } from '~/components/Table/Table'
 import { Icon } from '~/components/Icon'
+import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
 
 export function TableWithSearch({

@@ -1,8 +1,8 @@
-import { useMedia } from '~/hooks/useMedia'
-import { NestedMenu } from '~/components/NestedMenu'
-import { PeggedFiltersDropdowns } from './Dropdowns'
 import * as React from 'react'
+import { NestedMenu } from '~/components/NestedMenu'
 import { useIsClient } from '~/hooks'
+import { useMedia } from '~/hooks/useMedia'
+import { PeggedFiltersDropdowns } from './Dropdowns'
 
 export function PeggedFilters(props: { pathname: string; downloadCsv: () => void }) {
 	const isSmall = useMedia(`(max-width: 639px)`)

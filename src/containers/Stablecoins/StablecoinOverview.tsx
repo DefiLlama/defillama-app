@@ -1,29 +1,29 @@
 import * as React from 'react'
-import Layout from '~/layout'
+import * as Ariakit from '@ariakit/react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
-import { TokenLogo } from '~/components/TokenLogo'
-import { SEO } from '~/components/SEO'
+import { Icon } from '~/components/Icon'
+import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
+import { SEO } from '~/components/SEO'
+import { TagGroup } from '~/components/TagGroup'
+import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
+import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
+import Layout from '~/layout'
 import {
 	capitalizeFirstLetter,
-	toNiceCsvDate,
-	formattedNum,
 	download,
+	formattedNum,
 	getBlockExplorer,
 	peggedAssetIconUrl,
-	preparePieChartData
+	preparePieChartData,
+	toNiceCsvDate
 } from '~/utils'
-import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from './Table'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { Icon } from '~/components/Icon'
-import * as Ariakit from '@ariakit/react'
-import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
-import { Tooltip } from '~/components/Tooltip'
-import { Menu } from '~/components/Menu'
-import { TagGroup } from '~/components/TagGroup'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 

@@ -1,5 +1,5 @@
-import { Turnstile as TurnstileWidget } from '@marsidev/react-turnstile'
 import { useEffect, useState } from 'react'
+import { Turnstile as TurnstileWidget } from '@marsidev/react-turnstile'
 
 interface TurnstileProps {
 	onVerify: (token: string) => void

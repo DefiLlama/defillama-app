@@ -1,7 +1,7 @@
 import { Icon } from '~/components/Icon'
 import { Dashboard } from '../services/DashboardAPI'
-import { LoadingSpinner } from './LoadingSpinner'
 import { DashboardItemConfig } from '../types'
+import { LoadingSpinner } from './LoadingSpinner'
 
 interface DashboardCardProps {
 	dashboard: Dashboard

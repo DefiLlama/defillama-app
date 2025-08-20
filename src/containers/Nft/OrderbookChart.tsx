@@ -1,20 +1,20 @@
 import * as React from 'react'
-import * as echarts from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart as EChartLine } from 'echarts/charts'
 import {
-	TooltipComponent,
-	TitleComponent,
-	GridComponent,
+	DataZoomComponent,
 	GraphicComponent,
+	GridComponent,
 	LegendComponent,
-	DataZoomComponent
+	TitleComponent,
+	TooltipComponent
 } from 'echarts/components'
+import * as echarts from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import type { IOrderBookChartProps } from './types'
 import { useMedia } from '~/hooks/useMedia'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import type { IOrderBookChartProps } from './types'
 
 echarts.use([
 	CanvasRenderer,

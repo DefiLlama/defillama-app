@@ -1,7 +1,7 @@
-import Layout from '~/layout'
-import { BridgeChainsOverview } from '~/containers/Bridges/BridgeChainsOverview'
 import { maxAgeForNext } from '~/api'
+import { BridgeChainsOverview } from '~/containers/Bridges/BridgeChainsOverview'
 import { getBridgeChainsPageData } from '~/containers/Bridges/queries.server'
+import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridges/chains', async () => {

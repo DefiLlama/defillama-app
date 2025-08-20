@@ -1,14 +1,14 @@
-import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/router'
+import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/LocalLoader'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
+import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { withPerformanceLogging } from '~/utils/perf'
-import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
-import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
-import { maxAgeForNext } from '~/api'
 
 const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 

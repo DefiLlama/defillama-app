@@ -1,14 +1,14 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { useYieldApp } from '~/hooks'
-import { navLinks } from '../Links'
-import { ThemeSwitch } from '../ThemeSwitch'
-import { SubMenu } from './SubMenu'
-import { NewTag } from '../NewTag'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useYieldApp } from '~/hooks'
+import { useSubscribe } from '~/hooks/useSubscribe'
+import { navLinks } from '../Links'
+import { NewTag } from '../NewTag'
+import { ThemeSwitch } from '../ThemeSwitch'
+import { SubMenu } from './SubMenu'
 
 export const DesktopNav = React.memo(function DesktopNav() {
 	const { asPath } = useRouter()

@@ -1,16 +1,16 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { Bookmark } from '~/components/Bookmark'
+import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { removedCategoriesFromChainTvl } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDaysAgo } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
-import { removedCategoriesFromChainTvl } from '~/constants'
-import { Icon } from '~/components/Icon'
 
 const columnHelper = createColumnHelper<IProtocolRow>()
 
