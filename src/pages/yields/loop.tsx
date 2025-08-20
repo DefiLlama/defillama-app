@@ -55,11 +55,13 @@ Loop APY: 9% * 1.75 + 3% * 0.75 = 18% -> 2x increase compared to the Supply APY
 You could keep adding leverage by repeating these steps n-times.
 `
 
+const pageName = ['Yields: Leveraged Lending']
+
 export default function YieldBorrow(data) {
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
 
 	return (
-		<Layout title={`Lend/Borrow rates - DefiLlama Yield`}>
+		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} pageName={pageName}>
 			<Announcement>{disclaimer}</Announcement>
 
 			<p className="rounded-md bg-(--cards-bg) p-3 text-center whitespace-pre-line">

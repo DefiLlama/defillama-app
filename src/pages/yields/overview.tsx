@@ -19,9 +19,11 @@ export const getStaticProps = withPerformanceLogging('yields/overview', async ()
 	}
 })
 
+const pageName = ['Yields: Overview']
+
 export default function YieldPlots(data) {
 	return (
-		<Layout title={`Overview - DefiLlama Yield`}>
+		<Layout title={`Overview - DefiLlama Yield`} pageName={pageName}>
 			<Announcement>{disclaimer}</Announcement>
 			<PlotsPage {...data} />
 		</Layout>

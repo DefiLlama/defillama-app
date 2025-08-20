@@ -42,13 +42,13 @@
       "description": "Pools by leveraged lending APY values"
     },
     {
-      "name": "Yields: Long Short Strategies",
+      "name": "Yields: Long/Short Strategies",
       "route": "/yields/strategyLongShort",
       "category": "Yields",
       "description": "Find 'long-short' strategies across all our tracked pools"
     },
     {
-      "name": "Yields: Projects",
+      "name": "Yields: All Projects",
       "route": "/yields/projects",
       "category": "Yields",
       "description": "List of all projects that we track in our yields section"
@@ -549,7 +549,8 @@
     },
     {
       "name": "DLNews",
-      "route": "https://www.dlnews.com"
+      "route": "https://www.dlnews.com",
+      "keys": ["news"]
     }
   ]
 }

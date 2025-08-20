@@ -57,9 +57,11 @@ export const getStaticProps = withPerformanceLogging('yields/strategyLongShort',
 	}
 })
 
+const pageName = ['Yields: Long/Short Strategies']
+
 export default function YieldStrategiesFR(data) {
 	return (
-		<Layout title={`Yield Strategies - DefiLlama Yield`}>
+		<Layout title={`Yield Long/Short Strategies - DefiLlama Yield`} pageName={pageName}>
 			<Announcement>{disclaimer}</Announcement>
 			<YieldsStrategyPageLongShort {...data} />
 		</Layout>

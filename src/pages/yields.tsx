@@ -29,9 +29,11 @@ export const getStaticProps = withPerformanceLogging('yields', async () => {
 	}
 })
 
+const pageName = ['Yields: All Pools']
+
 export default function ApyHomePage(data) {
 	return (
-		<Layout title={`Yield Rankings - DefiLlama`}>
+		<Layout title={`Yield Rankings - DefiLlama`} pageName={pageName}>
 			<Announcement>{disclaimer}</Announcement>
 			<YieldPage {...data} />
 		</Layout>

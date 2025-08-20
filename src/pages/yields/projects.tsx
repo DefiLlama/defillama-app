@@ -54,9 +54,11 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 	}
 })
 
+const pageName = ['Yields: All Projects']
+
 export default function Protocols({ projects }) {
 	return (
-		<Layout title={`Projects - DefiLlama Yield`}>
+		<Layout title={`Projects - DefiLlama Yield`} pageName={pageName}>
 			<Announcement>{disclaimer}</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
