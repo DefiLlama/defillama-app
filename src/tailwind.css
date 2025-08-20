@@ -402,8 +402,8 @@
 		/* Layout Colors */
 		--app-bg: oklch(0.976 0 0);
 		--cards-bg: oklch(1 0.001 106.4);
-		--cards-border: oklch(0.925 0 0);
-		--form-control-border: oklch(0.925 0 0);
+		--cards-border: oklch(0.915 0 0);
+		--form-control-border: oklch(0.915 0 0);
 		--old-blue: oklch(0.533 0.18 259);
 	}
 
