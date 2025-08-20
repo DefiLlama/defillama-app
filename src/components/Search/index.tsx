@@ -105,24 +105,9 @@ const Mobile = () => {
 					) : !results?.hits?.length ? (
 						<p className="flex items-center justify-center p-4">No results found</p>
 					) : (
-						results.hits.map((route: ISearchItem) => {
-							return (
-								<Ariakit.ComboboxItem
-									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
-									key={`global-search-${route.name}-${route.route}`}
-									render={<BasicLink href={route.route} />}
-								>
-									{route.logo ? (
-										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
-									) : (
-										<Icon name="file-text" className="w-6 h-6" />
-									)}
-									<span>{route.name}</span>
-									{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
-									<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
-								</Ariakit.ComboboxItem>
-							)
-						})
+						results.hits.map((route: ISearchItem) => (
+							<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+						))
 					)
 				) : isLoadingSearchList ? (
 					<p className="flex items-center justify-center p-4">Loading...</p>
@@ -132,43 +117,12 @@ const Mobile = () => {
 					<p className="flex items-center justify-center p-4">No results found</p>
 				) : (
 					<>
-						{recentSearchList.map((route: ISearchItem) => {
-							return (
-								<Ariakit.ComboboxItem
-									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
-									key={`global-search-recent-${route.name}-${route.route}`}
-									render={<BasicLink href={route.route} />}
-								>
-									{route.logo ? (
-										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
-									) : (
-										<Icon name="file-text" className="w-6 h-6" />
-									)}
-									<span>{route.name}</span>
-									<Icon name="clock" height={12} width={12} className="ml-auto" />
-								</Ariakit.ComboboxItem>
-							)
-						})}
-						{defaultSearchList.map((route: ISearchItem) => {
-							return (
-								<Ariakit.ComboboxItem
-									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
-									key={`global-search-dl-${route.name}-${route.route}`}
-									render={<BasicLink href={route.route} />}
-									onClick={() => {
-										setRecentSearch(route)
-									}}
-								>
-									{route.logo ? (
-										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
-									) : (
-										<Icon name="file-text" className="w-6 h-6" />
-									)}
-									<span>{route.name}</span>
-									<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
-								</Ariakit.ComboboxItem>
-							)
-						})}
+						{recentSearchList.map((route: ISearchItem) => (
+							<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} skipRecentSearch />
+						))}
+						{defaultSearchList.map((route: ISearchItem) => (
+							<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
+						))}
 					</>
 				)}
 			</Ariakit.ComboboxPopover>
@@ -187,7 +141,7 @@ const Desktop = () => {
 		function focusSearchBar(e: KeyboardEvent) {
 			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
 				e.preventDefault()
-				inputField.current && inputField.current?.focus()
+				inputField.current?.focus()
 				setOpen(true)
 			}
 		}
@@ -237,6 +191,7 @@ const Desktop = () => {
 			<Ariakit.ComboboxPopover
 				unmountOnHide
 				hideOnInteractOutside
+				hideOnEscape
 				gutter={6}
 				sameWidth
 				className="flex flex-col bg-(--cards-bg) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-(--cards-border) h-full max-h-[70vh] sm:max-h-[60vh]"
@@ -249,27 +204,9 @@ const Desktop = () => {
 					) : !results?.hits?.length ? (
 						<p className="flex items-center justify-center p-4">No results found</p>
 					) : (
-						results.hits.map((route: ISearchItem) => {
-							return (
-								<Ariakit.ComboboxItem
-									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
-									key={`global-search-${route.name}-${route.route}`}
-									render={<BasicLink href={route.route} />}
-									onClick={() => {
-										setRecentSearch(route)
-									}}
-								>
-									{route.logo ? (
-										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
-									) : (
-										<Icon name="file-text" className="w-6 h-6" />
-									)}
-									<span>{route.name}</span>
-									{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
-									<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
-								</Ariakit.ComboboxItem>
-							)
-						})
+						results.hits.map((route: ISearchItem) => (
+							<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+						))
 					)
 				) : isLoadingSearchList ? (
 					<p className="flex items-center justify-center p-4">Loading...</p>
@@ -279,47 +216,39 @@ const Desktop = () => {
 					<p className="flex items-center justify-center p-4">No results found</p>
 				) : (
 					<>
-						{recentSearchList.map((route: ISearchItem) => {
-							return (
-								<Ariakit.ComboboxItem
-									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
-									key={`global-search-recent-${route.name}-${route.route}`}
-									render={<BasicLink href={route.route} />}
-								>
-									{route.logo ? (
-										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
-									) : (
-										<Icon name="file-text" className="w-6 h-6" />
-									)}
-									<span>{route.name}</span>
-									<Icon name="clock" height={12} width={12} className="ml-auto" />
-								</Ariakit.ComboboxItem>
-							)
-						})}
-						{defaultSearchList.map((route: ISearchItem) => {
-							return (
-								<Ariakit.ComboboxItem
-									className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
-									key={`global-search-dl-${route.name}-${route.route}`}
-									render={<BasicLink href={route.route} />}
-									onClick={() => {
-										setRecentSearch(route)
-									}}
-								>
-									{route.logo ? (
-										<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
-									) : (
-										<Icon name="file-text" className="w-6 h-6" />
-									)}
-									<span>{route.name}</span>
-									<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
-								</Ariakit.ComboboxItem>
-							)
-						})}
+						{recentSearchList.map((route: ISearchItem) => (
+							<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} skipRecentSearch />
+						))}
+						{defaultSearchList.map((route: ISearchItem) => (
+							<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
+						))}
 					</>
 				)}
 			</Ariakit.ComboboxPopover>
 		</Ariakit.ComboboxProvider>
+	)
+}
+
+const SearchItem = ({ route, skipRecentSearch = false }: { route: ISearchItem; skipRecentSearch?: boolean }) => {
+	return (
+		<Ariakit.ComboboxItem
+			className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
+			render={<BasicLink href={route.route} />}
+			onClick={() => {
+				if (!skipRecentSearch) {
+					setRecentSearch(route)
+				}
+			}}
+			value={route.route}
+		>
+			{route.logo ? (
+				<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
+			) : (
+				<Icon name="file-text" className="w-6 h-6" />
+			)}
+			<span>{route.name}</span>
+			<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
+		</Ariakit.ComboboxItem>
 	)
 }
 
