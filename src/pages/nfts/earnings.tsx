@@ -20,16 +20,18 @@ export const getStaticProps = withPerformanceLogging('nfts/earnings', async () =
 	}
 })
 
+const pageName = ['Earnings', 'by', 'NFTs']
+
 function Earnings({ earnings }) {
 	//x
 	return (
-		<Layout title="NFT Earnings - DefiLlama">
+		<Layout title="NFT Earnings - DefiLlama" pageName={pageName}>
 			<TableWithSearch
 				data={earnings}
 				columns={earningsColumns}
 				columnToSearch={'name'}
 				placeholder={'Search collections...'}
-				header="NFTs Earnings"
+				header="NFT Collection Earnings"
 			/>
 		</Layout>
 	)

@@ -53,6 +53,8 @@ export const getStaticProps = withPerformanceLogging('raises/active-investors', 
 	}
 })
 
+const pageName = ['Investors']
+
 const ActiveInvestors = ({ data }) => {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'deals' }])
 
@@ -140,7 +142,7 @@ const ActiveInvestors = ({ data }) => {
 	}, [investorName, instance])
 
 	return (
-		<Layout title={`Investors - DefiLlama`} className="gap-4">
+		<Layout title={`Investors - DefiLlama`} className="gap-4" pageName={pageName}>
 			{/* <Announcement notCancellable>
 				<span>Looking for investors?</span>{' '}
 				<a href="/pitch" className="text-(--blue) underline font-medium" target="_blank" rel="noopener noreferrer">
@@ -150,7 +152,7 @@ const ActiveInvestors = ({ data }) => {
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-					<h1 className="mr-auto text-xl font-semibold">Investors</h1>
+					<h1 className="mr-auto text-xl font-semibold">Deals by Investors</h1>
 					<label className="relative w-full sm:max-w-[280px]">
 						<span className="sr-only">Search investors...</span>
 						<Icon

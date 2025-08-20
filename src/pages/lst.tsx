@@ -194,14 +194,17 @@ const PageView = ({
 				columns={LSDColumn}
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
+				header="Liquid Staking Protocols"
 			/>
 		</>
 	)
 }
 
+const pageName = ['LSTs: Overview']
+
 export default function LSDs(props) {
 	return (
-		<Layout title={`Liquid Staking Tokens - DefiLlama`}>
+		<Layout title={`Liquid Staking Tokens - DefiLlama`} pageName={pageName}>
 			<PageView {...props} />
 		</Layout>
 	)

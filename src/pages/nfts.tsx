@@ -1,7 +1,6 @@
 import { maxAgeForNext } from '~/api'
 import { getNFTData } from '~/api/categories/nfts'
 import { NftsCollectionTable } from '~/components/Table/Nfts/Collections'
-import { useScrollToTop } from '~/hooks'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -16,10 +15,11 @@ export const getStaticProps = withPerformanceLogging('nfts', async () => {
 	}
 })
 
+const pageName = ['NFTs Collections']
+
 export default function NFTHomePage(props) {
-	useScrollToTop()
 	return (
-		<Layout title="NFTs - DefiLlama">
+		<Layout title="NFTs Collections - DefiLlama" pageName={pageName}>
 			<NftsCollectionTable data={props.collections || []} />
 		</Layout>
 	)

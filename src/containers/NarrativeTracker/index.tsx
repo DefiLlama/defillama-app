@@ -3,6 +3,7 @@ import type { IBarChartProps } from '~/components/ECharts/types'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
 import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TagGroup } from '~/components/TagGroup'
 import { useScrollToTop } from '~/hooks'
 
 interface IChartProps {
@@ -57,6 +58,9 @@ function calculateDenominatedChange2(data, denominatedCoin, field) {
 	return denominatedReturns
 }
 
+const PERIODS = ['7D', '30D', 'YTD', '365D'] as const
+const DENOMS = ['$', 'BTC', 'ETH', 'SOL'] as const
+
 export const CategoryPerformanceContainer = ({
 	pctChanges,
 	performanceTimeSeries,
@@ -67,8 +71,8 @@ export const CategoryPerformanceContainer = ({
 	useScrollToTop()
 
 	const [tab, setTab] = React.useState('linechart')
-	const [groupBy, setGroupBy] = React.useState<'7D' | '30D' | 'YTD' | '365D'>('30D')
-	const [groupByDenom, setGroupByDenom] = React.useState<'$' | 'BTC' | 'ETH' | 'SOL'>('$')
+	const [groupBy, setGroupBy] = React.useState<(typeof PERIODS)[number]>('30D')
+	const [groupByDenom, setGroupByDenom] = React.useState<(typeof DENOMS)[number]>('$')
 
 	const { sortedPctChanges, barChart, treemapChart, lineChart } = React.useMemo(() => {
 		const field = {
@@ -117,21 +121,15 @@ export const CategoryPerformanceContainer = ({
 
 	return (
 		<>
-			{isCoinPage ? (
-				<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
-					{isCoinPage ? `Category: ${categoryName ?? ''}` : 'Narrative Tracker: Change in market cap by category'}
-				</h1>
-			) : (
-				<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<h1 className="text-xl font-semibold">Narrative Tracker</h1>
-					<p className="text-sm text-(--text-secondary)">
-						MCap-Weighted Category Performance: Shows how a category of coins has performed over your chosen time period
-						and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each
-						individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3.
-						averaging these weighted changes to get the overall category performance.
-					</p>
-				</div>
-			)}
+			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				{isCoinPage && categoryName ? <h1 className="text-xl font-semibold">Category: {categoryName ?? ''}</h1> : null}
+				<p className="text-sm text-(--text-secondary)">
+					MCap-Weighted Category Performance: Shows how a category of coins has performed over your chosen time period
+					and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each
+					individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3.
+					averaging these weighted changes to get the overall category performance.
+				</p>
+			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
@@ -158,32 +156,14 @@ export const CategoryPerformanceContainer = ({
 					</button>
 				</div>
 
-				<div className="flex items-center justify-end gap-3 p-3">
-					<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						{(['7D', '30D', 'YTD', '365D'] as const).map((period) => (
-							<button
-								key={period}
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={groupBy === period}
-								onClick={() => setGroupBy(period)}
-							>
-								{period}
-							</button>
-						))}
-					</div>
-					<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						<p className="pr-1 pl-3">Show as:</p>
-						{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
-							<button
-								key={denom}
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={groupByDenom === denom}
-								onClick={() => setGroupByDenom(denom)}
-							>
-								{denom}
-							</button>
-						))}
-					</div>
+				<div className="flex items-center justify-end gap-3 p-2">
+					<TagGroup values={PERIODS} selectedValue={groupBy} setValue={(val: typeof groupBy) => setGroupBy(val)} />
+					<TagGroup
+						values={DENOMS}
+						selectedValue={groupByDenom}
+						setValue={(val: typeof groupByDenom) => setGroupByDenom(val)}
+						label="Show as:"
+					/>
 				</div>
 
 				<div className="min-h-[360px]">
@@ -221,6 +201,7 @@ export const CategoryPerformanceContainer = ({
 				columns={isCoinPage ? CoinPerformanceColumn : CategoryPerformanceColumn}
 				columnToSearch={'name'}
 				placeholder={'Search...'}
+				header="Categories"
 			/>
 		</>
 	)

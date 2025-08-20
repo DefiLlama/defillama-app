@@ -3,6 +3,7 @@ import Image from 'next/image'
 import boboLogo from '~/assets/boboSmug.png'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import { ISearchItem } from '~/components/Search/types'
 import { Switch } from '~/components/Switch'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import {
@@ -12,7 +13,7 @@ import {
 	PROTOCOL_NAMES_MAP_REVERSE
 } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { download } from '~/utils'
+import { download, liquidationsIconUrl } from '~/utils'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { StackBySwitch } from './StackBySwitch'
 import { TotalLiquidable } from './TotalLiquidable'
@@ -22,12 +23,24 @@ const LiquidationsChart = React.lazy(() =>
 	import('./LiquidationsChart').then((module) => ({ default: module.LiquidationsChart }))
 ) as React.FC<any>
 
-export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData }) => {
+export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData; options: ISearchItem[] }) => {
 	const { data, prevData } = props
 	const [bobo, setBobo] = React.useState(false)
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 			<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
+				<h1 className="flex items-center gap-2">
+					<img
+						src={liquidationsIconUrl(data.symbol.toLowerCase())}
+						alt={data.name}
+						width={24}
+						height={24}
+						className="shrink-0 rounded-full"
+					/>
+					<span className="text-xl font-semibold">
+						{data.name} (${data.symbol.toUpperCase()})
+					</span>
+				</h1>
 				<p className="flex flex-col">
 					<TotalLiquidable {...data} />
 				</p>

@@ -16,9 +16,10 @@ export const getStaticProps = withPerformanceLogging('narrative-tracker', async 
 	}
 })
 
+const pageName = ['Narrative Tracker']
 export default function CategoryPerformance(props) {
 	return (
-		<Layout title={`Narrative Tracker - DefiLlama`}>
+		<Layout title={`Narrative Tracker - DefiLlama`} pageName={pageName}>
 			<CategoryPerformanceContainer {...props} />
 		</Layout>
 	)

@@ -110,6 +110,8 @@ function RaisesTable({ raises, downloadCsv }) {
 	)
 }
 
+const pageName = ['Deals by Investor']
+
 export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname } = useRouter()
 
@@ -131,7 +133,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 	})
 
 	return (
-		<Layout title={`Raises - DefiLlama`}>
+		<Layout title={`Raises - DefiLlama`} pageName={pageName}>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a

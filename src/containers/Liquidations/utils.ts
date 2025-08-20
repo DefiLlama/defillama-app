@@ -535,11 +535,13 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	}
 ]
 
-export const DEFAULT_ASSETS_LIST: ISearchItem[] = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }) => ({
+export const DEFAULT_ASSETS_LIST = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }) => ({
 	name,
 	symbol,
 	route: `/liquidations/${symbol.toLowerCase()}`,
-	logo: liquidationsIconUrl(symbol.toLowerCase())
+	logo: liquidationsIconUrl(symbol.toLowerCase()),
+	label: `${name} (${symbol.toUpperCase()})`,
+	to: `/liquidations/${symbol.toLowerCase()}`
 }))
 
 export const PROTOCOL_NAMES_MAP = {

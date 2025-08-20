@@ -4,11 +4,12 @@ import { cn } from '~/utils/cn'
 interface IProps extends React.ComponentProps<'div'> {
 	selectedValue: string
 	setValue: (period: string) => void
-	values: Array<string>
+	values: readonly string[]
 	style?: Record<string, string>
 	triggerClassName?: string
 	containerClassName?: string
 	buttonClassName?: string
+	label?: string
 }
 
 export const TagGroup = ({
@@ -20,6 +21,7 @@ export const TagGroup = ({
 	triggerClassName,
 	containerClassName,
 	buttonClassName,
+	label,
 	...props
 }: IProps) => {
 	return (
@@ -34,6 +36,7 @@ export const TagGroup = ({
 			style={style}
 			{...props}
 		>
+			{label && <p className="pr-1 pl-3">{label}</p>}
 			{values.map((value) => {
 				return (
 					<button

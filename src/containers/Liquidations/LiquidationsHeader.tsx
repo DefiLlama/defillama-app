@@ -5,12 +5,6 @@ import { FormattedName } from '~/components/FormattedName'
 import { BasicLink } from '~/components/Link'
 import type { ISearchItem } from '~/components/Search/types'
 import { TokenLogo } from '~/components/TokenLogo'
-import { ChartData } from '~/containers/Liquidations/utils'
-
-export const LiquidationsHeader = (props: { data: ChartData; options: ISearchItem[] }) => {
-	const { data, options } = props
-	return <AssetSelector symbol={data.symbol} options={options} />
-}
 
 interface IProps {
 	options: ISearchItem[]

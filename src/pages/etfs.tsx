@@ -5,6 +5,7 @@ import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Select } from '~/components/Select'
 import { ETFColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
 import { download, firstDayOfMonth, formattedNum, lastDayOfWeek, toNiceCsvDate } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -33,22 +34,20 @@ interface AssetTotals {
 }
 
 const AssetSection = ({ name, iconUrl, flows, aum }: AssetSectionProps) => (
-	<div className="flex flex-col gap-6">
+	<div className="flex flex-col gap-4">
 		<div className="flex items-center gap-1">
-			<img src={iconUrl} alt={name} width={24} height={24} className="rounded-full" />
+			<img src={iconUrl} alt={name} width={20} height={20} className="rounded-full" />
 			<span className="text-lg font-semibold">{name}</span>
 		</div>
-		<div className="flex flex-col gap-4 pl-2">
-			<div className="flex items-center justify-between">
-				<span className="font-medium">Flows</span>
-				<span className={`font-jetbrains ${flows > 0 ? 'text-green-500' : flows < 0 ? 'text-red-500' : ''}`}>
-					{formattedNum(flows || 0, true)}
-				</span>
-			</div>
-			<div className="flex items-center justify-between">
-				<span className="font-medium">AUM</span>
-				<span className="font-jetbrains">{formattedNum(aum || 0, true)}</span>
-			</div>
+		<div className="flex items-center justify-between">
+			<span className="font-medium">Flows</span>
+			<span className={`font-jetbrains ${flows > 0 ? 'text-green-500' : flows < 0 ? 'text-red-500' : ''}`}>
+				{formattedNum(flows || 0, true)}
+			</span>
+		</div>
+		<div className="flex items-center justify-between">
+			<span className="font-medium">AUM</span>
+			<span className="font-jetbrains">{formattedNum(aum || 0, true)}</span>
 		</div>
 	</div>
 )
@@ -76,8 +75,9 @@ interface PageViewProps {
 	totalsByAsset: AssetTotals
 }
 
+const groupByList = ['Daily', 'Weekly', 'Monthly', 'Cumulative']
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
-	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('weekly')
+	const [groupBy, setGroupBy] = React.useState<(typeof groupByList)[number]>('Weekly')
 	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum'])
 
 	const charts = React.useMemo(() => {
@@ -87,9 +87,9 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 		let totalBitcoin = 0
 		let totalEthereum = 0
 		for (const flowDate in flows) {
-			const date = ['daily', 'cumulative'].includes(groupBy)
+			const date = ['Daily', 'Cumulative'].includes(groupBy)
 				? flowDate
-				: groupBy === 'weekly'
+				: groupBy === 'Weekly'
 					? lastDayOfWeek(+flowDate * 1000)
 					: firstDayOfMonth(+flowDate * 1000)
 
@@ -98,7 +98,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 				ethereum[date] = (ethereum[date] || 0) + (flows[flowDate]['Ethereum'] ?? 0) + totalEthereum
 			}
 
-			if (groupBy === 'cumulative') {
+			if (groupBy === 'Cumulative') {
 				totalBitcoin += +(flows[flowDate]['Bitcoin'] ?? 0)
 				totalEthereum += +(flows[flowDate]['Ethereum'] ?? 0)
 			}
@@ -108,14 +108,14 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 			Bitcoin: {
 				name: 'Bitcoin',
 				stack: 'Bitcoin',
-				type: groupBy === 'cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
+				type: groupBy === 'Cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
 				data: [],
 				color: '#F7931A'
 			},
 			Ethereum: {
 				name: 'Ethereum',
 				stack: 'Ethereum',
-				type: groupBy === 'cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
+				type: groupBy === 'Cumulative' ? 'line' : ('bar' as 'line' | 'bar'),
 				data: [],
 				color: '#6B7280'
 			}
@@ -144,7 +144,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 		<>
 			<div className="flex min-h-[434px] flex-col gap-1 md:flex-row">
 				<div className="flex w-full flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) md:w-80">
-					<div className="flex flex-col gap-2 p-3">
+					<div className="flex flex-col gap-1 p-3">
 						<h1 className="text-xl font-semibold">Daily Stats</h1>
 						<span className="text-xs opacity-70">{lastUpdated}</span>
 					</div>
@@ -168,39 +168,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 				<div className="flex w-full flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex flex-wrap justify-end gap-2 p-3">
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
-						<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-							<button
-								data-active={groupBy === 'daily'}
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								onClick={() => setGroupBy('daily')}
-							>
-								Daily
-							</button>
-
-							<button
-								data-active={groupBy === 'weekly'}
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								onClick={() => setGroupBy('weekly')}
-							>
-								Weekly
-							</button>
-
-							<button
-								data-active={groupBy === 'monthly'}
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								onClick={() => setGroupBy('monthly')}
-							>
-								Monthly
-							</button>
-
-							<button
-								data-active={groupBy === 'cumulative'}
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								onClick={() => setGroupBy('cumulative')}
-							>
-								Cumulative
-							</button>
-						</div>
+						<TagGroup setValue={(val) => setGroupBy(val)} values={groupByList} selectedValue={groupBy} />
 						<Select
 							allValues={['Bitcoin', 'Ethereum']}
 							selectedValues={tickers}
@@ -214,7 +182,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 							portal
 						/>
@@ -234,22 +202,33 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 								}
 							}}
 							smol
-							className="ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</div>
 					<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<LineAndBarChart charts={finalCharts} groupBy={groupBy === 'cumulative' ? 'daily' : groupBy} />
+						<LineAndBarChart
+							charts={finalCharts}
+							groupBy={groupBy === 'Cumulative' ? 'daily' : (groupBy.toLowerCase() as 'daily' | 'weekly' | 'monthly')}
+						/>
 					</React.Suspense>
 				</div>
 			</div>
-			<TableWithSearch data={snapshot} columns={ETFColumn} columnToSearch={'ticker'} placeholder={'Search ETF...'} />
+			<TableWithSearch
+				data={snapshot}
+				columns={ETFColumn}
+				columnToSearch={'ticker'}
+				placeholder={'Search ETF...'}
+				header="Exchange Traded Funds"
+			/>
 		</>
 	)
 }
 
+const pageName = ['ETFs: Overview']
+
 export default function ETFs(props: PageViewProps) {
 	return (
-		<Layout title={`Exchange Traded Funds - DefiLlama`}>
+		<Layout title={`Exchange Traded Funds - DefiLlama`} pageName={pageName}>
 			<PageView {...props} />
 		</Layout>
 	)

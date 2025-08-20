@@ -36,6 +36,8 @@ export const getStaticProps = withPerformanceLogging('governance', async () => {
 	}
 })
 
+const pageName = ['Governance']
+
 export default function Governance({ data }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'successfulPropsalsInLast30Days', desc: true }])
@@ -67,10 +69,10 @@ export default function Governance({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`Governance - DefiLlama`}>
+		<Layout title={`Governance - DefiLlama`} pageName={pageName}>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-					<h1 className="mr-auto text-xl font-semibold">Governance</h1>
+					<h1 className="mr-auto text-xl font-semibold">Governance Proposals by Project</h1>
 					<label className="relative w-full sm:max-w-[280px]">
 						<span className="sr-only">Search projects...</span>
 						<Icon

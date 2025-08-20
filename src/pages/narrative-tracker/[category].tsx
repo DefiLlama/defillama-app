@@ -25,9 +25,11 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
+const pageName = ['Narrative Tracker', 'by', 'Category']
+
 export default function Returns(props) {
 	return (
-		<Layout title={`Narrative Tracker - DefiLlama`}>
+		<Layout title={`Narrative Tracker - DefiLlama`} pageName={pageName}>
 			<CategoryPerformanceContainer {...props} />
 		</Layout>
 	)

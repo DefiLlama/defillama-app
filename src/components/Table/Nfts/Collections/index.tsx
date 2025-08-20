@@ -43,7 +43,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				<h1 className="mr-auto text-xl font-semibold">NFT Collections</h1>
+				<h1 className="mr-auto text-xl font-semibold">NFT Collection Metrics</h1>
 				<label className="relative w-full sm:max-w-[280px]">
 					<span className="sr-only">Search collections...</span>
 					<Icon
