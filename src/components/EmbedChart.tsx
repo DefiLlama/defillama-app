@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { Icon } from '~/components/Icon'
 
-export function EmbedChart({ color }: { color?: string }) {
+export function EmbedChart() {
 	const router = useRouter()
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')

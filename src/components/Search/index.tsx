@@ -118,7 +118,7 @@ const Mobile = () => {
 				) : (
 					<>
 						{recentSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} skipRecentSearch />
+							<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
 						))}
 						{defaultSearchList.map((route: ISearchItem) => (
 							<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
@@ -217,7 +217,7 @@ const Desktop = () => {
 				) : (
 					<>
 						{recentSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} skipRecentSearch />
+							<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
 						))}
 						{defaultSearchList.map((route: ISearchItem) => (
 							<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
@@ -229,13 +229,13 @@ const Desktop = () => {
 	)
 }
 
-const SearchItem = ({ route, skipRecentSearch = false }: { route: ISearchItem; skipRecentSearch?: boolean }) => {
+const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: boolean }) => {
 	return (
 		<Ariakit.ComboboxItem
 			className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
 			render={<BasicLink href={route.route} />}
 			onClick={() => {
-				if (!skipRecentSearch) {
+				if (!recent) {
 					setRecentSearch(route)
 				}
 			}}
@@ -247,7 +247,12 @@ const SearchItem = ({ route, skipRecentSearch = false }: { route: ISearchItem; s
 				<Icon name="file-text" className="w-6 h-6" />
 			)}
 			<span>{route.name}</span>
-			<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
+			{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
+			{recent ? (
+				<Icon name="clock" height={12} width={12} className="ml-auto" />
+			) : (
+				<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
+			)}
 		</Ariakit.ComboboxItem>
 	)
 }

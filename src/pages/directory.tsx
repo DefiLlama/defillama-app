@@ -72,8 +72,10 @@ export default function Protocols({ protocols }) {
 								<Ariakit.ComboboxItem
 									key={option.name}
 									value={option.name}
-									onClick={(e) => {
-										typeof document !== undefined && window.open(option.route, '_blank')
+									onClick={() => {
+										if (typeof document !== 'undefined') {
+											window.open(option.route, '_blank')
+										}
 									}}
 									focusOnHover
 									hideOnClick={false}
