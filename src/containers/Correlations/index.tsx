@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
 import { FAQ } from './Faq'
@@ -22,7 +22,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 		)
 	}, [search, selectedCoins, queryCoins])
 
-	const [resultsLength, setResultsLength] = React.useState(10)
+	const [resultsLength, setResultsLength] = useState(10)
 
 	const showMoreResults = () => {
 		setResultsLength((prev) => prev + 10)

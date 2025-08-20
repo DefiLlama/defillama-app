@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import React, { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { useRouter } from 'next/router'
 import { LocalLoader } from '~/components/LocalLoader'

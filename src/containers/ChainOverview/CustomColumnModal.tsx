@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { evaluateFormula } from './formula.service'
 import { formatValue } from '../../utils'
@@ -56,7 +56,7 @@ export function CustomColumnModal({
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
-	React.useEffect(() => {
+	useEffect(() => {
 		if (isOpen) {
 			setState({
 				name: initialName,

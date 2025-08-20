@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import TokenPnl from '~/containers/TokenPnl'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
