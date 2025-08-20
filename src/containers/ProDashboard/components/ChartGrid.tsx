@@ -103,7 +103,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				</Suspense>
 			)
 		}
-		
+
 		if (item.kind === 'builder') {
 			return <ChartBuilderCard builder={item} />
 		}

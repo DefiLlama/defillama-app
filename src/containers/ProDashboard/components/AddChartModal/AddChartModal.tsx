@@ -74,7 +74,9 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 		>
 			<div
 				className={`pro-bg1 border pro-border p-4 md:p-6 w-full shadow-xl md:ml-0 lg:ml-[240px] overflow-hidden flex flex-col ${
-					state.selectedMainTab === 'builder' ? 'md:max-w-4xl lg:max-w-6xl max-h-[95vh] md:max-h-[90vh]' : 'md:max-w-2xl lg:max-w-4xl max-h-[90vh] md:max-h-[85vh]'
+					state.selectedMainTab === 'builder'
+						? 'md:max-w-4xl lg:max-w-6xl max-h-[95vh] md:max-h-[90vh]'
+						: 'md:max-w-2xl lg:max-w-4xl max-h-[90vh] md:max-h-[85vh]'
 				}`}
 				onClick={(e) => e.stopPropagation()}
 			>

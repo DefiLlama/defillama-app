@@ -156,7 +156,7 @@ export async function getPeggedChainsPageData() {
 	const { dominanceMap, chainChartMap } = await fetchJson(PEGGEDCHART_DOMINANCE_ALL_API)
 	const { chainList, chainsTVLData } = fetchGlobalData({ peggedAssets, chains })
 
-	let chainsGroupbyParent = {}
+	let chainsGroupbyParent: Record<string, Record<string, string[]>> = {}
 	chainList.forEach((chain) => {
 		const parent = chainCoingeckoIds[chain]?.parent
 		if (parent) {

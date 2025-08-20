@@ -35,9 +35,9 @@ export function InsightsPages() {
 	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const pages = useMemo(() => {
+		if (!deferredSearchValue) return insightsByCategory
 		return matchSorter(insightsByCategory, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['category', 'insights.name', 'insights.description'],
+			keys: ['category', 'insights.*.name', 'insights.*.description'],
 			threshold: matchSorter.rankings.CONTAINS
 		}).map((item) => ({
 			...item,

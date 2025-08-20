@@ -25,5 +25,5 @@
 		"strictNullChecks": false
 	},
 	"exclude": ["node_modules"],
-	"include": ["**/*.js", "**/*.ts", "**/*.tsx", "postcss.config.cjs"]
+	"include": ["**/*.js", "**/*.ts", "**/*.tsx"]
 }

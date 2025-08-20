@@ -7,12 +7,13 @@ import '~/nprogress.css'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
+import { AppProps } from 'next/app'
 
 NProgress.configure({ showSpinner: false })
 
 const client = new QueryClient()
 
-function App({ Component, pageProps }) {
+function App({ Component, pageProps }: AppProps) {
 	useAnalytics()
 
 	const router = useRouter()

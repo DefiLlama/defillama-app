@@ -5,6 +5,7 @@ import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queri
 import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { CEXS_API } from '~/constants'
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/[...cex]',
@@ -44,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const { cexs } = await fetchJson('https://api.llama.fi/cexs')
+	const { cexs } = await fetchJson(CEXS_API)
 
 	const paths = cexs
 		.filter((cex) => cex.slug)

@@ -1,5 +1,5 @@
 import { trim } from 'lodash'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { maxAgeForNext } from '~/api'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'

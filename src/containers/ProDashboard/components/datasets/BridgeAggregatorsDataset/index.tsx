@@ -15,7 +15,6 @@ import {
 } from '@tanstack/react-table'
 import { TableBody } from '../../ProTable/TableBody'
 import { bridgeAggregatorsDatasetColumns } from './columns'
-import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { useBridgeAggregatorsData } from './useBridgeAggregatorsData'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'

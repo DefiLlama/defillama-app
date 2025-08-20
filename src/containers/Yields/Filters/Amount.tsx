@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import React from 'react'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 
 export function InputFilter({ placeholder, filterKey }: { placeholder: string; filterKey: string }) {

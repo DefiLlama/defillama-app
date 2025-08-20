@@ -25,7 +25,7 @@ export const fetchWithConnectionPooling = async (url: string | URL, options: Req
 
 	return fetch(url, {
 		...options,
-		// @ts-ignore - Node.js fetch supports agent
+		// @ts-expect-error - Node.js fetch supports agent
 		agent
 	})
 }

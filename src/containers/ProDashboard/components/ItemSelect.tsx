@@ -124,8 +124,13 @@ export function ItemSelect({
 	placeholder,
 	itemType
 }: ItemSelectProps) {
-	const OptionComponent =
-		!itemType ? TextOption : itemType === 'chain' ? CustomChainOption : itemType === 'protocol' ? CustomProtocolOption : TextOption
+	const OptionComponent = !itemType
+		? TextOption
+		: itemType === 'chain'
+			? CustomChainOption
+			: itemType === 'protocol'
+				? CustomProtocolOption
+				: TextOption
 	const filterOption = itemType === 'protocol' ? createFilter({ ignoreAccents: false, ignoreCase: false }) : undefined
 
 	return (

@@ -60,10 +60,14 @@ export function SubmitButton({
 		if (editItem) return 'Save Changes'
 
 		switch (selectedMainTab) {
-			case 'table': return 'Add Table'
-			case 'composer': return 'Add Multi-Chart'
-			case 'text': return 'Add Text'
-			case 'builder': return 'Add Chart'
+			case 'table':
+				return 'Add Table'
+			case 'composer':
+				return 'Add Multi-Chart'
+			case 'text':
+				return 'Add Text'
+			case 'builder':
+				return 'Add Chart'
 			case 'chart':
 				if (selectedChartTypes.length > 1) {
 					return `Add ${selectedChartTypes.length} Charts`
