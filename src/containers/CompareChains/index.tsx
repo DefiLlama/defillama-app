@@ -150,40 +150,42 @@ export function CompareChains({ chains }) {
 				/>
 			</div>
 
-			<div className="relative flex flex-col gap-1">
-				<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					{isLoading || !router.isReady ? (
-						<div className="flex items-center justify-center h-full w-full">
-							<LocalLoader />
-						</div>
-					) : selectedChains.length > 1 ? (
-						<React.Suspense fallback={<></>}>
-							<LineAndBarChart title="" charts={chartData} />
-						</React.Suspense>
-					) : (
-						<div className="flex items-center justify-center h-full w-full">
-							<p className="text-sm text-(--text-secondary)">Select at least 2 chains to compare</p>
-						</div>
-					)}
-				</div>
-				<div className="grid grow grid-cols-1 gap-1 xl:grid-cols-2">
-					{data?.filter(Boolean)?.map((chainData, i) => {
-						return (
-							<div
-								className="relative isolate flex flex-col justify-between gap-1 xl:grid-cols-[auto_1fr]"
-								key={`${chainData?.chain || i}`}
-							>
-								<ChainContainer
-									{...chainData.chainOverviewData}
-									totalValueUSD={tvlCharts[chainData.chain]?.totalValueUSD}
-									change24h={tvlCharts[chainData.chain]?.change24h}
-									valueChange24hUSD={tvlCharts[chainData.chain]?.valueChange24hUSD}
-								/>
+			{selectedChains.length > 1 ? (
+				<div className="relative flex flex-col gap-1">
+					<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						{isLoading || !router.isReady ? (
+							<div className="flex items-center justify-center h-full w-full">
+								<LocalLoader />
 							</div>
-						)
-					})}
+						) : (
+							<React.Suspense fallback={<></>}>
+								<LineAndBarChart title="" charts={chartData} />
+							</React.Suspense>
+						)}
+					</div>
+					<div className="grid grow grid-cols-1 gap-1 xl:grid-cols-2">
+						{data?.filter(Boolean)?.map((chainData, i) => {
+							return (
+								<div
+									className="relative isolate flex flex-col justify-between gap-1 xl:grid-cols-[auto_1fr]"
+									key={`${chainData?.chain || i}`}
+								>
+									<ChainContainer
+										{...chainData.chainOverviewData}
+										totalValueUSD={tvlCharts[chainData.chain]?.totalValueUSD}
+										change24h={tvlCharts[chainData.chain]?.change24h}
+										valueChange24hUSD={tvlCharts[chainData.chain]?.valueChange24hUSD}
+									/>
+								</div>
+							)
+						})}
+					</div>
 				</div>
-			</div>
+			) : (
+				<div className="flex items-center justify-center min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<p className="text-sm text-(--text-secondary)">Select at least 2 chains to compare</p>
+				</div>
+			)}
 		</>
 	)
 }
