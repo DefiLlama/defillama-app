@@ -439,7 +439,7 @@ export const getProtocolOverviewPageData = async ({
 							emissions7d: protocolEmissionsData.emission7d,
 							emissions30d: protocolEmissionsData.emission30d,
 							emissionsAllTime: protocolEmissionsData.emissionsAllTime,
-							average1y: protocolEmissionsData.emissionsAverage1y,
+							emissionsMonthlyAverage1y: protocolEmissionsData.emissionsMonthlyAverage1y,
 							methodology:
 								'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms.'
 						}

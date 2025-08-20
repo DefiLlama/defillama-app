@@ -165,7 +165,7 @@ export interface IProtocolOverviewPageData {
 		emissions7d: number
 		emissions30d: number
 		emissionsAllTime: number
-		average1y: number
+		emissionsMonthlyAverage1y: number
 		methodology?: string
 	} | null
 	treasury: {
