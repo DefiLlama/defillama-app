@@ -58,15 +58,15 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="p-3 flex items-center justify-end gap-2">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex items-center justify-end gap-2 p-3">
 				<label className="relative w-full sm:max-w-[280px]">
 					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						name="search"
@@ -75,7 +75,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				<CSVDownloadButton
@@ -125,7 +125,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 							console.error('Error generating CSV:', error)
 						}
 					}}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
@@ -147,23 +147,23 @@ export const HacksContainer = ({
 
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked (USD)</span>
-						<span className="font-semibold text-2xl font-jetbrains">{totalHacked}b</span>
+						<span className="font-jetbrains text-2xl font-semibold">{totalHacked}b</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked in DeFi (USD)</span>
-						<span className="font-semibold text-2xl font-jetbrains">{totalHackedDefi}b</span>
+						<span className="font-jetbrains text-2xl font-semibold">{totalHackedDefi}b</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked in Bridges (USD)</span>
-						<span className="font-semibold text-2xl font-jetbrains">{totalRugs}b</span>
+						<span className="font-jetbrains text-2xl font-semibold">{totalRugs}b</span>
 					</p>
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[412px]">
-					<div className="flex items-center justify-between flex-wrap gap-2 m-2">
+				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="m-2 flex flex-wrap items-center justify-between gap-2">
 						<TagGroup setValue={setChartType} selectedValue={chartType} values={chartTypeList} />
 						<CSVDownloadButton
 							onClick={() => {
@@ -185,7 +185,7 @@ export const HacksContainer = ({
 								}
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+							className="ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</div>
 					{chartType === 'Monthly Sum' ? (
@@ -262,7 +262,7 @@ export const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<a
-				className="flex items-center justify-center gap-4 p-[6px] bg-(--btn2-bg) hover:bg-(--btn2-hover-bg) rounded-md"
+				className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-[6px] hover:bg-(--btn2-hover-bg)"
 				href={getValue() as string}
 				target="_blank"
 				rel="noopener noreferrer"

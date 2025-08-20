@@ -40,13 +40,13 @@ export const DimensionProtocolChartByType = ({
 	})
 
 	if (isLoading) {
-		return <p className="text-sm text-center p-3">Loading...</p>
+		return <p className="p-3 text-center text-sm">Loading...</p>
 	}
 
 	if (error) {
 		return (
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col items-center justify-center col-span-2 min-h-[418px]">
-				<p className="text-sm text-center text-(--error) p-3">Error : {error.message}</p>
+			<div className="col-span-2 flex min-h-[418px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<p className="p-3 text-center text-sm text-(--error)">Error : {error.message}</p>
 			</div>
 		)
 	}
@@ -182,14 +182,14 @@ const ChartByType = ({
 
 	return (
 		<>
-			<div className="flex items-center gap-1 justify-end flex-wrap p-2">
-				{title && <h2 className="text-base font-semibold mr-auto">{title}</h2>}
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+			<div className="flex flex-wrap items-center justify-end gap-1 p-2">
+				{title && <h2 className="mr-auto text-base font-semibold">{title}</h2>}
+				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					{INTERVALS_LIST.map((dataInterval) => (
 						<Tooltip
 							content={dataInterval}
 							render={<button />}
-							className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 							data-active={dataInterval === chartInterval}
 							onClick={() => changeChartInterval(dataInterval as any)}
 							key={`${dataInterval}-${chartType}-${title}-${protocolName}`}
@@ -258,7 +258,7 @@ const ChartByType = ({
 						}
 					}}
 					smol
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<React.Suspense fallback={<></>}>

@@ -57,18 +57,18 @@ const BridgeInfo = ({
 
 	return (
 		<>
-			<div className="p-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
+			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h1 className="flex flex-nowrap items-center gap-1 text-xl font-semibold">
 					<TokenLogo logo={logo} size={24} />
 					<span>{displayName}</span>
 				</h1>
 				<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
 			</div>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Deposited to {currentChain} (24h)</span>
-						<span className="font-jetbrains font-semibold text-2xl">
+						<span className="font-jetbrains text-2xl font-semibold">
 							{formattedNum(
 								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentDepositsUSD || '0',
 								true
@@ -78,7 +78,7 @@ const BridgeInfo = ({
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Withdrawn from {currentChain} (24h)</span>
-						<span className="font-jetbrains font-semibold text-2xl">
+						<span className="font-jetbrains text-2xl font-semibold">
 							{formattedNum(
 								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentWithdrawalsUSD || '0',
 								true
@@ -88,11 +88,11 @@ const BridgeInfo = ({
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Volume Change (24h)</span>
-						<span className="font-jetbrains font-semibold text-2xl">{volPercentChange + '%'}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{volPercentChange + '%'}</span>
 					</p>
 					{config?.url ? (
 						<a
-							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) mt-auto mr-auto"
+							className="mt-auto mr-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-1 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							href={config.url}
 							target="_blank"
 							rel="noreferrer noopener"
@@ -102,25 +102,25 @@ const BridgeInfo = ({
 					) : null}
 				</div>
 
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2">
-					<div className="w-full max-w-fit overflow-x-auto ml-auto p-3">
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="ml-auto w-full max-w-fit overflow-x-auto p-3">
+						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 							<button
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={chartType === 'Inflows'}
 								onClick={() => setChartType('Inflows')}
 							>
 								Inflows
 							</button>
 							<button
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={chartType === 'Tokens To'}
 								onClick={() => setChartType('Tokens To')}
 							>
 								Tokens To
 							</button>
 							<button
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={chartType === 'Tokens From'}
 								onClick={() => setChartType('Tokens From')}
 							>
@@ -128,7 +128,7 @@ const BridgeInfo = ({
 							</button>
 						</div>
 					</div>
-					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
 							<React.Suspense fallback={<></>}>
 								<BarChart
@@ -152,10 +152,10 @@ const BridgeInfo = ({
 					</LazyChart>
 				</div>
 			</div>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="flex items-end justify-between flex-wrap gap-2 p-3">
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-wrap items-end justify-between gap-2 p-3">
 					<AddressesTableSwitch />
-					<p className="opacity-60 text-sm italic">All stats in table are for the previous day.</p>
+					<p className="text-sm italic opacity-60">All stats in table are for the previous day.</p>
 				</div>
 				{isBridgesShowingAddresses ? (
 					<BridgeAddressesTable data={addressesTableData} />

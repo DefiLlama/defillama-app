@@ -15,7 +15,7 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 
 	return (
 		<Ariakit.SelectProvider value={selectedChart} setValue={onClick}>
-			<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium mr-auto z-10">
+			<Ariakit.Select className="z-10 mr-auto flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 				<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
 				<Ariakit.SelectArrow />
 			</Ariakit.Select>
@@ -27,7 +27,7 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+				className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
 			>
 				{options.map((option) => (
 					<Ariakit.SelectItem
@@ -36,7 +36,7 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 						focusOnHover
 						setValueOnClick={false}
 						onClick={() => onItemClick(option)}
-						className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border)"
+						className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 					>
 						{option}
 					</Ariakit.SelectItem>

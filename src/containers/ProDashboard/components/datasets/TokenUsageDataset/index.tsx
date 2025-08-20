@@ -37,18 +37,18 @@ interface TokenUsageDatasetProps {
 }
 
 const TokenOptionComponent = ({ innerProps, label, data }: any) => (
-	<div {...innerProps} className="flex items-center gap-2 p-2 cursor-pointer">
+	<div {...innerProps} className="flex cursor-pointer items-center gap-2 p-2">
 		{data.logo ? (
 			<img
 				src={data.logo?.replace('/0/', '')}
 				alt=""
-				className="w-5 h-5 rounded-full"
+				className="h-5 w-5 rounded-full"
 				onError={(e) => {
 					e.currentTarget.style.display = 'none'
 				}}
 			/>
 		) : (
-			<div className="w-5 h-5 rounded-full bg-(--bg-tertiary)" />
+			<div className="h-5 w-5 rounded-full bg-(--bg-tertiary)" />
 		)}
 		<span>{label}</span>
 	</div>
@@ -238,14 +238,14 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 
 	if (!tokenSymbols || tokenSymbols.length === 0) {
 		return (
-			<div className="w-full p-4 h-full flex flex-col">
+			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-base md:text-lg font-semibold pro-text1">Token Usage Comparison</h3>
+						<h3 className="pro-text1 text-base font-semibold md:text-lg">Token Usage Comparison</h3>
 					</div>
 				</div>
-				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4 px-4">
-					<h3 className="text-lg md:text-xl font-medium pro-text1 text-center">Select Tokens to Compare</h3>
+				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4 px-4">
+					<h3 className="pro-text1 text-center text-lg font-medium md:text-xl">Select Tokens to Compare</h3>
 					<div className="w-full max-w-md">
 						<ReactSelect
 							placeholder="Search tokens..."
@@ -284,7 +284,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							}
 						/>
 					</div>
-					<p className="text-sm text-(--text-tertiary) mt-2">Select up to 4 tokens for comparison (max 4)</p>
+					<p className="mt-2 text-sm text-(--text-tertiary)">Select up to 4 tokens for comparison (max 4)</p>
 				</div>
 			</div>
 		)
@@ -292,17 +292,17 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 
 	if (isLoading) {
 		return (
-			<div className="w-full p-4 h-full flex flex-col">
+			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-base md:text-lg font-semibold pro-text1">
+						<h3 className="pro-text1 text-base font-semibold md:text-lg">
 							{tokenSymbols.length > 0 ? `Token Usage Comparison` : 'Token Usage'}
 						</h3>
 					</div>
 				</div>
-				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4">
+				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="text-sm pro-text2">Loading token usage data...</p>
+					<p className="pro-text2 text-sm">Loading token usage data...</p>
 				</div>
 			</div>
 		)
@@ -310,17 +310,17 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 
 	if (isError) {
 		return (
-			<div className="w-full p-4 h-full flex flex-col">
+			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-base md:text-lg font-semibold pro-text1">Token Usage Comparison</h3>
+						<h3 className="pro-text1 text-base font-semibold md:text-lg">Token Usage Comparison</h3>
 					</div>
 				</div>
-				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4">
-					<p className="text-sm pro-text2 mb-2">Failed to load token usage data</p>
+				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
+					<p className="pro-text2 mb-2 text-sm">Failed to load token usage data</p>
 					<button
 						onClick={() => refetch()}
-						className="px-4 py-2 bg-(--primary) text-white rounded-sm hover:bg-(--primary-hover)"
+						className="rounded-sm bg-(--primary) px-4 py-2 text-white hover:bg-(--primary-hover)"
 					>
 						Try again
 					</button>
@@ -330,53 +330,53 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	}
 
 	return (
-		<div className="w-full p-4 h-full flex flex-col">
+		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex items-center justify-between gap-4">
-					<h3 className="text-base md:text-lg font-semibold pro-text1 truncate">
+					<h3 className="pro-text1 truncate text-base font-semibold md:text-lg">
 						Token Usage {tokenSymbols.length > 0 ? `- ${tokenSymbols.map((s) => s.toUpperCase()).join(', ')}` : ''}
 					</h3>
 				</div>
 			</div>
 
 			{tokenSymbols.length === 1 ? (
-				<div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-					<div className="p-3 border border-(--divider)">
-						<div className="text-xs text-(--text-tertiary) mb-1">Total Value</div>
-						<div className="text-lg font-semibold pro-text1">{formattedNum(totalAmount, true)}</div>
+				<div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+					<div className="border border-(--divider) p-3">
+						<div className="mb-1 text-xs text-(--text-tertiary)">Total Value</div>
+						<div className="pro-text1 text-lg font-semibold">{formattedNum(totalAmount, true)}</div>
 					</div>
-					<div className="p-3 border border-(--divider)">
-						<div className="text-xs text-(--text-tertiary) mb-1">Protocols</div>
-						<div className="text-lg font-semibold pro-text1">{protocolCount}</div>
+					<div className="border border-(--divider) p-3">
+						<div className="mb-1 text-xs text-(--text-tertiary)">Protocols</div>
+						<div className="pro-text1 text-lg font-semibold">{protocolCount}</div>
 					</div>
-					<div className="p-3 border border-(--divider)">
-						<div className="text-xs text-(--text-tertiary) mb-1">Top Category</div>
-						<div className="text-lg font-semibold pro-text1">{topCategories[0] ? topCategories[0][0] : '-'}</div>
+					<div className="border border-(--divider) p-3">
+						<div className="mb-1 text-xs text-(--text-tertiary)">Top Category</div>
+						<div className="pro-text1 text-lg font-semibold">{topCategories[0] ? topCategories[0][0] : '-'}</div>
 						<div className="text-xs text-(--text-tertiary)">
 							{topCategories[0] ? `${topCategories[0][1].count} protocols` : ''}
 						</div>
 					</div>
-					<div className="p-3 border border-(--divider)">
-						<div className="text-xs text-(--text-tertiary) mb-1">Avg per Protocol</div>
-						<div className="text-lg font-semibold pro-text1">
+					<div className="border border-(--divider) p-3">
+						<div className="mb-1 text-xs text-(--text-tertiary)">Avg per Protocol</div>
+						<div className="pro-text1 text-lg font-semibold">
 							{protocolCount > 0 ? formattedNum(totalAmount / protocolCount, true) : '-'}
 						</div>
 					</div>
 				</div>
 			) : (
 				<>
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+					<div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
 						{tokenSymbols.map((symbol) => (
-							<div key={symbol} className="p-3 border border-(--divider)">
-								<div className="text-xs text-(--text-tertiary) mb-1">{symbol.toUpperCase()} Value</div>
-								<div className="text-lg font-semibold pro-text1">
+							<div key={symbol} className="border border-(--divider) p-3">
+								<div className="mb-1 text-xs text-(--text-tertiary)">{symbol.toUpperCase()} Value</div>
+								<div className="pro-text1 text-lg font-semibold">
 									{tokenStats && tokenStats[symbol] ? formattedNum(tokenStats[symbol].total, true) : '$0'}
 								</div>
 								<div className="text-xs text-(--text-tertiary)">
 									{tokenStats && tokenStats[symbol] ? `${tokenStats[symbol].protocols} protocols` : '0 protocols'}
 								</div>
 								<div className="mt-2">
-									<div className="flex justify-between items-center mb-1">
+									<div className="mb-1 flex items-center justify-between">
 										<span className="text-xs text-(--text-tertiary)">Share</span>
 										<span className="text-xs font-medium">
 											{tokenStats && tokenStats[symbol] && totalAmount > 0
@@ -384,7 +384,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 												: '0%'}
 										</span>
 									</div>
-									<div className="h-1.5 bg-(--bg-secondary) overflow-hidden">
+									<div className="h-1.5 overflow-hidden bg-(--bg-secondary)">
 										<div
 											className="h-full bg-(--primary) transition-all duration-300"
 											style={{
@@ -401,17 +401,17 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						))}
 
 						{tokenSymbols.length <= 2 && (
-							<div className="p-3 border border-(--divider)">
-								<div className="text-xs text-(--text-tertiary) mb-1">Total Combined</div>
-								<div className="text-lg font-semibold pro-text1">{formattedNum(totalAmount, true)}</div>
+							<div className="border border-(--divider) p-3">
+								<div className="mb-1 text-xs text-(--text-tertiary)">Total Combined</div>
+								<div className="pro-text1 text-lg font-semibold">{formattedNum(totalAmount, true)}</div>
 								<div className="text-xs text-(--text-tertiary)">All tokens</div>
 							</div>
 						)}
 
 						{tokenSymbols.length <= 3 && (
-							<div className="p-3 border border-(--divider)">
-								<div className="text-xs text-(--text-tertiary) mb-1">Unique Protocols</div>
-								<div className="text-lg font-semibold pro-text1">{protocolCount}</div>
+							<div className="border border-(--divider) p-3">
+								<div className="mb-1 text-xs text-(--text-tertiary)">Unique Protocols</div>
+								<div className="pro-text1 text-lg font-semibold">{protocolCount}</div>
 								<div className="text-xs text-(--text-tertiary)">
 									{(() => {
 										const overlap = rawData.filter((p) => p.tokens && Object.keys(p.tokens).length > 1).length
@@ -423,11 +423,11 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 					</div>
 
 					{protocolOverlap && (
-						<div className="p-3 border border-(--divider) mb-4">
-							<div className="text-xs text-(--text-tertiary) mb-2">Protocol Distribution</div>
-							<div className="flex items-center gap-4 flex-wrap">
+						<div className="mb-4 border border-(--divider) p-3">
+							<div className="mb-2 text-xs text-(--text-tertiary)">Protocol Distribution</div>
+							<div className="flex flex-wrap items-center gap-4">
 								<div className="flex items-center gap-2">
-									<div className="w-3 h-3 bg-(--primary)" />
+									<div className="h-3 w-3 bg-(--primary)" />
 									<span className="text-sm">
 										<span className="font-semibold">{protocolOverlap.shared}</span>
 										<span className="text-(--text-tertiary)"> shared</span>
@@ -441,7 +441,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								{tokenSymbols.map((symbol, index) => (
 									<div key={symbol} className="flex items-center gap-2">
 										<div
-											className="w-3 h-3 border-2 border-(--divider)"
+											className="h-3 w-3 border-2 border-(--divider)"
 											style={{
 												backgroundColor: `hsl(${index * 90}, 50%, 50%)`,
 												opacity: 0.7
@@ -462,14 +462,14 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			)}
 
 			<div className="mb-3">
-				<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-					<h3 className="text-base md:text-lg font-semibold pro-text1 truncate">
+				<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+					<h3 className="pro-text1 truncate text-base font-semibold md:text-lg">
 						{tokenSymbols.length === 1
 							? `${tokenSymbols[0].toUpperCase()} Usage`
 							: `Comparing ${tokenSymbols.map((t) => t.toUpperCase()).join(', ')}`}
 					</h3>
-					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-						<div className="w-full sm:w-64 lg:w-96 order-2 sm:order-1">
+					<div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+						<div className="order-2 w-full sm:order-1 sm:w-64 lg:w-96">
 							<ReactSelect
 								placeholder="Add or remove tokens (max 4)..."
 								value={tokenSymbols.map((symbol) => ({ label: symbol.toUpperCase(), value: symbol }))}
@@ -504,20 +504,20 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								}}
 							/>
 						</div>
-						<div className="flex items-center gap-2 sm:gap-3 order-1 sm:order-2">
+						<div className="order-1 flex items-center gap-2 sm:order-2 sm:gap-3">
 							<div
-								className="flex items-center gap-2 px-2 sm:px-3 h-[38px] border border-(--divider) hover:border-(--text-tertiary) transition-colors cursor-pointer text-sm"
+								className="flex h-[38px] cursor-pointer items-center gap-2 border border-(--divider) px-2 text-sm transition-colors hover:border-(--text-tertiary) sm:px-3"
 								onClick={handleIncludeCexChange}
 							>
-								<div className="relative w-4 h-4">
+								<div className="relative h-4 w-4">
 									<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
 									<div
-										className={`w-4 h-4 border-2 transition-all ${
-											includeCex ? 'bg-(--primary) border-(--primary)' : 'bg-transparent border-(--text-tertiary)'
+										className={`h-4 w-4 border-2 transition-all ${
+											includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
 										}`}
 									>
 										{includeCex && (
-											<svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+											<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 												<path
 													fillRule="evenodd"
 													d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -527,7 +527,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 										)}
 									</div>
 								</div>
-								<span className="text-xs sm:text-sm font-medium pro-text1 whitespace-nowrap">Include CEXs</span>
+								<span className="pro-text1 text-xs font-medium whitespace-nowrap sm:text-sm">Include CEXs</span>
 							</div>
 							<ProTableCSVButton
 								onClick={downloadCSV}
@@ -536,22 +536,21 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						</div>
 					</div>
 				</div>
-				<div className="flex items-center gap-2 sm:gap-4 mt-3">
+				<div className="mt-3 flex items-center gap-2 sm:gap-4">
 					<input
 						placeholder="Search protocols..."
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						className="px-2 sm:px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1 rounded
-              focus:outline-hidden focus:ring-1 focus:ring-(--primary) w-full sm:w-auto max-w-xs"
+						className="pro-border pro-bg1 pro-text1 w-full max-w-xs rounded border px-2 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden sm:w-auto sm:px-3"
 					/>
 				</div>
 			</div>
 
 			<div
-				className="relative w-full flex-1 min-h-0 overflow-x-auto overflow-y-auto thin-scrollbar"
+				className="thin-scrollbar relative min-h-0 w-full flex-1 overflow-x-auto overflow-y-auto"
 				style={{ height: '100%' }}
 			>
-				<table className="min-w-full text-(--text-primary) text-sm border-collapse">
+				<table className="min-w-full border-collapse text-sm text-(--text-primary)">
 					<thead>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<tr key={headerGroup.id}>
@@ -559,7 +558,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 									<th
 										key={header.id}
 										colSpan={header.colSpan}
-										className="bg-transparent font-medium px-2 py-2 border-b border-r border-(--divider) last:border-r-0"
+										className="border-r border-b border-(--divider) bg-transparent px-2 py-2 font-medium last:border-r-0"
 									>
 										{header.isPlaceholder ? null : (
 											<a
@@ -577,9 +576,9 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 					</thead>
 					<tbody>
 						{table.getRowModel().rows.map((row) => (
-							<tr key={row.id} className="hover:bg-(--bg-tertiary) border-b border-(--divider)">
+							<tr key={row.id} className="border-b border-(--divider) hover:bg-(--bg-tertiary)">
 								{row.getVisibleCells().map((cell) => (
-									<td key={cell.id} className="px-2 py-2 whitespace-nowrap border-r border-(--divider) last:border-r-0">
+									<td key={cell.id} className="border-r border-(--divider) px-2 py-2 whitespace-nowrap last:border-r-0">
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</td>
 								))}
@@ -590,44 +589,44 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			</div>
 
 			{table.getPageCount() > 1 && (
-				<div className="flex items-center justify-between w-full mt-2 px-2 py-2">
+				<div className="mt-2 flex w-full items-center justify-between px-2 py-2">
 					<div className="flex items-center gap-2">
 						<button
-							className="px-3 py-1 text-sm border pro-border pro-bg1 pro-text1 hover:pro-bg2 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
 							onClick={() => table.setPageIndex(0)}
 							disabled={!table.getCanPreviousPage()}
 						>
 							{'<<'}
 						</button>
 						<button
-							className="px-3 py-1 text-sm border pro-border pro-bg1 pro-text1 hover:pro-bg2 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
 						>
 							Previous
 						</button>
 						<button
-							className="px-3 py-1 text-sm border pro-border pro-bg1 pro-text1 hover:pro-bg2 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
 							onClick={() => table.nextPage()}
 							disabled={!table.getCanNextPage()}
 						>
 							Next
 						</button>
 						<button
-							className="px-3 py-1 text-sm border pro-border pro-bg1 pro-text1 hover:pro-bg2 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
 							onClick={() => table.setPageIndex(table.getPageCount() - 1)}
 							disabled={!table.getCanNextPage()}
 						>
 							{'>>'}
 						</button>
 					</div>
-					<span className="text-sm pro-text2">
+					<span className="pro-text2 text-sm">
 						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
 					</span>
 					<select
 						value={table.getState().pagination.pageSize}
 						onChange={(e) => table.setPageSize(Number(e.target.value))}
-						className="px-3 py-1 text-sm border pro-border pro-bg1 pro-text1"
+						className="pro-border pro-bg1 pro-text1 border px-3 py-1 text-sm"
 					>
 						{[10, 25, 50, 100].map((pageSize) => (
 							<option key={pageSize} value={pageSize}>

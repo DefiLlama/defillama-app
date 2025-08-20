@@ -158,14 +158,14 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-start">
+			<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start">
 				{props.availableCharts.length > 0 ? (
 					<Ariakit.DialogProvider store={metricsDialogStore}>
-						<Ariakit.DialogDisclosure className="flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-(--cards-border)">
+						<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 							<span>Add Metrics</span>
 							<Icon name="plus" className="h-[14px] w-[14px]" />
 						</Ariakit.DialogDisclosure>
-						<Ariakit.Dialog className="dialog gap-3 sm:w-full max-sm:drawer" unmountOnHide>
+						<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
 							<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 							<div className="flex flex-wrap gap-2">
 								{props.availableCharts.map((chart) => (
@@ -193,7 +193,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 												})
 										}}
 										data-active={toggledMetrics[protocolCharts[chart]] === 'true'}
-										className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
 										<span>{chart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
 										{toggledMetrics[protocolCharts[chart]] === 'true' ? (
@@ -223,7 +223,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 												})
 										}}
 										data-active={toggledMetrics.events === 'true'}
-										className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
 										<span>Events</span>
 										{toggledMetrics.events === 'true' ? (
@@ -239,7 +239,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 				) : null}
 				{toggledCharts.map((tchart) => (
 					<label
-						className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto"
+						className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto"
 						key={`add-or-remove-metric-${tchart}`}
 					>
 						<input
@@ -259,10 +259,10 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									}
 								)
 							}}
-							className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
+							className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 						/>
 						<span
-							className="text-xs flex items-center gap-1 border-2 border-(--old-blue) rounded-full px-2 py-1"
+							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs"
 							style={{
 								borderColor: props.chartColors[tchart]
 							}}
@@ -273,7 +273,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 					</label>
 				))}
 				{toggledMetrics.events === 'true' && (props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) ? (
-					<label className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto">
+					<label className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto">
 						<input
 							type="checkbox"
 							value="events"
@@ -287,10 +287,10 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									}
 								)
 							}}
-							className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
+							className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 						/>
 						<span
-							className="text-xs flex items-center gap-1 border-2 border-(--old-blue) rounded-full px-2 py-1"
+							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs"
 							style={{
 								borderColor: props.chartColors['TVL']
 							}}
@@ -302,11 +302,11 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 				) : null}
 				<div className="ml-auto flex flex-wrap justify-end gap-1">
 					{props.chartDenominations?.length ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 							{props.chartDenominations.map((denom) => (
 								<button
 									key={`denomination-${denom.symbol}`}
-									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--old-blue)"
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--old-blue)"
 									data-active={
 										toggledMetrics.denomination === denom.symbol ||
 										(denom.symbol === 'USD' && !toggledMetrics.denomination)
@@ -325,12 +325,12 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					{hasAtleasOneBarChart ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<Tooltip
 									content={capitalizeFirstLetter(dataInterval)}
 									render={<button />}
-									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={groupBy === dataInterval}
 									onClick={() => {
 										router.push(updateQueryParamInUrl(router.asPath, 'groupBy', dataInterval), undefined, {
@@ -354,17 +354,17 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							}
 						}}
 						smol
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 			</div>
-			<div className="flex flex-col min-h-[360px]">
+			<div className="flex min-h-[360px] flex-col">
 				{loadingCharts ? (
-					<p className="text-center text-xs my-auto min-h-[360px] flex flex-col items-center justify-center">
+					<p className="my-auto flex min-h-[360px] flex-col items-center justify-center text-center text-xs">
 						fetching {loadingCharts}...
 					</p>
 				) : (
-					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<ProtocolLineBarChart
 							chartData={finalCharts}
 							chartColors={props.chartColors}

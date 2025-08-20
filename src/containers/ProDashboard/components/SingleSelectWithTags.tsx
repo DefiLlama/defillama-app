@@ -21,18 +21,18 @@ interface SingleSelectWithTagsProps {
 }
 
 const CustomTokenOption = ({ innerProps, label, data }) => (
-	<div {...innerProps} className="flex items-center gap-2 p-2 cursor-pointer">
+	<div {...innerProps} className="flex cursor-pointer items-center gap-2 p-2">
 		{data.logo ? (
 			<img
 				src={data.logo}
 				alt=""
-				className="w-5 h-5 rounded-full"
+				className="h-5 w-5 rounded-full"
 				onError={(e) => {
 					e.currentTarget.style.display = 'none'
 				}}
 			/>
 		) : (
-			<div className="w-5 h-5 rounded-full bg-(--bg-tertiary)" />
+			<div className="h-5 w-5 rounded-full bg-(--bg-tertiary)" />
 		)}
 		<span>{label}</span>
 	</div>
@@ -79,23 +79,23 @@ function VirtualizedMenuList(props) {
 }
 
 const TokenTag = ({ value, label, logo, onRemove }) => (
-	<div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-(--pro-bg3) rounded-md">
+	<div className="inline-flex items-center gap-1.5 rounded-md bg-(--pro-bg3) px-2.5 py-1">
 		{logo ? (
 			<img
 				src={logo}
 				alt=""
-				className="w-4 h-4 rounded-full"
+				className="h-4 w-4 rounded-full"
 				onError={(e) => {
 					e.currentTarget.style.display = 'none'
 				}}
 			/>
 		) : (
-			<div className="w-4 h-4 rounded-full bg-(--bg-tertiary)" />
+			<div className="h-4 w-4 rounded-full bg-(--bg-tertiary)" />
 		)}
-		<span className="text-sm pro-text1">{label}</span>
+		<span className="pro-text1 text-sm">{label}</span>
 		<button
 			onClick={() => onRemove(value)}
-			className="ml-1 text-xs pro-text3 hover:pro-text1 transition-colors"
+			className="pro-text3 hover:pro-text1 ml-1 text-xs transition-colors"
 			aria-label={`Remove ${label}`}
 		>
 			✕
@@ -128,9 +128,9 @@ export function SingleSelectWithTags({
 
 	return (
 		<div>
-			<label className="block mb-2 text-sm font-medium pro-text2">{label}</label>
+			<label className="pro-text2 mb-2 block text-sm font-medium">{label}</label>
 			{isLoading ? (
-				<div className="flex items-center justify-center h-10">
+				<div className="flex h-10 items-center justify-center">
 					<LoadingSpinner size="sm" />
 				</div>
 			) : (

@@ -201,7 +201,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					<Announcement notCancellable>
 						Do you want to see only pools that have a single token? Click{' '}
 						<a
-							className="text-(--blue) underline font-medium"
+							className="font-medium text-(--blue) underline"
 							onClick={() => {
 								push(
 									{
@@ -255,13 +255,13 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 			/>
 
 			{loading ? (
-				<div className="flex items-center justify-center m-auto min-h-[360px]">
+				<div className="m-auto flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
 				</div>
 			) : poolsData.length > 0 ? (
 				<YieldsPoolsTable data={poolsData} />
 			) : (
-				<p className="p-5 bg-(--cards-bg) border border-(--cards-border) rounded-md text-center">
+				<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
 					Couldn't find any pools for these filters
 				</p>
 			)}

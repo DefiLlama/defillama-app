@@ -79,14 +79,14 @@ export function YieldsFiltersPanel({
 	if (!showFiltersPanel) return null
 
 	return (
-		<div className="mb-4 p-4 border pro-divider pro-bg3 relative" style={{ zIndex: 50, pointerEvents: 'auto' }}>
-			<div className="flex items-center justify-between mb-3">
-				<h4 className="text-sm font-medium pro-text1">Filter Yields</h4>
+		<div className="pro-divider pro-bg3 relative mb-4 border p-4" style={{ zIndex: 50, pointerEvents: 'auto' }}>
+			<div className="mb-3 flex items-center justify-between">
+				<h4 className="pro-text1 text-sm font-medium">Filter Yields</h4>
 				<div className="flex items-center gap-2">
 					{activeFilterCount > 0 && (
 						<button
 							onClick={handleReset}
-							className="px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2"
+							className="pro-divider pro-hover-bg pro-text2 pro-bg2 border px-2 py-1 text-xs transition-colors"
 						>
 							Clear All ({activeFilterCount})
 						</button>
@@ -94,20 +94,20 @@ export function YieldsFiltersPanel({
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
 				<div>
-					<h5 className="text-xs font-medium pro-text2 mb-3 uppercase tracking-wide">Yield Filters</h5>
+					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Yield Filters</h5>
 
 					<div className="space-y-3">
 						<div>
-							<label className="text-xs pro-text2 mb-2 block font-medium">Total APY Range</label>
+							<label className="pro-text2 mb-2 block text-xs font-medium">Total APY Range</label>
 							<div className="flex items-center gap-2">
 								<input
 									type="number"
 									placeholder="Min %"
 									value={localFilters.apyMin || ''}
 									onChange={(e) => updateFilter('apyMin', e.target.value ? Number(e.target.value) : undefined)}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
+									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -115,20 +115,20 @@ export function YieldsFiltersPanel({
 									placeholder="Max %"
 									value={localFilters.apyMax || ''}
 									onChange={(e) => updateFilter('apyMax', e.target.value ? Number(e.target.value) : undefined)}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
+									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
 
 						<div>
-							<label className="text-xs pro-text2 mb-2 block font-medium">Base APY Range</label>
+							<label className="pro-text2 mb-2 block text-xs font-medium">Base APY Range</label>
 							<div className="flex items-center gap-2">
 								<input
 									type="number"
 									placeholder="Min %"
 									value={localFilters.baseApyMin || ''}
 									onChange={(e) => updateFilter('baseApyMin', e.target.value ? Number(e.target.value) : undefined)}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
+									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -136,13 +136,13 @@ export function YieldsFiltersPanel({
 									placeholder="Max %"
 									value={localFilters.baseApyMax || ''}
 									onChange={(e) => updateFilter('baseApyMax', e.target.value ? Number(e.target.value) : undefined)}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
+									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
 
-						<label className="flex items-center gap-2 cursor-pointer group">
-							<div className="relative w-4 h-4">
+						<label className="group flex cursor-pointer items-center gap-2">
+							<div className="relative h-4 w-4">
 								<input
 									type="checkbox"
 									checked={localFilters.hasRewards || false}
@@ -150,14 +150,14 @@ export function YieldsFiltersPanel({
 									className="sr-only"
 								/>
 								<div
-									className={`w-4 h-4 border-2 transition-all duration-150 ${
+									className={`h-4 w-4 border-2 transition-all duration-150 ${
 										localFilters.hasRewards
-											? 'bg-(--primary) border-(--primary)'
-											: 'bg-transparent border-(--text-tertiary) group-hover:border-(--text-secondary)'
+											? 'border-(--primary) bg-(--primary)'
+											: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
 									}`}
 								>
 									{localFilters.hasRewards && (
-										<svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+										<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 											<path
 												fillRule="evenodd"
 												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -167,24 +167,24 @@ export function YieldsFiltersPanel({
 									)}
 								</div>
 							</div>
-							<span className="text-sm pro-text1">Has Reward Incentives</span>
+							<span className="pro-text1 text-sm">Has Reward Incentives</span>
 						</label>
 					</div>
 				</div>
 
 				<div>
-					<h5 className="text-xs font-medium pro-text2 mb-3 uppercase tracking-wide">Pool Filters</h5>
+					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Pool Filters</h5>
 
 					<div className="space-y-3">
 						<div>
-							<label className="text-xs pro-text2 mb-2 block font-medium">TVL Range (USD)</label>
+							<label className="pro-text2 mb-2 block text-xs font-medium">TVL Range (USD)</label>
 							<div className="flex items-center gap-2">
 								<input
 									type="text"
 									placeholder="Min"
 									value={formatNumberWithCommas(localFilters.tvlMin)}
 									onChange={(e) => updateFilter('tvlMin', parseFormattedNumber(e.target.value))}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
+									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -192,7 +192,7 @@ export function YieldsFiltersPanel({
 									placeholder="Max"
 									value={formatNumberWithCommas(localFilters.tvlMax)}
 									onChange={(e) => updateFilter('tvlMax', parseFormattedNumber(e.target.value))}
-									className="flex-1 px-2 py-1.5 text-sm border pro-divider pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) transition-colors pro-bg2"
+									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
@@ -200,11 +200,11 @@ export function YieldsFiltersPanel({
 				</div>
 
 				<div>
-					<h5 className="text-xs font-medium pro-text2 mb-3 uppercase tracking-wide">Pool Types</h5>
+					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Pool Types</h5>
 
 					<div className="space-y-2">
-						<label className="flex items-center gap-2 cursor-pointer group">
-							<div className="relative w-4 h-4">
+						<label className="group flex cursor-pointer items-center gap-2">
+							<div className="relative h-4 w-4">
 								<input
 									type="checkbox"
 									checked={localFilters.stablesOnly || false}
@@ -212,14 +212,14 @@ export function YieldsFiltersPanel({
 									className="sr-only"
 								/>
 								<div
-									className={`w-4 h-4 border-2 transition-all duration-150 ${
+									className={`h-4 w-4 border-2 transition-all duration-150 ${
 										localFilters.stablesOnly
-											? 'bg-(--primary) border-(--primary)'
-											: 'bg-transparent border-(--text-tertiary) group-hover:border-(--text-secondary)'
+											? 'border-(--primary) bg-(--primary)'
+											: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
 									}`}
 								>
 									{localFilters.stablesOnly && (
-										<svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+										<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 											<path
 												fillRule="evenodd"
 												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -229,15 +229,15 @@ export function YieldsFiltersPanel({
 									)}
 								</div>
 							</div>
-							<span className="text-sm pro-text1">Stablecoins Only</span>
+							<span className="pro-text1 text-sm">Stablecoins Only</span>
 						</label>
 
 						<div className="mt-4">
-							<label className="text-xs pro-text2 mb-3 block font-medium">Pool Categories</label>
+							<label className="pro-text2 mb-3 block text-xs font-medium">Pool Categories</label>
 							<div className="space-y-2">
 								{['DEX', 'Lending', 'Staking', 'CDP', 'Bridge', 'Yield Aggregator'].map((type) => (
-									<label key={type} className="flex items-center gap-2 cursor-pointer group">
-										<div className="relative w-4 h-4">
+									<label key={type} className="group flex cursor-pointer items-center gap-2">
+										<div className="relative h-4 w-4">
 											<input
 												type="checkbox"
 												checked={localFilters.poolTypes?.includes(type) || false}
@@ -253,14 +253,14 @@ export function YieldsFiltersPanel({
 												className="sr-only"
 											/>
 											<div
-												className={`w-4 h-4 border-2 transition-all duration-150 ${
+												className={`h-4 w-4 border-2 transition-all duration-150 ${
 													localFilters.poolTypes?.includes(type)
-														? 'bg-(--primary) border-(--primary)'
-														: 'bg-transparent border-(--text-tertiary) group-hover:border-(--text-secondary)'
+														? 'border-(--primary) bg-(--primary)'
+														: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
 												}`}
 											>
 												{localFilters.poolTypes?.includes(type) && (
-													<svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+													<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 														<path
 															fillRule="evenodd"
 															d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -270,7 +270,7 @@ export function YieldsFiltersPanel({
 												)}
 											</div>
 										</div>
-										<span className="text-sm pro-text1">{type}</span>
+										<span className="pro-text1 text-sm">{type}</span>
 									</label>
 								))}
 							</div>
@@ -279,7 +279,7 @@ export function YieldsFiltersPanel({
 				</div>
 
 				<div>
-					<h5 className="text-xs font-medium pro-text2 mb-3 uppercase tracking-wide">Token Filters</h5>
+					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Token Filters</h5>
 
 					<div className="space-y-3">
 						<MultiItemSelect
@@ -301,13 +301,13 @@ export function YieldsFiltersPanel({
 				</div>
 			</div>
 
-			<div className="mt-4 pt-3 border-t pro-divider flex items-center justify-between">
-				<button onClick={() => setShowFiltersPanel(false)} className="px-3 py-1 text-xs pro-text2">
+			<div className="pro-divider mt-4 flex items-center justify-between border-t pt-3">
+				<button onClick={() => setShowFiltersPanel(false)} className="pro-text2 px-3 py-1 text-xs">
 					Cancel
 				</button>
 				<button
 					onClick={handleApply}
-					className="px-3 py-1 text-xs bg-(--primary) text-white hover:bg-(--primary-hover) transition-colors border border-(--primary)"
+					className="border border-(--primary) bg-(--primary) px-3 py-1 text-xs text-white transition-colors hover:bg-(--primary-hover)"
 				>
 					Apply Filters
 				</button>

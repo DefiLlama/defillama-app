@@ -75,15 +75,15 @@ function RaisesTable({ raises, downloadCsv }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
-				<label className="relative w-full sm:max-w-[280px] mr-auto">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+				<label className="relative mr-auto w-full sm:max-w-[280px]">
 					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						name="search"
@@ -92,17 +92,17 @@ function RaisesTable({ raises, downloadCsv }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				<CSVDownloadButton
 					onClick={downloadCsv}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 				<CSVDownloadButton
 					customText="Download .json"
 					onClick={() => window.open('https://api.llama.fi/raises')}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
@@ -136,7 +136,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				<span>Are we missing any funding round?</span>{' '}
 				<a
 					href="https://airtable.com/shrON6sFMgyFGulaq"
-					className="text-(--blue) underline font-medium"
+					className="font-medium text-(--blue) underline"
 					target="_blank"
 					rel="noopener noreferrer"
 				>
@@ -157,8 +157,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				pathname={pathname}
 			/>
 
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="text-xl font-semibold">{investorName}</h1>
 
 					<details className="group text-base">
@@ -167,24 +167,24 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 								name="chevron-right"
 								height={20}
 								width={20}
-								className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+								className="-mb-5 -ml-5 transition-transform duration-100 group-open:rotate-90"
 							/>
 
-							<span className="flex items-center justify-between gap-2 flex-wrap">
+							<span className="flex flex-wrap items-center justify-between gap-2">
 								<span className="text-(--text-label)">Total Investments</span>
 								<span className="font-jetbrains">{filteredRaisesList.length}</span>
 							</span>
 						</summary>
 
 						{raisesByCategory.map(({ name, value }) => (
-							<p className="flex items-center flex-wrap justify-between gap-2 my-1" key={'total' + name + value}>
+							<p className="my-1 flex flex-wrap items-center justify-between gap-2" key={'total' + name + value}>
 								<span className="text-(--text-label)">{name}</span>
 								<span className="font-jetbrains">{value}</span>
 							</p>
 						))}
 					</details>
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 min-h-[408px] pt-2">
+				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
 						<BarChart chartData={fundingRoundsByMonth} title="" groupBy="monthly" color={oldBlue} valueSymbol="" />
 					</React.Suspense>
@@ -192,12 +192,12 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
 					</React.Suspense>
 				</LazyChart>
-				<LazyChart className="relative col-span-full pt-3 min-h-[372px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
 					</React.Suspense>

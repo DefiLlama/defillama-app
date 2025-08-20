@@ -102,17 +102,17 @@ export function ChainsByCategory({
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
 
 			<div className="flex flex-col gap-2 xl:flex-row">
-				<div className="isolate relative rounded-md bg-(--cards-bg) flex-1 min-h-[406px] flex flex-col pt-2">
+				<div className="relative isolate flex min-h-[406px] flex-1 flex-col rounded-md bg-(--cards-bg) pt-2">
 					<CSVDownloadButton
 						onClick={downloadCsv}
 						smol
-						className="ml-auto mx-2 z-10 h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="z-10 mx-2 ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
 					</React.Suspense>
 				</div>
-				<div className="rounded-md bg-(--cards-bg) flex-1 min-h-[406px] pt-2">
+				<div className="min-h-[406px] flex-1 rounded-md bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -131,7 +131,7 @@ export function ChainsByCategory({
 				fallback={
 					<div
 						style={{ minHeight: `${groupedChains.length * 50 + 200}px` }}
-						className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
+						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
 					/>
 				}
 			>

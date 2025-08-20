@@ -141,21 +141,21 @@ export function ChartBuilderTab({
 	}
 
 	return (
-		<div className="flex flex-col h-full">
+		<div className="flex h-full flex-col">
 			<div className="mb-1">
-				<label className="block mb-1 text-xs font-medium pro-text2">Chart Name</label>
+				<label className="pro-text2 mb-1 block text-xs font-medium">Chart Name</label>
 				<input
 					type="text"
 					value={chartBuilderName}
 					onChange={(e) => onChartBuilderNameChange(e.target.value)}
 					placeholder="Enter chart name..."
-					className="w-full px-2 py-1.5 border pro-border pro-text1 placeholder-pro-text3 focus:border-(--primary1) focus:outline-hidden pro-bg2 text-sm"
+					className="pro-border pro-text1 placeholder-pro-text3 pro-bg2 w-full border px-2 py-1.5 text-sm focus:border-(--primary1) focus:outline-hidden"
 				/>
 			</div>
 
-			<div className="flex flex-col lg:flex-row gap-3 flex-1 min-h-0">
-				<div className="w-full lg:w-[320px] xl:w-[360px] border pro-border p-2 space-y-1.5 overflow-y-auto overflow-x-visible flex-shrink-0 max-h-[calc(100vh-200px)]">
-					<h3 className="text-[11px] font-semibold pro-text1">Chart Configuration</h3>
+			<div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
+				<div className="pro-border max-h-[calc(100vh-200px)] w-full flex-shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto border p-2 lg:w-[320px] xl:w-[360px]">
+					<h3 className="pro-text1 text-[11px] font-semibold">Chart Configuration</h3>
 
 					<div>
 						<ItemSelect
@@ -168,8 +168,8 @@ export function ChartBuilderTab({
 						/>
 					</div>
 
-					<div className="border-t pro-border pt-1.5">
-						<h4 className="text-[11px] font-medium pro-text2 mb-1">Filters</h4>
+					<div className="pro-border border-t pt-1.5">
+						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Filters</h4>
 
 						<div className="mb-1.5">
 							<ItemMultiSelect
@@ -209,8 +209,8 @@ export function ChartBuilderTab({
 						</div>
 
 						<div className="mb-1.5">
-							<label className="flex items-center gap-2 cursor-pointer">
-								<div className="relative w-4 h-4">
+							<label className="flex cursor-pointer items-center gap-2">
+								<div className="relative h-4 w-4">
 									<input
 										type="checkbox"
 										checked={chartBuilder.hideOthers || false}
@@ -218,8 +218,8 @@ export function ChartBuilderTab({
 										className="sr-only"
 									/>
 									<div
-										className={`w-4 h-4 border-2 transition-all ${
-											chartBuilder.hideOthers ? 'border-(--primary1) bg-(--primary1)' : 'border-gray-600 pro-bg2'
+										className={`h-4 w-4 border-2 transition-all ${
+											chartBuilder.hideOthers ? 'border-(--primary1) bg-(--primary1)' : 'pro-bg2 border-gray-600'
 										}`}
 									>
 										{chartBuilder.hideOthers && (
@@ -228,26 +228,26 @@ export function ChartBuilderTab({
 												fill="none"
 												stroke="white"
 												strokeWidth="3"
-												className="w-full h-full p-0.5"
+												className="h-full w-full p-0.5"
 											>
 												<polyline points="20 6 9 17 4 12" />
 											</svg>
 										)}
 									</div>
 								</div>
-								<span className="text-[11px] pro-text2">Hide "Others" (show only top {chartBuilder.limit})</span>
+								<span className="pro-text2 text-[11px]">Hide "Others" (show only top {chartBuilder.limit})</span>
 							</label>
 						</div>
 					</div>
 
-					<div className="border-t pro-border pt-1.5">
-						<h4 className="text-[11px] font-medium pro-text2 mb-1">Chart type</h4>
+					<div className="pro-border border-t pt-1.5">
+						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Chart type</h4>
 						<div className="grid grid-cols-3 gap-1">
 							{CHART_TYPE_OPTIONS.map((option) => (
 								<button
 									key={option.value}
 									onClick={() => handleChartTypeChange(option.value as any)}
-									className={`flex flex-col items-center gap-0.5 p-1 border transition-colors ${
+									className={`flex flex-col items-center gap-0.5 border p-1 transition-colors ${
 										chartBuilder.chartType === option.value
 											? 'border-(--primary1) bg-(--primary1)/10 text-(--primary1)'
 											: 'pro-border pro-hover-bg pro-text2'
@@ -260,14 +260,14 @@ export function ChartBuilderTab({
 						</div>
 					</div>
 
-					<div className="border-t pro-border pt-1.5">
-						<h4 className="text-[11px] font-medium pro-text2 mb-1">Display value as</h4>
+					<div className="pro-border border-t pt-1.5">
+						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Display value as</h4>
 						<div className="flex gap-1">
 							{DISPLAY_OPTIONS.map((option) => (
 								<button
 									key={option.value}
 									onClick={() => handleDisplayChange(option.value as any)}
-									className={`flex-1 px-2 py-1 text-xs border transition-colors ${
+									className={`flex-1 border px-2 py-1 text-xs transition-colors ${
 										chartBuilder.displayAs === option.value
 											? 'border-(--primary1) bg-(--primary1) text-white'
 											: 'pro-border pro-hover-bg pro-text2'
@@ -280,27 +280,27 @@ export function ChartBuilderTab({
 					</div>
 				</div>
 
-				<div className="flex-1 border pro-border p-3 flex flex-col min-h-0">
-					<div className="flex items-center justify-between mb-2 flex-shrink-0">
-						<h3 className="text-xs font-semibold pro-text1">Preview</h3>
-						<div className="flex items-center gap-1 text-[10px] pro-text3">
+				<div className="pro-border flex min-h-0 flex-1 flex-col border p-3">
+					<div className="mb-2 flex flex-shrink-0 items-center justify-between">
+						<h3 className="pro-text1 text-xs font-semibold">Preview</h3>
+						<div className="pro-text3 flex items-center gap-1 text-[10px]">
 							<span>ⓘ</span>
 							<span>Updates as you configure</span>
 						</div>
 					</div>
 
 					<div
-						className="flex-1 pro-bg2 rounded flex items-center justify-center relative"
+						className="pro-bg2 relative flex flex-1 items-center justify-center rounded"
 						style={{ minHeight: '500px' }}
 					>
 						{previewLoading ? (
 							<div className="text-center">
-								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-(--primary1) mx-auto mb-2"></div>
-								<p className="text-sm pro-text2">Loading preview...</p>
+								<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary1)"></div>
+								<p className="pro-text2 text-sm">Loading preview...</p>
 							</div>
 						) : previewData && previewData.series.length > 0 ? (
 							<div className="absolute inset-0 p-2">
-								<Suspense fallback={<div className="animate-pulse h-full w-full pro-bg3"></div>}>
+								<Suspense fallback={<div className="pro-bg3 h-full w-full animate-pulse"></div>}>
 									<MultiSeriesChart
 										height="500px"
 										key={`chart-${chartBuilder.displayAs}-${chartBuilder.chartType}-${chartBuilder.hideOthers}`}
@@ -460,17 +460,17 @@ export function ChartBuilderTab({
 							</div>
 						) : (
 							<div className="text-center">
-								<Icon name="bar-chart-2" height={48} width={48} className="mx-auto mb-2 pro-text3" />
-								<p className="text-sm pro-text2">Configure chart settings to see preview</p>
-								<p className="text-xs pro-text3 mt-1">Select metric and chains to generate chart</p>
+								<Icon name="bar-chart-2" height={48} width={48} className="pro-text3 mx-auto mb-2" />
+								<p className="pro-text2 text-sm">Configure chart settings to see preview</p>
+								<p className="pro-text3 mt-1 text-xs">Select metric and chains to generate chart</p>
 							</div>
 						)}
 					</div>
 
-					<div className="mt-2 p-2 pro-bg2 rounded flex-shrink-0">
+					<div className="pro-bg2 mt-2 flex-shrink-0 rounded p-2">
 						<div className="flex items-start gap-1">
-							<span className="text-[10px] pro-text3">ⓘ</span>
-							<p className="text-[10px] pro-text3 leading-relaxed">
+							<span className="pro-text3 text-[10px]">ⓘ</span>
+							<p className="pro-text3 text-[10px] leading-relaxed">
 								This chart shows {chartBuilder.metric} breakdown by top {chartBuilder.limit} protocols
 								{chartBuilder.chains.length > 0 && ` on ${chartBuilder.chains.join(', ')}`}
 								{chartBuilder.categories.length > 0 && ` in ${chartBuilder.categories.join(', ')} categories`}. Data is

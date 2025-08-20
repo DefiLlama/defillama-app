@@ -35,7 +35,7 @@ const ChartRenderer = memo(function ChartRenderer({
 }: ChartRendererProps) {
 	if (isLoading) {
 		return (
-			<div className="flex items-center justify-center h-full">
+			<div className="flex h-full items-center justify-center">
 				<LoadingSpinner />
 			</div>
 		)
@@ -43,7 +43,7 @@ const ChartRenderer = memo(function ChartRenderer({
 
 	if (hasError) {
 		return (
-			<div className="flex flex-col items-center justify-center h-full pro-text3">
+			<div className="pro-text3 flex h-full flex-col items-center justify-center">
 				<Icon name="alert-triangle" height={24} width={24} className="mb-2 text-[#F2994A]" />
 				<p>Error loading data</p>
 				<button className="mt-2 text-sm text-(--primary) hover:underline" onClick={() => refetch()}>
@@ -54,7 +54,7 @@ const ChartRenderer = memo(function ChartRenderer({
 	}
 
 	if (!data || data.length === 0) {
-		return <div className="flex items-center justify-center h-full pro-text3">No data available</div>
+		return <div className="pro-text3 flex h-full items-center justify-center">No data available</div>
 	}
 
 	const chartType = CHART_TYPES[chart.type]
@@ -139,14 +139,14 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 	}, [processedData, itemName, chartTypeDetails])
 
 	return (
-		<div className="px-4 pb-4 pt-2 h-full flex flex-col">
+		<div className="flex h-full flex-col px-4 pt-2 pb-4">
 			<div>
-				<div className="flex items-center gap-2 mb-2">
+				<div className="mb-2 flex items-center gap-2">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
-							<img src={itemIconUrl} alt={itemName} className="w-6 h-6 rounded-full shrink-0" />
+							<img src={itemIconUrl} alt={itemName} className="h-6 w-6 shrink-0 rounded-full" />
 						) : (
-							<div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 shrink-0">
+							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs text-gray-600">
 								{itemName?.charAt(0)?.toUpperCase()}
 							</div>
 						))}
@@ -154,22 +154,20 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 						{itemName} {chartTypeDetails.title}
 					</h2>
 				</div>
-				<div className="flex items-center justify-end gap-2 flex-wrap">
+				<div className="flex flex-wrap items-center justify-end gap-2">
 					{!isReadOnly && (
 						<>
 							{isGroupable && (
-								<div className="flex border border-(--form-control-border) overflow-hidden">
+								<div className="flex overflow-hidden border border-(--form-control-border)">
 									{groupingOptions.map((option, index) => (
 										<button
 											key={option}
 											onClick={() => handleGroupingChange(chart.id, option)}
-											className={`px-2 xl:px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
-												${index > 0 ? 'border-l border-(--form-control-border)' : ''}
-												${
-													chart.grouping === option
-														? 'bg-(--primary) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary) focus:ring-opacity-50'
-														: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
-												}`}
+											className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out xl:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
+												chart.grouping === option
+													? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
+													: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
+											}`}
 										>
 											<span className="xl:hidden">{option.charAt(0).toUpperCase()}</span>
 											<span className="hidden xl:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
@@ -180,7 +178,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 							{isBarChart && (
 								<button
 									onClick={() => handleCumulativeChange(chart.id, !showCumulative)}
-									className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+									className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
 									title={showCumulative ? 'Show cumulative values' : 'Show individual values'}
 								>
 									<Icon name="trending-up" height={12} width={12} />

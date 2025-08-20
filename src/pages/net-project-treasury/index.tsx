@@ -69,15 +69,15 @@ const columns: ColumnDef<INetProjectTreasuryByChain['protocols'][0]>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<span className="flex items-center gap-2 relative">
+				<span className="relative flex items-center gap-2">
 					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
-					<span className="flex flex-col -my-2">
+					<span className="-my-2 flex flex-col">
 						<BasicLink
 							href={`/protocol/treasury/${row.original.slug}`}
-							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
 							{value}
 						</BasicLink>

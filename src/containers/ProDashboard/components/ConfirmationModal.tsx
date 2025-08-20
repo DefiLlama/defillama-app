@@ -47,26 +47,26 @@ export function ConfirmationModal({
 
 	return createPortal(
 		<div
-			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs flex justify-center items-center z-[1000]"
+			className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-xs dark:bg-black/70"
 			onClick={onClose}
 		>
 			<div
-				className="pro-bg1 border border-white/10 p-6 w-full max-w-md shadow-xl mx-4"
+				className="pro-bg1 mx-4 w-full max-w-md border border-white/10 p-6 shadow-xl"
 				onClick={(e) => e.stopPropagation()}
 			>
-				<div className="flex items-center justify-between mb-4">
-					<h2 className="text-lg font-semibold pro-text1">{title}</h2>
-					<button onClick={onClose} className="p-1 pro-hover-bg pro-text1 transition-colors" aria-label="Close modal">
+				<div className="mb-4 flex items-center justify-between">
+					<h2 className="pro-text1 text-lg font-semibold">{title}</h2>
+					<button onClick={onClose} className="pro-hover-bg pro-text1 p-1 transition-colors" aria-label="Close modal">
 						<Icon name="x" height={20} width={20} />
 					</button>
 				</div>
 
-				<p className="mb-6 pro-text2">{message}</p>
+				<p className="pro-text2 mb-6">{message}</p>
 
-				<div className="flex gap-3 justify-end">
+				<div className="flex justify-end gap-3">
 					<button
 						onClick={onClose}
-						className="px-4 py-2 border border-white/20 pro-hover-bg pro-text1 transition-colors font-medium"
+						className="pro-hover-bg pro-text1 border border-white/20 px-4 py-2 font-medium transition-colors"
 					>
 						{cancelText}
 					</button>
@@ -75,7 +75,7 @@ export function ConfirmationModal({
 							onConfirm()
 							onClose()
 						}}
-						className={`px-4 py-2 transition-colors font-medium ${confirmButtonClass}`}
+						className={`px-4 py-2 font-medium transition-colors ${confirmButtonClass}`}
 					>
 						{confirmText}
 					</button>

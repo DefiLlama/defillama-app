@@ -8,8 +8,8 @@ export function PeggedFilters(props: { pathname: string; downloadCsv: () => void
 	const isSmall = useMedia(`(max-width: 639px)`)
 	const isClient = useIsClient()
 	return (
-		<div className="flex flex-col gap-4 p-1 bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="flex flex-wrap gap-2 min-h-[30px] *:flex-1 sm:hidden">
+		<div className="flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+			<div className="flex min-h-[30px] flex-wrap gap-2 *:flex-1 sm:hidden">
 				{isSmall && isClient ? (
 					<React.Suspense fallback={<></>}>
 						<NestedMenu label="Filters" className="w-full">
@@ -18,7 +18,7 @@ export function PeggedFilters(props: { pathname: string; downloadCsv: () => void
 					</React.Suspense>
 				) : null}
 			</div>
-			<div className="hidden flex-wrap gap-2 min-h-[30px] sm:flex">
+			<div className="hidden min-h-[30px] flex-wrap gap-2 sm:flex">
 				{!isSmall && isClient ? (
 					<React.Suspense fallback={<></>}>
 						<PeggedFiltersDropdowns {...props} />

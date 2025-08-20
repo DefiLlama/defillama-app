@@ -43,10 +43,10 @@ export function AssetSelector({ options, symbol }: IProps) {
 			}}
 		>
 			<Ariakit.MenuProvider>
-				<Ariakit.MenuButton className="flex items-center justify-between gap-2 p-2 rounded-md cursor-pointer flex-nowrap relative bg-(--link-active-bg) text-white">
+				<Ariakit.MenuButton className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--link-active-bg) p-2 text-white">
 					<TokenLogo logo={selectedAsset.logo} size={20} />
 					<FormattedName text={selectedAsset.name} maxCharacters={20} fontWeight={700} />
-					<span className="font-normal mr-auto">({selectedAsset.symbol})</span>
+					<span className="mr-auto font-normal">({selectedAsset.symbol})</span>
 					<Ariakit.MenuButtonArrow className="ml-auto" />
 				</Ariakit.MenuButton>
 				<Ariakit.Menu
@@ -56,12 +56,12 @@ export function AssetSelector({ options, symbol }: IProps) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.Combobox
 						placeholder="Search..."
 						autoFocus
-						className="bg-white dark:bg-black rounded-md text-base py-1 px-3 m-3 mb-0"
+						className="m-3 mb-0 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 					/>
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList>
@@ -73,7 +73,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 									hideOnClick
 									role="link"
 									render={<BasicLink href={match.route as string} />}
-									className="flex items-center gap-1 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+									className="flex shrink-0 cursor-pointer items-center gap-1 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
 									<TokenLogo logo={match.logo} size={20} />
 									{match.name} ({match.symbol})
@@ -81,7 +81,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 							))}
 						</Ariakit.ComboboxList>
 					) : (
-						<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
+						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 					)}
 				</Ariakit.Menu>
 			</Ariakit.MenuProvider>

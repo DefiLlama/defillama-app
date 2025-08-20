@@ -69,14 +69,14 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 
 	return (
 		<div
-			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs flex justify-center items-end md:items-center z-50 add-chart-modal"
+			className="add-chart-modal fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-xs md:items-center dark:bg-black/70"
 			onClick={onClose}
 		>
 			<div
-				className={`pro-bg1 border pro-border p-4 md:p-6 w-full shadow-xl md:ml-0 lg:ml-[240px] overflow-hidden flex flex-col ${
+				className={`pro-bg1 pro-border flex w-full flex-col overflow-hidden border p-4 shadow-xl md:ml-0 md:p-6 lg:ml-[240px] ${
 					state.selectedMainTab === 'builder'
-						? 'md:max-w-4xl lg:max-w-6xl max-h-[95vh] md:max-h-[90vh]'
-						: 'md:max-w-2xl lg:max-w-4xl max-h-[90vh] md:max-h-[85vh]'
+						? 'max-h-[95vh] md:max-h-[90vh] md:max-w-4xl lg:max-w-6xl'
+						: 'max-h-[90vh] md:max-h-[85vh] md:max-w-2xl lg:max-w-4xl'
 				}`}
 				onClick={(e) => e.stopPropagation()}
 			>
@@ -88,7 +88,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 					onTabChange={actions.handleMainTabChange}
 				/>
 
-				<div className="space-y-3 md:space-y-5 overflow-y-auto flex-1 -mx-4 px-4 md:mx-0 md:px-0">
+				<div className="-mx-4 flex-1 space-y-3 overflow-y-auto px-4 md:mx-0 md:space-y-5 md:px-0">
 					{state.selectedMainTab === 'chart' && (
 						<ChartTab
 							selectedChartTab={state.selectedChartTab}

@@ -91,15 +91,15 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 
 	if (isLoading) {
 		return (
-			<div className="w-full p-4 h-full flex flex-col">
+			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-lg font-semibold pro-text1">{chain} Stablecoins</h3>
+						<h3 className="pro-text1 text-lg font-semibold">{chain} Stablecoins</h3>
 					</div>
 				</div>
-				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4">
+				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="text-sm pro-text2">Loading stablecoin data...</p>
+					<p className="pro-text2 text-sm">Loading stablecoin data...</p>
 				</div>
 			</div>
 		)
@@ -107,24 +107,24 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 
 	if (error) {
 		return (
-			<div className="w-full p-4 h-full flex flex-col">
+			<div className="flex h-full w-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
-						<h3 className="text-lg font-semibold pro-text1">{chain} Stablecoins</h3>
+						<h3 className="pro-text1 text-lg font-semibold">{chain} Stablecoins</h3>
 					</div>
 				</div>
-				<div className="flex-1 min-h-[500px] flex items-center justify-center">
-					<div className="text-center pro-text2">Failed to load stablecoins data</div>
+				<div className="flex min-h-[500px] flex-1 items-center justify-center">
+					<div className="pro-text2 text-center">Failed to load stablecoins data</div>
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className="w-full p-4 h-full flex flex-col">
+		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex items-center justify-between gap-4">
-					<h3 className="text-lg font-semibold pro-text1">{chain} Stablecoins</h3>
+					<h3 className="pro-text1 text-lg font-semibold">{chain} Stablecoins</h3>
 					<div className="flex items-center gap-2">
 						<ProTableCSVButton
 							onClick={() => {
@@ -163,14 +163,13 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 							placeholder="Search stablecoins..."
 							value={projectName}
 							onChange={(e) => setProjectName(e.target.value)}
-							className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1
-								focus:outline-hidden focus:ring-1 focus:ring-(--primary)"
+							className="pro-border pro-bg1 pro-text1 border px-3 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>
 			</div>
 			<TableBody table={instance} />
-			<div className="flex items-center justify-between w-full mt-2">
+			<div className="mt-2 flex w-full items-center justify-between">
 				<TagGroup
 					selectedValue={null}
 					setValue={(val) => (val === 'Next' ? instance.nextPage() : instance.previousPage())}

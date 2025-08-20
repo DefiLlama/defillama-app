@@ -111,7 +111,7 @@ const Pagination = ({ items, startIndex = 0 }) => {
 		<>
 			<div
 				ref={paginationRef}
-				className="flex items-center justify-center rounded-xl w-full relative"
+				className="relative flex w-full items-center justify-center rounded-xl"
 				onTouchStart={onTouchStart}
 				onTouchMove={onTouchMove}
 				onTouchEnd={onTouchEnd}
@@ -119,15 +119,15 @@ const Pagination = ({ items, startIndex = 0 }) => {
 				{totalPages > 1 && (
 					<button
 						onClick={handlePrevPage}
-						className="bg-(--bg-secondary) text-(--text-primary) p-2 rounded-xl hidden md:block"
+						className="hidden rounded-xl bg-(--bg-secondary) p-2 text-(--text-primary) md:block"
 					>
 						<Icon name="arrow-left" height={24} width={24} />
 					</button>
 				)}
-				<div className="flex items-center justify-start overflow-hidden flex-1">
+				<div className="flex flex-1 items-center justify-start overflow-hidden">
 					<div style={contentStyle}>
 						{currentItems.map((item, index) => (
-							<div key={index} className="w-full p-4 text-center relative">
+							<div key={index} className="relative w-full p-4 text-center">
 								{item}
 							</div>
 						))}
@@ -136,7 +136,7 @@ const Pagination = ({ items, startIndex = 0 }) => {
 				{totalPages > 1 && (
 					<button
 						onClick={handleNextPage}
-						className="bg-(--bg-secondary) text-(--text-primary) p-2 rounded-xl hidden md:block"
+						className="hidden rounded-xl bg-(--bg-secondary) p-2 text-(--text-primary) md:block"
 					>
 						<Icon name="arrow-right" height={24} width={24} />
 					</button>
@@ -144,22 +144,22 @@ const Pagination = ({ items, startIndex = 0 }) => {
 			</div>
 
 			{totalPages > 1 && (
-				<div className="flex items-center justify-center gap-3 mt-3">
+				<div className="mt-3 flex items-center justify-center gap-3">
 					<button
 						onClick={handlePrevPage}
-						className="text-(--text-primary) text-sm font-medium hover:text-[#5c5cf9] transition-colors"
+						className="text-sm font-medium text-(--text-primary) transition-colors hover:text-[#5c5cf9]"
 						aria-label="Previous page"
 					>
 						<Icon name="arrow-left" height={16} width={16} />
 					</button>
 
-					<span className="text-(--text-primary) text-sm font-medium">
+					<span className="text-sm font-medium text-(--text-primary)">
 						{currentPage + 1} / {totalPages}
 					</span>
 
 					<button
 						onClick={handleNextPage}
-						className="text-(--text-primary) text-sm font-medium hover:text-[#5c5cf9] transition-colors"
+						className="text-sm font-medium text-(--text-primary) transition-colors hover:text-[#5c5cf9]"
 						aria-label="Next page"
 					>
 						<Icon name="arrow-right" height={16} width={16} />

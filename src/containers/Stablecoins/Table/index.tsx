@@ -86,14 +86,14 @@ export function PeggedAssetsTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="p-3 flex items-center justify-between">
-				<div className="relative w-full sm:max-w-[280px] mr-auto">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex items-center justify-between p-3">
+				<div className="relative mr-auto w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						value={projectName}
@@ -101,7 +101,7 @@ export function PeggedAssetsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>
@@ -176,14 +176,14 @@ export function PeggedAssetByChainTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="p-3 flex items-center justify-between">
-				<div className="relative w-full sm:max-w-[280px] mr-auto">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex items-center justify-between p-3">
+				<div className="relative mr-auto w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						value={projectName}
@@ -191,7 +191,7 @@ export function PeggedAssetByChainTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>
@@ -236,14 +236,14 @@ export function PeggedChainsTable({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="p-3 flex items-center justify-between">
-				<div className="relative w-full sm:max-w-[280px] mr-auto">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex items-center justify-between p-3">
+				<div className="relative mr-auto w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						value={projectName}
@@ -251,7 +251,7 @@ export function PeggedChainsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>

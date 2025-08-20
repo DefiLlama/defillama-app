@@ -45,9 +45,9 @@ export const FullOldViewButton = ({ type, className }: FullOldViewButtonProps) =
 	}
 
 	const tooltipContent = (
-		<div className="text-xs space-y-1">
+		<div className="space-y-1 text-xs">
 			<p className="font-semibold">Full View includes:</p>
-			<ul className="list-disc list-inside pl-2">
+			<ul className="list-inside list-disc pl-2">
 				<li>Protocol Name & Logo</li>
 				<li>24h Volume</li>
 				<li>7d Volume</li>
@@ -68,12 +68,12 @@ export const FullOldViewButton = ({ type, className }: FullOldViewButtonProps) =
 					disabled={isLoading || isSubscriptionLoading}
 					className={
 						className ||
-						'flex items-center gap-2 p-2 text-xs rounded-md cursor-pointer border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+						'flex cursor-pointer items-center gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50'
 					}
 				>
 					{isClient && (isLoading || isSubscriptionLoading) ? (
 						<svg
-							className="animate-spin h-[14px] w-[14px]"
+							className="h-[14px] w-[14px] animate-spin"
 							xmlns="http://www.w3.org/2000/svg"
 							fill="none"
 							viewBox="0 0 24 24"

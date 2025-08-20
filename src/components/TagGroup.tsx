@@ -27,7 +27,7 @@ export const TagGroup = ({
 			className={
 				containerClassName ||
 				cn(
-					'text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)',
+					'flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)',
 					className
 				)
 			}

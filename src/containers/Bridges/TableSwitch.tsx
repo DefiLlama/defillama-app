@@ -7,9 +7,9 @@ export const TxsTableSwitch = () => {
 	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
 
 	return (
-		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+		<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 			<button
-				className="flex items-center gap-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+				className="flex shrink-0 items-center gap-1 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 				data-active={!isBridgesShowingTxs}
 				onClick={() => toggleBridgesSettings(BRIDGES_SHOWING_TXS)}
 			>
@@ -17,7 +17,7 @@ export const TxsTableSwitch = () => {
 				<span>Bridges</span>
 			</button>
 			<button
-				className="flex items-center gap-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+				className="flex shrink-0 items-center gap-1 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 				data-active={isBridgesShowingTxs}
 				onClick={() => toggleBridgesSettings(BRIDGES_SHOWING_TXS)}
 			>
@@ -33,11 +33,11 @@ export const AddressesTableSwitch = () => {
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
 
 	return (
-		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+		<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 			<button
 				data-active={!isBridgesShowingAddresses}
 				onClick={() => toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
-				className="flex items-center gap-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+				className="flex shrink-0 items-center gap-1 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 			>
 				<Icon name="trending-up" height={14} width={14} />
 				<span>Tokens</span>
@@ -45,7 +45,7 @@ export const AddressesTableSwitch = () => {
 			<button
 				data-active={isBridgesShowingAddresses}
 				onClick={() => toggleBridgesSettings(BRIDGES_SHOWING_ADDRESSES)}
-				className="flex items-center gap-1 shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+				className="flex shrink-0 items-center gap-1 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 			>
 				<Icon name="users" height={14} width={14} />
 				<span>Addresses</span>

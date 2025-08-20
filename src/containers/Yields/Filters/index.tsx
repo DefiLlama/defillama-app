@@ -45,15 +45,15 @@ function SavedFilters({ currentFilters }) {
 	}
 
 	return (
-		<div className="flex items-center gap-2 ml-auto">
+		<div className="ml-auto flex items-center gap-2">
 			<button
 				onClick={handleSave}
-				className="flex items-center gap-1 justify-center py-2 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+				className="ml-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Save Current Filters
 			</button>
 			<Ariakit.MenuProvider>
-				<Ariakit.MenuButton className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-(--text-primary) text-xs flex-nowrap">
+				<Ariakit.MenuButton className="flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
 					Saved Filters
 					<Ariakit.MenuButtonArrow />
 				</Ariakit.MenuButton>
@@ -63,13 +63,13 @@ function SavedFilters({ currentFilters }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
+					className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
 				>
 					{Object.entries(savedFilters).map(([name], i) => (
 						<Ariakit.MenuItem
 							key={`custom-filter-${name}-${i}`}
 							onClick={() => handleLoad(name)}
-							className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border) whitespace-nowrap overflow-hidden text-ellipsis"
+							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
 							{name}
 							<button
@@ -77,7 +77,7 @@ function SavedFilters({ currentFilters }) {
 									e.stopPropagation()
 									handleDelete(name)
 								}}
-								className="text-red-500 hover:text-red-600 flex items-center justify-center"
+								className="flex items-center justify-center text-red-500 hover:text-red-600"
 							>
 								<Icon name="x" height={16} width={16} />
 								<span className="sr-only">Delete</span>
@@ -121,20 +121,20 @@ export function YieldFiltersV2({
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="flex items-center flex-wrap gap-2 p-3">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-wrap items-center gap-2 p-3">
 				<h1 className="font-semibold">{header}</h1>
 				{trackingStats ? <p>{trackingStats}</p> : null}
 				<SavedFilters currentFilters={query} />
 			</div>
-			<div className="flex flex-col gap-4 p-3 rounded-b-md">
+			<div className="flex flex-col gap-4 rounded-b-md p-3">
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}
 				{tokens && (showSearchOnMobile || !isSmall) ? (
 					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
 				) : null}
-				<div className="flex flex-wrap gap-2 min-h-9 *:flex-1 sm:hidden">
+				<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
 					{isSmall && isClient ? (
 						<React.Suspense fallback={<></>}>
 							<NestedMenu label="Filters">
@@ -143,7 +143,7 @@ export function YieldFiltersV2({
 						</React.Suspense>
 					) : null}
 				</div>
-				<div className="hidden flex-wrap gap-2 min-h-8 sm:flex">
+				<div className="hidden min-h-8 flex-wrap gap-2 sm:flex">
 					{!isSmall && isClient ? (
 						<React.Suspense fallback={<></>}>
 							<YieldFilterDropdowns {...props} />
@@ -184,7 +184,7 @@ const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
 	const { data } = useFormatTokensSearchList({ searchData })
 
 	return (
-		<div className="flex flex-col md:flex-row md:items-center gap-2 flex-wrap *:flex-1">
+		<div className="flex flex-col flex-wrap gap-2 *:flex-1 md:flex-row md:items-center">
 			<YieldsSearch value={lend} searchData={data} lend />
 			{lend ? (
 				<>

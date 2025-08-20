@@ -35,7 +35,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 			<Ariakit.MenuProvider>
 				<Ariakit.MenuButton
 					data-active={isActive}
-					className={`h-6 flex items-center gap-4 my-auto rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-black dark:text-white bg-[#E2E2E2] dark:bg-[#303032] ${
+					className={`my-auto flex h-6 items-center gap-4 rounded-md bg-[#E2E2E2] px-[10px] py-1 text-xs font-medium whitespace-nowrap text-black dark:bg-[#303032] dark:text-white ${
 						className ?? ''
 					}`}
 				>
@@ -50,12 +50,12 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.Combobox
 						placeholder="Search..."
 						autoFocus
-						className="bg-white dark:bg-black rounded-md text-base py-1 px-3 m-3"
+						className="m-3 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 					/>
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList>
@@ -64,11 +64,11 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 							))}
 						</Ariakit.ComboboxList>
 					) : (
-						<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
+						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 					)}
 					{matches.length > viewableMatches ? (
 						<button
-							className="w-full py-4 px-3 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+							className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 							onClick={() => setViewableMatches((prev) => prev + 20)}
 						>
 							See more...
@@ -97,12 +97,12 @@ const Item = ({ label, to }: { label: string; to: string }) => {
 				}
 			}}
 			render={<Ariakit.ComboboxItem value={label} />}
-			className="group flex items-center gap-4 py-2 px-3 shrink-0 data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+			className="group flex shrink-0 cursor-pointer items-center gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md data-active-item:bg-(--primary-hover)"
 		>
 			<span>{label}</span>
 			{loading ? (
 				<svg
-					className="animate-spin -ml-1 mr-3 h-4 w-4"
+					className="mr-3 -ml-1 h-4 w-4 animate-spin"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"

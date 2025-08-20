@@ -113,7 +113,7 @@ export const IconsRow = ({
 		<div
 			className={`flex items-center ${
 				iconsAlignment === 'start' ? 'justify-start' : 'justify-end'
-			} bg-none overflow-hidden`}
+			} overflow-hidden bg-none`}
 			ref={mainWrapEl}
 		>
 			{visibleChains.map((chain, i) => (
@@ -130,12 +130,12 @@ export const IconsRow = ({
 				<Ariakit.HovercardProvider>
 					<Ariakit.HovercardAnchor
 						render={<button />}
-						className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] text-(--text-primary) bg-(--bg-tertiary) shrink-0"
+						className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--bg-tertiary) text-[10px] text-(--text-primary)"
 					>
 						{`+${hoverChains.length}`}
 					</Ariakit.HovercardAnchor>
 					<Ariakit.Hovercard
-						className="max-w-xl z-10 p-1 shadow-sm rounded-md bg-(--bg-secondary) border border-(--bg-tertiary) text-(--text-primary) flex items-center justify-start flex-wrap gap-1 bg-none overflow-hidden"
+						className="z-10 flex max-w-xl flex-wrap items-center justify-start gap-1 overflow-hidden rounded-md border border-(--bg-tertiary) bg-(--bg-secondary) bg-none p-1 text-(--text-primary) shadow-sm"
 						unmountOnHide
 						portal
 					>

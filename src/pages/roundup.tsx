@@ -12,16 +12,16 @@ export default function Roundup({ messages }: { messages: Array<string | Array<s
 					href="https://t.me/defillama_tg"
 					target="_blank"
 					rel="noopener noreferrer"
-					className="underline text-(--blue)"
+					className="text-(--blue) underline"
 				>
 					Telegram
 				</a>
 			</Announcement>
 
-			<div className="flex flex-col gap-3 bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<h1 className="font-semibold text-xl text-center">Daily news roundup with the 🦙</h1>
+			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<h1 className="text-center text-xl font-semibold">Daily news roundup with the 🦙</h1>
 
-				<div className="flex flex-col gap-[2px] max-w-lg mx-auto text-base">
+				<div className="mx-auto flex max-w-lg flex-col gap-[2px] text-base">
 					{messages.map((x) => {
 						if (typeof x === 'string') {
 							return (
@@ -34,7 +34,7 @@ export default function Roundup({ messages }: { messages: Array<string | Array<s
 						return (
 							<a href={x[1]} target="_blank" rel="noreferrer noopener" key={x[1]}>
 								<span>&gt; </span>
-								<span className="underline text-(--link)">{x[0]}</span>
+								<span className="text-(--link) underline">{x[0]}</span>
 							</a>
 						)
 					})}

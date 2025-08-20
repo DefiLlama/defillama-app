@@ -33,13 +33,13 @@ export default function TopGainersLosers({ protocols }) {
 
 	return (
 		<Layout title={`Top Gainers and Losers - DefiLlama`} defaultSEO>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<h1 className="text-xl font-semibold p-3">Top Gainers</h1>
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<h1 className="p-3 text-xl font-semibold">Top Gainers</h1>
 				<TopGainersAndLosers data={topGainers} />
 			</div>
 
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<h1 className="text-xl font-semibold p-3">Top Losers</h1>
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<h1 className="p-3 text-xl font-semibold">Top Losers</h1>
 				<TopGainersAndLosers data={topLosers} />
 			</div>
 		</Layout>

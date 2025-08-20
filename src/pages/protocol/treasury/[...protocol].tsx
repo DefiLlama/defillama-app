@@ -116,37 +116,37 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
-			<div className="flex flex-wrap justify-between items-center gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2">
-				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="treasury">
+			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="treasury">
 					Treasury for {props.name}
 				</h2>
-				<label className="flex flex-nowrap gap-2 items-center justify-end cursor-pointe ml-auto">
+				<label className="cursor-pointe ml-auto flex flex-nowrap items-center justify-end gap-2">
 					<input type="checkbox" checked={includeOwnTokens} onChange={() => setIncludeOwnTokens(!includeOwnTokens)} />
 					<span>Include own tokens</span>
 				</label>
 			</div>
 			{isLoading ? (
-				<p className="flex items-center justify-center text-center min-h-[384px] bg-(--cards-bg) border border-(--cards-border) rounded-md  p-2">
+				<p className="flex min-h-[384px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-center">
 					Loading...
 				</p>
 			) : (
-				<div className="grid grid-cols-2 rounded-md min-h-[384px] gap-2">
-					<LazyChart className="relative col-span-full min-h-[368px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<div className="grid min-h-[384px] grid-cols-2 gap-2 rounded-md">
+					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<Suspense fallback={<></>}>
 							<PieChart chartData={top10Tokens} />
 						</Suspense>
 					</LazyChart>
-					<LazyChart className="relative col-span-full min-h-[368px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<Suspense fallback={<></>}>
 							<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
 						</Suspense>
 					</LazyChart>
-					<LazyChart className="relative col-span-full min-h-[368px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<Suspense fallback={<></>}>
 							<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
 						</Suspense>
 					</LazyChart>
-					<LazyChart className="relative col-span-full min-h-[368px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<Suspense fallback={<></>}>
 							<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
 						</Suspense>

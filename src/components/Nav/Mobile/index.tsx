@@ -8,15 +8,15 @@ const MobileSearch = lazy(() => import('~/components/Search').then((m) => ({ def
 
 export const MobileNav = React.memo(function MobileNav() {
 	return (
-		<nav className="flex items-center z-10 gap-2 py-3 px-4 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] lg:hidden">
-			<BasicLink href="/" className="shrink-0 mr-auto">
+		<nav className="z-10 flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
+			<BasicLink href="/" className="mr-auto shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img
 					src="/defillama-press-kit/defi/PNG/defillama.png"
 					alt=""
 					height={36}
 					width={105}
-					className="object-contain object-left mr-auto"
+					className="mr-auto object-contain object-left"
 					fetchPriority="high"
 				/>
 			</BasicLink>

@@ -59,17 +59,17 @@ export function TrialActivation({ onSuccess, hasUsedTrial }: TrialActivationProp
 
 	if (hasUsedTrial) {
 		return (
-			<div className="relative bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden p-6 mt-4 transition-all duration-300">
-				<div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-orange-500 to-transparent opacity-40"></div>
-				<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-orange-500 opacity-10 blur-2xl"></div>
-				<h2 className="text-2xl font-bold mb-4 bg-linear-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+			<div className="relative mt-4 overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300">
+				<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-orange-500 to-transparent opacity-40"></div>
+				<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-orange-500 opacity-10 blur-2xl"></div>
+				<h2 className="mb-4 bg-linear-to-r from-orange-400 to-orange-600 bg-clip-text text-2xl font-bold text-transparent">
 					Trial Already Used
 				</h2>
-				<p className="text-[#919296] mb-6">
+				<p className="mb-6 text-[#919296]">
 					You've already experienced Pro premium features! Ready to continue with a full subscription?
 				</p>
 				<div className="flex items-center gap-2 text-sm text-[#919296]">
-					<svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg className="h-4 w-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							strokeLinecap="round"
 							strokeLinejoin="round"
@@ -84,13 +84,13 @@ export function TrialActivation({ onSuccess, hasUsedTrial }: TrialActivationProp
 	}
 
 	return (
-		<div className="relative bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden p-6 mt-4 transition-all duration-300 hover:border-[#5c5cf9]/50">
-			<div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#5c5cf9] to-transparent opacity-40"></div>
-			<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-[#5c5cf9] opacity-10 blur-2xl"></div>
+		<div className="relative mt-4 overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300 hover:border-[#5c5cf9]/50">
+			<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-[#5c5cf9] to-transparent opacity-40"></div>
+			<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-[#5c5cf9] opacity-10 blur-2xl"></div>
 
-			<div className="flex items-center gap-3 mb-4">
-				<div className="p-2 bg-[#5c5cf9]/10 rounded-lg">
-					<svg className="w-6 h-6 text-[#5c5cf9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<div className="mb-4 flex items-center gap-3">
+				<div className="rounded-lg bg-[#5c5cf9]/10 p-2">
+					<svg className="h-6 w-6 text-[#5c5cf9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							strokeLinecap="round"
 							strokeLinejoin="round"
@@ -99,16 +99,16 @@ export function TrialActivation({ onSuccess, hasUsedTrial }: TrialActivationProp
 						/>
 					</svg>
 				</div>
-				<h2 className="text-2xl font-bold bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-transparent">
+				<h2 className="bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-2xl font-bold text-transparent">
 					Activate Your 24-Hour Pro Trial
 				</h2>
 			</div>
 
-			<p className="text-[#b4b7bc] mb-6 leading-relaxed">Experience Pro for free!</p>
+			<p className="mb-6 leading-relaxed text-[#b4b7bc]">Experience Pro for free!</p>
 
-			<div className="bg-[#1a1b1f]/50 border border-[#39393E] rounded-lg p-3 mb-4">
-				<p className="text-xs text-[#919296] flex items-start gap-2">
-					<svg className="w-4 h-4 text-[#5c5cf9] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<div className="mb-4 rounded-lg border border-[#39393E] bg-[#1a1b1f]/50 p-3">
+				<p className="flex items-start gap-2 text-xs text-[#919296]">
+					<svg className="mt-0.5 h-4 w-4 shrink-0 text-[#5c5cf9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							strokeLinecap="round"
 							strokeLinejoin="round"
@@ -125,12 +125,12 @@ export function TrialActivation({ onSuccess, hasUsedTrial }: TrialActivationProp
 			<button
 				onClick={activateTrial}
 				disabled={isActivating}
-				className="w-full py-3 px-4 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+				className="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-4 py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{isActivating ? (
 					<>
 						<svg
-							className="animate-spin h-5 w-5 text-white"
+							className="h-5 w-5 animate-spin text-white"
 							xmlns="http://www.w3.org/2000/svg"
 							fill="none"
 							viewBox="0 0 24 24"
@@ -146,7 +146,7 @@ export function TrialActivation({ onSuccess, hasUsedTrial }: TrialActivationProp
 					</>
 				) : (
 					<>
-						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
 						</svg>
 						<span>Start Free Trial Now</span>

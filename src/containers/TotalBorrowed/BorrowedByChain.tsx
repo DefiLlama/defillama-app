@@ -19,27 +19,27 @@ export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
 		<>
 			<Metrics currentMetric="Total Borrowed" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-3 w-full xl:col-span-1 overflow-x-auto text-base">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-3 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-base xl:col-span-1">
 					{props.chain !== 'All' && (
-						<h1 className="flex items-center flex-nowrap gap-2">
+						<h1 className="flex flex-nowrap items-center gap-2">
 							<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
 							<span className="text-xl font-semibold">{props.chain}</span>
 						</h1>
 					)}
-					<div className="flex items-end justify-between gap-4 flex-wrap">
+					<div className="flex flex-wrap items-end justify-between gap-4">
 						<p className="flex flex-col">
 							<span className="flex flex-col">
 								<span>Total Borrowed</span>
-								<span className="font-semibold text-2xl font-jetbrains min-h-8 overflow-hidden whitespace-nowrap text-ellipsis">
+								<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
 									{formattedNum(props.totalBorrowed, true)}
 								</span>
 							</span>
 						</p>
 						{props.change24h != null ? (
-							<p className="flex items-center flex-nowrap gap-2 relative bottom-[2px] text-sm">
+							<p className="relative bottom-[2px] flex flex-nowrap items-center gap-2 text-sm">
 								<span
-									className={`text-right font-jetbrains text-ellipsis ${
+									className={`font-jetbrains text-right text-ellipsis ${
 										props.change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
 									}`}
 								>
@@ -50,8 +50,8 @@ export function BorrowedByChain(props: ITotalBorrowedByChainPageData) {
 						) : null}
 					</div>
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 pt-3">
-					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
+					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<LineAndBarChart charts={props.charts} />
 					</Suspense>
 				</div>
@@ -88,7 +88,7 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 			)
 
 			return (
-				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
+				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-[2px]"
@@ -114,10 +114,10 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
-					<span className="flex flex-col -my-2">
+					<span className="-my-2 flex flex-col">
 						<BasicLink
 							href={`/protocol/${row.original.slug}?borrowed_tvl=true`}
-							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
 							{value}
 						</BasicLink>

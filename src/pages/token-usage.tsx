@@ -82,17 +82,17 @@ export default function Tokens({ searchData }) {
 
 			<Search searchData={searchData} />
 
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md w-full">
+			<div className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				{isLoading ? (
-					<div className="flex items-center justify-center mx-auto w-full my-32">
+					<div className="mx-auto my-32 flex w-full items-center justify-center">
 						<LocalLoader />
 					</div>
 				) : !tokenSymbol || !protocols || protocols.length === 0 ? (
 					<></>
 				) : (
 					<>
-						<div className="flex items-center justify-between flex-wrap gap-2 p-3">
-							<div className="text-lg font-semibold flex grow w-full sm:w-auto">{`${tokenSymbol.toUpperCase()} usage in protocols`}</div>
+						<div className="flex flex-wrap items-center justify-between gap-2 p-3">
+							<div className="flex w-full grow text-lg font-semibold sm:w-auto">{`${tokenSymbol.toUpperCase()} usage in protocols`}</div>
 
 							<div className="flex items-center gap-2 max-sm:w-full">
 								<Switch
@@ -118,7 +118,7 @@ export default function Tokens({ searchData }) {
 							fallback={
 								<div
 									style={{ minHeight: `${filteredProtocols.length * 50 + 200}px` }}
-									className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
+									className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
 								/>
 							}
 						>
@@ -176,7 +176,7 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>{`${value}`}</BasicLink>
 				</span>
 			)
@@ -253,7 +253,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				<Ariakit.Combobox
 					placeholder="Search tokens..."
 					autoSelect
-					className="w-full text-sm rounded-md border border-(--cards-border) text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-8"
+					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[5px] pl-8 text-sm text-black dark:text-white"
 				/>
 			</span>
 
@@ -262,7 +262,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				hideOnInteractOutside
 				gutter={6}
 				sameWidth
-				className="flex flex-col bg-(--bg-main) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] h-full max-h-[70vh] sm:max-h-[60vh]"
+				className="z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-[hsl(204,20%,88%)] bg-(--bg-main) sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
 			>
 				{matches.length ? (
 					<>
@@ -278,7 +278,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 								focusOnHover
 								hideOnClick={false}
 								setValueOnClick={true}
-								className="p-3 flex items-center gap-4 text-(--text-primary) cursor-pointer hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) aria-disabled:opacity-50 outline-hidden"
+								className="flex cursor-pointer items-center gap-4 p-3 text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 							>
 								{data?.logo || data?.fallbackLogo ? (
 									<TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} />
@@ -289,7 +289,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 
 						{matches.length > viewableMatches ? (
 							<button
-								className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+								className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 								onClick={() => setViewableMatches((prev) => prev + 20)}
 							>
 								See more...
@@ -297,7 +297,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 						) : null}
 					</>
 				) : (
-					<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
+					<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 				)}
 			</Ariakit.ComboboxPopover>
 		</Ariakit.ComboboxProvider>

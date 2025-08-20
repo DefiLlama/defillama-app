@@ -177,9 +177,9 @@ export default function Protocols(props) {
 			toggleOptions={[]}
 			warningBanners={props.warningBanners}
 		>
-			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
-				<div className="col-span-1 flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:min-h-[360px]">
-					<h1 className="flex items-center flex-wrap gap-2 text-xl">
+			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
+				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
+					<h1 className="flex flex-wrap items-center gap-2 text-xl">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">
 							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
@@ -187,14 +187,14 @@ export default function Protocols(props) {
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
-				<div className="col-span-1 xl:col-[2/-1] bg-(--cards-bg) border border-(--cards-border) rounded-md xl:min-h-[360px]">
+				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1] xl:min-h-[360px]">
 					<div className="flex items-center justify-end gap-2 p-2">
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<Tooltip
 									content={capitalizeFirstLetter(dataInterval)}
 									render={<button />}
-									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={groupBy === dataInterval}
 									onClick={() => {
 										setGroupBy(dataInterval)
@@ -236,7 +236,7 @@ export default function Protocols(props) {
 								}
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
@@ -246,7 +246,7 @@ export default function Protocols(props) {
 			</div>
 			<div className="grid grid-cols-2 gap-2">
 				{props.hasMultipleChain ? (
-					<div className="col-span-full xl:col-span-1 xl:only:col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[408px]">
+					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
@@ -256,7 +256,7 @@ export default function Protocols(props) {
 					</div>
 				) : null}
 				{props.hasMultipleVersions ? (
-					<div className="col-span-full xl:col-span-1 xl:only:col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[408px]">
+					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}

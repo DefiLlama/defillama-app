@@ -61,7 +61,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<BridgeContainerOnClient protocol={props.name} />
 			</div>
 		</ProtocolOverviewLayout>

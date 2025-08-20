@@ -118,7 +118,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="flex items-center justify-between flex-wrap gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2">
 				<h2 className="text-xl font-medium">
 					{viewMode === 'month'
 						? currentDate.format('MMMM YYYY')
@@ -128,53 +128,53 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 								? 'TreeMap Chart'
 								: `Unlocks starting ${currentDate.format('MMM D, YYYY')} (Next 30 Days)`}
 				</h2>
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					<button
 						onClick={() => handleViewModeChange('month')}
 						data-active={viewMode === 'month'}
-						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 					>
 						Month
 					</button>
 					<button
 						onClick={() => handleViewModeChange('week')}
 						data-active={viewMode === 'week'}
-						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 					>
 						Week
 					</button>
 					<button
 						onClick={() => handleViewModeChange('treemap')}
 						data-active={viewMode === 'treemap'}
-						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 					>
 						TreeMap
 					</button>
 					<button
 						onClick={() => handleViewModeChange('list')}
 						data-active={viewMode === 'list'}
-						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 					>
 						List
 					</button>
 				</div>
-				<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+				<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					<button
 						onClick={prev}
-						className="p-2 rounded-sm hover:bg-(--bg-glass) text-(--text-secondary) hover:text-(--text-primary)"
+						className="rounded-sm p-2 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
 						aria-label={`Previous ${viewMode === 'list' ? '30 days' : viewMode}`}
 					>
 						←
 					</button>
 					<button
 						onClick={goToToday}
-						className="px-3 py-1 rounded-sm hover:bg-(--bg-glass) text-(--text-secondary) hover:text-(--text-primary)"
+						className="rounded-sm px-3 py-1 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
 					>
 						Today
 					</button>
 					<button
 						onClick={next}
-						className="p-2 rounded-sm hover:bg-(--bg-glass) text-(--text-secondary) hover:text-(--text-primary)"
+						className="rounded-sm p-2 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
 						aria-label={`Next ${viewMode === 'list' ? '30 days' : viewMode}`}
 					>
 						→
@@ -316,12 +316,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 							</LazyChart>
 						</div>
 					)}
-					<div className="grid grid-cols-7 text-center text-sm text-(--text-secondary) font-medium py-2">
+					<div className="grid grid-cols-7 py-2 text-center text-sm font-medium text-(--text-secondary)">
 						{DAYS_OF_WEEK.map((day) => (
 							<div key={day}>{day}</div>
 						))}
 					</div>
-					<div className="grid grid-cols-7 grid-rows-6 gap-px bg-(--divider) border border-(--divider)">
+					<div className="grid grid-cols-7 grid-rows-6 gap-px border border-(--divider) bg-(--divider)">
 						{calendarDays.map((day, i) => (
 							<React.Fragment key={day.date?.format('YYYY-MM-DD') ?? i}>
 								<CalendarDayCell dayInfo={day} unlocksData={unlocksData} maxUnlockValue={maxMonthlyValue} />
@@ -331,7 +331,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ unlocksData, precomp
 				</>
 			) : viewMode === 'week' ? (
 				<>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-px bg-(--divider) border border-(--divider)">
+					<div className="grid grid-cols-1 gap-px border border-(--divider) bg-(--divider) md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
 						{calendarDays.map((day, i) => (
 							<React.Fragment key={day.date!.format('YYYY-MM-DD')}>
 								<WeekDayColumn dayInfo={day as { date: Dayjs; isCurrentMonth: boolean }} unlocksData={unlocksData} />

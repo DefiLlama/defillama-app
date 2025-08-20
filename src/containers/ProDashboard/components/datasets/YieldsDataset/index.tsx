@@ -81,7 +81,7 @@ export function YieldsDataset({
 
 	if (isLoading) {
 		return (
-			<div className="w-full p-4 h-full flex flex-col isolate">
+			<div className="isolate flex h-full w-full flex-col p-4">
 				<YieldsTableHeader
 					chains={chains}
 					columnPresets={columnPresets}
@@ -96,9 +96,9 @@ export function YieldsDataset({
 					setShowFiltersPanel={() => {}}
 					activeFilterCount={0}
 				/>
-				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4">
+				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="text-sm pro-text2">Loading yields data...</p>
+					<p className="pro-text2 text-sm">Loading yields data...</p>
 				</div>
 			</div>
 		)
@@ -106,7 +106,7 @@ export function YieldsDataset({
 
 	if (error) {
 		return (
-			<div className="w-full p-4 h-full flex flex-col">
+			<div className="flex h-full w-full flex-col p-4">
 				<YieldsTableHeader
 					chains={chains}
 					columnPresets={columnPresets}
@@ -121,15 +121,15 @@ export function YieldsDataset({
 					setShowFiltersPanel={() => {}}
 					activeFilterCount={0}
 				/>
-				<div className="flex-1 min-h-[500px] flex items-center justify-center">
-					<div className="text-center pro-text2">Failed to load yields data</div>
+				<div className="flex min-h-[500px] flex-1 items-center justify-center">
+					<div className="pro-text2 text-center">Failed to load yields data</div>
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className="w-full p-4 h-full flex flex-col isolate">
+		<div className="isolate flex h-full w-full flex-col p-4">
 			<YieldsTableHeader
 				chains={chains}
 				columnPresets={columnPresets}
@@ -171,7 +171,7 @@ export function YieldsDataset({
 
 			<TableBody table={table} />
 
-			<div className="flex items-center justify-between w-full mt-2">
+			<div className="mt-2 flex w-full items-center justify-between">
 				<TagGroup
 					selectedValue={null}
 					setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}

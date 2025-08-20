@@ -52,9 +52,9 @@ export function GovernanceTable({ data, governanceType }) {
 	}, [proposalname, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="flex items-center gap-2 flex-wrap justify-end p-3">
-				<h1 className="text-xl font-semibold mr-auto">Proposals</h1>
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+				<h1 className="mr-auto text-xl font-semibold">Proposals</h1>
 				<Switch
 					label="Filter Controversial Proposals"
 					value="controversial proposals"
@@ -67,7 +67,7 @@ export function GovernanceTable({ data, governanceType }) {
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						name="search"
@@ -76,7 +76,7 @@ export function GovernanceTable({ data, governanceType }) {
 							setProposalName(e.target.value)
 						}}
 						placeholder="Search proposals..."
-						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>
@@ -162,13 +162,13 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 		<div className="flex flex-col">
 			{apisByCategory.length > 1 ? (
 				<div className="p-4">
-					<div className="ml-auto text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--btn-hover-bg)">
+					<div className="ml-auto flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--btn-hover-bg) text-xs font-medium">
 						{apisByCategory.map((apiCat, index) => (
 							<button
 								key={apiCat + 'governance-table-filter'}
 								onClick={() => setApiCategoryIndex(index)}
 								data-active={apiCategoryIndex === index}
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
+								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
 							>
 								{apiCat}
 							</button>

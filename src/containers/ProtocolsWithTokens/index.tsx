@@ -202,7 +202,7 @@ const defaultColumns = (
 					null
 
 				return (
-					<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
+					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 						{row.subRows?.length > 0 ? (
 							<button
 								className="absolute -left-[18px]"
@@ -231,12 +231,12 @@ const defaultColumns = (
 						<TokenLogo logo={row.original.logo} data-lgonly />
 
 						{row.original.chains.length ? (
-							<span className="flex flex-col -my-2">
+							<span className="-my-2 flex flex-col">
 								<BasicLink
 									href={`/${basePath}/${row.original.slug}${
 										chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''
 									}`}
-									className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+									className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 								>
 									{value}
 								</BasicLink>
@@ -248,7 +248,7 @@ const defaultColumns = (
 						) : (
 							<BasicLink
 								href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								{value}
 							</BasicLink>

@@ -26,15 +26,15 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 	const { data, prevData } = props
 	const [bobo, setBobo] = React.useState(false)
 	return (
-		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+			<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 				<p className="flex flex-col">
 					<TotalLiquidable {...data} />
 				</p>
-				<p className="hidden md:flex flex-col">
+				<p className="hidden flex-col md:flex">
 					<LiquidableChanges24H data={data} prevData={prevData} />
 				</p>
-				<p className="hidden md:flex flex-col">
+				<p className="hidden flex-col md:flex">
 					<DangerousPositionsAmount data={data} />
 				</p>
 				<CSVDownloadButton
@@ -45,15 +45,15 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					className="mt-auto mr-auto"
 				/>
 			</div>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-4 p-3 col-span-2 min-h-[458px]">
-				<div className="flex items-center gap-4 flex-wrap">
+			<div className="col-span-2 flex min-h-[458px] flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<div className="flex flex-wrap items-center gap-4">
 					<StackBySwitch />
 					<CurrencyToggle symbol={data.symbol} />
 					<CumulativeToggle />
 				</div>
 				<button
 					onClick={() => setBobo(!bobo)}
-					className="absolute -bottom-9 left-0 xl:bottom-[initial] xl:top-0 xl:right-0 xl:left-[initial] z-1"
+					className="absolute -bottom-9 left-0 z-1 xl:top-0 xl:right-0 xl:bottom-[initial] xl:left-[initial]"
 				>
 					<span className="sr-only">Enable Goblin Mode</span>
 					<Image src={boboLogo} width={34} height={34} alt="bobo cheers" className="min-h-[34px] w-[34px]" />
@@ -73,18 +73,18 @@ const CurrencyToggle = (props: { symbol: string }) => {
 	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 
 	return (
-		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form) max-sm:w-full">
+		<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form) max-sm:w-full">
 			<button
 				data-active={!isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}
-				className="shrink-0 px-3 py-[6px] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+				className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				{props.symbol.toUpperCase()}
 			</button>
 			<button
 				data-active={isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}
-				className="shrink-0 px-3 py-[6px] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+				className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				USD
 			</button>
@@ -117,7 +117,7 @@ const DangerousPositionsAmount = (props: { data: ChartData }) => {
 	return (
 		<>
 			<span className="text-(--text-label)">Within -20% of current price</span>
-			<span className="font-semibold text-2xl font-jetbrains">${getReadableValue(dangerousPositionsAmount)}</span>
+			<span className="font-jetbrains text-2xl font-semibold">${getReadableValue(dangerousPositionsAmount)}</span>
 		</>
 	)
 }
@@ -170,7 +170,7 @@ const LastUpdated = ({ data }) => {
 
 	return (
 		<>
-			<p className="flex items-center justify-end gap-1 flex-nowrap italic -mt-4 opacity-60">
+			<p className="-mt-4 flex flex-nowrap items-center justify-end gap-1 italic opacity-60">
 				<Icon name="clock" height={12} width={12} />
 				<span suppressHydrationWarning>Last updated {minutesAgo}min ago</span>
 			</p>

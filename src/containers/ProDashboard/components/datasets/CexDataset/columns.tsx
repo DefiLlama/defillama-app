@@ -37,12 +37,12 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 			const coinSymbol = row.original.coinSymbol
 
 			return (
-				<span className="flex items-center gap-2 relative pl-6">
+				<span className="relative flex items-center gap-2 pl-6">
 					<span className="shrink-0">{index + 1}</span>
 
 					<BasicLink
 						href={`/cex/${row.original.slug || name}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{name}
 						{coinSymbol && coinSymbol !== '-' && <span className="text-(--text-tertiary)"> ({coinSymbol})</span>}

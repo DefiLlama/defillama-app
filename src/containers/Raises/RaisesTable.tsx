@@ -62,15 +62,15 @@ export function RaisesTable({ raises, downloadCsv }) {
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
-				<label className="relative w-full sm:max-w-[280px] mr-auto">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+				<label className="relative mr-auto w-full sm:max-w-[280px]">
 					<span className="sr-only">Search projects...</span>
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						name="search"
@@ -79,14 +79,14 @@ export function RaisesTable({ raises, downloadCsv }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				<a
 					target="_blank"
 					rel="noreferrer noopener"
 					href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093"
-					className="border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 justify-center rounded-md px-2 py-[6px] text-xs"
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
 					<span>Methodology & biases</span>
 					<Icon name="external-link" height={12} width={12} />
@@ -96,11 +96,11 @@ export function RaisesTable({ raises, downloadCsv }) {
 					onClick={() => {
 						window.open('https://api.llama.fi/raises')
 					}}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 				<CSVDownloadButton
 					onClick={downloadCsv}
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 

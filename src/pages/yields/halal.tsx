@@ -130,7 +130,7 @@ export default function YieldPlots(data) {
 	return (
 		<Layout title={`Halal - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<p className="bg-(--cards-bg) p-3 rounded-md text-center">
+			<p className="rounded-md bg-(--cards-bg) p-3 text-center">
 				This list aims to a practical tracker for halal defi yields.
 				<br />
 				Shariah-compliant defi is pretty subjective so our approach is to be practical and list DEXs, yield farming and
@@ -140,7 +140,7 @@ export default function YieldPlots(data) {
 				<br />
 				<button
 					onClick={() => setMethodologyActivated((prev) => !prev)}
-					className="block text-(--blue) mx-auto font-medium hover:underline"
+					className="mx-auto block font-medium text-(--blue) hover:underline"
 				>
 					Full explanation of methodology
 				</button>

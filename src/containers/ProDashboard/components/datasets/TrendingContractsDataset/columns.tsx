@@ -39,7 +39,7 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 					href={explorerUrl}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="flex items-center gap-3 text-blue-600 dark:text-blue-400 hover:underline"
+					className="flex items-center gap-3 text-blue-600 hover:underline dark:text-blue-400"
 				>
 					<span className="font-medium">{name || `${value.slice(0, 4)}...${value.slice(-4)}`}</span>
 				</a>
@@ -50,7 +50,7 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 		header: 'Transactions',
 		accessorKey: 'txns',
 		size: 120,
-		cell: ({ getValue }) => <span className="font-mono pro-text1">{(getValue() as number).toLocaleString()}</span>
+		cell: ({ getValue }) => <span className="pro-text1 font-mono">{(getValue() as number).toLocaleString()}</span>
 	},
 	{
 		header: 'Tx Growth',
@@ -69,7 +69,7 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 		header: 'Active Accounts',
 		accessorKey: 'active_accounts',
 		size: 140,
-		cell: ({ getValue }) => <span className="font-mono pro-text1">{(getValue() as number).toLocaleString()}</span>
+		cell: ({ getValue }) => <span className="pro-text1 font-mono">{(getValue() as number).toLocaleString()}</span>
 	},
 	{
 		header: 'Account Growth',
@@ -88,7 +88,7 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 		header: 'Gas Spent',
 		accessorKey: 'gas_spend',
 		size: 120,
-		cell: ({ getValue }) => <span className="font-mono pro-text1">{(getValue() as number)?.toFixed(2)} ETH</span>
+		cell: ({ getValue }) => <span className="pro-text1 font-mono">{(getValue() as number)?.toFixed(2)} ETH</span>
 	},
 	{
 		header: 'Gas Growth',

@@ -163,13 +163,13 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 	})
 
 	return (
-		<div className="flex flex-col min-h-[360px]">
+		<div className="flex min-h-[360px] flex-col">
 			{loadingCharts ? (
-				<p className="text-center text-xs my-auto min-h-[360px] flex flex-col items-center justify-center">
+				<p className="my-auto flex min-h-[360px] flex-col items-center justify-center text-center text-xs">
 					fetching {loadingCharts}...
 				</p>
 			) : (
-				<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 					<ProtocolLineBarChart
 						chartData={finalCharts}
 						chartColors={props.chartColors}

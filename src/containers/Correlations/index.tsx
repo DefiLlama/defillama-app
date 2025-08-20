@@ -31,14 +31,14 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
 			<Ariakit.Dialog className="dialog flex flex-col items-center sm:max-w-[340px]">
-				<span className="flex items-center gap-1 w-full">
+				<span className="flex w-full items-center gap-1">
 					<input
 						value={search}
 						onChange={(e) => {
 							setSearch(e.target?.value)
 						}}
 						placeholder="Search token..."
-						className="bg-white dark:bg-black rounded-md py-2 px-3 flex-1"
+						className="flex-1 rounded-md bg-white px-3 py-2 dark:bg-black"
 						autoFocus
 					/>
 					<Ariakit.DialogDismiss>
@@ -47,13 +47,13 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 					</Ariakit.DialogDismiss>
 				</span>
 
-				<div className="flex flex-col overflow-y-auto w-full max-h-[400px]">
+				<div className="flex max-h-[400px] w-full flex-col overflow-y-auto">
 					{filteredCoins.slice(0, resultsLength + 1).map((coin) => {
 						return (
 							<button
 								key={coin.name}
 								onClick={() => selectCoin(coin)}
-								className="w-full flex items-center gap-2 py-2 border-b border-black/40 dark:border-white/40"
+								className="flex w-full items-center gap-2 border-b border-black/40 py-2 dark:border-white/40"
 							>
 								<img
 									alt={''}
@@ -64,7 +64,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 									onError={(e) => {
 										e.currentTarget.src = '/placeholder.png'
 									}}
-									className="inline-block object-cover aspect-square rounded-full bg-(--bg-tertiary) shrink-0"
+									className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 								/>
 								<span>
 									{coin.name} ({coin.symbol.toUpperCase()})
@@ -75,7 +75,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 
 					{resultsLength < filteredCoins.length ? (
 						<button
-							className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+							className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 							onClick={showMoreResults}
 						>
 							See more...
@@ -155,7 +155,7 @@ export default function Correlations({ coinsData }) {
 
 	if (!isClient) {
 		return (
-			<h1 className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3 text-center text-xl font-semibold">
+			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-center text-xl font-semibold">
 				Correlations Matrix
 			</h1>
 		)
@@ -163,25 +163,25 @@ export default function Correlations({ coinsData }) {
 
 	return (
 		<>
-			<div className="p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center flex-wrap justify-between gap-4">
+			<div className="flex flex-wrap items-center justify-between gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<h1 className="text-xl font-semibold">Correlations Matrix</h1>
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					<button
-						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						onClick={() => setPeriod(7)}
 						data-active={period === 7}
 					>
 						7d
 					</button>
 					<button
-						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						onClick={() => setPeriod(30)}
 						data-active={period === 30}
 					>
 						1m
 					</button>
 					<button
-						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						onClick={() => setPeriod(365)}
 						data-active={period === 365}
 					>
@@ -190,9 +190,9 @@ export default function Correlations({ coinsData }) {
 				</div>
 			</div>
 
-			<div className="p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-4 items-center justify-center">
+			<div className="flex flex-col items-center justify-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-col sm:flex-row">
-					<div className="no-scrollbar overflow-auto mr-8 flex flex-col">
+					<div className="no-scrollbar mr-8 flex flex-col overflow-auto">
 						<h2 className="text-lg font-medium">Selected Coins</h2>
 						{Object.values(selectedCoins).map((coin) =>
 							coin ? (
@@ -211,7 +211,7 @@ export default function Correlations({ coinsData }) {
 											{ shallow: true }
 										)
 									}
-									className="flex items-center gap-2 px-1 py-2 border-b border-black/40 dark:border-white/40"
+									className="flex items-center gap-2 border-b border-black/40 px-1 py-2 dark:border-white/40"
 								>
 									<img
 										alt={''}
@@ -222,25 +222,25 @@ export default function Correlations({ coinsData }) {
 										onError={(e) => {
 											e.currentTarget.src = '/placeholder.png'
 										}}
-										className="inline-block object-cover aspect-square rounded-full bg-(--bg-tertiary) shrink-0"
+										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
 									<span>{coin.symbol.toUpperCase()}</span>
 									<Icon name="x" height={14} width={14} className="ml-auto" />
 								</button>
 							) : null
 						)}
-						<button onClick={dialogStore.toggle} className="w-full text-xl py-2">
+						<button onClick={dialogStore.toggle} className="w-full py-2 text-xl">
 							+
 						</button>
 					</div>
-					<table className="table-fixed text-center overflow-hidden max-w-lg">
+					<table className="max-w-lg table-fixed overflow-hidden text-center">
 						<thead>
 							<tr>
 								<th />
 								{coins.map((coin) => (
 									<td
 										key={`1-${coin.id}-${period}`}
-										className="w-12 h-12 relative hover:after:absolute hover:after:left-0 hover:after:bg-[rgba(0,153,255,0.5)] hover:after:top-[-5000px] hover:after:h-[10000px] hover:after:w-full hover:after:z-[-1] hover:after:content-[''] font-bold"
+										className="relative h-12 w-12 font-bold hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:z-[-1] hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(0,153,255,0.5)] hover:after:content-['']"
 									>
 										{coin?.symbol?.toUpperCase()}
 									</td>
@@ -248,7 +248,7 @@ export default function Correlations({ coinsData }) {
 								<td>
 									<button
 										onClick={dialogStore.toggle}
-										className="w-12 h-12 text-2xl hover:bg-[rgba(0,153,255,0.5)] focus-visible:hover:bg-[rgba(0,153,255,0.5)]"
+										className="h-12 w-12 text-2xl hover:bg-[rgba(0,153,255,0.5)] focus-visible:hover:bg-[rgba(0,153,255,0.5)]"
 									>
 										+
 									</button>
@@ -258,7 +258,7 @@ export default function Correlations({ coinsData }) {
 						<tbody>
 							{coins.map((coin) => (
 								<tr key={`2-${coin.id}-${period}`} className="hover:bg-[rgba(0,153,255,0.5)]">
-									<td className="w-12 h-12 relative hover:after:absolute hover:after:left-0 hover:after:bg-[rgba(0,153,255,0.5)] hover:after:top-[-5000px] hover:after:h-[10000px] hover:after:w-full hover:after:z-[-1] hover:after:content-[''] font-bold">
+									<td className="relative h-12 w-12 font-bold hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:z-[-1] hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(0,153,255,0.5)] hover:after:content-['']">
 										{coin?.symbol?.toUpperCase()}
 									</td>
 									{correlations[coin.id]?.map((corr, i) =>
@@ -273,7 +273,7 @@ export default function Correlations({ coinsData }) {
 													onError={(e) => {
 														e.currentTarget.src = '/placeholder.png'
 													}}
-													className="inline-block object-cover aspect-square rounded-full bg-(--bg-tertiary) shrink-0"
+													className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 												/>
 											</td>
 										) : (
@@ -283,7 +283,7 @@ export default function Correlations({ coinsData }) {
 													backgroundColor:
 														+corr > 0 ? `rgba(53, 222, 59, ${Number(corr)})` : `rgb(255,0,0, ${-Number(corr)})`
 												}}
-												className="w-12 h-12 relative hover:after:absolute hover:after:left-0 hover:after:bg-[rgba(0,153,255,0.5)] hover:after:top-[-5000px] hover:after:h-[10000px] hover:after:w-full hover:after:z-[-1] hover:after:content-['']"
+												className="relative h-12 w-12 hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:z-[-1] hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(0,153,255,0.5)] hover:after:content-['']"
 											>
 												{corr}
 											</td>
@@ -295,7 +295,7 @@ export default function Correlations({ coinsData }) {
 								<td>
 									<button
 										onClick={dialogStore.toggle}
-										className="w-12 h-12 text-2xl hover:bg-[rgba(0,153,255,0.5)] focus-visible:hover:bg-[rgba(0,153,255,0.5)]"
+										className="h-12 w-12 text-2xl hover:bg-[rgba(0,153,255,0.5)] focus-visible:hover:bg-[rgba(0,153,255,0.5)]"
 									>
 										+
 									</button>
@@ -323,7 +323,7 @@ export default function Correlations({ coinsData }) {
 						}}
 					/>
 				</div>
-				<p className="text-center mx-auto text-sm max-w-xl text-(--text-secondary)">
+				<p className="mx-auto max-w-xl text-center text-sm text-(--text-secondary)">
 					Correlation is calculated by using each day as a single data point, and this calculation depends on the
 					selected period. For example, if you select a period of one year, the correlation will be computed from 365
 					data points.

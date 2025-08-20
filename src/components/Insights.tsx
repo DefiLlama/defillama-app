@@ -59,19 +59,19 @@ export function InsightsPages() {
 
 	return (
 		<>
-			<div className="p-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-2">
+			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h1 className="text-2xl font-bold">Insights</h1>
 				<div className="relative">
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						type="text"
 						placeholder="Search..."
-						className="w-full border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
+						className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white"
 						value={searchValue}
 						onChange={(e) => setSearchValue(e.target.value)}
 					/>
@@ -82,16 +82,16 @@ export function InsightsPages() {
 					<div key={category} className="flex flex-col gap-2">
 						<div className="flex flex-row items-center gap-2">
 							<h2 className="text-lg font-bold">{category}</h2>
-							<hr className="border-black/20 dark:border-white/20 flex-1" />
+							<hr className="flex-1 border-black/20 dark:border-white/20" />
 						</div>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
+						<div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{insights.map((insight: any) => (
 								<BasicLink
 									key={`insight-${insight.name}-${insight.route}`}
-									className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+									className="col-span-1 flex min-h-[120px] flex-col items-start gap-[2px] rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
 									href={insight.route}
 								>
-									<span className="flex items-center gap-1 flex-wrap justify-between w-full">
+									<span className="flex w-full flex-wrap items-center justify-between gap-1">
 										<span className="font-medium">{insight.name}</span>
 										{totalTrackedByMetric && insight.totalTrackedKey ? (
 											<span className="text-xs text-(--link)">
@@ -99,7 +99,7 @@ export function InsightsPages() {
 											</span>
 										) : null}
 									</span>
-									<span className="text-(--text-form) text-start whitespace-pre-wrap">{insight.description ?? ''}</span>
+									<span className="text-start whitespace-pre-wrap text-(--text-form)">{insight.description ?? ''}</span>
 								</BasicLink>
 							))}
 						</div>

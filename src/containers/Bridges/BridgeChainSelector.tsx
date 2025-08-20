@@ -38,7 +38,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 					handleClick(values)
 				}}
 			>
-				<Ariakit.Select className="flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium z-10">
+				<Ariakit.Select className="relative z-10 flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 					{currentChain}
 					<Ariakit.SelectArrow className="ml-auto" />
 				</Ariakit.Select>
@@ -49,12 +49,12 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.Combobox
 						placeholder="Search..."
 						autoFocus
-						className="bg-white dark:bg-black rounded-md text-base py-1 px-3 m-3 mb-0"
+						className="m-3 mb-0 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 					/>
 
 					{matches.length > 0 ? (
@@ -64,7 +64,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 									<Ariakit.SelectItem
 										key={`bridge-chain-${option.name}`}
 										value={option.name}
-										className="group flex items-center gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+										className="group flex shrink-0 cursor-pointer items-center gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 										render={<Ariakit.ComboboxItem />}
 									>
 										<span>{option.name}</span>
@@ -73,7 +73,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 							</Ariakit.ComboboxList>
 							{matches.length > viewableMatches ? (
 								<button
-									className="w-full py-4 px-3 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+									className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
@@ -81,7 +81,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 							) : null}
 						</>
 					) : (
-						<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
+						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 					)}
 				</Ariakit.SelectPopover>
 			</Ariakit.SelectProvider>

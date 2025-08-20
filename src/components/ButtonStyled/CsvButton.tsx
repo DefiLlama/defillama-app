@@ -38,7 +38,7 @@ export const CSVDownloadButton = ({
 			<button
 				className={
 					customClassName ||
-					`flex items-center gap-1 justify-center py-2 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-50 disabled:cursor-not-allowed min-w-fit ${
+					`flex min-w-fit items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50 ${
 						className ?? ''
 					}`
 				}
@@ -55,7 +55,7 @@ export const CSVDownloadButton = ({
 			>
 				{shouldShowLoading ? (
 					<svg
-						className="animate-spin mx-auto h-[14px] w-[14px] shrink-0"
+						className="mx-auto h-[14px] w-[14px] shrink-0 animate-spin"
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
 						viewBox="0 0 24 24"

@@ -295,8 +295,8 @@ export function ProtocolsByChainTable({
 
 	return (
 		<div className="rounded-md bg-(--cards-bg)">
-			<div className="flex items-center justify-between flex-wrap gap-2 p-3">
-				<h3 className="text-lg font-medium mr-auto">Protocol Rankings</h3>
+			<div className="flex flex-wrap items-center justify-between gap-2 p-3">
+				<h3 className="mr-auto text-lg font-medium">Protocol Rankings</h3>
 				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
@@ -412,15 +412,15 @@ export function ProtocolsTableWithSearch({
 	}, [projectName, instance])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="p-3 flex items-center justify-between gap-4">
-				<h1 className="text-lg font-semibold mr-auto">Protocol Rankings</h1>
-				<div className="relative w-full sm:max-w-[280px] ml-auto">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex items-center justify-between gap-4 p-3">
+				<h1 className="mr-auto text-lg font-semibold">Protocol Rankings</h1>
+				<div className="relative ml-auto w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						value={projectName}
@@ -428,7 +428,7 @@ export function ProtocolsTableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>

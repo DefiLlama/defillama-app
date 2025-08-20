@@ -5,11 +5,11 @@ import { SEO } from '~/components/SEO'
 export default function FulfillmentPolicies() {
 	return (
 		<SubscribeLayout2>
-			<div className="mb-[64px] flex flex-col gap-8 w-full max-w-xl mx-auto text-[#d5d5d5]">
-				<h1 className="text-3xl text-center text-white font-bold">Fulfillment Policies</h1>
+			<div className="mx-auto mb-[64px] flex w-full max-w-xl flex-col gap-8 text-[#d5d5d5]">
+				<h1 className="text-center text-3xl font-bold text-white">Fulfillment Policies</h1>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">Refund Policy</h2>
+					<h2 className="text-xl font-semibold text-white">Refund Policy</h2>
 					<p>
 						If you haven't made any request to the API yet and all your credits are unused, please send an email to{' '}
 						<a href="mailto:support@defillama.com" className="underline">
@@ -21,7 +21,7 @@ export default function FulfillmentPolicies() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">Cancellation Policy</h2>
+					<h2 className="text-xl font-semibold text-white">Cancellation Policy</h2>
 					<p>You can cancel your subscription at any time.</p>
 				</div>
 			</div>
@@ -37,10 +37,10 @@ export function SubscribeLayout2({ children }) {
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<SEO />
-			<div className="col-span-full w-full flex flex-col">
-				<header className="min-h-[64px] py-3 px-5 flex items-center justify-end gap-4"></header>
+			<div className="col-span-full flex w-full flex-col">
+				<header className="flex min-h-[64px] items-center justify-end gap-4 px-5 py-3"></header>
 				{children}
-				<footer className="mt-auto py-3 px-5 flex flex-wrap items-center justify-center gap-4 text-[#8a8c90]">
+				<footer className="mt-auto flex flex-wrap items-center justify-center gap-4 px-5 py-3 text-[#8a8c90]">
 					<a href="https://discord.defillama.com" className="underline">
 						Discord
 					</a>

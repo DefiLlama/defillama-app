@@ -17,7 +17,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 					<TokenLogo logo={item.image} fallbackLogo={item?.image} />
 					<BasicLink
 						href={`/nfts/collection/${slug(item.collectionId)}`}
-						className="text-sm font-medium text-(--link-text) text-ellipsis whitespace-nowrap hover:underline"
+						className="text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>{`${item.name}`}</BasicLink>
 				</span>
 			)
@@ -31,7 +31,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<span className="flex items-center gap-1 justify-end flex-nowrap">
+					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{info.getValue() as string}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
@@ -73,7 +73,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<span className="flex items-center gap-1 justify-end flex-nowrap">
+					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{info.getValue() as string}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
@@ -97,7 +97,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<span className="flex items-center gap-1 justify-end flex-nowrap">
+					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{info.getValue() as string}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>

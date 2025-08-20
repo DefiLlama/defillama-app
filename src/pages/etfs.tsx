@@ -142,8 +142,8 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 	return (
 		<>
-			<div className="flex flex-col md:flex-row gap-1 min-h-[434px]">
-				<div className="w-full md:w-80 flex flex-col bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="flex min-h-[434px] flex-col gap-1 md:flex-row">
+				<div className="flex w-full flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) md:w-80">
 					<div className="flex flex-col gap-2 p-3">
 						<h1 className="text-xl font-semibold">Daily Stats</h1>
 						<span className="text-xs opacity-70">{lastUpdated}</span>
@@ -165,13 +165,13 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 						/>
 					</div>
 				</div>
-				<div className="flex flex-col flex-1 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+				<div className="flex w-full flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex flex-wrap justify-end gap-2 p-3">
-						<h2 className="text-lg font-semibold mr-auto">Flows (Source: Farside)</h2>
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
+						<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 							<button
 								data-active={groupBy === 'daily'}
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								onClick={() => setGroupBy('daily')}
 							>
 								Daily
@@ -179,7 +179,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 							<button
 								data-active={groupBy === 'weekly'}
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								onClick={() => setGroupBy('weekly')}
 							>
 								Weekly
@@ -187,7 +187,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 							<button
 								data-active={groupBy === 'monthly'}
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								onClick={() => setGroupBy('monthly')}
 							>
 								Monthly
@@ -195,7 +195,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 							<button
 								data-active={groupBy === 'cumulative'}
-								className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								onClick={() => setGroupBy('cumulative')}
 							>
 								Cumulative
@@ -234,10 +234,10 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 								}
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+							className="ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</div>
-					<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+					<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<LineAndBarChart charts={finalCharts} groupBy={groupBy === 'cumulative' ? 'daily' : groupBy} />
 					</React.Suspense>
 				</div>

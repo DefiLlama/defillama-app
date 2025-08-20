@@ -6,14 +6,14 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 	const endHourNum = Number(endHour || 0)
 
 	return (
-		<div className="flex items-center flex-wrap gap-y-2">
+		<div className="flex flex-wrap items-center gap-y-2">
 			<div className="flex items-center gap-2 text-sm">
 				<span className="w-12 text-right">From</span>
 				<input
 					type="date"
 					value={startDate}
 					onChange={(e) => onStartChange(e.target.value)}
-					className="py-1 px-2 text-sm bg-white dark:bg-black text-black dark:text-white rounded border border-(--form-control-border)"
+					className="rounded border border-(--form-control-border) bg-white px-2 py-1 text-sm text-black dark:bg-black dark:text-white"
 				/>
 				<input
 					type="number"
@@ -21,7 +21,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					max={isSameDate ? endHourNum : 23}
 					value={startHour}
 					onChange={(e) => setHours([e.target.value, endHour])}
-					className="py-1 px-2 text-sm bg-white dark:bg-black text-black dark:text-white rounded border border-(--form-control-border) w-16"
+					className="w-16 rounded border border-(--form-control-border) bg-white px-2 py-1 text-sm text-black dark:bg-black dark:text-white"
 				/>
 				<span>h</span>
 			</div>
@@ -33,7 +33,7 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					value={endDate}
 					onChange={(e) => onEndChange(e.target.value)}
 					min={startDate}
-					className={`py-1 px-2 text-sm bg-white dark:bg-black text-black dark:text-white rounded ${
+					className={`rounded bg-white px-2 py-1 text-sm text-black dark:bg-black dark:text-white ${
 						dateError ? 'border-2 border-red-500' : 'border border-(--form-control-border)'
 					}`}
 				/>
@@ -43,12 +43,12 @@ export const DateFilter = ({ startDate, endDate, onStartChange, onEndChange, hou
 					max="23"
 					value={endHour}
 					onChange={(e) => setHours([startHour, e.target.value])}
-					className="py-1 px-2 text-sm bg-white dark:bg-black text-black dark:text-white rounded border border-(--form-control-border) w-16"
+					className="w-16 rounded border border-(--form-control-border) bg-white px-2 py-1 text-sm text-black dark:bg-black dark:text-white"
 				/>
 				<span>h</span>
 			</div>
 
-			{dateError && <p className="text-red-500 text-sm">{dateError}</p>}
+			{dateError && <p className="text-sm text-red-500">{dateError}</p>}
 		</div>
 	)
 }

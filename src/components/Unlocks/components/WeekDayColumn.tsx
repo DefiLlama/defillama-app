@@ -21,23 +21,16 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 	return (
 		<div
 			key={dateStr}
-			className={`flex flex-col border border-(--divider) bg-(--bg-glass) p-3 min-h-48 ${isToday ? 'border-(--blue)' : ''}`}
+			className={`flex min-h-48 flex-col border border-(--divider) bg-(--bg-glass) p-3 ${isToday ? 'border-(--blue)' : ''}`}
 		>
-			<div className="text-sm font-medium mb-2 pb-2 border-b border-(--divider) flex justify-between items-center">
+			<div className="mb-2 flex items-center justify-between border-b border-(--divider) pb-2 text-sm font-medium">
 				<span>
-					<span className="text-(--text-secondary) mr-1.5">{dayInfo.date?.format('ddd')}</span>
-					<span className={isToday ? 'text-(--blue) font-bold' : 'text-(--text-primary)'}>{dayInfo.date?.date()}</span>
+					<span className="mr-1.5 text-(--text-secondary)">{dayInfo.date?.format('ddd')}</span>
+					<span className={isToday ? 'font-bold text-(--blue)' : 'text-(--text-primary)'}>{dayInfo.date?.date()}</span>
 				</span>
 				{isToday && <span className="text-xs font-normal text-(--blue)">(Today)</span>}
 			</div>
-			<div
-				className="flex flex-col gap-1.5 overflow-y-auto grow
-				 [&::-webkit-scrollbar]:w-1.5
-				 [&::-webkit-scrollbar-track]:bg-transparent
-				 [&::-webkit-scrollbar-thumb]:bg-(--blue)/50
-				 [&:hover::-webkit-scrollbar-thumb]:bg-(--blue)
-				 pr-1 -mr-1"
-			>
+			<div className="-mr-1 flex grow flex-col gap-1.5 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-(--blue)/50 [&::-webkit-scrollbar-track]:bg-transparent [&:hover::-webkit-scrollbar-thumb]:bg-(--blue)">
 				{hasUnlocks && dayData ? (
 					dayData.events.map((event, i) => (
 						<BasicLink
@@ -46,26 +39,26 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 							target="_blank"
 							className="text-sm font-medium text-(--link-text)"
 						>
-							<div className="text-xs p-2 rounded-md bg-(--bg-card) hover:bg-(--bg-muted) cursor-pointer transition-colors duration-150 ease-in-out shadow-xs">
-								<div className="flex justify-between items-start gap-1 mb-0.5">
-									<div className="font-medium text-(--text-primary) flex items-center gap-1.5 min-w-0 shrink">
+							<div className="cursor-pointer rounded-md bg-(--bg-card) p-2 text-xs shadow-xs transition-colors duration-150 ease-in-out hover:bg-(--bg-muted)">
+								<div className="mb-0.5 flex items-start justify-between gap-1">
+									<div className="flex min-w-0 shrink items-center gap-1.5 font-medium text-(--text-primary)">
 										<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
 										<span className="truncate">{event.protocol}</span>
 									</div>
 									{event.unlockType && (
-										<span className="px-1.5 py-0.5 rounded-sm bg-(--bg-muted) text-white text-[0.6rem] sm:text-[0.65rem] font-medium whitespace-nowrap shrink-0">
+										<span className="shrink-0 rounded-sm bg-(--bg-muted) px-1.5 py-0.5 text-[0.6rem] font-medium whitespace-nowrap text-white sm:text-[0.65rem]">
 											{event.unlockType}
 										</span>
 									)}
 								</div>
-								<div className="text-(--text-secondary) pl-[calc(16px+0.375rem)]">
+								<div className="pl-[calc(16px+0.375rem)] text-(--text-secondary)">
 									{formattedNum(event.value, true)}
 								</div>
 							</div>
 						</BasicLink>
 					))
 				) : (
-					<div className="grow flex items-center justify-center text-center text-xs text-(--text-secondary) opacity-75">
+					<div className="flex grow items-center justify-center text-center text-xs text-(--text-secondary) opacity-75">
 						No unlocks
 					</div>
 				)}

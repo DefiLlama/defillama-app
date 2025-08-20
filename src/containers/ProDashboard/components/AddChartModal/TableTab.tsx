@@ -195,7 +195,7 @@ export function TableTab({
 	return (
 		<div className="flex flex-col gap-4">
 			<div>
-				<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">Table Type</label>
+				<label className="pro-text2 mb-1.5 block text-sm font-medium md:mb-2">Table Type</label>
 				<ReactSelect
 					options={tableTypeOptions}
 					value={tableTypeOptions.find((option) => option.value === selectedTableType)}
@@ -343,18 +343,18 @@ export function TableTab({
 						maxSelections={4}
 					/>
 					<div
-						className="flex items-center gap-2 px-3 py-1.5 border border-(--divider) hover:border-(--text-tertiary) transition-colors cursor-pointer"
+						className="flex cursor-pointer items-center gap-2 border border-(--divider) px-3 py-1.5 transition-colors hover:border-(--text-tertiary)"
 						onClick={() => onIncludeCexChange(!includeCex)}
 					>
-						<div className="relative w-4 h-4">
+						<div className="relative h-4 w-4">
 							<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
 							<div
-								className={`w-4 h-4 border-2 transition-all ${
-									includeCex ? 'bg-(--primary) border-(--primary)' : 'bg-transparent border-(--text-tertiary)'
+								className={`h-4 w-4 border-2 transition-all ${
+									includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
 								}`}
 							>
 								{includeCex && (
-									<svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+									<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 										<path
 											fillRule="evenodd"
 											d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -364,7 +364,7 @@ export function TableTab({
 								)}
 							</div>
 						</div>
-						<span className="text-sm font-medium pro-text2">Include CEXs</span>
+						<span className="pro-text2 text-sm font-medium">Include CEXs</span>
 					</div>
 				</>
 			) : null}

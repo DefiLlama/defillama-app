@@ -157,7 +157,7 @@ export function ChainsByAdapter(props: IProps) {
 					<span>Are we missing any protocol?</span>{' '}
 					<a
 						href="https://airtable.com/shrtBA9lvj6E036Qx"
-						className="text-(--blue) underline font-medium"
+						className="font-medium text-(--blue) underline"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -169,14 +169,14 @@ export function ChainsByAdapter(props: IProps) {
 			{props.adapterType !== 'fees' && (
 				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} type={props.type} />
 			)}
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="flex items-center justify-end flex-wrap gap-4 p-2">
-					<div className="relative w-full sm:max-w-[280px] mr-auto">
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
+					<div className="relative mr-auto w-full sm:max-w-[280px]">
 						<Icon
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
 							value={projectName}
@@ -184,7 +184,7 @@ export function ChainsByAdapter(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 					<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
@@ -210,14 +210,14 @@ const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains']
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<span className="flex items-center gap-2 relative">
+				<span className="relative flex items-center gap-2">
 					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
 					<BasicLink
 						href={route ? `/${route}/chain/${slug(value)}` : `/chain/${slug(value)}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
 						{value}
 					</BasicLink>

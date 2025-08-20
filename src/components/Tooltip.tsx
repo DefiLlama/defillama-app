@@ -43,7 +43,7 @@ export function Tooltip({
 		<Ariakit.TooltipProvider store={store}>
 			<Ariakit.TooltipAnchor
 				store={store}
-				className={`flex items-center overflow-hidden text-ellipsis whitespace-nowrap shrink-0 ${className ?? ''}`}
+				className={`flex shrink-0 items-center overflow-hidden text-ellipsis whitespace-nowrap ${className ?? ''}`}
 				render={<span />}
 				onTouchStart={store.toggle}
 				onMouseLeave={store.hide}
@@ -54,7 +54,7 @@ export function Tooltip({
 
 			<Ariakit.Tooltip
 				store={store}
-				className="z-50 text-sm p-2 max-w-56 whitespace-pre-wrap rounded-md bg-(--bg-main) border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] overflow-auto max-h-[80vh]"
+				className="z-50 max-h-[80vh] max-w-56 overflow-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm whitespace-pre-wrap dark:border-[hsl(204,3%,32%)]"
 				unmountOnHide
 				portal
 			>

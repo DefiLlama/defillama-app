@@ -37,7 +37,7 @@ const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
 	return (
-		<div className="flex flex-col gap-1 col-span-full xl:col-span-1">
+		<div className="col-span-full flex flex-col gap-1 xl:col-span-1">
 			{!isEmissionsPage && <h3>Emissions</h3>}
 			<ChartContainer data={data} isEmissionsPage={isEmissionsPage} />
 		</div>
@@ -295,14 +295,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	return (
 		<>
-			<div className="flex flex-col sm:flex-row gap-4 sm:justify-between items-center w-full bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+			<div className="flex w-full flex-col items-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 sm:flex-row sm:justify-between">
 				{isEmissionsPage ? (
 					<h1 className="flex items-center gap-2 text-xl font-semibold">
 						<TokenLogo logo={tokenIconUrl(data.name)} />
 						<span>{data.name}</span>
 					</h1>
 				) : null}
-				<div className="flex flex-wrap gap-2 justify-center sm:justify-end w-full sm:w-auto">
+				<div className="flex w-full flex-wrap justify-center gap-2 sm:w-auto sm:justify-end">
 					{hasGroupAllocationData && (
 						<Switch
 							label="Group Allocation"
@@ -325,9 +325,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			</div>
 
 			{data?.tokenPrice?.price || data?.meta?.circSupply || data?.meta?.maxSupply || tokenMcap || tokenVolume ? (
-				<div className="flex flex-col gap-4 items-center p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+				<div className="flex w-full flex-col items-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<h1 className="text-center text-xl font-semibold">Token Overview</h1>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-center w-full place-content-center">
+					<div className="grid w-full grid-cols-1 place-content-center gap-4 text-center md:grid-cols-2 lg:grid-cols-3">
 						{data?.tokenPrice?.price ? (
 							<div className="flex flex-col items-center">
 								<span className="text-(--text-tertiary)">Price</span>
@@ -384,17 +384,17 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			) : null}
 
 			{data.chartData?.realtime?.length > 0 && (
-				<div className="text-xs font-medium p-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) p-3 text-xs font-medium text-(--text-form)">
 					<button
 						data-active={dataType === 'documented'}
-						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						onClick={() => setDataType('documented')}
 					>
 						Documented
 					</button>
 					<button
 						data-active={dataType === 'realtime'}
-						className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						onClick={() => setDataType('realtime')}
 					>
 						Realtime
@@ -404,7 +404,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div className="flex flex-col gap-2">
 				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
-					<LazyChart className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-2 relative min-h-[406px]">
+					<LazyChart className="relative min-h-[406px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 						<div className="absolute right-2 z-10">
 							<SelectWithCombobox
 								allValues={availableCategories}
@@ -455,9 +455,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					</LazyChart>
 				)}
 
-				<div className="grid grid-cols-2 gap-2 min-h-[398px]">
+				<div className="grid min-h-[398px] grid-cols-2 gap-2">
 					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
-						<LazyChart className="relative col-span-full pt-2 min-h-[398px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full flex min-h-[398px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
 									showLegend
@@ -474,7 +474,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					)}
 
 					{unlockedPercent > 0 && (
-						<LazyChart className="relative col-span-full pt-2 min-h-[398px] bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full flex min-h-[398px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
 									formatTooltip={unlockedPieChartFormatTooltip}
@@ -498,12 +498,12 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				{data.token &&
 				Object.entries(tokenAllocation.current || {}).length &&
 				Object.entries(tokenAllocation.final || {}).length ? (
-					<div className="flex flex-col items-center justify-start p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md h-full">
+					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-semibold">Token Allocation</h1>
-						<div className="flex flex-col text-base gap-2 w-full">
+						<div className="flex w-full flex-col gap-2 text-base">
 							<h4 style={{ fontSize: '16px' }}>Current</h4>
 
-							<div className="flex justify-between flex-wrap">
+							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
 										<p
@@ -517,7 +517,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 							<h4 style={{ fontSize: '16px' }}>Final</h4>
 
-							<div className="flex justify-between flex-wrap">
+							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
 										<p
@@ -533,7 +533,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			</div>
 
 			{data.events?.length > 0 ? (
-				<div className="flex flex-col items-center justify-start p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+				<div className="flex w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<h1 className="text-center text-xl font-semibold">Unlock Events</h1>
 
 					<Pagination
@@ -559,18 +559,18 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</div>
 			) : null}
 
-			<div className="flex flex-wrap *:flex-1 gap-2">
+			<div className="flex flex-wrap gap-2 *:flex-1">
 				{data.sources?.length > 0 ? (
-					<div className="flex flex-col items-center justify-start p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md h-full">
+					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-medium">Sources</h1>
-						<div className="flex flex-col text-base gap-2 w-full">
+						<div className="flex w-full flex-col gap-2 text-base">
 							{data.sources.map((source, i) => (
 								<a
 									href={source}
 									key={source}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="text-base flex items-center font-medium gap-2"
+									className="flex items-center gap-2 text-base font-medium"
 								>
 									<span>
 										{i + 1} {new URL(source).hostname}
@@ -582,9 +582,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					</div>
 				) : null}
 				{data.notes?.length > 0 ? (
-					<div className="flex flex-col items-center justify-start p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md h-full">
+					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-medium">Notes</h1>
-						<div className="flex flex-col text-base gap-2 w-full">
+						<div className="flex w-full flex-col gap-2 text-base">
 							{data.notes.map((note) => (
 								<p key={note}>{note}</p>
 							))}
@@ -592,9 +592,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					</div>
 				) : null}
 				{data.futures?.openInterest || data.futures?.fundingRate ? (
-					<div className="flex flex-col items-center justify-start p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md h-full">
+					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-medium">Futures</h1>
-						<div className="flex flex-col text-base gap-2 w-full">
+						<div className="flex w-full flex-col gap-2 text-base">
 							{data.futures.openInterest ? <p>{`Open Interest: $${formattedNum(data.futures.openInterest)}`}</p> : null}
 
 							<>{data.futures.fundingRate ? <p>{`Funding Rate: ${data.futures.fundingRate}%`}</p> : null}</>

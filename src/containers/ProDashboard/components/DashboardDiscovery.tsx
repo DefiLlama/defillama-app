@@ -51,19 +51,19 @@ export function DashboardDiscovery() {
 			<div className="mb-6">
 				<p className="pro-text3 mb-4">Explore public dashboards created by the community</p>
 
-				<div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+				<div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
 					<DashboardSearch searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
 					<div className="flex items-center gap-4">
 						<div className="flex items-center gap-2">
-							<label className="text-sm pro-text3">Sort by:</label>
+							<label className="pro-text3 text-sm">Sort by:</label>
 							<select
 								value={sortBy}
 								onChange={(e) => {
 									setSortBy(e.target.value as SortOption)
 									setPage(1)
 								}}
-								className="px-3 py-1.5 bg-(--bg-glass) border pro-border pro-text1 focus:outline-hidden focus:border-(--primary)"
+								className="pro-border pro-text1 border bg-(--bg-glass) px-3 py-1.5 focus:border-(--primary) focus:outline-hidden"
 							>
 								<option value="popular">Most Popular</option>
 								<option value="recent">Recently Created</option>
@@ -71,7 +71,7 @@ export function DashboardDiscovery() {
 							</select>
 						</div>
 
-						<div className="flex items-center border pro-border">
+						<div className="pro-border flex items-center border">
 							<button
 								onClick={() => setViewMode('grid')}
 								className={`p-2 ${viewMode === 'grid' ? 'bg-(--primary) text-white' : 'pro-text3 hover:pro-text1'}`}
@@ -92,13 +92,13 @@ export function DashboardDiscovery() {
 
 				{selectedTags.length > 0 && (
 					<div className="mt-4 flex items-center gap-2">
-						<span className="text-sm pro-text3">Active filters:</span>
+						<span className="pro-text3 text-sm">Active filters:</span>
 						<div className="flex flex-wrap gap-2">
 							{selectedTags.map((tag) => (
 								<button
 									key={tag}
 									onClick={() => handleTagClick(tag)}
-									className="px-3 py-1 bg-(--bg-glass) border pro-border pro-text1 text-sm flex items-center gap-1 hover:border-(--pro-glass-border)"
+									className="pro-border pro-text1 flex items-center gap-1 border bg-(--bg-glass) px-3 py-1 text-sm hover:border-(--pro-glass-border)"
 								>
 									{tag}
 									<Icon name="x" height={12} width={12} />
@@ -110,7 +110,7 @@ export function DashboardDiscovery() {
 								setSelectedTags([])
 								setPage(1)
 							}}
-							className="text-sm pro-text3 hover:pro-text1"
+							className="pro-text3 hover:pro-text1 text-sm"
 						>
 							Clear all
 						</button>
@@ -119,13 +119,13 @@ export function DashboardDiscovery() {
 			</div>
 
 			{isLoading ? (
-				<div className="flex justify-center items-center h-64">
+				<div className="flex h-64 items-center justify-center">
 					<LoadingSpinner />
 				</div>
 			) : dashboards.length === 0 ? (
-				<div className="text-center py-12">
+				<div className="py-12 text-center">
 					<Icon name="search" height={48} width={48} className="pro-text3 mx-auto mb-4" />
-					<h3 className="text-lg font-medium pro-text1 mb-2">No dashboards found</h3>
+					<h3 className="pro-text1 mb-2 text-lg font-medium">No dashboards found</h3>
 					<p className="pro-text3">
 						{searchQuery || selectedTags.length > 0
 							? 'Try adjusting your search criteria'
@@ -134,11 +134,11 @@ export function DashboardDiscovery() {
 				</div>
 			) : (
 				<>
-					<div className="mb-4 pro-text3 text-sm">
+					<div className="pro-text3 mb-4 text-sm">
 						Showing {dashboards.length} of {totalItems} dashboards
 					</div>
 
-					<div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
+					<div className={viewMode === 'grid' ? 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
 						{dashboards.map((dashboard) => (
 							<DashboardCard
 								key={dashboard.id}
@@ -151,7 +151,7 @@ export function DashboardDiscovery() {
 					</div>
 
 					{totalPages > 1 && (
-						<div className="flex items-center justify-center gap-2 mt-8">
+						<div className="mt-8 flex items-center justify-center gap-2">
 							<button
 								onClick={() => setPage((p) => Math.max(1, p - 1))}
 								disabled={page === 1}

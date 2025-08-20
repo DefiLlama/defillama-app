@@ -56,7 +56,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 					<>
 						<CSVDownloadButton
 							onClick={onCSVDownload}
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</>
 				}
@@ -84,12 +84,12 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<span className="flex items-center gap-2 relative">
+				<span className="relative flex items-center gap-2">
 					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<BasicLink
 						href={`/bridged/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
 						{getValue() as any}
 					</BasicLink>

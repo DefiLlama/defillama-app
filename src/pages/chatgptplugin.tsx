@@ -5,12 +5,12 @@ import Layout from '~/layout'
 function PluginPage() {
 	return (
 		<Layout title="DefiLlama - ChatGPT Plugin" defaultSEO>
-			<h1 className="text-xl font-semibold bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
 				DefiLlama ChatGPT Plugin
 			</h1>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">About</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">About</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					DefiLlama is the most popular DeFi (Decentralized Finance) data aggregator. The DefiLlama ChatGPT plugin
@@ -18,8 +18,8 @@ function PluginPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">Best Practices</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">Best Practices</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>To achieve the best results from the plugin, follow these steps:</p>
 				<p>1. Ask "What features do you have?" to see the most recent feature list.</p>
@@ -47,8 +47,8 @@ function PluginPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">Legal</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">Legal</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					The DefiLlama ChatGPT plugin does not sell user data. The plugin does not collect any identifying user data.

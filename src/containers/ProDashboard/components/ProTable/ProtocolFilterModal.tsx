@@ -155,10 +155,10 @@ export function ProtocolFilterModal({
 
 	const modalContent = (
 		<>
-			<div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40" onClick={onClose} />
+			<div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs" onClick={onClose} />
 
 			<div
-				className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl max-h-[80vh] shadow-2xl z-50 flex flex-col border pro-divider"
+				className="pro-divider fixed top-1/2 left-1/2 z-50 flex max-h-[80vh] w-full max-w-xl -translate-x-1/2 -translate-y-1/2 flex-col border shadow-2xl"
 				style={{
 					borderRadius: 0,
 					backgroundColor: 'var(--pro-bg1)',
@@ -166,18 +166,18 @@ export function ProtocolFilterModal({
 				}}
 			>
 				<div
-					className="flex items-center justify-between p-4 border-b pro-divider"
+					className="pro-divider flex items-center justify-between border-b p-4"
 					style={{ backgroundColor: 'var(--pro-bg1)' }}
 				>
-					<h2 className="text-lg font-semibold pro-text1">Filter Protocols</h2>
-					<button onClick={onClose} className="p-2 pro-hover-bg transition-colors">
+					<h2 className="pro-text1 text-lg font-semibold">Filter Protocols</h2>
+					<button onClick={onClose} className="pro-hover-bg p-2 transition-colors">
 						<Icon name="x" height={20} width={20} />
 					</button>
 				</div>
 
-				<div className="flex-1 overflow-y-auto p-4 space-y-6" style={{ backgroundColor: 'var(--pro-bg1)' }}>
+				<div className="flex-1 space-y-6 overflow-y-auto p-4" style={{ backgroundColor: 'var(--pro-bg1)' }}>
 					<div>
-						<label className="block mb-2 text-sm font-medium pro-text2">Categories</label>
+						<label className="pro-text2 mb-2 block text-sm font-medium">Categories</label>
 						<ReactSelect
 							isMulti
 							options={categoryOptions}
@@ -199,7 +199,7 @@ export function ProtocolFilterModal({
 					</div>
 
 					<div>
-						<label className="block mb-2 text-sm font-medium pro-text2">
+						<label className="pro-text2 mb-2 block text-sm font-medium">
 							Protocols ({selectedProtocols.length} selected)
 						</label>
 						<ReactSelect
@@ -225,12 +225,12 @@ export function ProtocolFilterModal({
 				</div>
 
 				<div
-					className="flex items-center justify-between p-4 border-t pro-divider"
+					className="pro-divider flex items-center justify-between border-t p-4"
 					style={{ backgroundColor: 'var(--pro-bg1)' }}
 				>
 					<button
 						onClick={handleClear}
-						className="px-4 py-2 text-sm pro-text-dimmed hover:pro-text1 transition-colors disabled:opacity-50"
+						className="pro-text-dimmed hover:pro-text1 px-4 py-2 text-sm transition-colors disabled:opacity-50"
 						disabled={!hasActiveFilters}
 					>
 						Clear all
@@ -238,14 +238,14 @@ export function ProtocolFilterModal({
 					<div className="flex gap-2">
 						<button
 							onClick={onClose}
-							className="px-4 py-2 text-sm border pro-divider pro-hover-bg pro-text1 transition-colors"
+							className="pro-divider pro-hover-bg pro-text1 border px-4 py-2 text-sm transition-colors"
 							style={{ borderRadius: 0 }}
 						>
 							Cancel
 						</button>
 						<button
 							onClick={handleApply}
-							className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+							className="bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
 							style={{ borderRadius: 0 }}
 						>
 							Apply Filters

@@ -61,17 +61,17 @@ export const OraclesByChain = ({
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="isolate relative rounded-md bg-(--cards-bg) flex-1 min-h-[406px] flex flex-col pt-2">
+				<div className="relative isolate flex min-h-[406px] flex-1 flex-col rounded-md bg-(--cards-bg) pt-2">
 					<CSVDownloadButton
 						onClick={downloadCsv}
 						smol
-						className="ml-auto mx-2 z-10 h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="z-10 mx-2 ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
 					</React.Suspense>
 				</div>
-				<div className="rounded-md bg-(--cards-bg) flex-1 min-h-[406px] pt-2">
+				<div className="min-h-[406px] flex-1 rounded-md bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -89,7 +89,7 @@ export const OraclesByChain = ({
 				fallback={
 					<div
 						style={{ minHeight: `${tokensList.length * 50 + 200}px` }}
-						className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
+						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
 					/>
 				}
 			>
@@ -120,11 +120,11 @@ const columns: ColumnDef<IOraclesRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<span className="flex items-center gap-2 relative">
+				<span className="relative flex items-center gap-2">
 					<span className="shrink-0">{index + 1}</span>
 					<BasicLink
 						href={`/oracles/${getValue()}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{getValue() as string}
 					</BasicLink>

@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging('donations', async () => {
 function PressPage({ protocols }) {
 	return (
 		<Layout title="Donations - DefiLlama" defaultSEO>
-			<div className="bg-(--cards-bg) p-3 rounded-md flex flex-col gap-4">
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h1 className="text-lg font-semibold">Why donate?</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
@@ -34,7 +34,7 @@ function PressPage({ protocols }) {
 					are supported by donations.
 				</p>
 			</div>
-			<div className="bg-(--cards-bg) p-3 rounded-md flex flex-col gap-4">
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h1 className="text-lg font-semibold">Affiliate links</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">
@@ -52,7 +52,7 @@ function PressPage({ protocols }) {
 					</ul>
 				</div>
 			</div>
-			<div className="bg-(--cards-bg) p-3 rounded-md flex flex-col gap-4">
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h1 className="text-lg font-semibold">Direct donation</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">
@@ -62,7 +62,7 @@ function PressPage({ protocols }) {
 					</ul>
 				</div>
 			</div>
-			<div className="bg-(--cards-bg) p-3 rounded-md flex flex-col gap-4">
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h1 className="text-lg font-semibold">Use of funds</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">

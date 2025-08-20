@@ -105,15 +105,15 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				tvl={formattedNum(tvl, true)?.toString()}
 				isCEX={props.isCEX}
 			/>
-			<div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
-				<div className="hidden xl:flex flex-col gap-6 col-span-1 row-[2/3] xl:row-[1/2] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:min-h-[360px]">
-					<h1 className="flex items-center flex-wrap gap-2 text-xl *:last:ml-auto">
+			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
+				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
+					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">
 							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
 						</span>
 						{props.token.symbol && props.token.symbol !== '-' ? (
-							<span className="font-normal mr-auto">({props.token.symbol})</span>
+							<span className="mr-auto font-normal">({props.token.symbol})</span>
 						) : null}
 						<Bookmark readableName={props.name} />
 					</h1>
@@ -128,16 +128,16 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					/>
 					<KeyMetrics {...props} formatPrice={formatPrice} />
 				</div>
-				<div className="grid grid-cols-2 gap-2 col-span-1 xl:col-[2/-1]">
-					<div className="col-span-full flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2">
-						<div className="xl:hidden flex flex-col gap-6">
-							<h1 className="flex items-center flex-wrap gap-2 text-xl">
+				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
+					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+						<div className="flex flex-col gap-6 xl:hidden">
+							<h1 className="flex flex-wrap items-center gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 								<span className="font-bold">
 									{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
 								</span>
 								{props.token.symbol && props.token.symbol !== '-' ? (
-									<span className="font-normal mr-auto">({props.token.symbol})</span>
+									<span className="mr-auto font-normal">({props.token.symbol})</span>
 								) : null}
 								<Bookmark readableName={props.name} />
 							</h1>
@@ -154,7 +154,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						<ProtocolChart {...props} />
 					</div>
 					{props.hasKeyMetrics ? (
-						<div className="col-span-full flex flex-col gap-6 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:hidden">
+						<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">
 							<KeyMetrics {...props} formatPrice={formatPrice} />
 						</div>
 					) : null}
@@ -192,7 +192,7 @@ const ProtocolTVL = ({
 	if (tvlByChain.length === 0) {
 		return (
 			<p className="flex flex-col">
-				<span className="flex items-center flex-nowrap gap-2">
+				<span className="flex flex-nowrap items-center gap-2">
 					{isCEX ? <span>Total Assets</span> : <span>Total Value Locked</span>}
 					<Flag
 						protocol={name}
@@ -201,7 +201,7 @@ const ProtocolTVL = ({
 						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 					/>
 				</span>
-				<span className="font-semibold text-2xl font-jetbrains min-h-8" suppressHydrationWarning>
+				<span className="font-jetbrains min-h-8 text-2xl font-semibold" suppressHydrationWarning>
 					{formatPrice(tvl)}
 				</span>
 			</p>
@@ -211,7 +211,7 @@ const ProtocolTVL = ({
 	return (
 		<details className="group">
 			<summary className="flex flex-col">
-				<span className="flex items-center flex-nowrap gap-2">
+				<span className="flex flex-nowrap items-center gap-2">
 					<span className="text-(--text-label)">{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
 					<Flag
 						protocol={name}
@@ -220,24 +220,24 @@ const ProtocolTVL = ({
 						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 					/>
 				</span>
-				<span className="flex items-center flex-nowrap gap-2">
-					<span className="font-semibold text-2xl font-jetbrains min-h-8" suppressHydrationWarning>
+				<span className="flex flex-nowrap items-center gap-2">
+					<span className="font-jetbrains min-h-8 text-2xl font-semibold" suppressHydrationWarning>
 						{formatPrice(tvl)}
 					</span>
 					<Icon
 						name="chevron-down"
 						height={16}
 						width={16}
-						className="group-open:rotate-180 transition-transform duration-100 relative top-[2px]"
+						className="relative top-[2px] transition-transform duration-100 group-open:rotate-180"
 					/>
 				</span>
 			</summary>
-			<div className="flex flex-col my-3 max-h-[50vh] overflow-auto">
+			<div className="my-3 flex max-h-[50vh] flex-col overflow-auto">
 				<h2 className="font-semibold">{isCEX ? 'Total Assets by Chain' : 'TVL by Chain'}</h2>
 				{tvlByChain.map(([chain, tvl]) => (
 					<p
 						key={`${chain}-${tvl}-${name}`}
-						className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1"
+						className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] py-1 group-last:border-none dark:border-[#222224]"
 					>
 						<span className="text-(--text-label)">{chain}</span>
 						<span className="font-jetbrains">{formatPrice(tvl)}</span>
@@ -255,16 +255,16 @@ interface IKeyMetricsProps extends IProtocolOverviewPageData {
 export const KeyMetrics = (props: IKeyMetricsProps) => {
 	if (!props.hasKeyMetrics) return null
 	return (
-		<div className="flex flex-col flex-1 gap-2">
-			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="key-metrics">
+		<div className="flex flex-1 flex-col gap-2">
+			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="key-metrics">
 				Key Metrics
 				<a
 					aria-hidden="true"
 					tabIndex={-1}
 					href="#key-metrics"
-					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				<Fees formatPrice={props.formatPrice} {...props} />
@@ -282,7 +282,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<OptionsNotionalVolume formatPrice={props.formatPrice} {...props} />
 				<TokenCGData formatPrice={props.formatPrice} {...props} />
 				{props.currentTvlByChain?.staking != null ? (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 						<span className="text-(--text-label)">Staked</span>
 						<Flag
 							protocol={props.name}
@@ -304,7 +304,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 					</p>
 				) : null}
 				{props.currentTvlByChain?.borrowed != null ? (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 						<span className="text-(--text-label)">Borrowed</span>
 						<Flag
 							protocol={props.name}
@@ -329,17 +329,17 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	if (!props.articles?.length) return null
 
 	return (
-		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4 col-span-1">
+		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 			<div className="flex items-center justify-between">
-				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="dl-news">
+				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="dl-news">
 					Latest from DL News
 					<a
 						aria-hidden="true"
 						tabIndex={-1}
 						href="#dl-news"
-						className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 					/>
-					<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+					<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 				</h2>
 				<a href="https://www.dlnews.com">
 					<DLNewsLogo width={72} height={18} />
@@ -352,20 +352,20 @@ const Articles = (props: IProtocolOverviewPageData) => {
 					href={article.href}
 					target="_blank"
 					rel="noreferrer noopener"
-					className="p-2 flex flex-col gap-3 rounded-md bg-(--btn2-bg) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+					className="flex flex-col gap-3 rounded-md bg-(--btn2-bg) p-2 hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 				>
 					{article.imgSrc ? (
 						<img
-							className="object-cover rounded-sm h-[100px] w-full shrink-0"
+							className="h-[100px] w-full shrink-0 rounded-sm object-cover"
 							src={article.imgSrc}
 							alt={article.headline}
 						/>
 					) : null}
-					<div className="flex flex-col gap-3 justify-between">
-						<p className="text-sm font-medium whitespace-pre-wrap break-keep">{article.headline}</p>
-						<div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
+					<div className="flex flex-col justify-between gap-3">
+						<p className="text-sm font-medium break-keep whitespace-pre-wrap">{article.headline}</p>
+						<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 							<p className="text-xs">{dayjs.utc(article.date).format('MMMM D, YYYY')}</p>
-							<p className="flex items-center justify-between flex-nowrap font-semibold rounded-md">
+							<p className="flex flex-nowrap items-center justify-between rounded-md font-semibold">
 								<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</p>
 						</div>
@@ -1119,13 +1119,13 @@ const Expenses = (props: IKeyMetricsProps) => {
 	if (!props.expenses) return null
 	return (
 		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 				<span className="text-(--text-label)">Annual Operational Expenses</span>
 				<Icon
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1135,14 +1135,14 @@ const Expenses = (props: IKeyMetricsProps) => {
 				/>
 				<span className="font-jetbrains ml-auto">{props.formatPrice(props.expenses.total)}</span>
 			</summary>
-			<div className="flex flex-col mb-3">
-				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
+			<div className="mb-3 flex flex-col">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
 					<span className="text-(--text-label)">Headcount</span>
 					<span className="font-jetbrains">{formattedNum(props.expenses.headcount)}</span>
 				</p>
 				{props.expenses.annualUsdCost.map(([category, amount]) => (
 					<p
-						className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
+						className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
 						key={`${props.name}-expenses-${category}-${amount}`}
 					>
 						<span className="flex flex-wrap justify-between">
@@ -1152,7 +1152,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 					</p>
 				))}
 				{props.expenses?.sources?.length ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-(--text-label)">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) py-1 text-(--text-label) group-last:border-none">
 						<span className="text-(--text-label)">Sources</span>
 						{props.expenses.sources?.map((source) => (
 							<a
@@ -1168,13 +1168,13 @@ const Expenses = (props: IKeyMetricsProps) => {
 					</p>
 				) : null}
 				{props.expenses?.notes?.length ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-(--text-label)">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) py-1 text-(--text-label) group-last:border-none">
 						<span className="text-(--text-label)">Notes</span>
 						<span>{props.expenses.notes?.join(', ') ?? ''}</span>
 					</p>
 				) : null}
 				{props.expenses?.lastUpdate ? (
-					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) group-last:border-none py-1 text-(--text-label)">
+					<p className="flex flex-wrap justify-between gap-4 border-b border-dashed border-(--cards-border) py-1 text-(--text-label) group-last:border-none">
 						<span className="text-(--text-label)">Last Update</span>
 						<span>{dayjs.utc(props.expenses.lastUpdate).format('MMM D, YYYY')}</span>
 					</p>
@@ -1188,7 +1188,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 	if (!props.tokenLiquidity) return null
 	return (
 		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 				<Tooltip
 					content="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
 					className="text-(--text-label) underline decoration-dotted"
@@ -1199,7 +1199,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1209,11 +1209,11 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 				/>
 				<span className="font-jetbrains ml-auto">{formattedNum(props.tokenLiquidity.total, true)}</span>
 			</summary>
-			<div className="flex flex-col mb-3">
+			<div className="mb-3 flex flex-col">
 				{props.tokenLiquidity?.pools.map((pool) => (
 					<p
 						key={`${pool[0]}-${pool[1]}-${pool[2]}`}
-						className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
+						className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
 					>
 						<span className="text-(--text-label)">{pool[0]}</span>
 						<span className="font-jetbrains">{props.formatPrice(pool[2])}</span>
@@ -1229,7 +1229,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 	return (
 		<>
 			{props.tokenCGData?.marketCap?.current ? (
-				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 					<span className="text-(--text-label)">Market Cap</span>
 					<Flag
 						protocol={props.name}
@@ -1243,7 +1243,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 			{props.tokenCGData?.price?.current ? (
 				props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
 					<details className="group">
-						<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+						<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 							<span className="text-(--text-label)">{`${
 								props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 							} Price`}</span>
@@ -1251,7 +1251,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 								name="chevron-down"
 								height={16}
 								width={16}
-								className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+								className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 							/>
 							<Flag
 								protocol={props.name}
@@ -1261,19 +1261,19 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 							/>
 							<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.price.current)}</span>
 						</summary>
-						<div className="flex flex-col mb-3">
-							<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
+						<div className="mb-3 flex flex-col">
+							<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
 								<span className="text-(--text-label)">All Time High</span>
 								<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.price.ath)}</span>
 							</p>
-							<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
+							<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] py-1 group-last:border-none dark:border-[#222224]">
 								<span className="text-(--text-label)">All Time Low</span>
 								<span className="font-jetbrains">{props.formatPrice(props.tokenCGData.price.atl)}</span>
 							</p>
 						</div>
 					</details>
 				) : (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 						<span className="text-(--text-label)">{`${
 							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 						} Price`}</span>
@@ -1288,7 +1288,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				)
 			) : null}
 			{props.tokenCGData?.fdv?.current ? (
-				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 					<Tooltip
 						className="text-(--text-label) underline decoration-dotted"
 						content={`Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko.`}
@@ -1305,7 +1305,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				</p>
 			) : null}
 			{props.outstandingFDV ? (
-				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+				<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 					<Tooltip
 						className="text-(--text-label) underline decoration-dotted"
 						content={`Outstanding FDV is calculated by taking the outstanding supply of the token and multiplying it by the price.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).`}
@@ -1317,7 +1317,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 			) : null}
 			{props.tokenCGData.volume24h?.total ? (
 				<details className="group">
-					<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+					<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 						<span className="text-(--text-label)">{`${
 							props.token?.symbol ? `$${props.token.symbol}` : 'Token'
 						} Volume 24h`}</span>
@@ -1325,7 +1325,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 							name="chevron-down"
 							height={16}
 							width={16}
-							className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+							className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 						/>
 						<Flag
 							protocol={props.name}
@@ -1335,14 +1335,14 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 						/>
 						<span className="font-jetbrains ml-auto">{props.formatPrice(props.tokenCGData.volume24h.total)}</span>
 					</summary>
-					<div className="flex flex-col mb-3">
-						<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
+					<div className="mb-3 flex flex-col">
+						<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
 							<span className="text-(--text-label)">CEX Volume</span>
 							<span className="font-jetbrains">
 								{props.tokenCGData.volume24h.cex ? props.formatPrice(props.tokenCGData.volume24h.cex) : '-'}
 							</span>
 						</p>
-						<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] dark:border-[#222224] group-last:border-none py-1">
+						<p className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] py-1 group-last:border-none dark:border-[#222224]">
 							<span className="text-(--text-label)">DEX Volume</span>
 							<span className="flex items-center gap-1">
 								<span className="font-jetbrains">
@@ -1382,7 +1382,7 @@ const SmolStats = ({
 
 	if (data.length === 1) {
 		return (
-			<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+			<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 				{data[0].tooltipContent ? (
 					<Tooltip content={data[0].tooltipContent} className="text-(--text-label) underline decoration-dotted">
 						{data[0].name}
@@ -1403,7 +1403,7 @@ const SmolStats = ({
 
 	return (
 		<details className="group" open={openSmolStatsSummaryByDefault}>
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 				{data[0].tooltipContent ? (
 					<Tooltip content={data[0].tooltipContent} className="text-(--text-label) underline decoration-dotted">
 						{data[0].name}
@@ -1415,7 +1415,7 @@ const SmolStats = ({
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={protocolName}
@@ -1425,10 +1425,10 @@ const SmolStats = ({
 				/>
 				<span className="font-jetbrains ml-auto">{formatPrice(data[0].value)}</span>
 			</summary>
-			<div className="flex flex-col mb-3">
+			<div className="mb-3 flex flex-col">
 				{data.slice(1).map((metric) => (
 					<p
-						className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1"
+						className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none"
 						key={`${metric.name}-${metric.value}-${protocolName}`}
 					>
 						{metric.tooltipContent ? (
@@ -1451,35 +1451,35 @@ function Users(props: IProtocolOverviewPageData) {
 	if (!users) return null
 	return (
 		<div>
-			<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
+			<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 				<Tooltip
 					content="This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
-					className="font-semibold underline decoration-dotted mr-auto"
+					className="mr-auto font-semibold underline decoration-dotted"
 					render={<h2 />}
 				>
 					User Activity
 				</Tooltip>
 				<div className="flex flex-col">
 					{users.activeUsers != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 							<span className="text-(--text-label)">Active Addresses (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.activeUsers, false)}</span>
 						</p>
 					) : null}
 					{users.newUsers != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 							<span className="text-(--text-label)">New Addresses (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.newUsers, false)}</span>
 						</p>
 					) : null}
 					{users.transactions != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 							<span className="text-(--text-label)">Transactions (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.transactions, false)}</span>
 						</p>
 					) : null}
 					{users.gasUsd != null ? (
-						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+						<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 							<span className="text-(--text-label)">Gas Used (24h)</span>
 							<span className="font-jetbrains">{formattedNum(users.gasUsd, true)}</span>
 						</p>
@@ -1494,13 +1494,13 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 	if (!props.treasury) return null
 	return (
 		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 				<span className="text-(--text-label)">Treasury</span>
 				<Icon
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1510,9 +1510,9 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 				/>
 				<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.total, true)}</span>
 			</summary>
-			<div className="flex flex-col mb-3">
+			<div className="mb-3 flex flex-col">
 				{props.treasury.majors ? (
-					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
 						<span className="text-(--text-label)">
 							<Tooltip content="BTC, ETH" className="underline decoration-dotted">
 								Majors
@@ -1522,19 +1522,19 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 					</p>
 				) : null}
 				{props.treasury.stablecoins ? (
-					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
 						<span className="text-(--text-label)">Stablecoins</span>
 						<span className="font-jetbrains">{formattedNum(props.treasury.stablecoins, true)}</span>
 					</p>
 				) : null}
 				{props.treasury.ownTokens ? (
-					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
 						<span className="text-(--text-label)">Own Tokens</span>
 						<span className="font-jetbrains">{formattedNum(props.treasury.ownTokens, true)}</span>
 					</p>
 				) : null}
 				{props.treasury.others ? (
-					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1">
+					<p className="flex items-center justify-between gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none">
 						<span className="text-(--text-label)">Others</span>
 						<span className="font-jetbrains">{formattedNum(props.treasury.others, true)}</span>
 					</p>
@@ -1548,13 +1548,13 @@ const Raises = (props: IProtocolOverviewPageData) => {
 	if (!props.raises) return null
 	return (
 		<details className="group">
-			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 				<span className="text-(--text-label)">Total Raised</span>
 				<Icon
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1566,10 +1566,10 @@ const Raises = (props: IProtocolOverviewPageData) => {
 					{formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
 				</span>
 			</summary>
-			<div className="flex flex-col mb-3">
+			<div className="mb-3 flex flex-col">
 				{props.raises.map((raise) => (
 					<p
-						className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
+						className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
 						key={`${raise.date}-${raise.amount}-${props.name}`}
 					>
 						<span className="flex flex-wrap justify-between">
@@ -1578,19 +1578,19 @@ const Raises = (props: IProtocolOverviewPageData) => {
 								<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
 							) : null}
 						</span>
-						<span className="flex gap-1 flex-wrap justify-between text-(--text-label)">
+						<span className="flex flex-wrap justify-between gap-1 text-(--text-label)">
 							<span>Round: {raise.round}</span>
 							{raise.investors?.length ? <span>Investors: {raise.investors.join(', ')}</span> : null}
 						</span>
 						{raise.source ? (
-							<span className="flex gap-1 flex-wrap justify-between text-(--text-label)">
-								<span className="flex items-center gap-1 flex-nowrap">
+							<span className="flex flex-wrap justify-between gap-1 text-(--text-label)">
+								<span className="flex flex-nowrap items-center gap-1">
 									Source:{' '}
 									<a
 										href={raise.source}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="underline whitespace-nowrap overflow-hidden text-ellipsis"
+										className="overflow-hidden text-ellipsis whitespace-nowrap underline"
 									>
 										{raise.source}
 									</a>
@@ -1613,7 +1613,7 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 	if (cardsToStackOnLeft === 3) {
 		// example pancakeswap has lots of child methodologies, so we stack other cards in one column
 		return (
-			<div className="col-span-full grid grid-cols-1 xl:grid-cols-2 gap-2">
+			<div className="col-span-full grid grid-cols-1 gap-2 xl:grid-cols-2">
 				<div className="col-span-1 flex flex-col gap-2">
 					<ProtocolInfo {...props} />
 					<Articles {...props} />
@@ -1630,7 +1630,7 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 	}
 
 	return (
-		<div className="col-span-full grid grid-cols-1 xl:grid-cols-2 min-[1536px]:grid-cols-3 min-[1792px]:grid-cols-3 gap-2">
+		<div className="col-span-full grid grid-cols-1 gap-2 min-[1536px]:grid-cols-3 min-[1792px]:grid-cols-3 xl:grid-cols-2">
 			<ProtocolInfo {...props} />
 			<Articles {...props} />
 			<Methodology {...props} />
@@ -1646,16 +1646,16 @@ const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 
 const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 	return (
-		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4 col-span-1">
-			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="protocol-information">
+		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="protocol-information">
 				{props.isCEX ? 'Exchange Information' : 'Protocol Information'}
 				<a
 					aria-hidden="true"
 					tabIndex={-1}
 					href="#protocol-information"
-					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 			</h2>
 			{props.description ? <p>{props.description}</p> : null}
 			{props.category ? (
@@ -1671,7 +1671,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 			{props.audits ? (
 				<>
 					<p className="flex items-center gap-1">
-						<span className="flex items-center gap-1 flex-nowrap">
+						<span className="flex flex-nowrap items-center gap-1">
 							<span>Audits</span>
 							<QuestionHelper text="Audits are not a security guarantee" />
 							<span>:</span>
@@ -1681,7 +1681,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 								name="Yes"
 								options={props.audits.auditLinks}
 								isExternal
-								className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							/>
 						) : (
 							<span>No</span>
@@ -1694,11 +1694,11 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 				{props.website ? (
 					<a
 						href={props.website}
-						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Icon name="earth" className="w-3 h-3" />
+						<Icon name="earth" className="h-3 w-3" />
 						<span>Website</span>
 					</a>
 				) : null}
@@ -1706,12 +1706,12 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 					? props.github.map((github) => (
 							<a
 								href={`https://github.com/${github}`}
-								className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 								target="_blank"
 								rel="noopener noreferrer"
 								key={`${props.name}-github-${github}`}
 							>
-								<Icon name="github" className="w-3 h-3" />
+								<Icon name="github" className="h-3 w-3" />
 								<span>{props.github.length === 1 ? 'GitHub' : github}</span>
 							</a>
 						))
@@ -1719,11 +1719,11 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 				{props.twitter ? (
 					<a
 						href={`https://twitter.com/${props.twitter}`}
-						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Icon name="twitter" className="w-3 h-3" />
+						<Icon name="twitter" className="h-3 w-3" />
 						<span>Twitter</span>
 					</a>
 				) : null}
@@ -1733,24 +1733,24 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 }
 const Methodology = (props: IProtocolOverviewPageData) => {
 	return (
-		<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4 col-span-1">
-			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="methodology">
+		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="methodology">
 				Methodology
 				<a
 					aria-hidden="true"
 					tabIndex={-1}
 					href="#methodology"
-					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 			</h2>
 			{props.methodologyURL ? (
 				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
 					<span>{props.methodology ?? ''}</span>
 					{props.methodologyURL ? (
-						<span className="inline-block relative left-1 top-[2px]">
-							<Icon name="external-link" className="w-[14px] h-[14px]" />
+						<span className="relative top-[2px] left-1 inline-block">
+							<Icon name="external-link" className="h-[14px] w-[14px]" />
 							<span className="sr-only">View code on GitHub</span>
 						</span>
 					) : null}
@@ -1814,8 +1814,8 @@ const MethodologyByAdapter = ({
 							>
 								<span>{child[0]}:</span> <span>{child[1]}</span>
 								{child[2] ? (
-									<span className="inline-block relative left-1 top-[2px]">
-										<Icon name="external-link" className="w-[14px] h-[14px]" />
+									<span className="relative top-[2px] left-1 inline-block">
+										<Icon name="external-link" className="h-[14px] w-[14px]" />
 										<span className="sr-only">View code on GitHub</span>
 									</span>
 								) : null}
@@ -1838,8 +1838,8 @@ const MethodologyByAdapter = ({
 					<a href={adapter.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 						<span className="font-medium">{title}:</span> <span>{adapter.methodology}</span>
 						{adapter.methodologyURL ? (
-							<span className="inline-block relative left-1 top-[2px]">
-								<Icon name="external-link" className="w-[14px] h-[14px]" />
+							<span className="relative top-[2px] left-1 inline-block">
+								<Icon name="external-link" className="h-[14px] w-[14px]" />
 								<span className="sr-only">View code on GitHub</span>
 							</span>
 						) : null}
@@ -1858,23 +1858,23 @@ function Unlocks(props: IProtocolOverviewPageData) {
 	const unlocks = props.unlocks
 	if (!unlocks) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
-			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="unlocks">
+		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="unlocks">
 				Unlocks
 				<a
 					aria-hidden="true"
 					tabIndex={-1}
 					href="#unlocks"
-					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				{unlocks.recent ? (
 					<div className="flex flex-col gap-1">
-						<h3 className="py-1 border-b border-(--cards-border)">Last unlock event</h3>
+						<h3 className="border-b border-(--cards-border) py-1">Last unlock event</h3>
 						<p className="flex items-center justify-between gap-4">
-							<span className="bg-(--app-bg) rounded-md px-2 py-1 border border-(--cards-border)">
+							<span className="rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1">
 								{unlocks.recent.timestamp}
 							</span>
 							<span className="font-jetbrains">{formattedNum(unlocks.recent.amount)}</span>
@@ -1883,9 +1883,9 @@ function Unlocks(props: IProtocolOverviewPageData) {
 				) : null}
 				{unlocks.upcoming ? (
 					<div className="flex flex-col gap-1">
-						<h3 className="py-1 border-b border-(--cards-border)">Upcoming unlock event</h3>
+						<h3 className="border-b border-(--cards-border) py-1">Upcoming unlock event</h3>
 						<p className="flex items-center justify-between gap-4">
-							<span className="bg-(--app-bg) rounded-md px-2 py-1 border border-(--cards-border)">
+							<span className="rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1">
 								{unlocks.upcoming.timestamp}
 							</span>
 							<span className="font-jetbrains">{formattedNum(unlocks.upcoming.amount)}</span>
@@ -1901,23 +1901,23 @@ function Governance(props: IProtocolOverviewPageData) {
 	const governance = props.governance
 	if (!governance) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
-			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="governance">
+		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="governance">
 				Governance
 				<a
 					aria-hidden="true"
 					tabIndex={-1}
 					href="#governance"
-					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col gap-1">
-				<h3 className="py-1 border-b border-(--cards-border)">Last proposal</h3>
+				<h3 className="border-b border-(--cards-border) py-1">Last proposal</h3>
 				<p className="flex items-center justify-between gap-4">
 					<span>{governance.lastProposal.title}</span>
 					<span
-						className={`bg-(--app-bg) rounded-md text-xs px-2 py-1 border border-(--cards-border) text-(--success) ${
+						className={`rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 text-xs text-(--success) ${
 							governance.lastProposal.status === 'Passed' ? 'text-(--success)' : 'text-(--error)'
 						}`}
 					>
@@ -1933,33 +1933,33 @@ function Yields(props: IProtocolOverviewPageData) {
 	const yields = props.yields
 	if (!yields) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
-			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="yields">
+		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="yields">
 				Yields
 				<a
 					aria-hidden="true"
 					tabIndex={-1}
 					href="#yields"
-					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div>
-				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 					<span className="text-(--text-label)">Pools Tracked</span>
 					<span className="font-jetbrains">{yields.noOfPoolsTracked}</span>
 				</p>
-				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) last:border-none py-1 first:pt-0 last:pb-0">
+				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
 					<span className="text-(--text-label)">Average APY</span>
 					<span className="font-jetbrains">{formattedNum(yields.averageAPY, false)}%</span>
 				</p>
 			</div>
 			<BasicLink
 				href={`/yields?project=${props.otherProtocols ? props.otherProtocols.slice(1).join('&project=') : props.name}`}
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center gap-1"
+				className="mr-auto flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 			>
 				<span>View all Yields</span>
-				<Icon name="arrow-right" className="w-4 h-4" />
+				<Icon name="arrow-right" className="h-4 w-4" />
 			</BasicLink>
 		</div>
 	)
@@ -1968,22 +1968,22 @@ function Yields(props: IProtocolOverviewPageData) {
 const Hacks = (props: IProtocolOverviewPageData) => {
 	if (!props.hacks?.length) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
-			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="hacks">
+		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="hacks">
 				Hacks
 				<a
 					aria-hidden="true"
 					tabIndex={-1}
 					href="#hacks"
-					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				{props.hacks.map((hack) => (
 					<div
 						key={`${props.name}-hack-${hack.date}`}
-						className="flex flex-col gap-1 border-b border-(--cards-border) last:border-none py-2 first:pt-0 last:pb-0"
+						className="flex flex-col gap-1 border-b border-(--cards-border) py-2 first:pt-0 last:border-none last:pb-0"
 					>
 						{hack.date ? (
 							<p>
@@ -2030,10 +2030,10 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 								href={hack.source}
 								target="_blank"
 								rel="noopener noreferrer"
-								className="underline flex items-center gap-1"
+								className="flex items-center gap-1 underline"
 							>
 								<span>Source</span>
-								<Icon name="external-link" className="w-[14px] h-[14px]" />
+								<Icon name="external-link" className="h-[14px] w-[14px]" />
 							</a>
 						) : null}
 					</div>
@@ -2046,18 +2046,18 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 const Competitors = (props: IProtocolOverviewPageData) => {
 	if (!props.competitors?.length) return null
 	return (
-		<div className="col-span-1 flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
-			<h2 className="relative group text-base font-semibold flex items-center gap-1" id="competitors">
+		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="competitors">
 				Competitors
 				<a
 					aria-hidden="true"
 					tabIndex={-1}
 					href="#competitors"
-					className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 			</h2>
-			<div className="flex items-center gap-4 flex-wrap">
+			<div className="flex flex-wrap items-center gap-4">
 				{props.competitors.map((similarProtocol) => (
 					<a
 						href={`/protocol/${slug(similarProtocol.name)}`}
@@ -2144,23 +2144,23 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	}, [groupBy, props.incomeStatement.monthDates])
 
 	return (
-		<div className="col-span-full flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
+		<div className="col-span-full flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 			<div className="flex flex-wrap items-center justify-between gap-1">
-				<h2 className="relative group text-base font-semibold flex items-center gap-1" id="income-statement">
+				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="income-statement">
 					Income Statement for {props.name}
 					<a
 						aria-hidden="true"
 						tabIndex={-1}
 						href="#income-statement"
-						className="absolute top-0 right-0 z-10 h-full w-full flex items-center"
+						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 					/>
-					<Icon name="link" className="w-[14px] h-[14px] invisible group-hover:visible group-focus-visible:visible" />
+					<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 				</h2>
-				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{incomeStatementGroupByOptions.map((groupOption) => (
 						<button
 							key={`income-statement-${groupOption}`}
-							className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--old-blue)"
+							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--old-blue)"
 							data-active={groupOption === groupBy}
 							onClick={() => {
 								setGroupBy(groupOption)
@@ -2172,21 +2172,21 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				</div>
 			</div>
 			<div className="overflow-x-auto">
-				<table className="border-collapse w-full">
+				<table className="w-full border-collapse">
 					<thead>
 						<tr>
-							<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold"></th>
+							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"></th>
 							{monthDates.map((month, i) => (
 								<th
 									key={`${props.name}-${groupBy}-income-statement-${month[0]}`}
-									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold"
+									className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"
 								>
 									{i === 0 ? (
-										<span className="flex justify-center -mr-2 items-center gap-1">
-											<span className="whitespace-nowrap overflow-hidden text-ellipsis">{month[1]}</span>
+										<span className="-mr-2 flex items-center justify-center gap-1">
+											<span className="overflow-hidden text-ellipsis whitespace-nowrap">{month[1]}</span>
 											<Tooltip
 												content={`Current ${groupBy.toLowerCase()} data is incomplete`}
-												className="text-(--error) text-xs"
+												className="text-xs text-(--error)"
 											>
 												*
 											</Tooltip>
@@ -2200,11 +2200,11 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					</thead>
 					<tbody>
 						<tr>
-							<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold">
+							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 								{props.fees?.methodology ? (
 									<Tooltip
 										content={props.fees?.methodology ?? ''}
-										className="underline decoration-dotted flex justify-center"
+										className="flex justify-center underline decoration-dotted"
 									>
 										Fees
 									</Tooltip>
@@ -2215,7 +2215,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							{monthDates.map((month, i) => (
 								<td
 									key={`${props.name}-${groupBy}-fees-${month[0]}`}
-									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
+									className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
 								>
 									{i !== 0 && monthDates[i + 1] ? (
 										<Tooltip
@@ -2227,7 +2227,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 													dataType="fees"
 												/>
 											}
-											className="underline decoration-dotted justify-center"
+											className="justify-center underline decoration-dotted"
 										>
 											{formattedNum(feesByMonth[month[0]], true)}
 										</Tooltip>
@@ -2238,11 +2238,11 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							))}
 						</tr>
 						<tr>
-							<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold">
+							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 								{props.revenue?.methodology ? (
 									<Tooltip
 										content={props.revenue?.methodology}
-										className="underline decoration-dotted flex justify-center"
+										className="flex justify-center underline decoration-dotted"
 									>
 										Revenue
 									</Tooltip>
@@ -2253,7 +2253,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							{monthDates.map((month, i) => (
 								<td
 									key={`${props.name}-${groupBy}-revenue-${month[0]}`}
-									className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
+									className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
 								>
 									{i !== 0 && monthDates[i + 1] ? (
 										<Tooltip
@@ -2265,7 +2265,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 													dataType="revenue"
 												/>
 											}
-											className="underline decoration-dotted justify-center"
+											className="justify-center underline decoration-dotted"
 										>
 											{formattedNum(revenueByMonth[month[0]], true)}
 										</Tooltip>
@@ -2277,11 +2277,11 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						</tr>
 						{incentivesByMonth ? (
 							<tr>
-								<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold">
+								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 									{props.incentives?.methodology ? (
 										<Tooltip
 											content={props.incentives?.methodology ?? ''}
-											className="underline decoration-dotted flex justify-center"
+											className="flex justify-center underline decoration-dotted"
 										>
 											Incentives
 										</Tooltip>
@@ -2292,7 +2292,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								{monthDates.map((month, i) => (
 									<td
 										key={`${props.name}-${groupBy}-incentives-${month[0]}`}
-										className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
+										className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
 									>
 										{i !== 0 && monthDates[i + 1] ? (
 											<Tooltip
@@ -2304,7 +2304,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 														dataType="incentives"
 													/>
 												}
-												className="underline decoration-dotted justify-center"
+												className="justify-center underline decoration-dotted"
 											>
 												{formattedNum(incentivesByMonth[month[0]], true)}
 											</Tooltip>
@@ -2316,10 +2316,10 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							</tr>
 						) : null}
 						<tr>
-							<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold">
+							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 								<Tooltip
 									content="Revenue of the protocol minus the incentives distributed to users"
-									className="underline decoration-dotted flex justify-center"
+									className="flex justify-center underline decoration-dotted"
 								>
 									Earnings
 								</Tooltip>
@@ -2332,7 +2332,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								return (
 									<td
 										key={`${props.name}-${groupBy}-earnings-${month[0]}`}
-										className={`py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center ${
+										className={`overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${
 											earnings > 0 ? 'text-(--success)' : earnings < 0 ? 'text-(--error)' : ''
 										}`}
 									>
@@ -2346,7 +2346,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 														dataType="earnings"
 													/>
 												}
-												className="underline decoration-dotted justify-center"
+												className="justify-center underline decoration-dotted"
 											>
 												{formattedNum(earnings, true)}
 											</Tooltip>
@@ -2359,11 +2359,11 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						</tr>
 						{holdersRevenueByMonth ? (
 							<tr>
-								<th className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-semibold">
+								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 									{props.holdersRevenue?.methodology ? (
 										<Tooltip
 											content={props.holdersRevenue?.methodology}
-											className="underline decoration-dotted flex justify-center"
+											className="flex justify-center underline decoration-dotted"
 										>
 											Token Holder Net Income
 										</Tooltip>
@@ -2374,7 +2374,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								{monthDates.map((month, i) => (
 									<td
 										key={`${props.name}-${groupBy}-holders-revenue-${month[0]}`}
-										className="py-2 px-8 whitespace-nowrap overflow-hidden text-ellipsis bg-(--cards-bg) border border-black/10 dark:border-white/10 font-normal text-center"
+										className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
 									>
 										{i !== 0 && monthDates[i + 1] ? (
 											<Tooltip
@@ -2386,7 +2386,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 														dataType="token holders net income"
 													/>
 												}
-												className="underline decoration-dotted justify-center"
+												className="justify-center underline decoration-dotted"
 											>
 												{formattedNum(holdersRevenueByMonth[month[0]], true)}
 											</Tooltip>

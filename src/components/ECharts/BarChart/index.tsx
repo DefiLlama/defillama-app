@@ -208,8 +208,8 @@ export default function BarChart({
 	return (
 		<div className="relative">
 			{title || showLegend || !hideDownloadButton ? (
-				<div className="flex justify-end items-center gap-2 mb-2 px-2">
-					{title && <h1 className="text-lg mr-auto font-bold">{title}</h1>}
+				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
 					{customLegendName && customLegendOptions?.length > 1 && (
 						<SelectWithCombobox
 							allValues={customLegendOptions}
@@ -254,7 +254,7 @@ export default function BarChart({
 								}
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					)}
 				</div>

@@ -11,7 +11,7 @@ export function TablePagination({ table }: TablePaginationProps) {
 	if (!table) return null
 
 	return (
-		<div className="flex items-center justify-between w-full mt-2">
+		<div className="mt-2 flex w-full items-center justify-between">
 			<TagGroup
 				selectedValue={null}
 				setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}

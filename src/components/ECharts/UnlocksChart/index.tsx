@@ -304,8 +304,8 @@ export default function AreaChart({
 	return (
 		<div className="relative" {...props}>
 			{title || showLegend ? (
-				<div className="flex justify-end items-center gap-2 mb-2 px-2">
-					{title && <h1 className="text-lg mr-auto font-bold">{title}</h1>}
+				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
 					{customLegendName && customLegendOptions?.length > 1 && (
 						<SelectWithCombobox
 							allValues={customLegendOptions}
@@ -327,7 +327,7 @@ export default function AreaChart({
 					)}
 				</div>
 			) : null}
-			<div id={id} className="min-h-[360px] my-auto" style={height ? { height } : undefined} />
+			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined} />
 		</div>
 	)
 }

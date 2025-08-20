@@ -79,7 +79,7 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			toggleOptions={[]}
 			warningBanners={props.warningBanners}
 		>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<GovernanceData apis={props.governanceApis} />
 			</div>
 		</ProtocolOverviewLayout>

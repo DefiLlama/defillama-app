@@ -65,7 +65,7 @@ export function NameYieldPool({
 
 			{url ? (
 				<ButtonLight
-					className="hidden lg:flex items-center justify-center gap-4 p-[6px]! shrink-0"
+					className="hidden shrink-0 items-center justify-center gap-4 p-[6px]! lg:flex"
 					as="a"
 					href={url}
 					target="_blank"
@@ -84,10 +84,10 @@ export function NameYieldPool({
 			>
 				{poolMeta ? (
 					<>
-						<span className="shrink-0 overflow-hidden whitespace-nowrap text-ellipsis text-(--link-text) font-medium">
+						<span className="shrink-0 overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)">
 							{value}
 						</span>
-						<span className="ml-1 flex-shrink-1 bg-(--bg-tertiary) text-black dark:text-white px-1 py-[2px] text-xs rounded-lg overflow-hidden whitespace-nowrap text-ellipsis group-data-[tooltipcontent=true]:whitespace-break-spaces">
+						<span className="ml-1 flex-shrink-1 overflow-hidden rounded-lg bg-(--bg-tertiary) px-1 py-[2px] text-xs text-ellipsis whitespace-nowrap text-black group-data-[tooltipcontent=true]:whitespace-break-spaces dark:text-white">
 							{poolMeta}
 						</span>
 					</>
@@ -106,14 +106,14 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 				{url ? (
 					<Tooltip
 						render={<a href={url} target="_blank" rel="noopener noreferrer" />}
-						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center text-(--link-text) font-medium shrink!"
+						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 						content={children}
 					>
 						{children}
 					</Tooltip>
 				) : (
 					<Tooltip
-						className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center text-(--link-text) font-medium shrink!"
+						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 						content={children}
 					>
 						{children}
@@ -129,12 +129,12 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 				<BasicLink
 					href={url}
 					target="_blank"
-					className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis flex items-center"
+					className="flex items-center overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 				>
 					{children}
 				</BasicLink>
 			) : (
-				<span className="overflow-hidden whitespace-nowrap text-ellipsis flex items-center">{children}</span>
+				<span className="flex items-center overflow-hidden text-ellipsis whitespace-nowrap">{children}</span>
 			)}
 		</>
 	)
@@ -145,7 +145,7 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
-		<span className="flex items-center relative pl-6" {...props}>
+		<span className="relative flex items-center pl-6" {...props}>
 			{airdrop && project !== 'Fraxlend' ? (
 				<Tooltip
 					content="This project has no token and might airdrop one to depositors in the future"
@@ -160,7 +160,7 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 			) : (
 				<BasicLink
 					href={tokenUrl}
-					className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis ml-2"
+					className="ml-2 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 				>
 					{project}
 				</BasicLink>
@@ -179,7 +179,7 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 			<TokenLogo logo={iconUrl} />
 			<BasicLink
 				href={tokenUrl}
-				className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
+				className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 			>
 				{project}
 			</BasicLink>
@@ -194,7 +194,7 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 
 	return (
 		<span className="flex items-center gap-1">
-			<span className="opacity-0 shrink-0">{index}</span>
+			<span className="shrink-0 opacity-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
@@ -202,7 +202,7 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
 				) : null}
 				<TokenLogo logo={iconUrl1} />
-				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project1}</span>
+				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
 			</span>
 			<span className="shrink-0">{'->'}</span>
 			<span className="flex items-center gap-1">
@@ -210,7 +210,7 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
 				) : null}
 				<TokenLogo logo={iconUrl2} />
-				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project2}</span>
+				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project2}</span>
 			</span>
 		</span>
 	)
@@ -222,8 +222,8 @@ export function FRStrategyRoute({ project1, airdropProject1, project2, airdropPr
 	const chainIcon = chainIconUrl(chain)
 
 	return (
-		<span className="flex items-center gap-1 ml-1">
-			<span className="opacity-0 shrink-0">{index}</span>
+		<span className="ml-1 flex items-center gap-1">
+			<span className="shrink-0 opacity-0">{index}</span>
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
@@ -231,12 +231,12 @@ export function FRStrategyRoute({ project1, airdropProject1, project2, airdropPr
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
 				) : null}
 				<TokenLogo logo={iconUrl1} />
-				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project1}</span>
+				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
 			</span>
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
 				<TokenLogo logo={iconUrl2} />
-				<span className="overflow-hidden whitespace-nowrap text-ellipsis">{project2}</span>
+				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project2}</span>
 			</span>
 		</span>
 	)

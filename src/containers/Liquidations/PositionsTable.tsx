@@ -19,7 +19,7 @@ export const LiqPositionsTable = (props: { data: ChartData; prevData: ChartData 
 
 	return (
 		<>
-			<p className="text-right italic opacity-60 mx-3">
+			<p className="mx-3 text-right italic opacity-60">
 				Displaying the largest {rows.length} positions out of {props.data.totalPositions} in total
 			</p>
 			<LiquidatablePositionsTable data={rows} />

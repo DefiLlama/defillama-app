@@ -18,7 +18,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 				<span className="flex items-center gap-2">
 					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
-					<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{name as string}</span>
+					<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{name as string}</span>
 				</span>
 			)
 		},
@@ -41,7 +41,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<span className="flex items-center gap-1 justify-end flex-nowrap">
+					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{(+info.getValue()).toFixed(2)}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>
@@ -65,7 +65,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		cell: (info) => (
 			<>
 				{info.getValue() ? (
-					<span className="flex items-center gap-1 justify-end flex-nowrap">
+					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{(+info.getValue()).toFixed(2)}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
 							<path d="M5.56641 4.55935L2.76099 0L0 4.56239L2.78244 6.22185L5.56641 4.55935Z"></path>

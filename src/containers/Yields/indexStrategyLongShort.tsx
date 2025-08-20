@@ -54,7 +54,7 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 			{poolsData.length > 0 ? (
 				<YieldsStrategyTableFR data={poolsData} />
 			) : (
-				<p className="bg-(--cards-bg) p-3 rounded-md text-center">
+				<p className="rounded-md bg-(--cards-bg) p-3 text-center">
 					Given a token this finder will display delta neutral "long-short" strategies across all our tracked pools and
 					CEX perpetual swap markets.
 					<br />

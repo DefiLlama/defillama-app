@@ -81,7 +81,7 @@ export default function Chains({ data, uniqueCategories }) {
 							<TokenLogo logo={chainIconUrl(chain)} />
 							<BasicLink
 								href={`/chain/${slug(chain)}`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								{chain}
 							</BasicLink>
@@ -141,8 +141,8 @@ export default function Chains({ data, uniqueCategories }) {
 
 	return (
 		<Layout title="Top Protocols by chain on each category - DefiLlama" defaultSEO>
-			<div className="bg-(--cards-bg) border border-(--cards-bg) rounded-md p-3 flex flex-wrap items-center gap-2 justify-between">
-				<h1 className="text-xl font-semibold mr-auto">Top Protocols by chain on each category</h1>
+			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-bg) bg-(--cards-bg) p-3">
+				<h1 className="mr-auto text-xl font-semibold">Top Protocols by chain on each category</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>
 			<VirtualTable instance={table} />

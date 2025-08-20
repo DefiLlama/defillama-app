@@ -14,10 +14,10 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 	if (!table) {
 		return (
 			<div
-				className="relative w-full flex-1 min-h-0 overflow-x-auto overflow-y-auto thin-scrollbar"
+				className="thin-scrollbar relative min-h-0 w-full flex-1 overflow-x-auto overflow-y-auto"
 				style={{ height: '100%' }}
 			>
-				<div className="flex items-center justify-center h-32">
+				<div className="flex h-32 items-center justify-center">
 					<div className="text-(--text-tertiary)">Loading table...</div>
 				</div>
 			</div>
@@ -26,10 +26,10 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 
 	return (
 		<div
-			className="relative w-full flex-1 min-h-0 overflow-auto thin-scrollbar -mx-2 sm:mx-0 px-2 sm:px-0"
+			className="thin-scrollbar relative -mx-2 min-h-0 w-full flex-1 overflow-auto px-2 sm:mx-0 sm:px-0"
 			style={{ height: '100%' }}
 		>
-			<table className="w-full min-w-[600px] text-(--text-primary) text-xs sm:text-sm border-collapse">
+			<table className="w-full min-w-[600px] border-collapse text-xs text-(--text-primary) sm:text-sm">
 				<thead className="sticky top-0 z-10">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id}>
@@ -43,7 +43,7 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 									<th
 										key={header.id}
 										colSpan={header.colSpan}
-										className={`pro-bg1 font-medium px-1 sm:px-2 py-2 border-b border-r border-(--divider) last:border-r-0 relative ${
+										className={`pro-bg1 relative border-r border-b border-(--divider) px-1 py-2 font-medium last:border-r-0 sm:px-2 ${
 											header.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
 										}`}
 										style={{
@@ -73,11 +73,11 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 				</thead>
 				<tbody>
 					{table.getRowModel().rows.map((row) => (
-						<tr key={row.id} className="hover:bg-(--bg-tertiary) border-b border-(--divider)">
+						<tr key={row.id} className="border-b border-(--divider) hover:bg-(--bg-tertiary)">
 							{row.getVisibleCells().map((cell, cellIndex) => (
 								<td
 									key={cell.id}
-									className={`px-1 sm:px-2 py-2 border-r border-(--divider) last:border-r-0 ${
+									className={`border-r border-(--divider) px-1 py-2 last:border-r-0 sm:px-2 ${
 										cell.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
 									}`}
 									style={{

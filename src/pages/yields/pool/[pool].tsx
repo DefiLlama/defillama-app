@@ -232,7 +232,7 @@ const PageView = (props) => {
 
 	if (!isReady || isLoading) {
 		return (
-			<div className="flex items-center justify-center h-full rounded-md bg-(--cards-bg) border border-(--cards-border)">
+			<div className="flex h-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<p className="text-center">Loading...</p>
 			</div>
 		)
@@ -240,14 +240,14 @@ const PageView = (props) => {
 
 	return (
 		<>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
-					<h1 className="flex items-center gap-2 text-xl font-bold flex-wrap">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
+					<h1 className="flex flex-wrap items-center gap-2 text-xl font-bold">
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
 							? `${poolData.symbol} (${poolData.poolMeta})`
 							: poolData.symbol}
 
-						<span className="font-normal mr-auto">
+						<span className="mr-auto font-normal">
 							({projectName} - {poolData.chain})
 						</span>
 					</h1>
@@ -255,15 +255,15 @@ const PageView = (props) => {
 					<div className="flex flex-col gap-2 text-base">
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">APY</span>
-							<span className="font-jetbrains text-(--apy-pink) ml-auto">{isLoading ? null : `${apy}%`}</span>
+							<span className="font-jetbrains ml-auto text-(--apy-pink)">{isLoading ? null : `${apy}%`}</span>
 						</p>
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">30d Avg APY</span>
-							<span className="font-jetbrains text-(--apy-pink) ml-auto">{isLoading ? null : `${apyMean30d}%`}</span>
+							<span className="font-jetbrains ml-auto text-(--apy-pink)">{isLoading ? null : `${apyMean30d}%`}</span>
 						</p>
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">Total Value Locked</span>
-							<span className="font-jetbrains text-(--apy-blue) ml-auto">
+							<span className="font-jetbrains ml-auto text-(--apy-blue)">
 								{isLoading ? null : formattedNum(poolData.tvlUsd ?? 0, true)}
 							</span>
 						</p>
@@ -272,9 +272,9 @@ const PageView = (props) => {
 					{hasRiskData && (
 						<p className="flex flex-col items-start gap-1">
 							<span className="font-semibold">Total Risk Rating</span>
-							<span className="flex items-center gap-2 flex-nowrap">
+							<span className="flex flex-nowrap items-center gap-2">
 								<span
-									className={`w-7 h-7 rounded-full flex items-center justify-center text-base font-bold ${
+									className={`flex h-7 w-7 items-center justify-center rounded-full text-base font-bold ${
 										riskData?.pool_rating ? 'text-base' : 'text-sm'
 									}`}
 									style={getRatingColor(riskData?.pool_rating_color)}
@@ -285,13 +285,13 @@ const PageView = (props) => {
 									href={riskData?.pool_url ? riskData?.pool_url : `https://exponential.fi/about-us`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center hover:underline gap-1 font-semibold font-jetbrains text-xl"
+									className="font-jetbrains flex items-center gap-1 text-xl font-semibold hover:underline"
 								>
 									<span>{getRatingDescription(riskData?.pool_rating)}</span>
 									<Icon name="external-link" height={16} width={16} />
 								</a>
 							</span>
-							<span className="text-xs mt-1">Assessed by exponential.fi</span>
+							<span className="mt-1 text-xs">Assessed by exponential.fi</span>
 						</p>
 					)}
 
@@ -307,11 +307,11 @@ const PageView = (props) => {
 					<CSVDownloadButton
 						onClick={downloadCsv}
 						smol
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mr-auto mt-auto"
+						className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-2 col-span-2 min-h-[478px]">
+				<div className="col-span-2 min-h-[478px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<></>}>
 						<TVLAPYChart
 							height="468px"
@@ -326,34 +326,34 @@ const PageView = (props) => {
 
 			<div className="grid grid-cols-2 gap-2">
 				{hasRiskData && (
-					<div className="flex flex-col gap-3 col-span-2 xl:col-span-1 p-2 bg-(--cards-bg) border border-(--cards-border) rounded-md">
+					<div className="col-span-2 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						<h2 className="flex items-center text-lg font-bold">
 							Risk Rating by exponential.fi{' '}
 							<img src={exponentialLogo.src} height={24} width={24} style={{ marginBottom: 6 }} alt="" />
 						</h2>
-						<div className="flex flex-col gap-3 items-start relative">
-							<div className="flex flex-col gap-3 justify-between flex-1 w-full relative">
-								<div className="flex items-center p-1 border border-(--form-control-border) rounded-2xl gap-2">
+						<div className="relative flex flex-col items-start gap-3">
+							<div className="relative flex w-full flex-1 flex-col justify-between gap-3">
+								<div className="flex items-center gap-2 rounded-2xl border border-(--form-control-border) p-1">
 									<p
-										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
+										className="flex w-20 items-center justify-center rounded-xl py-1 text-sm font-bold"
 										style={getRatingColor(riskData?.pool_design?.rating_color)}
 									>
 										{riskData?.pool_design?.rating || 'N/A'}
 									</p>
-									<p className="text-sm flex-1">Pool Design</p>
+									<p className="flex-1 text-sm">Pool Design</p>
 								</div>
-								<div className="flex items-center p-1 border border-(--form-control-border) rounded-2xl gap-2">
+								<div className="flex items-center gap-2 rounded-2xl border border-(--form-control-border) p-1">
 									<p
-										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
+										className="flex w-20 items-center justify-center rounded-xl py-1 text-sm font-bold"
 										style={getRatingColor(riskData?.assets?.rating_color)}
 									>
 										{riskData?.assets?.rating || 'N/A'}
 									</p>
-									<p className="text-sm flex-1">Assets</p>
-									<div className="flex items-center gap-1 ml-auto">
+									<p className="flex-1 text-sm">Assets</p>
+									<div className="ml-auto flex items-center gap-1">
 										{riskData?.assets?.underlying?.map((asset) => (
 											<a
-												className="py-1 px-2 text-xs rounded-2xl flex items-center gap-1 border"
+												className="flex items-center gap-1 rounded-2xl border px-2 py-1 text-xs"
 												key={`asset-underlying-${asset.name}-${asset.url}`}
 												style={{ borderColor: getRatingColor(asset.rating_color).backgroundColor }}
 												href={asset.url}
@@ -365,20 +365,20 @@ const PageView = (props) => {
 										))}
 									</div>
 								</div>
-								<div className="flex items-center p-1 border border-(--form-control-border) rounded-2xl gap-2">
+								<div className="flex items-center gap-2 rounded-2xl border border-(--form-control-border) p-1">
 									<p
-										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
+										className="flex w-20 items-center justify-center rounded-xl py-1 text-sm font-bold"
 										style={getRatingColor(riskData?.protocols?.underlying[0]?.rating_color)}
 									>
 										{riskData?.protocols?.underlying[0]?.rating || 'N/A'}
 									</p>
-									<p className="text-sm flex-1">Protocols</p>
-									<div className="flex items-center gap-1 ml-auto">
+									<p className="flex-1 text-sm">Protocols</p>
+									<div className="ml-auto flex items-center gap-1">
 										{riskData?.protocols?.underlying
 											?.filter((p) => p?.name)
 											.map((protocol) => (
 												<a
-													className="py-1 px-2 text-xs rounded-2xl flex items-center gap-1 border"
+													className="flex items-center gap-1 rounded-2xl border px-2 py-1 text-xs"
 													key={`protocol-underlying-${protocol.name}-${protocol.url}`}
 													style={{ borderColor: getRatingColor(protocol.rating_color).backgroundColor }}
 													href={protocol.url}
@@ -390,20 +390,20 @@ const PageView = (props) => {
 											))}
 									</div>
 								</div>
-								<div className="flex items-center p-1 border border-(--form-control-border) rounded-2xl gap-2">
+								<div className="flex items-center gap-2 rounded-2xl border border-(--form-control-border) p-1">
 									<p
-										className="w-20 rounded-xl flex items-center justify-center font-bold text-sm py-1"
+										className="flex w-20 items-center justify-center rounded-xl py-1 text-sm font-bold"
 										style={getRatingColor(riskData?.chain?.rating_color)}
 									>
 										{riskData?.chain?.rating || 'N/A'}
 									</p>
-									<p className="text-sm flex-1">Chain</p>
-									<div className="flex items-center gap-1 ml-auto">
+									<p className="flex-1 text-sm">Chain</p>
+									<div className="ml-auto flex items-center gap-1">
 										{riskData?.chain?.underlying
 											?.filter((c) => c?.name)
 											.map((chain) => (
 												<a
-													className="py-1 px-2 text-xs rounded-2xl flex items-center gap-1 border"
+													className="flex items-center gap-1 rounded-2xl border px-2 py-1 text-xs"
 													key={`chain-underlying-${chain.name}-${chain.url}`}
 													style={{ borderColor: getRatingColor(chain.rating_color).backgroundColor }}
 													href={chain.url}
@@ -416,11 +416,11 @@ const PageView = (props) => {
 									</div>
 								</div>
 							</div>
-							<div className="flex flex-col gap-3 justify-between flex-1 w-full relative">
-								<div className="flex items-center justify-between rounded-xl min-w-[160px] px-1">
+							<div className="relative flex w-full flex-1 flex-col justify-between gap-3">
+								<div className="flex min-w-[160px] items-center justify-between rounded-xl px-1">
 									<h3 className="flex items-center gap-1 text-base font-bold">
 										<span
-											className={`w-7 h-7 rounded-full flex items-center justify-center ${
+											className={`flex h-7 w-7 items-center justify-center rounded-full ${
 												riskData?.pool_rating ? 'text-base' : 'text-sm'
 											}`}
 											style={getRatingColor(riskData?.pool_rating_color)}
@@ -433,7 +433,7 @@ const PageView = (props) => {
 										href={riskData?.pool_url || 'https://exponential.fi/about-us'}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="font-medium flex items-center gap-2 text-[#445ed0] dark:text-[#2172E5] hover:underline"
+										className="flex items-center gap-2 font-medium text-[#445ed0] hover:underline dark:text-[#2172E5]"
 									>
 										<span>{riskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
 										<Icon name="external-link" height={16} width={16} />
@@ -445,13 +445,13 @@ const PageView = (props) => {
 				)}
 
 				{isLoading ? (
-					<p className="flex items-center justify-center text-center h-[408px] col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+					<p className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
 						Loading...
 					</p>
 				) : (
 					<>
 						{barChartData?.length ? (
-							<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<Suspense fallback={<></>}>
 									<BarChart
 										title="Supply APY"
@@ -464,7 +464,7 @@ const PageView = (props) => {
 							</LazyChart>
 						) : null}
 						{areaChartData.length ? (
-							<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<Suspense fallback={<></>}>
 									<AreaChart
 										title="7 day moving average of Supply APY"
@@ -480,13 +480,13 @@ const PageView = (props) => {
 			</div>
 
 			{fetchingChartDataBorrow ? (
-				<p className="flex items-center justify-center text-center h-[408px] col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+				<p className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
 					Loading...
 				</p>
 			) : areaChartDataBorrow?.length ? (
-				<div className="grid grid-cols-2 rounded-md min-h-[408px] gap-2">
+				<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
 					{areaChartDataBorrow?.length ? (
-						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<BarChart
 									title="Borrow APY"
@@ -499,7 +499,7 @@ const PageView = (props) => {
 						</LazyChart>
 					) : null}
 					{areaChartDataBorrow.length ? (
-						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<AreaChart
 									title="Net Borrow APY"
@@ -512,7 +512,7 @@ const PageView = (props) => {
 					) : null}
 
 					{areaChartDataBorrow?.length ? (
-						<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<AreaChart
 									chartData={areaChartDataBorrow}
@@ -528,7 +528,7 @@ const PageView = (props) => {
 				</div>
 			) : null}
 
-			<div className="flex flex-col gap-2 bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 xl:p-4">
+			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 				<h3 className="text-base font-semibold">Protocol Information</h3>
 				<p className="flex items-center gap-1">
 					<span>Category:</span>
@@ -540,7 +540,7 @@ const PageView = (props) => {
 				{config.audits ? (
 					<>
 						<p className="flex items-center gap-1">
-							<span className="flex items-center gap-1 flex-nowrap">
+							<span className="flex flex-nowrap items-center gap-1">
 								<span>Audits</span>
 								<QuestionHelper text="Audits are not a security guarantee" />
 								<span>:</span>
@@ -550,7 +550,7 @@ const PageView = (props) => {
 									name="Yes"
 									options={config.audit_links}
 									isExternal
-									className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 								/>
 							) : (
 								<span>No</span>
@@ -563,11 +563,11 @@ const PageView = (props) => {
 					{url ? (
 						<a
 							href={url}
-							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							<Icon name="earth" className="w-3 h-3" />
+							<Icon name="earth" className="h-3 w-3" />
 							<span>Website</span>
 						</a>
 					) : null}
@@ -575,12 +575,12 @@ const PageView = (props) => {
 						? config.github.map((github) => (
 								<a
 									href={`https://github.com/${github}`}
-									className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 									target="_blank"
 									rel="noopener noreferrer"
 									key={`${config.name}-github-${github}`}
 								>
-									<Icon name="github" className="w-3 h-3" />
+									<Icon name="github" className="h-3 w-3" />
 									<span>{config.github.length === 1 ? 'GitHub' : github}</span>
 								</a>
 							))
@@ -588,11 +588,11 @@ const PageView = (props) => {
 					{config.twitter ? (
 						<a
 							href={`https://twitter.com/${config.twitter}`}
-							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							<Icon name="twitter" className="w-3 h-3" />
+							<Icon name="twitter" className="h-3 w-3" />
 							<span>Twitter</span>
 						</a>
 					) : null}

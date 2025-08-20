@@ -24,7 +24,7 @@ export function PeggedFiltersDropdowns({
 			<CSVDownloadButton
 				onClick={downloadCsv}
 				smol
-				className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+				className="ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 			/>
 		</>
 	)

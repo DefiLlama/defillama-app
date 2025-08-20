@@ -44,16 +44,16 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 			<Layout title={`${chainName} Bridged TVL - DefiLlama`}>
 				<SEO cardName={chainName} token={chain} />
 				<RowLinksWithDropdown links={chains} activeLink={chainName} />
-				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
-						<h1 className="flex items-center gap-2 text-xl font-semibold mb-3">
+				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+					<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
+						<h1 className="mb-3 flex items-center gap-2 text-xl font-semibold">
 							<TokenLogo logo={chainIconUrl(chain)} size={24} />
 							<FormattedName text={chainName + ' Bridged TVL'} fontWeight={700} />
 						</h1>
 
-						<p className="flex flex-col gap-1 text-base mb-3">
+						<p className="mb-3 flex flex-col gap-1 text-base">
 							<span className="text-(--text-label)">Total</span>
-							<span className="font-jetbrains font-semibold text-2xl">
+							<span className="font-jetbrains text-2xl font-semibold">
 								{formattedNum(
 									+chainData?.total.total + (+chainData?.ownTokens?.total ? +chainData?.ownTokens?.total : 0),
 									true
@@ -83,13 +83,13 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 							</p>
 						) : null}
 					</div>
-					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 flex flex-col items-center gap-4 min-h-[436px]">
+					<div className="col-span-2 flex min-h-[436px] flex-col items-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<div className="w-full max-w-fit overflow-x-auto p-3">
-							<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+							<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 								{chartTypes.map(({ type, name }) =>
 									Boolean(chainData[type]?.total) && chainData[type]?.total !== '0' ? (
 										<button
-											className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+											className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 											data-active={chartType === type}
 											onClick={() => setChartType(type)}
 											key={'bridged-' + name}
@@ -100,7 +100,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								)}
 								{inflows ? (
 									<button
-										className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										data-active={chartType === 'inflows'}
 										onClick={() => setChartType('inflows')}
 									>
@@ -109,7 +109,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								) : null}
 								{chainData?.ownTokens?.total ? (
 									<button
-										className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										data-active={chartType === 'ownTokens'}
 										onClick={() => setChartType('ownTokens')}
 									>

@@ -64,7 +64,7 @@ export function Flag({
 					<Icon name="flag" height={14} width={14} />
 				</Tooltip>
 			) : (
-				<button className="text-left mt-auto pt-4 underline" onClick={dialogStore.toggle}>
+				<button className="mt-auto pt-4 text-left underline" onClick={dialogStore.toggle}>
 					Report incorrect data
 				</button>
 			)}
@@ -82,7 +82,7 @@ export function Flag({
 							name="protocol"
 							value={protocol}
 							disabled
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
@@ -92,12 +92,12 @@ export function Flag({
 								name="dataType"
 								value={dataType}
 								disabled
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+								className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 							/>
 						) : (
 							<select
 								name="dataType"
-								className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+								className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 							>
 								<option value="TVL">TVL</option>
 								<option value="Mcap">Mcap</option>
@@ -130,14 +130,14 @@ export function Flag({
 						<textarea
 							name="message"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
 						<span>Where can we find correct information? (optional)</span>
 						<textarea
 							name="correctSource"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
@@ -145,13 +145,13 @@ export function Flag({
 						<input
 							name="contact"
 							placeholder="Email address"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<button
 						name="submit-btn"
 						disabled={loading}
-						className="p-3 mt-3 bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+						className="mt-3 rounded-md bg-[#2172e5] p-3 text-white hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
 					>
 						Report
 					</button>
@@ -160,7 +160,7 @@ export function Flag({
 			</Ariakit.Dialog>
 
 			<Ariakit.Dialog
-				className="dialog text-lg flex flex-col items-center py-9 px-0"
+				className="dialog flex flex-col items-center px-0 py-9 text-lg"
 				unmountOnHide
 				store={successDialogStore}
 			>

@@ -150,28 +150,28 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
-			<div className="relative w-full isolate rounded-md bg-(--cards-bg) p-1 h-10">
+			<div className="relative isolate h-10 w-full rounded-md bg-(--cards-bg) p-1">
 				<img
 					src="/icons/metrics-l.svg"
 					width={92}
 					height={40}
 					alt=""
-					className="rounded-l-md absolute left-0 top-0 h-full w-auto object-cover"
+					className="absolute top-0 left-0 h-full w-auto rounded-l-md object-cover"
 					fetchPriority="high"
 				/>
-				<div className="flex items-center gap-1 justify-center flex-wrap h-full">
-					<span className="bg-(--old-blue) text-white text-xs rounded-md py-[7px] items-center gap-2 px-2 hidden lg:flex">
+				<div className="flex h-full flex-wrap items-center justify-center gap-1">
+					<span className="hidden items-center gap-2 rounded-md bg-(--old-blue) px-2 py-[7px] text-xs text-white lg:flex">
 						<Icon name="sparkles" height={12} width={12} />
 						<span>New</span>
 					</span>
-					<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
+					<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] px-[10px] py-1 font-semibold">
 						{currentMetric === 'CEX Assets' ? 'CEXs' : isChains ? 'Chains' : 'Protocols'}
 					</Ariakit.DialogDisclosure>
 					<span>ranked by </span>
-					<Ariakit.DialogDisclosure className="py-1 px-[10px] border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] font-semibold rounded-md z-10">
+					<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] px-[10px] py-1 font-semibold">
 						{currentMetric === 'CEX Assets' ? 'Assets' : currentMetric}
 					</Ariakit.DialogDisclosure>
-					<Ariakit.DialogDisclosure className="py-1 px-[6px] flex items-center gap-1 text-(--text-form) text-xs z-10">
+					<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-[6px] py-1 text-xs text-(--text-form)">
 						<Icon name="search" height={12} width={12} />
 						<span className="hidden sm:block">Click to browse & search</span>
 					</Ariakit.DialogDisclosure>
@@ -181,13 +181,13 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 					width={92}
 					height={40}
 					alt=""
-					className="rounded-r-md absolute right-0 top-0 h-full w-auto object-cover"
+					className="absolute top-0 right-0 h-full w-auto rounded-r-md object-cover"
 					fetchPriority="high"
 				/>
 				<svg
 					width="100%"
 					height="100%"
-					className="absolute top-0 left-0 right-0 bottom-0 z-0 text-[#e6e6e6] dark:text-[#222324]"
+					className="absolute top-0 right-0 bottom-0 left-0 z-0 text-[#e6e6e6] dark:text-[#222324]"
 				>
 					<defs>
 						<linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -213,17 +213,17 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 				</svg>
 			</div>
 			<Ariakit.Dialog
-				className="dialog gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] max-sm:drawer h-[70vh] lg:h-[calc(100vh-32px)]"
+				className="dialog max-sm:drawer h-[70vh] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] lg:h-[calc(100vh-32px)]"
 				unmountOnHide
 			>
-				<div className="p-1 bg-(--cards-bg) rounded-md flex flex-col gap-2">
+				<div className="flex flex-col gap-2 rounded-md bg-(--cards-bg) p-1">
 					<div className="flex items-center gap-2">
 						<Ariakit.DialogHeading className="text-2xl font-bold">Metrics for</Ariakit.DialogHeading>
-						<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border-(--bg-input) bg-(--bg-input) p-1">
+						<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border-(--bg-input) bg-(--bg-input) p-1 text-xs font-medium">
 							{['Protocols', 'Chains'].map((dataType) => (
 								<button
 									onClick={() => setTab(dataType as 'Protocols' | 'Chains')}
-									className="shrink-0 py-1 px-[10px] min-h-8 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white rounded-md"
+									className="min-h-8 shrink-0 rounded-md px-[10px] py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									data-active={tab === dataType}
 									key={dataType}
 								>
@@ -232,7 +232,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							))}
 						</div>
 						<Ariakit.DialogDismiss
-							className="ml-auto p-2 -my-2 rounded-lg hover:bg-(--divider) text-(--text-tertiary) hover:text-(--text-primary)"
+							className="-my-2 ml-auto rounded-lg p-2 text-(--text-tertiary) hover:bg-(--divider) hover:text-(--text-primary)"
 							aria-label="Close modal"
 						>
 							<Icon name="x" height={20} width={20} />
@@ -243,12 +243,12 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
 							type="text"
 							placeholder="Search..."
-							className="w-full border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 min-h-8 text-black dark:text-white placeholder:text-[#666] dark:placeholder:[#919296] rounded-md outline-hidden"
+							className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white"
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
 						/>
@@ -260,19 +260,19 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							{chains.map(({ category, pages }) => (
 								<div key={`chain-metrics-category-${category}`} className="group">
 									{category ? (
-										<div className="flex items-center flex-nowrap gap-4 my-2 group-first:mt-0">
+										<div className="my-2 flex flex-nowrap items-center gap-4 group-first:mt-0">
 											<h1 className="text-lg font-bold">{category}</h1>
 											<div className="h-[1px] flex-1 border border-(--cards-border)" />
 										</div>
 									) : null}
-									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
+									<div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 										{pages.map((metric) => (
 											<BasicLink
 												key={`chain-metric-${category}-${metric.name}`}
-												className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+												className="col-span-1 flex min-h-[120px] flex-col items-start gap-[2px] rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
 												href={metric.route}
 											>
-												<span className="flex items-center gap-2 flex-wrap justify-between w-full">
+												<span className="flex w-full flex-wrap items-center justify-between gap-2">
 													<span className="font-medium">{metric.name}</span>
 													{totalTrackedByMetric && metric.chainsTracked(totalTrackedByMetric) ? (
 														<span className="text-xs text-(--link)">
@@ -280,7 +280,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 														</span>
 													) : null}
 												</span>
-												<span className="text-(--text-form) text-start whitespace-pre-wrap">{metric.description}</span>
+												<span className="text-start whitespace-pre-wrap text-(--text-form)">{metric.description}</span>
 											</BasicLink>
 										))}
 									</div>
@@ -292,23 +292,23 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 							{protocols.map(({ category, pages }) => (
 								<div key={`protocol-metrics-category-${category}`} className="group">
 									{category ? (
-										<div className="flex items-center flex-nowrap gap-4 my-2 group-first:mt-0">
+										<div className="my-2 flex flex-nowrap items-center gap-4 group-first:mt-0">
 											<h1 className="text-lg font-bold">{category}</h1>
 											<div className="h-[1px] flex-1 border border-(--cards-border)" />
 										</div>
 									) : null}
-									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
+									<div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 										{pages.map((metric) => (
 											<BasicLink
 												key={`protocol-metric-${category}-${metric.name}`}
-												className="p-[10px] rounded-md bg-(--cards-bg) border border-(--cards-border) col-span-1 flex flex-col items-start gap-[2px] hover:bg-[rgba(31,103,210,0.12)] min-h-[120px]"
+												className="col-span-1 flex min-h-[120px] flex-col items-start gap-[2px] rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
 												href={
 													chain && metric.chainRoute
 														? `${metric.chainRoute.replace('{chain}', chain)}`
 														: metric.mainRoute
 												}
 											>
-												<span className="flex items-center gap-2 flex-wrap justify-between w-full">
+												<span className="flex w-full flex-wrap items-center justify-between gap-2">
 													<span className="font-medium">{metric.name}</span>
 													{totalTrackedByMetric && metric.protocolsTracked(totalTrackedByMetric) ? (
 														<span className="text-xs text-(--link)">
@@ -316,7 +316,7 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 														</span>
 													) : null}
 												</span>
-												<span className="text-(--text-form) text-start whitespace-pre-wrap">{metric.description}</span>
+												<span className="text-start whitespace-pre-wrap text-(--text-form)">{metric.description}</span>
 											</BasicLink>
 										))}
 									</div>

@@ -192,7 +192,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 	return (
 		<div className="relative min-h-[600px] pr-5">
 			<div id={id} className="my-auto min-h-[600px]" style={height ? { height: `${height}px` } : undefined}></div>
-			<div className="flex justify-center mt-4">
+			<div className="mt-4 flex justify-center">
 				<TagGroup values={flowTypes} selectedValue={period} setValue={setPeriod} />
 			</div>
 		</div>

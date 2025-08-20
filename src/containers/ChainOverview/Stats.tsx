@@ -100,16 +100,16 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 	const metricsDialogStore = Ariakit.useDialogStore()
 
 	return (
-		<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 				{props.metadata.name !== 'All' && (
-					<h1 className="flex items-center flex-nowrap gap-2 *:last:ml-auto">
+					<h1 className="flex flex-nowrap items-center gap-2 *:last:ml-auto">
 						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
 						<span className="text-xl font-semibold">{props.metadata.name}</span>
 						<Bookmark readableName={props.metadata.name} isChain />
 					</h1>
 				)}
-				<div className="flex items-end flex-nowrap justify-between gap-8">
+				<div className="flex flex-nowrap items-end justify-between gap-8">
 					<h2 className="flex flex-col">
 						<Tooltip
 							content={
@@ -117,11 +117,11 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 									? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
 									: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 							}
-							className="!inline underline decoration-dotted text-(--text-label)"
+							className="!inline text-(--text-label) underline decoration-dotted"
 						>
 							Total Value Locked in DeFi
 						</Tooltip>
-						<span className="font-semibold text-2xl font-jetbrains min-h-8 overflow-hidden whitespace-nowrap text-ellipsis">
+						<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
 							{formattedNum(totalValueUSD, true)}
 						</span>
 					</h2>
@@ -129,10 +129,10 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						<Tooltip
 							content={`${formattedNum(valueChange24hUSD, true)}`}
 							render={<p />}
-							className="flex items-center flex-nowrap gap-2 relative bottom-[2px]"
+							className="relative bottom-[2px] flex flex-nowrap items-center gap-2"
 						>
 							<span
-								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
+								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
 									change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
 								}`}
 							>
@@ -142,12 +142,12 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						</Tooltip>
 					) : null}
 				</div>
-				<div className="flex flex-col flex-1 gap-2">
-					<h2 className="text-base xl:text-sm font-semibold">Key Metrics</h2>
+				<div className="flex flex-1 flex-col gap-2">
+					<h2 className="text-base font-semibold xl:text-sm">Key Metrics</h2>
 					<div className="flex flex-col">
 						{props.stablecoins?.mcap ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<Tooltip
 										content={
 											props.metadata.name === 'All'
@@ -162,17 +162,17 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.stablecoins.mcap, true)}</span>
 								</summary>
-								<div className="flex flex-col mb-3">
+								<div className="mb-3 flex flex-col">
 									{props.stablecoins.change7d != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Change (7d)</span>
 											<Tooltip
 												content={`${formattedNum(props.stablecoins.change7dUsd, true)}`}
-												className={`ml-auto justify-end font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
+												className={`font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
 													+props.stablecoins.change7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 												}`}
 											>
@@ -181,7 +181,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.stablecoins.dominance != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">{props.stablecoins.topToken.symbol} Dominance</span>
 											<span className="font-jetbrains ml-auto">{props.stablecoins.dominance}%</span>
 										</p>
@@ -190,7 +190,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</details>
 						) : null}
 						{props.chainFees?.total24h != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content="Total fees paid by users when using the chain"
 									className="text-(--text-label) underline decoration-dotted"
@@ -201,7 +201,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainRevenue?.total24h != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content="Subset of fees that the chain collects for itself"
 									className="text-(--text-label) underline decoration-dotted"
@@ -212,7 +212,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainFees?.totalREV24h != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content="REV is the sum of chain fees and MEV tips"
 									className="text-(--text-label) underline decoration-dotted"
@@ -223,7 +223,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainIncentives?.emissions24h != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content="Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms."
 									className="text-(--text-label) underline decoration-dotted"
@@ -236,7 +236,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.appRevenue?.total24h != null && props.appRevenue?.total24h > 1e3 ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content={
 										'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
@@ -249,7 +249,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.appFees?.total24h != null && props.appFees?.total24h > 1e3 ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content={
 										'Total fees paid by users when using the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
@@ -263,7 +263,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.dexs?.total24h != null ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<Tooltip
 										content={
 											props.metadata.name === 'All'
@@ -278,19 +278,19 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total24h, true)}</span>
 								</summary>
-								<div className="flex flex-col mb-3">
+								<div className="mb-3 flex flex-col">
 									{props.dexs.total7d != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Volume (7d)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total7d, true)}</span>
 										</p>
 									) : null}
 									{props.dexs.change_7dover7d != null && (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Weekly Change</span>
 											<span
 												className={`font-jetbrains ml-auto ${
@@ -302,7 +302,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									)}
 									{props.dexs.dexsDominance != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">DEX vs CEX dominance</span>
 											<span className="font-jetbrains ml-auto">{props.dexs.dexsDominance}%</span>
 										</p>
@@ -312,7 +312,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.perps?.total24h != null ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<Tooltip
 										content="Sum of volume on all perpetual exchanges on the chain"
 										className="text-(--text-label) underline decoration-dotted"
@@ -323,19 +323,19 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total24h, true)}</span>
 								</summary>
-								<div className="flex flex-col mb-3">
+								<div className="mb-3 flex flex-col">
 									{props.perps.total7d != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Perps Volume (7d)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total7d, true)}</span>
 										</p>
 									) : null}
 									{props.perps.change_7dover7d != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Weekly Change</span>
 											<span
 												className={`font-jetbrains ml-auto ${
@@ -350,7 +350,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</details>
 						) : null}
 						{props.inflows?.netInflows != null ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content="Net money bridged to the chain within the last 24h"
 									className="text-(--text-label) underline decoration-dotted"
@@ -362,7 +362,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.users.activeUsers != null ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<Tooltip
 										content={
 											<p>
@@ -383,19 +383,19 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.users.activeUsers, false)}</span>
 								</summary>
-								<div className="flex flex-col mb-3">
+								<div className="mb-3 flex flex-col">
 									{props.users.newUsers != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">New Addresses (24h)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.users.newUsers, false)}</span>
 										</p>
 									) : null}
 									{props.users.transactions != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Transactions (24h)</span>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.users.transactions, false)}</span>
 										</p>
@@ -405,19 +405,19 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.treasury ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<span className="text-(--text-label)">Treasury</span>
 									<Icon
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.tvl, true)}</span>
 								</summary>
-								<div className="flex flex-col mb-3">
+								<div className="mb-3 flex flex-col">
 									{props.treasury.tokenBreakdowns?.stablecoins != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Stablecoins</span>
 											<span className="font-jetbrains ml-auto">
 												{formattedNum(props.treasury.tokenBreakdowns?.stablecoins, true)}
@@ -425,7 +425,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.treasury.tokenBreakdowns?.majors != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Major Tokens (ETH, BTC)</span>
 											<span className="font-jetbrains ml-auto">
 												{formattedNum(props.treasury.tokenBreakdowns?.majors, true)}
@@ -433,7 +433,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.treasury.tokenBreakdowns?.others != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Other Tokens</span>
 											<span className="font-jetbrains ml-auto">
 												{formattedNum(props.treasury.tokenBreakdowns?.others, true)}
@@ -441,7 +441,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.treasury.tokenBreakdowns?.ownTokens != null ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Own Tokens</span>
 											<span className="font-jetbrains ml-auto">
 												{formattedNum(props.treasury.tokenBreakdowns?.ownTokens, true)}
@@ -453,7 +453,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{props.chainRaises && props.chainRaises.length > 0 && (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<Tooltip
 										content="Sum of all money raised by the chain, including VC funding rounds, public sales and ICOs."
 										className="text-(--text-label) underline decoration-dotted"
@@ -464,25 +464,25 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">
 										{formatRaisedAmount(props.chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
 									</span>
 								</summary>
-								<div className="flex flex-col mb-3">
+								<div className="mb-3 flex flex-col">
 									{props.chainRaises
 										.sort((a, b) => a.date - b.date)
 										.map((raise) => (
 											<p
-												className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
+												className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
 												key={`${raise.date}-${raise.amount}-${raise.source}-${raise.round}`}
 											>
 												<span className="flex flex-wrap justify-between">
 													<span className="text-(--text-label)">{dayjs(raise.date * 1000).format('MMM D, YYYY')}</span>
 													<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
 												</span>
-												<span className="flex gap-1 flex-wrap justify-between text-(--text-label)">
+												<span className="flex flex-wrap justify-between gap-1 text-(--text-label)">
 													<span>Round: {raise.round}</span>
 													{(raise as any).leadInvestors?.length || (raise as any).otherInvestors?.length ? (
 														<span>
@@ -505,13 +505,13 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						)}
 						{props.chainAssets ? (
 							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<span className="text-(--text-label)">Bridged TVL</span>
 									<Icon
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">
 										{formattedNum(
@@ -521,9 +521,9 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										)}
 									</span>
 								</summary>
-								<div className="flex flex-col mb-3">
+								<div className="mb-3 flex flex-col">
 									{props.chainAssets.native?.total ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<Tooltip
 												content="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)"
 												className="text-(--text-label) underline decoration-dotted"
@@ -536,7 +536,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.chainAssets.ownTokens?.total ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<Tooltip
 												content="Marketcap of the governance token of the chain"
 												className="text-(--text-label) underline decoration-dotted"
@@ -549,7 +549,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.chainAssets.canonical?.total ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<Tooltip
 												content="Tokens that were bridged to the chain through the canonical bridge"
 												className="text-(--text-label) underline decoration-dotted"
@@ -562,7 +562,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										</p>
 									) : null}
 									{props.chainAssets.thirdParty?.total ? (
-										<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<Tooltip
 												content="Tokens that were bridged to the chain through third party bridges"
 												className="text-(--text-label) underline decoration-dotted"
@@ -578,7 +578,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</details>
 						) : null}
 						{props.nfts ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content="Volume of Non Fungible Tokens traded in the last 24 hours"
 									className="text-(--text-label) underline decoration-dotted"
@@ -589,7 +589,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainTokenInfo?.token_symbol ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} Price</span>
 								<span className="font-jetbrains ml-auto">
 									{formattedNum(props.chainTokenInfo?.current_price, true)}
@@ -597,7 +597,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainTokenInfo?.token_symbol ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} Market Cap</span>
 								<span className="font-jetbrains ml-auto">
 									{formattedNum(props.chainTokenInfo?.market_cap ?? 0, true)}
@@ -605,7 +605,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							</p>
 						) : null}
 						{props.chainTokenInfo?.token_symbol ? (
-							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} FDV</span>
 								<span className="font-jetbrains ml-auto">
 									{formattedNum(props.chainTokenInfo?.fully_diluted_valuation ?? 0, true)}
@@ -626,19 +626,19 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						)
 					}}
 					smol
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! ml-auto"
+					className="ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2">
+			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-2">
-					<div className="flex items-center flex-wrap gap-2 mr-auto">
+					<div className="mr-auto flex flex-wrap items-center gap-2">
 						{props.charts.length > 0 ? (
 							<Ariakit.DialogProvider store={metricsDialogStore}>
-								<Ariakit.DialogDisclosure className="flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-(--cards-border)">
+								<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 									<span>Add Metrics</span>
 									<Icon name="plus" className="h-[14px] w-[14px]" />
 								</Ariakit.DialogDisclosure>
-								<Ariakit.Dialog className="dialog gap-3 sm:w-full max-sm:drawer" unmountOnHide>
+								<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
 									<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 									<div className="flex flex-wrap gap-2">
 										{props.charts.map((tchart) => (
@@ -663,7 +663,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 														? router.query[chainCharts[tchart]] !== 'false'
 														: router.query[chainCharts[tchart]] === 'true'
 												}
-												className="flex items-center gap-1 border border-(--old-blue) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) rounded-full px-2 py-1 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+												className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 											>
 												<span>
 													{tchart.includes('Token')
@@ -692,7 +692,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						) : null}
 						{toggledCharts.map((tchart) => (
 							<label
-								className="relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap last-of-type:mr-auto"
+								className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto"
 								key={`add-or-remove-metric-${chainCharts[tchart]}`}
 							>
 								<input
@@ -712,10 +712,10 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 											router
 										)
 									}}
-									className="peer absolute w-[1em] h-[1em] opacity-[0.00001]"
+									className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 								/>
 								<span
-									className="text-xs flex items-center gap-1 border-2 border-(--old-blue) rounded-full px-2 py-1"
+									className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs"
 									style={{
 										borderColor: chainOverviewChartColors[tchart]
 									}}
@@ -735,11 +735,11 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					</div>
 
 					{DENOMINATIONS.length > 1 ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 							{DENOMINATIONS.map((denom) => (
 								<button
 									key={`denom-${denom}`}
-									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--old-blue)"
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--old-blue)"
 									data-active={denomination === denom}
 									onClick={() => updateRoute('currency', denom, router)}
 								>
@@ -750,12 +750,12 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					) : null}
 
 					{hasAtleasOneBarChart ? (
-						<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<Tooltip
 									content={capitalizeFirstLetter(dataInterval)}
 									render={<button />}
-									className="shrink-0 py-1 px-2 whitespace-nowrap data-[active=true]:font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={groupBy === dataInterval}
 									onClick={() => updateGroupBy(dataInterval)}
 									key={`${props.chain}-overview-groupBy-${dataInterval}`}
@@ -775,16 +775,16 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 							}
 						}}
 						smol
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 
 				{isFetchingChartData ? (
-					<div className="flex items-center justify-center m-auto min-h-[360px]">
+					<div className="m-auto flex min-h-[360px] items-center justify-center">
 						<p>Loading...</p>
 					</div>
 				) : (
-					<Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={darkMode} groupBy={groupBy} />
 					</Suspense>
 				)}

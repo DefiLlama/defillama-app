@@ -267,10 +267,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
 	return (
-		<div className="px-4 pb-4 pt-2 h-full min-h-[340px] flex flex-col">
+		<div className="flex h-full min-h-[340px] flex-col px-4 pt-2 pb-4">
 			<div className="mb-2">
 				<div className={``}>
-					<div className="flex items-center gap-2 mb-2">
+					<div className="mb-2 flex items-center gap-2">
 						<h3 className="text-sm font-medium text-(--text-primary)">
 							{multi.name || `Multi-Chart (${multi.items.length})`}
 						</h3>
@@ -284,20 +284,18 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					</div>
 					<div className="flex items-center justify-end gap-2">
 						{!isReadOnly && allChartsGroupable && hasAnyData && (
-							<div className="flex border border-(--form-control-border) overflow-hidden">
+							<div className="flex overflow-hidden border border-(--form-control-border)">
 								{groupingOptions.map((option, index) => (
 									<button
 										key={option}
 										onClick={() => handleGroupingChange(multi.id, option)}
-										className={`px-2 sm:px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
-										${index > 0 ? 'border-l border-(--form-control-border)' : ''}
-										${
+										className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
 											multi.grouping === option
-												? 'bg-(--primary) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary) focus:ring-opacity-50'
-												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
+												? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
+												: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
 										}`}
 									>
-										<span className="hidden xs:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+										<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
 										<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
 									</button>
 								))}
@@ -311,7 +309,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 										setShowStacked(false)
 									}
 								}}
-								className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
 								title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
 							>
 								<Icon name="trending-up" height={12} width={12} />
@@ -324,7 +322,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 									setShowStacked(!showStacked)
 									handlePercentageChange(multi.id, false)
 								}}
-								className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
 								title={showStacked ? 'Show separate' : 'Show stacked'}
 							>
 								<Icon name="layers" height={12} width={12} />
@@ -337,7 +335,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 									handlePercentageChange(multi.id, !showPercentage)
 									setShowStacked(false)
 								}}
-								className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
 								title={showPercentage ? 'Show absolute values' : 'Show percentage'}
 							>
 								<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
@@ -378,18 +376,18 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			<div style={{ height: '300px', flexGrow: 1 }}>
 				{!hasAnyData && isAllLoading ? (
-					<div className="flex items-center justify-center h-full">
+					<div className="flex h-full items-center justify-center">
 						<div className="text-center">
-							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-(--primary) mx-auto mb-2"></div>
+							<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
 							<p className="text-sm text-(--text-tertiary)">Loading charts...</p>
 						</div>
 					</div>
 				) : !hasAnyData ? (
-					<div className="flex items-center justify-center h-full">
+					<div className="flex h-full items-center justify-center">
 						<div className="text-center">
 							<Icon name="alert-triangle" height={24} width={24} className="mx-auto mb-2 text-red-500" />
 							<p className="text-sm text-(--text-tertiary)">Failed to load chart data</p>
-							<p className="text-xs text-(--text-tertiary) mt-1">
+							<p className="mt-1 text-xs text-(--text-tertiary)">
 								{failedItems.length} of {multi.items.length} charts failed
 							</p>
 						</div>

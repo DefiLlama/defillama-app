@@ -99,7 +99,7 @@ export function Treasuries({ data, entity }) {
 					<>
 						<CSVDownloadButton
 							onClick={downloadCSV}
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</>
 				}
@@ -120,12 +120,12 @@ export const columns: ColumnDef<any>[] = [
 			const slug = (row.original.slug as string).split('-(treasury)')[0]
 
 			return (
-				<span className="flex items-center gap-2 relative">
+				<span className="relative flex items-center gap-2">
 					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug}?treasury=true&tvl=false`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{name}
 					</BasicLink>
@@ -163,7 +163,7 @@ export const columns: ColumnDef<any>[] = [
 
 			return (
 				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
-					<span className="h-5 w-full! ml-auto bg-white flex items-center flex-nowrap">
+					<span className="ml-auto flex h-5 w-full! flex-nowrap items-center bg-white">
 						{dominance.map((dom) => {
 							const color = breakdownColor(dom[0])
 							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
@@ -315,8 +315,8 @@ const Breakdown = ({ data }) => {
 	const name = `${formatBreakdownType(data[0])} (${data[1]}%)`
 
 	return (
-		<span className="flex items-center flex-nowrap gap-1">
-			<span style={{ '--color': color } as any} className="h-4 w-4 bg-(--color) rounded-xs"></span>
+		<span className="flex flex-nowrap items-center gap-1">
+			<span style={{ '--color': color } as any} className="h-4 w-4 rounded-xs bg-(--color)"></span>
 			<span>{name}</span>
 		</span>
 	)

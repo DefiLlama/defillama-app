@@ -23,7 +23,7 @@ export const TotalLiquidable = (props: ChartData) => {
 	return (
 		<>
 			<span className="text-(--text-label)">Total Liquidatable (USD)</span>
-			<span className="font-semibold text-2xl font-jetbrains">${totalLiquidable}</span>
+			<span className="font-jetbrains text-2xl font-semibold">${totalLiquidable}</span>
 		</>
 	)
 }

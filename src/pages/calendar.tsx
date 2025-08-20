@@ -135,8 +135,8 @@ export default function Protocols({ emissions }) {
 		<Layout title={`Calendar - DefiLlama`} defaultSEO>
 			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>
 
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="flex items-center gap-4 flex-wrap *:last:ml-auto p-3">
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-wrap items-center gap-4 p-3 *:last:ml-auto">
 					<h1 className="text-xl font-semibold">Crypto Calendar</h1>
 
 					<Ariakit.SelectProvider
@@ -155,7 +155,7 @@ export default function Protocols({ emissions }) {
 							)
 						}}
 					>
-						<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer text-(--text-primary) flex-nowrap">
+						<Ariakit.Select className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
 							{selectedOptions.length > 0 ? (
 								<>
 									<span>Type: </span>
@@ -177,9 +177,9 @@ export default function Protocols({ emissions }) {
 							wrapperProps={{
 								className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 							}}
-							className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+							className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 						>
-							<span className="sticky z-1 top-0 flex flex-wrap justify-between gap-1 bg-(--bg-main) text-(--link) text-xs border-b border-(--form-control-border)">
+							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 								<button
 									onClick={() => {
 										router.push(
@@ -222,10 +222,10 @@ export default function Protocols({ emissions }) {
 								<Ariakit.SelectItem
 									key={`calendar-type-${value}`}
 									value={value}
-									className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+									className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
 									<span>{value}</span>
-									<Ariakit.SelectItemCheck className="h-3 w-3 flex items-center justify-center rounded-xs shrink-0 border border-[#28a2b5]" />
+									<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 								</Ariakit.SelectItem>
 							))}
 						</Ariakit.SelectPopover>
@@ -237,7 +237,7 @@ export default function Protocols({ emissions }) {
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
 							name="search"
@@ -246,7 +246,7 @@ export default function Protocols({ emissions }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search events..."
-							className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 				</div>

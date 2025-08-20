@@ -39,14 +39,14 @@ export function SubscribeModal({ isOpen, onClose, children }: SubscribeModalProp
 	if (!isOpen || !isMounted) return null
 
 	return createPortal(
-		<div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-[2px] flex justify-center items-center z-50 p-4 bg-transparent">
+		<div className="bg-opacity-30 fixed inset-0 z-50 flex items-center justify-center bg-black bg-transparent p-4 backdrop-blur-[2px]">
 			<div
 				ref={modalContentRef}
 				onMouseDown={(e) => e.stopPropagation()}
-				className="relative max-h-[90vh] overflow-y-auto bg-[#131415] rounded-xl shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] border border-[#5C5CF9]/10"
+				className="relative max-h-[90vh] overflow-y-auto rounded-xl border border-[#5C5CF9]/10 bg-[#131415] shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)]"
 			>
 				<button
-					className="absolute top-3 right-3 text-gray-400 hover:text-white z-20 p-1 rounded-full hover:bg-gray-700 transition-colors"
+					className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
 					onClick={onClose}
 					aria-label="Close modal"
 				>

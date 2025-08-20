@@ -31,8 +31,8 @@ export function TableHeader({
 		return `${chains.length} Chains Protocols`
 	}, [chains])
 	return (
-		<div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-			<h3 className="text-base font-semibold mr-auto">{displayTitle}</h3>
+		<div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+			<h3 className="mr-auto text-base font-semibold">{displayTitle}</h3>
 
 			{colSpan === 2 && (
 				<div className="flex items-center gap-2">
@@ -40,9 +40,9 @@ export function TableHeader({
 						<button
 							key={preset}
 							onClick={() => applyPreset(preset)}
-							className={`flex items-center gap-1 px-3 py-1.5 text-sm border capitalize transition-colors ${
+							className={`flex items-center gap-1 border px-3 py-1.5 text-sm capitalize transition-colors ${
 								activePreset === preset
-									? 'bg-(--primary) text-white border-(--primary)'
+									? 'border-(--primary) bg-(--primary) text-white'
 									: 'pro-border pro-hover-bg pro-text1 pro-bg1'
 							}`}
 						>
@@ -57,12 +57,12 @@ export function TableHeader({
 			<Tooltip content="Create custom calculated columns with formulas like 'tvl / mcap' or '(fees_24h + revenue_24h) * 365'">
 				<button
 					onClick={() => setShowColumnPanel(!showColumnPanel)}
-					className="flex items-center gap-2 px-3 py-1.5 text-sm border pro-border pro-hover-bg pro-text1 transition-colors pro-bg1 relative"
+					className="pro-border pro-hover-bg pro-text1 pro-bg1 relative flex items-center gap-2 border px-3 py-1.5 text-sm transition-colors"
 				>
 					<Icon name="settings" height={14} width={14} />
 					<span className="flex items-center gap-1">
 						Customize Table
-						<span className="text-xs px-1.5 py-0.5 bg-(--primary) text-white rounded-sm">+ Custom Columns</span>
+						<span className="rounded-sm bg-(--primary) px-1.5 py-0.5 text-xs text-white">+ Custom Columns</span>
 					</span>
 					<Icon name={showColumnPanel ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
 				</button>

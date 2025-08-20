@@ -3,7 +3,7 @@ import Layout from '~/layout'
 import { TokenLogo } from '~/components/TokenLogo'
 
 const PressPanel = ({ imageFilename }) => (
-	<div className="border border-(--cards-border) rounded-md text-center p-4">
+	<div className="rounded-md border border-(--cards-border) p-4 text-center">
 		<TokenLogo logo={`/press/${imageFilename}`} size={150} />
 	</div>
 )
@@ -42,10 +42,10 @@ const pressList = [
 function PressPage() {
 	return (
 		<Layout title="Press - DefiLlama" defaultSEO>
-			<h1 className="text-xl font-semibold bg-(--cards-bg) border border-(--cards-border) rounded-md">Press & Media</h1>
+			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) text-xl font-semibold">Press & Media</h1>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">About DefiLlama</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">About DefiLlama</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					DefiLlama is the largest data aggregator for DeFi (Decentralized Finance). Our data is fully open-source and
@@ -61,8 +61,8 @@ function PressPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">Contact</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">Contact</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
@@ -111,14 +111,14 @@ function PressPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">Press</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">Press</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 
 				<p>DefiLlama Data is free to use by anyone for press usage. Attribution is always appreciated.</p>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>DefiLlama is used across a large number of media organisations, governments, and financial institutions.</p>
-				<div className="grid grid-cols-[repeat(auto-fit,minmax(100px,200px))] place-content-center w-full gap-2 mt-4">
+				<div className="mt-4 grid w-full grid-cols-[repeat(auto-fit,minmax(100px,200px))] place-content-center gap-2">
 					{pressList.map((imageFilename) => (
 						<a
 							className="text-(--blue) hover:underline"
@@ -133,8 +133,8 @@ function PressPage() {
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">Branding Assets</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">Branding Assets</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					We have a few guidelines for using our brand resources. These ensure that our brand is always recognizable and

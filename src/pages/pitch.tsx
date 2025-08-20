@@ -185,14 +185,14 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 
 	return (
 		<Layout title="VC Filter - DefiLlama" defaultSEO>
-			<div className="w-full max-w-4xl mx-auto rounded-md bg-(--cards-bg) p-3 flex flex-col gap-5">
-				<h1 className="text-xl font-semibold text-center">Connect with Investors</h1>
-				<p className="text-base text-center text-(--text-secondary)">
+			<div className="mx-auto flex w-full max-w-4xl flex-col gap-5 rounded-md bg-(--cards-bg) p-3">
+				<h1 className="text-center text-xl font-semibold">Connect with Investors</h1>
+				<p className="text-center text-base text-(--text-secondary)">
 					Filter a list of VCs by their investments in DeFi projects to connect with the right investors for your
 					project.
 				</p>
-				<div className="flex flex-col lg:flex-row gap-10 relative">
-					<div className="flex-1 flex flex-col gap-4">
+				<div className="relative flex flex-col gap-10 lg:flex-row">
+					<div className="flex flex-1 flex-col gap-4">
 						<h2 className="text-lg font-semibold">Filter Investors</h2>
 
 						<label className="flex flex-col gap-1 text-sm">
@@ -255,7 +255,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							<span className="">Minimum last investment time:</span>
 							<input
 								type="date"
-								className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
+								className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
 								value={unixToDateString(filters.minLastRoundTime)}
 								onChange={handleDateChange}
 								max={new Date().toISOString().split('T')[0]}
@@ -272,7 +272,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								type="number"
 								value={filters.minimumInvestments}
 								onChange={(e) => handleFilterChange('minimumInvestments', parseInt(e.target.value))}
-								className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
+								className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
 							/>
 						</label>
 
@@ -287,7 +287,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									value={projectInfo.projectName}
 									onChange={handleProjectInfoChange}
 									required
-									className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
+									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
@@ -296,7 +296,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									name="link"
 									value={projectInfo.link}
 									onChange={handleProjectInfoChange}
-									className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
+									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
@@ -306,7 +306,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									value={projectInfo.textPitch}
 									onChange={handleProjectInfoChange}
 									required
-									className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
+									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
@@ -317,27 +317,27 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									value={projectInfo.founderEmail}
 									onChange={handleProjectInfoChange}
 									required
-									className="p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
+									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<button
 								type="submit"
 								disabled={isSubmitting}
-								className="bg-(--primary) disabled:bg-(--bg-tertiary) text-white disabled:text-(--text-tertiary) py-2 px-6 rounded-md w-full text-lg font-semibold"
+								className="w-full rounded-md bg-(--primary) px-6 py-2 text-lg font-semibold text-white disabled:bg-(--bg-tertiary) disabled:text-(--text-tertiary)"
 							>
 								{isSubmitting ? 'Submitting...' : 'Submit'}
 							</button>
 						</form>
 					</div>
-					<div className="w-full max-w-xs lg:sticky lg:top-10 flex flex-col gap-2 shadow-sm h-fit p-4 rounded-md bg-(--bg-secondary)">
+					<div className="flex h-fit w-full max-w-xs flex-col gap-2 rounded-md bg-(--bg-secondary) p-4 shadow-sm lg:sticky lg:top-10">
 						<h2>Results</h2>
-						{isLoading ? <div className="absolute top-0 left-0 h-1 w-[30%] bg-[#3498db] animate-linebeat" /> : null}
+						{isLoading ? <div className="animate-linebeat absolute top-0 left-0 h-1 w-[30%] bg-[#3498db]" /> : null}
 
-						<p className="text-base flex items-center flex-wrap gap-1 justify-between">
+						<p className="flex flex-wrap items-center justify-between gap-1 text-base">
 							<span>Matched Investors:</span>{' '}
 							<span className="font-semibold">{hasSelectedFilters ? matchedInvestors || '0' : '0'}</span>
 						</p>
-						<p className="text-base flex items-center flex-wrap gap-1 justify-between">
+						<p className="flex flex-wrap items-center justify-between gap-1 text-base">
 							<span>Total Cost:</span>
 							{matchedInvestors && hasSelectedFilters ? (
 								<span className="font-semibold text-(--success)">${totalCost}</span>
@@ -354,7 +354,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									<button
 										onClick={() => window.open(paymentLink, '_blank')}
 										disabled={isSubmitting}
-										className="bg-(--primary) disabled:bg-(--bg-tertiary) text-white disabled:text-(--text-tertiary) py-2 px-6 rounded-md w-full text-lg font-semibold"
+										className="w-full rounded-md bg-(--primary) px-6 py-2 text-lg font-semibold text-white disabled:bg-(--bg-tertiary) disabled:text-(--text-tertiary)"
 									>
 										{isSubmitting ? 'Processing...' : 'Go to Payment'}
 									</button>

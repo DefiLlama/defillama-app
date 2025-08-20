@@ -176,7 +176,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
-						<div className="w-full flex items-center justify-end gap-1">
+						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
 								{formattedPercent(getValue(), true, 700, true)}
@@ -204,7 +204,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			const rewards = row.original.rewardTokensNames ?? []
 
 			return (
-				<div className="flex items-center justify-end gap-1 w-full">
+				<div className="flex w-full items-center justify-end gap-1">
 					<IconsRow
 						disableLinks
 						links={rewards}

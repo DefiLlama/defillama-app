@@ -79,7 +79,7 @@ export function ProtocolOverviewLayout({
 			includeInMetricsOptionslabel={includeInMetricsOptionslabel}
 		>
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
-				<p className="relative p-2 text-xs text-black dark:text-white text-center rounded-md bg-(--btn-bg) border border-(--bg-color)">
+				<p className="relative rounded-md border border-(--bg-color) bg-(--btn-bg) p-2 text-center text-xs text-black dark:text-white">
 					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
 					click{' '}
 					<a
@@ -96,12 +96,12 @@ export function ProtocolOverviewLayout({
 
 			{warningBanners?.map((banner) => (
 				<p
-					className={`relative p-2 text-xs text-black dark:text-white text-center rounded-md border ${
+					className={`relative rounded-md border p-2 text-center text-xs text-black dark:text-white ${
 						banner.level === 'rug'
-							? 'bg-(--error)/20 border-(--error)'
+							? 'border-(--error) bg-(--error)/20'
 							: banner.level === 'alert'
-								? 'bg-(--warning)/20 border-(--warning)'
-								: 'bg-(--btn-bg) border-(--bg-color)'
+								? 'border-(--warning) bg-(--warning)/20'
+								: 'border-(--bg-color) bg-(--btn-bg)'
 					}`}
 					key={`${banner.message}-${banner.level}-${name}`}
 				>
@@ -109,11 +109,11 @@ export function ProtocolOverviewLayout({
 				</p>
 			))}
 
-			<div className="flex flex-col gap-2 isolate">
-				<div className="w-full flex overflow-x-auto text-xs font-medium">
+			<div className="isolate flex flex-col gap-2">
+				<div className="flex w-full overflow-x-auto text-xs font-medium">
 					{otherProtocols?.length > 1 && (
 						<Ariakit.MenuProvider>
-							<Ariakit.MenuButton className="mr-4 flex shrink-0 items-center justify-between gap-2 py-1 px-2 font-normal rounded-md cursor-pointer bg-white dark:bg-[#181A1C] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) border border-(--cards-border)">
+							<Ariakit.MenuButton className="mr-4 flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 								<TokenLogo logo={tokenIconUrl(name)} size={16} />
 								<span className="whitespace-nowrap">{name === otherProtocols[0] ? `${name} (Combined)` : name}</span>
 								<Ariakit.MenuButtonArrow />
@@ -124,7 +124,7 @@ export function ProtocolOverviewLayout({
 								wrapperProps={{
 									className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 								}}
-								className="text-sm font-medium flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer sm:max-w-md"
+								className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-sm font-medium max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
 								portal
 							>
 								{otherProtocols.map((value, i) => {
@@ -133,14 +133,14 @@ export function ProtocolOverviewLayout({
 											key={'navigate to ' + `/protocol/${slug(value)}`}
 											render={<BasicLink href={`/protocol/${slug(value)}`} />}
 											data-active={name === value}
-											className={`group flex items-center gap-2 py-2 relative ${
+											className={`group relative flex items-center gap-2 py-2 ${
 												i === 0 ? 'px-3' : 'ml-[22px] pr-3'
-											} shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) data-[active=true]:bg-(--primary-hover) cursor-pointer first-of-type:rounded-t-md whitespace-nowrap overflow-hidden text-ellipsis`}
+											} shrink-0 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) data-[active=true]:bg-(--primary-hover)`}
 										>
 											{i !== 0 && (
 												<>
-													<span className="w-[2px] h-full group-last:h-[50%] absolute top-0 bottom-0 left-0 block bg-(--form-control-border)" />
-													<span className="w-3 h-[2px] bg-(--form-control-border) -mr-2" />
+													<span className="absolute top-0 bottom-0 left-0 block h-full w-[2px] bg-(--form-control-border) group-last:h-[50%]" />
+													<span className="-mr-2 h-[2px] w-3 bg-(--form-control-border)" />
 												</>
 											)}
 											<TokenLogo logo={tokenIconUrl(value)} size={24} />
@@ -163,7 +163,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/cex/${slug(name)}`}
 							data-active={!tab || tab === 'information'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Information
 						</BasicLink>
@@ -171,7 +171,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/${slug(name)}`}
 							data-active={!tab || tab === 'information'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Information
 						</BasicLink>
@@ -181,7 +181,7 @@ export function ProtocolOverviewLayout({
 							<BasicLink
 								href={`/cex/assets/${slug(name)}`}
 								data-active={tab === 'assets'}
-								className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							>
 								Assets
 							</BasicLink>
@@ -189,7 +189,7 @@ export function ProtocolOverviewLayout({
 							<BasicLink
 								href={`/protocol/tvl/${slug(name)}`}
 								data-active={tab === 'tvl'}
-								className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							>
 								TVL
 							</BasicLink>
@@ -199,7 +199,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/stablecoins/${slug(name)}`}
 							data-active={tab === 'stablecoins'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Stablecoin Info
 						</BasicLink>
@@ -208,7 +208,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/bridges/${slug(name)}`}
 							data-active={tab === 'bridges'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Bridge Info
 						</BasicLink>
@@ -217,7 +217,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/treasury/${slug(name)}`}
 							data-active={tab === 'treasury'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Treasury
 						</BasicLink>
@@ -226,7 +226,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/unlocks/${slug(name)}`}
 							data-active={tab === 'unlocks'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Unlocks
 						</BasicLink>
@@ -235,7 +235,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/yields/${slug(name)}`}
 							data-active={tab === 'yields'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Yields
 						</BasicLink>
@@ -244,7 +244,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/fees/${slug(name)}`}
 							data-active={tab === 'fees'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Fees and Revenue
 						</BasicLink>
@@ -253,7 +253,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/dexs/${slug(name)}`}
 							data-active={tab === 'dexs'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							DEX Volume
 						</BasicLink>
@@ -262,7 +262,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/perps/${slug(name)}`}
 							data-active={tab === 'perps'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Perp Volume
 						</BasicLink>
@@ -271,7 +271,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/dex-aggregators/${slug(name)}`}
 							data-active={tab === 'dex-aggregators'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Aggregator Volume
 						</BasicLink>
@@ -280,7 +280,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/perps-aggregators/${slug(name)}`}
 							data-active={tab === 'perps-aggregators'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Perp Aggregator Volume
 						</BasicLink>
@@ -289,7 +289,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/bridge-aggregators/${slug(name)}`}
 							data-active={tab === 'bridge-aggregators'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Bridge Aggregator Volume
 						</BasicLink>
@@ -298,7 +298,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/options/${slug(name)}`}
 							data-active={tab === 'options'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Options Volume
 						</BasicLink>
@@ -307,7 +307,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/governance/${slug(name)}`}
 							data-active={tab === 'governance'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Governance
 						</BasicLink>
@@ -316,7 +316,7 @@ export function ProtocolOverviewLayout({
 						<BasicLink
 							href={`/protocol/forks/${slug(name)}`}
 							data-active={tab === 'forks'}
-							className="shrink-0 py-1 px-4 whitespace-nowrap border-b-2 border-(--form-control-border) data-[active=true]:border-(--primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
 							Forks
 						</BasicLink>

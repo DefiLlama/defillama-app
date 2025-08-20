@@ -53,7 +53,7 @@ export function RaisesFilterDropdowns({
 				onClick={() => {
 					router.push('/raises')
 				}}
-				className="rounded-md py-2 px-3 md:text-xs bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) max-sm:text-left"
+				className="rounded-md bg-(--btn-bg) px-3 py-2 hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) max-sm:text-left md:text-xs"
 			>
 				Reset all filters
 			</button>

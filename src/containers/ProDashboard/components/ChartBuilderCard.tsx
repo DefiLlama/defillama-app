@@ -232,28 +232,26 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	}, [chartSeries, builder.name, config.metric, config.chains])
 
 	return (
-		<div className="px-4 pb-4 pt-2 h-full min-h-[340px] flex flex-col">
+		<div className="flex h-full min-h-[340px] flex-col px-4 pt-2 pb-4">
 			<div className="mb-2">
 				<div className={``}>
-					<div className="flex items-center gap-2 mb-2">
+					<div className="mb-2 flex items-center gap-2">
 						<h3 className="text-sm font-medium text-(--text1)">{builder.name || `${config.metric} by Protocol`}</h3>
 					</div>
 					<div className="flex items-center justify-end gap-2">
 						{!isReadOnly && (
-							<div className="flex border border-(--form-control-border) overflow-hidden">
+							<div className="flex overflow-hidden border border-(--form-control-border)">
 								{groupingOptions.map((option, index) => (
 									<button
 										key={option}
 										onClick={() => handleGroupingChange(builder.id, option)}
-										className={`px-2 sm:px-3 py-1 text-xs font-medium transition-colors duration-150 ease-in-out 
-										${index > 0 ? 'border-l border-(--form-control-border)' : ''}
-										${
+										className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
 											builder.grouping === option || (!builder.grouping && option === 'day')
-												? 'bg-(--primary) text-white focus:outline-hidden focus:ring-2 focus:ring-(--primary) focus:ring-opacity-50'
-												: 'bg-transparent pro-hover-bg pro-text2 focus:outline-hidden focus:ring-1 focus:ring-(--form-control-border)'
+												? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
+												: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
 										}`}
 									>
-										<span className="hidden xs:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+										<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
 										<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
 									</button>
 								))}
@@ -262,7 +260,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						{!isReadOnly && (
 							<button
 								onClick={() => handlePercentageChange(builder.id, config.displayAs !== 'percentage')}
-								className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
 								title={config.displayAs === 'percentage' ? 'Show absolute values' : 'Show percentage'}
 							>
 								<Icon name={config.displayAs === 'percentage' ? 'percent' : 'dollar-sign'} height={12} width={12} />
@@ -274,7 +272,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						{!isReadOnly && (
 							<button
 								onClick={() => handleHideOthersChange(builder.id, !config.hideOthers)}
-								className="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
 								title={config.hideOthers ? 'Show all protocols' : 'Show only top protocols'}
 							>
 								<Icon name="layers" height={12} width={12} />
@@ -290,7 +288,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						)}
 					</div>
 				</div>
-				<div className="text-xs text-(--text3) mt-1">
+				<div className="mt-1 text-xs text-(--text3)">
 					{config.chains.join(', ')} • Top {config.limit} protocols{config.hideOthers ? ' only' : ''}
 					{config.categories.length > 0 && ` • ${config.categories.join(', ')}`}
 					{timePeriod && timePeriod !== 'all' && ` • ${timePeriod.toUpperCase()}`}
@@ -299,9 +297,9 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 			<div style={{ height: '300px', flexGrow: 1 }}>
 				{isLoading ? (
-					<div className="flex items-center justify-center h-full">
+					<div className="flex h-full items-center justify-center">
 						<div className="text-center">
-							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-(--primary) mx-auto mb-2"></div>
+							<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
 							<p className="text-sm text-(--text3)">Loading chart...</p>
 						</div>
 					</div>
@@ -440,7 +438,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						/>
 					</Suspense>
 				) : (
-					<div className="flex items-center justify-center h-full">
+					<div className="flex h-full items-center justify-center">
 						<p className="text-sm text-(--text3)">No data available</p>
 					</div>
 				)}

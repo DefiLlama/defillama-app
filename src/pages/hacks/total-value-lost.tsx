@@ -77,7 +77,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 								download('total-value-lost-in-hacks.csv', rows.map((r) => r.join(',')).join('\n'))
 							}}
 							smol
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</>
 				}
@@ -94,7 +94,7 @@ const columns: ColumnDef<IProtocolTotalValueLostInHacksByProtocol['protocols'][n
 		cell: ({ row, getValue, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
-				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
+				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
 						{index + 1}
 					</span>
@@ -103,7 +103,7 @@ const columns: ColumnDef<IProtocolTotalValueLostInHacksByProtocol['protocols'][n
 
 					<BasicLink
 						href={row.original.route}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
 						{getValue() as string}
 					</BasicLink>

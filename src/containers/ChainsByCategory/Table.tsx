@@ -168,14 +168,14 @@ export function ChainsByCategoryTable({
 	}, [groupTvls])
 
 	return (
-		<div className={`isolate ${borderless ? '' : 'bg-(--cards-bg) border border-(--cards-border) rounded-md'}`}>
-			<div className="flex items-center justify-end flex-wrap gap-2 p-2">
-				<div className="relative w-full sm:max-w-[280px] mr-auto">
+		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+				<div className="relative mr-auto w-full sm:max-w-[280px]">
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						value={projectName}
@@ -183,12 +183,12 @@ export function ChainsByCategoryTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="border border-(--form-control-border) w-full pl-7 pr-2 py-[6px] bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 
 				<div className="flex items-center gap-2 max-sm:w-full max-sm:flex-col">
-					<div className="flex items-center gap-2 w-full sm:w-auto">
+					<div className="flex w-full items-center gap-2 sm:w-auto">
 						<SelectWithCombobox
 							allValues={DEFI_CHAINS_SETTINGS}
 							selectedValues={selectedAggregateTypes}
@@ -304,7 +304,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 
 			return (
 				<span
-					className="flex items-center gap-2 relative"
+					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					{row.subRows?.length > 0 && (
@@ -332,7 +332,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<BasicLink
 						href={`/chain/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
 						{getValue() as string | null}
 					</BasicLink>
@@ -406,27 +406,27 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 			if (!chainAssets?.total) return null
 
 			const chainAssetsBreakdown = (
-				<div className="w-52 flex flex-col gap-1">
+				<div className="flex w-52 flex-col gap-1">
 					{chainAssets.native ? (
-						<div className="flex items-center gap-1 justify-between">
+						<div className="flex items-center justify-between gap-1">
 							<span>Native:</span>
 							<span>{formattedNum(+chainAssets.native, true)}</span>
 						</div>
 					) : null}
 					{chainAssets.canonical ? (
-						<div className="flex items-center gap-1 justify-between">
+						<div className="flex items-center justify-between gap-1">
 							<span>Canonical:</span>
 							<span>{formattedNum(+chainAssets.canonical, true)}</span>
 						</div>
 					) : null}
 					{chainAssets.ownTokens ? (
-						<div className="flex items-center gap-1 justify-between">
+						<div className="flex items-center justify-between gap-1">
 							<span>Own Tokens:</span>
 							<span>{formattedNum(+chainAssets.ownTokens, true)}</span>
 						</div>
 					) : null}
 					{chainAssets.thirdParty ? (
-						<div className="flex items-center gap-1 justify-between">
+						<div className="flex items-center justify-between gap-1">
 							<span>Third Party:</span>
 							<span>{formattedNum(+chainAssets.thirdParty, true)}</span>
 						</div>

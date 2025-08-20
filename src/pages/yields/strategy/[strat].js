@@ -167,8 +167,8 @@ const PageView = () => {
 
 	return (
 		<>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto text-base">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-base xl:col-span-1">
 					<h1 className="text-xl font-bold">APY Breakdown:</h1>
 					<h2 className="flex items-center justify-between gap-1">
 						<span className="font-bold">Strategy APY</span>
@@ -215,14 +215,14 @@ const PageView = () => {
 						</p>
 					</div>
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md pt-2 col-span-2 min-h-[480px]">
+				<div className="col-span-2 min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<></>}>
 						<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
 					</Suspense>
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+			<div className="flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<h3 className="font-bold">Steps</h3>
 				<p className="flex items-center gap-2">
 					<span>1.</span>
@@ -277,16 +277,16 @@ const PageView = () => {
 				)}
 			</div>
 
-			<div className="grid grid-cols-2 rounded-md min-h-[408px] gap-2">
+			<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
 				{fetchingLendData ? (
-					<p className="flex items-center justify-center text-center h-[408px] col-span-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+					<p className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
 						Loading...
 					</p>
 				) : (
 					lendHistory?.data?.length && (
 						<>
 							{barChartDataSupply?.length ? (
-								<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<BarChart
 											title="Supply APY"
@@ -300,7 +300,7 @@ const PageView = () => {
 							) : null}
 
 							{barChartDataBorrow?.length ? (
-								<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<BarChart
 											title="Borrow APY"
@@ -314,7 +314,7 @@ const PageView = () => {
 							) : null}
 
 							{barChartDataFarm?.length ? (
-								<LazyChart className="relative col-span-full min-h-[408px] pt-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<Suspense fallback={<></>}>
 										<BarChart
 											title="Farm APY"

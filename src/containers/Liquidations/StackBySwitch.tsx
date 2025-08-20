@@ -8,7 +8,7 @@ export const StackBySwitch = () => {
 	const _stackBy = !!stackBy ? stackBy : 'protocols'
 
 	return (
-		<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form) max-sm:w-full">
+		<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form) max-sm:w-full">
 			<button
 				data-active={_stackBy === 'protocols'}
 				onClick={() => {
@@ -19,7 +19,7 @@ export const StackBySwitch = () => {
 						}
 					})
 				}}
-				className="shrink-0 px-3 py-[6px] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+				className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				<Icon name="map" height={14} width={14} />
 				<span>Protocols</span>
@@ -34,7 +34,7 @@ export const StackBySwitch = () => {
 						}
 					})
 				}}
-				className="shrink-0 px-3 py-[6px] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+				className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				<Icon name="link" height={14} width={14} />
 				<span>Chains</span>

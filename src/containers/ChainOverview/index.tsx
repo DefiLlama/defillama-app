@@ -24,22 +24,22 @@ export function ChainOverview(props: IChainOverviewData) {
 				<SmolStats {...props} />
 			</Suspense>
 			{props.metadata.name === 'All' ? (
-				<div className="flex flex-nowrap items-center overflow-x-auto overflow-y-hidden gap-1 relative isolate">
+				<div className="relative isolate flex flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden">
 					{linksToOtherLlamaApps.map((app) => (
 						<a
 							target="_blank"
 							rel="noreferrer noopener"
 							href={app.href}
 							key={`llama-app-${app.href}`}
-							className="min-w-fit max-w-[70vw] flex-1 flex items-center gap-[10px] p-[10px] rounded-lg bg-(--cards-bg) border border-(--cards-bg) max-h-[64px] relative overflow-hidden"
+							className="relative flex max-h-[64px] max-w-[70vw] min-w-fit flex-1 items-center gap-[10px] overflow-hidden rounded-lg border border-(--cards-bg) bg-(--cards-bg) p-[10px]"
 						>
 							{app.background}
 							<>{app.icon}</>
-							<span className="flex flex-col gap-[2px] flex-1">
-								<span className="col-span-1 row-span-1 overflow-hidden whitespace-nowrap text-ellipsis text-sm font-semibold">
+							<span className="flex flex-1 flex-col gap-[2px]">
+								<span className="col-span-1 row-span-1 overflow-hidden text-sm font-semibold text-ellipsis whitespace-nowrap">
 									{app.name}
 								</span>
-								<span className="col-span-1 row-span-1 overflow-hidden whitespace-nowrap text-ellipsis text-sm font-light">
+								<span className="col-span-1 row-span-1 overflow-hidden text-sm font-light text-ellipsis whitespace-nowrap">
 									{app.description}
 								</span>
 							</span>
@@ -52,7 +52,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				fallback={
 					<div
 						style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
-						className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
+						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
 					/>
 				}
 			>
@@ -68,12 +68,12 @@ const linksToOtherLlamaApps = [
 		description: 'No fees dex aggregator',
 		href: 'https://swap.defillama.com',
 		icon: (
-			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="object-contain z-10" />
+			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: (
 			<span
 				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#5C5CF9] overflow-hidden"
+				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
 			/>
 		)
 	},
@@ -82,21 +82,21 @@ const linksToOtherLlamaApps = [
 		description: 'Seamless crypto payments',
 		href: 'https://llamapay.io',
 		icon: (
-			<span className="mx-[5px] block h-8 w-8 rotate-45 bg-[linear-gradient(183deg,#23BD8F_0.79%,#1BDBAD_99.21%)] rounded-md z-10">
+			<span className="z-10 mx-[5px] block h-8 w-8 rotate-45 rounded-md bg-[linear-gradient(183deg,#23BD8F_0.79%,#1BDBAD_99.21%)]">
 				<img
 					src="/icons/llamapay.svg"
 					loading="lazy"
 					alt=""
 					height={44}
 					width={44}
-					className="-rotate-45  object-contain"
+					className="-rotate-45 object-contain"
 				/>
 			</span>
 		),
 		background: (
 			<span
 				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#37E69A] overflow-hidden"
+				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#37E69A] blur-[32px]"
 			/>
 		)
 	},
@@ -105,12 +105,12 @@ const linksToOtherLlamaApps = [
 		description: 'The ultimate crypto feed',
 		href: 'https://llamafeed.io/',
 		icon: (
-			<img src="/icons/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="object-contain z-10" />
+			<img src="/icons/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: (
 			<span
 				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#5C5CF9] overflow-hidden"
+				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
 			/>
 		)
 	},
@@ -119,12 +119,12 @@ const linksToOtherLlamaApps = [
 		description: 'Access to all our data',
 		href: 'https://defillama.com/pro-api/docs',
 		icon: (
-			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="object-contain z-10" />
+			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: (
 			<span
 				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="h-12 w-12 absolute left-0 top-0 bottom-0 blur-[32px] bg-[#5C5CF9] overflow-hidden"
+				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
 			/>
 		)
 	}

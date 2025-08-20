@@ -235,7 +235,7 @@ export default function UnlocksCalendar({
 				<span>Are we missing any protocol?</span>{' '}
 				<a
 					href="https://airtable.com/shrD1bSGYNcdFQ6kd"
-					className="text-(--blue) underline font-medium"
+					className="font-medium text-(--blue) underline"
 					target="_blank"
 					rel="noopener noreferrer"
 				>
@@ -243,12 +243,12 @@ export default function UnlocksCalendar({
 				</a>
 			</Announcement>
 
-			<div className="flex items-center justify-between gap-2 p-3 bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<h1 className="text-xl font-semibold">Token Unlocks Calendar</h1>
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => setShowOnlyWatchlist((prev) => !prev)}
-						className="border border-(--form-control-border) p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+						className="flex w-[200px] items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white p-[6px] px-3 text-sm text-black dark:bg-black dark:text-white"
 					>
 						<Icon
 							name="bookmark"
@@ -261,7 +261,7 @@ export default function UnlocksCalendar({
 
 					<button
 						onClick={() => setShowOnlyInsider((prev) => !prev)}
-						className="border border-(--form-control-border) p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+						className="flex w-[200px] items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white p-[6px] px-3 text-sm text-black dark:bg-black dark:text-white"
 					>
 						<Icon
 							name="key"
@@ -274,7 +274,7 @@ export default function UnlocksCalendar({
 				</div>
 			</div>
 
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<CalendarView unlocksData={unlocksData} precomputedData={precomputedData} />
 			</div>
 		</Layout>

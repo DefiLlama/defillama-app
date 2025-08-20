@@ -75,8 +75,8 @@ export default function YieldBorrow(data) {
 	return (
 		<Layout title={`Borrow Aggregator - DefiLlama`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<div className="flex flex-col gap-3 items-center w-full max-w-md mx-auto rounded-md relative lg:left-[-110px] lg:top-4 xl:top-11 bg-(--cards-bg) p-3">
-				<div className="flex flex-col gap-5 p-3 overflow-y-auto w-full">
+			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 lg:top-4 lg:left-[-110px] xl:top-11">
+				<div className="flex w-full flex-col gap-5 overflow-y-auto p-3">
 					<TokensSelect
 						label="Borrow"
 						searchData={data.searchData}
@@ -91,13 +91,13 @@ export default function YieldBorrow(data) {
 						placeholder="Select token for collateral"
 					/>
 					{borrowToken && !collateralToken ? (
-						<small className="text-center mt-[2px] text-orange-500">
+						<small className="mt-[2px] text-center text-orange-500">
 							Select your collateral token to see real borrow cost!
 						</small>
 					) : null}
 
 					{borrowToken || collateralToken ? (
-						<label className="flex gap-1 mx-auto cursor-pointer">
+						<label className="mx-auto flex cursor-pointer gap-1">
 							<input
 								type="checkbox"
 								checked={includeIncentives}
@@ -154,7 +154,7 @@ const TokensSelect = ({
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 
 	return (
-		<div className="flex flex-col gap-1 w-full">
+		<div className="flex w-full flex-col gap-1">
 			<Ariakit.ComboboxProvider
 				resetValueOnHide
 				setValue={(value) => {
@@ -165,7 +165,7 @@ const TokensSelect = ({
 			>
 				<Ariakit.SelectProvider value={selectedValue} setValue={onChange}>
 					<Ariakit.SelectLabel className="text-base">{label}</Ariakit.SelectLabel>
-					<Ariakit.Select className="bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-2 p-3 text-base font-medium rounded-md cursor-pointer text-(--text-primary) flex-nowrap">
+					<Ariakit.Select className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) p-3 text-base font-medium text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
 						{tokenInSearchData ? (
 							<>
 								<span>
@@ -185,12 +185,12 @@ const TokensSelect = ({
 						wrapperProps={{
 							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+						className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.Combobox
 							placeholder="Search..."
 							autoFocus
-							className="bg-white dark:bg-black rounded-md text-base py-1 px-3 m-3"
+							className="m-3 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 						/>
 
 						{matches.length > 0 ? (
@@ -200,7 +200,7 @@ const TokensSelect = ({
 										<Ariakit.SelectItem
 											key={`${queryParam}-${option.symbol}`}
 											value={option.symbol}
-											className="group flex items-center gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md border-b border-(--form-control-border)"
+											className="group flex shrink-0 cursor-pointer items-center gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 											render={<Ariakit.ComboboxItem />}
 										>
 											{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : `${option.symbol}`}
@@ -209,7 +209,7 @@ const TokensSelect = ({
 								</Ariakit.ComboboxList>
 								{matches.length > viewableMatches ? (
 									<button
-										className="w-full py-4 px-3 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+										className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 										onClick={() => setViewableMatches((prev) => prev + 20)}
 									>
 										See more...
@@ -217,7 +217,7 @@ const TokensSelect = ({
 								) : null}
 							</>
 						) : (
-							<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
+							<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 						)}
 					</Ariakit.SelectPopover>
 				</Ariakit.SelectProvider>
@@ -305,17 +305,17 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 	const finalPools: Array<IPool> = Object.values(filteredPools2)
 
 	return (
-		<div className="rounded-md bg-white/60 dark:bg-black/60 flex flex-col overflow-y-auto w-full">
+		<div className="flex w-full flex-col overflow-y-auto rounded-md bg-white/60 dark:bg-black/60">
 			<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 				<button
-					className="py-2 px-6 whitespace-nowrap border-b rounded-tl-xl border-(--form-control-border) data-[selected=true]:border-b-(--primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="rounded-tl-xl border-b border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
 					onClick={() => setTab('safe')}
 					data-selected={tab === 'safe'}
 				>
 					Safe
 				</button>
 				<button
-					className="py-2 px-6 whitespace-nowrap border-b border-l border-(--form-control-border) data-[selected=true]:border-b-(--primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="border-b border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
 					onClick={() => setTab('degen')}
 					data-selected={tab === 'degen'}
 				>
@@ -326,18 +326,18 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 			{finalPools.length === 0 ? (
 				<p className="m-4 mb-6 text-center">Couldn't find any pools</p>
 			) : (
-				<table className="border-separate border-spacing-y-2 my-4">
+				<table className="my-4 border-separate border-spacing-y-2">
 					<tbody>
 						{finalPools.map((pool) => (
 							<tr key={JSON.stringify(pool)} className="p-3">
-								<th className="rounded-l-md bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
-									<span className="flex items-center flex-nowrap gap-1">
+								<th className="rounded-l-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
+									<span className="flex flex-nowrap items-center gap-1">
 										<TokenLogo logo={tokenIconUrl(pool.projectName)} size={20} />
 										<span className="whitespace-nowrap">{pool.projectName}</span>
 									</span>
 								</th>
 
-								<td className="bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
+								<td className="bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
 									<span className="flex flex-col">
 										<span>
 											{getAPY(pool, borrow, collateral, incentives).toLocaleString(undefined, {
@@ -350,8 +350,8 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 										</span>
 									</span>
 								</td>
-								<td className="rounded-r-md bg-[#eff0f3] dark:bg-[#17181c] p-2 text-sm font-normal">
-									<span className="flex items-center  gap-1.5">
+								<td className="rounded-r-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
+									<span className="flex items-center gap-1.5">
 										<TokenLogo logo={chainIconUrl(pool.chain)} size={20} />
 										<span>{pool.chain}</span>
 									</span>

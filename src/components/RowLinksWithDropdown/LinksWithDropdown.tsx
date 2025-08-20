@@ -90,7 +90,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 			{/* max-height: link height + wrapper padding top + padding bottom */}
 			{linksInRow ? (
 				<div
-					className="flex-1 overflow-hidden p-1 flex flex-wrap max-h-[calc(1.5rem+0.5rem)] gap-2"
+					className="flex max-h-[calc(1.5rem+0.5rem)] flex-1 flex-wrap gap-2 overflow-hidden p-1"
 					id="priority-nav"
 					{...props}
 				>
@@ -116,7 +116,7 @@ export const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
 		<BasicLink
 			href={option.to}
-			className="rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
+			className="rounded-md bg-(--link-bg) px-[10px] py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
 			data-active={option.label === activeLink}
 			{...props}
 		>

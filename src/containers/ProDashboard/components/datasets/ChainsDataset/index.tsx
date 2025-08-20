@@ -103,9 +103,9 @@ export function ChainsDataset({
 				},
 				cell: ({ getValue }) => {
 					const value = getValue() as number | null
-					if (value === null || value === undefined) return <span className="font-mono pro-text2">-</span>
+					if (value === null || value === undefined) return <span className="pro-text2 font-mono">-</span>
 
-					return <span className="font-mono pro-text2">{value.toFixed(2)}%</span>
+					return <span className="pro-text2 font-mono">{value.toFixed(2)}%</span>
 				},
 				sortingFn: (rowA, rowB, columnId) => {
 					const a = rowA.getValue(columnId) as number | null
@@ -369,7 +369,7 @@ export function ChainsDataset({
 
 	if (isLoading) {
 		return (
-			<div className="w-full p-4 h-full flex flex-col isolate">
+			<div className="isolate flex h-full w-full flex-col p-4">
 				<ChainsTableHeader
 					selectedPreset="essential"
 					setSelectedPreset={() => {}}
@@ -380,9 +380,9 @@ export function ChainsDataset({
 					handleExportCSV={() => {}}
 					category={category}
 				/>
-				<div className="flex-1 min-h-[500px] flex flex-col items-center justify-center gap-4">
+				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<LoadingSpinner />
-					<p className="text-sm pro-text2">Loading chains data...</p>
+					<p className="pro-text2 text-sm">Loading chains data...</p>
 				</div>
 			</div>
 		)
@@ -390,7 +390,7 @@ export function ChainsDataset({
 
 	if (error) {
 		return (
-			<div className="w-full p-4 h-full flex flex-col isolate">
+			<div className="isolate flex h-full w-full flex-col p-4">
 				<ChainsTableHeader
 					selectedPreset="essential"
 					setSelectedPreset={() => {}}
@@ -401,15 +401,15 @@ export function ChainsDataset({
 					handleExportCSV={() => {}}
 					category={category}
 				/>
-				<div className="flex-1 min-h-[500px] flex items-center justify-center">
-					<div className="text-center pro-text2">Failed to load chains data</div>
+				<div className="flex min-h-[500px] flex-1 items-center justify-center">
+					<div className="pro-text2 text-center">Failed to load chains data</div>
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className="w-full p-4 h-full flex flex-col isolate">
+		<div className="isolate flex h-full w-full flex-col p-4">
 			<ChainsTableHeader
 				selectedPreset={selectedPreset}
 				setSelectedPreset={setSelectedPreset}
@@ -436,32 +436,30 @@ export function ChainsDataset({
 				<TableBody table={instance} />
 			</div>
 
-			<div className="flex items-center justify-between w-full mt-3 pt-3 border-t pro-border">
+			<div className="pro-border mt-3 flex w-full items-center justify-between border-t pt-3">
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => instance.previousPage()}
 						disabled={!instance.getCanPreviousPage()}
-						className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1 hover:pro-bg2 
-							disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+						className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Previous
 					</button>
 					<button
 						onClick={() => instance.nextPage()}
 						disabled={!instance.getCanNextPage()}
-						className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1 hover:pro-bg2 
-							disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+						className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Next
 					</button>
 				</div>
 
 				<div className="flex items-center gap-2">
-					<span className="text-sm pro-text2">Rows per page:</span>
+					<span className="pro-text2 text-sm">Rows per page:</span>
 					<select
 						value={pagination.pageSize}
 						onChange={(e) => setPagination((prev) => ({ ...prev, pageSize: Number(e.target.value), pageIndex: 0 }))}
-						className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1 focus:outline-hidden focus:ring-1 focus:ring-(--primary)"
+						className="pro-border pro-bg1 pro-text1 border px-3 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
 						<option value="10">10</option>
 						<option value="30">30</option>

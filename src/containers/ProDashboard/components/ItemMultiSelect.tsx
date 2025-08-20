@@ -140,17 +140,17 @@ export function ItemMultiSelect({
 
 	return (
 		<div>
-			<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">
+			<label className="pro-text2 mb-1.5 block text-sm font-medium md:mb-2">
 				{label}
 				{selectedValues.length > 0 && (
-					<span className="ml-1 text-xs pro-text3">
+					<span className="pro-text3 ml-1 text-xs">
 						({selectedValues.length}
 						{maxSelections < 100 && `/${maxSelections}`})
 					</span>
 				)}
 			</label>
 			{isLoading ? (
-				<div className="flex items-center justify-center h-10">
+				<div className="flex h-10 items-center justify-center">
 					<LoadingSpinner size="sm" />
 				</div>
 			) : (
@@ -174,7 +174,7 @@ export function ItemMultiSelect({
 				<div className="mt-1 flex flex-wrap gap-1">
 					<button
 						onClick={() => onChange([])}
-						className="text-xs px-2 py-0.5 border pro-border pro-hover-bg pro-text3 transition-colors"
+						className="pro-border pro-hover-bg pro-text3 border px-2 py-0.5 text-xs transition-colors"
 						title="Clear all selections"
 					>
 						Clear all

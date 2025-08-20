@@ -19,12 +19,12 @@ import { Tooltip } from '~/components/Tooltip'
 const LineAndBarChart: any = React.lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 const CustomOption = ({ innerProps, label, data }) => (
-	<div {...innerProps} className="flex items-center gap-2 p-2 cursor-pointer">
+	<div {...innerProps} className="flex cursor-pointer items-center gap-2 p-2">
 		<img
 			src={`https://icons.llamao.fi/icons/chains/rsz_${label}?w=48&h=48`}
 			alt={label}
 			style={{ width: '20px', marginRight: '10px', borderRadius: '50%' }}
-			className="w-5 h-5 rounded-full shrink-0"
+			className="h-5 w-5 shrink-0 rounded-full"
 		/>
 		{label}
 	</div>
@@ -169,8 +169,8 @@ export function CompareChains({ chains }) {
 
 	return (
 		<>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center gap-3 p-3 *:last:-my-3">
-				<h2 className="font-semibold text-base">Compare chains: </h2>
+			<div className="flex items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 *:last:-my-3">
+				<h2 className="text-base font-semibold">Compare chains: </h2>
 
 				<ReactSelect
 					defaultValue={router?.query?.chains || chains?.[0]}
@@ -186,9 +186,9 @@ export function CompareChains({ chains }) {
 				/>
 			</div>
 
-			<div className="flex flex-col gap-1 relative">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[404px]">
-					<div className="flex items-center flex-wrap gap-2 p-3">
+			<div className="relative flex flex-col gap-1">
+				<div className="min-h-[404px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex flex-wrap items-center gap-2 p-3">
 						{supportedCharts.map(({ id, name, key }) => (
 							<Switch
 								key={id + 'chart-option'}
@@ -212,7 +212,7 @@ export function CompareChains({ chains }) {
 						))}
 					</div>
 					{isLoading || !router.isReady ? (
-						<div className="flex items-center justify-center m-auto min-h-[360px]">
+						<div className="m-auto flex min-h-[360px] items-center justify-center">
 							<LocalLoader />
 						</div>
 					) : (
@@ -221,11 +221,11 @@ export function CompareChains({ chains }) {
 						</React.Suspense>
 					)}
 				</div>
-				<div className="grid grid-cols-1 xl:grid-cols-2 grow gap-1">
+				<div className="grid grow grid-cols-1 gap-1 xl:grid-cols-2">
 					{data?.filter(Boolean)?.map((chainData, i) => {
 						return (
 							<div
-								className="flex flex-col justify-between relative isolate xl:grid-cols-[auto_1fr] gap-1"
+								className="relative isolate flex flex-col justify-between gap-1 xl:grid-cols-[auto_1fr]"
 								key={`${chainData?.chain || i}`}
 							>
 								<ChainContainer
@@ -252,14 +252,14 @@ const ChainContainer = (
 ) => {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl_fees')
 	return (
-		<div className="flex-1 flex flex-col gap-8 p-5 col-span-1 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md overflow-x-auto">
+		<div className="col-span-1 flex w-full flex-1 flex-col gap-8 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
 			{props.metadata.name !== 'All' && (
-				<h1 className="flex items-center flex-nowrap gap-2">
+				<h1 className="flex flex-nowrap items-center gap-2">
 					<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
 					<span className="text-xl font-semibold">{props.metadata.name}</span>
 				</h1>
 			)}
-			<div className="flex items-end flex-nowrap justify-between gap-8">
+			<div className="flex flex-nowrap items-end justify-between gap-8">
 				<h2 className="flex flex-col">
 					<Tooltip
 						content={
@@ -267,11 +267,11 @@ const ChainContainer = (
 								? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
 								: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 						}
-						className="!inline underline decoration-dotted text-(--text-label)"
+						className="!inline text-(--text-label) underline decoration-dotted"
 					>
 						Total Value Locked in DeFi
 					</Tooltip>
-					<span className="font-semibold text-2xl font-jetbrains min-h-8 overflow-hidden whitespace-nowrap text-ellipsis">
+					<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
 						{formattedNum(props.totalValueUSD, true)}
 					</span>
 				</h2>
@@ -279,10 +279,10 @@ const ChainContainer = (
 					<Tooltip
 						content={`${formattedNum(props.valueChange24hUSD, true)}`}
 						render={<p />}
-						className="flex items-center flex-nowrap gap-2 relative bottom-[2px]"
+						className="relative bottom-[2px] flex flex-nowrap items-center gap-2"
 					>
 						<span
-							className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
+							className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
 								props.change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
 							}`}
 						>
@@ -292,12 +292,12 @@ const ChainContainer = (
 					</Tooltip>
 				) : null}
 			</div>
-			<div className="flex flex-col flex-1 gap-2">
-				<h2 className="text-base xl:text-sm font-semibold">Key Metrics</h2>
+			<div className="flex flex-1 flex-col gap-2">
+				<h2 className="text-base font-semibold xl:text-sm">Key Metrics</h2>
 				<div className="flex flex-col">
 					{props.stablecoins?.mcap ? (
 						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 								<Tooltip
 									content={
 										props.metadata.name === 'All'
@@ -312,17 +312,17 @@ const ChainContainer = (
 									name="chevron-down"
 									height={16}
 									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 								/>
 								<span className="font-jetbrains ml-auto">{formattedNum(props.stablecoins.mcap, true)}</span>
 							</summary>
-							<div className="flex flex-col mb-3">
+							<div className="mb-3 flex flex-col">
 								{props.stablecoins.change7d != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Change (7d)</span>
 										<Tooltip
 											content={`${formattedNum(props.stablecoins.change7dUsd, true)}`}
-											className={`ml-auto justify-end font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
+											className={`font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
 												+props.stablecoins.change7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 											}`}
 										>
@@ -331,7 +331,7 @@ const ChainContainer = (
 									</p>
 								) : null}
 								{props.stablecoins.dominance != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">{props.stablecoins.topToken.symbol} Dominance</span>
 										<span className="font-jetbrains ml-auto">{props.stablecoins.dominance}%</span>
 									</p>
@@ -340,7 +340,7 @@ const ChainContainer = (
 						</details>
 					) : null}
 					{props.chainFees?.total24h != null ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<Tooltip
 								content="Total fees paid by users when using the chain"
 								className="text-(--text-label) underline decoration-dotted"
@@ -351,7 +351,7 @@ const ChainContainer = (
 						</p>
 					) : null}
 					{props.chainRevenue?.total24h != null ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<Tooltip
 								content="Subset of fees that the chain collects for itself"
 								className="text-(--text-label) underline decoration-dotted"
@@ -362,7 +362,7 @@ const ChainContainer = (
 						</p>
 					) : null}
 					{props.chainFees?.totalREV24h != null ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<Tooltip
 								content="REV is the sum of chain fees and MEV tips"
 								className="text-(--text-label) underline decoration-dotted"
@@ -373,7 +373,7 @@ const ChainContainer = (
 						</p>
 					) : null}
 					{props.chainIncentives?.emissions24h != null ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<Tooltip
 								content="Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms."
 								className="text-(--text-label) underline decoration-dotted"
@@ -384,7 +384,7 @@ const ChainContainer = (
 						</p>
 					) : null}
 					{props.appRevenue?.total24h != null && props.appRevenue?.total24h > 1e3 ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<Tooltip
 								content={
 									'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
@@ -397,7 +397,7 @@ const ChainContainer = (
 						</p>
 					) : null}
 					{props.appFees?.total24h != null && props.appFees?.total24h > 1e3 ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<Tooltip
 								content={
 									'Total fees paid by users when using the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
@@ -411,7 +411,7 @@ const ChainContainer = (
 					) : null}
 					{props.dexs?.total24h != null ? (
 						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 								<Tooltip
 									content={
 										props.metadata.name === 'All'
@@ -426,19 +426,19 @@ const ChainContainer = (
 									name="chevron-down"
 									height={16}
 									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 								/>
 								<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total24h, true)}</span>
 							</summary>
-							<div className="flex flex-col mb-3">
+							<div className="mb-3 flex flex-col">
 								{props.dexs.total7d != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Volume (7d)</span>
 										<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total7d, true)}</span>
 									</p>
 								) : null}
 								{props.dexs.change_7dover7d != null && (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Weekly Change</span>
 										<span
 											className={`font-jetbrains ml-auto ${
@@ -450,7 +450,7 @@ const ChainContainer = (
 									</p>
 								)}
 								{props.dexs.dexsDominance != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">DEX vs CEX dominance</span>
 										<span className="font-jetbrains ml-auto">{props.dexs.dexsDominance}%</span>
 									</p>
@@ -460,7 +460,7 @@ const ChainContainer = (
 					) : null}
 					{props.perps?.total24h != null ? (
 						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 								<Tooltip
 									content="Sum of volume on all perpetual exchanges on the chain"
 									className="text-(--text-label) underline decoration-dotted"
@@ -471,19 +471,19 @@ const ChainContainer = (
 									name="chevron-down"
 									height={16}
 									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 								/>
 								<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total24h, true)}</span>
 							</summary>
-							<div className="flex flex-col mb-3">
+							<div className="mb-3 flex flex-col">
 								{props.perps.total7d != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Perps Volume (7d)</span>
 										<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total7d, true)}</span>
 									</p>
 								) : null}
 								{props.perps.change_7dover7d != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Weekly Change</span>
 										<span
 											className={`font-jetbrains ml-auto ${
@@ -498,7 +498,7 @@ const ChainContainer = (
 						</details>
 					) : null}
 					{props.inflows?.netInflows != null ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<Tooltip
 								content="Net money bridged to the chain within the last 24h"
 								className="text-(--text-label) underline decoration-dotted"
@@ -510,7 +510,7 @@ const ChainContainer = (
 					) : null}
 					{props.users.activeUsers != null ? (
 						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 								<Tooltip
 									content={
 										<p>
@@ -531,19 +531,19 @@ const ChainContainer = (
 									name="chevron-down"
 									height={16}
 									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 								/>
 								<span className="font-jetbrains ml-auto">{formattedNum(props.users.activeUsers, false)}</span>
 							</summary>
-							<div className="flex flex-col mb-3">
+							<div className="mb-3 flex flex-col">
 								{props.users.newUsers != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">New Addresses (24h)</span>
 										<span className="font-jetbrains ml-auto">{formattedNum(props.users.newUsers, false)}</span>
 									</p>
 								) : null}
 								{props.users.transactions != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Transactions (24h)</span>
 										<span className="font-jetbrains ml-auto">{formattedNum(props.users.transactions, false)}</span>
 									</p>
@@ -553,19 +553,19 @@ const ChainContainer = (
 					) : null}
 					{props.treasury ? (
 						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 								<span className="text-(--text-label)">Treasury</span>
 								<Icon
 									name="chevron-down"
 									height={16}
 									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 								/>
 								<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.tvl, true)}</span>
 							</summary>
-							<div className="flex flex-col mb-3">
+							<div className="mb-3 flex flex-col">
 								{props.treasury.tokenBreakdowns?.stablecoins != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Stablecoins</span>
 										<span className="font-jetbrains ml-auto">
 											{formattedNum(props.treasury.tokenBreakdowns?.stablecoins, true)}
@@ -573,7 +573,7 @@ const ChainContainer = (
 									</p>
 								) : null}
 								{props.treasury.tokenBreakdowns?.majors != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Major Tokens (ETH, BTC)</span>
 										<span className="font-jetbrains ml-auto">
 											{formattedNum(props.treasury.tokenBreakdowns?.majors, true)}
@@ -581,7 +581,7 @@ const ChainContainer = (
 									</p>
 								) : null}
 								{props.treasury.tokenBreakdowns?.others != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Other Tokens</span>
 										<span className="font-jetbrains ml-auto">
 											{formattedNum(props.treasury.tokenBreakdowns?.others, true)}
@@ -589,7 +589,7 @@ const ChainContainer = (
 									</p>
 								) : null}
 								{props.treasury.tokenBreakdowns?.ownTokens != null ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Own Tokens</span>
 										<span className="font-jetbrains ml-auto">
 											{formattedNum(props.treasury.tokenBreakdowns?.ownTokens, true)}
@@ -601,7 +601,7 @@ const ChainContainer = (
 					) : null}
 					{props.chainRaises && props.chainRaises.length > 0 && (
 						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 								<Tooltip
 									content="Sum of all money raised by the chain, including VC funding rounds, public sales and ICOs."
 									className="text-(--text-label) underline decoration-dotted"
@@ -612,25 +612,25 @@ const ChainContainer = (
 									name="chevron-down"
 									height={16}
 									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 								/>
 								<span className="font-jetbrains ml-auto">
 									{formatRaisedAmount(props.chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
 								</span>
 							</summary>
-							<div className="flex flex-col mb-3">
+							<div className="mb-3 flex flex-col">
 								{props.chainRaises
 									.sort((a, b) => a.date - b.date)
 									.map((raise) => (
 										<p
-											className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) group-last:border-none py-1"
+											className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
 											key={`${raise.date}-${raise.amount}-${raise.source}-${raise.round}`}
 										>
 											<span className="flex flex-wrap justify-between">
 												<span className="text-(--text-label)">{dayjs(raise.date * 1000).format('MMM D, YYYY')}</span>
 												<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
 											</span>
-											<span className="flex gap-1 flex-wrap justify-between text-(--text-label)">
+											<span className="flex flex-wrap justify-between gap-1 text-(--text-label)">
 												<span>Round: {raise.round}</span>
 												{(raise as any).leadInvestors?.length || (raise as any).otherInvestors?.length ? (
 													<span>
@@ -651,13 +651,13 @@ const ChainContainer = (
 					)}
 					{props.chainAssets ? (
 						<details className="group">
-							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) group-open:font-semibold group-open:border-none group-last:border-none py-1">
+							<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 								<span className="text-(--text-label)">Bridged TVL</span>
 								<Icon
 									name="chevron-down"
 									height={16}
 									width={16}
-									className="group-open:rotate-180 transition-transform duration-100 relative top-[2px] -ml-3"
+									className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
 								/>
 								<span className="font-jetbrains ml-auto">
 									{formattedNum(
@@ -667,9 +667,9 @@ const ChainContainer = (
 									)}
 								</span>
 							</summary>
-							<div className="flex flex-col mb-3">
+							<div className="mb-3 flex flex-col">
 								{props.chainAssets.native?.total ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<Tooltip
 											content="Sum of marketcaps of all tokens that were issued on the chain (excluding the chain's own token)"
 											className="text-(--text-label) underline decoration-dotted"
@@ -680,7 +680,7 @@ const ChainContainer = (
 									</p>
 								) : null}
 								{props.chainAssets.ownTokens?.total ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<Tooltip
 											content="Marketcap of the governance token of the chain"
 											className="text-(--text-label) underline decoration-dotted"
@@ -693,7 +693,7 @@ const ChainContainer = (
 									</p>
 								) : null}
 								{props.chainAssets.canonical?.total ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<Tooltip
 											content="Tokens that were bridged to the chain through the canonical bridge"
 											className="text-(--text-label) underline decoration-dotted"
@@ -706,7 +706,7 @@ const ChainContainer = (
 									</p>
 								) : null}
 								{props.chainAssets.thirdParty?.total ? (
-									<p className="flex flex-wrap justify-stat gap-4 border-b border-dashed border-(--cards-border) last:border-none py-1">
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<Tooltip
 											content="Tokens that were bridged to the chain through third party bridges"
 											className="text-(--text-label) underline decoration-dotted"
@@ -722,7 +722,7 @@ const ChainContainer = (
 						</details>
 					) : null}
 					{props.nfts ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<Tooltip
 								content="Volume of Non Fungible Tokens traded in the last 24 hours"
 								className="text-(--text-label) underline decoration-dotted"
@@ -733,13 +733,13 @@ const ChainContainer = (
 						</p>
 					) : null}
 					{props.chainTokenInfo?.token_symbol ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} Price</span>
 							<span className="font-jetbrains ml-auto">{formattedNum(props.chainTokenInfo?.current_price, true)}</span>
 						</p>
 					) : null}
 					{props.chainTokenInfo?.token_symbol ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} Market Cap</span>
 							<span className="font-jetbrains ml-auto">
 								{formattedNum(props.chainTokenInfo?.market_cap ?? 0, true)}
@@ -747,7 +747,7 @@ const ChainContainer = (
 						</p>
 					) : null}
 					{props.chainTokenInfo?.token_symbol ? (
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">${props.chainTokenInfo.token_symbol} FDV</span>
 							<span className="font-jetbrains ml-auto">
 								{formattedNum(props.chainTokenInfo?.fully_diluted_valuation ?? 0, true)}

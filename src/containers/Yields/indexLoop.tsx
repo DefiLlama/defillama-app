@@ -106,7 +106,7 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) 
 			{poolsData.length > 0 ? (
 				<YieldsLoopTable data={poolsData} />
 			) : (
-				<p className="p-5 bg-(--cards-bg) border border-(--cards-border) rounded-md text-center">
+				<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
 					Couldn't find any pools for these filters
 				</p>
 			)}

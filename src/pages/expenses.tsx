@@ -65,12 +65,12 @@ const columns: ColumnDef<any>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<span className="flex items-center gap-2 relative">
+				<span className="relative flex items-center gap-2">
 					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(getValue() as string)}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
 						{getValue() as string}
 					</BasicLink>
@@ -103,7 +103,7 @@ const columns: ColumnDef<any>[] = [
 		cell: ({ getValue }) =>
 			getValue() ? (
 				<a
-					className="flex items-center justify-center shrink-0 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-xs text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-bg) px-[10px] py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					href={getValue()[0] as string}
 					target="_blank"
 					rel="noopener noreferrer"

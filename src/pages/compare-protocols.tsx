@@ -170,9 +170,9 @@ export default function CompareProtocolsTvls({ protocols }) {
 
 	return (
 		<Layout title={`Compare Protocols - DefiLlama`} defaultSEO>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md isolate">
-				<div className="flex items-center justify-between flex-wrap gap-2 p-3">
-					<h1 className="text-lg font-semibold mr-auto">Compare Protocols</h1>
+			<div className="isolate rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-wrap items-center justify-between gap-2 p-3">
+					<h1 className="mr-auto text-lg font-semibold">Compare Protocols</h1>
 					<SelectWithCombobox
 						allValues={sortedProtocols}
 						selectedValues={selectedProtocols}
@@ -187,7 +187,7 @@ export default function CompareProtocolsTvls({ protocols }) {
 					/>
 				</div>
 				{isLoading ? (
-					<div className="min-h-[360px] flex flex-col items-center justify-center">
+					<div className="flex min-h-[360px] flex-col items-center justify-center">
 						<p>Loading...</p>
 					</div>
 				) : (
@@ -197,7 +197,7 @@ export default function CompareProtocolsTvls({ protocols }) {
 				)}
 			</div>
 			{selectedProtocolsData.length > 0 && (
-				<div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">
+				<div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3">
 					{selectedProtocolsData.map((protocolData) => (
 						<ProtocolInfoCard key={protocolData.name} protocolData={protocolData} />
 					))}
@@ -229,10 +229,10 @@ const ProtocolInfoCard = ({ protocolData }) => {
 	let change1m = getPercentChange(tvl, tvlPrevMonth)
 
 	return (
-		<div className="flex flex-col gap-4 bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
-			<div className="flex items-center flex-wrap gap-2">
+		<div className="flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<div className="flex flex-wrap items-center gap-2">
 				<TokenLogo logo={tokenIconUrl(protocolData.name)} size={24} />
-				<span className="font-bold text-lg">{protocolData.name || ''}</span>
+				<span className="text-lg font-bold">{protocolData.name || ''}</span>
 				{protocolData.symbol && protocolData.symbol !== '-' ? (
 					<span className="font-normal">({protocolData.symbol})</span>
 				) : null}
@@ -244,7 +244,7 @@ const ProtocolInfoCard = ({ protocolData }) => {
 
 			{protocolData.chains.length > 0 && (
 				<div className="mt-2">
-					<h3 className="font-semibold text-sm mb-1">Chains</h3>
+					<h3 className="mb-1 text-sm font-semibold">Chains</h3>
 					<IconsRow links={protocolData.chains} url="/chain" iconType="chain" iconsAlignment="start" />
 				</div>
 			)}
@@ -255,7 +255,7 @@ const ProtocolInfoCard = ({ protocolData }) => {
 const CompactProtocolTVL = ({ tvl, name, category }) => {
 	return (
 		<div className="flex flex-col">
-			<span className="flex items-center flex-nowrap gap-2">
+			<span className="flex flex-nowrap items-center gap-2">
 				<span className="text-(--text-label)">Total Value Locked</span>
 				<Flag
 					protocol={name}
@@ -264,7 +264,7 @@ const CompactProtocolTVL = ({ tvl, name, category }) => {
 					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
 			</span>
-			<span className="font-semibold text-xl font-jetbrains min-h-6" suppressHydrationWarning>
+			<span className="font-jetbrains min-h-6 text-xl font-semibold" suppressHydrationWarning>
 				{formattedNum(tvl, true)}
 			</span>
 		</div>

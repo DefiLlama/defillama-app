@@ -61,7 +61,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 
 			return (
 				<span
-					className="flex items-center gap-2 relative"
+					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					{row.subRows?.length > 0 ? (
@@ -91,7 +91,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 
 					{row.subRows?.length === 0 ? (
 						<a
-							className="text-(--blue) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="overflow-hidden text-ellipsis whitespace-nowrap text-(--blue) hover:underline"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`royalties/${row.original.defillamaId}`}

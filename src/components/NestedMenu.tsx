@@ -25,8 +25,8 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 				{...props}
 				className={`${
 					!menu.parent
-						? 'flex items-center justify-between gap-3 py-2 px-3 bg-(--btn-bg) rounded-md'
-						: 'flex items-center justify-between gap-3 py-2 px-3'
+						? 'flex items-center justify-between gap-3 rounded-md bg-(--btn-bg) px-3 py-2'
+						: 'flex items-center justify-between gap-3 px-3 py-2'
 				} ${props.className ?? ''}`}
 				render={menu.parent ? <NestedMenuItem render={props.render} /> : undefined}
 			>
@@ -40,15 +40,15 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className={`flex flex-col gap-2 rounded-md max-sm:rounded-b-none bg-(--bg-main) border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 p-2 overflow-x-auto h-[70vh] sm:max-h-[60vh] ${
+				className={`z-10 flex h-[70vh] flex-col gap-2 overflow-x-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)] ${
 					menu.parent ? 'max-sm:drawer-to-left' : 'max-sm:drawer'
 				}`}
 			>
 				{menu.parent ? (
 					<>
-						<div className="grid items-end grid-cols-[1fr_auto_1fr]">
+						<div className="grid grid-cols-[1fr_auto_1fr] items-end">
 							<button
-								className="flex items-center justify-between gap-3 py-2 px-3"
+								className="flex items-center justify-between gap-3 px-3 py-2"
 								onClick={() => {
 									menu.hide()
 								}}
@@ -56,7 +56,7 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 							>
 								<Ariakit.MenuButtonArrow placement="left" />
 							</button>
-							<h1 className="py-[6px] px-3 font-medium">{label}</h1>
+							<h1 className="px-3 py-[6px] font-medium">{label}</h1>
 						</div>
 					</>
 				) : null}

@@ -43,18 +43,18 @@ function ReportError() {
 
 	return (
 		<Layout title="Report Error - DefiLlama" defaultSEO>
-			<div className="flex flex-col gap-4 w-full max-w-lg mx-auto lg:mt-4 xl:mt-11">
+			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11">
 				<form
 					onSubmit={onSubmit}
-					className="flex flex-col gap-4 p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md"
+					className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 				>
-					<h1 className="text-xl font-semibold text-center mb-3">Report Error</h1>
+					<h1 className="mb-3 text-center text-xl font-semibold">Report Error</h1>
 					<label className="flex flex-col gap-1">
 						<span>Chain / Protocol</span>
 						<input
 							name="protocol"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
@@ -62,14 +62,14 @@ function ReportError() {
 						<textarea
 							name="message"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
 						<span>Where can we find correct information? (optional)</span>
 						<textarea
 							name="correctSource"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
@@ -77,23 +77,23 @@ function ReportError() {
 						<input
 							name="contact"
 							placeholder="Email address"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<button
 						name="submit-btn"
 						disabled={isPending}
-						className="p-3 mt-3 bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+						className="mt-3 rounded-md bg-[#2172e5] p-3 text-white hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
 					>
 						{isPending ? 'Submitting...' : 'Report'}
 					</button>
 					{error && <small className="text-center text-red-500">{error.message}</small>}
 				</form>
-				<div className="flex flex-col gap-4 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md">
+				<div className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<p className="text-center text-base font-medium">
 						Please submit a report if you notice any of the following:
 					</p>
-					<ul className="flex flex-col gap-1 list-disc pl-4">
+					<ul className="flex list-disc flex-col gap-1 pl-4">
 						<li>
 							Inconsistencies in our methodology (eg in protocol A we apply a different methodology for their metrics
 							than in protocol B)

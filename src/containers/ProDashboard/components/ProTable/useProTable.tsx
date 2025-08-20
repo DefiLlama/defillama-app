@@ -300,7 +300,7 @@ export function useProTable(
 					e.stopPropagation()
 					onFilterClick()
 				}}
-				className={`p-1 rounded hover:bg-(--bg-tertiary) transition-colors ${
+				className={`rounded p-1 transition-colors hover:bg-(--bg-tertiary) ${
 					hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : 'text-(--text-tertiary)'
 				}`}
 				title="Filter protocols"
@@ -327,7 +327,7 @@ export function useProTable(
 					...originalCategoryColumn,
 					id: 'category',
 					header: () => (
-						<div className="flex items-center gap-2 justify-end">
+						<div className="flex items-center justify-end gap-2">
 							<span>Category</span>
 							{React.cloneElement(filterButton, { key: 'category-filter' })}
 						</div>

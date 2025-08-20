@@ -19,7 +19,7 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 				href={noSubMenu?.url ?? '/yields'}
 				data-linkactive={(noSubMenu?.url ?? '/yields') === pathname}
 				target={noSubMenu?.external && '_blank'}
-				className="group -ml-[6px] font-semibold rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
+				className="group -ml-[6px] flex items-center gap-3 rounded-md p-[6px] font-semibold hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 			>
 				<span className="group-hover:animate-wiggle">{navLinks[name].icon}</span>
 				<span>{name}</span>
@@ -30,7 +30,7 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 
 	return (
 		<details ref={ref} open={active ? true : false} className="group">
-			<summary className="group/summary -ml-[6px] font-semibold rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 p-[6px]">
+			<summary className="group/summary -ml-[6px] flex items-center gap-3 rounded-md p-[6px] font-semibold hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">
 				<span className="group-hover/summary:animate-wiggle group-focus-visible/summary:animate-wiggle">
 					{navLinks[name].icon}
 				</span>
@@ -40,7 +40,7 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 					name="chevron-right"
 					height={16}
 					width={16}
-					className="ml-auto group-open:rotate-90 transition-transform duration-100 relative -right-1"
+					className="relative -right-1 ml-auto transition-transform duration-100 group-open:rotate-90"
 				/>
 			</summary>
 
@@ -53,7 +53,7 @@ export const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function
 							href={subLink.path}
 							key={subLink.path}
 							data-linkactive={isActive}
-							className="-my-[6px] pl-7 rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
+							className="-my-[6px] flex items-center gap-3 rounded-md p-[6px] pl-7 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 						>
 							<span>{subLink.name}</span>
 							{subLink.newTag === true ? <NewTag /> : null}

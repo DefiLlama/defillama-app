@@ -162,7 +162,7 @@ export function YieldFilterDropdowns({
 
 			{excludeBadDebt && selectedAttributes ? (
 				nestedMenu ? (
-					<label className="flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse">
+					<label className="flex flex-row-reverse items-center justify-between gap-3 px-3 py-2">
 						<input
 							type="checkbox"
 							value="excludeBadDebt"
@@ -214,8 +214,8 @@ export function YieldFilterDropdowns({
 					<label
 						className={
 							nestedMenu
-								? 'flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse'
-								: 'flex items-center gap-1 flex-nowrap'
+								? 'flex flex-row-reverse items-center justify-between gap-3 px-3 py-2'
+								: 'flex flex-nowrap items-center gap-1'
 						}
 					>
 						<input
@@ -262,7 +262,7 @@ export function YieldFilterDropdowns({
 
 			{includeLsdApy ? (
 				nestedMenu ? (
-					<label className="flex items-center justify-between gap-3 py-2 px-3 flex-row-reverse">
+					<label className="flex flex-row-reverse items-center justify-between gap-3 px-3 py-2">
 						<input
 							type="checkbox"
 							value="includeLsdApy"
@@ -311,7 +311,7 @@ export function YieldFilterDropdowns({
 				<CSVDownloadButton
 					className={
 						nestedMenu
-							? 'rounded-md py-2 px-3 text-xs whitespace-nowrap sm:ml-auto bg-(--link-active-bg) text-white max-sm:mx-3 max-sm:my-6'
+							? 'rounded-md bg-(--link-active-bg) px-3 py-2 text-xs whitespace-nowrap text-white max-sm:mx-3 max-sm:my-6 sm:ml-auto'
 							: 'ml-auto'
 					}
 					onClick={onCSVDownload}

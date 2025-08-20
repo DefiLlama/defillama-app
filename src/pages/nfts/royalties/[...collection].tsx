@@ -57,7 +57,7 @@ export default function Collection() {
 	if (fetchingData) {
 		return (
 			<Layout title={'NFT Royalties - DefiLlama'}>
-				<div className="flex items-center justify-center m-auto min-h-[360px]">
+				<div className="m-auto flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
 				</div>
 			</Layout>
@@ -67,7 +67,7 @@ export default function Collection() {
 	if (error || !collectionData) {
 		return (
 			<Layout title={'NFT Royalties - DefiLlama'}>
-				<div className="flex items-center justify-center m-auto min-h-[360px]">
+				<div className="m-auto flex min-h-[360px] items-center justify-center">
 					<p className="text-center">{error?.message ?? 'Failed to fetch'}</p>
 				</div>
 			</Layout>
@@ -78,8 +78,8 @@ export default function Collection() {
 
 	return (
 		<Layout title={props.name + ' Royalties - DefiLlama'}>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2 *:last:col-span-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 *:last:col-span-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={props.logo} fallbackLogo={props.fallbackLogo} size={48} />
 						<FormattedName text={props.name} fontWeight={700} />
@@ -87,12 +87,12 @@ export default function Collection() {
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">30d royalty earnings</span>
-						<span className="font-jetbrains font-semibold text-2xl">{formattedNum(props.total30d, true)}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(props.total30d, true)}</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Lifetime royalty earnings</span>
-						<span className="font-jetbrains font-semibold text-2xl">{formattedNum(props.totalAllTime, true)}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(props.totalAllTime, true)}</span>
 					</p>
 				</div>
 

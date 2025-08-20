@@ -137,35 +137,35 @@ export const PeggedAssetInfo = ({
 
 	return (
 		<>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1">
 					<Ariakit.TabProvider defaultSelectedId={defaultSelectedId}>
 						<Ariakit.TabList aria-label="Pegged Tabs" className="flex">
 							<Ariakit.Tab
-								className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-md border-(--bg-border) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)"
+								className="flex-1 rounded-tl-md border-b border-(--bg-border) px-6 py-2 whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)"
 								id={defaultSelectedId}
 							>
 								Stats
 							</Ariakit.Tab>
-							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-(--bg-border) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)">
+							<Ariakit.Tab className="flex-1 border-b border-l border-(--bg-border) px-6 py-2 whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)">
 								Info
 							</Ariakit.Tab>
-							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-(--bg-border) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)">
+							<Ariakit.Tab className="flex-1 rounded-tr-xl border-b border-l border-(--bg-border) px-6 py-2 whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary) xl:rounded-none">
 								Links
 							</Ariakit.Tab>
 						</Ariakit.TabList>
 
 						<Ariakit.TabPanel tabId={defaultSelectedId}>
-							<div className="flex flex-col gap-6 p-5 overflow-x-auto">
+							<div className="flex flex-col gap-6 overflow-x-auto p-5">
 								<h1 className="flex items-center gap-2 text-xl">
 									<TokenLogo logo={logo} size={24} />
 									<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-									<span className="font-normal mr-auto">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
+									<span className="mr-auto font-normal">{symbol && symbol !== '-' ? `(${symbol})` : ''}</span>
 									{peggedAssetData.deprecated ? (
-										<span className="text-red-600 dark:text-red-400 text-xs font-medium flex items-center gap-1">
+										<span className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
 											<Tooltip
 												content="Deprecated"
-												className="bg-red-600 dark:bg-red-400 text-white text-[10px] h-3 w-3 flex items-center justify-center rounded-full"
+												className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
 											>
 												!
 											</Tooltip>
@@ -176,22 +176,22 @@ export const PeggedAssetInfo = ({
 
 								<p className="flex flex-col gap-1">
 									<span className="text-base text-(--text-label)">Market Cap</span>
-									<span className="font-semibold text-2xl font-jetbrains min-h-8">
+									<span className="font-jetbrains min-h-8 text-2xl font-semibold">
 										{formattedNum(mcap || '0', true)}
 									</span>
 								</p>
 
-								<p className="flex items-center flex-wrap justify-between gap-2 text-base">
+								<p className="flex flex-wrap items-center justify-between gap-2 text-base">
 									<span className="text-(--text-label)">Price</span>
 									<span className="font-jetbrains">{price === null ? '-' : formattedNum(price, true)}</span>
 								</p>
 
 								{totalCirculating && (
 									<table className="w-full border-collapse text-base">
-										<caption className="text-xs text-(--text-label) text-left pb-1">Issuance Stats</caption>
+										<caption className="pb-1 text-left text-xs text-(--text-label)">Issuance Stats</caption>
 										<tbody>
 											<tr>
-												<th className="text-(--text-label) font-normal text-left">Total Circulating</th>
+												<th className="text-left font-normal text-(--text-label)">Total Circulating</th>
 												<td className="font-jetbrains text-right">{formattedNum(totalCirculating)}</td>
 											</tr>
 										</tbody>
@@ -200,15 +200,15 @@ export const PeggedAssetInfo = ({
 
 								{extraPeggeds.length > 0 && (
 									<table className="w-full border-collapse text-base">
-										<caption className="text-xs text-(--text-label) text-left pb-1 flex items-center gap-1 flex-wrap">
+										<caption className="flex flex-wrap items-center gap-1 pb-1 text-left text-xs text-(--text-label)">
 											<span>Optional Circulating Counts</span>
 											<QuestionHelper text="Use this option to choose whether to include coins that have been minted but have never been circulating." />
 										</caption>
 										<tbody>
 											{extraPeggeds.map((option) => (
 												<tr key={option}>
-													<th className="text-(--text-label) font-normal text-left">
-														<label className="flex items-center gap-2 cursor-pointer">
+													<th className="text-left font-normal text-(--text-label)">
+														<label className="flex cursor-pointer items-center gap-2">
 															<input
 																type="checkbox"
 																value={option}
@@ -229,13 +229,13 @@ export const PeggedAssetInfo = ({
 								<CSVDownloadButton
 									onClick={downloadCsv}
 									smol
-									className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mr-auto mt-auto"
+									className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 								/>
 							</div>
 						</Ariakit.TabPanel>
 
 						<Ariakit.TabPanel>
-							<div className="flex flex-col gap-6 p-5 overflow-auto">
+							<div className="flex flex-col gap-6 overflow-auto p-5">
 								{description && (
 									<p className="flex flex-col gap-2">
 										<span className="font-medium">Description</span>
@@ -259,7 +259,7 @@ export const PeggedAssetInfo = ({
 									</p>
 								)}
 								<p className="flex items-center gap-1">
-									<span className="flex items-center gap-1 flex-nowrap">
+									<span className="flex flex-nowrap items-center gap-1">
 										<span>Audits</span>
 										<QuestionHelper text="Audits are not a security guarantee" />
 										<span>:</span>
@@ -269,7 +269,7 @@ export const PeggedAssetInfo = ({
 											name="Yes"
 											options={auditLinks}
 											isExternal
-											className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										/>
 									) : (
 										<span>No</span>
@@ -279,14 +279,14 @@ export const PeggedAssetInfo = ({
 						</Ariakit.TabPanel>
 
 						<Ariakit.TabPanel>
-							<div className="flex items-center gap-6 p-5 overflow-auto flex-wrap">
+							<div className="flex flex-wrap items-center gap-6 overflow-auto p-5">
 								{blockExplorerLink !== undefined && (
 									<span>
 										<a
 											href={blockExplorerLink}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										>
 											<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={14} width={14} />
 										</a>
@@ -299,7 +299,7 @@ export const PeggedAssetInfo = ({
 											href={url}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										>
 											<span>Website</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
@@ -313,7 +313,7 @@ export const PeggedAssetInfo = ({
 											href={twitter}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										>
 											<span>Twitter</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
@@ -327,7 +327,7 @@ export const PeggedAssetInfo = ({
 											href={`https://www.coingecko.com/en/coins/${gecko_id}`}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										>
 											<span>CoinGecko</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
@@ -339,7 +339,7 @@ export const PeggedAssetInfo = ({
 									href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+									className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 								>
 									<span>Check the code</span>
 									<Icon name="arrow-up-right" height={14} width={14} />
@@ -349,12 +349,12 @@ export const PeggedAssetInfo = ({
 					</Ariakit.TabProvider>
 				</div>
 
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[416px] flex flex-col col-span-2">
+				<div className="col-span-2 flex min-h-[416px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<TagGroup
 						setValue={setChartType}
 						selectedValue={chartType}
 						values={['Total Circ', 'Pie', 'Dominance', 'Area']}
-						className="max-sm:w-full m-2"
+						className="m-2 max-sm:w-full"
 						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 					/>
 

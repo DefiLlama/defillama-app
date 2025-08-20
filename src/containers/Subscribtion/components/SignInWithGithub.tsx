@@ -16,7 +16,7 @@ export const SignInWithGithub = ({ className, onSuccess }: { className?: string;
 		<button
 			className={
 				className ??
-				'bg-[#222429] hover:bg-[#2a2b30] text-white font-medium rounded-lg border border-[#39393E] py-3 px-4 flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed'
+				'flex items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50'
 			}
 			onClick={handleGithubSignIn}
 			disabled={loaders.signInWithGithub}

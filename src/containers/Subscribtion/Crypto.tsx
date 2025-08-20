@@ -101,38 +101,38 @@ export const ProApiKey = () => {
 				isLoading || loaders?.userLoading ? (
 					<p className="text-center">Fetching API key...</p>
 				) : apiKey ? (
-					<div className="flex flex-col overflow-x-auto mb-9">
-						<table className="border-collapse mx-auto">
+					<div className="mb-9 flex flex-col overflow-x-auto">
+						<table className="mx-auto border-collapse">
 							<tbody>
 								<tr>
-									<th className="p-2 border border-[#39393E] font-normal whitespace-nowrap">API Key</th>
-									<td className="p-2 border border-[#39393E]">{apiKey}</td>
+									<th className="border border-[#39393E] p-2 font-normal whitespace-nowrap">API Key</th>
+									<td className="border border-[#39393E] p-2">{apiKey}</td>
 								</tr>
 								<tr>
-									<th className="p-2 border border-[#39393E] font-normal whitespace-nowrap min-w-[88px]">
+									<th className="min-w-[88px] border border-[#39393E] p-2 font-normal whitespace-nowrap">
 										<Ariakit.TooltipProvider timeout={0}>
 											<Ariakit.TooltipAnchor className="flex flex-nowrap items-center justify-center gap-1">
 												<span className="whitespace-nowrap">Calls Left</span>{' '}
 												<Icon name="circle-help" height={16} width={16} />
 											</Ariakit.TooltipAnchor>
-											<Ariakit.Tooltip className="bg-black border border-[#39393E] rounded-2xl relative z-10 p-4 max-w-sm text-sm">
+											<Ariakit.Tooltip className="relative z-10 max-w-sm rounded-2xl border border-[#39393E] bg-black p-4 text-sm">
 												Amount of calls that you can make before this api key runs out of credits. This limit will be
 												reset at the end of each natural month.
 											</Ariakit.Tooltip>
 										</Ariakit.TooltipProvider>
 									</th>
-									<td className="p-2 border border-[#39393E]">{creditsLeft}</td>
+									<td className="border border-[#39393E] p-2">{creditsLeft}</td>
 								</tr>
 								<tr>
-									<th className="p-2 border border-[#39393E] font-normal whitespace-nowrap">Subscription</th>
-									<td className="p-2 border border-[#39393E]">
+									<th className="border border-[#39393E] p-2 font-normal whitespace-nowrap">Subscription</th>
+									<td className="border border-[#39393E] p-2">
 										{subscription?.status === 'active' ? 'Active' : 'Inactive'}
 									</td>
 								</tr>
 								{subscription?.expires_at && (
 									<tr>
-										<th className="p-2 border border-[#39393E] font-normal whitespace-nowrap">Expires</th>
-										<td className="p-2 border border-[#39393E]">
+										<th className="border border-[#39393E] p-2 font-normal whitespace-nowrap">Expires</th>
+										<td className="border border-[#39393E] p-2">
 											{new Date(subscription.expires_at).toLocaleDateString()}
 										</td>
 									</tr>
@@ -145,7 +145,7 @@ export const ProApiKey = () => {
 						<p className="mb-4">Generate an API key to get started</p>
 						<button
 							onClick={generateNewKey}
-							className="font-medium rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-2 px-4 text-white hover:bg-[#4A4AF0] transition-all duration-200"
+							className="rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-4 py-2 font-medium text-white transition-all duration-200 hover:bg-[#4A4AF0]"
 							disabled={isLoading}
 						>
 							{isLoading ? 'Generating...' : 'Generate API Key'}

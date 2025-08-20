@@ -61,24 +61,24 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 
 	return (
 		<>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Total Value Locked</span>
-						<span className="font-jetbrains font-semibold text-2xl">{tvl}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{tvl}</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Change (24h)</span>
-						<span className="font-jetbrains font-semibold text-2xl">{percentChange || 0}%</span>
+						<span className="font-jetbrains text-2xl font-semibold">{percentChange || 0}%</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">{topToken.name} Dominance</span>
-						<span className="font-jetbrains font-semibold text-2xl">{dominance}%</span>
+						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[370px] pt-2">
+				<div className="col-span-2 flex min-h-[370px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<></>}>
 						<LineAndBarChart charts={charts} alwaysShowTooltip />
 					</Suspense>

@@ -66,9 +66,9 @@ export function FilterBetweenRange({
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+				className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
 			>
-				<div className="w-full sm:w-[260px] mx-auto">
+				<div className="mx-auto w-full sm:w-[260px]">
 					<Form min={min} max={max} onSubmit={onSubmit} onClear={onClear} />
 				</div>
 			</Ariakit.Popover>
@@ -94,7 +94,7 @@ function Form({
 				<input
 					type="number"
 					name="min"
-					className="h-9 w-full px-3 py-1 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+					className="h-9 w-full rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 					defaultValue={min || ''}
 				/>
 			</label>
@@ -103,21 +103,21 @@ function Form({
 				<input
 					type="number"
 					name="max"
-					className="h-9 w-full px-3 py-1 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+					className="h-9 w-full rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 					defaultValue={max || ''}
 				/>
 			</label>
 
-			<div className="mt-3 flex gap-2 flex-col-reverse sm:flex-row">
+			<div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row">
 				<button
 					type="reset"
-					className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:text-white rounded-md dark:hover:bg-white/20 dark:focus-visible:bg-white/20 disabled:opacity-50 transition-colors w-full"
+					className="inline-flex h-9 w-full items-center justify-center rounded-md bg-black/5 px-4 text-sm font-medium whitespace-nowrap transition-colors hover:bg-black/10 disabled:opacity-50 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:focus-visible:bg-white/20"
 				>
 					Clear
 				</button>
 				<button
 					type="submit"
-					className="inline-flex h-9 px-4 items-center justify-center whitespace-nowrap text-sm font-medium bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50 transition-colors w-full"
+					className="inline-flex h-9 w-full items-center justify-center rounded-md bg-[#2172e5] px-4 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
 				>
 					Apply Filter
 				</button>

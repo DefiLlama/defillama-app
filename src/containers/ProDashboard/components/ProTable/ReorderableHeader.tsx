@@ -26,10 +26,10 @@ export function ReorderableHeader({
 	canMoveDown = true
 }: ReorderableHeaderProps) {
 	return (
-		<div className="flex items-center gap-1 w-full group cursor-pointer relative" onClick={onSort}>
+		<div className="group relative flex w-full cursor-pointer items-center gap-1" onClick={onSort}>
 			{onMoveUp && (
 				<div
-					className={`absolute left-0 top-0 bottom-0 flex items-center justify-start ${
+					className={`absolute top-0 bottom-0 left-0 flex items-center justify-start ${
 						canMoveUp ? 'opacity-0 group-hover:opacity-100' : 'opacity-0'
 					} transition-opacity`}
 					style={{ marginLeft: '-8px' }}
@@ -40,7 +40,7 @@ export function ReorderableHeader({
 								e.stopPropagation()
 								onMoveUp()
 							}}
-							className="p-0.5 hover:bg-(--bg-tertiary) rounded-sm transition-colors"
+							className="rounded-sm p-0.5 transition-colors hover:bg-(--bg-tertiary)"
 							title="Swap with left column"
 						>
 							<Icon name="chevron-left" height={10} width={10} />
@@ -49,14 +49,14 @@ export function ReorderableHeader({
 				</div>
 			)}
 
-			<div className="flex items-center gap-1 flex-1 justify-center px-3">
+			<div className="flex flex-1 items-center justify-center gap-1 px-3">
 				{children}
 				{canSort && <SortIcon dir={isSorted} />}
 			</div>
 
 			{onMoveDown && (
 				<div
-					className={`absolute right-0 top-0 bottom-0 flex items-center justify-end ${
+					className={`absolute top-0 right-0 bottom-0 flex items-center justify-end ${
 						canMoveDown ? 'opacity-0 group-hover:opacity-100' : 'opacity-0'
 					} transition-opacity`}
 					style={{ marginRight: '-8px' }}
@@ -67,7 +67,7 @@ export function ReorderableHeader({
 								e.stopPropagation()
 								onMoveDown()
 							}}
-							className="p-0.5 hover:bg-(--bg-tertiary) rounded-sm transition-colors"
+							className="rounded-sm p-0.5 transition-colors hover:bg-(--bg-tertiary)"
 							title="Swap with right column"
 						>
 							<Icon name="chevron-right" height={10} width={10} />

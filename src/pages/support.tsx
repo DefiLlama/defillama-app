@@ -49,19 +49,19 @@ function Support() {
 
 	return (
 		<Layout title="Support - DefiLlama" defaultSEO>
-			<div className="flex flex-col gap-4 w-full max-w-lg mx-auto lg:mt-4 xl:mt-11">
+			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11">
 				<form
 					onSubmit={onSubmit}
-					className="flex flex-col gap-4 p-3 w-full bg-(--cards-bg) border border-(--cards-border) rounded-md"
+					className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 				>
-					<h1 className="text-xl font-semibold text-center mb-3">Support</h1>
+					<h1 className="mb-3 text-center text-xl font-semibold">Support</h1>
 					<label className="flex flex-col gap-1">
 						<span>Name</span>
 						<input
 							type="text"
 							name="name"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 
@@ -71,7 +71,7 @@ function Support() {
 							type="email"
 							name="email"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 
@@ -80,7 +80,7 @@ function Support() {
 						<textarea
 							name="body"
 							required
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						></textarea>
 					</label>
 
@@ -89,14 +89,14 @@ function Support() {
 						<input
 							type="file"
 							name="attachment"
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 						/>
 					</label>
 
 					<button
 						name="submit-btn"
 						disabled={isPending}
-						className="p-3 mt-3 bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+						className="mt-3 rounded-md bg-[#2172e5] p-3 text-white hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
 					>
 						{isPending ? 'Submitting...' : 'Submit'}
 					</button>

@@ -149,8 +149,8 @@ export default function PieChart({
 
 	return (
 		<div className="relative" {...props}>
-			{title && <h1 className="text-lg mr-auto font-bold px-2">{title}</h1>}
-			<div id={id} className="min-h-[360px] my-auto mx-0" style={height ? { height } : undefined}></div>
+			{title && <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1>}
+			<div id={id} className="mx-0 my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

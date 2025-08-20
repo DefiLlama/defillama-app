@@ -46,29 +46,28 @@ export function YieldsTableHeader({
 
 	return (
 		<div className="mb-3">
-			<div className="flex items-center justify-between gap-4 mb-3">
-				<h3 className="text-lg font-semibold pro-text1">{displayTitle}</h3>
+			<div className="mb-3 flex items-center justify-between gap-4">
+				<h3 className="pro-text1 text-lg font-semibold">{displayTitle}</h3>
 				<div className="flex items-center gap-2">
 					<input
 						type="text"
 						placeholder="Search pools..."
 						value={poolName}
 						onChange={(e) => setPoolName(e.target.value)}
-						className="px-3 py-1.5 text-sm border pro-border pro-bg1 pro-text1
-							focus:outline-hidden focus:ring-1 focus:ring-(--primary)"
+						className="pro-border pro-bg1 pro-text1 border px-3 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 				</div>
 			</div>
 
-			<div className="flex items-center justify-between gap-2 flex-wrap">
+			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					{Object.keys(columnPresets).map((preset) => (
 						<button
 							key={preset}
 							onClick={() => applyPreset(preset)}
-							className={`flex items-center gap-1 px-3 py-1.5 text-sm border capitalize transition-colors ${
+							className={`flex items-center gap-1 border px-3 py-1.5 text-sm capitalize transition-colors ${
 								activePreset === preset
-									? 'bg-(--primary) text-white border-(--primary)'
+									? 'border-(--primary) bg-(--primary) text-white'
 									: 'pro-border pro-hover-bg pro-text1 pro-bg1'
 							}`}
 						>
@@ -82,12 +81,12 @@ export function YieldsTableHeader({
 
 					<button
 						onClick={() => setShowFiltersPanel(!showFiltersPanel)}
-						className="flex items-center gap-2 px-3 py-1.5 text-sm border pro-border pro-hover-bg pro-text1 transition-colors pro-bg1 relative"
+						className="pro-border pro-hover-bg pro-text1 pro-bg1 relative flex items-center gap-2 border px-3 py-1.5 text-sm transition-colors"
 					>
 						<Icon name="align-left" height={14} width={14} />
 						Filters
 						{activeFilterCount > 0 && (
-							<span className="absolute -top-1 -right-1 bg-(--primary) text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+							<span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-(--primary) text-xs text-white">
 								{activeFilterCount}
 							</span>
 						)}
@@ -95,7 +94,7 @@ export function YieldsTableHeader({
 					</button>
 					<button
 						onClick={() => setShowColumnPanel(!showColumnPanel)}
-						className="flex items-center gap-2 px-3 py-1.5 text-sm border pro-border pro-hover-bg pro-text1 transition-colors pro-bg1"
+						className="pro-border pro-hover-bg pro-text1 pro-bg1 flex items-center gap-2 border px-3 py-1.5 text-sm transition-colors"
 					>
 						<Icon name="settings" height={14} width={14} />
 						Customize Table

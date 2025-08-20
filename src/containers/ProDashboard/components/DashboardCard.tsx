@@ -69,11 +69,11 @@ export function DashboardCard({
 		return (
 			<div
 				onClick={onClick}
-				className="pro-glass hover:bg-(--bg-glass) hover:bg-opacity-40 cursor-pointer transition-all p-4 flex items-center justify-between gap-4"
+				className="pro-glass hover:bg-opacity-40 flex cursor-pointer items-center justify-between gap-4 p-4 transition-all hover:bg-(--bg-glass)"
 			>
-				<div className="flex-1 min-w-0">
-					<div className="flex items-center gap-3 mb-2">
-						<h3 className="font-medium text-lg pro-text1 truncate">
+				<div className="min-w-0 flex-1">
+					<div className="mb-2 flex items-center gap-3">
+						<h3 className="pro-text1 truncate text-lg font-medium">
 							{dashboard.data.dashboardName || 'Untitled Dashboard'}
 						</h3>
 						{dashboard.visibility === 'public' ? (
@@ -87,9 +87,9 @@ export function DashboardCard({
 						)}
 					</div>
 
-					{dashboard.description && <p className="pro-text3 text-sm mb-2 line-clamp-2">{dashboard.description}</p>}
+					{dashboard.description && <p className="pro-text3 mb-2 line-clamp-2 text-sm">{dashboard.description}</p>}
 
-					<div className="flex items-center gap-4 text-sm pro-text3">
+					<div className="pro-text3 flex items-center gap-4 text-sm">
 						<span>{getItemTypeCount()}</span>
 						<span>•</span>
 						<span>Updated {new Date(dashboard.updated).toLocaleDateString()}</span>
@@ -97,18 +97,18 @@ export function DashboardCard({
 				</div>
 				<div className="flex items-center gap-6">
 					{dashboard.tags && dashboard.tags.length > 0 && (
-						<div className="hidden lg:flex flex-wrap gap-1 max-w-xs">
+						<div className="hidden max-w-xs flex-wrap gap-1 lg:flex">
 							{dashboard.tags.slice(0, 3).map((tag) => (
 								<button
 									key={tag}
 									onClick={(e) => handleTagClick(e, tag)}
-									className="px-2 py-1 bg-(--bg-main) bg-opacity-50 text-xs pro-text2 border pro-border hover:border-(--divider)"
+									className="bg-opacity-50 pro-text2 pro-border border bg-(--bg-main) px-2 py-1 text-xs hover:border-(--divider)"
 								>
 									{tag}
 								</button>
 							))}
 							{dashboard.tags.length > 3 && (
-								<span className="px-2 py-1 text-xs pro-text3">+{dashboard.tags.length - 3}</span>
+								<span className="pro-text3 px-2 py-1 text-xs">+{dashboard.tags.length - 3}</span>
 							)}
 						</div>
 					)}
@@ -131,11 +131,11 @@ export function DashboardCard({
 	return (
 		<div
 			onClick={onClick}
-			className="pro-glass hover:bg-(--bg-glass) hover:bg-opacity-40 cursor-pointer transition-all p-4 group h-full flex flex-col"
+			className="pro-glass hover:bg-opacity-40 group flex h-full cursor-pointer flex-col p-4 transition-all hover:bg-(--bg-glass)"
 		>
-			<div className="flex items-start justify-between mb-3">
-				<div className="flex-1 min-w-0 flex items-center gap-2">
-					<h3 className="font-medium text-lg pro-text1 truncate">
+			<div className="mb-3 flex items-start justify-between">
+				<div className="flex min-w-0 flex-1 items-center gap-2">
+					<h3 className="pro-text1 truncate text-lg font-medium">
 						{dashboard.data.dashboardName || 'Untitled Dashboard'}
 					</h3>
 					{dashboard.visibility === 'public' ? (
@@ -152,11 +152,11 @@ export function DashboardCard({
 					<button
 						onClick={(e) => onDelete(dashboard.id, e)}
 						disabled={isDeleting}
-						className="opacity-0 group-hover:opacity-100 text-(--text-tertiary) hover:text-red-500 transition-all p-1 shrink-0"
+						className="shrink-0 p-1 text-(--text-tertiary) opacity-0 transition-all group-hover:opacity-100 hover:text-red-500"
 						title="Delete dashboard"
 					>
 						{isDeleting ? (
-							<div className="w-4 h-4">
+							<div className="h-4 w-4">
 								<LoadingSpinner />
 							</div>
 						) : (
@@ -166,16 +166,16 @@ export function DashboardCard({
 				)}
 			</div>
 
-			{dashboard.description && <p className="pro-text3 text-sm mb-3 line-clamp-2">{dashboard.description}</p>}
+			{dashboard.description && <p className="pro-text3 mb-3 line-clamp-2 text-sm">{dashboard.description}</p>}
 
-			<div className="flex-1 space-y-2 text-sm pro-text3">
+			<div className="pro-text3 flex-1 space-y-2 text-sm">
 				<div className="flex items-center gap-2">
 					<Icon name="layers" height={14} width={14} />
 					<span>{dashboard.data.items?.length || 0} items</span>
 				</div>
 
 				{dashboard.data.items && dashboard.data.items.length > 0 && (
-					<div className="text-xs pro-text2 bg-(--bg-glass) bg-opacity-30 px-2 py-1 rounded inline-block">
+					<div className="pro-text2 bg-opacity-30 inline-block rounded bg-(--bg-glass) px-2 py-1 text-xs">
 						{getItemTypeCount()}
 					</div>
 				)}
@@ -186,7 +186,7 @@ export function DashboardCard({
 				</div>
 			</div>
 
-			<div className="mt-4 pt-4 border-t border-(--divider) flex items-center justify-between">
+			<div className="mt-4 flex items-center justify-between border-t border-(--divider) pt-4">
 				<div className="flex items-center gap-3 text-sm">
 					<div className="flex items-center gap-1" title="Views">
 						<Icon name="eye" height={16} width={16} className="pro-text3" />
@@ -199,18 +199,18 @@ export function DashboardCard({
 				</div>
 
 				{dashboard.tags && dashboard.tags.length > 0 && (
-					<div className="flex flex-wrap gap-1 max-w-[60%]">
+					<div className="flex max-w-[60%] flex-wrap gap-1">
 						{dashboard.tags.slice(0, 2).map((tag) => (
 							<button
 								key={tag}
 								onClick={(e) => handleTagClick(e, tag)}
-								className="px-2 py-1 bg-(--bg-main) bg-opacity-50 text-xs pro-text2 border pro-border hover:border-(--divider)"
+								className="bg-opacity-50 pro-text2 pro-border border bg-(--bg-main) px-2 py-1 text-xs hover:border-(--divider)"
 							>
 								{tag}
 							</button>
 						))}
 						{dashboard.tags.length > 2 && (
-							<span className="px-2 py-1 text-xs pro-text3">+{dashboard.tags.length - 2}</span>
+							<span className="pro-text3 px-2 py-1 text-xs">+{dashboard.tags.length - 2}</span>
 						)}
 					</div>
 				)}

@@ -141,14 +141,14 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 
 	return (
 		<>
-			<div className="flex items-center gap-2 p-3 flex-wrap">
-				<div className="text-xs font-medium ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+			<div className="flex flex-wrap items-center gap-2 p-3">
+				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					{VIEW_MODES.map((mode) => (
 						<button
 							key={mode}
 							onClick={() => setViewMode(mode)}
 							data-active={viewMode === mode}
-							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+							className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 						>
 							{mode} View
 						</button>

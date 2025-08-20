@@ -45,10 +45,10 @@ export function ChartTypeSelector({
 	}
 
 	return (
-		<div className="mb-3 md:mb-4 selector-container">
-			<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">Chart Type</label>
+		<div className="selector-container mb-3 md:mb-4">
+			<label className="pro-text2 mb-1.5 block text-sm font-medium md:mb-2">Chart Type</label>
 			{isLoading ? (
-				<div className="flex items-center justify-center h-10">
+				<div className="flex h-10 items-center justify-center">
 					<LoadingSpinner size="sm" />
 				</div>
 			) : (

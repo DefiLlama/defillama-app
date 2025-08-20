@@ -20,7 +20,7 @@ export function RaisesSearch({ list }) {
 	const [open, setOpen] = useState(false)
 
 	return (
-		<div className="relative hidden lg:flex flex-col rounded-md data-[alwaysdisplay=true]:flex">
+		<div className="relative hidden flex-col rounded-md data-[alwaysdisplay=true]:flex lg:flex">
 			<Ariakit.ComboboxProvider
 				resetValueOnHide
 				setValue={(value) => {
@@ -40,7 +40,7 @@ export function RaisesSearch({ list }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! w-full!'
 					}}
-					className="flex flex-col bg-(--bg-main) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+					className="max-sm:drawer z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-[hsl(204,20%,88%)] bg-(--bg-main) sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
 				>
 					{matches.length ? (
 						<>
@@ -50,7 +50,7 @@ export function RaisesSearch({ list }) {
 
 							{matches.length > viewableMatches ? (
 								<button
-									className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+									className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
@@ -58,7 +58,7 @@ export function RaisesSearch({ list }) {
 							) : null}
 						</>
 					) : (
-						<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
+						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 					)}
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
@@ -104,7 +104,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="w-full text-sm rounded-md border border-(--cards-border) text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-8"
+				className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[5px] pl-8 text-sm text-black dark:text-white"
 			/>
 		</>
 	)
@@ -129,12 +129,12 @@ const Row = ({ name, setOpen }) => {
 			hideOnClick={false}
 			setValueOnClick={false}
 			disabled={loading}
-			className="p-3 flex items-center gap-4 text-(--text-primary) cursor-pointer hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) aria-disabled:opacity-50 outline-hidden"
+			className="flex cursor-pointer items-center gap-4 p-3 text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 		>
 			<span>{name}</span>
 			{loading ? (
 				<svg
-					className="animate-spin -ml-1 mr-3 h-4 w-4"
+					className="mr-3 -ml-1 h-4 w-4 animate-spin"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"

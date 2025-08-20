@@ -121,14 +121,14 @@ export const AdapterByChainChart = ({
 	})
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2">
-			<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-2">
-				<div className="flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--form-control-border) text-(--text-form)">
+		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2">
+				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
 						<Tooltip
 							content={dataInterval}
 							render={<button />}
-							className="shrink-0 py-1 px-2 whitespace-nowrap font-medium text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+							className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
 							onClick={() => setChartInterval(dataInterval)}
 							data-active={dataInterval === chartInterval}
 							key={`${dataInterval}-${chartName}-${chain}`}
@@ -147,10 +147,10 @@ export const AdapterByChainChart = ({
 					}}
 					isLoading={isDownloadingBreakdownChart}
 					smol
-					className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
-			<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+			<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 				<LineAndBarChart charts={charts} groupBy={chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly'} />
 			</React.Suspense>
 		</div>
@@ -172,25 +172,25 @@ export const ChainsByAdapterChart = ({
 	}, [chartData, chartInterval, selectedChains, chartType])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2">
+		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<>
-				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-2">
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form) mr-auto">
+				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2">
+					<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 						{INTERVALS_LIST.map((dataInterval) => (
 							<a
 								key={`${dataInterval}-${type}`}
 								onClick={() => setChartInterval(dataInterval)}
 								data-active={dataInterval === chartInterval}
-								className="cursor-pointer shrink-0 py-[6px] px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 cursor-pointer px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								{dataInterval}
 							</a>
 						))}
 					</div>
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+					<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 						{CHART_TYPES.map((dataType) => (
 							<button
-								className="shrink-0 py-[6px] px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={dataType === chartType}
 								key={`${dataType}-${type}`}
 								onClick={() => setChartType(dataType)}
@@ -234,17 +234,17 @@ export const ChainsByAdapterChart = ({
 							)
 						}}
 						smol
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 			</>
 
 			{chartType === 'Dominance' ? (
-				<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+				<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 					<LineAndBarChart charts={charts} valueSymbol="%" expandTo100Percent chartOptions={chartOptions} />
 				</React.Suspense>
 			) : (
-				<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+				<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 					<LineAndBarChart
 						charts={charts}
 						chartOptions={chartOptions}

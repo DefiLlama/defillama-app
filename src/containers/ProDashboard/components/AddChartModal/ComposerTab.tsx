@@ -52,21 +52,21 @@ export function ComposerTab({
 	return (
 		<div className="space-y-3 md:space-y-4">
 			<div>
-				<label className="block mb-1.5 md:mb-2 text-sm font-medium pro-text2">Chart Name</label>
+				<label className="pro-text2 mb-1.5 block text-sm font-medium md:mb-2">Chart Name</label>
 				<input
 					type="text"
 					value={composerChartName}
 					onChange={(e) => onComposerChartNameChange(e.target.value)}
 					placeholder="Enter chart name..."
-					className="w-full px-3 py-2 border pro-border pro-text1 placeholder-pro-text3 focus:border-(--primary) focus:outline-hidden pro-bg2 text-sm md:text-base"
+					className="pro-border pro-text1 placeholder-pro-text3 pro-bg2 w-full border px-3 py-2 text-sm focus:border-(--primary) focus:outline-hidden md:text-base"
 				/>
 			</div>
 
-			<div className="flex flex-col lg:flex-row gap-4 lg:h-96">
-				<div className="flex-1 lg:flex-7 border pro-border p-3 md:p-4 space-y-3 md:space-y-4">
+			<div className="flex flex-col gap-4 lg:h-96 lg:flex-row">
+				<div className="pro-border flex-1 space-y-3 border p-3 md:space-y-4 md:p-4 lg:flex-7">
 					<div className="grid grid-cols-2 gap-0">
 						<button
-							className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
+							className={`border px-3 py-2 text-sm font-medium transition-colors duration-200 ${
 								composerSubType === 'chain'
 									? 'border-(--primary) bg-(--primary) text-white'
 									: 'pro-border pro-hover-bg pro-text2'
@@ -76,7 +76,7 @@ export function ComposerTab({
 							Chain
 						</button>
 						<button
-							className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
+							className={`border px-3 py-2 text-sm font-medium transition-colors duration-200 ${
 								composerSubType === 'protocol'
 									? 'border-(--primary) bg-(--primary) text-white'
 									: 'pro-border pro-hover-bg pro-text2'
@@ -122,7 +122,7 @@ export function ComposerTab({
 					)}
 
 					<button
-						className="w-full px-3 py-2.5 md:px-4 md:py-3 bg-(--primary) text-white text-sm font-medium hover:bg-(--primary-hover) disabled:opacity-50 border border-(--primary) transition-colors duration-200"
+						className="w-full border border-(--primary) bg-(--primary) px-3 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-(--primary-hover) disabled:opacity-50 md:px-4 md:py-3"
 						onClick={onAddToComposer}
 						disabled={
 							(composerSubType === 'chain' && !selectedChain) ||
@@ -134,23 +134,23 @@ export function ComposerTab({
 					</button>
 				</div>
 
-				<div className="flex-1 lg:flex-3 border pro-border p-3 md:p-4 min-h-[200px] lg:min-h-0">
-					<div className="text-sm font-medium pro-text2 mb-2 md:mb-3">Charts ({composerItems.length})</div>
-					<div className="space-y-2 overflow-y-auto max-h-60 lg:max-h-80 thin-scrollbar">
+				<div className="pro-border min-h-[200px] flex-1 border p-3 md:p-4 lg:min-h-0 lg:flex-3">
+					<div className="pro-text2 mb-2 text-sm font-medium md:mb-3">Charts ({composerItems.length})</div>
+					<div className="thin-scrollbar max-h-60 space-y-2 overflow-y-auto lg:max-h-80">
 						{composerItems.length === 0 ? (
-							<div className="text-xs pro-text3 text-center py-6 md:py-8">No charts added yet</div>
+							<div className="pro-text3 py-6 text-center text-xs md:py-8">No charts added yet</div>
 						) : (
 							composerItems.map((item) => (
-								<div key={item.id} className="flex items-center justify-between p-2 text-xs border pro-border pro-bg2">
-									<div className="flex-1 min-w-0">
-										<div className="font-medium pro-text1 truncate">{item.protocol || item.chain}</div>
+								<div key={item.id} className="pro-border pro-bg2 flex items-center justify-between border p-2 text-xs">
+									<div className="min-w-0 flex-1">
+										<div className="pro-text1 truncate font-medium">{item.protocol || item.chain}</div>
 										<div className="pro-text3 truncate">{CHART_TYPES[item.type]?.title}</div>
 									</div>
 									<button
 										onClick={() => onRemoveFromComposer(item.id)}
-										className="ml-2 p-1.5 md:p-1 pro-text3 hover:pro-text1 pro-hover-bg border pro-border transition-colors duration-200"
+										className="pro-text3 hover:pro-text1 pro-hover-bg pro-border ml-2 border p-1.5 transition-colors duration-200 md:p-1"
 									>
-										<Icon name="x" height={14} width={14} className="md:w-3 md:h-3" />
+										<Icon name="x" height={14} width={14} className="md:h-3 md:w-3" />
 									</button>
 								</div>
 							))

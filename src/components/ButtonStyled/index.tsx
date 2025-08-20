@@ -32,7 +32,7 @@ export const ButtonDark = <E extends ElementType = ButtonDefaultAsType>({
 					...(style ?? {})
 				} as any
 			}
-			className={`py-2 px-3 rounded-md text-white min-w-fit bg-(--bg-light) dark:bg-(--bg-dark) whitespace-nowrap hover:bg-(--bg-active-light) dark:hover:bg-(--bg-active-dark) focus-visible:bg-(--bg-active-light) dark:focus-visible:bg-(--bg-active-dark) ${
+			className={`min-w-fit rounded-md bg-(--bg-light) px-3 py-2 whitespace-nowrap text-white hover:bg-(--bg-active-light) focus-visible:bg-(--bg-active-light) dark:bg-(--bg-dark) dark:hover:bg-(--bg-active-dark) dark:focus-visible:bg-(--bg-active-dark) ${
 				className ?? ''
 			}`}
 			{...props}
@@ -62,7 +62,7 @@ export const ButtonLight = forwardRef(function BLight<E extends ElementType = Bu
 					...(style ?? {})
 				} as any
 			}
-			className={`flex items-center gap-1 py-2 px-3 rounded-md min-w-fit bg-(--btn2-bg) whitespace-nowrap hover:bg-(--btn2-hover-bg) ${
+			className={`flex min-w-fit items-center gap-1 rounded-md bg-(--btn2-bg) px-3 py-2 whitespace-nowrap hover:bg-(--btn2-hover-bg) ${
 				useTextColor ? 'text-(--text-primary)' : 'text-(--btn2-text)'
 			} ${className ?? ''}`}
 			ref={ref}
@@ -93,7 +93,7 @@ export const GrayButton = <E extends ElementType = ButtonDefaultAsType>({
 					...(style ?? {})
 				} as any
 			}
-			className={`py-2 px-3 rounded-md text-white min-w-fit bg-(--bg-light) dark:bg-(--bg-dark) whitespace-nowrap hover:bg-(--bg-active-light) dark:hover:bg-(--bg-active-dark) focus-visible:bg-(--bg-active-light) dark:focus-visible:bg-(--bg-active-dark) ${
+			className={`min-w-fit rounded-md bg-(--bg-light) px-3 py-2 whitespace-nowrap text-white hover:bg-(--bg-active-light) focus-visible:bg-(--bg-active-light) dark:bg-(--bg-dark) dark:hover:bg-(--bg-active-dark) dark:focus-visible:bg-(--bg-active-dark) ${
 				className ?? ''
 			}`}
 			{...props}

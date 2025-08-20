@@ -116,11 +116,11 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 
 	return (
 		<>
-			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md bg-(--cards-bg) border border-(--cards-border) p-3">
+			<div className="mx-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<h1 className="text-xl font-semibold">Generate Bridge Transactions CSV</h1>
 
 				<form className="mx-auto my-8 flex flex-col gap-4" onSubmit={handleSubmit}>
-					<span className="flex gap-4 flex-wrap">
+					<span className="flex flex-wrap gap-4">
 						<label className="flex flex-col">
 							<span className="text-base font-medium">Start Date</span>
 							<input
@@ -129,7 +129,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 								value={startDate}
 								onChange={(e) => handleStartDateChange(e.target.value)}
 								required
-								className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
+								className="placeholder:text-opacity-40 rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white"
 							/>
 						</label>
 						<label className="flex flex-col">
@@ -141,13 +141,13 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 								onChange={(e) => handleEndDateChange(e.target.value)}
 								min={startDate}
 								required
-								className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
+								className="placeholder:text-opacity-40 rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white"
 							/>
 						</label>
 					</span>
 					<select
 						name="selectedBridge"
-						className="py-2 px-3 text-base bg-[#f2f2f2] dark:bg-black text-black dark:text-white rounded-lg placeholder:text-opacity-40"
+						className="placeholder:text-opacity-40 rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white"
 						required
 					>
 						<option value="">--Please choose a bridge--</option>
@@ -158,14 +158,14 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 						))}
 					</select>
 					<button
-						className="py-2 px-3 text-base font-semibold rounded-lg bg-(--link-bg) text-(--link-text) whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-active-bg) disabled:cursor-not-allowed disabled:opacity-60"
+						className="rounded-lg bg-(--link-bg) px-3 py-2 text-base font-semibold whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-active-bg) disabled:cursor-not-allowed disabled:opacity-60"
 						disabled={isPending}
 					>
 						{isPending ? 'Downloading...' : 'Download .CSV'}
 					</button>
 
-					{dateError ? <p className="text-red-500 text-center">{dateError}</p> : null}
-					{error ? <p className="text-red-500 text-center">{(error as any).message}</p> : null}
+					{dateError ? <p className="text-center text-red-500">{dateError}</p> : null}
+					{error ? <p className="text-center text-red-500">{(error as any).message}</p> : null}
 				</form>
 			</div>
 		</>

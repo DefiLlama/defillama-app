@@ -46,7 +46,7 @@ const MasonryLayout = ({ cards, props }: MasonryLayoutProps) => {
 	return (
 		<div ref={containerRef} className="flex gap-2">
 			{columns.map((column, columnIndex) => (
-				<div key={columnIndex} className="flex flex-col gap-2 flex-1">
+				<div key={columnIndex} className="flex flex-1 flex-col gap-2">
 					{column.map((card, cardIndex) => (
 						<div key={`${columnIndex}-${cardIndex}-${card}`}>
 							<></>

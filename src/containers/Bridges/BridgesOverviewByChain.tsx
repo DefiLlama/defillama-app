@@ -219,29 +219,29 @@ export function BridgesOverviewByChain({
 		<>
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex flex-col">
 						<span className="text-(--text-label)">Total volume (24h)</span>
-						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(dayTotalVolume, true)}</span>
+						<span className="font-jetbrains text-3xl font-semibold">{formattedNum(dayTotalVolume, true)}</span>
 					</h1>
-					<p className="hidden md:flex flex-col">
+					<p className="hidden flex-col md:flex">
 						<span className="text-(--text-label)">Total volume (7d)</span>
-						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(weekTotalVolume, true)}</span>
+						<span className="font-jetbrains text-3xl font-semibold">{formattedNum(weekTotalVolume, true)}</span>
 					</p>
-					<p className="hidden md:flex flex-col">
+					<p className="hidden flex-col md:flex">
 						<span className="text-(--text-label)">Total volume (1mo)</span>
-						<span className="font-semibold text-3xl font-jetbrains">{formattedNum(monthTotalVolume, true)}</span>
+						<span className="font-jetbrains text-3xl font-semibold">{formattedNum(monthTotalVolume, true)}</span>
 					</p>
 
 					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2">
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{selectedChain === 'All' ? (
 						<>
 							<div className="flex items-center">
 								<button
-									className="flex-1 flex items-center justify-center p-3 text-xs font-medium border-b-2 border-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-bg) data-[active=true]:border-(--old-blue)"
+									className="flex flex-1 items-center justify-center border-b-2 border-(--link-bg) p-3 text-xs font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) data-[active=true]:bg-(--link-bg)"
 									data-active={chartView === 'netflow'}
 									onClick={() => setChartView('netflow')}
 								>
@@ -249,7 +249,7 @@ export function BridgesOverviewByChain({
 								</button>
 
 								<button
-									className="flex-1 flex items-center justify-center p-3 text-xs font-medium border-b-2 border-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-bg) data-[active=true]:border-(--old-blue)"
+									className="flex flex-1 items-center justify-center border-b-2 border-(--link-bg) p-3 text-xs font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) data-[active=true]:bg-(--link-bg)"
 									onClick={() => setChartView('volume')}
 									data-active={chartView === 'volume'}
 								>
@@ -267,7 +267,7 @@ export function BridgesOverviewByChain({
 						</>
 					) : (
 						<>
-							<div className="flex items-center justify-between p-3 overflow-x-auto">
+							<div className="flex items-center justify-between overflow-x-auto p-3">
 								<ChartSelector
 									options={[
 										'Bridge Volume',
@@ -334,18 +334,18 @@ export function BridgesOverviewByChain({
 				</div>
 			</div>
 
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex items-center justify-between p-3">
 					<div className="flex items-center">
 						<button
-							className="px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+							className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
 							data-active={activeTab === 'bridges'}
 							onClick={() => setActiveTab('bridges')}
 						>
 							Bridges
 						</button>
 						<button
-							className="px-4 py-2 text-sm font-medium border-b-2 border-transparent hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+							className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
 							data-active={activeTab === 'messaging'}
 							onClick={() => setActiveTab('messaging')}
 						>

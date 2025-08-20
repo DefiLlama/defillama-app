@@ -4,8 +4,8 @@ export default function Protocols() {
 	return (
 		<Layout title={`Reports - DefiLlama`} defaultSEO>
 			<h1 className="text-center font-semibold">Reports</h1>
-			<ul className="list-none my-6 mx-auto p-0">
-				<li className="text-base font-medium text-center">
+			<ul className="mx-auto my-6 list-none p-0">
+				<li className="text-center text-base font-medium">
 					29 December 2022:{' '}
 					<a
 						href="https://drive.google.com/file/d/1zfJgQEOA4QVKMUyVifBhybhxgkbFRWpG/view"

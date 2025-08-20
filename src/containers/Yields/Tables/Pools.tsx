@@ -139,7 +139,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewards ?? []
 			return (
-				<div className="w-full flex items-center justify-end gap-1">
+				<div className="flex w-full items-center justify-end gap-1">
 					{lockupsRewards.includes(row.original.project) ? (
 						<QuestionHelper text={earlyExit} />
 					) : row.original.rewardMeta ? (

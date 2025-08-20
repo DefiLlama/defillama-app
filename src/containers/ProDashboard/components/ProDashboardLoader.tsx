@@ -11,11 +11,11 @@ export function ProDashboardLoader() {
 	}, [])
 
 	return (
-		<div className="flex flex-col justify-center items-center min-h-[60vh] gap-8">
-			<div className="relative w-24 h-24">
+		<div className="flex min-h-[60vh] flex-col items-center justify-center gap-8">
+			<div className="relative h-24 w-24">
 				<div className="absolute inset-0 rounded-full border border-(--primary) opacity-10" />
 
-				<div className="absolute inset-0 rounded-full animate-spin" style={{ animationDuration: '3s' }}>
+				<div className="absolute inset-0 animate-spin rounded-full" style={{ animationDuration: '3s' }}>
 					<div
 						className="h-full w-full rounded-full border-2 border-transparent border-t-(--primary) border-r-(--primary)"
 						style={{
@@ -26,22 +26,22 @@ export function ProDashboardLoader() {
 				</div>
 
 				<div
-					className="absolute inset-3 rounded-full animate-spin"
+					className="absolute inset-3 animate-spin rounded-full"
 					style={{ animationDuration: '2s', animationDirection: 'reverse' }}
 				>
 					<div className="h-full w-full rounded-full border-2 border-transparent border-b-(--primary) border-l-(--primary)" />
 				</div>
 
-				<div className="absolute inset-6 rounded-full bg-(--primary) opacity-10 animate-pulse" />
+				<div className="absolute inset-6 animate-pulse rounded-full bg-(--primary) opacity-10" />
 
 				<div className="absolute inset-0 animate-spin" style={{ animationDuration: '4s' }}>
-					<div className="absolute top-0 left-1/2 w-2 h-2 -ml-1 rounded-full bg-(--primary)" />
+					<div className="absolute top-0 left-1/2 -ml-1 h-2 w-2 rounded-full bg-(--primary)" />
 				</div>
 				<div
 					className="absolute inset-0 animate-spin"
 					style={{ animationDuration: '3s', animationDirection: 'reverse' }}
 				>
-					<div className="absolute bottom-0 left-1/2 w-1.5 h-1.5 -ml-0.75 rounded-full bg-(--primary) opacity-60" />
+					<div className="absolute bottom-0 left-1/2 -ml-0.75 h-1.5 w-1.5 rounded-full bg-(--primary) opacity-60" />
 				</div>
 
 				<div className="absolute inset-0 flex items-center justify-center">
@@ -49,11 +49,11 @@ export function ProDashboardLoader() {
 						<img
 							src="/llama.png"
 							alt="Loading"
-							className="w-16 h-16 object-contain animate-pulse"
+							className="h-16 w-16 animate-pulse object-contain"
 							style={{ animationDuration: '1.5s' }}
 						/>
 						<div
-							className="absolute inset-0 rounded-full opacity-30 animate-ping"
+							className="absolute inset-0 animate-ping rounded-full opacity-30"
 							style={{
 								background: 'radial-gradient(circle, var(--primary1), transparent)',
 								animationDuration: '2s'

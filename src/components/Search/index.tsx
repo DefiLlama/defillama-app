@@ -76,15 +76,15 @@ const Mobile = () => {
 							autoSelect
 							ref={inputField}
 							autoFocus
-							className="absolute top-2 left-2 right-2 p-3 rounded-t-md text-base bg-(--cards-bg) text-(--text-primary)"
+							className="absolute top-2 right-2 left-2 rounded-t-md bg-(--cards-bg) p-3 text-base text-(--text-primary)"
 						/>
-						<button onClick={() => setOpen(false)} className="absolute z-10 top-5 right-5">
+						<button onClick={() => setOpen(false)} className="absolute top-5 right-5 z-10">
 							<span className="sr-only">Close Search</span>
 							<Icon name="x" height={24} width={24} />
 						</button>
 					</>
 				) : (
-					<button onClick={() => setOpen(true)} className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px]">
+					<button onClick={() => setOpen(true)} className="-my-[2px] rounded-md bg-[#445ed0] p-3 text-white shadow">
 						<span className="sr-only">Search</span>
 						<Icon name="search" height={16} width={16} />
 					</button>
@@ -95,7 +95,7 @@ const Mobile = () => {
 				hideOnInteractOutside
 				gutter={6}
 				sameWidth
-				className="flex flex-col bg-(--cards-bg) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-(--cards-border) h-full max-h-[70vh] sm:max-h-[60vh]"
+				className="z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) sm:max-h-[60vh]"
 			>
 				{query ? (
 					status === 'loading' ? (
@@ -164,7 +164,7 @@ const Desktop = () => {
 			open={open}
 			setOpen={setOpen}
 		>
-			<span className="hidden lg:inline-block relative isolate w-full lg:max-w-[50vw]">
+			<span className="relative isolate hidden w-full lg:inline-block lg:max-w-[50vw]">
 				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[8px] opacity-50">
 					{open ? (
 						<>
@@ -182,9 +182,9 @@ const Desktop = () => {
 					placeholder="Search..."
 					autoSelect
 					ref={inputField}
-					className="w-full text-sm rounded-md border border-(--cards-border) text-black dark:text-white bg-(--app-bg) py-[5px] px-[10px] pl-7"
+					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[5px] pl-7 text-sm text-black dark:text-white"
 				/>
-				<span className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
+				<span className="absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center rounded-md bg-(--link-bg) p-1 text-xs text-(--link-text)">
 					⌘K
 				</span>
 			</span>
@@ -194,7 +194,7 @@ const Desktop = () => {
 				hideOnEscape
 				gutter={6}
 				sameWidth
-				className="flex flex-col bg-(--cards-bg) rounded-b-md z-10 overflow-auto overscroll-contain border border-t-0 border-(--cards-border) h-full max-h-[70vh] sm:max-h-[60vh]"
+				className="z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) sm:max-h-[60vh]"
 			>
 				{query ? (
 					status === 'loading' ? (
@@ -232,7 +232,7 @@ const Desktop = () => {
 const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: boolean }) => {
 	return (
 		<Ariakit.ComboboxItem
-			className="px-4 py-2 hover:bg-(--link-bg) flex items-center gap-2"
+			className="flex items-center gap-2 px-4 py-2 hover:bg-(--link-bg)"
 			render={<BasicLink href={route.route} />}
 			onClick={() => {
 				if (!recent) {
@@ -242,16 +242,16 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 			value={route.route}
 		>
 			{route.logo ? (
-				<img src={route.logo} alt={route.name} className="w-6 h-6 rounded-full" loading="lazy" />
+				<img src={route.logo} alt={route.name} className="h-6 w-6 rounded-full" loading="lazy" />
 			) : (
-				<Icon name="file-text" className="w-6 h-6" />
+				<Icon name="file-text" className="h-6 w-6" />
 			)}
 			<span>{route.name}</span>
 			{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
 			{recent ? (
 				<Icon name="clock" height={12} width={12} className="ml-auto" />
 			) : (
-				<span className="text-xs text-(--link-text) ml-auto">{route.type}</span>
+				<span className="ml-auto text-xs text-(--link-text)">{route.type}</span>
 			)}
 		</Ariakit.ComboboxItem>
 	)

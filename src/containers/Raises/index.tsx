@@ -34,7 +34,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				<span>Are we missing any funding round?</span>{' '}
 				<a
 					href="https://airtable.com/shrON6sFMgyFGulaq"
-					className="text-(--blue) underline font-medium"
+					className="font-medium text-(--blue) underline"
 					target="_blank"
 					rel="noopener noreferrer"
 				>
@@ -57,23 +57,23 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				pathname={pathname}
 			/>
 
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Total Funding Rounds</span>
-						<span className="font-jetbrains font-semibold text-2xl">{filteredRaisesList.length}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{filteredRaisesList.length}</span>
 					</p>
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Total Funding Amount</span>
-						<span className="font-jetbrains font-semibold text-2xl">${formattedNum(totalAmountRaised)}</span>
+						<span className="font-jetbrains text-2xl font-semibold">${formattedNum(totalAmountRaised)}</span>
 					</p>
 					<CSVDownloadButton
 						onClick={() => downloadCsv({ raises })}
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mt-auto mr-auto"
+						className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 min-h-[408px] pt-2">
+				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
 						<BarChart chartData={monthlyInvestment} title="" valueSymbol="$" color={oldBlue} groupBy="monthly" />
 					</React.Suspense>

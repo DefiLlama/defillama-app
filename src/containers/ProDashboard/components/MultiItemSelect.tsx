@@ -73,18 +73,18 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 }
 
 const CustomTokenOption = ({ innerProps, label, data }) => (
-	<div {...innerProps} className="flex items-center gap-2 p-2 cursor-pointer">
+	<div {...innerProps} className="flex cursor-pointer items-center gap-2 p-2">
 		{data.logo ? (
 			<img
 				src={data.logo}
 				alt=""
-				className="w-5 h-5 rounded-full"
+				className="h-5 w-5 rounded-full"
 				onError={(e) => {
 					e.currentTarget.style.display = 'none'
 				}}
 			/>
 		) : (
-			<div className="w-5 h-5 rounded-full bg-(--bg-tertiary)" />
+			<div className="h-5 w-5 rounded-full bg-(--bg-tertiary)" />
 		)}
 		<span>{label}</span>
 	</div>
@@ -131,7 +131,7 @@ function VirtualizedMenuList(props) {
 }
 
 const SimpleOption = ({ innerProps, label }) => (
-	<div {...innerProps} className="flex items-center gap-2 p-2 cursor-pointer">
+	<div {...innerProps} className="flex cursor-pointer items-center gap-2 p-2">
 		<span>{label}</span>
 	</div>
 )
@@ -164,9 +164,9 @@ export function MultiItemSelect({
 
 	return (
 		<div>
-			<label className="block mb-2 text-sm font-medium pro-text2">{label}</label>
+			<label className="pro-text2 mb-2 block text-sm font-medium">{label}</label>
 			{isLoading ? (
-				<div className="flex items-center justify-center h-10">
+				<div className="flex h-10 items-center justify-center">
 					<LoadingSpinner size="sm" />
 				</div>
 			) : (

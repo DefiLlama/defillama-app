@@ -41,11 +41,11 @@ export default function Layout({
 			<Nav />
 			<main
 				{...props}
-				className={`flex flex-col gap-2 text-(--text-primary) isolate p-1 lg:p-4 lg:pl-[248px] min-h-screen lg:w-screen ${
+				className={`isolate flex min-h-screen flex-col gap-2 p-1 text-(--text-primary) lg:w-screen lg:p-4 lg:pl-[248px] ${
 					className ?? ''
 				}`}
 			>
-				<span className="hidden lg:flex items-center justify-between gap-2 lg:min-h-8">
+				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
 					<React.Suspense fallback={<SearchFallback />}>
 						<GlobalSearch />
 					</React.Suspense>

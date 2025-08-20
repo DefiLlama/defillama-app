@@ -20,14 +20,14 @@ export const DesktopNav = React.memo(function DesktopNav() {
 	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	return (
-		<nav className="z-10 fixed top-0 bottom-0 left-0 h-screen overflow-y-auto bg-(--app-bg) hidden lg:flex flex-col w-[244px] gap-1 p-4 pl-0 *:pl-4 no-scrollbar">
+		<nav className="no-scrollbar fixed top-0 bottom-0 left-0 z-10 hidden h-screen w-[244px] flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pl-0 *:pl-4 lg:flex">
 			<BasicLink href="/" className="shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img
 					src="/defillama-press-kit/defi/PNG/defillama.png"
 					height={53}
 					width={155}
-					className="object-contain object-left mr-auto mb-4 hidden dark:block"
+					className="mr-auto mb-4 hidden object-contain object-left dark:block"
 					alt=""
 					fetchPriority="high"
 				/>
@@ -35,22 +35,22 @@ export const DesktopNav = React.memo(function DesktopNav() {
 					src="/defillama-press-kit/defi/PNG/defillama-dark.png"
 					height={53}
 					width={155}
-					className="object-contain object-left mr-auto mb-4 dark:hidden"
+					className="mr-auto mb-4 object-contain object-left dark:hidden"
 					alt=""
 					fetchPriority="high"
 				/>
 			</BasicLink>
 
-			<div className="overflow-y-auto pb-32 no-scrollbar">
-				<p className="text-xs opacity-65 mb-1">Dashboards</p>
+			<div className="no-scrollbar overflow-y-auto pb-32">
+				<p className="mb-1 text-xs opacity-65">Dashboards</p>
 
 				{Object.keys(navLinks).map((mainLink) => (
 					<SubMenu key={mainLink} name={mainLink} />
 				))}
 
-				<hr className="border-black/20 dark:border-white/20 my-4" />
+				<hr className="my-4 border-black/20 dark:border-white/20" />
 
-				<p className="text-xs opacity-65 mb-1">Tools</p>
+				<p className="mb-1 text-xs opacity-65">Tools</p>
 
 				{commonLinks.tools.map((link) => {
 					if ('onClick' in link) {
@@ -58,7 +58,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 							<button
 								key={link.name}
 								onClick={link.onClick}
-								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
+								className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 							>
 								{link.name}
 							</button>
@@ -72,7 +72,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 									{...(link.external ? { target: '_blank' } : {})}
 									rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 									data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
+									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 								>
 									{link.name}
 									{link.newTag === true ? <NewTag /> : null}
@@ -82,7 +82,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 					}
 				})}
 
-				<hr className="border-black/20 dark:border-white/20 my-4" />
+				<hr className="my-4 border-black/20 dark:border-white/20" />
 
 				{commonLinks.footer.map((link) => {
 					if ('onClick' in link) {
@@ -90,7 +90,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 							<button
 								key={link.name}
 								onClick={link.onClick}
-								className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
+								className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 							>
 								{link.name}
 							</button>
@@ -104,7 +104,7 @@ export const DesktopNav = React.memo(function DesktopNav() {
 									{...(link.external ? { target: '_blank' } : {})}
 									rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 									data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] rounded-md flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 focus-visible:bg-black/5 dark:focus-visible:bg-white/10 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white p-[6px]"
+									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 								>
 									{link.name}
 									{link.newTag === true ? <NewTag /> : null}
@@ -117,42 +117,42 @@ export const DesktopNav = React.memo(function DesktopNav() {
 
 			{isAccountLoading ? (
 				<div
-					className="absolute bottom-0 left-0 right-0 bg-(--app-bg) p-3 border-t border-black/20 dark:border-white/20 flex flex-col gap-2"
+					className="absolute right-0 bottom-0 left-0 flex flex-col gap-2 border-t border-black/20 bg-(--app-bg) p-3 dark:border-white/20"
 					style={{ height: 138 }}
 				>
-					<div className="flex items-center justify-center w-full h-full">
-						<div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-gray-400" />
+					<div className="flex h-full w-full items-center justify-center">
+						<div className="h-6 w-6 animate-spin rounded-full border-t-2 border-b-2 border-gray-400" />
 					</div>
 				</div>
 			) : (
-				<div className="absolute bottom-0 left-0 right-0 bg-(--app-bg) p-3 border-t border-black/20 dark:border-white/20 flex flex-col gap-2">
+				<div className="absolute right-0 bottom-0 left-0 flex flex-col gap-2 border-t border-black/20 bg-(--app-bg) p-3 dark:border-white/20">
 					{isAuthenticated ? (
 						<div className="flex flex-col gap-1.5">
 							{user && (
 								<BasicLink
 									href="/subscription"
-									className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 px-1 truncate font-medium flex items-center gap-1.5 transition-colors"
+									className="flex items-center gap-1.5 truncate px-1 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
 								>
-									<Icon name="users" className="w-4 h-4 shrink-0" />
+									<Icon name="users" className="h-4 w-4 shrink-0" />
 									{user.email}
 								</BasicLink>
 							)}
 							{subscription?.status === 'active' ? (
-								<span className="text-xs px-1 font-medium text-green-600 dark:text-green-500 flex items-center gap-1">
-									<Icon name="check-circle" className="w-3.5 h-3.5" />
+								<span className="flex items-center gap-1 px-1 text-xs font-medium text-green-600 dark:text-green-500">
+									<Icon name="check-circle" className="h-3.5 w-3.5" />
 									Subscribed
 								</span>
 							) : (
 								user && (
 									<>
-										<span className="text-xs px-1 font-medium text-red-500 dark:text-red-500 flex items-center gap-1">
+										<span className="flex items-center gap-1 px-1 text-xs font-medium text-red-500 dark:text-red-500">
 											Subscription inactive
 										</span>
 										<BasicLink
 											href="/subscription"
-											className="text-xs px-1 font-medium text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 flex items-center gap-1 transition-colors"
+											className="flex items-center gap-1 px-1 text-xs font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400"
 										>
-											<Icon name="plus" className="w-3.5 h-3.5" />
+											<Icon name="plus" className="h-3.5 w-3.5" />
 											Upgrade
 										</BasicLink>
 									</>
@@ -160,18 +160,18 @@ export const DesktopNav = React.memo(function DesktopNav() {
 							)}
 							<button
 								onClick={logout}
-								className="rounded-lg flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 p-1 text-sm font-medium transition-colors duration-200"
+								className="flex items-center justify-center gap-2 rounded-lg bg-red-500/10 p-1 text-sm font-medium text-red-500 transition-colors duration-200 hover:bg-red-500/20"
 							>
-								<Icon name="x" className="w-4 h-4" />
+								<Icon name="x" className="h-4 w-4" />
 								Logout
 							</button>
 						</div>
 					) : (
 						<BasicLink
 							href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
-							className="-ml-[6px] rounded-lg flex items-center justify-center gap-2 bg-[#5C5CF9]/10 hover:bg-[#5C5CF9]/20 text-[#5C5CF9] p-1 text-sm font-medium transition-colors duration-200"
+							className="-ml-[6px] flex items-center justify-center gap-2 rounded-lg bg-[#5C5CF9]/10 p-1 text-sm font-medium text-[#5C5CF9] transition-colors duration-200 hover:bg-[#5C5CF9]/20"
 						>
-							<Icon name="users" className="w-4 h-4" />
+							<Icon name="users" className="h-4 w-4" />
 							Sign In / Subscribe
 						</BasicLink>
 					)}

@@ -33,7 +33,7 @@ export function Settings() {
 
 	return (
 		<Ariakit.SelectProvider value={selectedOptions} setValue={onChange}>
-			<Ariakit.Select className="shadow p-3 rounded-md bg-[#445ed0] text-white -my-[2px]">
+			<Ariakit.Select className="-my-[2px] rounded-md bg-[#445ed0] p-3 text-white shadow">
 				<span className="sr-only">Open Settings Menu</span>
 				<Icon name="settings" height={16} width={16} />
 			</Ariakit.Select>
@@ -44,21 +44,21 @@ export function Settings() {
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer h-full max-h-[70vh] sm:max-h-[60vh]"
+				className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
 			>
-				<h1 className="text-(--text-secondary) my-2 mx-3">Settings</h1>
+				<h1 className="mx-3 my-2 text-(--text-secondary)">Settings</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				{options.map((option) => (
 					<Ariakit.SelectItem
 						value={option.key}
 						key={option.key}
-						className="flex items-center justify-between gap-3 py-2 px-3"
+						className="flex items-center justify-between gap-3 px-3 py-2"
 					>
 						{option.name}
 						<Ariakit.SelectItemCheck />
 					</Ariakit.SelectItem>
 				))}
-				<Ariakit.SelectItem value={DARK_MODE} className="flex items-center justify-between gap-3 py-2 px-3">
+				<Ariakit.SelectItem value={DARK_MODE} className="flex items-center justify-between gap-3 px-3 py-2">
 					Dark Mode
 					<Ariakit.SelectItemCheck />
 				</Ariakit.SelectItem>

@@ -109,7 +109,7 @@ export async function getStaticPaths() {
 export default function Protocol({ data, governanceType }) {
 	return (
 		<Layout title={`${data.metadata.name} Governance - DefiLlama`} defaultSEO>
-			<div className="flex flex-col gap-9 p-6 relative isolate xl:grid-cols-[auto_1fr] bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="relative isolate flex flex-col gap-9 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 xl:grid-cols-[auto_1fr]">
 				<h1 className="flex items-center gap-2 text-xl font-semibold">
 					<TokenLogo logo={tokenIconUrl(data.metadata.name)} />
 					<span>{data.metadata.name}</span>
@@ -118,8 +118,8 @@ export default function Protocol({ data, governanceType }) {
 				<div className="flex flex-wrap justify-between gap-4">
 					{data.stats.chainName ? (
 						<p className="flex flex-col gap-1">
-							<span className="font-semibold text-sm text-(--text-meta)">Chain</span>
-							<span className="flex items-center gap-1 font-jetbrains font-semibold text-lg">
+							<span className="text-sm font-semibold text-(--text-meta)">Chain</span>
+							<span className="font-jetbrains flex items-center gap-1 text-lg font-semibold">
 								<TokenLogo logo={chainIconUrl(data.stats.chainName)} size={32} />
 								<span>{data.stats.chainName}</span>
 							</span>
@@ -129,41 +129,41 @@ export default function Protocol({ data, governanceType }) {
 					{data.stats.proposalsCount ? (
 						<p className="flex flex-col gap-1">
 							<span className="text-(--text-meta)">Total Proposals</span>
-							<span className="font-jetbrains font-semibold text-lg">{data.stats.proposalsCount}</span>
+							<span className="font-jetbrains text-lg font-semibold">{data.stats.proposalsCount}</span>
 						</p>
 					) : null}
 
 					{data.stats.successfulProposal ? (
 						<p className="flex flex-col gap-1">
 							<span className="text-(--text-meta)">Successful Proposals</span>
-							<span className="font-jetbrains font-semibold text-lg">{data.stats.successfulProposals}</span>
+							<span className="font-jetbrains text-lg font-semibold">{data.stats.successfulProposals}</span>
 						</p>
 					) : null}
 
 					{data.stats.propsalsInLast30Days ? (
 						<p className="flex flex-col gap-1">
 							<span className="text-(--text-meta)">Successful Proposals in last 30 days</span>
-							<span className="font-jetbrains font-semibold text-lg">{data.stats.propsalsInLast30Days}</span>
+							<span className="font-jetbrains text-lg font-semibold">{data.stats.propsalsInLast30Days}</span>
 						</p>
 					) : null}
 
 					{data.stats.highestTotalScore ? (
 						<p className="flex flex-col gap-1">
 							<span className="text-(--text-meta)">Max Total Votes</span>
-							<span className="font-jetbrains font-semibold text-lg">{formattedNum(data.stats.highestTotalScore)}</span>
+							<span className="font-jetbrains text-lg font-semibold">{formattedNum(data.stats.highestTotalScore)}</span>
 						</p>
 					) : null}
 
 					{data.metadata.followersCount ? (
 						<p className="flex flex-col gap-1">
 							<span className="text-(--text-meta)">Followers</span>
-							<span className="font-jetbrains font-semibold text-lg">{formattedNum(data.metadata.followersCount)}</span>
+							<span className="font-jetbrains text-lg font-semibold">{formattedNum(data.metadata.followersCount)}</span>
 						</p>
 					) : null}
 				</div>
 
 				<div className="grid grid-cols-2">
-					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<React.Suspense fallback={<></>}>
 							<BarChart
 								title={'Activity'}
@@ -173,7 +173,7 @@ export default function Protocol({ data, governanceType }) {
 							/>
 						</React.Suspense>
 					</LazyChart>
-					<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<React.Suspense fallback={<></>}>
 							<BarChart
 								title={'Max Votes'}
@@ -188,7 +188,7 @@ export default function Protocol({ data, governanceType }) {
 				<div className="flex flex-wrap items-center gap-9">
 					{data.metadata.domain && (
 						<a
-							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							className="flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-1 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`https://${data.metadata.domain}`}
@@ -199,7 +199,7 @@ export default function Protocol({ data, governanceType }) {
 
 					{data.metadata.twitter && (
 						<a
-							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							className="flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-1 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`https://twitter.com/${data.metadata.twitter}`}
@@ -210,7 +210,7 @@ export default function Protocol({ data, governanceType }) {
 
 					{data.metadata.github && (
 						<a
-							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							className="flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-1 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`https://github.com/${data.metadata.github}`}
@@ -222,7 +222,7 @@ export default function Protocol({ data, governanceType }) {
 
 					{data.metadata.coingecko && (
 						<a
-							className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							className="flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-1 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 							href={`https://www.coingecko.com/en/coins/${data.metadata.coingecko}`}

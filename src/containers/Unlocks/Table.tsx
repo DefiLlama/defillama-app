@@ -319,13 +319,13 @@ export const UnlocksTable = ({
 	})
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-			<div className="flex items-center justify-end gap-2 flex-wrap p-3">
-				<h1 className="text-xl font-semibold mr-auto">Token Unlocks</h1>
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+				<h1 className="mr-auto text-xl font-semibold">Token Unlocks</h1>
 
 				<button
 					onClick={() => setShowOnlyWatchlist(!showOnlyWatchlist)}
-					className="border border-(--form-control-border) p-[6px] px-3 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm flex items-center gap-2 w-[200px] justify-center"
+					className="flex w-[200px] items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white p-[6px] px-3 text-sm text-black dark:bg-black dark:text-white"
 				>
 					<Icon
 						name="bookmark"
@@ -396,7 +396,7 @@ export const UnlocksTable = ({
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						name="search"
@@ -405,7 +405,7 @@ export const UnlocksTable = ({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>

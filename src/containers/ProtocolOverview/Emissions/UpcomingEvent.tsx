@@ -9,7 +9,7 @@ import { generateGoogleCalendarUrl } from '~/utils/calendar'
 
 const ProtocolPageButton = () => {
 	return (
-		<Ariakit.MenuButton className="flex items-center gap-2 hover:bg-(--bg-secondary) p-2 rounded-sm">
+		<Ariakit.MenuButton className="flex items-center gap-2 rounded-sm p-2 hover:bg-(--bg-secondary)">
 			<Icon name="calendar-plus" width={16} height={16} />
 			Add to Calendar
 		</Ariakit.MenuButton>
@@ -21,7 +21,7 @@ const RegularButton = () => {
 		<Ariakit.MenuButton className="flex items-center gap-2">
 			<div className="flex space-x-2">
 				<div className="flex flex-col items-center">
-					<div className="text-white bg-[#2C2C2E] dark:bg-zinc-800 hover:bg-(--bg-secondary) hover:text-black transition-colors rounded-lg w-10 h-10 flex items-center justify-center mb-4">
+					<div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] text-white transition-colors hover:bg-(--bg-secondary) hover:text-black dark:bg-zinc-800">
 						<Icon name="calendar-plus" width={24} height={24} />
 					</div>
 				</div>
@@ -38,7 +38,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 			<Ariakit.Menu
 				unmountOnHide
 				gutter={8}
-				className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+				className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 				portal
 			>
 				<Ariakit.MenuItem
@@ -49,7 +49,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 							rel="noopener noreferrer"
 						/>
 					}
-					className="flex items-center gap-2 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer first-of-type:rounded-t-md border-b border-(--form-control-border)"
+					className="flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 				>
 					<Icon name="external-link" width={16} height={16} />
 					Google Calendar
@@ -59,7 +59,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 					render={
 						<a href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue}&name=${tokenName}`} />
 					}
-					className="flex items-center gap-2 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer last-of-type:rounded-b-md"
+					className="flex shrink-0 cursor-pointer items-center gap-2 px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 				>
 					<Icon name="download-cloud" width={16} height={16} />
 					Other Calendars Apps
@@ -130,8 +130,8 @@ export const UpcomingEvent = ({
 
 	if (isProtocolPage) {
 		return (
-			<span className="rounded-md bg-(--bg-main) dark:bg-[#121316] p-3 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2">
-				<span className="flex items-center gap-2 justify-between">
+			<span className="z-10 flex flex-col gap-2 rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-3 dark:border-[hsl(204,3%,32%)] dark:bg-[#121316]">
+				<span className="flex items-center justify-between gap-2">
 					<span className="flex flex-col px-2">
 						<span className="font-semibold">Unlock Value:</span>
 						{tokenValue ? formattedNum(tokenValue, true) : <span>{formattedNum(unlockPercent)}%</span>}
@@ -143,11 +143,11 @@ export const UpcomingEvent = ({
 						) : null}
 					</span>
 					<span className="flex flex-col px-2">
-						<span className="text-right font-medium text-(--text-secondary) flex flex-col">
+						<span className="flex flex-col text-right font-medium text-(--text-secondary)">
 							{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}
 							<span className="text-(--text-secondary)">
 								{timestamp ? `${dayjs(timestamp * 1e3).format('h:mm A')} ` : null}
-								<span className="text-(--text-tertiary) text-sm">
+								<span className="text-sm text-(--text-tertiary)">
 									{timestamp
 										? `GMT${dayjs(timestamp * 1e3)
 												.format('Z')
@@ -158,7 +158,7 @@ export const UpcomingEvent = ({
 						</span>
 						{timeLeft > 0 ? (
 							<span
-								className="bg-(--bg-border) rounded-md text-sm px-3 py-1.5 flex items-center justify-center"
+								className="flex items-center justify-center rounded-md bg-(--bg-border) px-3 py-1.5 text-sm"
 								suppressHydrationWarning
 							>
 								{days}D {hours}H {minutes}M {seconds}S
@@ -166,7 +166,7 @@ export const UpcomingEvent = ({
 						) : (
 							<span className="flex items-center justify-end gap-1">
 								<span
-									className="bg-(--bg-border) rounded-md text-sm h-8 w-8 flex items-center justify-center"
+									className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm"
 									style={{ width: 'fit-content', padding: '0px 8px' }}
 								>
 									{Math.abs(days)} days ago
@@ -201,7 +201,7 @@ export const UpcomingEvent = ({
 													className="text-(--text-tertiary)"
 												/>
 											</Ariakit.TooltipAnchor>
-											<Ariakit.Tooltip className="rounded-md bg-(--bg-secondary) px-2 py-1 text-sm z-50">
+											<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-sm">
 												{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
 											</Ariakit.Tooltip>
 										</Ariakit.TooltipProvider>
@@ -243,52 +243,52 @@ export const UpcomingEvent = ({
 			<Ariakit.HovercardProvider timeout={0}>
 				<Ariakit.HovercardAnchor>
 					{timeLeft > 0 ? (
-						<div className="flex space-x-2 items-center">
-							<div className="flex justify-between items-end" style={{ width: '150px' }}>
+						<div className="flex items-center space-x-2">
+							<div className="flex items-end justify-between" style={{ width: '150px' }}>
 								<div className="flex flex-col items-start">
-									<span className="text-(--text-primary) text-sm font-semibold">{formattedNum(tokenValue, true)}</span>
-									<span className="text-(--text-tertiary) text-xs font-medium">Unlock Value</span>
+									<span className="text-sm font-semibold text-(--text-primary)">{formattedNum(tokenValue, true)}</span>
+									<span className="text-xs font-medium text-(--text-tertiary)">Unlock Value</span>
 								</div>
 								<div className="flex flex-col items-end">
-									<span className="text-(--text-primary) text-sm font-semibold">
+									<span className="text-sm font-semibold text-(--text-primary)">
 										{formattedNum(unlockPercentFloat)}%
 									</span>
-									<span className="text-(--text-tertiary) text-xs font-medium">of float</span>
+									<span className="text-xs font-medium text-(--text-tertiary)">of float</span>
 								</div>
 							</div>
 
 							<div className="flex flex-col items-center">
-								<div className="bg-[#2C2C2E] dark:bg-zinc-800 rounded-lg w-10 h-10 flex items-center justify-center">
-									<span className="text-white text-xl font-medium tracking-tight">{String(days).padStart(2, '0')}</span>
+								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] dark:bg-zinc-800">
+									<span className="text-xl font-medium tracking-tight text-white">{String(days).padStart(2, '0')}</span>
 								</div>
-								<span className="text-neutral-500 dark:text-neutral-400 text-xs font-medium">Days</span>
+								<span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Days</span>
 							</div>
 
 							<div className="flex flex-col items-center">
-								<div className="bg-[#2C2C2E] dark:bg-zinc-800 rounded-lg w-10 h-10 flex items-center justify-center">
-									<span className="text-white text-xl font-medium tracking-tight">
+								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] dark:bg-zinc-800">
+									<span className="text-xl font-medium tracking-tight text-white">
 										{String(hours).padStart(2, '0')}
 									</span>
 								</div>
-								<span className="text-neutral-500 dark:text-neutral-400 text-xs font-medium">Hrs</span>
+								<span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Hrs</span>
 							</div>
 
 							<div className="flex flex-col items-center">
-								<div className="bg-[#2C2C2E] dark:bg-zinc-800 rounded-lg w-10 h-10 flex items-center justify-center">
-									<span className="text-white text-xl font-medium tracking-tight">
+								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] dark:bg-zinc-800">
+									<span className="text-xl font-medium tracking-tight text-white">
 										{String(minutes).padStart(2, '0')}
 									</span>
 								</div>
-								<span className="text-neutral-500 dark:text-neutral-400 text-xs font-medium">Min</span>
+								<span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Min</span>
 							</div>
 
 							<div className="flex flex-col items-center">
-								<div className="bg-[#2C2C2E] dark:bg-zinc-800 rounded-lg w-10 h-10 flex items-center justify-center">
-									<span className="text-white text-xl font-medium tracking-tight">
+								<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2C2C2E] dark:bg-zinc-800">
+									<span className="text-xl font-medium tracking-tight text-white">
 										{String(seconds).padStart(2, '0')}
 									</span>
 								</div>
-								<span className="text-neutral-500 dark:text-neutral-400 text-xs font-medium">Sec</span>
+								<span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Sec</span>
 							</div>
 						</div>
 					) : (
@@ -299,7 +299,7 @@ export const UpcomingEvent = ({
 				</Ariakit.HovercardAnchor>
 				<Ariakit.HovercardDisclosure />
 				<Ariakit.Hovercard
-					className="rounded-md bg-(--bg-main) dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
+					className="z-10 flex flex-col gap-2 rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-4 dark:border-[hsl(204,3%,32%)] dark:bg-[#121316]"
 					unmountOnHide
 					portal={true}
 				>
@@ -344,7 +344,7 @@ export const UpcomingEvent = ({
 														className="text-(--text-tertiary)"
 													/>
 												</Ariakit.TooltipAnchor>
-												<Ariakit.Tooltip className="rounded-md bg-(--bg-secondary) px-2 py-1 text-sm z-50">
+												<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-sm">
 													{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
 												</Ariakit.Tooltip>
 											</Ariakit.TooltipProvider>

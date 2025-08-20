@@ -30,12 +30,12 @@ export const earningsDatasetColumns: ColumnDef<IEarningsRow>[] = [
 			const name = getValue() as string
 
 			return (
-				<span className="flex items-center gap-2 relative pl-6">
+				<span className="relative flex items-center gap-2 pl-6">
 					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo size={20} logo={tokenIconUrl(slug(name))} data-lgonly />
 					<BasicLink
 						href={`/earnings/${row.original.slug}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{name}
 					</BasicLink>

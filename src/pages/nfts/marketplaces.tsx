@@ -36,28 +36,28 @@ function Marketplaces({
 
 	return (
 		<Layout title="NFT Marketplaces - DefiLlama" defaultSEO>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="flex items-center gap-4 justify-between">
-					<h1 className="text-xl font-semibold p-3">NFT Marketplaces</h1>
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex items-center justify-between gap-4">
+					<h1 className="p-3 text-xl font-semibold">NFT Marketplaces</h1>
 
-					<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+					<div className="m-3 ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 						<button
 							data-active={!dominanceChart}
-							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+							className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							onClick={() => setDominanceChart(false)}
 						>
 							Absolute
 						</button>
 						<button
 							data-active={dominanceChart}
-							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+							className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							onClick={() => setDominanceChart(true)}
 						>
 							Relative
 						</button>
 					</div>
 				</div>
-				<div className="grid grid-cols-1 xl:grid-cols-2 *:col-span-1 min-h-[744px] xl:min-h-[384px] py-3">
+				<div className="grid min-h-[744px] grid-cols-1 py-3 *:col-span-1 xl:min-h-[384px] xl:grid-cols-2">
 					{dominanceChart ? (
 						<React.Suspense fallback={<></>}>
 							<AreaChart

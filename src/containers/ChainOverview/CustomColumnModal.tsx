@@ -233,16 +233,16 @@ export function CustomColumnModal({
 				<Ariakit.Dialog className="dialog gap-3" unmountOnHide>
 					<Ariakit.DialogDismiss
 						onClick={dialogStore.toggle}
-						className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-(--divider) text-(--text-tertiary) hover:text-(--text-primary) transition-colors"
+						className="absolute top-3 right-3 rounded-lg p-1.5 text-(--text-tertiary) transition-colors hover:bg-(--divider) hover:text-(--text-primary)"
 						aria-label="Close modal"
 					>
 						<Icon name="x" height={20} width={20} />
 					</Ariakit.DialogDismiss>
-					<Ariakit.DialogHeading className="text-lg font-bold mb-4">Add Custom Column</Ariakit.DialogHeading>
+					<Ariakit.DialogHeading className="mb-4 text-lg font-bold">Add Custom Column</Ariakit.DialogHeading>
 					<label className="flex flex-col gap-1">
 						<span>Column Name</span>
 						<input
-							className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+							className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 							value={state.name}
 							onChange={(e) => setState((prev) => ({ ...prev, name: e.target.value }))}
 							placeholder="Custom Column"
@@ -253,22 +253,22 @@ export function CustomColumnModal({
 						<span>Formula</span>
 						<div className="relative">
 							{state.fieldWarning && !state.error && (
-								<div className="mb-2 flex items-center gap-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-sm px-3 py-2 text-sm font-semibold">
+								<div className="mb-2 flex items-center gap-2 rounded-sm border border-yellow-400 bg-yellow-100 px-3 py-2 text-sm font-semibold text-yellow-700">
 									<Icon name="help-circle" height={18} width={18} />
 									<span>{state.fieldWarning}</span>
 								</div>
 							)}
 							{state.error && (
-								<div className="mb-2 flex items-center gap-2 bg-red-100 border border-red-400 text-red-700 rounded-sm px-3 py-2 text-sm font-semibold">
+								<div className="mb-2 flex items-center gap-2 rounded-sm border border-red-400 bg-red-100 px-3 py-2 text-sm font-semibold text-red-700">
 									<Icon name="alert-triangle" height={18} width={18} />
 									<span>{state.error}</span>
 								</div>
 							)}
 							<input
 								ref={inputRef}
-								className={`w-full p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border ${
+								className={`w-full rounded-md border bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white ${
 									state.error ? 'border-red-400' : 'border-(--form-control-border)'
-								} text-(--text-primary) focus:outline-hidden focus:ring-2 focus:ring-(--primary) focus:border-transparent`}
+								} text-(--text-primary) focus:border-transparent focus:ring-2 focus:ring-(--primary) focus:outline-hidden`}
 								value={state.formula}
 								onChange={handleFormulaChange}
 								onKeyDown={handleKeyDown}
@@ -276,11 +276,11 @@ export function CustomColumnModal({
 								autoComplete="off"
 							/>
 							{state.showSuggestions && (
-								<ul className="absolute left-0 right-0 bg-(--cards-bg) border border-(--divider) rounded-lg shadow-sm z-10 max-h-40 overflow-y-auto mt-1">
+								<ul className="absolute right-0 left-0 z-10 mt-1 max-h-40 overflow-y-auto rounded-lg border border-(--divider) bg-(--cards-bg) shadow-sm">
 									{state.suggestions.map((s, i) => (
 										<li
 											key={s.name || s}
-											className={`px-3 py-2 cursor-pointer text-(--text-primary) flex items-center gap-2 ${
+											className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-(--text-primary) ${
 												i === state.highlighted ? 'bg-(--primary-hover)' : ''
 											}`}
 											onMouseDown={(e) => {
@@ -304,7 +304,7 @@ export function CustomColumnModal({
 						<span>Format</span>
 						<div>
 							<select
-								className="w-full p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+								className="w-full rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 								value={state.formatType}
 								onChange={(e) => setState((prev) => ({ ...prev, formatType: e.target.value }))}
 							>
@@ -338,11 +338,11 @@ export function CustomColumnModal({
 					</label>
 					<div className="flex flex-col gap-1">
 						<p>Available fields:</p>
-						<ul className="grid grid-cols-2 gap-x-4 gap-y-1 max-h-32 overflow-y-auto bg-white dark:bg-black rounded-md p-2 border border-(--form-control-border)">
+						<ul className="grid max-h-32 grid-cols-2 gap-x-4 gap-y-1 overflow-y-auto rounded-md border border-(--form-control-border) bg-white p-2 dark:bg-black">
 							{AVAILABLE_FIELDS.map((f) => (
 								<li key={f}>
 									<code
-										className="bg-(--bg-main) px-1 py-0.5 rounded-sm text-(--primary) cursor-pointer hover:bg-(--divider)"
+										className="cursor-pointer rounded-sm bg-(--bg-main) px-1 py-0.5 text-(--primary) hover:bg-(--divider)"
 										onClick={() => handleSuggestionClick({ name: f, type: 'field' })}
 									>
 										{f}
@@ -354,7 +354,7 @@ export function CustomColumnModal({
 					{state.formula.trim() && !hasFormulaError && (
 						<div className="mb-2 text-sm">
 							<span className="font-semibold text-(--text-secondary)">Preview: </span>
-							<span className="bg-(--bg-main) px-2 py-1 rounded-sm text-(--text-primary)">{preview}</span>
+							<span className="rounded-sm bg-(--bg-main) px-2 py-1 text-(--text-primary)">{preview}</span>
 						</div>
 					)}
 					<div className="text-sm text-(--text-secondary)">
@@ -367,15 +367,15 @@ export function CustomColumnModal({
 							Learn more on how to create custom columns
 						</a>
 					</div>
-					<div className="flex justify-end gap-2 mt-4">
+					<div className="mt-4 flex justify-end gap-2">
 						<button
-							className="px-4 py-2 rounded-lg bg-transparent hover:bg-(--btn-hover-bg) text-(--text-secondary) transition-colors"
+							className="rounded-lg bg-transparent px-4 py-2 text-(--text-secondary) transition-colors hover:bg-(--btn-hover-bg)"
 							onClick={dialogStore.toggle}
 						>
 							Cancel
 						</button>
 						<button
-							className="px-4 py-2 rounded-lg bg-(--primary) hover:bg-(--primary-hover) text-white shadow-md transition-colors"
+							className="rounded-lg bg-(--primary) px-4 py-2 text-white shadow-md transition-colors hover:bg-(--primary-hover)"
 							onClick={handleSave}
 						>
 							Save

@@ -125,7 +125,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 
 	if (loaders.userLoading || loaders.userFetching) {
 		return (
-			<div className="flex justify-center items-center py-3">
+			<div className="flex items-center justify-center py-3">
 				<LocalLoader />
 			</div>
 		)
@@ -140,14 +140,14 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 			<button
 				className={
 					className ??
-					'font-medium rounded-lg border border-[#39393E] py-[14px] flex-1 text-center mx-auto w-full hover:bg-[#2a2b30] transition-colors disabled:cursor-not-allowed'
+					'mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-[14px] text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed'
 				}
 				onClick={dialogState.toggle}
 				suppressHydrationWarning
 			>
 				{text && text.includes('GitHub') ? (
 					<>
-						<Icon name="github" height={18} width={18} className="inline-block mr-2" />
+						<Icon name="github" height={18} width={18} className="mr-2 inline-block" />
 						{text}
 					</>
 				) : (
@@ -157,27 +157,27 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 
 			<Ariakit.Dialog
 				store={dialogState}
-				className="dialog flex flex-col rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 max-w-md shadow-2xl backdrop-blur-md animate-fadeIn"
+				className="dialog animate-fadeIn flex max-w-md flex-col rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 shadow-2xl backdrop-blur-md"
 				style={{
 					backgroundImage: 'radial-gradient(circle at center, rgba(92, 92, 249, 0.05), transparent 80%)'
 				}}
 			>
-				<div className="flex items-center justify-between mb-5">
-					<Ariakit.DialogHeading className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF]">
+				<div className="mb-5 flex items-center justify-between">
+					<Ariakit.DialogHeading className="bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-2xl font-bold text-transparent">
 						{flow === 'signin' ? 'Sign In' : flow === 'signup' ? 'Create Account' : 'Reset Password'}
 					</Ariakit.DialogHeading>
 					<button
 						onClick={dialogState.hide}
-						className="text-[#8a8c90] hover:text-white transition-colors p-1.5 hover:bg-[#39393E] rounded-full"
+						className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
 					>
 						<Icon name="x" height={18} width={18} />
 						<span className="sr-only">Close</span>
 					</button>
 				</div>
 
-				<div className="flex flex-col gap-3 w-full">
+				<div className="flex w-full flex-col gap-3">
 					<button
-						className="w-full py-3 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white relative disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 font-medium"
+						className="relative flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
 						onClick={handleWalletSignIn}
 						disabled={loaders.signInWithEthereum}
 					>
@@ -186,7 +186,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 					</button>
 
 					<button
-						className="w-full py-3 rounded-lg bg-[#222429] hover:bg-[#2a2b30] text-white relative disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200 border border-[#39393E] font-medium"
+						className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-3 font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50"
 						onClick={() => signInWithGithub(() => dialogState.hide())}
 						disabled={loaders.signInWithGithub}
 					>
@@ -195,9 +195,9 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 					</button>
 				</div>
 
-				<div className="relative flex items-center my-2">
+				<div className="relative my-2 flex items-center">
 					<div className="grow border-t border-[#39393E]"></div>
-					<span className="shrink mx-4 text-sm text-[#9a9da1]">or continue with email</span>
+					<span className="mx-4 shrink text-sm text-[#9a9da1]">or continue with email</span>
 					<div className="grow border-t border-[#39393E]"></div>
 				</div>
 
@@ -208,14 +208,14 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								Email
 							</label>
 							<div className="relative">
-								<div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8c90]">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8a8c90]">
 									<Icon name="mail" height={16} width={16} />
 								</div>
 								<input
 									id={`${text || 'default'}-signin-email`}
 									type="email"
 									required
-									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
+									className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 pl-10 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
@@ -230,16 +230,16 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								id="signin-password"
 								type="password"
 								required
-								className="w-full p-3 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
+								className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 							/>
 						</div>
 
-						<div className="flex justify-end -mt-1">
+						<div className="-mt-1 flex justify-end">
 							<button
 								type="button"
-								className="text-xs text-[#5C5CF9] hover:text-[#7C7CFF] transition-colors"
+								className="text-xs text-[#5C5CF9] transition-colors hover:text-[#7C7CFF]"
 								onClick={() => setFlow('forgot')}
 							>
 								Forgot password?
@@ -247,13 +247,13 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						</div>
 
 						<button
-							className="w-full py-3 mt-1 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="mt-1 w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
 							disabled={loaders.login}
 						>
 							{loaders.login ? (
 								<span className="flex items-center justify-center gap-2">
 									<svg
-										className="animate-spin h-5 w-5 text-white"
+										className="h-5 w-5 animate-spin text-white"
 										xmlns="http://www.w3.org/2000/svg"
 										fill="none"
 										viewBox="0 0 24 24"
@@ -279,11 +279,11 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 							)}
 						</button>
 
-						<p className="text-center text-xs text-[#9a9da1] mt-1">
+						<p className="mt-1 text-center text-xs text-[#9a9da1]">
 							Don't have an account?{' '}
 							<button
 								type="button"
-								className="text-[#5C5CF9] hover:text-[#7C7CFF] transition-colors font-medium"
+								className="font-medium text-[#5C5CF9] transition-colors hover:text-[#7C7CFF]"
 								onClick={() => setFlow('signup')}
 							>
 								Create one
@@ -297,16 +297,16 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								Email
 							</label>
 							<div className="relative">
-								<div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8c90]">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8a8c90]">
 									<Icon name="mail" height={16} width={16} />
 								</div>
 								<input
 									id={`${text || 'default'}-signup-email`}
 									type="email"
 									required
-									className={`w-full p-3 pl-10 rounded-lg bg-[#222429] border ${
+									className={`w-full rounded-lg border bg-[#222429] p-3 pl-10 ${
 										emailError ? 'border-red-500' : 'border-[#39393E]'
-									} text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
+									} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
 									value={email}
 									onChange={(e) => {
 										setEmail(e.target.value)
@@ -314,7 +314,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 									}}
 								/>
 							</div>
-							{emailError && <p className="text-xs text-red-500 mt-1">{emailError}</p>}
+							{emailError && <p className="mt-1 text-xs text-red-500">{emailError}</p>}
 						</div>
 
 						<div className="space-y-1.5">
@@ -325,9 +325,9 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								id="signup-password"
 								type="password"
 								required
-								className={`w-full p-3 rounded-lg bg-[#222429] border ${
+								className={`w-full rounded-lg border bg-[#222429] p-3 ${
 									passwordError ? 'border-red-500' : 'border-[#39393E]'
-								} text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
+								} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
 								value={password}
 								onChange={(e) => {
 									setPassword(e.target.value)
@@ -341,7 +341,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 									}
 								}}
 							/>
-							{passwordError && <p className="text-xs text-red-500 mt-1">{passwordError}</p>}
+							{passwordError && <p className="mt-1 text-xs text-red-500">{passwordError}</p>}
 						</div>
 
 						<div className="space-y-1.5">
@@ -352,26 +352,26 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								id="signup-confirm"
 								type="password"
 								required
-								className={`w-full p-3 rounded-lg bg-[#222429] border ${
+								className={`w-full rounded-lg border bg-[#222429] p-3 ${
 									confirmPasswordError ? 'border-red-500' : 'border-[#39393E]'
-								} text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200`}
+								} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
 								value={confirmPassword}
 								onChange={(e) => {
 									setConfirmPassword(e.target.value)
 									validateConfirmPassword(password, e.target.value)
 								}}
 							/>
-							{confirmPasswordError && <p className="text-xs text-red-500 mt-1">{confirmPasswordError}</p>}
+							{confirmPasswordError && <p className="mt-1 text-xs text-red-500">{confirmPasswordError}</p>}
 						</div>
 
 						<label className="flex items-center gap-2">
-							<input type="checkbox" className="w-4 h-4" required />
+							<input type="checkbox" className="h-4 w-4" required />
 							<span className="text-sm text-[#b4b7bc]">
 								I agree to the{' '}
 								<BasicLink
 									href="/terms"
 									target="_blank"
-									className="text-[#5C5CF9] hover:text-[#7C7CFF] transition-colors font-medium"
+									className="font-medium text-[#5C5CF9] transition-colors hover:text-[#7C7CFF]"
 								>
 									Terms of Service
 								</BasicLink>{' '}
@@ -379,7 +379,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								<BasicLink
 									href="/subscription/privacy-policy"
 									target="_blank"
-									className="text-[#5C5CF9] hover:text-[#7C7CFF] transition-colors font-medium"
+									className="font-medium text-[#5C5CF9] transition-colors hover:text-[#7C7CFF]"
 								>
 									Privacy Policy
 								</BasicLink>
@@ -399,13 +399,13 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						</div>
 
 						<button
-							className="w-full py-3 mt-4 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="mt-4 w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
 							disabled={loaders.signup || !turnstileToken}
 						>
 							{loaders.signup ? (
 								<span className="flex items-center justify-center gap-2">
 									<svg
-										className="animate-spin h-5 w-5 text-white"
+										className="h-5 w-5 animate-spin text-white"
 										xmlns="http://www.w3.org/2000/svg"
 										fill="none"
 										viewBox="0 0 24 24"
@@ -431,11 +431,11 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 							)}
 						</button>
 
-						<p className="text-center text-xs text-[#9a9da1] mt-1">
+						<p className="mt-1 text-center text-xs text-[#9a9da1]">
 							Already have an account?{' '}
 							<button
 								type="button"
-								className="text-[#5C5CF9] hover:text-[#7C7CFF] transition-colors font-medium"
+								className="font-medium text-[#5C5CF9] transition-colors hover:text-[#7C7CFF]"
 								onClick={() => setFlow('signin')}
 							>
 								Sign in
@@ -445,7 +445,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 				) : (
 					<form className="flex flex-col gap-4" onSubmit={handleForgotPassword}>
 						<div className="mb-1">
-							<p className="text-xs text-[#b4b7bc] bg-[#222429] p-3 border border-[#39393E] rounded-lg">
+							<p className="rounded-lg border border-[#39393E] bg-[#222429] p-3 text-xs text-[#b4b7bc]">
 								Enter your email address and we'll send you a link to reset your password.
 							</p>
 						</div>
@@ -455,14 +455,14 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								Email
 							</label>
 							<div className="relative">
-								<div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8c90]">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8a8c90]">
 									<Icon name="mail" height={16} width={16} />
 								</div>
 								<input
 									id={`${text || 'default'}-forgot-email`}
 									type="email"
 									required
-									className="w-full p-3 pl-10 rounded-lg bg-[#222429] border border-[#39393E] text-white placeholder:text-[#8a8c90] focus:outline-hidden focus:ring-1 focus:ring-[#5C5CF9] focus:border-[#5C5CF9] transition-all duration-200"
+									className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 pl-10 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
@@ -470,13 +470,13 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 						</div>
 
 						<button
-							className="w-full py-3 mt-1 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="mt-1 w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
 							disabled={loaders.resetPassword}
 						>
 							{loaders.resetPassword ? (
 								<span className="flex items-center justify-center gap-2">
 									<svg
-										className="animate-spin h-5 w-5 text-white"
+										className="h-5 w-5 animate-spin text-white"
 										xmlns="http://www.w3.org/2000/svg"
 										fill="none"
 										viewBox="0 0 24 24"
@@ -504,7 +504,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 
 						<button
 							type="button"
-							className="text-[#5C5CF9] hover:text-[#7C7CFF] transition-colors text-xs text-center font-medium mt-1"
+							className="mt-1 text-center text-xs font-medium text-[#5C5CF9] transition-colors hover:text-[#7C7CFF]"
 							onClick={() => setFlow('signin')}
 						>
 							Back to sign in

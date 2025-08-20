@@ -93,14 +93,14 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				</>
 			)} */}
 
-			<div className="p-2 bg-(--cards-bg) border border-(--cards-border) rounded-md flex items-center justify-between gap-2">
+			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h1 className="text-xl font-semibold">Liquidation levels in DeFi 💦</h1>
 				<LiquidationsHeader data={data} options={options} />
 			</div>
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<TableSwitch />
 				{isLiqsShowingInspector ? (
 					<LiqPositionsTable data={data} prevData={prevData} />

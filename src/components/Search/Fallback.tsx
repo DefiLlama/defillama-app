@@ -7,10 +7,10 @@ export const SearchFallback = () => {
 				<div className="sr-only">Open Search</div>
 				<Icon name="search" height={14} width={14} />
 			</div>
-			<div className="w-full text-sm rounded-md border border-(--cards-border) text-[#7c7c7c] dark:text-[#848585] bg-(--app-bg) py-[5px] px-[10px] pl-7">
+			<div className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[5px] pl-7 text-sm text-[#7c7c7c] dark:text-[#848585]">
 				Search...
 			</div>
-			<div className="rounded-md text-xs text-(--link-text) bg-(--link-bg) p-1 absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center">
+			<div className="absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center rounded-md bg-(--link-bg) p-1 text-xs text-(--link-text)">
 				⌘K
 			</div>
 		</div>

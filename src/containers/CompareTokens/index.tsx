@@ -118,11 +118,11 @@ export default function CompareFdv({ coinsData, protocols }) {
 
 	return (
 		<>
-			<h1 className="text-xl font-semibold mt-2 text-center w-full max-w-sm mx-auto relative lg:-left-[116px]">
+			<h1 className="relative mx-auto mt-2 w-full max-w-sm text-center text-xl font-semibold lg:-left-[116px]">
 				Compare Tokens
 			</h1>
-			<div className="flex flex-col items-center gap-2 w-full max-w-sm mx-auto relative lg:-left-[116px]">
-				<div className="flex flex-col sm:flex-row sm:items-center gap-4">
+			<div className="relative mx-auto flex w-full max-w-sm flex-col items-center gap-2 lg:-left-[116px]">
+				<div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 					<div className="relative w-full sm:max-w-[280px]">
 						{selectedCoins[0] ? (
 							<img
@@ -134,14 +134,14 @@ export default function CompareFdv({ coinsData, protocols }) {
 								onError={(e) => {
 									e.currentTarget.src = '/placeholder.png'
 								}}
-								className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg-tertiary) absolute top-0 bottom-0 my-auto left-2"
+								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
 						) : (
 							<Icon
 								name="search"
 								height={16}
 								width={16}
-								className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+								className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 							/>
 						)}
 						<input
@@ -151,7 +151,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="border border-(--form-control-border) w-full py-[6px] px-2 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
+							className="w-full rounded-md border border-(--form-control-border) bg-white px-2 py-[6px] pl-7 text-base text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 					{/* <ReactSelect
@@ -206,7 +206,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								)
 							}
 						}}
-						className="p-1 flex items-center justify-center shrink-0"
+						className="flex shrink-0 items-center justify-center p-1"
 					>
 						<Icon name="repeat" height={16} width={16} />
 						<span className="sr-only">Switch tokens</span>
@@ -259,14 +259,14 @@ export default function CompareFdv({ coinsData, protocols }) {
 								onError={(e) => {
 									e.currentTarget.src = '/placeholder.png'
 								}}
-								className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg-tertiary) absolute top-0 bottom-0 my-auto left-2"
+								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
 						) : (
 							<Icon
 								name="search"
 								height={16}
 								width={16}
-								className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+								className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 							/>
 						)}
 						<input
@@ -276,19 +276,19 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="border border-(--form-control-border) w-full p-[6px] pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-base"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-[6px] pl-7 text-base text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 				</div>
 				<Ariakit.MenuProvider>
-					<Ariakit.MenuButton className="bg-(--btn2-bg) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 py-2 px-3 rounded-md cursor-pointer text-(--text-primary) flex-nowrap relative w-full">
+					<Ariakit.MenuButton className="relative flex w-full cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn2-bg) px-3 py-2 text-(--text-primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)">
 						<span>{compareType?.label}</span>
 						<Ariakit.MenuButtonArrow />
 					</Ariakit.MenuButton>
 					<Ariakit.Menu
 						unmountOnHide
 						sameWidth
-						className="flex flex-col bg-(--bg-main) rounded-md max-sm:rounded-b-none z-10 overflow-auto overscroll-contain min-w-[180px] max-h-[60vh] border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] max-sm:drawer"
+						className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 					>
 						{compareTypes.map((item) => {
 							return (
@@ -307,7 +307,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 											{ shallow: true }
 										)
 									}}
-									className="flex items-center justify-between gap-4 py-2 px-3 shrink-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) cursor-pointer first-of-type:rounded-t-md last-of-type:rounded-b-md border-b border-(--form-control-border)"
+									className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
 									{item.label}
 								</Ariakit.MenuItem>
@@ -317,12 +317,12 @@ export default function CompareFdv({ coinsData, protocols }) {
 				</Ariakit.MenuProvider>
 				{coins.length === 2 ? (
 					fdvData === null ? (
-						<div className="flex items-center justify-center m-auto min-h-[360px]">
+						<div className="m-auto flex min-h-[360px] items-center justify-center">
 							<LocalLoader />
 						</div>
 					) : (
-						<div className="flex flex-col gap-2 items-center mt-10">
-							<h2 className="flex flex-wrap items-center justify-center gap-1 font-normal text-base">
+						<div className="mt-10 flex flex-col items-center gap-2">
+							<h2 className="flex flex-wrap items-center justify-center gap-1 text-base font-normal">
 								<span className="flex items-center gap-1">
 									<img
 										alt={''}
@@ -333,7 +333,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										onError={(e) => {
 											e.currentTarget.src = '/placeholder.png'
 										}}
-										className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg-tertiary)"
+										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
 									<span>{selectedCoins[0].symbol.toUpperCase()}</span>
 								</span>
@@ -348,7 +348,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										onError={(e) => {
 											e.currentTarget.src = '/placeholder.png'
 										}}
-										className="inline-block object-cover aspect-square rounded-full shrink-0 bg-(--bg-tertiary)"
+										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
 									<span>{selectedCoins[1].symbol.toUpperCase()}</span>
 								</span>

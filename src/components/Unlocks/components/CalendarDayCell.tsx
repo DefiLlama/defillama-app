@@ -57,13 +57,13 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 
 	const cellContent = (
 		<div className={cellClasses} style={cellStyle}>
-			<div className="h-full w-full p-2 flex flex-col justify-between relative z-10">
+			<div className="relative z-10 flex h-full w-full flex-col justify-between p-2">
 				<span className={`text-sm font-medium ${isToday ? `${textColorClassToday} font-bold` : textColorClass}`}>
 					{dayInfo.date.date()}
 				</span>
 				{hasUnlocks && dayInfo.isCurrentMonth && (
 					<>
-						<div className={`text-xs mt-auto hidden sm:block truncate ${textColorClass}`}>
+						<div className={`mt-auto hidden truncate text-xs sm:block ${textColorClass}`}>
 							Total: {formattedNum(dayData.totalValue, true)}
 						</div>
 					</>
@@ -79,25 +79,25 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 	return (
 		<Tooltip
 			content={
-				<div className="flex flex-col gap-3 p-3 max-w-xs">
-					<div className="font-semibold text-sm text-(--text-primary)">
+				<div className="flex max-w-xs flex-col gap-3 p-3">
+					<div className="text-sm font-semibold text-(--text-primary)">
 						Total Unlock Value: {formattedNum(dayData.totalValue, true)}
 					</div>
 					{dayData.events.length > 0 && (
 						<>
-							<div className="border-t border-(--divider) -mx-3"></div>
+							<div className="-mx-3 border-t border-(--divider)"></div>
 							<div className="flex flex-col gap-2">
 								{dayData.events.map((event, i) => (
-									<div key={i} className="flex justify-between items-center gap-4 text-xs">
+									<div key={i} className="flex items-center justify-between gap-4 text-xs">
 										<BasicLink
 											href={`/unlocks/${slug(event.protocol)}`}
 											target="_blank"
-											className="text-sm font-medium text-(--link-text) flex items-center gap-1.5 hover:text-(--blue) shrink min-w-0 group"
+											className="group flex min-w-0 shrink items-center gap-1.5 text-sm font-medium text-(--link-text) hover:text-(--blue)"
 										>
 											<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
 											<span className="truncate group-hover:underline">{event.protocol}</span>
 										</BasicLink>
-										<span className="text-(--text-secondary) font-medium whitespace-nowrap">
+										<span className="font-medium whitespace-nowrap text-(--text-secondary)">
 											{formattedNum(event.value, true)}
 										</span>
 									</div>

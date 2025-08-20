@@ -97,24 +97,24 @@ function ProDashboardContent() {
 			<div className="mb-4">
 				<button
 					onClick={() => router.push('/pro')}
-					className="flex items-center gap-2 pro-text2 hover:pro-text1 transition-colors"
+					className="pro-text2 hover:pro-text1 flex items-center gap-2 transition-colors"
 				>
 					<Icon name="arrow-left" height={16} width={16} />
 					Back to Dashboards
 				</button>
 			</div>
 
-			<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 md:mb-2">
+			<div className="mb-4 flex flex-col gap-4 md:mb-2 md:flex-row md:items-center md:justify-between">
 				<Tooltip content={!hasChartItems ? 'Add chart items to enable time period selection' : null} placement="bottom">
-					<div className={`flex gap-0 overflow-x-auto order-2 md:order-1 ${isReadOnly ? 'invisible' : ''}`}>
+					<div className={`order-2 flex gap-0 overflow-x-auto md:order-1 ${isReadOnly ? 'invisible' : ''}`}>
 						{timePeriods.map((period) => (
 							<button
 								key={period.value}
-								className={`px-3 py-1.5 md:px-4 md:py-2 text-sm font-medium border transition-colors duration-200 flex-1 md:flex-initial ${
+								className={`flex-1 border px-3 py-1.5 text-sm font-medium transition-colors duration-200 md:flex-initial md:px-4 md:py-2 ${
 									timePeriod === period.value
 										? 'border-(--primary) bg-(--primary) text-white'
 										: 'pro-border pro-hover-bg pro-text2'
-								} ${!hasChartItems ? 'opacity-50 cursor-not-allowed' : ''}`}
+								} ${!hasChartItems ? 'cursor-not-allowed opacity-50' : ''}`}
 								onClick={() => hasChartItems && setTimePeriod(period.value)}
 								disabled={!hasChartItems}
 							>
@@ -124,10 +124,10 @@ function ProDashboardContent() {
 					</div>
 				</Tooltip>
 
-				<div className="flex items-center gap-2 order-1 md:order-2 w-full md:w-auto">
-					<div className="flex items-center gap-2 min-w-0 flex-1 md:flex-initial">
+				<div className="order-1 flex w-full items-center gap-2 md:order-2 md:w-auto">
+					<div className="flex min-w-0 flex-1 items-center gap-2 md:flex-initial">
 						{isEditingName && !isReadOnly ? (
-							<form onSubmit={handleNameSubmit} className="flex items-center flex-1">
+							<form onSubmit={handleNameSubmit} className="flex flex-1 items-center">
 								<input
 									type="text"
 									value={dashboardName}
@@ -137,7 +137,7 @@ function ProDashboardContent() {
 										saveDashboardName()
 									}}
 									onKeyDown={handleNameKeyDown}
-									className="text-lg md:text-xl font-semibold bg-transparent border-b-2 border-(--primary) pro-text1 focus:outline-hidden px-2 py-1 md:px-3 md:py-2 min-w-0 w-full md:text-center"
+									className="pro-text1 w-full min-w-0 border-b-2 border-(--primary) bg-transparent px-2 py-1 text-lg font-semibold focus:outline-hidden md:px-3 md:py-2 md:text-center md:text-xl"
 									autoFocus
 									placeholder="Dashboard Name"
 								/>
@@ -146,20 +146,20 @@ function ProDashboardContent() {
 							<div className="flex items-center gap-2">
 								<button
 									onClick={() => !isReadOnly && setIsEditingName(true)}
-									className={`group text-lg md:text-xl font-semibold pro-text1 px-2 py-1 md:px-3 md:py-2 bg-(--bg-glass) bg-opacity-30 ${
+									className={`group pro-text1 bg-opacity-30 bg-(--bg-glass) px-2 py-1 text-lg font-semibold md:px-3 md:py-2 md:text-xl ${
 										!isReadOnly ? 'pro-hover-bg hover:border-(--form-control-border)' : ''
-									} flex items-center gap-2 transition-colors min-w-0`}
+									} flex min-w-0 items-center gap-2 transition-colors`}
 									disabled={isReadOnly}
 								>
 									<span className="truncate">{dashboardName}</span>
 									{!isReadOnly && <Icon name="pencil" height={14} width={14} className="pro-text1 shrink-0" />}
-									{isReadOnly && <span className="text-xs pro-text3 ml-2 shrink-0">(Read-only)</span>}
+									{isReadOnly && <span className="pro-text3 ml-2 shrink-0 text-xs">(Read-only)</span>}
 									{!isReadOnly && dashboardId && (
 										<span
-											className={`text-xs px-2 py-0.5 ml-2 shrink-0 ${
+											className={`ml-2 shrink-0 px-2 py-0.5 text-xs ${
 												dashboardVisibility === 'public'
-													? 'bg-(--primary) bg-opacity-20'
-													: 'bg-(--bg-main) bg-opacity-50 pro-text3'
+													? 'bg-opacity-20 bg-(--primary)'
+													: 'bg-opacity-50 pro-text3 bg-(--bg-main)'
 											}`}
 										>
 											{dashboardVisibility === 'public' ? 'Public' : 'Private'}
@@ -167,7 +167,7 @@ function ProDashboardContent() {
 									)}
 								</button>
 								{dashboardVisibility === 'public' && (
-									<div className="flex items-center gap-3 text-sm pro-text3">
+									<div className="pro-text3 flex items-center gap-3 text-sm">
 										<div className="flex items-center gap-1" title="Views">
 											<Icon name="eye" height={16} width={16} />
 											<span>{currentDashboard?.viewCount || 0}</span>
@@ -206,7 +206,7 @@ function ProDashboardContent() {
 									<Tooltip content="Make dashboard public to share" placement="bottom">
 										<button
 											disabled
-											className="flex items-center gap-1 text-sm pro-text3 opacity-50 cursor-not-allowed"
+											className="pro-text3 flex cursor-not-allowed items-center gap-1 text-sm opacity-50"
 										>
 											<Icon name="link" height={16} width={16} />
 											<span className="hidden xl:inline">Share</span>
@@ -225,7 +225,7 @@ function ProDashboardContent() {
 										setShowSubscribeModal(true)
 									}
 								}}
-								className="flex items-center gap-2  ml-2 px-2 xl:px-3 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors"
+								className="ml-2 flex items-center gap-2 border border-(--primary) px-2 py-2 text-(--primary) transition-colors hover:bg-(--primary) hover:text-white xl:px-3"
 								title="Copy Dashboard"
 							>
 								<Icon name="copy" height={16} width={16} />
@@ -237,7 +237,7 @@ function ProDashboardContent() {
 							<div className="relative">
 								<button
 									onClick={() => setShowDashboardMenu(!showDashboardMenu)}
-									className="p-2 bg-(--bg-glass) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors"
+									className="bg-opacity-30 pro-hover-bg bg-(--bg-glass) p-2 transition-colors hover:border-(--form-control-border)"
 									title="Dashboard menu"
 								>
 									<Icon name="chevron-down" height={16} width={16} className="pro-text1" />
@@ -246,7 +246,7 @@ function ProDashboardContent() {
 								{showDashboardMenu && (
 									<>
 										<div className="fixed inset-0 z-10" onClick={() => setShowDashboardMenu(false)} />
-										<div className="absolute right-0 top-full mt-2 w-64 bg-(--bg-glass) bg-opacity-90 backdrop-filter backdrop-blur-xl border pro-glass-border shadow-lg z-[1000]">
+										<div className="bg-opacity-90 pro-glass-border absolute top-full right-0 z-[1000] mt-2 w-64 border bg-(--bg-glass) shadow-lg backdrop-blur-xl backdrop-filter">
 											<div className="p-2">
 												{isReadOnly ? (
 													<button
@@ -258,7 +258,7 @@ function ProDashboardContent() {
 															}
 															setShowDashboardMenu(false)
 														}}
-														className="w-full text-left px-3 py-2 pro-hover-bg flex items-center gap-2"
+														className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left"
 													>
 														<Icon name="copy" height={16} width={16} />
 														Copy Dashboard
@@ -270,7 +270,7 @@ function ProDashboardContent() {
 																saveDashboard()
 																setShowDashboardMenu(false)
 															}}
-															className="w-full text-left px-3 py-2 pro-hover-bg flex items-center gap-2"
+															className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left"
 															disabled={!dashboardId && items.length === 0}
 														>
 															<Icon name="download-cloud" height={16} width={16} />
@@ -283,7 +283,7 @@ function ProDashboardContent() {
 																	deleteDashboard(dashboardId)
 																	setShowDashboardMenu(false)
 																}}
-																className="w-full text-left px-3 py-2 pro-hover-bg text-red-500 flex items-center gap-2"
+																className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left text-red-500"
 															>
 																<Icon name="trash-2" height={16} width={16} />
 																Delete Dashboard
@@ -297,7 +297,7 @@ function ProDashboardContent() {
 														createNewDashboard()
 														setShowDashboardMenu(false)
 													}}
-													className="w-full text-left px-3 py-2 pro-hover-bg flex items-center gap-2"
+													className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left"
 												>
 													<Icon name="plus" height={16} width={16} />
 													New Dashboard
@@ -305,12 +305,12 @@ function ProDashboardContent() {
 
 												{dashboards.length > 0 && (
 													<>
-														<div className="border-t border-(--divider) my-2" />
-														<div className="text-xs pro-text3 px-3 py-1">My Dashboards</div>
+														<div className="my-2 border-t border-(--divider)" />
+														<div className="pro-text3 px-3 py-1 text-xs">My Dashboards</div>
 														{isLoadingDashboards ? (
-															<div className="px-3 py-2 text-sm pro-text3">Loading...</div>
+															<div className="pro-text3 px-3 py-2 text-sm">Loading...</div>
 														) : (
-															<div className="max-h-64 overflow-y-auto thin-scrollbar">
+															<div className="thin-scrollbar max-h-64 overflow-y-auto">
 																{dashboards.map((dashboard) => (
 																	<button
 																		key={dashboard.id}
@@ -318,7 +318,7 @@ function ProDashboardContent() {
 																			loadDashboard(dashboard.id)
 																			setShowDashboardMenu(false)
 																		}}
-																		className={`w-full text-left px-3 py-2 pro-hover-bg text-sm ${
+																		className={`pro-hover-bg w-full px-3 py-2 text-left text-sm ${
 																			dashboard.id === dashboardId ? 'bg-(--bg-tertiary)' : ''
 																		}`}
 																	>
@@ -328,7 +328,7 @@ function ProDashboardContent() {
 																				<Icon name="check" height={14} width={14} className="text-(--primary)" />
 																			)}
 																		</div>
-																		<div className="text-xs pro-text3">
+																		<div className="pro-text3 text-xs">
 																			{new Date(dashboard.updated).toLocaleDateString()}
 																		</div>
 																	</button>
@@ -349,7 +349,7 @@ function ProDashboardContent() {
 						{dashboardId && !isReadOnly && (
 							<button
 								onClick={() => setShowSettingsModal(true)}
-								className="p-2 bg-(--bg-glass) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors"
+								className="bg-opacity-30 pro-hover-bg bg-(--bg-glass) p-2 transition-colors hover:border-(--form-control-border)"
 								title="Dashboard Settings"
 							>
 								<Icon name="settings" height={16} width={16} className="pro-text1" />
@@ -357,8 +357,8 @@ function ProDashboardContent() {
 						)}
 						<button
 							className={`px-2.5 py-2 md:px-4 md:py-2 ${
-								!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'bg-(--bg-tertiary) cursor-not-allowed'
-							} text-white flex items-center gap-2 text-sm md:text-base whitespace-nowrap`}
+								!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'cursor-not-allowed bg-(--bg-tertiary)'
+							} flex items-center gap-2 text-sm whitespace-nowrap text-white md:text-base`}
 							onClick={() => !isReadOnly && setShowAddModal(true)}
 							disabled={isReadOnly}
 							title="Add Item"
@@ -368,11 +368,11 @@ function ProDashboardContent() {
 					</div>
 				</div>
 
-				<div className="flex items-center gap-2 order-3">
+				<div className="order-3 flex items-center gap-2">
 					{dashboardId && !isReadOnly && (
 						<button
 							onClick={() => setShowSettingsModal(true)}
-							className="p-2 bg-(--bg-glass) bg-opacity-30 pro-hover-bg hover:border-(--form-control-border) transition-colors hidden md:flex"
+							className="bg-opacity-30 pro-hover-bg hidden bg-(--bg-glass) p-2 transition-colors hover:border-(--form-control-border) md:flex"
 							title="Dashboard Settings"
 						>
 							<Icon name="settings" height={20} width={20} className="pro-text1" />
@@ -380,8 +380,8 @@ function ProDashboardContent() {
 					)}
 					<button
 						className={`px-4 py-2 ${
-							!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'bg-(--bg-tertiary) cursor-not-allowed'
-						} text-white items-center gap-2 text-base whitespace-nowrap hidden md:flex ${
+							!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'cursor-not-allowed bg-(--bg-tertiary)'
+						} hidden items-center gap-2 text-base whitespace-nowrap text-white md:flex ${
 							isReadOnly ? 'invisible' : ''
 						}`}
 						onClick={() => !isReadOnly && setShowAddModal(true)}
@@ -394,8 +394,8 @@ function ProDashboardContent() {
 			</div>
 
 			{!isAuthenticated && (
-				<div className="bg-(--bg-tertiary) border border-(--divider) p-3 mb-4 text-sm pro-text2">
-					<Icon name="help-circle" height={16} width={16} className="inline mr-2" />
+				<div className="pro-text2 mb-4 border border-(--divider) bg-(--bg-tertiary) p-3 text-sm">
+					<Icon name="help-circle" height={16} width={16} className="mr-2 inline" />
 					Sign in to save and manage multiple dashboards
 				</div>
 			)}
@@ -405,7 +405,7 @@ function ProDashboardContent() {
 					<Icon name="bookmark" height={14} width={14} className="pro-text3" />
 					<div className="flex flex-wrap gap-2">
 						{dashboardTags.map((tag) => (
-							<span key={tag} className="px-2 py-1 bg-(--bg-main) bg-opacity-50 text-xs pro-text2 border pro-border">
+							<span key={tag} className="bg-opacity-50 pro-text2 pro-border border bg-(--bg-main) px-2 py-1 text-xs">
 								{tag}
 							</span>
 						))}

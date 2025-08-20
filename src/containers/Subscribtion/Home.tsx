@@ -97,7 +97,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 		(loaders.userLoading || loaders.userFetching || (isClient && (isSubscriptionFetching || !subscription)))
 	) {
 		return (
-			<div className="flex justify-center items-center h-[60vh]">
+			<div className="flex h-[60vh] items-center justify-center">
 				<LocalLoader />
 			</div>
 		)
@@ -105,38 +105,38 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	return (
 		<>
-			<div className="flex flex-col gap-3 w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] mx-auto pb-[64px] px-5 relative">
-				<div className="relative h-[118px] w-[118px] aspect-square object-contain mx-auto rounded-full">
+			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
+				<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
 					<div
 						style={{
 							filter: 'blur(64px)',
 							background: 'linear-gradient(90deg, #5C5EFC 0%, #462A92 100%)'
 						}}
-						className="h-[132px] w-[132px] aspect-square object-contain mx-auto rounded-full absolute z-0"
+						className="absolute z-0 mx-auto aspect-square h-[132px] w-[132px] rounded-full object-contain"
 					/>
 					<img
 						src="/llama.png"
 						height={118}
 						width={118}
-						className="aspect-square object-contain mx-auto rounded-full z-10"
+						className="z-10 mx-auto aspect-square rounded-full object-contain"
 						alt=""
 					/>
 				</div>
-				<h1 className="text-[2rem] font-extrabold text-center">DefiLlama</h1>
+				<h1 className="text-center text-[2rem] font-extrabold">DefiLlama</h1>
 				{isSubscribed ? null : (
-					<p className="text-[#919296] text-center">
+					<p className="text-center text-[#919296]">
 						Upgrade now for access to LlamaFeed, increased api limits and premium api endpoints.
 					</p>
 				)}
 
 				{!isAuthenticated && isTrial && (
-					<div className="relative bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden p-6 mt-4 transition-all duration-300">
-						<div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#5c5cf9] to-transparent opacity-40"></div>
-						<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-[#5c5cf9] opacity-10 blur-2xl"></div>
+					<div className="relative mt-4 overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300">
+						<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-[#5c5cf9] to-transparent opacity-40"></div>
+						<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-[#5c5cf9] opacity-10 blur-2xl"></div>
 
-						<div className="flex items-center gap-3 mb-4">
-							<div className="p-2 bg-[#5c5cf9]/10 rounded-lg">
-								<svg className="w-6 h-6 text-[#5c5cf9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<div className="mb-4 flex items-center gap-3">
+							<div className="rounded-lg bg-[#5c5cf9]/10 p-2">
+								<svg className="h-6 w-6 text-[#5c5cf9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
 										strokeLinecap="round"
 										strokeLinejoin="round"
@@ -145,19 +145,19 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									/>
 								</svg>
 							</div>
-							<h2 className="text-2xl font-bold bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-transparent">
+							<h2 className="bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-2xl font-bold text-transparent">
 								Welcome to Your Free Trial!
 							</h2>
 						</div>
 
-						<p className="text-[#b4b7bc] mb-6 leading-relaxed">
+						<p className="mb-6 leading-relaxed text-[#b4b7bc]">
 							You've been invited to experience Pro for free! Sign in or create an account to activate your exclusive
 							24-hour trial access.
 						</p>
 
 						<SignIn
 							text="Sign In to Activate Trial"
-							className="w-full py-3 px-4 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] hover:from-[#4A4AF0] hover:to-[#5A5AF5] text-white font-medium transition-all duration-200 shadow-lg hover:shadow-[#5C5CF9]/20"
+							className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-4 py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20"
 						/>
 					</div>
 				)}
@@ -172,13 +172,13 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				)}
 
 				{isAuthenticated && isTrial && isSubscribed && subscription?.provider === 'trial' && (
-					<div className="relative bg-[#22242930] backdrop-blur-md rounded-xl border border-[#4a4a50] shadow-md overflow-hidden p-6 mt-4 transition-all duration-300">
-						<div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-green-500 to-transparent opacity-40"></div>
-						<div className="absolute top-[-30px] right-[-30px] w-[80px] h-[80px] rounded-full bg-green-500 opacity-10 blur-2xl"></div>
+					<div className="relative mt-4 overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300">
+						<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-green-500 to-transparent opacity-40"></div>
+						<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-green-500 opacity-10 blur-2xl"></div>
 
-						<div className="flex items-center gap-3 mb-4">
-							<div className="p-2 bg-green-500/10 rounded-lg">
-								<svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<div className="mb-4 flex items-center gap-3">
+							<div className="rounded-lg bg-green-500/10 p-2">
+								<svg className="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
 										strokeLinecap="round"
 										strokeLinejoin="round"
@@ -187,19 +187,19 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									/>
 								</svg>
 							</div>
-							<h2 className="text-2xl font-bold bg-linear-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+							<h2 className="bg-linear-to-r from-green-400 to-green-600 bg-clip-text text-2xl font-bold text-transparent">
 								Trial Active
 							</h2>
 						</div>
 
-						<p className="text-[#b4b7bc] mb-4">
+						<p className="mb-4 text-[#b4b7bc]">
 							Your 24-hour trial is currently active. Enjoy full access to all premium features!
 						</p>
 
 						{subscription?.expires_at && (
-							<div className="bg-[#1a1b1f]/50 border border-[#39393E] rounded-lg p-3">
+							<div className="rounded-lg border border-[#39393E] bg-[#1a1b1f]/50 p-3">
 								<div className="flex items-center gap-2 text-sm">
-									<svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg className="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											strokeLinecap="round"
 											strokeLinejoin="round"
@@ -218,7 +218,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 				{isAuthenticated && isSubscribed ? null : (
 					<div
-						className="h-[64px] w-[90%] mx-auto rounded-[50%] relative -bottom-[60px] -mb-[45px] z-0"
+						className="relative -bottom-[60px] z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
 						style={{
 							filter: 'blur(64px)',
 							background: 'linear-gradient(90deg, #5C5EFC 0%, #462A92 100%)'
@@ -247,14 +247,14 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					isWalletUser={isWalletUser}
 				/>
 				{isAuthenticated && isSubscribed ? (
-					<div className="mt-6 w-full max-w-[1200px] mx-auto">
+					<div className="mx-auto mt-6 w-full max-w-[1200px]">
 						<AccountInfo />
 					</div>
 				) : (
 					<div className="relative">
 						<div
 							ref={pricingContainer}
-							className="pricing-container flex flex-row relative z-10 overflow-x-auto scroll-smooth snap-x snap-mandatory max-md:-mx-2 max-md:pl-2 gap-4 py-4 justify-start md:overflow-visible md:justify-center"
+							className="pricing-container relative z-10 flex snap-x snap-mandatory flex-row justify-start gap-4 overflow-x-auto scroll-smooth py-4 max-md:-mx-2 max-md:pl-2 md:justify-center md:overflow-visible"
 						>
 							<SubscribePlusCard
 								context="page"
@@ -270,11 +270,11 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							/>
 							<SubscribeEnterpriseCard />
 						</div>
-						<div className="flex md:hidden justify-center gap-2 mt-4">
+						<div className="mt-4 flex justify-center gap-2 md:hidden">
 							{[0, 1, 2].map((index) => (
 								<button
 									key={index}
-									className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+									className={`h-2 w-2 rounded-full transition-colors duration-300 ${
 										activePriceCard === index ? 'bg-white' : 'bg-gray-500'
 									}`}
 									aria-label={`Go to slide ${index + 1}`}
@@ -293,10 +293,10 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					</div>
 				)}
 			</div>
-			<div className="flex flex-col items-center justify-center gap-[64px] mb-[64px] w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] mx-auto px-5">
+			<div className="mx-auto mb-[64px] flex w-full max-w-6xl flex-col items-center justify-center gap-[64px] px-5 xl:max-w-7xl 2xl:max-w-[1440px]">
 				<h2 className="text-[32px] font-extrabold">They trust us</h2>
 
-				<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 place-items-center gap-20">
+				<div className="grid grid-cols-2 place-items-center gap-20 md:grid-cols-4 lg:grid-cols-5">
 					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-[60px] object-contain" />
 					<img src="/icons/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
 					<span className="flex flex-col gap-2">

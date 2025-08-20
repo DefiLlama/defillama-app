@@ -241,7 +241,7 @@ export const ChainProtocolsTable = ({
 
 						if (error) {
 							return (
-								<span title={error} className="text-red-600 cursor-help">
+								<span title={error} className="cursor-help text-red-600">
 									Err
 								</span>
 							)
@@ -436,9 +436,9 @@ export const ChainProtocolsTable = ({
 	}
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md isolate">
-			<div className="flex items-center gap-2 p-3 flex-wrap">
-				<div className="text-lg font-semibold flex grow w-full md:w-auto">Protocol Rankings</div>
+		<div className="isolate rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-wrap items-center gap-2 p-3">
+				<div className="flex w-full grow text-lg font-semibold md:w-auto">Protocol Rankings</div>
 
 				<div className="flex items-center gap-2 max-md:w-full max-sm:flex-col">
 					<TagGroup
@@ -455,7 +455,7 @@ export const ChainProtocolsTable = ({
 						className="max-sm:w-full"
 						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 					/>
-					<div className="flex items-center gap-2 w-full sm:w-auto">
+					<div className="flex w-full items-center gap-2 sm:w-auto">
 						<SelectWithCombobox
 							allValues={mergedColumns}
 							selectedValues={selectedColumns}
@@ -472,7 +472,7 @@ export const ChainProtocolsTable = ({
 							}}
 							customFooter={
 								<button
-									className="w-full flex items-center gap-2 px-3 py-2 mt-2 rounded-md bg-(--btn-bg) hover:bg-(--btn-hover-bg) text-(--text-primary) text-xs font-medium border border-(--form-control-border)"
+									className="mt-2 flex w-full items-center gap-2 rounded-md border border-(--form-control-border) bg-(--btn-bg) px-3 py-2 text-xs font-medium text-(--text-primary) hover:bg-(--btn-hover-bg)"
 									onClick={handleAddCustomColumn}
 									type="button"
 								>
@@ -486,7 +486,7 @@ export const ChainProtocolsTable = ({
 						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
 						<CSVDownloadButton
 							onClick={handleDownloadCsv}
-							className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</div>
 				</div>
@@ -651,7 +651,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			)
 
 			return (
-				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
+				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-[2px]"
@@ -679,10 +679,10 @@ const columns: ColumnDef<IProtocol>[] = [
 
 					<TokenLogo logo={`${ICONS_CDN}/protocols/${row.original.slug}?w=48&h=48`} data-lgonly />
 
-					<span className="flex flex-col -my-2">
+					<span className="-my-2 flex flex-col">
 						<BasicLink
 							href={`/protocol/${row.original.slug}`}
-							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
 							{value}
 						</BasicLink>

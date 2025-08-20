@@ -3,12 +3,12 @@ import { SubscribeLayout2 } from './subscription/fulfillment-policies'
 export default function TermsOfUse() {
 	return (
 		<SubscribeLayout2>
-			<div className="mb-[64px] flex flex-col gap-8 w-full max-w-3xl mx-auto text-[#d5d5d5]">
-				<h1 className="text-3xl text-center text-white font-bold">TERMS OF USE</h1>
+			<div className="mx-auto mb-[64px] flex w-full max-w-3xl flex-col gap-8 text-[#d5d5d5]">
+				<h1 className="text-center text-3xl font-bold text-white">TERMS OF USE</h1>
 				<p className="text-center">Effective Date: 24 June 2025</p>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">1. ACCEPTANCE OF THESE TERMS</h2>
+					<h2 className="text-xl font-semibold text-white">1. ACCEPTANCE OF THESE TERMS</h2>
 					<p>
 						By accessing or using{' '}
 						<a href="https://defillama.com/" className="underline">
@@ -28,7 +28,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">2. CHANGES TO THE SITE, SERVICES OR TERMS</h2>
+					<h2 className="text-xl font-semibold text-white">2. CHANGES TO THE SITE, SERVICES OR TERMS</h2>
 					<p>
 						<strong>DeFiLlama Limited</strong>, a company incorporated in the United Arab Emirates ("Company", "we",{' '}
 						<strong>"us"</strong>), may update the Site, Services or these Terms at any time. Revised Terms take effect
@@ -38,7 +38,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">3. TERRITORIAL REACH & ELIGIBILITY</h2>
+					<h2 className="text-xl font-semibold text-white">3. TERRITORIAL REACH & ELIGIBILITY</h2>
 					<p>
 						The Site is controlled from the UAE. We do not represent that the content is lawful elsewhere; Users who
 						access the Site from other jurisdictions do so at their own risk and remain responsible for local
@@ -47,10 +47,10 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">4. SUBSCRIPTION SERVICES</h2>
+					<h2 className="text-xl font-semibold text-white">4. SUBSCRIPTION SERVICES</h2>
 
-					<h3 className="text-lg text-white font-medium">4.1 Definitions</h3>
-					<ol className="flex flex-col list-decimal pl-4" style={{ listStyleType: 'lower-alpha' }}>
+					<h3 className="text-lg font-medium text-white">4.1 Definitions</h3>
+					<ol className="flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-alpha' }}>
 						<li>"Subscription Services" means the paid features described on the order page, as updated by us.</li>
 						<li>"Subscriber" means the legal or natural person that purchases a Subscription.</li>
 						<li>
@@ -60,8 +60,8 @@ export default function TermsOfUse() {
 						<li>"Fees" means the amounts payable under Clause 4.3.</li>
 					</ol>
 
-					<h3 className="text-lg text-white font-medium">4.2 Provision of Services</h3>
-					<ol className="flex flex-col list-decimal pl-4" style={{ listStyleType: 'lower-alpha' }}>
+					<h3 className="text-lg font-medium text-white">4.2 Provision of Services</h3>
+					<ol className="flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-alpha' }}>
 						<li>
 							We will make the Subscription Services available to the Subscriber during the Subscription Term, subject
 							to these Terms and these Subscription terms.
@@ -69,7 +69,7 @@ export default function TermsOfUse() {
 						<li>
 							The Subscription Services are provided <strong>"as is"</strong> and <strong>"as available."</strong> The
 							Subscriber acknowledges that
-							<ol className="flex flex-col list-decimal pl-4 mt-2" style={{ listStyleType: 'lower-roman' }}>
+							<ol className="mt-2 flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-roman' }}>
 								<li>functionality may change, improve or be deprecated without notice; and</li>
 								<li>the Subscription is not tied to any particular version or feature set.</li>
 							</ol>
@@ -77,8 +77,8 @@ export default function TermsOfUse() {
 					</ol>
 					<p>Continued use after changes constitutes acceptance of the amended terms.</p>
 
-					<h3 className="text-lg text-white font-medium">4.3 Fees, Taxes & Payment</h3>
-					<ol className="flex flex-col list-decimal pl-4" style={{ listStyleType: 'lower-alpha' }}>
+					<h3 className="text-lg font-medium text-white">4.3 Fees, Taxes & Payment</h3>
+					<ol className="flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-alpha' }}>
 						<li>
 							Billing cycle: Fees are billed monthly or yearly in advance (as chosen on the order page) and collected
 							automatically via the payment method on file.
@@ -91,7 +91,7 @@ export default function TermsOfUse() {
 						</li>
 					</ol>
 
-					<h3 className="text-lg text-white font-medium">4.4 Data Use & Privacy</h3>
+					<h3 className="text-lg font-medium text-white">4.4 Data Use & Privacy</h3>
 					<p>
 						We may process usage data generated by the Subscriber solely to (i) operate and secure the Subscription
 						Services and (ii) perform internal analytics and product development. Where required, such data will be
@@ -99,8 +99,8 @@ export default function TermsOfUse() {
 						data-protection rules.
 					</p>
 
-					<h3 className="text-lg text-white font-medium">4.5 Availability & Maintenance</h3>
-					<ol className="flex flex-col list-decimal pl-4" style={{ listStyleType: 'lower-alpha' }}>
+					<h3 className="text-lg font-medium text-white">4.5 Availability & Maintenance</h3>
+					<ol className="flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-alpha' }}>
 						<li>
 							We do not guarantee uninterrupted availability. Planned or emergency maintenance may reduce or suspend
 							access.
@@ -109,8 +109,8 @@ export default function TermsOfUse() {
 						<li>New versions may be deployed without prior notice.</li>
 					</ol>
 
-					<h3 className="text-lg text-white font-medium">4.6 Errors & Exclusive Remedy</h3>
-					<ol className="flex flex-col list-decimal pl-4" style={{ listStyleType: 'lower-alpha' }}>
+					<h3 className="text-lg font-medium text-white">4.6 Errors & Exclusive Remedy</h3>
+					<ol className="flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-alpha' }}>
 						<li>
 							An "Error" exists if (i) the Subscriber cannot access the Subscription Services or a material function and
 							(ii) the cause is within our reasonable control.
@@ -125,8 +125,8 @@ export default function TermsOfUse() {
 						</li>
 					</ol>
 
-					<h3 className="text-lg text-white font-medium">4.7 Termination & Suspension</h3>
-					<ol className="flex flex-col list-decimal pl-4" style={{ listStyleType: 'lower-alpha' }}>
+					<h3 className="text-lg font-medium text-white">4.7 Termination & Suspension</h3>
+					<ol className="flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-alpha' }}>
 						<li>
 							For convenience – Either party may terminate the Subscription at any time by notice via the account portal
 							or e-mail. Termination takes effect at the end of the current billing period unless we terminate
@@ -146,8 +146,8 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">5. LIMITED PERSONAL-DATA COLLECTION</h2>
-					<ol className="flex flex-col list-decimal pl-4" style={{ listStyleType: 'lower-alpha' }}>
+					<h2 className="text-xl font-semibold text-white">5. LIMITED PERSONAL-DATA COLLECTION</h2>
+					<ol className="flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-alpha' }}>
 						<li>
 							Apart from the situations set out below, the Site displays only aggregated, non-identifiable information
 							and does not process personal data within the meaning of the PDPL.
@@ -170,7 +170,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">6. INFORMATIONAL PURPOSE & NO ADVICE</h2>
+					<h2 className="text-xl font-semibold text-white">6. INFORMATIONAL PURPOSE & NO ADVICE</h2>
 					<p>
 						All material on the Site (the <strong>"Content & Data"</strong>) is for general information only and does
 						not constitute legal, financial, investment, tax or other professional advice. DeFiLlama Limited or its
@@ -182,7 +182,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">7. INTELLECTUAL-PROPERTY RIGHTS</h2>
+					<h2 className="text-xl font-semibold text-white">7. INTELLECTUAL-PROPERTY RIGHTS</h2>
 					<p>
 						Except where expressly attributed to third parties, all{' '}
 						<strong>Content, data sets, layout, design, logos and underlying code</strong> are owned by or licensed to
@@ -193,11 +193,11 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">8. PERMITTED & PROHIBITED USE</h2>
+					<h2 className="text-xl font-semibold text-white">8. PERMITTED & PROHIBITED USE</h2>
 					<p>
 						You may view the Site and its data under a limited licence; you agree <strong>not</strong> to:
 					</p>
-					<ol className="flex flex-col list-decimal pl-4">
+					<ol className="flex list-decimal flex-col pl-4">
 						<li>modify or copy the materials;</li>
 						<li>decompile or reverse-engineer any Content, Services or Subscription Services;</li>
 						<li>remove any copyright or proprietary notices;</li>
@@ -217,7 +217,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">9. THIRD-PARTY LINKS</h2>
+					<h2 className="text-xl font-semibold text-white">9. THIRD-PARTY LINKS</h2>
 					<p>
 						Links to third-party sites or feeds are provided for convenience only; we do not endorse and are not
 						responsible for their content or privacy practices.
@@ -225,7 +225,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">10. DISCLAIMER OF WARRANTIES</h2>
+					<h2 className="text-xl font-semibold text-white">10. DISCLAIMER OF WARRANTIES</h2>
 					<p>
 						The Site, Services and Content & Data are provided "as is" and "as available," without warranties of any
 						kind, express or implied. We do not guarantee uninterrupted or error-free operation.
@@ -233,7 +233,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">11. LIMITATION OF LIABILITY</h2>
+					<h2 className="text-xl font-semibold text-white">11. LIMITATION OF LIABILITY</h2>
 					<p>
 						To the fullest extent permitted by law, the Company and its directors, employees, agents and licensors are
 						not liable for indirect, incidental, special, consequential or punitive damages, or for loss of profits,
@@ -242,7 +242,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">12. INDEMNITY</h2>
+					<h2 className="text-xl font-semibold text-white">12. INDEMNITY</h2>
 					<p>
 						You will indemnify and hold harmless the Company and its affiliates against any claims, damages, losses and
 						expenses (including reasonable attorneys' fees) arising from your breach of these Terms or misuse of the
@@ -252,7 +252,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">13. SUSPENSION & TERMINATION (SITE ACCESS)</h2>
+					<h2 className="text-xl font-semibold text-white">13. SUSPENSION & TERMINATION (SITE ACCESS)</h2>
 					<p>
 						We may suspend, restrict or terminate your access to the <strong>Site, data and APIs</strong> at any time,
 						without notice, if we reasonably believe you have breached these Terms or applicable law.
@@ -260,9 +260,9 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">14. ENFORCEMENT OF DATA-USE RESTRICTIONS</h2>
+					<h2 className="text-xl font-semibold text-white">14. ENFORCEMENT OF DATA-USE RESTRICTIONS</h2>
 					<p>Any breach of Clause 8 or unauthorised use of the data/API entitles the Company to:</p>
-					<ol className="flex flex-col list-decimal pl-4" style={{ listStyleType: 'lower-roman' }}>
+					<ol className="flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-roman' }}>
 						<li>immediate termination of all access;</li>
 						<li>injunctive relief without the need to post bond;</li>
 						<li>recovery of all profits derived from the unauthorised use; and</li>
@@ -274,7 +274,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">15. GOVERNING LAW & DISPUTE RESOLUTION</h2>
+					<h2 className="text-xl font-semibold text-white">15. GOVERNING LAW & DISPUTE RESOLUTION</h2>
 					<p>
 						These Terms, their subject matter, and formation are governed by the federal laws of the United Arab
 						Emirates and, to the extent applicable, the laws of the Emirate/Freezone of the Site incorporation.
@@ -284,7 +284,7 @@ export default function TermsOfUse() {
 						including any questions regarding its existence, validity, or termination to the Dubai International
 						Arbitration Centre. The rules of arbitration will as such:
 					</p>
-					<ol className="flex flex-col list-decimal pl-4" style={{ listStyleType: 'lower-alpha' }}>
+					<ol className="flex list-decimal flex-col pl-4" style={{ listStyleType: 'lower-alpha' }}>
 						<li>
 							A sole arbitrator shall be appointed by agreement of the parties. If the parties have not agreed on the
 							appointment of a sole arbitrator within 30 days from the receipt of a notice of arbitration, then, the
@@ -311,7 +311,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">16. SEVERABILITY</h2>
+					<h2 className="text-xl font-semibold text-white">16. SEVERABILITY</h2>
 					<p>
 						In the event that any of the provisions of this Agreement are held to be invalid or unenforceable in whole
 						or in part, the remaining provisions shall not be affected and shall continue to be valid and enforceable as
@@ -325,7 +325,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">17. ENTIRE AGREEMENT</h2>
+					<h2 className="text-xl font-semibold text-white">17. ENTIRE AGREEMENT</h2>
 					<p>
 						These Terms constitute the entire agreement between you and us regarding your use of the Site and supersede
 						all prior or contemporaneous understandings. DeFillama Limited may revise these Terms of Use for the Site at
@@ -335,7 +335,7 @@ export default function TermsOfUse() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl text-white font-semibold">18. CONTACT</h2>
+					<h2 className="text-xl font-semibold text-white">18. CONTACT</h2>
 					<p>Questions or requests regarding these Terms:</p>
 					<p>
 						<em>E-mail:</em>{' '}

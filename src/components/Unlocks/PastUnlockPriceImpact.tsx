@@ -111,9 +111,9 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 	}, [data])
 
 	return (
-		<div className={`bg-(--cards-bg) border border-(--cards-border) rounded-md p-1 flex flex-col gap-0.5 ${className}`}>
+		<div className={`flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 ${className}`}>
 			<Tooltip
-				className="text-lg font-semibold mb-1"
+				className="mb-1 text-lg font-semibold"
 				content={`Price change 7 days after the most recent major unlock event, not counting non-circulating and farming emissions. Sorted by the value of the unlock event.`}
 			>
 				{title}
@@ -126,22 +126,22 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 							<div className="flex flex-col">
 								<BasicLink
 									href={`/unlocks/${slug(impact.name)}`}
-									className="overflow-hidden text-(--bg-2) whitespace-nowrap font-medium text-lg text-ellipsis hover:underline"
+									className="overflow-hidden text-lg font-medium text-ellipsis whitespace-nowrap text-(--bg-2) hover:underline"
 								>
 									{impact.name} ({impact.symbol})
 								</BasicLink>
 							</div>
 						</div>
 						<div className="flex items-center gap-1">
-							<span className={`font-medium text-sm ${impact.impact > 0 ? 'text-green-400' : 'text-red-400'}`}>
+							<span className={`text-sm font-medium ${impact.impact > 0 ? 'text-green-400' : 'text-red-400'}`}>
 								{formattedPercent(impact.impact)}
 							</span>
 							<Ariakit.HovercardProvider>
 								<Ariakit.HovercardAnchor>
-									<Icon name="help-circle" width={16} height={16} className="text-(--text-tertiary) cursor-help" />
+									<Icon name="help-circle" width={16} height={16} className="cursor-help text-(--text-tertiary)" />
 								</Ariakit.HovercardAnchor>
 								<Ariakit.Hovercard
-									className="rounded-md bg-(--bg-main) dark:bg-[#121316] p-4 border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] z-10 flex flex-col gap-2"
+									className="z-10 flex flex-col gap-2 rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-4 dark:border-[hsl(204,3%,32%)] dark:bg-[#121316]"
 									unmountOnHide
 									portal={true}
 								>
@@ -183,7 +183,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 																		className="text-(--text-tertiary)"
 																	/>
 																</Ariakit.TooltipAnchor>
-																<Ariakit.Tooltip className="rounded-md bg-(--bg-secondary) px-2 py-1 text-sm z-50">
+																<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-sm">
 																	{item.unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
 																</Ariakit.Tooltip>
 															</Ariakit.TooltipProvider>

@@ -94,9 +94,9 @@ export default function TrendingContracts() {
 
 	return (
 		<Layout title={`Trending Contracts - DefiLlama`} defaultSEO>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="flex items-center flex-wrap gap-5 p-3">
-					<h1 className="text-xl font-semibold mr-auto">Trending Contracts</h1>
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-wrap items-center gap-5 p-3">
+					<h1 className="mr-auto text-xl font-semibold">Trending Contracts</h1>
 					<TagGroup selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />
 					<TagGroup
 						selectedValue={chain}
@@ -105,9 +105,9 @@ export default function TrendingContracts() {
 					/>
 				</div>
 				{isLoading ? (
-					<p className="text-center p-3">Loading...</p>
+					<p className="p-3 text-center">Loading...</p>
 				) : error ? (
-					<p className="text-center p-3">Sorry, couldn't fetch trending contracts.</p>
+					<p className="p-3 text-center">Sorry, couldn't fetch trending contracts.</p>
 				) : (
 					<VirtualTable instance={instance} />
 				)}

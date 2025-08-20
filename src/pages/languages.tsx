@@ -78,12 +78,12 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (
 		<Layout title={`Languages - DefiLlama`} defaultSEO>
-			<h1 className="text-xl font-semibold bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
 				Breakdown by Smart Contract Languages
 			</h1>
 
-			<div className="flex flex-col gap-2 pt-3 bg-(--cards-bg) border border-(--cards-border) rounded-md *:*:*:[&[role='combobox']]:-mb-9">
-				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 *:*:*:[&[role='combobox']]:-mb-9">
+				<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={langs}
@@ -96,7 +96,7 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 						/>
 					</React.Suspense>
 				</LazyChart>
-				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={langsDominance}
@@ -111,10 +111,10 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 				</LazyChart>
 			</div>
 
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md relative">
-				<h2 className="font-semibold text-xl p-3">Open/Closed Source breakdown of solana protocols</h2>
+			<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<h2 className="p-3 text-xl font-semibold">Open/Closed Source breakdown of solana protocols</h2>
 
-				<LazyChart className="relative col-span-full min-h-[360px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={osDominance}

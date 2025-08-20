@@ -17,11 +17,11 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 	]
 
 	return (
-		<div className="grid grid-cols-5 gap-0 mb-4 md:mb-6">
+		<div className="mb-4 grid grid-cols-5 gap-0 md:mb-6">
 			{tabs.map((tab, index) => (
 				<button
 					key={tab.id}
-					className={`px-2 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-medium border transition-colors duration-200 ${
+					className={`border px-2 py-2.5 text-xs font-medium transition-colors duration-200 md:px-4 md:py-3 md:text-sm ${
 						selectedMainTab === tab.id
 							? 'border-(--primary) bg-(--primary) text-white'
 							: 'pro-border pro-hover-bg pro-text2'

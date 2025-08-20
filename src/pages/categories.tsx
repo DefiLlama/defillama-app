@@ -433,9 +433,9 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO includeInMetricsOptions={finalTvlOptions}>
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="flex gap-2 flex-row items-center flex-wrap justify-end p-3">
-					<h1 className="text-xl font-semibold mr-auto">Categories</h1>
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
+					<h1 className="mr-auto text-xl font-semibold">Categories</h1>
 					<SelectWithCombobox
 						allValues={categories}
 						selectedValues={selectedCategories}
@@ -448,7 +448,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					/>
 				</div>
 
-				<React.Suspense fallback={<div className="flex items-center justify-center m-auto min-h-[360px]" />}>
+				<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 					<LineAndBarChart charts={charts} valueSymbol="$" solidChartAreaStyle />
 				</React.Suspense>
 			</div>
@@ -457,7 +457,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 				fallback={
 					<div
 						style={{ minHeight: `${categories.length * 50 + 200}px` }}
-						className="bg-(--cards-bg) border border-(--cards-border) rounded-md"
+						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
 					/>
 				}
 			>
@@ -493,7 +493,7 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
+				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-1"
@@ -518,14 +518,14 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 					{row.depth > 0 ? (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
 							{getValue() as string}
 						</BasicLink>
 					) : (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
 							{getValue() as string}
 						</BasicLink>

@@ -110,16 +110,16 @@ export function TableWithSearch({
 	}, [instance, windowSize])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				{header ? <h1 className="text-lg font-semibold mr-auto">{header}</h1> : null}
+				{header ? <h1 className="mr-auto text-lg font-semibold">{header}</h1> : null}
 				<label className="relative w-full sm:max-w-[280px]">
 					<span className="sr-only">{placeholder}</span>
 					<Icon
 						name="search"
 						height={16}
 						width={16}
-						className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
 						value={projectName}
@@ -127,7 +127,7 @@ export function TableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder={placeholder}
-						className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				{customFilters}

@@ -35,7 +35,7 @@ export function DashboardList({
 
 	if (isLoading) {
 		return (
-			<div className="flex justify-center items-center h-40">
+			<div className="flex h-40 items-center justify-center">
 				<LoadingSpinner />
 			</div>
 		)
@@ -44,22 +44,22 @@ export function DashboardList({
 	return (
 		<div>
 			{dashboards.length === 0 ? (
-				<div className="text-center py-12">
+				<div className="py-12 text-center">
 					<div className="mb-4">
-						<Icon name="layers" height={48} width={48} className="text-(--text-tertiary) mx-auto" />
+						<Icon name="layers" height={48} width={48} className="mx-auto text-(--text-tertiary)" />
 					</div>
-					<h3 className="text-lg font-medium text-(--text-primary) mb-2">No dashboards yet</h3>
-					<p className="text-(--text-tertiary) mb-4">Create your first dashboard to get started</p>
+					<h3 className="mb-2 text-lg font-medium text-(--text-primary)">No dashboards yet</h3>
+					<p className="mb-4 text-(--text-tertiary)">Create your first dashboard to get started</p>
 					<button
 						onClick={onCreateNew}
-						className="px-4 py-2 bg-(--primary) text-white flex items-center gap-2 hover:bg-(--primary-hover) mx-auto"
+						className="mx-auto flex items-center gap-2 bg-(--primary) px-4 py-2 text-white hover:bg-(--primary-hover)"
 					>
 						<Icon name="plus" height={16} width={16} />
 						Create Dashboard
 					</button>
 				</div>
 			) : (
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{dashboards.map((dashboard) => (
 						<DashboardCard
 							key={dashboard.id}

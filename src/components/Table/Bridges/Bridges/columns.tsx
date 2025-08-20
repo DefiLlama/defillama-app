@@ -39,7 +39,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 					{icon && <TokenLogo logo={iconLink} data-lgonly />}
 					<BasicLink
 						href={`/bridge/${linkValue}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden text-ellipsis whitespace-nowrap"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{value}
 					</BasicLink>
@@ -119,7 +119,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/bridges/${value}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden text-ellipsis whitespace-nowrap"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{value}
 					</BasicLink>
@@ -230,7 +230,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 			return (
 				<BasicLink
 					href={`/bridge/${linkValue}`}
-					className="text-sm font-medium text-(--link-text) overflow-hidden text-ellipsis whitespace-nowrap"
+					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 				>
 					{value}
 				</BasicLink>

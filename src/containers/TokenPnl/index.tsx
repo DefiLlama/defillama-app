@@ -27,7 +27,7 @@ const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
 			<span>{label}:</span>
 			<input
 				type="date"
-				className={`p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white outline-0 ${
+				className={`rounded-md bg-white p-[6px] text-base text-black outline-0 dark:bg-black dark:text-white ${
 					hasError ? 'border-2 border-red-500' : 'border border-(--form-control-border)'
 				}`}
 				value={value}
@@ -144,9 +144,9 @@ export default function TokenPnl({ coinsData }) {
 
 	return (
 		<>
-			<div className="flex flex-col gap-3 items-center w-full max-w-sm mx-auto rounded-md bg-(--cards-bg) border border-(--cards-border) p-3">
-				<h1 className="text-xl font-semibold text-center">Token Holder Profit and Loss</h1>
-				<div className="flex flex-col gap-3 w-full">
+			<div className="mx-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<h1 className="text-center text-xl font-semibold">Token Holder Profit and Loss</h1>
+				<div className="flex w-full flex-col gap-3">
 					<DateInput
 						label="Start Date"
 						value={startDate}
@@ -164,7 +164,7 @@ export default function TokenPnl({ coinsData }) {
 						hasError={!!dateError}
 					/>
 
-					{dateError && <p className="text-red-500 text-sm text-center">{dateError}</p>}
+					{dateError && <p className="text-center text-sm text-red-500">{dateError}</p>}
 
 					<label className="flex flex-col gap-1 text-sm">
 						<span>Token:</span>
@@ -175,7 +175,7 @@ export default function TokenPnl({ coinsData }) {
 									setModalOpen(1)
 									dialogStore.toggle()
 								}}
-								className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black dark:bg-black dark:text-white border border-(--form-control-border)"
+								className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
 							>
 								<img
 									src={selectedCoins[0].image}
@@ -193,7 +193,7 @@ export default function TokenPnl({ coinsData }) {
 										setModalOpen(1)
 										dialogStore.toggle()
 									}}
-									className="flex items-center gap-1 p-[6px] rounded-md text-base bg-white text-black/60 dark:bg-black dark:text-white/60 border border-(--form-control-border)"
+									className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black/60 dark:bg-black dark:text-white/60"
 								>
 									<Icon name="search" height={16} width={16} />
 									<span>Search coins...</span>
@@ -206,16 +206,16 @@ export default function TokenPnl({ coinsData }) {
 						{coins.length === 1 && (
 							<div className="flex flex-col items-center justify-center">
 								{isLoading ? (
-									<div className="flex items-center justify-center m-auto">
+									<div className="m-auto flex items-center justify-center">
 										<LocalLoader />
 									</div>
 								) : isError ? (
-									<div className="flex flex-col gap-1 items-center text-base">
-										<h2 className="text-red-500 font-bold text-2xl">Error</h2>
+									<div className="flex flex-col items-center gap-1 text-base">
+										<h2 className="text-2xl font-bold text-red-500">Error</h2>
 										<p>{error instanceof Error ? error.message : 'An error occurred'}</p>
 										<button
 											onClick={() => refetch()}
-											className="rounded-md py-[6px] px-4 bg-(--link-active-bg) text-white"
+											className="rounded-md bg-(--link-active-bg) px-4 py-[6px] text-white"
 										>
 											Retry
 										</button>
@@ -223,7 +223,7 @@ export default function TokenPnl({ coinsData }) {
 								) : (
 									pnlData && (
 										<div className="flex flex-col items-center gap-3">
-											<h2 className="font-bold text-2xl flex flex-col items-center">
+											<h2 className="flex flex-col items-center text-2xl font-bold">
 												{pnlData.pnl === 'No data' ? (
 													<span className="text-red-500">No data</span>
 												) : (
@@ -237,22 +237,22 @@ export default function TokenPnl({ coinsData }) {
 											</h2>
 
 											{pnlData.coinInfo && (
-												<div className="grid grid-cols-2 gap-4 w-full">
+												<div className="grid w-full grid-cols-2 gap-4">
 													<p className="flex flex-col items-center">
 														<span className="text-(--text-secondary)">Start Price:</span>
-														<span className="font-semibold text-lg">
+														<span className="text-lg font-semibold">
 															{pnlData.startPrice ? `$${formattedNum(pnlData.startPrice)}` : 'N/A'}
 														</span>
 													</p>
 													<p className="flex flex-col items-center">
 														<span className="text-(--text-secondary)">End Price:</span>
-														<span className="font-semibold text-lg">
+														<span className="text-lg font-semibold">
 															{pnlData.endPrice ? `$${formattedNum(pnlData.endPrice)}` : 'N/A'}
 														</span>
 													</p>
 													<p className="flex flex-col items-center">
 														<span className="text-(--text-secondary)">Current Price:</span>
-														<span className="font-semibold text-lg">
+														<span className="text-lg font-semibold">
 															${formattedNum(pnlData.coinInfo.current_price)}
 														</span>
 													</p>
@@ -260,7 +260,7 @@ export default function TokenPnl({ coinsData }) {
 													<p className="flex flex-col items-center">
 														<span className="text-(--text-secondary)">24h Change:</span>
 														<span
-															className="font-semibold text-lg"
+															className="text-lg font-semibold"
 															style={{ color: pnlData.coinInfo.price_change_percentage_24h >= 0 ? 'green' : 'red' }}
 														>
 															{pnlData.coinInfo.price_change_percentage_24h.toFixed(2)}%
@@ -268,7 +268,7 @@ export default function TokenPnl({ coinsData }) {
 													</p>
 													<p className="flex flex-col items-center">
 														<span className="text-(--text-secondary)">All-Time High:</span>
-														<span className="font-semibold text-lg">${formattedNum(pnlData.coinInfo.ath)}</span>
+														<span className="text-lg font-semibold">${formattedNum(pnlData.coinInfo.ath)}</span>
 													</p>
 												</div>
 											)}

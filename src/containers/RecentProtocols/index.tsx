@@ -174,7 +174,7 @@ export function RecentProtocols({
 	return (
 		<Layout title={title} defaultSEO>
 			{claimableAirdrops ? (
-				<span className="flex items-center gap-2 flex-wrap">
+				<span className="flex flex-wrap items-center gap-2">
 					{claimableAirdrops.map((protocol) => (
 						<a
 							href={protocol.page}
@@ -182,7 +182,7 @@ export function RecentProtocols({
 							rel="noreferrer noopener"
 							key={`claim-${protocol.name}`}
 							color="#008000"
-							className="flex items-center gap-1 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-sm text-[#007c00] dark:text-[#00ab00] dark:bg-[#18221d] bg-[#e4efe2]"
+							className="flex items-center gap-1 rounded-md bg-[#e4efe2] px-[10px] py-1 text-sm font-medium whitespace-nowrap text-[#007c00] dark:bg-[#18221d] dark:text-[#00ab00]"
 						>
 							<span>{protocol.name}</span>
 							<Icon name="arrow-up-right" height={14} width={14} />
@@ -193,7 +193,7 @@ export function RecentProtocols({
 							resetEligibilityCheck()
 							airdropCheckerDialog.toggle()
 						}}
-						className="flex items-center gap-1 rounded-md py-1 px-[10px] whitespace-nowrap font-medium text-sm text-[#007c00] dark:text-[#00ab00] dark:bg-[#18221d] bg-[#e4efe2]"
+						className="flex items-center gap-1 rounded-md bg-[#e4efe2] px-[10px] py-1 text-sm font-medium whitespace-nowrap text-[#007c00] dark:bg-[#18221d] dark:text-[#00ab00]"
 					>
 						Check airdrops for address
 					</button>
@@ -210,25 +210,25 @@ export function RecentProtocols({
 						</button>
 						{eligibleAirdrops ? (
 							eligibleAirdrops.length === 0 ? (
-								<p className="text-red-500 text-center">No airdrops detected for this address</p>
+								<p className="text-center text-red-500">No airdrops detected for this address</p>
 							) : (
-								<div className="isolate relative w-full overflow-auto">
+								<div className="relative isolate w-full overflow-auto">
 									{eligibleAirdrops.map((address) => (
-										<table key={`airdrop of ${address[0]}`} className="border-collapse w-full mt-4 first:mt-0">
+										<table key={`airdrop of ${address[0]}`} className="mt-4 w-full border-collapse first:mt-0">
 											<thead>
 												<tr>
 													<th
 														colSpan={2}
-														className="p-2 font-semibold text-center whitespace-nowrap border border-(--form-control-border)"
+														className="border border-(--form-control-border) p-2 text-center font-semibold whitespace-nowrap"
 													>
 														{address[0]}
 													</th>
 												</tr>
 												<tr>
-													<th className="p-2 font-semibold text-center whitespace-nowrap border border-(--form-control-border)">
+													<th className="border border-(--form-control-border) p-2 text-center font-semibold whitespace-nowrap">
 														Protocol Name
 													</th>
-													<th className="p-2 font-semibold text-center whitespace-nowrap border border-(--form-control-border)">
+													<th className="border border-(--form-control-border) p-2 text-center font-semibold whitespace-nowrap">
 														Token Amount
 													</th>
 												</tr>
@@ -238,18 +238,18 @@ export function RecentProtocols({
 													<tr>
 														<td
 															colSpan={2}
-															className="p-2 font-normal text-center whitespace-nowrap border border-(--form-control-border)"
+															className="border border-(--form-control-border) p-2 text-center font-normal whitespace-nowrap"
 														>
-															<p className="text-red-500 text-center">No airdrops detected for this address</p>
+															<p className="text-center text-red-500">No airdrops detected for this address</p>
 														</td>
 													</tr>
 												) : (
 													address[1].map((airdrop) => (
 														<tr key={`${airdrop.name}:${airdrop.claimableAmount}`}>
-															<th className="p-2 font-normal text-center whitespace-nowrap border border-(--form-control-border)">
+															<th className="border border-(--form-control-border) p-2 text-center font-normal whitespace-nowrap">
 																{airdrop.name}
 															</th>
-															<td className="p-2 font-normal text-center whitespace-nowrap border border-(--form-control-border)">
+															<td className="border border-(--form-control-border) p-2 text-center font-normal whitespace-nowrap">
 																{airdrop.isActive ? (
 																	<span className="flex items-center justify-center gap-2">
 																		<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
@@ -306,18 +306,18 @@ export function RecentProtocols({
 										required
 										disabled={fetchingEligibleAirdrops}
 										placeholder="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045, 0x71a15Ac12ee91BF7c83D08506f3a3588143898B5"
-										className="p-2 rounded-md bg-white dark:bg-black text-black dark:text-white disabled:opacity-50 border border-(--form-control-border)"
+										className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 									/>
 								</label>
 								<button
 									name="submit-btn"
 									disabled={fetchingEligibleAirdrops}
-									className="p-3 mt-3 bg-[#2172e5] text-white rounded-md hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+									className="mt-3 rounded-md bg-[#2172e5] p-3 text-white hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
 								>
 									{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
 								</button>
 								{errorFetchingEligibleAirdrops ? (
-									<p className="text-red-500 text-center">
+									<p className="text-center text-red-500">
 										{(errorFetchingEligibleAirdrops as any)?.message ?? 'Failed to fetch'}
 									</p>
 								) : null}
@@ -327,8 +327,8 @@ export function RecentProtocols({
 				</span>
 			) : null}
 
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3 flex items-center gap-4 justify-between">
-				<h1 className="text-xl font-semibold mr-auto">{header}</h1>
+			<div className="flex items-center justify-between gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<h1 className="mr-auto text-xl font-semibold">{header}</h1>
 				<CSVDownloadButton onClick={downloadCSV} />
 			</div>
 

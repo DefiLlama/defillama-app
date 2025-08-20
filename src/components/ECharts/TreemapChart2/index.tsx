@@ -221,5 +221,5 @@ export default function TreemapChart({ chartData }: IChartProps) {
 		}
 	}, [id, chartDataTree, createInstance, isDark])
 
-	return <div id={id} className="min-h-[533px] my-auto" />
+	return <div id={id} className="my-auto min-h-[533px]" />
 }

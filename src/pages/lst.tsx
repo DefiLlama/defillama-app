@@ -75,7 +75,7 @@ const PageView = ({
 
 	return (
 		<>
-			<h1 className="text-xl font-semibold flex items-center justify-between gap-4 flex-wrap bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
+			<h1 className="flex flex-wrap items-center justify-between gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
 				<span>Total Value Locked ETH LSTs</span>
 				<span className="font-jetbrains">{`${formattedNum(stakedEthSum)} ETH (${formattedNum(
 					stakedEthInUsdSum,
@@ -83,17 +83,17 @@ const PageView = ({
 				)})`}</span>
 			</h1>
 
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md w-full flex flex-col">
+			<div className="flex w-full flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap overflow-x-auto border-y border-(--form-control-border)">
 					<button
-						className="py-2 px-6 whitespace-nowrap border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						className="border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary)"
 						onClick={() => setTab('breakdown')}
 						data-selected={tab === 'breakdown'}
 					>
 						Breakdown
 					</button>
 					<button
-						className="py-2 px-6 whitespace-nowrap border-l border-(--form-control-border) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						className="border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary)"
 						onClick={() => setTab('inflows')}
 						data-selected={tab === 'inflows'}
 					>
@@ -101,9 +101,9 @@ const PageView = ({
 					</button>
 				</div>
 
-				<div className="flex flex-col items-center gap-4 min-h-[408px] w-full">
+				<div className="flex min-h-[408px] w-full flex-col items-center gap-4">
 					{tab === 'breakdown' ? (
-						<div className="w-full grid grid-cols-1 xl:grid-cols-2 *:col-span-1 pt-12 xl:*:*:[&[role='combobox']]:-mt-9!">
+						<div className="grid w-full grid-cols-1 pt-12 *:col-span-1 xl:grid-cols-2 xl:*:*:[&[role='combobox']]:-mt-9!">
 							<React.Suspense fallback={<></>}>
 								<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
 							</React.Suspense>
@@ -122,11 +122,11 @@ const PageView = ({
 							</React.Suspense>
 						</div>
 					) : (
-						<div className="flex flex-col w-full gap-1">
-							<div className="text-xs font-medium m-3 ml-auto flex items-center rounded-md overflow-x-auto flex-nowrap border border-(--form-control-border) text-(--text-form)">
+						<div className="flex w-full flex-col gap-1">
+							<div className="m-3 ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 								<button
 									data-active={groupBy === 'daily'}
-									className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									onClick={() => setGroupBy('daily')}
 								>
 									Daily
@@ -134,7 +134,7 @@ const PageView = ({
 
 								<button
 									data-active={groupBy === 'weekly'}
-									className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									onClick={() => setGroupBy('weekly')}
 								>
 									Weekly
@@ -142,7 +142,7 @@ const PageView = ({
 
 								<button
 									data-active={groupBy === 'monthly'}
-									className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									onClick={() => setGroupBy('monthly')}
 								>
 									Monthly
@@ -150,7 +150,7 @@ const PageView = ({
 
 								<button
 									data-active={groupBy === 'cumulative'}
-									className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									onClick={() => setGroupBy('cumulative')}
 								>
 									Cumulative

@@ -92,13 +92,13 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 
 	if (dashboardId === 'new' && !isAuthenticated) {
 		return (
-			<div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
-				<div className="max-w-md text-center space-y-6">
-					<h1 className="text-3xl font-bold pro-text1">Sign In Required</h1>
-					<p className="text-lg pro-text2">Please sign in to create a new dashboard</p>
+			<div className="flex min-h-[50vh] flex-col items-center justify-center p-4">
+				<div className="max-w-md space-y-6 text-center">
+					<h1 className="pro-text1 text-3xl font-bold">Sign In Required</h1>
+					<p className="pro-text2 text-lg">Please sign in to create a new dashboard</p>
 					<button
 						onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
-						className="px-6 py-3 bg-(--primary) hover:bg-(--primary-hover) text-white font-medium transition-colors rounded-md"
+						className="rounded-md bg-(--primary) px-6 py-3 font-medium text-white transition-colors hover:bg-(--primary-hover)"
 					>
 						Sign In
 					</button>
@@ -113,13 +113,13 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 
 	if (!isAuthenticated) {
 		return (
-			<div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
-				<div className="max-w-md text-center space-y-6">
-					<h1 className="text-3xl font-bold pro-text1">Sign In Required</h1>
-					<p className="text-lg pro-text2">Please sign in to view this dashboard</p>
+			<div className="flex min-h-[50vh] flex-col items-center justify-center p-4">
+				<div className="max-w-md space-y-6 text-center">
+					<h1 className="pro-text1 text-3xl font-bold">Sign In Required</h1>
+					<p className="pro-text2 text-lg">Please sign in to view this dashboard</p>
 					<button
 						onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
-						className="px-6 py-3 bg-(--primary) hover:bg-(--primary-hover) text-white font-medium transition-colors rounded-md"
+						className="rounded-md bg-(--primary) px-6 py-3 font-medium text-white transition-colors hover:bg-(--primary-hover)"
 					>
 						Sign In
 					</button>
@@ -130,40 +130,40 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 
 	if (subscription?.status !== 'active' && dashboardVisibility !== 'public') {
 		return (
-			<div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-				<div className="max-w-2xl w-full bg-(--bg-glass) bg-opacity-30 backdrop-blur-xl border border-white/20 rounded-lg p-8 md:p-12 shadow-lg">
-					<div className="text-center space-y-6">
-						<h1 className="text-3xl font-bold pro-text1">Pro Dashboard Access</h1>
-						<p className="text-lg pro-text2">Subscribe to Pro to access this dashboard and unlock advanced features</p>
+			<div className="flex min-h-[60vh] flex-col items-center justify-center p-4">
+				<div className="bg-opacity-30 w-full max-w-2xl rounded-lg border border-white/20 bg-(--bg-glass) p-8 shadow-lg backdrop-blur-xl md:p-12">
+					<div className="space-y-6 text-center">
+						<h1 className="pro-text1 text-3xl font-bold">Pro Dashboard Access</h1>
+						<p className="pro-text2 text-lg">Subscribe to Pro to access this dashboard and unlock advanced features</p>
 
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-8 py-4">
-							<div className="flex items-center gap-2 text-sm pro-text2">
-								<Icon name="bar-chart-2" height={16} width={16} className="text-(--primary) shrink-0" />
+						<div className="my-8 grid grid-cols-2 gap-4 py-4 md:grid-cols-4">
+							<div className="pro-text2 flex items-center gap-2 text-sm">
+								<Icon name="bar-chart-2" height={16} width={16} className="shrink-0 text-(--primary)" />
 								<span>Customizable Charts</span>
 							</div>
-							<div className="flex items-center gap-2 text-sm pro-text2">
-								<Icon name="activity" height={16} width={16} className="text-(--primary) shrink-0" />
+							<div className="pro-text2 flex items-center gap-2 text-sm">
+								<Icon name="activity" height={16} width={16} className="shrink-0 text-(--primary)" />
 								<span>Multiple Dashboards</span>
 							</div>
-							<div className="flex items-center gap-2 text-sm pro-text2">
-								<Icon name="percent" height={16} width={16} className="text-(--primary) shrink-0" />
+							<div className="pro-text2 flex items-center gap-2 text-sm">
+								<Icon name="percent" height={16} width={16} className="shrink-0 text-(--primary)" />
 								<span>Advanced Analytics</span>
 							</div>
-							<div className="flex items-center gap-2 text-sm pro-text2">
-								<Icon name="layers" height={16} width={16} className="text-(--primary) shrink-0" />
+							<div className="pro-text2 flex items-center gap-2 text-sm">
+								<Icon name="layers" height={16} width={16} className="shrink-0 text-(--primary)" />
 								<span>Multi-Charts</span>
 							</div>
 						</div>
 
-						<div className="text-3xl font-bold pro-text1">
-							$49<span className="text-lg font-normal pro-text2">/month</span>
-							<div className="text-sm pro-text2 font-normal">Pro subscription</div>
+						<div className="pro-text1 text-3xl font-bold">
+							$49<span className="pro-text2 text-lg font-normal">/month</span>
+							<div className="pro-text2 text-sm font-normal">Pro subscription</div>
 						</div>
 
-						<div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+						<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
 							<button
 								onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
-								className="px-8 py-3 bg-(--primary) hover:bg-(--primary-hover) text-white font-medium transition-colors inline-flex items-center gap-2 rounded-md"
+								className="inline-flex items-center gap-2 rounded-md bg-(--primary) px-8 py-3 font-medium text-white transition-colors hover:bg-(--primary-hover)"
 							>
 								<Icon name="arrow-right" height={16} width={16} />
 								Subscribe Now

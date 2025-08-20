@@ -33,7 +33,7 @@ export function NFTCollectionContainer() {
 	if (fetchingData) {
 		return (
 			<Layout title={'NFT Collection - DefiLlama'}>
-				<div className="flex items-center justify-center m-auto min-h-[360px]">
+				<div className="m-auto flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
 				</div>
 			</Layout>
@@ -47,8 +47,8 @@ export function NFTCollectionContainer() {
 
 	return (
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex items-center gap-2 text-xl">
 						<TokenLogo logo={data[0].image} fallbackLogo={data?.[0]?.image} size={48} />
 						<FormattedName text={name} fontWeight={700} />
@@ -56,35 +56,35 @@ export function NFTCollectionContainer() {
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Floor Price</span>
-						<span className="font-jetbrains font-semibold text-2xl">
+						<span className="font-jetbrains text-2xl font-semibold">
 							{floorPrice ? floorPrice.toFixed(2) + ' ETH' : ''}
 						</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">24h Volume</span>
-						<span className="font-jetbrains font-semibold text-2xl">
+						<span className="font-jetbrains text-2xl font-semibold">
 							{volume24h ? volume24h.toFixed(2) + ' ETH' : ''}
 						</span>
 					</p>
 
 					<p className="flex flex-col gap-1 text-base">
 						<span className="text-(--text-label)">Total Supply</span>
-						<span className="font-jetbrains font-semibold text-2xl">{data?.[0]?.totalSupply}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{data?.[0]?.totalSupply}</span>
 					</p>
 
 					<a
 						href={`https://etherscan.io/token/${address.split(':')[0]}`}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="flex items-center gap-1 justify-center py-1 px-2 whitespace-nowrap text-xs rounded-md text-(--link-text) bg-(--link-bg) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) mt-auto mr-auto"
+						className="mt-auto mr-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-1 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					>
 						<span>View on Etherscan</span> <Icon name="arrow-up-right" height={14} width={14} />
 					</a>
 				</div>
 
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md col-span-2 min-h-[392px]">
-					<div className="flex items-center justify-end p-3 pb-0 w-full">
+				<div className="col-span-2 min-h-[392px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex w-full items-center justify-end p-3 pb-0">
 						<Switch
 							label="Include Outliers"
 							value="showMcapChart"
@@ -111,12 +111,12 @@ export function NFTCollectionContainer() {
 			</div>
 
 			<div className="grid grid-cols-2 gap-1">
-				<LazyChart className="bg-(--cards-bg) pt-3 rounded-md relative col-span-full min-h-[372px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
 					</React.Suspense>
 				</LazyChart>
-				<LazyChart className="bg-(--cards-bg) pt-3 rounded-md relative col-span-full min-h-[372px] flex flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
 						<OrderbookChart chartData={orderbook} />
 					</React.Suspense>

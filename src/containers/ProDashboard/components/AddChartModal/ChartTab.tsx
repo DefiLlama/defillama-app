@@ -46,11 +46,11 @@ export function ChartTab({
 	const chainChartTypes = getChainChartTypes()
 
 	return (
-		<div className="flex flex-col lg:flex-row gap-4">
-			<div className="flex-1 border pro-border p-3 md:p-4 space-y-3 md:space-y-4 overflow-visible">
+		<div className="flex flex-col gap-4 lg:flex-row">
+			<div className="pro-border flex-1 space-y-3 overflow-visible border p-3 md:space-y-4 md:p-4">
 				<div className="grid grid-cols-2 gap-0">
 					<button
-						className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
+						className={`border px-3 py-2 text-sm font-medium transition-colors duration-200 ${
 							selectedChartTab === 'chain'
 								? 'border-(--primary) bg-(--primary) text-white'
 								: 'pro-border pro-hover-bg pro-text2'
@@ -60,7 +60,7 @@ export function ChartTab({
 						Chain
 					</button>
 					<button
-						className={`px-3 py-2 text-sm font-medium border transition-colors duration-200 ${
+						className={`border px-3 py-2 text-sm font-medium transition-colors duration-200 ${
 							selectedChartTab === 'protocol'
 								? 'border-(--primary) bg-(--primary) text-white'
 								: 'pro-border pro-hover-bg pro-text2'
@@ -106,10 +106,10 @@ export function ChartTab({
 				)}
 			</div>
 
-			<div className="flex-1 border pro-border min-h-[300px] lg:min-h-[400px]">
-				<div className="text-sm font-medium pro-text2 mt-3 ml-3 md:mt-4 md:ml-4">Preview</div>
+			<div className="pro-border min-h-[300px] flex-1 border lg:min-h-[400px]">
+				<div className="pro-text2 mt-3 ml-3 text-sm font-medium md:mt-4 md:ml-4">Preview</div>
 				{showPreview && selectedChartTypes.length > 0 ? (
-					<div className="pro-bg2 p-2 h-[calc(100%-2rem)]">
+					<div className="pro-bg2 h-[calc(100%-2rem)] p-2">
 						<ChartPreviewCarousel
 							selectedChartTypes={selectedChartTypes}
 							chartData={previewChartData}
@@ -121,9 +121,9 @@ export function ChartTab({
 						/>
 					</div>
 				) : (
-					<div className="flex items-center justify-center h-full min-h-[150px] pro-text3 text-center">
+					<div className="pro-text3 flex h-full min-h-[150px] items-center justify-center text-center">
 						<div>
-							<Icon name="bar-chart-2" height={36} width={36} className="mb-1 mx-auto" />
+							<Icon name="bar-chart-2" height={36} width={36} className="mx-auto mb-1" />
 							<div className="text-xs">Select charts to see preview</div>
 						</div>
 					</div>

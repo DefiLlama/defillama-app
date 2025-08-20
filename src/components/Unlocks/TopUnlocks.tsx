@@ -58,9 +58,9 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 	}, [data, period])
 
 	return (
-		<div className={`bg-(--cards-bg) border border-(--cards-border) rounded-md p-1 flex flex-col gap-0.5 ${className}`}>
+		<div className={`flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 ${className}`}>
 			<Tooltip
-				className="text-lg font-semibold mb-1"
+				className="mb-1 text-lg font-semibold"
 				content={`List of top unlocks in the last ${period} ${period === 1 ? 'day' : 'days'}`}
 			>
 				{title}
@@ -72,12 +72,12 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 							<TokenLogo logo={tokenIconUrl(`${unlock.name}`)} />
 							<BasicLink
 								href={`/unlocks/${slug(unlock.name)}`}
-								className="overflow-hidden text-(--bg-2) whitespace-nowrap font-medium text-lg text-ellipsis hover:underline"
+								className="overflow-hidden text-lg font-medium text-ellipsis whitespace-nowrap text-(--bg-2) hover:underline"
 							>
 								{unlock.name} ({unlock.symbol})
 							</BasicLink>
 						</div>
-						<span className="text-blue-400 font-medium text-sm">{formattedNum(unlock.value, true)}</span>
+						<span className="text-sm font-medium text-blue-400">{formattedNum(unlock.value, true)}</span>
 					</div>
 				))}
 			</div>

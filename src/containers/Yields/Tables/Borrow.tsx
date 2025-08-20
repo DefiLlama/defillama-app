@@ -77,7 +77,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			const rewards = row.original.rewards ?? []
 
 			return (
-				<div className="flex items-center justify-end gap-1 w-full">
+				<div className="flex w-full items-center justify-end gap-1">
 					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
 					<IconsRow
 						links={rewards}
@@ -133,7 +133,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			const rewards = row.original.rewards ?? []
 
 			return row.original.apyRewardBorrow > 0 ? (
-				<div className="flex items-center justify-end gap-1 w-full">
+				<div className="flex w-full items-center justify-end gap-1">
 					{lockupsRewards.includes(row.original.project) ? (
 						<QuestionHelper text={earlyExit} />
 					) : row.original.project === '0vix' ? (

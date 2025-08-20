@@ -183,13 +183,13 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	if (isReadOnly) {
 		return (
 			<div className="mt-2">
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
+				<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
 					{chartsWithData.map((item) => (
 						<div
 							key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
 							className={`${getColSpanClass(item.colSpan)}`}
 						>
-							<div className={`pro-glass h-full relative ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
+							<div className={`pro-glass relative h-full ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
 								<div className={item.kind === 'table' ? 'pr-12' : ''}>{renderItemContent(item)}</div>
 							</div>
 						</div>
@@ -203,7 +203,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		<div className="mt-2">
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ gridAutoFlow: 'dense' }}>
+					<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
 						{chartsWithData.map((item) => (
 							<div
 								key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
@@ -211,13 +211,13 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
 									<div
-										className={`pro-glass h-full relative ${item.kind === 'table' ? 'pt-6' : ''} ${
+										className={`pro-glass relative h-full ${item.kind === 'table' ? 'pt-6' : ''} ${
 											item.kind === 'table' ? 'overflow-visible' : 'overflow-hidden'
 										}`}
 									>
 										<div className="absolute top-1 right-1 z-20 flex gap-1">
 											<button
-												className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
+												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
 												onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
 												aria-label={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
 												title={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
@@ -230,7 +230,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											</button>
 											{onEditItem && (
 												<button
-													className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
+													className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
 													onClick={() => onEditItem(item)}
 													aria-label="Edit item"
 													title="Edit item"
@@ -239,7 +239,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 												</button>
 											)}
 											<button
-												className="p-1.5 text-sm pro-hover-bg pro-text1 transition-colors pro-bg1 dark:bg-[#070e0f]"
+												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
 												onClick={() => handleDeleteClick(item.id)}
 												aria-label="Remove item"
 											>
@@ -253,7 +253,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						))}
 						<div
 							onClick={onAddChartClick}
-							className="flex flex-col items-center justify-center border min-h-[340px] border-dashed pro-border cursor-pointer pro-bg7 hover:pro-bg2 transition-colors"
+							className="pro-border pro-bg7 hover:pro-bg2 flex min-h-[340px] cursor-pointer flex-col items-center justify-center border border-dashed transition-colors"
 						>
 							<svg
 								width="40"
@@ -264,12 +264,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								strokeWidth="2"
 								strokeLinecap="round"
 								strokeLinejoin="round"
-								className="text-(--primary) mb-2"
+								className="mb-2 text-(--primary)"
 							>
 								<line x1="12" y1="5" x2="12" y2="19"></line>
 								<line x1="5" y1="12" x2="19" y2="12"></line>
 							</svg>
-							<span className="text-(--primary) font-medium text-lg">Add Item</span>
+							<span className="text-lg font-medium text-(--primary)">Add Item</span>
 						</div>
 					</div>
 				</SortableContext>

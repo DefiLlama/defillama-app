@@ -60,7 +60,7 @@ export const AccountInfo = () => {
 
 	if (loaders.userLoading || loaders.userFetching) {
 		return (
-			<div className="flex justify-center items-center h-[40vh]">
+			<div className="flex h-[40vh] items-center justify-center">
 				<LocalLoader />
 			</div>
 		)
@@ -68,32 +68,32 @@ export const AccountInfo = () => {
 
 	if (!isAuthenticated || !user) {
 		return (
-			<div className="bg-[#1a1b1f] backdrop-filter backdrop-blur-md rounded-2xl border border-[#39393E]/40 p-10 shadow-xl relative overflow-hidden group transition-all duration-300 hover:shadow-[0_8px_30px_rgba(92,92,249,0.15)]">
-				<div className="absolute -inset-1 blur-[80px] bg-linear-to-r from-[#5C5EFC]/10 to-[#462A92]/10 opacity-70 -z-10 group-hover:opacity-100 transition-opacity"></div>
-				<div className="w-16 h-16 bg-linear-to-br from-[#2a2b30] to-[#222429] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg transform group-hover:scale-110 transition-all duration-300">
+			<div className="group relative overflow-hidden rounded-2xl border border-[#39393E]/40 bg-[#1a1b1f] p-10 shadow-xl backdrop-blur-md backdrop-filter transition-all duration-300 hover:shadow-[0_8px_30px_rgba(92,92,249,0.15)]">
+				<div className="absolute -inset-1 -z-10 bg-linear-to-r from-[#5C5EFC]/10 to-[#462A92]/10 opacity-70 blur-[80px] transition-opacity group-hover:opacity-100"></div>
+				<div className="mx-auto mb-6 flex h-16 w-16 transform items-center justify-center rounded-full bg-linear-to-br from-[#2a2b30] to-[#222429] shadow-lg transition-all duration-300 group-hover:scale-110">
 					<Icon
 						name="users"
 						height={28}
 						width={28}
-						className="text-[#5C5CF9] group-hover:text-[#6A6AFA] transition-colors"
+						className="text-[#5C5CF9] transition-colors group-hover:text-[#6A6AFA]"
 					/>
 				</div>
-				<h2 className="text-xl font-bold mb-4 bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-transparent">
+				<h2 className="mb-4 bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-xl font-bold text-transparent">
 					Account Access Required
 				</h2>
-				<p className="text-[#b4b7bc] mb-6 max-w-md mx-auto">
+				<p className="mx-auto mb-6 max-w-md text-[#b4b7bc]">
 					Please sign in to view and manage your account information and subscription details.
 				</p>
 				<button
 					onClick={() => (window.location.href = '/subscribe')}
-					className="relative px-6 py-3 bg-linear-to-r from-[#5C5CF9] to-[#4335A8] hover:from-[#4A4AF0] hover:to-[#3925A0] text-white rounded-lg transition-all duration-300 shadow-[0_4px_20px_rgba(92,92,249,0.25)] flex items-center gap-2 mx-auto overflow-hidden group"
+					className="group relative mx-auto flex items-center gap-2 overflow-hidden rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#4335A8] px-6 py-3 text-white shadow-[0_4px_20px_rgba(92,92,249,0.25)] transition-all duration-300 hover:from-[#4A4AF0] hover:to-[#3925A0]"
 				>
-					<div className="absolute inset-0 w-full h-full bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[250%_250%] animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity"></div>
+					<div className="animate-shimmer absolute inset-0 h-full w-full bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[250%_250%] opacity-0 transition-opacity group-hover:opacity-100"></div>
 					<Icon
 						name="arrow-right"
 						height={18}
 						width={18}
-						className="transform group-hover:translate-x-1 transition-transform"
+						className="transform transition-transform group-hover:translate-x-1"
 					/>
 					<span>Sign In Now</span>
 				</button>
@@ -102,7 +102,7 @@ export const AccountInfo = () => {
 	}
 
 	return (
-		<div className="relative before:content-[''] before:absolute before:inset-x-0 before:top-0 before:h-48 before:bg-linear-to-b before:from-[#5C5EFC]/10 before:via-[#462A92]/5 before:to-transparent before:-z-10">
+		<div className="relative before:absolute before:inset-x-0 before:top-0 before:-z-10 before:h-48 before:bg-linear-to-b before:from-[#5C5EFC]/10 before:via-[#462A92]/5 before:to-transparent before:content-['']">
 			<AccountHeader
 				isSubscribed={isSubscribed}
 				onLogout={handleLogout}
@@ -110,15 +110,15 @@ export const AccountInfo = () => {
 				subscription={subscription}
 			/>
 			{isLegacyApiSubscription && (
-				<div className="flex items-center gap-3 bg-linear-to-r from-yellow-400/10 to-yellow-900/30 border border-yellow-500 text-yellow-100 rounded-xl px-6 py-4 w-full shadow-xs mb-4">
-					<Icon name="alert-triangle" className="text-yellow-400 shrink-0" height={24} width={24} />
+				<div className="mb-4 flex w-full items-center gap-3 rounded-xl border border-yellow-500 bg-linear-to-r from-yellow-400/10 to-yellow-900/30 px-6 py-4 text-yellow-100 shadow-xs">
+					<Icon name="alert-triangle" className="shrink-0 text-yellow-400" height={24} width={24} />
 					<span className="text-base font-medium">
 						Your current subscription is a legacy plan. You need to unsubscribe via{' '}
 						<a
 							href="https://subscriptions.llamapay.io/"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="underline text-yellow-300"
+							className="text-yellow-300 underline"
 						>
 							LlamaPay
 						</a>{' '}

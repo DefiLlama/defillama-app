@@ -72,7 +72,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
-						<div className="flex items-center justify-end gap-1 w-full">
+						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<>{formattedPercent(Number(getValue()), true, 400)}</>
 						</div>
@@ -106,7 +106,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
-						<div className="flex items-center justify-end gap-1 w-full">
+						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<Tooltip content={<TooltipContent />}>{formattedPercent(getValue(), true, 700)}</Tooltip>
 						</div>

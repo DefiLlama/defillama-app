@@ -388,10 +388,10 @@ export function AdapterByChain(props: IProps) {
 			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			{props.adapterType !== 'fees' && props.type !== 'Open Interest' ? (
-				<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-					<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-6 p-2 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						{props.chain !== 'All' && (
-							<h1 className="flex items-center flex-nowrap gap-2">
+							<h1 className="flex flex-nowrap items-center gap-2">
 								<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
 								<span className="text-xl font-semibold">{props.chain}</span>
 							</h1>
@@ -401,7 +401,7 @@ export function AdapterByChain(props: IProps) {
 							<p className="flex flex-col">
 								<span className="flex flex-col">
 									<span>{metricName} (24h)</span>
-									<span className="font-semibold text-2xl font-jetbrains min-h-8 overflow-hidden whitespace-nowrap text-ellipsis">
+									<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
 										{formattedNum(props.total24h, true)}
 									</span>
 								</span>
@@ -410,13 +410,13 @@ export function AdapterByChain(props: IProps) {
 
 						<div className="flex flex-col">
 							{props.total30d != null ? (
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<span className="text-(--text-label)">{metricName} (30d)</span>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.total30d, true)}</span>
 								</p>
 							) : null}
 							{props.change_7dover7d != null ? (
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) last:border-none py-1">
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<Tooltip
 										content="Change of last 7d volume over the previous 7d volume"
 										className="text-(--text-label) underline decoration-dotted"
@@ -424,7 +424,7 @@ export function AdapterByChain(props: IProps) {
 										Weekly Change
 									</Tooltip>
 									<span
-										className={`ml-auto font-jetbrains ${
+										className={`font-jetbrains ml-auto ${
 											props.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 										}`}
 									>
@@ -443,14 +443,14 @@ export function AdapterByChain(props: IProps) {
 					/>
 				</div>
 			) : null}
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md">
-				<div className="flex items-center justify-end flex-wrap gap-4 p-2">
-					<div className="relative w-full sm:max-w-[280px] mr-auto">
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
+					<div className="relative mr-auto w-full sm:max-w-[280px]">
 						<Icon
 							name="search"
 							height={16}
 							width={16}
-							className="absolute text-(--text-tertiary) top-0 bottom-0 my-auto left-2"
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
 							value={projectName}
@@ -458,7 +458,7 @@ export function AdapterByChain(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="border border-(--form-control-border) w-full p-1 pl-7 bg-white dark:bg-black text-black dark:text-white rounded-md text-sm"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 					<SelectWithCombobox
@@ -496,7 +496,7 @@ export function AdapterByChain(props: IProps) {
 					<FullOldViewButton type={props.type} />
 					<CSVDownloadButton
 						onClick={downloadCsv}
-						className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 
@@ -614,7 +614,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 				: protocolChartsKeys[type]
 
 			return (
-				<span className={`flex items-center gap-2 relative ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
+				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-[18px]"
@@ -642,10 +642,10 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
-					<span className="flex flex-col -my-2">
+					<span className="-my-2 flex flex-col">
 						<BasicLink
 							href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
-							className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
 							{value}
 						</BasicLink>
@@ -691,7 +691,7 @@ const getColumnsByType = (
 				accessorFn: (protocol) => protocol.methodology ?? null,
 				cell: ({ getValue }) => (
 					<Tooltip content={getValue() as string} className="flex-1">
-						<span className="overflow-hidden text-ellipsis whitespace-normal line-clamp-2 min-w-0">
+						<span className="line-clamp-2 min-w-0 overflow-hidden text-ellipsis whitespace-normal">
 							{getValue() as string}
 						</span>
 					</Tooltip>
@@ -766,7 +766,7 @@ const getColumnsByType = (
 				accessorFn: (protocol) => protocol.methodology ?? null,
 				cell: ({ getValue }) => (
 					<Tooltip content={getValue() as string} className="flex-1">
-						<span className="overflow-hidden text-ellipsis whitespace-normal line-clamp-2 min-w-0">
+						<span className="line-clamp-2 min-w-0 overflow-hidden text-ellipsis whitespace-normal">
 							{getValue() as string}
 						</span>
 					</Tooltip>
@@ -840,7 +840,7 @@ const getColumnsByType = (
 				accessorFn: (protocol) => protocol.methodology ?? null,
 				cell: ({ getValue }) => (
 					<Tooltip content={getValue() as string} className="flex-1">
-						<span className="overflow-hidden text-ellipsis whitespace-normal line-clamp-2 min-w-0">
+						<span className="line-clamp-2 min-w-0 overflow-hidden text-ellipsis whitespace-normal">
 							{getValue() as string}
 						</span>
 					</Tooltip>

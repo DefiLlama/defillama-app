@@ -52,19 +52,19 @@ export default function Protocols({ protocols }) {
 					})
 				}}
 			>
-				<span className="w-full max-w-3xl mx-auto relative">
+				<span className="relative mx-auto w-full max-w-3xl">
 					<Ariakit.Combobox
 						placeholder="Search..."
 						autoSelect
 						autoFocus
-						className="p-3 pl-9 my-8 w-full rounded-t-md text-base bg-white text-black dark:bg-black dark:text-white border border-[#ececec] dark:border-[#2d2f36]"
+						className="my-8 w-full rounded-t-md border border-[#ececec] bg-white p-3 pl-9 text-base text-black dark:border-[#2d2f36] dark:bg-black dark:text-white"
 					/>
-					<Icon name="search" height={18} width={18} className="absolute top-[14px] mt-8 left-3" />
+					<Icon name="search" height={18} width={18} className="absolute top-[14px] left-3 mt-8" />
 				</span>
 				<Ariakit.ComboboxPopover
 					sameWidth
 					open={true}
-					className="h-full max-h-[320px] overflow-y-auto bg-(--bg-main) border border-[hsl(204,20%,88%)] dark:border-[hsl(204,3%,32%)] rounded-b-md shadow-sm z-10"
+					className="z-10 h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
 				>
 					{matches.length ? (
 						<>
@@ -80,7 +80,7 @@ export default function Protocols({ protocols }) {
 									focusOnHover
 									hideOnClick={false}
 									setValueOnClick={false}
-									className="p-3 flex items-center gap-4 text-(--text-primary) cursor-pointer hover:bg-(--bg-secondary) aria-selected:bg-(--bg-secondary) aria-disabled:opacity-50 aria-disabled:bg-(--bg-secondary)"
+									className="flex cursor-pointer items-center gap-4 p-3 text-(--text-primary) hover:bg-(--bg-secondary) aria-disabled:bg-(--bg-secondary) aria-disabled:opacity-50 aria-selected:bg-(--bg-secondary)"
 								>
 									{option.logo ? <TokenLogo logo={option.logo} /> : null}
 									<span>{option.name}</span>
@@ -89,7 +89,7 @@ export default function Protocols({ protocols }) {
 
 							{matches.length > viewableMatches ? (
 								<button
-									className="text-left w-full pt-4 px-4 pb-7 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+									className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
 									onClick={() => setViewableMatches((prev) => prev + 20)}
 								>
 									See more...
@@ -97,7 +97,7 @@ export default function Protocols({ protocols }) {
 							) : null}
 						</>
 					) : (
-						<p className="text-(--text-primary) py-6 px-3 text-center">No results found</p>
+						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 					)}
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>

@@ -129,11 +129,11 @@ function PeggedChainsOverview({
 		<>
 			<Metrics currentMetric="Stablecoin Supply" isChains={true} />
 
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col gap-3 p-5 col-span-2 w-full xl:col-span-1 overflow-x-auto">
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Stablecoins Market Cap</span>
-						<span className="font-semibold text-2xl font-jetbrains">{mcapToDisplay}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{mcapToDisplay}</span>
 					</p>
 
 					<details className="group text-base">
@@ -142,38 +142,38 @@ function PeggedChainsOverview({
 								name="chevron-right"
 								height={20}
 								width={20}
-								className="-ml-5 -mb-5 group-open:rotate-90 transition-transform duration-100"
+								className="-mb-5 -ml-5 transition-transform duration-100 group-open:rotate-90"
 							/>
-							<span className="flex flex-col w-full">
+							<span className="flex w-full flex-col">
 								<span className="text-(--text-label)">Change (7d)</span>
 
-								<span className="flex items-end justify-between flex-nowrap gap-1">
-									<span className="font-semibold text-2xl font-jetbrains">{change7d_nol}</span>
+								<span className="flex flex-nowrap items-end justify-between gap-1">
+									<span className="font-jetbrains text-2xl font-semibold">{change7d_nol}</span>
 									<span
 										className={`${
 											change7d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
-										} font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis`}
+										} font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap`}
 									>{`${change7d}%`}</span>
 								</span>
 							</span>
 						</summary>
 
-						<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
+						<p className="mt-3 flex flex-wrap items-center justify-between gap-2">
 							<span className="text-(--text-label)">Change (1d)</span>
 							<Tooltip
 								content={change1d_nol}
-								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
+								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
 									change1d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 								}`}
 							>
 								{`${change1d}%`}
 							</Tooltip>
 						</p>
-						<p className="flex items-center flex-wrap justify-between gap-2 mt-3">
+						<p className="mt-3 flex flex-wrap items-center justify-between gap-2">
 							<span className="text-(--text-label)">Change (30d)</span>
 							<Tooltip
 								content={change30d_nol}
-								className={`font-jetbrains overflow-hidden whitespace-nowrap text-ellipsis underline decoration-dotted ${
+								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
 									change30d.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 								}`}
 							>
@@ -184,12 +184,12 @@ function PeggedChainsOverview({
 
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">{topChain.name} Dominance</span>
-						<span className="font-semibold text-2xl font-jetbrains">{dominance}%</span>
+						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 
 					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
 				</div>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 min-h-[406px]">
+				<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 					{chartType === 'Total Market Cap' && (
 						<React.Suspense fallback={<></>}>
@@ -237,8 +237,8 @@ function PeggedChainsOverview({
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-1 bg-(--cards-bg) border border-(--cards-border) rounded-md p-3">
-				<h2 className="font-semibold text-sm">Filters</h2>
+			<div className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<h2 className="text-sm font-semibold">Filters</h2>
 				<GroupStablecoins label="Filters" />
 			</div>
 

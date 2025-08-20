@@ -64,7 +64,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
-						<div className="w-full flex items-center justify-end gap-1">
+						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<Tooltip content={<TooltipContent />}>
 								<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>

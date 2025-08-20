@@ -30,8 +30,8 @@ export const getStaticProps = withPerformanceLogging('about', async () => {
 function AboutPage(props: any) {
 	return (
 		<Layout title="About - DeFiLlama" defaultSEO>
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h1 className="font-semibold text-lg">About DeFiLlama</h1>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h1 className="text-lg font-semibold">About DeFiLlama</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
@@ -57,12 +57,12 @@ function AboutPage(props: any) {
 				<p>Our focus is on accurate data and transparent methodology.</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">Stats</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">Stats</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div>
 					<p>We track:</p>
-					<ul className="list-disc list-inside">
+					<ul className="list-inside list-disc">
 						<li>{props.protocols} protocols</li>
 						<li>{props.chains} chains</li>
 						<li>{props.pools} pools</li>
@@ -72,8 +72,8 @@ function AboutPage(props: any) {
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">Contact</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">Contact</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
@@ -135,8 +135,8 @@ function AboutPage(props: any) {
 				</p>
 			</div>
 
-			<div className="flex flex-col gap-4 bg-(--cards-bg) p-3 rounded-md">
-				<h2 className="font-semibold text-lg">Acknowledgements</h2>
+			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+				<h2 className="text-lg font-semibold">Acknowledgements</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					Thanks to{' '}

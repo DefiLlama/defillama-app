@@ -15,13 +15,13 @@ export const optionsDatasetColumns: ColumnDef<any>[] = [
 						<img
 							src={row.original.logo}
 							alt={row.original.name}
-							className="w-7 h-7 rounded-full object-cover"
+							className="h-7 w-7 rounded-full object-cover"
 							onError={(e) => {
 								e.currentTarget.style.display = 'none'
 							}}
 						/>
 					)}
-					<span className="font-medium pro-text1">{row.original.name}</span>
+					<span className="pro-text1 font-medium">{row.original.name}</span>
 				</div>
 			)
 		}

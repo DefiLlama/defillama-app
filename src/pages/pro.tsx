@@ -89,8 +89,8 @@ function AuthenticatedProContent({
 	}
 
 	return (
-		<div className="p-6 pro-dashboard">
-			<div className="flex items-center justify-between mb-6">
+		<div className="pro-dashboard p-6">
+			<div className="mb-6 flex items-center justify-between">
 				<h1 className="text-2xl font-bold text-(--text-primary)">Pro Dashboard</h1>
 			</div>
 
@@ -100,29 +100,29 @@ function AuthenticatedProContent({
 						{hasActiveSubscription && (
 							<button
 								onClick={() => setActiveTab('my-dashboards')}
-								className={`pb-3 text-base font-medium transition-colors relative ${
+								className={`relative pb-3 text-base font-medium transition-colors ${
 									activeTab === 'my-dashboards' ? 'pro-text1' : 'pro-text3 hover:pro-text1'
 								}`}
 							>
 								My Dashboards
 								{activeTab === 'my-dashboards' && (
-									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--primary)" />
+									<div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />
 								)}
 							</button>
 						)}
 						<button
 							onClick={() => setActiveTab('discover')}
-							className={`pb-3 text-base font-medium transition-colors relative ${
+							className={`relative pb-3 text-base font-medium transition-colors ${
 								activeTab === 'discover' ? 'pro-text1' : 'pro-text3 hover:pro-text1'
 							}`}
 						>
 							Discover
-							{activeTab === 'discover' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--primary)" />}
+							{activeTab === 'discover' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
 						</button>
 					</div>
 					<button
 						onClick={hasActiveSubscription ? createNewDashboard : () => setShowSubscribeModal(true)}
-						className="px-4 py-2 bg-(--primary) text-white flex items-center gap-2 hover:bg-(--primary-hover) text-sm"
+						className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover)"
 					>
 						<Icon name="plus" height={16} width={16} />
 						Create New Dashboard

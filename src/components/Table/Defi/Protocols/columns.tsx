@@ -36,7 +36,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 			return (
 				<span
-					className="flex items-center gap-2 relative"
+					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					{row.subRows?.length > 0 ? (
@@ -66,16 +66,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<span className="flex flex-col -my-2">
+					<span className="-my-2 flex flex-col">
 						{row.original?.deprecated ? (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
-								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
+								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
 								<Tooltip
 									content="Deprecated"
-									className="bg-red-600 dark:bg-red-400 text-white text-[10px] h-3 w-3 flex items-center justify-center rounded-full"
+									className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
 								>
 									!
 								</Tooltip>
@@ -83,7 +83,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 						) : (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>{`${value}`}</BasicLink>
 						)}
 
@@ -455,7 +455,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 
 			return (
 				<span
-					className="flex items-center gap-2 relative"
+					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					{row.subRows?.length > 0 ? (
@@ -485,21 +485,21 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<span className="flex flex-col -my-2">
+					<span className="-my-2 flex flex-col">
 						{row.original?.deprecated ? (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
-								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
-								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
+								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
+								<span className="overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-red-600 hover:underline dark:text-red-400">
 									Deprecated
 								</span>
 							</BasicLink>
 						) : (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>{`${value}`}</BasicLink>
 						)}
 
@@ -605,7 +605,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 
 			return (
 				<span
-					className="flex items-center gap-2 relative"
+					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					{row.subRows?.length > 0 ? (
@@ -635,21 +635,21 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<span className="flex flex-col -my-2">
+					<span className="-my-2 flex flex-col">
 						{row.original?.deprecated ? (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
-								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
-								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
+								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
+								<span className="overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-red-600 hover:underline dark:text-red-400">
 									Deprecated
 								</span>
 							</BasicLink>
 						) : (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>{`${value}`}</BasicLink>
 						)}
 
@@ -782,21 +782,21 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
-					<span className="flex flex-col -my-2">
+					<span className="-my-2 flex flex-col">
 						{row.original?.deprecated ? (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline flex items-center gap-1"
+								className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
-								<span className="overflow-hidden whitespace-nowrap text-ellipsis hover:underline">{value}</span>
-								<span className="text-red-600 dark:text-red-400 text-xs font-medium overflow-hidden whitespace-nowrap text-ellipsis hover:underline">
+								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
+								<span className="overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-red-600 hover:underline dark:text-red-400">
 									Deprecated
 								</span>
 							</BasicLink>
 						) : (
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
-								className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>{`${value}`}</BasicLink>
 						)}
 
@@ -898,7 +898,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 
 			return (
 				<span
-					className="flex items-center gap-2 relative"
+					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					<Bookmark readableName={value} data-lgonly data-bookmark />
@@ -906,7 +906,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
-						className="text-sm font-medium text-(--link-text) overflow-hidden whitespace-nowrap text-ellipsis hover:underline"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>{`${value}`}</BasicLink>
 				</span>
 			)

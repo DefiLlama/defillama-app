@@ -134,8 +134,8 @@ export function DefiWatchlistContainer({
 					handleProtocolSelection={handleProtocolSelection}
 					selectedPortfolio={selectedPortfolio}
 				/>
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
-					<div className="flex items-center justify-between mb-4">
+				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<div className="mb-4 flex items-center justify-between">
 						<h2 className="text-lg font-medium">Protocols</h2>
 						{selectedProtocolNames.length > 0 && (
 							<span className="text-sm text-(--text-secondary)">
@@ -147,14 +147,14 @@ export function DefiWatchlistContainer({
 						<ProtocolsByChainTable data={filteredProtocols} useStickyHeader={false} />
 					) : (
 						<div className="p-8 text-center">
-							<div className="max-w-sm mx-auto">
+							<div className="mx-auto max-w-sm">
 								<Icon
 									name="bookmark"
 									height={48}
 									width={48}
 									className="mx-auto mb-4 text-(--text-secondary) opacity-50"
 								/>
-								<p className="text-(--text-secondary) mb-2">No protocols in this portfolio</p>
+								<p className="mb-2 text-(--text-secondary)">No protocols in this portfolio</p>
 								<p className="text-sm text-(--text-secondary) opacity-75">
 									Use the protocol selector above to add protocols to your portfolio
 								</p>
@@ -163,9 +163,9 @@ export function DefiWatchlistContainer({
 					)}
 				</div>
 
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
+				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<div className="mb-3">
-						<h2 className="text-lg font-medium mb-1">Manage Chains</h2>
+						<h2 className="mb-1 text-lg font-medium">Manage Chains</h2>
 						<p className="text-sm text-(--text-secondary)">
 							Select or deselect chains for the "{selectedPortfolio}" portfolio
 						</p>
@@ -183,8 +183,8 @@ export function DefiWatchlistContainer({
 					/>
 				</div>
 
-				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
-					<div className="flex items-center justify-between mb-4">
+				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<div className="mb-4 flex items-center justify-between">
 						<h2 className="text-lg font-medium">Chains</h2>
 						{selectedChainNames.length > 0 && (
 							<span className="text-sm text-(--text-secondary)">
@@ -196,9 +196,9 @@ export function DefiWatchlistContainer({
 						<ChainsByCategoryTable data={filteredChains} useStickyHeader={false} borderless />
 					) : (
 						<div className="p-8 text-center">
-							<div className="max-w-sm mx-auto">
+							<div className="mx-auto max-w-sm">
 								<Icon name="map" height={48} width={48} className="mx-auto mb-4 text-(--text-secondary) opacity-50" />
-								<p className="text-(--text-secondary) mb-2">No chains in this portfolio</p>
+								<p className="mb-2 text-(--text-secondary)">No chains in this portfolio</p>
 								<p className="text-sm text-(--text-secondary) opacity-75">
 									Use the chains selector above to add chains
 								</p>
@@ -227,16 +227,16 @@ function PortfolioSelection({
 	removePortfolio
 }: PortfolioSelectionProps) {
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
-			<h1 className="text-xl font-semibold mb-4">Portfolio</h1>
-			<div className="flex items-center flex-wrap gap-4">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<h1 className="mb-4 text-xl font-semibold">Portfolio</h1>
+			<div className="flex flex-wrap items-center gap-4">
 				<span className="text-sm font-medium text-(--text-primary)">Active portfolio:</span>
 				<Menu
 					name={selectedPortfolio.length > 100 ? selectedPortfolio.substring(0, 100) + '...' : selectedPortfolio}
 					key={`${selectedPortfolio}-${portfolios.length}`}
 					options={portfolios}
 					onItemClick={(value) => setSelectedPortfolio(value)}
-					className="flex items-center justify-between gap-2 py-2 px-3 text-sm rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium min-w-[120px]"
+					className="relative flex min-w-[120px] cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm font-medium text-(--text-primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				/>
 				<button
 					onClick={() => {
@@ -245,7 +245,7 @@ function PortfolioSelection({
 							addPortfolio(newPortfolio)
 						}
 					}}
-					className="flex items-center gap-2 py-2 px-3 text-sm rounded-md hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) transition-colors border border-(--form-control-border) text-(--text-primary)"
+					className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					title="Create new portfolio"
 				>
 					<Icon name="folder-plus" height={16} width={16} />
@@ -254,7 +254,7 @@ function PortfolioSelection({
 				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
 					<button
 						onClick={() => removePortfolio(selectedPortfolio)}
-						className="flex items-center gap-2 py-2 px-3 text-sm rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:bg-red-50 dark:focus-visible:bg-red-900/20 transition-colors border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400"
+						className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
 						title="Delete current portfolio"
 					>
 						<Icon name="trash-2" height={16} width={16} />
@@ -280,9 +280,9 @@ function ProtocolSelection({
 	selectedPortfolio
 }: ProtocolSelectionProps) {
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 			<div className="mb-3">
-				<h2 className="text-lg font-medium mb-1">Manage Protocols</h2>
+				<h2 className="mb-1 text-lg font-medium">Manage Protocols</h2>
 				<p className="text-sm text-(--text-secondary)">
 					Select or deselect protocols for the "{selectedPortfolio}" portfolio
 				</p>
@@ -360,31 +360,31 @@ function TopMovers({ protocols }: TopMoversProps) {
 	}, [availableChains])
 
 	return (
-		<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-4">
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 			<div className="mb-4">
-				<h2 className="text-lg font-medium mb-1">Top Movers</h2>
+				<h2 className="mb-1 text-lg font-medium">Top Movers</h2>
 				<p className="text-sm text-(--text-secondary)">Biggest changes in your portfolio</p>
 			</div>
 
 			{/* Filters */}
-			<div className="flex flex-wrap items-center gap-4 mb-4">
+			<div className="mb-4 flex flex-wrap items-center gap-4">
 				<div className="flex items-center gap-2">
 					<span className="text-sm font-medium text-(--text-secondary)">Show:</span>
-					<label className="flex items-center gap-2 cursor-pointer">
+					<label className="flex cursor-pointer items-center gap-2">
 						<input
 							type="checkbox"
 							checked={showPositiveMoves}
 							onChange={(e) => setShowPositiveMoves(e.target.checked)}
-							className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+							className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
 						/>
 						<span className="text-sm text-green-600">Positive moves</span>
 					</label>
-					<label className="flex items-center gap-2 cursor-pointer">
+					<label className="flex cursor-pointer items-center gap-2">
 						<input
 							type="checkbox"
 							checked={showNegativeMoves}
 							onChange={(e) => setShowNegativeMoves(e.target.checked)}
-							className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+							className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
 						/>
 						<span className="text-sm text-red-600">Negative moves</span>
 					</label>
@@ -409,10 +409,10 @@ function TopMovers({ protocols }: TopMoversProps) {
 			</div>
 
 			{/* Top Movers Cards */}
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 				{(['1d', '7d', '1m'] as const).map((period) => (
-					<div key={period} className="bg-(--bg-secondary) rounded-lg p-4">
-						<h3 className="font-medium text-(--text-primary) mb-3 text-center">
+					<div key={period} className="rounded-lg bg-(--bg-secondary) p-4">
+						<h3 className="mb-3 text-center font-medium text-(--text-primary)">
 							{period === '1d' ? '24 Hours' : period === '7d' ? '7 Days' : '30 Days'}
 						</h3>
 
@@ -421,13 +421,13 @@ function TopMovers({ protocols }: TopMoversProps) {
 								{topMovers[period].map((mover, index) => (
 									<div
 										key={mover.name}
-										className="flex items-center justify-between p-2 rounded bg-(--bg-main) hover:bg-(--primary-hover) transition-colors"
+										className="flex items-center justify-between rounded bg-(--bg-main) p-2 transition-colors hover:bg-(--primary-hover)"
 									>
-										<div className="flex items-center gap-2 min-w-0 flex-1">
-											<span className="text-xs text-(--text-secondary) font-medium w-4 shrink-0">#{index + 1}</span>
-											<span className="text-sm font-medium text-(--text-primary) truncate">{mover.name}</span>
+										<div className="flex min-w-0 flex-1 items-center gap-2">
+											<span className="w-4 shrink-0 text-xs font-medium text-(--text-secondary)">#{index + 1}</span>
+											<span className="truncate text-sm font-medium text-(--text-primary)">{mover.name}</span>
 										</div>
-										<div className="flex items-center gap-1 shrink-0 ml-2">
+										<div className="ml-2 flex shrink-0 items-center gap-1">
 											<span className={`text-sm font-medium ${mover.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
 												{mover.change >= 0 ? '+' : ''}
 												{parseFloat(mover.change.toFixed(2))}%
@@ -443,7 +443,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 								))}
 							</div>
 						) : (
-							<div className="text-center py-4">
+							<div className="py-4 text-center">
 								<Icon
 									name="bar-chart"
 									height={24}

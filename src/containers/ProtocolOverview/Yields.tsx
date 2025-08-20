@@ -30,8 +30,8 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 	})
 
 	return (
-		<div className="flex flex-col xl:flex-row gap-1">
-			<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md p-3 flex flex-col gap-4 flex-1">
+		<div className="flex flex-col gap-1 xl:flex-row">
+			<div className="flex flex-1 flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<p className="flex items-center gap-2">
 					<span>Number of pools tracked</span>
 					<span>:</span>

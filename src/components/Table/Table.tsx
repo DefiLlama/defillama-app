@@ -165,15 +165,14 @@ export function VirtualTable({
 										zIndex: isSticky ? 10 : undefined,
 										background: 'var(--cards-bg)'
 									}}
-									className={`p-3 whitespace-nowrap overflow-hidden text-ellipsis border-t border-r last:border-r-0 border-(--divider)
-                    ${
-											compact
-												? 'flex items-center px-5 min-h-[50px] border-t-black/10 dark:border-t-white/10 border-r-transparent'
-												: ''
-										}`}
+									className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap last:border-r-0 ${
+										compact
+											? 'flex min-h-[50px] items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
+											: ''
+									}`}
 								>
 									<span
-										className="flex items-center justify-start data-[align=center]:justify-center data-[align=end]:justify-end flex-nowrap gap-1 relative font-medium *:whitespace-nowrap w-full"
+										className="relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end"
 										data-align={
 											meta?.align ??
 											(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
@@ -235,12 +234,11 @@ export function VirtualTable({
 											key={cell.id}
 											data-ligther={stripedBg && i % 2 === 0}
 											data-chainpage={isChainPage}
-											className={`p-3 whitespace-nowrap overflow-hidden text-ellipsis border-t border-r border-(--divider)
-                        ${
-													compact
-														? 'flex items-center px-5 border-t-black/10 dark:border-t-white/10 border-r-transparent'
-														: ''
-												}`}
+											className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
+												compact
+													? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
+													: ''
+											}`}
 											style={{
 												textAlign,
 												justifyContent: compact

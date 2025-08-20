@@ -11,10 +11,10 @@ export function RaisesFilters(props: IDropdownMenusProps) {
 	const isClient = useIsClient()
 
 	return (
-		<div className="flex flex-col gap-2 p-2 rounded-md bg-(--cards-bg) border border-(--cards-border)">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 			<h1 className="text-lg font-semibold">{props.header}</h1>
 			<RaisesSearch list={props.investors} />
-			<div className="flex flex-wrap gap-2 min-h-9 *:flex-1 sm:hidden">
+			<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
 				{isSmall && isClient ? (
 					<React.Suspense fallback={<></>}>
 						<NestedMenu label="Filters" className="w-full">
@@ -23,7 +23,7 @@ export function RaisesFilters(props: IDropdownMenusProps) {
 					</React.Suspense>
 				) : null}
 			</div>
-			<div className="hidden flex-wrap gap-2 min-h-8 sm:flex">
+			<div className="hidden min-h-8 flex-wrap gap-2 sm:flex">
 				{!isSmall && isClient ? (
 					<React.Suspense fallback={<></>}>
 						<RaisesFilterDropdowns {...props} />
