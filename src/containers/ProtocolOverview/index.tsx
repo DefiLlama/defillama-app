@@ -17,6 +17,7 @@ import { Menu } from '~/components/Menu'
 import { ProtocolChart } from './Chart/ProtocolChart'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
 import { useRouter } from 'next/router'
+import { QuestionHelper } from '~/components/QuestionHelper'
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
@@ -351,7 +352,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 					href={article.href}
 					target="_blank"
 					rel="noreferrer noopener"
-					className="p-2 flex flex-col gap-3 rounded-md bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+					className="p-2 flex flex-col gap-3 rounded-md bg-(--btn2-bg) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 				>
 					{article.imgSrc ? (
 						<img
@@ -1670,13 +1671,17 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 			{props.audits ? (
 				<>
 					<p className="flex items-center gap-1">
-						<span className="shrink-0">Audits:</span>
+						<span className="flex items-center gap-1 flex-nowrap">
+							<span>Audits</span>
+							<QuestionHelper text="Audits are not a security guarantee" />
+							<span>:</span>
+						</span>
 						{props.audits.auditLinks.length > 0 ? (
 							<Menu
 								name="Yes"
 								options={props.audits.auditLinks}
 								isExternal
-								className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+								className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							/>
 						) : (
 							<span>No</span>
@@ -1689,7 +1694,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 				{props.website ? (
 					<a
 						href={props.website}
-						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -1701,7 +1706,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 					? props.github.map((github) => (
 							<a
 								href={`https://github.com/${github}`}
-								className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+								className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 								target="_blank"
 								rel="noopener noreferrer"
 								key={`${props.name}-github-${github}`}
@@ -1714,7 +1719,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 				{props.twitter ? (
 					<a
 						href={`https://twitter.com/${props.twitter}`}
-						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+						className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -1951,7 +1956,7 @@ function Yields(props: IProtocolOverviewPageData) {
 			</div>
 			<BasicLink
 				href={`/yields?project=${props.otherProtocols ? props.otherProtocols.slice(1).join('&project=') : props.name}`}
-				className="text-xs mr-auto py-1 px-2 rounded-full border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center gap-1"
+				className="text-xs mr-auto py-1 px-2 rounded-full border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center gap-1"
 			>
 				<span>View all Yields</span>
 				<Icon name="arrow-right" className="w-4 h-4" />

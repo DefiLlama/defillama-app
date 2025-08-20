@@ -154,11 +154,3 @@ export const allColors = [
 	'#8dd3c7',
 	'#bebada'
 ]
-
-export const defaultProtocolPageStyles = {
-	'--primary-color': oldBlue,
-	'--bg-color': 'rgba(31,103,210,0.4)',
-	'--btn-bg': 'rgba(31,103,210,0.1)',
-	'--btn-hover-bg': 'rgba(31,103,210,0.2)',
-	'--btn-text': '#1851a6'
-} as React.CSSProperties

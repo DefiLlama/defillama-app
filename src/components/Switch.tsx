@@ -1,4 +1,3 @@
-import { oldBlue } from '~/constants/colors'
 import { QuestionHelper } from './QuestionHelper'
 
 export const Switch = ({
@@ -8,8 +7,7 @@ export const Switch = ({
 	value,
 	className,
 	help,
-	isLoading,
-	switchColors
+	isLoading
 }: {
 	label: string
 	checked: boolean
@@ -18,24 +16,9 @@ export const Switch = ({
 	className?: string
 	help?: string
 	isLoading?: boolean
-	switchColors?: {
-		'--primary-color': string
-		'--btn-bg': string
-		'--btn-hover-bg': string
-	}
 }) => {
 	return (
-		<label
-			className={`relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap ${className ?? ''}`}
-			style={
-				switchColors ??
-				({
-					'--primary-color': oldBlue,
-					'--btn-bg': 'rgba(31,103,210,0.25)',
-					'--btn-hover-bg': 'rgba(31,103,210,0.50)'
-				} as any)
-			}
-		>
+		<label className={`relative text-sm cursor-pointer flex items-center gap-1 flex-nowrap ${className ?? ''}`}>
 			<input
 				type="checkbox"
 				value={value}
@@ -45,13 +28,13 @@ export const Switch = ({
 			/>
 			<span
 				className={`border ${
-					checked ? 'border-(--btn-hover-bg) bg-(--btn-bg)' : 'border-(--bg-input) bg-(--bg-input)'
+					checked ? 'border-(--switch-border) bg-(--switch-bg)' : 'border-(--bg-input) bg-(--bg-input)'
 				} rounded p-[2px] h-[18px] w-[34px]`}
 			>
 				{!checked ? (
 					<span className="block h-3 w-3 bg-[#707A7A] rounded-[3px] shrink-0 mr-auto"></span>
 				) : (
-					<span className="block h-3 w-3 bg-(--primary-color) rounded-[3px] shrink-0 ml-auto"></span>
+					<span className="block h-3 w-3 bg-(--old-blue) rounded-[3px] shrink-0 ml-auto"></span>
 				)}
 			</span>
 			{help ? (

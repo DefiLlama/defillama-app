@@ -1,7 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '~/layout'
-import { AuditInfo } from '~/components/AuditInfo'
 import { download, formattedNum, slug } from '~/utils'
 import { LazyChart } from '~/components/LazyChart'
 import {
@@ -19,8 +18,8 @@ import { fetchApi } from '~/utils/async'
 import { Icon } from '~/components/Icon'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
-import { defaultProtocolPageStyles } from '~/containers/ProtocolOverview/Chart/constants'
 import { Menu } from '~/components/Menu'
+import { QuestionHelper } from '~/components/QuestionHelper'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -541,13 +540,17 @@ const PageView = (props) => {
 				{config.audits ? (
 					<>
 						<p className="flex items-center gap-1">
-							<span className="shrink-0">Audits:</span>
+							<span className="flex items-center gap-1 flex-nowrap">
+								<span>Audits</span>
+								<QuestionHelper text="Audits are not a security guarantee" />
+								<span>:</span>
+							</span>
 							{config.audit_links?.length > 0 ? (
 								<Menu
 									name="Yes"
 									options={config.audit_links}
 									isExternal
-									className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+									className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 								/>
 							) : (
 								<span>No</span>
@@ -560,7 +563,7 @@ const PageView = (props) => {
 					{url ? (
 						<a
 							href={url}
-							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 						>
@@ -572,7 +575,7 @@ const PageView = (props) => {
 						? config.github.map((github) => (
 								<a
 									href={`https://github.com/${github}`}
-									className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+									className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 									target="_blank"
 									rel="noopener noreferrer"
 									key={`${config.name}-github-${github}`}
@@ -585,7 +588,7 @@ const PageView = (props) => {
 					{config.twitter ? (
 						<a
 							href={`https://twitter.com/${config.twitter}`}
-							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary-color) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
 						>
@@ -640,7 +643,7 @@ function cleanPool(pool) {
 
 export default function YieldPoolPage(props) {
 	return (
-		<Layout title={`Yields - DefiLlama`} style={defaultProtocolPageStyles} defaultSEO>
+		<Layout title={`Yields - DefiLlama`} defaultSEO>
 			<PageView {...props} />
 		</Layout>
 	)

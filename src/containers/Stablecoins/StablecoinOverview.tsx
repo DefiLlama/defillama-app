@@ -1,9 +1,7 @@
 import * as React from 'react'
-import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { FormattedName } from '~/components/FormattedName'
 import { TokenLogo } from '~/components/TokenLogo'
-import { AuditInfo } from '~/components/AuditInfo'
 import { SEO } from '~/components/SEO'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
@@ -24,7 +22,8 @@ import { Icon } from '~/components/Icon'
 import * as Ariakit from '@ariakit/react'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { Tooltip } from '~/components/Tooltip'
-import { defaultProtocolPageStyles } from '../ProtocolOverview/Chart/constants'
+import { Menu } from '~/components/Menu'
+import { TagGroup } from '~/components/TagGroup'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -40,17 +39,10 @@ const risksHelperTexts = {
 }
 
 export default function PeggedContainer(props) {
-	let {
-		name,
-
-		symbol
-	} = props.peggedAssetData
+	let { name } = props.peggedAssetData
 
 	return (
-		<Layout
-			title={`${name}: Circulating and stats - DefiLlama`}
-			backgroundColor={transparentize(0.6, props.backgroundColor)}
-		>
+		<Layout title={`${name}: Circulating and stats - DefiLlama`}>
 			<SEO
 				stablePage={true}
 				cardName={name}
@@ -86,7 +78,6 @@ export const PeggedAssetInfo = ({
 		url,
 		pegMechanism,
 		twitter,
-		wiki,
 		auditLinks,
 		price
 	} = peggedAssetData
@@ -111,7 +102,7 @@ export const PeggedAssetInfo = ({
 				selectedChain: undefined,
 				totalChartTooltipLabel: totalChartTooltipLabel[0]
 			}),
-		[chainsData, chainsUnique, totalChartTooltipLabel]
+		[chainsData, chainsUnique]
 	)
 
 	const extraPeggeds = [UNRELEASED]
@@ -144,31 +135,22 @@ export const PeggedAssetInfo = ({
 		download('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
-	const tagStyles = React.useMemo(() => {
-		return {
-			'--tag-border-color': transparentize(0.9, backgroundColor),
-			'--tag-bg': backgroundColor,
-			'--tag-hover-bg': transparentize(0.8, backgroundColor),
-			...defaultProtocolPageStyles
-		}
-	}, [backgroundColor])
-
 	return (
 		<>
-			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2" style={tagStyles as any}>
+			<div className="grid grid-cols-2 relative isolate xl:grid-cols-3 gap-2">
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md flex flex-col col-span-2 w-full xl:col-span-1 overflow-x-auto">
 					<Ariakit.TabProvider defaultSelectedId={defaultSelectedId}>
 						<Ariakit.TabList aria-label="Pegged Tabs" className="flex">
 							<Ariakit.Tab
-								className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-md border-(--tag-border-color) hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) aria-selected:border-b-(--tag-bg)"
+								className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tl-md border-(--bg-border) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)"
 								id={defaultSelectedId}
 							>
 								Stats
 							</Ariakit.Tab>
-							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-(--tag-border-color) hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) aria-selected:border-b-(--tag-bg)">
+							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b border-l border-(--bg-border) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)">
 								Info
 							</Ariakit.Tab>
-							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-(--tag-border-color) hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) aria-selected:border-b-(--tag-bg)">
+							<Ariakit.Tab className="py-2 px-6 flex-1 whitespace-nowrap border-b rounded-tr-xl xl:rounded-none border-l border-(--bg-border) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) aria-selected:border-b-(--primary)">
 								Links
 							</Ariakit.Tab>
 						</Ariakit.TabList>
@@ -244,7 +226,11 @@ export const PeggedAssetInfo = ({
 										</tbody>
 									</table>
 								)}
-								<CSVDownloadButton onClick={downloadCsv} className="mr-auto" />
+								<CSVDownloadButton
+									onClick={downloadCsv}
+									smol
+									className="h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)! mr-auto mt-auto"
+								/>
 							</div>
 						</Ariakit.TabPanel>
 
@@ -272,10 +258,23 @@ export const PeggedAssetInfo = ({
 										<span>{mintRedeemDescription}</span>
 									</p>
 								)}
-
-								{pegMechanism === 'fiat-backed' && auditLinks && (
-									<AuditInfo audits={auditLinks.length > 0 ? 2 : 0} auditLinks={auditLinks} color={backgroundColor} />
-								)}
+								<p className="flex items-center gap-1">
+									<span className="flex items-center gap-1 flex-nowrap">
+										<span>Audits</span>
+										<QuestionHelper text="Audits are not a security guarantee" />
+										<span>:</span>
+									</span>
+									{pegMechanism === 'fiat-backed' && auditLinks?.length > 0 ? (
+										<Menu
+											name="Yes"
+											options={auditLinks}
+											isExternal
+											className="flex items-center text-xs gap-1 font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+										/>
+									) : (
+										<span>No</span>
+									)}
+								</p>
 							</div>
 						</Ariakit.TabPanel>
 
@@ -287,7 +286,7 @@ export const PeggedAssetInfo = ({
 											href={blockExplorerLink}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										>
 											<span>View on {blockExplorerName}</span> <Icon name="arrow-up-right" height={14} width={14} />
 										</a>
@@ -300,7 +299,7 @@ export const PeggedAssetInfo = ({
 											href={url}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										>
 											<span>Website</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
@@ -314,7 +313,7 @@ export const PeggedAssetInfo = ({
 											href={twitter}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										>
 											<span>Twitter</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
@@ -328,7 +327,7 @@ export const PeggedAssetInfo = ({
 											href={`https://www.coingecko.com/en/coins/${gecko_id}`}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
+											className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										>
 											<span>CoinGecko</span>
 											<Icon name="arrow-up-right" height={14} width={14} />
@@ -340,7 +339,7 @@ export const PeggedAssetInfo = ({
 									href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center gap-1 text-xs font-medium py-1 px-3 rounded-md bg-(--btn-bg) whitespace-nowrap hover:bg-(--btn-hover-bg)"
+									className="flex items-center gap-1 text-xs font-medium py-1 px-2 rounded-full whitespace-nowrap border border-(--primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 								>
 									<span>Check the code</span>
 									<Icon name="arrow-up-right" height={14} width={14} />
@@ -351,38 +350,15 @@ export const PeggedAssetInfo = ({
 				</div>
 
 				<div className="bg-(--cards-bg) border border-(--cards-border) rounded-md min-h-[416px] flex flex-col col-span-2">
-					<div className="text-xs font-medium flex items-center rounded-md overflow-x-auto flex-nowrap w-fit border border-(--tag-border-color) m-3">
-						<button
-							data-active={chartType === 'Mcap'}
-							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) data-[active=true]:bg-(--tag-hover-bg)"
-							onClick={() => setChartType('Mcap')}
-						>
-							Total Circ
-						</button>
-						<button
-							data-active={chartType === 'Pie'}
-							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) data-[active=true]:bg-(--tag-hover-bg)"
-							onClick={() => setChartType('Pie')}
-						>
-							Pie
-						</button>
-						<button
-							data-active={chartType === 'Dominance'}
-							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) data-[active=true]:bg-(--tag-hover-bg)"
-							onClick={() => setChartType('Dominance')}
-						>
-							Dominance
-						</button>
-						<button
-							data-active={chartType === 'Chain Mcaps'}
-							className="shrink-0 py-2 px-3 whitespace-nowrap hover:bg-(--tag-hover-bg) focus-visible:bg-(--tag-hover-bg) data-[active=true]:bg-(--tag-hover-bg)"
-							onClick={() => setChartType('Chain Mcaps')}
-						>
-							Area
-						</button>
-					</div>
+					<TagGroup
+						setValue={setChartType}
+						selectedValue={chartType}
+						values={['Total Circ', 'Pie', 'Dominance', 'Area']}
+						className="max-sm:w-full m-2"
+						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
+					/>
 
-					{chartType === 'Mcap' && (
+					{chartType === 'Total Circ' && (
 						<React.Suspense fallback={<></>}>
 							<AreaChart
 								title={`Total ${symbol} Circulating`}
@@ -393,7 +369,7 @@ export const PeggedAssetInfo = ({
 							/>
 						</React.Suspense>
 					)}
-					{chartType === 'Chain Mcaps' && (
+					{chartType === 'Area' && (
 						<React.Suspense fallback={<></>}>
 							<AreaChart
 								title=""

@@ -14,23 +14,19 @@ interface ILayoutProps {
 	title: string
 	children: React.ReactNode
 	defaultSEO?: boolean
-	backgroundColor?: string
 	className?: string
 	style?: React.CSSProperties
 	includeInMetricsOptions?: { name: string; key: string }[]
 	includeInMetricsOptionslabel?: string
-	hideDesktopSearch?: boolean
 }
 
 export default function Layout({
 	title,
 	children,
 	defaultSEO = false,
-	backgroundColor,
 	className,
 	includeInMetricsOptions,
 	includeInMetricsOptionslabel,
-	hideDesktopSearch,
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
@@ -49,16 +45,14 @@ export default function Layout({
 					className ?? ''
 				}`}
 			>
-				{hideDesktopSearch ? null : (
-					<span className="hidden lg:flex items-center justify-between gap-2 lg:min-h-8">
-						<React.Suspense fallback={<SearchFallback />}>
-							<GlobalSearch />
-						</React.Suspense>
-						{!includeInMetricsOptions || includeInMetricsOptions.length === 0 ? null : (
-							<IncludeInMetricsOptions options={includeInMetricsOptions} label={includeInMetricsOptionslabel} />
-						)}
-					</span>
-				)}
+				<span className="hidden lg:flex items-center justify-between gap-2 lg:min-h-8">
+					<React.Suspense fallback={<SearchFallback />}>
+						<GlobalSearch />
+					</React.Suspense>
+					{!includeInMetricsOptions || includeInMetricsOptions.length === 0 ? null : (
+						<IncludeInMetricsOptions options={includeInMetricsOptions} label={includeInMetricsOptionslabel} />
+					)}
+				</span>
 				{children}
 			</main>
 			{isClient ? (
