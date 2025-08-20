@@ -38,14 +38,14 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 	const pages = useMemo(() => {
 		if (!deferredSearchValue) return insightsByCategory
 		return matchSorter(insightsByCategory, deferredSearchValue, {
-			keys: ['category', 'insights.*.name', 'insights.*.description'],
+			keys: ['category', 'insights.*.name', 'insights.*.description', 'insights.*.keys'],
 			threshold: matchSorter.rankings.CONTAINS
 		}).map((item) => ({
 			...item,
 			insights: item.insights.filter(
 				(insight) =>
 					matchSorter([insight], deferredSearchValue, {
-						keys: ['name', 'description'],
+						keys: ['name', 'description', 'keys'],
 						threshold: matchSorter.rankings.CONTAINS
 					}).length > 0
 			)
