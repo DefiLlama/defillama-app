@@ -3,7 +3,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 import { Cexs } from '~/containers/Cexs'
 import { fetchJson } from '~/utils/async'
-import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
+import { CEXS_API, COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
 
 interface ICex {
 	name: string
@@ -35,7 +35,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 			}
 		}
 	] = await Promise.all([
-		fetchJson('https://api.llama.fi/cexs'),
+		fetchJson(CEXS_API),
 		fetchJson(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
 			headers: {
 				'x-cg-pro-api-key': process.env.CG_KEY

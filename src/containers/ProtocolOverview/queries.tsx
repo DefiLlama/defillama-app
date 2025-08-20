@@ -3,6 +3,7 @@ import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import {
 	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
+	CEXS_API,
 	HACKS_API,
 	HOURLY_PROTOCOL_API,
 	LIQUIDITY_API,
@@ -253,7 +254,7 @@ export const getProtocolOverviewPageData = async ({
 							fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
 								.then(({ data }) => data)
 								.catch(() => null as any),
-							fetchJson(`https://api.llama.fi/cexs`)
+							fetchJson(CEXS_API)
 								.then((data) => data.cg_volume_cexs)
 								.catch(() => [])
 						])
