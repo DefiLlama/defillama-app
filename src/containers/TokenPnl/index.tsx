@@ -39,7 +39,7 @@ const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
 	)
 }
 
-export default function TokenPnl({ coinsData }) {
+export function TokenPnl({ coinsData }) {
 	const router = useRouter()
 	const now = Math.floor(Date.now() / 1000) - 1000
 
@@ -144,7 +144,7 @@ export default function TokenPnl({ coinsData }) {
 
 	return (
 		<>
-			<div className="mx-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 xl:absolute xl:top-[116px] xl:right-0 xl:left-0 xl:m-auto">
+			<div className="mx-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[132px]">
 				<h1 className="text-center text-xl font-semibold">Token Holder Profit and Loss</h1>
 				<div className="flex w-full flex-col gap-3">
 					<DateInput

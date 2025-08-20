@@ -6,7 +6,14 @@ import { useGetPrice } from './queries'
 import { YieldsOptimizerTable } from './Tables/Optimizer'
 import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 
-const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lendingProtocols, searchData }) => {
+export const BorrowAggregatorAdvanced = ({
+	pools,
+	projectList,
+	chainList,
+	categoryList,
+	lendingProtocols,
+	searchData
+}) => {
 	const { pathname, query } = useRouter()
 	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
@@ -204,5 +211,3 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 		</>
 	)
 }
-
-export default YieldsOptimizerPage

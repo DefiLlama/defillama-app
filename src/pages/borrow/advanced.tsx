@@ -1,6 +1,6 @@
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
-import YieldPageOptimizer from '~/containers/Yields/indexOptimizer'
+import { BorrowAggregatorAdvanced } from '~/containers/Yields/indexOptimizer'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
@@ -38,11 +38,13 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	}
 })
 
+const pageName = ['Borrow Aggregator: Advanced']
+
 export default function YieldBorrow(data) {
 	return (
-		<Layout title={`Lend/Borrow optimizer - DefiLlama Yield`}>
+		<Layout title={`Lend/Borrow optimizer - DefiLlama Yield`} pageName={pageName}>
 			<Announcement>{disclaimer}</Announcement>
-			<YieldPageOptimizer {...data} />
+			<BorrowAggregatorAdvanced {...data} />
 		</Layout>
 	)
 }
