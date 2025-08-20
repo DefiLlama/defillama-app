@@ -3,6 +3,7 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API } from '~/constants'
 import { RecentProtocols } from '~/containers/RecentProtocols'
+import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -29,13 +30,12 @@ export const getStaticProps = withPerformanceLogging('recent', async () => {
 	}
 })
 
+const pageName = ['Recently Listed Protocols']
+
 export default function Protocols(props) {
 	return (
-		<RecentProtocols
-			title="Recently Listed Protocols - DefiLlama"
-			name="Recent"
-			header="Recently Listed Protocols"
-			{...props}
-		/>
+		<Layout title="Recently Listed Protocols - DefiLlama" pageName={pageName}>
+			<RecentProtocols {...props} />
+		</Layout>
 	)
 }

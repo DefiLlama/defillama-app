@@ -28,6 +28,9 @@ export const MultiSelectCombobox = ({
 	}, [data, deferredSearchValue])
 
 	const [viewableMatches, setResultsCount] = useState(10)
+
+	const [open, setOpen] = useState(false)
+
 	return (
 		<Ariakit.ComboboxProvider
 			resetValueOnHide
@@ -38,6 +41,8 @@ export const MultiSelectCombobox = ({
 					setSearchValue(value)
 				})
 			}}
+			open={open}
+			setOpen={setOpen}
 		>
 			<span className="relative flex flex-wrap items-center gap-1 w-full flex-1 border-2 border-transparent rounded-md focus-within:border-2 focus-within:border-(--primary)">
 				{selectedValues.length > 0 ? (
@@ -57,7 +62,11 @@ export const MultiSelectCombobox = ({
 					</div>
 				) : null}
 				<Ariakit.Combobox placeholder={placeholder} className="flex-1 w-full px-3 py-2 outline-none" />
-				<Icon name="chevron-down" className="w-4 h-4 absolute right-2 top-0 bottom-0 my-auto" />
+				{open ? (
+					<Icon name="x" className="w-4 h-4 absolute right-2 top-0 bottom-0 my-auto" />
+				) : (
+					<Icon name="chevron-down" className="w-4 h-4 absolute right-2 top-0 bottom-0 my-auto" />
+				)}
 			</span>
 			<Ariakit.ComboboxPopover
 				unmountOnHide

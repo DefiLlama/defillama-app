@@ -137,7 +137,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		columns: [
 			columnHelper.accessor('tvl', {
 				header: 'TVL',
-				cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
+				cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
@@ -543,7 +543,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'TVL',
 		accessorKey: 'tvl',
-		cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
+		cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -694,7 +694,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 		header: 'TVS',
 		accessorKey: 'tvs',
 		id: 'tvl',
-		cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
+		cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -702,17 +702,6 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 		size: 120
 	}
 ]
-
-export const listedAtColumn = {
-	header: 'Listed At',
-	accessorKey: 'listedAt',
-	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
-	sortUndefined: 'last' as const,
-	size: 140,
-	meta: {
-		align: 'end' as const
-	}
-}
 
 export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
@@ -1095,7 +1084,7 @@ export const columnSizes = {
 	}
 }
 
-const Tvl = ({ value, rowValues }) => {
+export const ProtocolTvlCell = ({ value, rowValues }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	let text = null
@@ -1133,6 +1122,10 @@ const Tvl = ({ value, rowValues }) => {
 		}
 	}
 
+	if (!text && !rowValues.parentExcluded) {
+		return <>{value != null ? formattedNum(value, true) : null}</>
+	}
+
 	return (
 		<span className="flex items-center justify-end gap-1">
 			{text ? <QuestionHelper text={text} /> : null}
@@ -1146,7 +1139,7 @@ const Tvl = ({ value, rowValues }) => {
 					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 				}}
 			>
-				{value || value === 0 ? formattedNum(value || 0, true) : null}
+				{value != null ? formattedNum(value, true) : null}
 			</span>
 		</span>
 	)

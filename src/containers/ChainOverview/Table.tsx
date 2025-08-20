@@ -728,7 +728,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				cell: ({ row }) =>
 					row.original.tvl ? (
 						row.original.strikeTvl || row.original.tvl.excludeParent ? (
-							<Tvl rowValues={row.original} />
+							<ProtocolTvlCell rowValues={row.original} />
 						) : (
 							<>{`$${formattedNum(row.original.tvl?.default?.tvl || 0)}`}</>
 						)
@@ -1304,7 +1304,7 @@ const defaultColumns = JSON.stringify({
 	revenue_24h: true
 })
 
-const Tvl = ({ rowValues }) => {
+export const ProtocolTvlCell = ({ rowValues }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	let text = null

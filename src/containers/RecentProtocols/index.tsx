@@ -3,11 +3,9 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import { ButtonLight } from '~/components/ButtonStyled'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import Layout from '~/layout'
-import { download, getPercentChange } from '~/utils'
+import { getPercentChange } from '~/utils'
 import { airdropsEligibilityCheck } from './airdrops'
 import { RecentlyListedProtocolsTable } from './Table'
 
@@ -22,23 +20,13 @@ function getSelectedChainFilters(chainQueryParam, allChains) {
 }
 
 interface IRecentProtocolProps {
-	title: string
-	name: string
-	header: string
 	protocols: any
 	chainList: string[]
 	forkedList?: { [name: string]: boolean }
 	claimableAirdrops?: Array<{ name: string; page: string; title?: string }>
 }
 
-export function RecentProtocols({
-	title,
-	header,
-	protocols,
-	chainList,
-	forkedList,
-	claimableAirdrops
-}: IRecentProtocolProps) {
+export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolProps) {
 	const router = useRouter()
 	const { chain, hideForks, minTvl, maxTvl, ...queries } = router.query
 
@@ -142,24 +130,6 @@ export function RecentProtocols({
 	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
 
 	const protocolsData = useCalcStakePool2Tvl(data)
-	const downloadCSV = () => {
-		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
-		const csvData = protocolsData.map((row) => {
-			return {
-				Name: row.name,
-				Chains: row.chains.join(', '),
-				TVL: row.tvl,
-				'Change 1d': row.change_1d,
-				'Change 7d': row.change_7d,
-				'Change 1m': row.change_1m,
-				'Listed At': new Date(row.listedAt * 1000).toLocaleDateString()
-			}
-		})
-		download(
-			'protocols.csv',
-			[headers, ...csvData.map((row) => headers.map((header) => row[header]).join(','))].join('\n')
-		)
-	}
 
 	const {
 		data: eligibleAirdrops,
@@ -172,7 +142,7 @@ export function RecentProtocols({
 	const airdropCheckerDialog = Ariakit.useDialogStore()
 
 	return (
-		<Layout title={title}>
+		<>
 			{claimableAirdrops ? (
 				<span className="flex flex-wrap items-center gap-2">
 					{claimableAirdrops.map((protocol) => (
@@ -327,11 +297,6 @@ export function RecentProtocols({
 				</span>
 			) : null}
 
-			<div className="flex items-center justify-between gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<h1 className="mr-auto text-xl font-semibold">{header}</h1>
-				<CSVDownloadButton onClick={downloadCSV} />
-			</div>
-
 			<RecentlyListedProtocolsTable
 				data={protocolsData}
 				queries={queries}
@@ -339,6 +304,6 @@ export function RecentProtocols({
 				chainList={chainList}
 				forkedList={forkedList}
 			/>
-		</Layout>
+		</>
 	)
 }
