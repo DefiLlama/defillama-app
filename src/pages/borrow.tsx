@@ -238,7 +238,7 @@ const safeProjects = [
 	'Compound V1',
 	'Compound V2',
 	'Compound V3'
-]
+].map((x) => x.toLowerCase())
 
 interface IPool {
 	projectName: string
@@ -286,8 +286,9 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 	const filteredPools = pools
 		.filter(
 			(pool) =>
-				(tab === 'safe' ? safeProjects.includes(pool.projectName) : !safeProjects.includes(pool.projectName)) &&
-				pool.borrow.totalAvailableUsd
+				(tab === 'safe'
+					? safeProjects.includes(pool.projectName.toLowerCase())
+					: !safeProjects.includes(pool.projectName.toLowerCase())) && pool.borrow.totalAvailableUsd
 		)
 		.sort((a, b) => b.tvlUsd - a.tvlUsd)
 
