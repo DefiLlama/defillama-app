@@ -658,5 +658,80 @@
         "news"
       ]
     }
+  ],
+  "Main": [
+    {
+      "name": "Home",
+      "route": "/",
+      "icon": "house"
+    },
+    {
+      "name": "Metrics",
+      "route": "/metrics",
+      "icon": "bar-chart-2"
+    },
+    {
+      "name": "Tools",
+      "route": "/tools",
+      "icon": "pencil-ruler"
+    }
+  ],
+  "More": [
+    {
+      "name": "Support",
+      "route": "/support"
+    },
+    {
+      "name": "Press / Media",
+      "route": "/press"
+    },
+    {
+      "name": "Docs",
+      "route": "https://api-docs.defillama.com"
+    },
+    {
+      "name": "Pricing",
+      "route": "/subscription"
+    },
+    {
+      "name": "List your project",
+      "route": "https://docs.llama.fi/list-your-project/submit-a-project"
+    }
+  ],
+  "About Us": [
+    { "name": "About / Contact", "route": "/about" },
+		{
+			"name": "Twitter",
+			"route": "https://x.com/DefiLlama"
+		},
+		{
+			"name": "Discord",
+			"route": "https://discord.defillama.com"
+		},
+		{
+			"name": "Donate",
+			"route": "/donations"
+		},
+		{
+			"name": "Terms of Service",
+			"route": "/terms"
+		},
+		{
+			"name": "Privacy Policy",
+			"route": "/subscription/privacy-policy"
+		}
+  ],
+  "Hidden": [
+    {
+      "name": "API Reference",
+      "route": "https://api-docs.defillama.com",
+      "keys": [
+        "docs"
+      ]
+    },
+    {
+      "name": "Subscribe to DefiLlama",
+      "route": "/subscription"
+    }
   ]
 }

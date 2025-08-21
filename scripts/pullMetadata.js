@@ -119,6 +119,7 @@ async function pullData() {
 		}
 
 		const finalDefillamaPages = {
+			...defillamaPages,
 			Metrics: groupAndSortByCategory(defillamaPages['Metrics']),
 			Tools: defillamaPages['Tools'].sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))
 		}
