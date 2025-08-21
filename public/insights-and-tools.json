@@ -22,8 +22,9 @@
     },
     {
       "name": "Dashboard Builder",
+      "route": "/pro",
       "category": "Combined Metrics",
-      "route": "/pro"
+      "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics"
     },
     {
       "name": "Top Protocols",
@@ -359,35 +360,44 @@
     {
       "name": "CEXs",
       "route": "/cexs",
+      "category": "Others",
       "description": "Sum of assets held on a centralized exchanges",
       "totalTrackedKey": "cexs.protocols"
     },
     {
       "name": "Narrative Trackers",
       "route": "/narrative-tracker",
+      "category": "Others",
       "description": "MCap-Weighted category performance to track narrative changes in the ecosystem"
     },
     {
       "name": "Staked ETH by Protocol",
       "route": "/lst",
+      "category": "Others",
       "description": "Total value of ETH staked on LSTs"
     },
     {
       "name": "Recently Listed Protocols",
-      "route": "/recent"
+      "route": "/recent",
+      "category": "Others",
+      "description": ""
     },
     {
       "name": "Expenses by Protocol",
-      "route": "/expenses"
+      "route": "/expenses",
+      "category": "Others",
+      "description": ""
     },
     {
       "name": "ETF",
       "route": "/etfs",
+      "category": "Others",
       "description": "AUM, Flows, Volume metrics of all ETFs"
     },
     {
       "name": "Governance",
       "route": "/governance",
+      "category": "Others",
       "description": "Overview of all governance proposals by protocol"
     },
     {

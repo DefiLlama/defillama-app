@@ -102,6 +102,14 @@ async function pullData() {
 				const pages = items
 					.filter((item) => (item.category || 'Others') === category)
 					.sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))
+					.map((item) => ({
+						name: item.name,
+						route: item.route,
+						category: item.category ?? 'Others',
+						description: item.description ?? '',
+						...(item.totalTrackedKey ? { totalTrackedKey: item.totalTrackedKey } : {}),
+						...(item.keys ? { keys: item.keys } : {})
+					}))
 				acc.push(...pages)
 				return acc
 			}, [])
