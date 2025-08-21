@@ -660,7 +660,7 @@ export function useProTable(
 	const downloadCSV = () => {
 		if (!table) return
 
-		const visibleColumns = table.getVisibleFlatColumns().filter((col) => col.id !== 'expand')
+		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible() && col.id !== 'expand')
 
 		const sortedColumns =
 			columnOrder.length > 0
