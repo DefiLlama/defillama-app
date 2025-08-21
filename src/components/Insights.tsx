@@ -8,11 +8,9 @@ import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
 import insightsAndTools from '~/public/insights-and-tools.json'
 import { fetchJson } from '~/utils/async'
 
-const others = insightsAndTools.Insights.filter((insight) => !insight.category)
 const insightsByCategory = Object.entries(
 	insightsAndTools.Insights.reduce((acc, insight) => {
-		if (!insight.category) return acc
-		const category = insight.category
+		const category = insight.category || 'Others'
 		acc[category] = acc[category] || []
 		acc[category].push({
 			...insight,
@@ -26,10 +24,15 @@ const insightsByCategory = Object.entries(
 		category,
 		insights
 	}))
-	.concat({
-		category: 'Others',
-		insights: others
-	} as { category: string; insights: Array<{ name: string; route: string; description: string }> })
+	.concat([
+		{
+			category: 'Tools',
+			insights: insightsAndTools.Tools.map((tool) => ({
+				...tool,
+				description: (tool as any).description ?? ''
+			}))
+		}
+	])
 
 export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 	const [searchValue, setSearchValue] = useState('')

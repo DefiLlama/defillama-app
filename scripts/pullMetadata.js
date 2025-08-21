@@ -81,21 +81,36 @@ async function pullData() {
 				}
 				grouped[category] = (grouped[category] ?? 0) + (tastyMetrics[item.route] ?? 0)
 			}
-			const pagesByGroup = Object.entries(grouped)
+
+			const topCategories = [
+				'Combined Metrics',
+				'Total Value Locked',
+				'Fees & Revenue',
+				'Volume',
+				'Stablecoins',
+				'Token',
+				'Borrow Aggregator',
+				'Yields'
+			]
+
+			const otherCategories = Object.entries(grouped)
+				.filter(([category]) => !topCategories.includes(category))
 				.sort((a, b) => b[1] - a[1])
-				.reduce((acc, [category, _]) => {
-					const pages = items
-						.filter((item) => (item.category || 'Others') === category)
-						.sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))
-					acc.push(...pages)
-					return acc
-				}, [])
+				.map(([category]) => category)
+
+			const pagesByGroup = [...topCategories, ...otherCategories].reduce((acc, category) => {
+				const pages = items
+					.filter((item) => (item.category || 'Others') === category)
+					.sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))
+				acc.push(...pages)
+				return acc
+			}, [])
 			return pagesByGroup
 		}
 
 		const finalInsightsAndTools = {
 			Insights: groupAndSortByCategory(insightsAndTools['Insights']),
-			Tools: groupAndSortByCategory(insightsAndTools['Tools'])
+			Tools: insightsAndTools['Tools'].sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))
 		}
 
 		fs.writeFileSync(path.join('public', 'insights-and-tools.json'), JSON.stringify(finalInsightsAndTools, null, 2))
