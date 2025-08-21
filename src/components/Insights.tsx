@@ -7,6 +7,15 @@ import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
 import insightsAndTools from '~/public/insights-and-tools.json'
 import { fetchJson } from '~/utils/async'
+import { TagGroup } from './TagGroup'
+
+interface IPage {
+	name: string
+	route: string
+	description: string
+	tags?: string[]
+	tab?: string
+}
 
 const insightsByCategory = Object.entries(
 	insightsAndTools.Insights.reduce((acc, insight) => {
@@ -19,29 +28,41 @@ const insightsByCategory = Object.entries(
 		})
 		return acc
 	}, {})
-).map(([category, insights]: [string, Array<{ name: string; route: string; description: string }>]) => ({
+).map(([category, insights]: [string, Array<IPage>]) => ({
 	category,
 	insights
 }))
 
+const TABS = ['All', 'Protocols', 'Chains'] as const
+
 export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
+	const [tab, setTab] = useState<(typeof TABS)[number]>('All')
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const pages = useMemo(() => {
-		const allPages = insightsByCategory.concat(
-			canDismiss
-				? [
-						{
-							category: 'Tools',
-							insights: insightsAndTools.Tools.map((tool) => ({
-								...tool,
-								description: tool.description ?? ''
-							}))
-						}
-					]
-				: []
-		)
+		const allPages = insightsByCategory
+			.concat(
+				canDismiss
+					? [
+							{
+								category: 'Tools',
+								insights: insightsAndTools.Tools.map((tool: IPage) => ({
+									...tool,
+									description: tool.description ?? ''
+								}))
+							}
+						]
+					: []
+			)
+			.map((page) => ({
+				category: page.category,
+				insights: page.insights.filter((insight) => {
+					if (tab === 'All') return true
+					return insight.tab === tab
+				})
+			}))
+			.filter((page) => page.insights.length > 0)
 
 		if (!deferredSearchValue) return allPages
 
@@ -58,7 +79,7 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 					}).length > 0
 			)
 		}))
-	}, [deferredSearchValue, canDismiss])
+	}, [deferredSearchValue, canDismiss, tab])
 
 	const { data: totalTrackedByMetric } = useQuery({
 		queryKey: ['totalTrackedByMetric'],
@@ -71,6 +92,7 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="flex items-center gap-2">
 					<h1 className="text-2xl font-bold">Insights</h1>
+					<TagGroup selectedValue={tab} setValue={(value) => setTab(value as (typeof TABS)[number])} values={TABS} />
 					{canDismiss ? (
 						<Ariakit.DialogDismiss
 							className="-my-2 ml-auto rounded-lg p-2 text-(--text-tertiary) hover:bg-(--divider) hover:text-(--text-primary)"
@@ -95,10 +117,27 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 						onChange={(e) => setSearchValue(e.target.value)}
 					/>
 				</div>
+				<div className="flex flex-wrap gap-2">
+					{pages.map(({ category }) => (
+						<button
+							key={category}
+							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+							onClick={() => {
+								const element = document.querySelector(`[data-category="${category}"]`)
+								if (element) {
+									element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+								}
+							}}
+						>
+							{category}
+						</button>
+					))}
+				</div>
 			</div>
 			<div className="flex flex-col gap-4">
 				{pages.map(({ category, insights }) => (
-					<div key={category} className="flex flex-col gap-2">
+					<div key={category} className="relative flex flex-col gap-2">
+						<div className="absolute -top-4" data-category={category} />
 						<div className="flex flex-row items-center gap-2">
 							<h2 className="text-lg font-bold">{category}</h2>
 							<hr className="flex-1 border-black/20 dark:border-white/20" />
