@@ -29,6 +29,22 @@
       "tags": ["New"]
     },
     {
+      "name": "TVL by Protocol",
+      "route": "/",
+      "category": "Total Value Locked",
+      "description": "Protocols ranked by TVL",
+      "tab": "Protocols",
+      "totalTrackedKey": "tvl.protocols"
+    },
+    {
+      "name": "TVL by Chain",
+      "route": "/chains",
+      "category": "Total Value Locked",
+      "description": "Chains ranked by TVL",
+      "tab": "Chains",
+      "totalTrackedKey": "tvl.chains"
+    },
+    {
       "name": "Top Protocols",
       "route": "/top-protocols",
       "category": "Total Value Locked",
