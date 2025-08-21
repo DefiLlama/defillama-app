@@ -120,12 +120,12 @@ export function DefiWatchlistContainer({
 					addPortfolio={addPortfolio}
 					removePortfolio={removePortfolio}
 				/>
-				{filteredProtocols.length > 0 && <TopMovers protocols={filteredProtocols} />}
 				<PortfolioNotifications
 					selectedPortfolio={selectedPortfolio}
 					filteredProtocols={filteredProtocols}
 					filteredChains={filteredChains}
 				/>
+				{filteredProtocols.length > 0 && <TopMovers protocols={filteredProtocols} />}
 				<ProtocolSelection
 					protocolOptions={protocolOptions}
 					selectedProtocolNames={selectedProtocolNames}
@@ -209,6 +209,10 @@ export function DefiWatchlistContainer({
 	)
 }
 
+const handleFormSubmit = (state) => {
+	console.log(state.values)
+}
+
 function PortfolioNotifications({
 	selectedPortfolio,
 	filteredProtocols = [],
@@ -219,14 +223,17 @@ function PortfolioNotifications({
 	filteredChains?: any[]
 }) {
 	const dialogStore = Ariakit.useDialogStore()
+	const formStore = Ariakit.useFormStore({
+		defaultValues: {
+			frequency: 'weekly',
+			protocolMetrics: [] as string[],
+			chainMetrics: [] as string[]
+		}
+	})
 	const isClient = useIsClient()
 	const router = useRouter()
 	const { subscription } = useSubscribe()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
-
-	const [frequency, setFrequency] = useState<'daily' | 'weekly'>('weekly')
-	const [selectedProtocolMetrics, setSelectedProtocolMetrics] = useState<Set<string>>(new Set())
-	const [selectedChainMetrics, setSelectedChainMetrics] = useState<Set<string>>(new Set())
 
 	const handleNotificationsButtonClick = () => {
 		if (!isClient) return
@@ -237,36 +244,11 @@ function PortfolioNotifications({
 		}
 	}
 
-	const handleProtocolMetricToggle = (metricKey: string) => {
-		const newSelected = new Set(selectedProtocolMetrics)
-		if (newSelected.has(metricKey)) {
-			newSelected.delete(metricKey)
-		} else {
-			newSelected.add(metricKey)
-		}
-		setSelectedProtocolMetrics(newSelected)
+	const handleFormSubmit = (state: any) => {
+		console.log('values', state.values)
 	}
 
-	const handleChainMetricToggle = (metricKey: string) => {
-		const newSelected = new Set(selectedChainMetrics)
-		if (newSelected.has(metricKey)) {
-			newSelected.delete(metricKey)
-		} else {
-			newSelected.add(metricKey)
-		}
-		setSelectedChainMetrics(newSelected)
-	}
-
-	const handleSaveSettings = () => {
-		// TODO: Implement actual saving logic
-		console.log('Saving notification settings:', {
-			frequency,
-			protocolMetrics: Array.from(selectedProtocolMetrics),
-			chainMetrics: Array.from(selectedChainMetrics),
-			portfolioName: selectedPortfolio
-		})
-		dialogStore.hide()
-	}
+	formStore.useSubmit(handleFormSubmit)
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
@@ -290,188 +272,139 @@ function PortfolioNotifications({
 				</SubscribeModal>
 			)}
 
-			{isClient && (
-				<Ariakit.Dialog
-					store={dialogStore}
-					className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-				>
-					<div className="bg-(--bg-main) border border-(--cards-border) rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
-						<div className="flex items-center justify-between p-6 border-b border-(--cards-border)">
-							<div>
-								<h2 className="text-xl font-semibold text-(--text-primary)">Notification Settings</h2>
-								<p className="text-sm text-(--text-secondary) mt-1">
-									Configure your alerts for "{selectedPortfolio}" portfolio
-								</p>
+			<Ariakit.Dialog
+				store={dialogStore}
+				className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+			>
+				<div className="bg-(--bg-main) border border-(--cards-border) rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+					<div className="flex items-center justify-between p-6 border-b border-(--cards-border)">
+						<div>
+							<h2 className="text-xl font-semibold text-(--text-primary)">Notification Settings</h2>
+							<p className="text-sm text-(--text-secondary) mt-1">
+								Configure your alerts for "{selectedPortfolio}" portfolio
+							</p>
+						</div>
+						<Ariakit.DialogDismiss className="p-2 rounded-md hover:bg-(--primary-hover) transition-colors">
+							<Icon name="x" height={20} width={20} className="text-(--text-secondary)" />
+						</Ariakit.DialogDismiss>
+					</div>
+
+					<Ariakit.Form
+						store={formStore}
+						onSubmit={handleFormSubmit}
+						className="overflow-y-auto max-h-[calc(80vh-180px)]"
+					>
+						<div className="p-6 border-b border-(--cards-border)">
+							<h3 className="text-lg font-medium text-(--text-primary) mb-3">Notification Frequency</h3>
+							<div className="flex gap-4">
+								<label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-(--form-control-border) hover:bg-(--primary-hover) transition-colors">
+									<Ariakit.FormRadio
+										name="frequency"
+										value="daily"
+										className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+									/>
+									<div>
+										<div className="text-sm font-medium text-(--text-primary)">Daily</div>
+										<div className="text-xs text-(--text-secondary)">Receive updates every day</div>
+									</div>
+								</label>
+								<label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-(--form-control-border) hover:bg-(--primary-hover) transition-colors">
+									<Ariakit.FormRadio
+										name="frequency"
+										value="weekly"
+										className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+									/>
+									<div>
+										<div className="text-sm font-medium text-(--text-primary)">Weekly</div>
+										<div className="text-xs text-(--text-secondary)">Receive updates every week</div>
+									</div>
+								</label>
 							</div>
-							<Ariakit.DialogDismiss className="p-2 rounded-md hover:bg-(--primary-hover) transition-colors">
-								<Icon name="x" height={20} width={20} className="text-(--text-secondary)" />
-							</Ariakit.DialogDismiss>
 						</div>
 
-						<div className="overflow-y-auto max-h-[calc(80vh-180px)]">
-							<div className="p-6 border-b border-(--cards-border)">
-								<h3 className="text-lg font-medium text-(--text-primary) mb-3">Notification Frequency</h3>
-								<div className="flex gap-4">
-									<label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-(--form-control-border) hover:bg-(--primary-hover) transition-colors">
-										<input
-											type="radio"
-											name="frequency"
-											value="daily"
-											checked={frequency === 'daily'}
-											onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly')}
-											className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-										/>
-										<div>
-											<div className="text-sm font-medium text-(--text-primary)">Daily</div>
-											<div className="text-xs text-(--text-secondary)">Receive updates every day</div>
-										</div>
-									</label>
-									<label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-(--form-control-border) hover:bg-(--primary-hover) transition-colors">
-										<input
-											type="radio"
-											name="frequency"
-											value="weekly"
-											checked={frequency === 'weekly'}
-											onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly')}
-											className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-										/>
-										<div>
-											<div className="text-sm font-medium text-(--text-primary)">Weekly</div>
-											<div className="text-xs text-(--text-secondary)">Receive updates every week</div>
-										</div>
-									</label>
+						<div className="p-6 border-b border-(--cards-border)">
+							<h3 className="text-lg font-medium text-(--text-primary) mb-3">Protocol Metrics</h3>
+							{filteredProtocols.length > 0 ? (
+								<>
+									<p className="text-sm text-(--text-secondary) mb-4">
+										Select which metrics you want to receive notifications for across your {filteredProtocols.length}{' '}
+										watchlisted protocol{filteredProtocols.length === 1 ? '' : 's'}
+									</p>
+									<div className="flex flex-wrap gap-3 max-h-60 overflow-y-auto">
+										{protocolMetrics.map((metric) => (
+											<label key={metric.key} className="flex items-center gap-2 cursor-pointer">
+												<Ariakit.FormCheckbox
+													name="protocolMetrics"
+													value={metric.key}
+													className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+												/>
+												<span className="text-sm font-medium text-(--text-primary)">{metric.name}</span>
+											</label>
+										))}
+									</div>
+								</>
+							) : (
+								<div className="text-center py-8">
+									<Icon
+										name="bookmark"
+										height={32}
+										width={32}
+										className="mx-auto mb-3 text-(--text-secondary) opacity-50"
+									/>
+									<p className="text-sm text-(--text-secondary)">No protocols in your watchlist</p>
+									<p className="text-xs text-(--text-secondary) opacity-75 mt-1">
+										Add protocols to your watchlist to set up notifications
+									</p>
 								</div>
-							</div>
-
-							<div className="p-6 border-b border-(--cards-border)">
-								<h3 className="text-lg font-medium text-(--text-primary) mb-3">Protocol Metrics</h3>
-								{filteredProtocols.length > 0 ? (
-									<>
-										<p className="text-sm text-(--text-secondary) mb-4">
-											Select which metrics you want to receive notifications for across your {filteredProtocols.length}{' '}
-											watchlisted protocol{filteredProtocols.length === 1 ? '' : 's'}
-										</p>
-										<div className="flex flex-wrap gap-3 max-h-60 overflow-y-auto">
-											{protocolMetrics.map((metric) => (
-												<label key={metric.key} className="flex items-center gap-2 cursor-pointer">
-													<input
-														type="checkbox"
-														checked={selectedProtocolMetrics.has(metric.key)}
-														onChange={() => handleProtocolMetricToggle(metric.key)}
-														className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-													/>
-													<span className="text-sm font-medium text-(--text-primary)">{metric.name}</span>
-												</label>
-											))}
-										</div>
-										<div className="mt-3 flex gap-2">
-											<button
-												onClick={() => setSelectedProtocolMetrics(new Set(protocolMetrics.map((m) => m.key)))}
-												className="text-xs px-3 py-1 rounded-md bg-(--primary-bg) text-(--primary-text) hover:bg-(--primary-hover) transition-colors"
-											>
-												Select All
-											</button>
-											<button
-												onClick={() => setSelectedProtocolMetrics(new Set())}
-												className="text-xs px-3 py-1 rounded-md border border-(--form-control-border) text-(--text-secondary) hover:bg-(--primary-hover) transition-colors"
-											>
-												Clear All
-											</button>
-										</div>
-									</>
-								) : (
-									<div className="text-center py-8">
-										<Icon
-											name="bookmark"
-											height={32}
-											width={32}
-											className="mx-auto mb-3 text-(--text-secondary) opacity-50"
-										/>
-										<p className="text-sm text-(--text-secondary)">No protocols in your watchlist</p>
-										<p className="text-xs text-(--text-secondary) opacity-75 mt-1">
-											Add protocols to your watchlist to set up notifications
-										</p>
-									</div>
-								)}
-							</div>
-
-							<div className="p-6">
-								<h3 className="text-lg font-medium text-(--text-primary) mb-3">Chain Metrics</h3>
-								{filteredChains.length > 0 ? (
-									<>
-										<p className="text-sm text-(--text-secondary) mb-4">
-											Select which metrics you want to receive notifications for across your {filteredChains.length}{' '}
-											watchlisted chain{filteredChains.length === 1 ? '' : 's'}
-										</p>
-										<div className="flex flex-wrap gap-3 max-h-60 overflow-y-auto">
-											{chainMetrics.map((metric) => (
-												<label key={metric.key} className="flex items-center gap-2 cursor-pointer">
-													<input
-														type="checkbox"
-														checked={selectedChainMetrics.has(metric.key)}
-														onChange={() => handleChainMetricToggle(metric.key)}
-														className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-													/>
-													<span className="text-sm font-medium text-(--text-primary)">{metric.name}</span>
-												</label>
-											))}
-										</div>
-										<div className="mt-3 flex gap-2">
-											<button
-												onClick={() => setSelectedChainMetrics(new Set(chainMetrics.map((m) => m.key)))}
-												className="text-xs px-3 py-1 rounded-md bg-(--primary-bg) text-(--primary-text) hover:bg-(--primary-hover) transition-colors"
-											>
-												Select All
-											</button>
-											<button
-												onClick={() => setSelectedChainMetrics(new Set())}
-												className="text-xs px-3 py-1 rounded-md border border-(--form-control-border) text-(--text-secondary) hover:bg-(--primary-hover) transition-colors"
-											>
-												Clear All
-											</button>
-										</div>
-									</>
-								) : (
-									<div className="text-center py-8">
-										<Icon
-											name="map"
-											height={32}
-											width={32}
-											className="mx-auto mb-3 text-(--text-secondary) opacity-50"
-										/>
-										<p className="text-sm text-(--text-secondary)">No chains in your watchlist</p>
-										<p className="text-xs text-(--text-secondary) opacity-75 mt-1">
-											Add chains to your watchlist to set up notifications
-										</p>
-									</div>
-								)}
-							</div>
+							)}
 						</div>
+
+						<div className="p-6">
+							<h3 className="text-lg font-medium text-(--text-primary) mb-3">Chain Metrics</h3>
+							{filteredChains.length > 0 ? (
+								<>
+									<p className="text-sm text-(--text-secondary) mb-4">
+										Select which metrics you want to receive notifications for across your {filteredChains.length}{' '}
+										watchlisted chain{filteredChains.length === 1 ? '' : 's'}
+									</p>
+									<div className="flex flex-wrap gap-3 max-h-60 overflow-y-auto">
+										{chainMetrics.map((metric) => (
+											<label key={metric.key} className="flex items-center gap-2 cursor-pointer">
+												<Ariakit.FormCheckbox
+													name="chainMetrics"
+													value={metric.key}
+													className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+												/>
+												<span className="text-sm font-medium text-(--text-primary)">{metric.name}</span>
+											</label>
+										))}
+									</div>
+								</>
+							) : (
+								<div className="text-center py-8">
+									<Icon name="map" height={32} width={32} className="mx-auto mb-3 text-(--text-secondary) opacity-50" />
+									<p className="text-sm text-(--text-secondary)">No chains in your watchlist</p>
+									<p className="text-xs text-(--text-secondary) opacity-75 mt-1">
+										Add chains to your watchlist to set up notifications
+									</p>
+								</div>
+							)}
+						</div>
+
 						<div className="flex items-center justify-between p-6 border-t border-(--cards-border) bg-(--bg-secondary)">
-							<div className="text-sm text-(--text-secondary)">
-								{selectedProtocolMetrics.size + selectedChainMetrics.size} metric
-								{selectedProtocolMetrics.size + selectedChainMetrics.size === 1 ? '' : 's'} selected
-								{(selectedProtocolMetrics.size > 0 || selectedChainMetrics.size > 0) && (
-									<span className="ml-2">
-										({selectedProtocolMetrics.size} protocol, {selectedChainMetrics.size} chain)
-									</span>
-								)}
-							</div>
+							<div className="text-sm text-(--text-secondary)">Configure notification settings for your portfolio</div>
 							<div className="flex gap-3">
 								<Ariakit.DialogDismiss className="px-4 py-2 text-sm rounded-md border border-(--form-control-border) text-(--text-secondary) hover:bg-(--primary-hover) transition-colors">
 									Cancel
 								</Ariakit.DialogDismiss>
-								<button
-									onClick={handleSaveSettings}
-									className="px-4 py-2 text-sm rounded-md bg-(--primary-bg) text-(--primary-text) hover:bg-(--primary-hover) transition-colors font-medium"
-								>
+								<Ariakit.FormSubmit className="px-4 py-2 text-sm rounded-md bg-(--primary-bg) text-(--primary-text) hover:bg-(--primary-hover) transition-colors font-medium">
 									Save Settings
-								</button>
+								</Ariakit.FormSubmit>
 							</div>
 						</div>
-					</div>
-				</Ariakit.Dialog>
-			)}
+					</Ariakit.Form>
+				</div>
+			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)
 }
