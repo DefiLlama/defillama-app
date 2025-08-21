@@ -69,7 +69,7 @@
       "name": "Total Staked by Protocol",
       "route": "/total-staked",
       "category": "Total Value Locked",
-      "description": "Total value of protocols own tokens staked on their platform"
+      "description": "Total value of the protocol's own tokens staked on their platform"
     },
     {
       "name": "Pool2 TVL by Protocol",
@@ -81,7 +81,7 @@
       "name": "Revenue by Protocol",
       "route": "/revenue",
       "category": "Fees & Revenue",
-      "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to liquidity providers",
+      "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team, or distributed among token holders. This doesn't include any fees distributed to liquidity providers",
       "totalTrackedKey": "revenue.protocols"
     },
     {
@@ -102,7 +102,7 @@
       "name": "Earnings by Protocol",
       "route": "/earnings",
       "category": "Fees & Revenue",
-      "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself.",
+      "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself",
       "totalTrackedKey": "revenue.protocols"
     },
     {
@@ -165,14 +165,14 @@
       "name": "Bridge Aggregator Volume by Protocol",
       "route": "/bridge-aggregators",
       "category": "Volume",
-      "description": "Sum of value of all assets that were bridged through a bridge aggregator",
+      "description": "Sum of the value of all assets that were bridged through a bridge aggregator",
       "totalTrackedKey": "bridgeAggregators.protocols"
     },
     {
       "name": "DEX Volume by Chain",
       "route": "/dexs/chains",
       "category": "Volume",
-      "description": "Sum of all volume of all spot token swaps that go through all DEXs on the chain",
+      "description": "Sum of all volume of spot token swaps that go through all DEXs on the chain",
       "totalTrackedKey": "dexs.chains"
     },
     {
@@ -204,7 +204,7 @@
       "name": "Options Notional Volume by Protocol",
       "route": "/options/notional-volume",
       "category": "Volume",
-      "description": "Sum of the notional value of all options that have been traded on an options exchange",
+      "description": "Sum of the notional value of all options that have been traded on options exchanges",
       "totalTrackedKey": "options.protocols"
     },
     {
@@ -289,7 +289,7 @@
       "name": "Protocols by Outstanding FDV",
       "route": "/outstanding-fdv",
       "category": "Token",
-      "description": "Token price multiplied by outstanding supply of each protocol. Outstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).",
+      "description": "Token price multiplied by outstanding supply of each protocol. Outstanding supply is the total supply minus the supply that is not yet allocated to anything (e.g., coins in treasury or reserve)",
       "keys": [
         "fully diluted valuation"
       ]
@@ -361,7 +361,7 @@
       "name": "CEXs",
       "route": "/cexs",
       "category": "Others",
-      "description": "Sum of assets held on a centralized exchanges",
+      "description": "Sum of assets held on centralized exchanges",
       "totalTrackedKey": "cexs.protocols"
     },
     {
@@ -380,13 +380,13 @@
       "name": "Recently Listed Protocols",
       "route": "/recent",
       "category": "Others",
-      "description": ""
+      "description": "List of recently listed protocols"
     },
     {
       "name": "Expenses by Protocol",
       "route": "/expenses",
       "category": "Others",
-      "description": ""
+      "description": "Breakdown of annual operational expenses by protocol"
     },
     {
       "name": "ETF",
@@ -404,26 +404,26 @@
       "name": "Bridges by Volume",
       "route": "/bridges",
       "category": "Bridge",
-      "description": "Sum of value of all assets that were bridged through the protocol"
+      "description": "Sum of the value of all assets that were bridged through the protocol"
     },
     {
       "name": "Bridge Volume by Chain",
       "route": "/bridges/chains",
       "category": "Bridge",
-      "description": "Sum of value of all assets that were bridged through the protocol on each chain"
+      "description": "Sum of the value of all assets that were bridged through the protocol on each chain"
     },
     {
       "name": "Treasuries",
       "route": "/treasuries",
       "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, including it's own token and breakdown of assets held",
+      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
       "totalTrackedKey": "treasury.protocols"
     },
     {
       "name": "Net Project Treasury",
       "route": "/net-project-treasury",
       "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, excluding it's own token",
+      "description": "Value of tokens owned by a protocol, excluding its own token",
       "totalTrackedKey": "treasury.protocols"
     },
     {
@@ -478,79 +478,117 @@
   "Tools": [
     {
       "name": "Token Holder Profit and Loss",
-      "route": "/token-pnl"
+      "route": "/token-pnl",
+      "category": "Tools",
+      "description": "Calculate the percentage change in token price between two dates"
     },
     {
       "name": "Token Liquidity",
-      "route": "/liquidity"
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token"
     },
     {
       "name": "Transactions by Bridge",
-      "route": "/bridge-transactions"
+      "route": "/bridge-transactions",
+      "category": "Tools",
+      "description": "Download bridge transaction data across different time periods"
     },
     {
       "name": "Protocols Website Directory",
-      "route": "/directory"
+      "route": "/directory",
+      "category": "Tools",
+      "description": "Directory of all protocols websites on DefiLlama"
     },
     {
       "name": "Trending Contracts on Chain",
-      "route": "/trending-contracts"
+      "route": "/trending-contracts",
+      "category": "Tools",
+      "description": "Current trending contracts on chain"
     },
     {
       "name": "DeFi Watchlist",
-      "route": "/watchlist"
+      "route": "/watchlist",
+      "category": "Tools",
+      "description": "Watchlist of all protocols on DefiLlama"
     },
     {
       "name": "Compare Chains",
-      "route": "/compare-chains?chains=OP+Mainnet&chains=Arbitrum"
+      "route": "/compare-chains?chains=OP+Mainnet&chains=Arbitrum",
+      "category": "Tools",
+      "description": "Compare metrics across different chains"
     },
     {
       "name": "Compare Protocols",
-      "route": "/compare-protocols?protocol=Sky+Lending&protocol=Curve+DEX"
+      "route": "/compare-protocols?protocol=Sky+Lending&protocol=Curve+DEX",
+      "category": "Tools",
+      "description": "Compare metrics across different protocols"
     },
     {
       "name": "Token Usage by Protocol",
-      "route": "/token-usage?token=ETH"
+      "route": "/token-usage?token=ETH",
+      "category": "Tools",
+      "description": "View token usage across different protocols"
     },
     {
       "name": "Report Error",
-      "route": "/report-error"
+      "route": "/report-error",
+      "category": "Tools",
+      "description": "Report errors in methodology, protocol metrics, or suggest site improvements"
     },
     {
       "name": "Yields: Watchlist",
-      "route": "/yields/watchlist"
+      "route": "/yields/watchlist",
+      "category": "Tools",
+      "description": "Watchlist of all pools that we track in our yields section"
     },
     {
       "name": "Daily Roundup",
-      "route": "/roundup"
+      "route": "/roundup",
+      "category": "Tools",
+      "description": "Daily roundup of the most important news in the ecosystem"
     },
     {
       "name": "Correlations Matrix by Coin",
-      "route": "/correlations"
+      "route": "/correlations",
+      "category": "Tools",
+      "description": "View correlation relationships between different cryptocurrencies to identify market trends and diversification opportunities"
     },
     {
       "name": "LlamaSwap",
-      "route": "https://swap.defillama.com"
+      "route": "https://swap.defillama.com",
+      "category": "Tools",
+      "description": "The Aggregator of Aggregators, LlamaSwap looks for the best route for your trade among a variety of Dex Aggregators, guaranteeing you the best execution prices in DeFi"
     },
     {
       "name": "LlamaPay",
-      "route": "https://llamapay.io"
+      "route": "https://llamapay.io",
+      "category": "Tools",
+      "description": "DeFi payment processor for salaries, vesting, one-time payments, and subscriptions"
     },
     {
       "name": "LlamaFeed",
-      "route": "https://llamafeed.io"
+      "route": "https://llamafeed.io",
+      "category": "Tools",
+      "description": "A real-time, customizable dashboard to keep track of the crypto market in one place"
     },
     {
       "name": "DefiLlama Extension",
-      "route": "https://chromewebstore.google.com/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg"
+      "route": "https://chromewebstore.google.com/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg",
+      "category": "Tools",
+      "description": "Browser extension for wallet tags, token pricing, and phishing protection"
     },
     {
       "name": "LlamaSearch Extension",
-      "route": "https://chromewebstore.google.com/detail/llamasearch/iophmfgnjmfjdkodekdffgckoloooaci"
+      "route": "https://chromewebstore.google.com/detail/llamasearch/iophmfgnjmfjdkodekdffgckoloooaci",
+      "category": "Tools",
+      "description": "Browser extension for safe crypto domain search and scam prevention"
     },
     {
       "name": "DLNews",
       "route": "https://www.dlnews.com",
+      "category": "Tools",
+      "description": "An independent news organisation that provides in-depth reporting on the largely misunderstood world of cryptocurrency and decentralised finance",
       "keys": [
         "news"
       ]

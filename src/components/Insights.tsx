@@ -29,7 +29,7 @@ const insightsByCategory = Object.entries(
 			category: 'Tools',
 			insights: insightsAndTools.Tools.map((tool) => ({
 				...tool,
-				description: (tool as any).description ?? ''
+				description: tool.description ?? ''
 			}))
 		}
 	])
@@ -98,17 +98,11 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 							<h2 className="text-lg font-bold">{category}</h2>
 							<hr className="flex-1 border-black/20 dark:border-white/20" />
 						</div>
-						<div
-							className={
-								category === 'Tools'
-									? 'flex flex-col gap-1'
-									: 'grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-							}
-						>
+						<div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{insights.map((insight: any) => (
 								<BasicLink
 									key={`insight-${insight.name}-${insight.route}`}
-									className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)] ${category === 'Tools' ? 'flex min-h-[60px] flex-col items-center justify-center gap-[2px]' : 'flex min-h-[120px] flex-col items-start gap-[2px]'}`}
+									className="col-span-1 flex min-h-[120px] flex-col items-start gap-[2px] rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
 									href={insight.route}
 								>
 									<span className="flex w-full flex-wrap items-center justify-between gap-1">
