@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Head from 'next/head'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
-import { InsightsAndTools } from '~/components/Insights'
+import { MetricsAndTools } from '~/components/Metrics'
 import Nav from '~/components/Nav'
 import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select'
@@ -56,7 +56,7 @@ export default function Layout({
 						<IncludeInMetricsOptions options={includeInMetricsOptions} label={includeInMetricsOptionslabel} />
 					)}
 				</span>
-				{pageName ? <InsightsAndTools currentMetric={pageName} /> : null}
+				{pageName ? <MetricsAndTools currentMetric={pageName} /> : null}
 				{children}
 			</main>
 			{isClient ? (

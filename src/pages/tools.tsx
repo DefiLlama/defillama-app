@@ -3,14 +3,15 @@ import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import Layout from '~/layout'
-import insightsAndTools from '~/public/insights-and-tools.json'
+import defillamaPages from '~/public/pages.json'
 
 export default function Tools() {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const pages = useMemo(() => {
-		return matchSorter(insightsAndTools.Tools, deferredSearchValue, {
+		if (!deferredSearchValue) return defillamaPages.Tools
+		return matchSorter(defillamaPages.Tools, deferredSearchValue, {
 			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name', 'description'],
 			threshold: matchSorter.rankings.CONTAINS

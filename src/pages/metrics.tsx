@@ -1,10 +1,10 @@
-import { Insights } from '~/components/Insights'
+import { Metrics } from '~/components/Metrics'
 import Layout from '~/layout'
 
-export default function InsightsPageView() {
+export default function MetricsPageView() {
 	return (
 		<Layout title="Metrics - DefiLlama">
-			<Insights />
+			<Metrics />
 		</Layout>
 	)
 }

@@ -1,5 +1,5 @@
 import { CEXS_API, PEGGEDS_API, PROTOCOLS_API } from '~/constants/index'
-import insightsAndTools from '~/public/insights-and-tools.json'
+import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -24,10 +24,10 @@ function generateSiteMap(protocols, chains, categories, parentProtocols, stablec
     <url>
       <loc>${baseUrl}</loc>
     </url>
-		${insightsAndTools.Insights.filter((p) => p.route.includes('https://'))
+		${defillamaPages.Metrics.filter((p) => p.route.includes('https://'))
 			.map((p) => url(p.route.slice(1)))
 			.join('')}
-		${insightsAndTools.Tools.filter((p) => p.route.includes('https://'))
+		${defillamaPages.Tools.filter((p) => p.route.includes('https://'))
 			.map((p) => url(p.route.slice(1)))
 			.join('')}
     ${chains.map(prefixedUrl('chain')).join('')}

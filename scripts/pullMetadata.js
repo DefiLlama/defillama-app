@@ -16,14 +16,14 @@ const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.jso
 const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
 const CEXS_DATA_URL = 'https://api.llama.fi/cexs'
 const FIVE_MINUTES = 5 * 60 * 1000
-let insightsAndTools
+let defillamaPages
 try {
-	const fileContent = fs.readFileSync(path.join('public', 'insights-and-tools.json'), 'utf8')
-	insightsAndTools = JSON.parse(fileContent)
+	const fileContent = fs.readFileSync(path.join('public', 'pages.json'), 'utf8')
+	defillamaPages = JSON.parse(fileContent)
 } catch (error) {
-	console.log('Could not load insights-and-tools.json, using empty structure')
-	insightsAndTools = {
-		Insights: [],
+	console.log('Could not load pages.json, using empty structure')
+	defillamaPages = {
+		Metrics: [],
 		Tools: []
 	}
 }
@@ -118,12 +118,12 @@ async function pullData() {
 			return pagesByGroup
 		}
 
-		const finalInsightsAndTools = {
-			Insights: groupAndSortByCategory(insightsAndTools['Insights']),
-			Tools: insightsAndTools['Tools'].sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))
+		const finalDefillamaPages = {
+			Metrics: groupAndSortByCategory(defillamaPages['Metrics']),
+			Tools: defillamaPages['Tools'].sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))
 		}
 
-		fs.writeFileSync(path.join('public', 'insights-and-tools.json'), JSON.stringify(finalInsightsAndTools, null, 2))
+		fs.writeFileSync(path.join('public', 'pages.json'), JSON.stringify(finalDefillamaPages, null, 2))
 
 		console.log('Data pulled and cached successfully.')
 		return true

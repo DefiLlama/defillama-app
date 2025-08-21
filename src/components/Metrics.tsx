@@ -5,7 +5,7 @@ import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
-import insightsAndTools from '~/public/insights-and-tools.json'
+import defillamaPages from '~/public/pages.json'
 import { fetchJson } from '~/utils/async'
 import { TagGroup } from './TagGroup'
 
@@ -17,8 +17,8 @@ interface IPage {
 	tab?: string
 }
 
-const insightsByCategory = Object.entries(
-	insightsAndTools.Insights.reduce((acc, insight) => {
+const metricsByCategory = Object.entries(
+	defillamaPages.Metrics.reduce((acc, insight) => {
 		const category = insight.category || 'Others'
 		acc[category] = acc[category] || []
 		acc[category].push({
@@ -28,26 +28,26 @@ const insightsByCategory = Object.entries(
 		})
 		return acc
 	}, {})
-).map(([category, insights]: [string, Array<IPage>]) => ({
+).map(([category, metrics]: [string, Array<IPage>]) => ({
 	category,
-	insights
+	metrics
 }))
 
 const TABS = ['All', 'Protocols', 'Chains'] as const
 
-export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
+export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 	const [tab, setTab] = useState<(typeof TABS)[number]>('All')
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const tabPages = useMemo(() => {
-		return insightsByCategory
+		return metricsByCategory
 			.concat(
 				canDismiss
 					? [
 							{
 								category: 'Tools',
-								insights: insightsAndTools.Tools.map((tool: IPage) => ({
+								metrics: defillamaPages.Tools.map((tool: IPage) => ({
 									...tool,
 									description: tool.description ?? ''
 								}))
@@ -57,23 +57,23 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 			)
 			.map((page) => ({
 				category: page.category,
-				insights: page.insights.filter((insight) => {
+				metrics: page.metrics.filter((insight) => {
 					if (tab === 'All') return true
 					return insight.tab === tab
 				})
 			}))
-			.filter((page) => page.insights.length > 0)
+			.filter((page) => page.metrics.length > 0)
 	}, [tab, canDismiss])
 
 	const pages = useMemo(() => {
 		if (!deferredSearchValue) return tabPages
 
 		return matchSorter(tabPages, deferredSearchValue, {
-			keys: ['category', 'insights.*.name', 'insights.*.description', 'insights.*.keys'],
+			keys: ['category', 'metrics.*.name', 'metrics.*.description', 'metrics.*.keys'],
 			threshold: matchSorter.rankings.CONTAINS
 		}).map((item) => ({
 			...item,
-			insights: item.insights.filter(
+			metrics: item.metrics.filter(
 				(insight) =>
 					matchSorter([insight], deferredSearchValue, {
 						keys: ['name', 'description', 'keys'],
@@ -136,8 +136,8 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 					))}
 				</div>
 			</div>
-			<div className="flex flex-col gap-4 thin-scrollbar">
-				{pages.map(({ category, insights }) => (
+			<div className="thin-scrollbar flex flex-col gap-4">
+				{pages.map(({ category, metrics }) => (
 					<div key={category} className="relative flex flex-col gap-2">
 						<div className="absolute -top-4" data-category={category} />
 						<div className="flex flex-row items-center gap-2">
@@ -145,7 +145,7 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 							<hr className="flex-1 border-black/20 dark:border-white/20" />
 						</div>
 						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-							{insights.map((insight: any) => (
+							{metrics.map((insight: any) => (
 								<BasicLink
 									key={`insight-${insight.name}-${insight.route}`}
 									className="col-span-1 flex min-h-[120px] flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
@@ -195,7 +195,7 @@ const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => 
 	return `${value} tracked`
 }
 
-export const InsightsAndTools = ({ currentMetric }: { currentMetric: Array<string> }) => {
+export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string> }) => {
 	const dialogStore = Ariakit.useDialogStore()
 	return (
 		<>
@@ -267,10 +267,10 @@ export const InsightsAndTools = ({ currentMetric }: { currentMetric: Array<strin
 					</svg>
 				</div>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer h-[70vh] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] lg:h-[calc(100vh-32px)] thin-scrollbar"
+					className="dialog max-sm:drawer thin-scrollbar h-[70vh] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] lg:h-[calc(100vh-32px)]"
 					unmountOnHide
 				>
-					<Insights canDismiss={true} />
+					<Metrics canDismiss={true} />
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
 		</>
