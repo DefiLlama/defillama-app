@@ -40,8 +40,8 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
-	const pages = useMemo(() => {
-		const allPages = insightsByCategory
+	const tabPages = useMemo(() => {
+		return insightsByCategory
 			.concat(
 				canDismiss
 					? [
@@ -63,10 +63,12 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 				})
 			}))
 			.filter((page) => page.insights.length > 0)
+	}, [tab, canDismiss])
 
-		if (!deferredSearchValue) return allPages
+	const pages = useMemo(() => {
+		if (!deferredSearchValue) return tabPages
 
-		return matchSorter(allPages, deferredSearchValue, {
+		return matchSorter(tabPages, deferredSearchValue, {
 			keys: ['category', 'insights.*.name', 'insights.*.description', 'insights.*.keys'],
 			threshold: matchSorter.rankings.CONTAINS
 		}).map((item) => ({
@@ -79,7 +81,7 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 					}).length > 0
 			)
 		}))
-	}, [deferredSearchValue, canDismiss, tab])
+	}, [deferredSearchValue, tabPages])
 
 	const { data: totalTrackedByMetric } = useQuery({
 		queryKey: ['totalTrackedByMetric'],
@@ -89,7 +91,7 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 
 	return (
 		<>
-			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="flex items-center gap-2">
 					<h1 className="text-2xl font-bold">Metrics</h1>
 					<TagGroup selectedValue={tab} setValue={(value) => setTab(value as (typeof TABS)[number])} values={TABS} />
