@@ -4,8 +4,7 @@
       "name": "Overview",
       "route": "/",
       "category": "Combined Metrics",
-      "description": "Comprehensive overview of all metrics tracked on each chain, including TVL, Fees, Revenue, Volume, and protocols on each chain",
-      "totalTrackedKey": "tvl.protocols"
+      "description": "Comprehensive overview of all metrics tracked on each chain, including TVL, Fees, Revenue, Volume, and protocols on each chain"
     },
     {
       "name": "Chains",

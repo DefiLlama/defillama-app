@@ -21,7 +21,7 @@ export const getStaticProps = withPerformanceLogging('nfts/marketplaces', async 
 	}
 })
 
-const pageName = ['Volume', 'metrics by', 'NFT Marketplaces']
+const pageName = ['Volume', 'by', 'NFT Marketplaces']
 
 function Marketplaces({
 	data,

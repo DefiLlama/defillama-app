@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging('forks', async () => {
 	}
 })
 
-const pageName = ['Protocols', 'ranked by', 'TVL in forks']
+const pageName = ['Protocols', 'ranked by', 'TVL in Forks']
 
 export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens, forkColors }) {
 	const forkedTokensData = useCalcStakePool2Tvl(parentTokens)

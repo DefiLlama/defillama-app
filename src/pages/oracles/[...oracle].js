@@ -119,7 +119,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 	)
 }
 
-const pageName = ['Protocols', 'TVS by', 'Oracle']
+const pageName = ['Protocols TVS', 'by', 'Oracle']
 export default function Oracles(props) {
 	return (
 		<Layout title={`Oracles - DefiLlama`} includeInMetricsOptions={tvlOptions} pageName={pageName}>
