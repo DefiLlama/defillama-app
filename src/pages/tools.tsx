@@ -37,11 +37,11 @@ export default function Tools() {
 					/>
 				</div>
 			</div>
-			<div className="grid grid-cols-1 gap-[6px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+			<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{pages.map((tool: any) => (
 					<BasicLink
 						key={`tool-${tool.name}-${tool.route}`}
-						className="col-span-1 flex min-h-[120px] flex-col items-start gap-[2px] rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
+						className="col-span-1 flex min-h-[120px] flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
 						href={tool.route}
 					>
 						<span className="flex w-full flex-wrap items-center justify-end gap-1">
