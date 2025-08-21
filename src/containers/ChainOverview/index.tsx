@@ -8,7 +8,7 @@ import type { IChainOverviewData } from './types'
 
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
-const pageName = ['Protocols', 'rankings by', 'Chain']
+const pageName = ['Overview']
 
 export function ChainOverview(props: IChainOverviewData) {
 	return (

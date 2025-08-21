@@ -1,17 +1,17 @@
 {
   "Insights": [
     {
-      "name": "Protocols by Chain",
+      "name": "Overview",
       "route": "/",
       "category": "Combined Metrics",
-      "description": "TVL, Fees, Volume metrics of all protocols on each chain",
+      "description": "Comprehensive overview of all metrics tracked on each chain, including TVL, Fees, Revenue, Volume, and protocols on each chain",
       "totalTrackedKey": "tvl.protocols"
     },
     {
-      "name": "All Chains",
+      "name": "Chains",
       "route": "/chains",
       "category": "Combined Metrics",
-      "description": "Combined TVL, Fees, Volume and other metrics of all protocols on all chains",
+      "description": "Combined TVL, Fees, Volume and other metrics by chain",
       "totalTrackedKey": "tvl.chains"
     },
     {

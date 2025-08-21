@@ -16,7 +16,7 @@ import { IChainsByCategoryData } from './types'
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const pageName = ['Chains', 'rankings by', 'Category']
+const pageName = ['Chains']
 
 export function ChainsByCategory({
 	chainAssets,
