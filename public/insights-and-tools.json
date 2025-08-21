@@ -26,23 +26,25 @@
       "route": "/pro",
       "category": "Combined Metrics",
       "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics",
-      "tags": ["New"]
+      "tags": [
+        "New"
+      ]
     },
     {
       "name": "TVL by Protocol",
       "route": "/",
       "category": "Total Value Locked",
       "description": "Protocols ranked by TVL",
-      "tab": "Protocols",
-      "totalTrackedKey": "tvl.protocols"
+      "totalTrackedKey": "tvl.protocols",
+      "tab": "Protocols"
     },
     {
       "name": "TVL by Chain",
       "route": "/chains",
       "category": "Total Value Locked",
       "description": "Chains ranked by TVL",
-      "tab": "Chains",
-      "totalTrackedKey": "tvl.chains"
+      "totalTrackedKey": "tvl.chains",
+      "tab": "Chains"
     },
     {
       "name": "Top Protocols",
@@ -595,7 +597,9 @@
       "route": "/report-error",
       "category": "Tools",
       "description": "Report errors in methodology, protocol metrics, or suggest site improvements",
-      "tags": ["New"]
+      "tags": [
+        "New"
+      ]
     },
     {
       "name": "Yields: Watchlist",
@@ -604,10 +608,10 @@
       "description": "Watchlist of all pools that we track in our yields section"
     },
     {
-      "name": "Daily Roundup",
+      "name": "Llama News Round-Up",
       "route": "/roundup",
       "category": "Tools",
-      "description": "Daily roundup of the most important news in the ecosystem"
+      "description": "Recent round-up of the most important news in the ecosystem"
     },
     {
       "name": "Correlations Matrix by Coin",
