@@ -108,7 +108,8 @@ async function pullData() {
 						category: item.category ?? 'Others',
 						description: item.description ?? '',
 						...(item.totalTrackedKey ? { totalTrackedKey: item.totalTrackedKey } : {}),
-						...(item.keys ? { keys: item.keys } : {})
+						...(item.keys ? { keys: item.keys } : {}),
+						...(item.tags ? { tags: item.tags } : {})
 					}))
 				acc.push(...pages)
 				return acc

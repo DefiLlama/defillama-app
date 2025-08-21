@@ -44,7 +44,28 @@ export default function Tools() {
 						className="col-span-1 flex min-h-[120px] flex-col items-start gap-[2px] rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
 						href={tool.route}
 					>
-						<span className="font-medium">{tool.name}</span>
+						<span className="flex w-full flex-wrap items-center justify-end gap-1">
+							<span className="mr-auto font-medium">{tool.name}</span>
+							{tool.tags?.map((tag) =>
+								tag === 'Hot' ? (
+									<span
+										className="hidden items-center gap-1 rounded-md bg-[#D24C1F] px-[6px] py-[4px] text-[10px] text-white lg:flex"
+										key={`tag-${tool.route}-${tag}`}
+									>
+										<Icon name="flame" height={10} width={10} />
+										<span>Hot</span>
+									</span>
+								) : (
+									<span
+										className="hidden items-center gap-1 rounded-md bg-(--old-blue) px-[6px] py-[4px] text-[10px] text-white lg:flex"
+										key={`tag-${tool.route}-${tag}`}
+									>
+										<Icon name="sparkles" height={10} width={10} />
+										<span>New</span>
+									</span>
+								)
+							)}
+						</span>
 						<span className="text-start whitespace-pre-wrap text-(--text-form)">{tool.description ?? ''}</span>
 					</BasicLink>
 				))}

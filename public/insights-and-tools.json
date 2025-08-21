@@ -23,7 +23,8 @@
       "name": "Dashboard Builder",
       "route": "/pro",
       "category": "Combined Metrics",
-      "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics"
+      "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics",
+      "tags": ["New"]
     },
     {
       "name": "Top Protocols",
@@ -491,19 +492,13 @@
       "name": "Transactions by Bridge",
       "route": "/bridge-transactions",
       "category": "Tools",
-      "description": "Download bridge transaction data across different time periods"
+      "description": "Download transaction data across different time periods by bridge"
     },
     {
       "name": "Protocols Website Directory",
       "route": "/directory",
       "category": "Tools",
       "description": "Directory of all protocols websites on DefiLlama"
-    },
-    {
-      "name": "Trending Contracts on Chain",
-      "route": "/trending-contracts",
-      "category": "Tools",
-      "description": "Current trending contracts on chain"
     },
     {
       "name": "DeFi Watchlist",
@@ -527,13 +522,15 @@
       "name": "Token Usage by Protocol",
       "route": "/token-usage?token=ETH",
       "category": "Tools",
-      "description": "View token usage across different protocols"
+      "description": "View token usage across different protocols",
+      "tags": ["Hot"]
     },
     {
       "name": "Report Error",
       "route": "/report-error",
       "category": "Tools",
-      "description": "Report errors in methodology, protocol metrics, or suggest site improvements"
+      "description": "Report errors in methodology, protocol metrics, or suggest site improvements",
+      "tags": ["New"]
     },
     {
       "name": "Yields: Watchlist",
