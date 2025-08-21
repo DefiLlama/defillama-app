@@ -136,7 +136,7 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 					))}
 				</div>
 			</div>
-			<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-4 thin-scrollbar">
 				{pages.map(({ category, insights }) => (
 					<div key={category} className="relative flex flex-col gap-2">
 						<div className="absolute -top-4" data-category={category} />
@@ -267,7 +267,7 @@ export const InsightsAndTools = ({ currentMetric }: { currentMetric: Array<strin
 					</svg>
 				</div>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer h-[70vh] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] lg:h-[calc(100vh-32px)]"
+					className="dialog max-sm:drawer h-[70vh] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] lg:h-[calc(100vh-32px)] thin-scrollbar"
 					unmountOnHide
 				>
 					<Insights canDismiss={true} />
