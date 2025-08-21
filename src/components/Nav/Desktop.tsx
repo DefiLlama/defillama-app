@@ -14,7 +14,7 @@ export const DesktopNav = ({ links }: { links: TNavLinks }) => {
 	const isAccountLoading = loaders?.userLoading || (isAuthenticated && isSubscriptionLoading)
 
 	return (
-		<nav className="no-scrollbar fixed top-0 bottom-0 left-0 z-10 hidden h-screen w-[244px] flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pl-0 *:pl-4 lg:flex">
+		<nav className="no-scrollbar fixed top-0 bottom-0 left-0 z-10 hidden h-screen w-[244px] flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pb-24 pl-0 *:pl-4 lg:flex">
 			<BasicLink href="/" className="shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img
@@ -35,7 +35,7 @@ export const DesktopNav = ({ links }: { links: TNavLinks }) => {
 				/>
 			</BasicLink>
 
-			<div className="no-scrollbar flex flex-1 flex-col gap-[6px] overflow-y-auto pb-32">
+			<div className="no-scrollbar flex flex-1 flex-col gap-[6px] overflow-y-auto">
 				{links.map(({ category, pages }) => (
 					<div key={`desktop-nav-${category}`} className="group first:mb-auto">
 						<hr className="mb-3 hidden border-black/20 group-last:block dark:border-white/20" />
