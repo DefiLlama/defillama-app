@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { lazy } from 'react'
 import { BasicLink } from '~/components/Link'
+import { TNavLinks } from '../types'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
 
 const MobileSearch = lazy(() => import('~/components/Search').then((m) => ({ default: m.MobileSearch }))) as React.FC
 
-export const MobileNav = React.memo(function MobileNav() {
+export const MobileNav = ({ links }: { links: TNavLinks }) => {
 	return (
 		<nav className="z-10 flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
 			<BasicLink href="/" className="mr-auto shrink-0">
@@ -26,7 +27,8 @@ export const MobileNav = React.memo(function MobileNav() {
 			</React.Suspense>
 
 			<Settings />
-			<Menu />
+
+			<Menu links={links} />
 		</nav>
 	)
-})
+}

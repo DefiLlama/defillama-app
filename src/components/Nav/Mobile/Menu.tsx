@@ -1,21 +1,17 @@
-import { forwardRef, Fragment, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useYieldApp } from '~/hooks'
-import { defaultToolsAndFooterLinks, linksWithNoSubMenu, navLinks } from '../Links'
-import { isActiveCategory } from '../utils'
+import { TNavLinks } from '../types'
 
-export function Menu() {
+export function Menu({ links }: { links: TNavLinks }) {
 	const [show, setShow] = useState(false)
 	const buttonEl = useRef<HTMLButtonElement>(null)
 	const navEl = useRef<HTMLDivElement>(null)
 
 	const router = useRouter()
-	const isYieldApp = useYieldApp()
 	const { isAuthenticated, user, logout } = useAuthContext()
-	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	useEffect(() => {
 		function handleClick(e) {
@@ -60,75 +56,22 @@ export function Menu() {
 						<Icon name="x" height={20} width={20} strokeWidth="4px" />
 					</button>
 
-					<p className="p-3 text-sm opacity-65">Dashboards</p>
-
-					{Object.keys(navLinks).map((mainLink) => (
-						<SubMenu key={mainLink} name={mainLink} />
+					{links.map(({ category, pages }) => (
+						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
+							<p className="mb-1 text-xs opacity-65">{category}</p>
+							<hr className="border-black/20 dark:border-white/20" />
+							{pages.map(({ name, route }) => (
+								<BasicLink
+									href={route}
+									key={`mobile-nav-${name}-${route}`}
+									data-linkactive={route === router.asPath.split('/?')[0].split('?')[0]}
+									className="rounded-md py-2 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
+								>
+									{name}
+								</BasicLink>
+							))}
+						</div>
 					))}
-
-					<hr className="my-3 border-black/20 dark:border-white/20" />
-
-					<p className="p-3 text-sm opacity-65">Tools</p>
-
-					{commonLinks.tools.map((link) => {
-						if ('onClick' in link) {
-							return (
-								<button
-									key={link.name}
-									onClick={link.onClick}
-									className="rounded-md p-3 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
-								>
-									{link.name}
-								</button>
-							)
-						} else {
-							return (
-								<Fragment key={link.name}>
-									<BasicLink
-										href={link.path}
-										key={link.path}
-										target="_blank"
-										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
-										data-linkactive={link.path === router.asPath.split('/?')[0].split('?')[0]}
-										className="rounded-md p-3 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
-									>
-										{link.name}
-									</BasicLink>
-								</Fragment>
-							)
-						}
-					})}
-
-					<hr className="my-3 border-black/20 dark:border-white/20" />
-
-					{commonLinks.footer.map((link) => {
-						if ('onClick' in link) {
-							return (
-								<button
-									key={link.name}
-									onClick={link.onClick}
-									className="rounded-md p-3 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
-								>
-									{link.name}
-								</button>
-							)
-						} else {
-							return (
-								<Fragment key={link.name}>
-									<BasicLink
-										href={link.path}
-										key={link.path}
-										target="_blank"
-										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
-										data-linkactive={link.path === router.asPath.split('/?')[0].split('?')[0]}
-										className="rounded-md p-3 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
-									>
-										{link.name}
-									</BasicLink>
-								</Fragment>
-							)
-						}
-					})}
 
 					<hr className="my-3 border-black/20 dark:border-white/20" />
 
@@ -149,67 +92,3 @@ export function Menu() {
 		</>
 	)
 }
-
-const isActive = ({ pathname, category }: { pathname: string; category: string }) => {
-	if (category === 'DeFi') {
-		return (
-			!isDefaultLink(pathname) &&
-			!Object.keys(navLinks)
-				.filter((cat) => cat !== 'DeFi')
-				.some((cat) => isActiveCategory(pathname, cat))
-		)
-	}
-	return isActiveCategory(pathname, category)
-}
-
-const isDefaultLink = (pathname) =>
-	[...defaultToolsAndFooterLinks.tools, ...defaultToolsAndFooterLinks.footer].map((x) => x.path).includes(pathname)
-
-const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
-	const noSubMenu = linksWithNoSubMenu.find((x) => x.name === name)
-	const router = useRouter()
-	const active = isActive({ category: name, pathname: router.pathname })
-
-	if (noSubMenu || (name === 'Yields' && !active)) {
-		return (
-			<BasicLink
-				href={noSubMenu?.url ?? '/yields'}
-				target={noSubMenu?.external && '_blank'}
-				data-linkactive={(noSubMenu?.url ?? '/yields') === router.pathname}
-				className="rounded-md p-3 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
-			>
-				{name}
-			</BasicLink>
-		)
-	}
-
-	return (
-		<details ref={ref} className={`group select-none ${active ? 'text-black dark:text-white' : ''}`}>
-			<summary
-				data-togglemenuoff={false}
-				className="group/summary relative left-[-22px] flex list-none items-center gap-1 rounded-md p-3 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
-			>
-				<Icon
-					name="chevron-right"
-					height={18}
-					width={18}
-					data-togglemenuoff={false}
-					className="transition-transform duration-100 group-open:rotate-90"
-				/>
-				<span data-togglemenuoff={false}>{name}</span>
-			</summary>
-			<span className="my-1 flex flex-col">
-				{navLinks[name].main.map((subLink) => (
-					<BasicLink
-						href={subLink.path}
-						key={subLink.path}
-						data-linkactive={subLink.path === router.asPath.split('/?')[0].split('?')[0]}
-						className="flex items-center gap-3 rounded-md py-3 pl-7 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
-					>
-						<span>{subLink.name}</span>
-					</BasicLink>
-				))}
-			</span>
-		</details>
-	)
-})

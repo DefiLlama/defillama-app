@@ -79,6 +79,8 @@ type Name =
 	| 'twitter'
 	| 'file-text'
 	| 'flame'
+	| 'house'
+	| 'pencil-ruler'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -86,7 +88,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v6.svg#${name}`} />
+			<use href={`/icons/v7.svg#${name}`} />
 		</svg>
 	)
 })

@@ -3,21 +3,15 @@ import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useYieldApp } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { navLinks } from '../Links'
-import { NewTag } from '../NewTag'
-import { ThemeSwitch } from '../ThemeSwitch'
-import { SubMenu } from './SubMenu'
+import { ThemeSwitch } from './ThemeSwitch'
+import { TNavLinks } from './types'
 
-export const DesktopNav = React.memo(function DesktopNav() {
+export const DesktopNav = ({ links }: { links: TNavLinks }) => {
 	const { asPath } = useRouter()
-	const isYieldApp = useYieldApp()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const isAccountLoading = loaders?.userLoading || (isAuthenticated && isSubscriptionLoading)
-
-	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	return (
 		<nav className="no-scrollbar fixed top-0 bottom-0 left-0 z-10 hidden h-screen w-[244px] flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pl-0 *:pl-4 lg:flex">
@@ -41,78 +35,24 @@ export const DesktopNav = React.memo(function DesktopNav() {
 				/>
 			</BasicLink>
 
-			<div className="no-scrollbar overflow-y-auto pb-32">
-				<p className="mb-1 text-xs opacity-65">Dashboards</p>
-
-				{Object.keys(navLinks).map((mainLink) => (
-					<SubMenu key={mainLink} name={mainLink} />
+			<div className="no-scrollbar flex flex-1 flex-col gap-[6px] overflow-y-auto pb-32">
+				{links.map(({ category, pages }) => (
+					<div key={`desktop-nav-${category}`} className="group first:mb-auto">
+						<hr className="mb-3 hidden border-black/20 group-last:block dark:border-white/20" />
+						{category !== 'Main' ? <p className="mb-1 text-xs opacity-65">{category}</p> : null}
+						{pages.map(({ name, route, icon }) => (
+							<BasicLink
+								href={route}
+								key={`desktop-nav-${name}-${route}`}
+								data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
+								className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+							>
+								{icon ? <Icon name={icon as any} className="h-4 w-4" /> : null}
+								{name}
+							</BasicLink>
+						))}
+					</div>
 				))}
-
-				<hr className="my-4 border-black/20 dark:border-white/20" />
-
-				<p className="mb-1 text-xs opacity-65">Tools</p>
-
-				{commonLinks.tools.map((link) => {
-					if ('onClick' in link) {
-						return (
-							<button
-								key={link.name}
-								onClick={link.onClick}
-								className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-							>
-								{link.name}
-							</button>
-						)
-					} else {
-						return (
-							<React.Fragment key={link.name}>
-								<BasicLink
-									href={link.path}
-									key={link.path}
-									{...(link.external ? { target: '_blank' } : {})}
-									rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
-									data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-								>
-									{link.name}
-									{link.newTag === true ? <NewTag /> : null}
-								</BasicLink>
-							</React.Fragment>
-						)
-					}
-				})}
-
-				<hr className="my-4 border-black/20 dark:border-white/20" />
-
-				{commonLinks.footer.map((link) => {
-					if ('onClick' in link) {
-						return (
-							<button
-								key={link.name}
-								onClick={link.onClick}
-								className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-							>
-								{link.name}
-							</button>
-						)
-					} else {
-						return (
-							<React.Fragment key={link.name}>
-								<BasicLink
-									href={link.path}
-									key={link.path}
-									{...(link.external ? { target: '_blank' } : {})}
-									rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
-									data-linkactive={link.path === asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-								>
-									{link.name}
-									{link.newTag === true ? <NewTag /> : null}
-								</BasicLink>
-							</React.Fragment>
-						)
-					}
-				})}
 			</div>
 
 			{isAccountLoading ? (
@@ -180,4 +120,4 @@ export const DesktopNav = React.memo(function DesktopNav() {
 			)}
 		</nav>
 	)
-})
+}
