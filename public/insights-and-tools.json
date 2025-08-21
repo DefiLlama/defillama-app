@@ -572,7 +572,6 @@
       "route": "/token-usage?token=ETH",
       "category": "Tools",
       "description": "View token usage across different protocols",
-      "tags": ["Hot"],
       "tab": "Protocols"
     },
     {

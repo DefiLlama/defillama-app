@@ -91,7 +91,7 @@ export function Insights({ canDismiss = false }: { canDismiss?: boolean }) {
 		<>
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="flex items-center gap-2">
-					<h1 className="text-2xl font-bold">Insights</h1>
+					<h1 className="text-2xl font-bold">Metrics</h1>
 					<TagGroup selectedValue={tab} setValue={(value) => setTab(value as (typeof TABS)[number])} values={TABS} />
 					{canDismiss ? (
 						<Ariakit.DialogDismiss

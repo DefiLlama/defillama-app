@@ -3,7 +3,7 @@ import Layout from '~/layout'
 
 export default function InsightsPageView() {
 	return (
-		<Layout title="Insights - DefiLlama">
+		<Layout title="Metrics - DefiLlama">
 			<Insights />
 		</Layout>
 	)
