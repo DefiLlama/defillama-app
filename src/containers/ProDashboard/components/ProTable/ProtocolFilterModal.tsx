@@ -110,18 +110,21 @@ export function ProtocolFilterModal({
 }: ProtocolFilterModalProps) {
 	const [selectedProtocols, setSelectedProtocols] = React.useState<string[]>([])
 	const [selectedCategories, setSelectedCategories] = React.useState<string[]>([])
+	const [selectedExcludedCategories, setSelectedExcludedCategories] = React.useState<string[]>([])
 
 	React.useEffect(() => {
 		if (isOpen) {
 			setSelectedProtocols(currentFilters.protocols || [])
 			setSelectedCategories(currentFilters.categories || [])
+			setSelectedExcludedCategories(currentFilters.excludedCategories || [])
 		}
 	}, [isOpen, currentFilters])
 
 	const handleApply = () => {
 		onFiltersChange({
 			protocols: selectedProtocols.length ? selectedProtocols : undefined,
-			categories: selectedCategories.length ? selectedCategories : undefined
+			categories: selectedCategories.length ? selectedCategories : undefined,
+			excludedCategories: selectedExcludedCategories.length ? selectedExcludedCategories : undefined
 		})
 		onClose()
 	}
@@ -129,11 +132,12 @@ export function ProtocolFilterModal({
 	const handleClear = () => {
 		setSelectedProtocols([])
 		setSelectedCategories([])
+		setSelectedExcludedCategories([])
 		onFiltersChange({})
 		onClose()
 	}
 
-	const hasActiveFilters = selectedProtocols.length > 0 || selectedCategories.length > 0
+	const hasActiveFilters = selectedProtocols.length > 0 || selectedCategories.length > 0 || selectedExcludedCategories.length > 0
 
 	const protocolOptions = React.useMemo(() => {
 		return protocols.map((protocol) => ({
@@ -176,15 +180,37 @@ export function ProtocolFilterModal({
 
 				<div className="flex-1 space-y-6 overflow-y-auto p-4" style={{ backgroundColor: 'var(--pro-bg1)' }}>
 					<div>
-						<label className="pro-text2 mb-2 block text-sm font-medium">Categories</label>
+						<label className="pro-text2 mb-2 block text-sm font-medium">Include Categories</label>
 						<ReactSelect
 							isMulti
-							options={categoryOptions}
+							options={categoryOptions.filter((opt) => !selectedExcludedCategories.includes(opt.value))}
 							value={categoryOptions.filter((opt) => selectedCategories.includes(opt.value))}
 							onChange={(sel: any) => {
 								setSelectedCategories(sel ? sel.map((s: any) => s.value) : [])
 							}}
-							placeholder="Select categories..."
+							placeholder="Select categories to include..."
+							styles={{
+								...reactSelectStyles,
+								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
+							}}
+							components={{ MenuList: SimpleMenuList }}
+							closeMenuOnSelect={false}
+							menuPortalTarget={portalTarget}
+							menuPosition="fixed"
+							menuPlacement="auto"
+						/>
+					</div>
+
+					<div>
+						<label className="pro-text2 mb-2 block text-sm font-medium">Exclude Categories</label>
+						<ReactSelect
+							isMulti
+							options={categoryOptions.filter((opt) => !selectedCategories.includes(opt.value))}
+							value={categoryOptions.filter((opt) => selectedExcludedCategories.includes(opt.value))}
+							onChange={(sel: any) => {
+								setSelectedExcludedCategories(sel ? sel.map((s: any) => s.value) : [])
+							}}
+							placeholder="Select categories to exclude..."
 							styles={{
 								...reactSelectStyles,
 								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })

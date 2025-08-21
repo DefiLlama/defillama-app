@@ -160,6 +160,32 @@ export function useProTable(
 			// Convert arrays to Sets for O(1) lookup performance
 			const protocolSet = filters.protocols?.length ? new Set(filters.protocols) : null
 			const categorySet = filters.categories?.length ? new Set(filters.categories) : null
+			const excludedCategorySet = filters.excludedCategories?.length ? new Set(filters.excludedCategories) : null
+
+			if (excludedCategorySet) {
+				protocols = protocols
+					.map((p) => {
+						if (p.category && excludedCategorySet.has(p.category)) {
+							return null
+						}
+
+						const protocolWithSubRows = p as any
+						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
+							const filteredSubRows = protocolWithSubRows.subRows.filter(
+								(child: any) => !child.category || !excludedCategorySet.has(child.category)
+							)
+
+							if (filteredSubRows.length > 0) {
+								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
+							} else {
+								return null
+							}
+						}
+
+						return p
+					})
+					.filter((p) => p !== null)
+			}
 
 			if (protocolSet) {
 				protocols = protocols
@@ -318,7 +344,8 @@ export function useProTable(
 		const originalNameColumn = protocolsByChainColumns.find((col) => col.id === 'name')
 		const originalCategoryColumn = protocolsByChainColumns.find((col) => col.id === 'category')
 
-		const hasActiveFilters = filters && (filters.protocols?.length || filters.categories?.length)
+		const hasActiveFilters =
+			filters && (filters.protocols?.length || filters.categories?.length || filters.excludedCategories?.length)
 
 		const filterButton = (
 			<button
