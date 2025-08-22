@@ -20,6 +20,7 @@ import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -209,29 +210,7 @@ export function AdapterByChain(props: IProps) {
 			columnOrder
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-
-				if (typeof a === 'number' && a <= 0) a = null
-				if (typeof b === 'number' && b <= 0) b = null
-
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-
-				if (a === null && b === null) {
-					return 0
-				}
-
-				return a - b
-			}
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		filterFromLeafRows: true,
 		getSubRows: (row: IAdapterByChainPageData['protocols'][0]) => row.childProtocols,

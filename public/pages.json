@@ -559,16 +559,16 @@
       "description": "Check how deep the liquidity is for a given token"
     },
     {
-      "name": "Transactions by Bridge",
-      "route": "/bridge-transactions",
-      "category": "Tools",
-      "description": "Download transaction data across different time periods by bridge"
-    },
-    {
       "name": "DeFi Watchlist",
       "route": "/watchlist",
       "category": "Tools",
       "description": "Watchlist of all protocols on DefiLlama"
+    },
+    {
+      "name": "Transactions by Bridge",
+      "route": "/bridge-transactions",
+      "category": "Tools",
+      "description": "Download transaction data across different time periods by bridge"
     },
     {
       "name": "Protocols Website Directory",

@@ -184,7 +184,6 @@ async function pullData() {
 }
 
 function shouldPullData() {
-	return true
 	if (!fs.existsSync(CACHE_FILE)) {
 		return true
 	}

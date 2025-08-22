@@ -20,6 +20,7 @@ import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -320,30 +321,7 @@ export const ChainProtocolsTable = ({
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-
-				/**
-				 * These first 3 conditions keep our null values at the bottom.
-				 */
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-
-				if (a === null && b === null) {
-					return 0
-				}
-
-				// at this point, you have non-null values and you should do whatever is required to sort those values correctly
-				return a - b
-			}
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,

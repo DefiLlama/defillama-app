@@ -14,6 +14,7 @@ import {
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
+import { alphanumericFalsyLast } from './utils'
 
 export function TableWithSearch({
 	data,
@@ -46,29 +47,7 @@ export function TableWithSearch({
 			columnOrder
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-
-				if (typeof a === 'number' && a <= 0) a = null
-				if (typeof b === 'number' && b <= 0) b = null
-
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-
-				if (a === null && b === null) {
-					return 0
-				}
-
-				return a - b
-			}
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,

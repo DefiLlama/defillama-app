@@ -16,6 +16,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
+import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -81,29 +82,7 @@ export function ChainsByAdapter(props: IProps) {
 			columnOrder
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-
-				if (typeof a === 'number' && a <= 0) a = null
-				if (typeof b === 'number' && b <= 0) b = null
-
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-
-				if (a === null && b === null) {
-					return 0
-				}
-
-				return a - b
-			}
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		filterFromLeafRows: true,
 		onSortingChange: setSorting,

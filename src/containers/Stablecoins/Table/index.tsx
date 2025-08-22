@@ -14,6 +14,7 @@ import {
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { DEFI_CHAINS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
 import {
@@ -47,6 +48,9 @@ export function PeggedAssetsTable({ data }) {
 			columnOrder,
 			columnSizing,
 			columnFilters
+		},
+		sortingFns: {
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
@@ -135,6 +139,9 @@ export function PeggedAssetByChainTable({ data }) {
 			columnSizing,
 			columnFilters
 		},
+		sortingFns: {
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
+		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IPeggedAssetByChainRow) => row.subRows,
 		onSortingChange: setSorting,
@@ -214,6 +221,9 @@ export function PeggedChainsTable({ data }) {
 			sorting,
 			expanded,
 			columnFilters
+		},
+		sortingFns: {
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IPeggedChain) => row.subRows,
