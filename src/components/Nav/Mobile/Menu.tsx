@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { TNavLinks } from '../types'
 
@@ -73,6 +74,8 @@ export function Menu({ mainLinks, footerLinks }: { mainLinks: TNavLinks; footerL
 						</div>
 					))}
 
+					<YourDashboards />
+
 					{footerLinks.map(({ category, pages }) => (
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
 							<p className="mb-1 text-xs opacity-65">{category}</p>
@@ -107,5 +110,29 @@ export function Menu({ mainLinks, footerLinks }: { mainLinks: TNavLinks; footerL
 				</nav>
 			</div>
 		</>
+	)
+}
+
+const YourDashboards = () => {
+	const { asPath } = useRouter()
+	const { dashboards } = useDashboardAPI()
+
+	if (!dashboards?.length) return null
+
+	return (
+		<div className="group mb-3 flex flex-col first:mb-auto">
+			<p className="mb-1 text-xs opacity-65">Your Dashboards</p>
+			<hr className="border-black/20 dark:border-white/20" />
+			{dashboards.map(({ id, data }) => (
+				<BasicLink
+					href={`/pro/${id}`}
+					key={`desktop-nav-${data.dashboardName}-${id}`}
+					data-linkactive={`/pro/${id}` === asPath.split('/?')[0].split('?')[0]}
+					className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+				>
+					{data.dashboardName}
+				</BasicLink>
+			))}
+		</div>
 	)
 }
