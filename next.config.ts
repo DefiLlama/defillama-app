@@ -556,6 +556,11 @@ const nextConfig: NextConfig = {
 				source: '/treasury',
 				destination: '/treasuries',
 				permanent: true
+			},
+			{
+				source: '/bridged-tvl',
+				destination: '/bridged',
+				permanent: true
 			}
 		]
 	},

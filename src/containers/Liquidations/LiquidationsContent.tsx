@@ -28,7 +28,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 	const [bobo, setBobo] = React.useState(false)
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
-			<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
+			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 				<h1 className="flex items-center gap-2">
 					<img
 						src={liquidationsIconUrl(data.symbol.toLowerCase())}
