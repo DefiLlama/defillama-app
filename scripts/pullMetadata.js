@@ -89,8 +89,8 @@ async function pullData() {
 				'Volume',
 				'Stablecoins',
 				'Token',
-				'Borrow Aggregator',
-				'Yields'
+				'Yields',
+				'Borrow Aggregator'
 			]
 
 			const otherCategories = Object.entries(grouped)
