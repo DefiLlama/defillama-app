@@ -35,7 +35,7 @@ async function pullData() {
 	const startAt = endAt - 1000 * 60 * 60 * 24 * 90
 
 	try {
-		const [protocols, chains, categoriesAndTags, cexs, tastyMetrics] = await Promise.all([
+		const [protocols, chains, categoriesAndTags, cexs, { tastyMetrics, trendingRoutes }] = await Promise.all([
 			fetchJson(PROTOCOLS_DATA_URL),
 			fetchJson(CHAINS_DATA_URL),
 			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
@@ -49,15 +49,21 @@ async function pullData() {
 			})
 				.then((res) => res.json())
 				.then((res) => {
-					const final = {}
+					const tastyMetrics = {}
+					const trendingRoutes = []
+					let i = 0
 					for (const xy of res) {
-						final[xy.x] = xy.y
+						if (i <= 20) {
+							trendingRoutes.push([xy.x, xy.y])
+						}
+						tastyMetrics[xy.x] = xy.y
+						i++
 					}
-					return final
+					return { tastyMetrics, trendingRoutes }
 				})
 				.catch((e) => {
 					console.log('Error fetching tasty metrics', e)
-					return {}
+					return { tastyMetrics: {}, trendingRoutes: [] }
 				})
 		])
 
@@ -120,10 +126,54 @@ async function pullData() {
 		const finalDefillamaPages = {
 			...defillamaPages,
 			Metrics: groupAndSortByCategory(defillamaPages['Metrics']),
-			Tools: defillamaPages['Tools'].sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))
+			Tools: defillamaPages['Tools'].sort((a, b) => {
+				// If a is '/pro', it should come first
+				if (a.route === '/pro') return -1
+				if (b.route === '/pro') return 1
+
+				// Otherwise sort by tastyMetrics (descending)
+				return (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0)
+			})
 		}
 
 		fs.writeFileSync(path.join('public', 'pages.json'), JSON.stringify(finalDefillamaPages, null, 2))
+
+		const trendingPages = trendingRoutes
+			.filter(([route]) => !route.includes('/chain/'))
+			.slice(0, 5)
+			.map(([route]) => {
+				let pageData = null
+				for (const category in defillamaPages) {
+					if (pageData) break
+					for (const page of defillamaPages[category]) {
+						if (page.route === route) {
+							pageData = page
+							break
+						}
+					}
+				}
+				const name =
+					pageData?.name ??
+					(route.includes('/')
+						? `${route
+								.split('/')
+								.slice(0, -1)
+								.map((r) => capitalize(r))
+								.join(' ')}: ${capitalize(route.split('/').pop())}`
+						: route)
+				return {
+					name,
+					route,
+					category: 'Trending',
+					description: pageData?.description ?? '',
+					...(pageData?.totalTrackedKey ? { totalTrackedKey: pageData.totalTrackedKey } : {}),
+					...(pageData?.keys ? { keys: pageData.keys } : {}),
+					...(pageData?.tags ? { tags: pageData.tags } : {}),
+					...(pageData?.tab ? { tab: pageData.tab } : {})
+				}
+			})
+
+		fs.writeFileSync(path.join('public', 'trending.json'), JSON.stringify(trendingPages, null, 2))
 
 		console.log('Data pulled and cached successfully.')
 		return true
@@ -134,6 +184,7 @@ async function pullData() {
 }
 
 function shouldPullData() {
+	return true
 	if (!fs.existsSync(CACHE_FILE)) {
 		return true
 	}
@@ -157,3 +208,5 @@ if (shouldPullData()) {
 	console.log('Metadata was pulled recently. No need to pull again.')
 	process.exit(0) // Exit successfully
 }
+
+const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)

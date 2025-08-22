@@ -6,6 +6,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
 import defillamaPages from '~/public/pages.json'
+import trendingPages from '~/public/trending.json'
 import { fetchJson } from '~/utils/async'
 import { TagGroup } from './TagGroup'
 
@@ -17,21 +18,25 @@ interface IPage {
 	tab?: string
 }
 
-const metricsByCategory = Object.entries(
-	defillamaPages.Metrics.reduce((acc, insight) => {
-		const category = insight.category || 'Others'
-		acc[category] = acc[category] || []
-		acc[category].push({
-			...insight,
-			name: insight.name.includes(': ') ? insight.name.split(': ')[1] : insight.name,
-			description: insight.description ?? ''
-		})
-		return acc
-	}, {})
-).map(([category, metrics]: [string, Array<IPage>]) => ({
-	category,
-	metrics
-}))
+const trending = [{ category: 'Trending', metrics: trendingPages as Array<IPage> }]
+
+const metricsByCategory = trending.concat(
+	Object.entries(
+		defillamaPages.Metrics.reduce((acc, insight) => {
+			const category = insight.category || 'Others'
+			acc[category] = acc[category] || []
+			acc[category].push({
+				...insight,
+				name: insight.name.includes(': ') ? insight.name.split(': ')[1] : insight.name,
+				description: insight.description ?? ''
+			})
+			return acc
+		}, {})
+	).map(([category, metrics]: [string, Array<IPage>]) => ({
+		category,
+		metrics
+	}))
+)
 
 const TABS = ['All', 'Protocols', 'Chains'] as const
 
