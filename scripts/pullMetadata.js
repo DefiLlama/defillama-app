@@ -89,16 +89,15 @@ async function pullData() {
 				'Volume',
 				'Stablecoins',
 				'Token',
-				'Yields',
-				'Borrow Aggregator'
+				'Yields'
 			]
 
 			const otherCategories = Object.entries(grouped)
-				.filter(([category]) => !topCategories.includes(category))
+				.filter(([category]) => !topCategories.includes(category) && category !== 'Others')
 				.sort((a, b) => b[1] - a[1])
 				.map(([category]) => category)
 
-			const pagesByGroup = [...topCategories, ...otherCategories].reduce((acc, category) => {
+			const pagesByGroup = [...topCategories, ...otherCategories, 'Others'].reduce((acc, category) => {
 				const pages = items
 					.filter((item) => (item.category || 'Others') === category)
 					.sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))

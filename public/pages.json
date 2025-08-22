@@ -350,18 +350,6 @@
       "tab": "Protocols"
     },
     {
-      "name": "Borrow Aggregator: Simple",
-      "route": "/borrow",
-      "category": "Borrow Aggregator",
-      "description": "Simple view of optimal lending routes by collateral to borrow assets"
-    },
-    {
-      "name": "Borrow Aggregator: Advanced",
-      "route": "/borrow/advanced",
-      "category": "Borrow Aggregator",
-      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
-    },
-    {
       "name": "Yields: All Pools",
       "route": "/yields",
       "category": "Yields",
@@ -413,6 +401,97 @@
       "description": "Find 'lend-borrow-farm' strategies across all our tracked pools"
     },
     {
+      "name": "Bridges by Volume",
+      "route": "/bridges",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Bridge Volume by Chain",
+      "route": "/bridges/chains",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
+      "tab": "Chains"
+    },
+    {
+      "name": "Treasuries",
+      "route": "/treasuries",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Net Project Treasury",
+      "route": "/net-project-treasury",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, excluding its own token",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project"
+    },
+    {
+      "name": "Borrow Aggregator: Simple",
+      "route": "/borrow",
+      "category": "Borrow Aggregator",
+      "description": "Simple view of optimal lending routes by collateral to borrow assets"
+    },
+    {
+      "name": "Borrow Aggregator: Advanced",
+      "route": "/borrow/advanced",
+      "category": "Borrow Aggregator",
+      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
+    },
+    {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "tab": "Protocols"
+    },
+    {
+      "name": "NFTs: Collections",
+      "route": "/nfts",
+      "category": "NFTs",
+      "description": "Overview of all NFT collections"
+    },
+    {
+      "name": "NFTs: Marketplaces",
+      "route": "/nfts/marketplaces",
+      "category": "NFTs",
+      "description": "Overview of all NFT marketplaces"
+    },
+    {
+      "name": "NFTs: Collection Earnings",
+      "route": "/nfts/earnings",
+      "category": "NFTs",
+      "description": "Earnings of all NFT collections that are tracked by DefiLlama"
+    },
+    {
+      "name": "NFT Volume by Chain",
+      "route": "/nfts/chains",
+      "category": "NFTs",
+      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain"
+    },
+    {
       "name": "CEXs",
       "route": "/cexs",
       "category": "Others",
@@ -458,88 +537,15 @@
       "category": "Others",
       "description": "Overview of all governance proposals by protocol",
       "tab": "Protocols"
-    },
-    {
-      "name": "Bridges by Volume",
-      "route": "/bridges",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Bridge Volume by Chain",
-      "route": "/bridges/chains",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
-      "tab": "Chains"
-    },
-    {
-      "name": "Treasuries",
-      "route": "/treasuries",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Net Project Treasury",
-      "route": "/net-project-treasury",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, excluding its own token",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project"
-    },
-    {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "tab": "Protocols"
-    },
-    {
-      "name": "NFTs: Collections",
-      "route": "/nfts",
-      "category": "NFTs",
-      "description": "Overview of all NFT collections"
-    },
-    {
-      "name": "NFTs: Marketplaces",
-      "route": "/nfts/marketplaces",
-      "category": "NFTs",
-      "description": "Overview of all NFT marketplaces"
-    },
-    {
-      "name": "NFTs: Collection Earnings",
-      "route": "/nfts/earnings",
-      "category": "NFTs",
-      "description": "Earnings of all NFT collections that are tracked by DefiLlama"
-    },
-    {
-      "name": "NFT Volume by Chain",
-      "route": "/nfts/chains",
-      "category": "NFTs",
-      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain"
     }
   ],
   "Tools": [
+    {
+      "name": "Correlations Matrix by Coin",
+      "route": "/correlation",
+      "category": "Tools",
+      "description": "View correlation relationships between different cryptocurrencies to identify market trends and diversification opportunities"
+    },
     {
       "name": "Token Holder Profit and Loss",
       "route": "/token-pnl",
@@ -612,12 +618,6 @@
       "route": "/roundup",
       "category": "Tools",
       "description": "Recent round-up of the most important news in the ecosystem"
-    },
-    {
-      "name": "Correlations Matrix by Coin",
-      "route": "/correlation",
-      "category": "Tools",
-      "description": "View correlation relationships between different cryptocurrencies to identify market trends and diversification opportunities"
     },
     {
       "name": "LlamaSwap",
@@ -699,27 +699,30 @@
     }
   ],
   "About Us": [
-    { "name": "About / Contact", "route": "/about" },
-		{
-			"name": "Twitter",
-			"route": "https://x.com/DefiLlama"
-		},
-		{
-			"name": "Discord",
-			"route": "https://discord.defillama.com"
-		},
-		{
-			"name": "Donate",
-			"route": "/donations"
-		},
-		{
-			"name": "Terms of Service",
-			"route": "/terms"
-		},
-		{
-			"name": "Privacy Policy",
-			"route": "/subscription/privacy-policy"
-		}
+    {
+      "name": "About / Contact",
+      "route": "/about"
+    },
+    {
+      "name": "Twitter",
+      "route": "https://x.com/DefiLlama"
+    },
+    {
+      "name": "Discord",
+      "route": "https://discord.defillama.com"
+    },
+    {
+      "name": "Donate",
+      "route": "/donations"
+    },
+    {
+      "name": "Terms of Service",
+      "route": "/terms"
+    },
+    {
+      "name": "Privacy Policy",
+      "route": "/subscription/privacy-policy"
+    }
   ],
   "Hidden": [
     {
