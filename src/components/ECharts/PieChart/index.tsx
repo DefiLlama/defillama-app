@@ -29,27 +29,13 @@ export default function PieChart({
 	radius = null,
 	showLegend = false,
 	formatTooltip = null,
-	customLabel,
 	legendPosition,
 	legendTextStyle,
-	toRight = 0,
 	...props
 }: IPieChartProps) {
 	const id = useId()
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
-
-	const graphic = {
-		type: 'image',
-		z: 999,
-		style: {
-			image: isDark ? logoLight.src : logoDark.src,
-			height: 40,
-			opacity: 0.3
-		},
-		left: isSmall ? '35%' : '40%',
-		top: '160px'
-	}
 
 	const series = useMemo(() => {
 		const series: Record<string, any> = {
@@ -73,7 +59,6 @@ export default function PieChart({
 					shadowColor: 'rgba(0, 0, 0, 0.5)'
 				}
 			},
-
 			data: chartData.map((item, idx) => ({
 				name: item.name,
 				value: item.value,
@@ -82,12 +67,17 @@ export default function PieChart({
 				}
 			}))
 		}
+
 		if (radius) {
 			series.radius = radius
+		} else {
+			if (!isSmall) {
+				series.radius = '70%'
+			}
 		}
 
 		return series
-	}, [title, isDark, showLegend, formatTooltip, chartData, radius, stackColors])
+	}, [isDark, showLegend, formatTooltip, chartData, radius, stackColors, isSmall])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -98,6 +88,18 @@ export default function PieChart({
 	useEffect(() => {
 		// create instance
 		const chartInstance = createInstance()
+
+		const graphic = {
+			type: 'image',
+			z: 999,
+			style: {
+				image: isDark ? logoLight.src : logoDark.src,
+				height: 40,
+				opacity: 0.3
+			},
+			left: isSmall ? '35%' : '40%',
+			top: '160px'
+		}
 
 		chartInstance.setOption({
 			graphic,
@@ -145,7 +147,18 @@ export default function PieChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, series, isDark, title, usdFormat, showLegend, chartData])
+	}, [
+		createInstance,
+		series,
+		isDark,
+		title,
+		usdFormat,
+		showLegend,
+		chartData,
+		legendPosition,
+		legendTextStyle,
+		isSmall
+	])
 
 	return (
 		<div className="relative" {...props}>
