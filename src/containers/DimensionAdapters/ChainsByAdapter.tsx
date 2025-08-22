@@ -238,8 +238,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Fees paid by users to all the protocols on the chain in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: 'Fees paid by users when using the chain in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 128
 		},
@@ -252,7 +251,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Fees paid by users to all the protocols on the chain in the last 30 days'
+				headerHelperText: 'Fees paid by users when using the chain in the last 30 days'
 			},
 			size: 128
 		}
@@ -269,7 +268,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText:
-					'Revenue earned by all the protocols on the chain in the last 24 hours, updated daily at 00:00 UTC'
+					'Subset of fees that the chain collects for itself in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 128
 		},
@@ -282,7 +281,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Revenue earned by all the protocols on the chain in the last 30 days'
+				headerHelperText: 'Subset of fees that the chain collects for itself in the last 30 days'
 			},
 			size: 128
 		}
@@ -299,7 +298,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText:
-					'Revenue earned by token holders of all the protocols on the chain in the last 24 hours, updated daily at 00:00 UTC'
+					'Revenue earned by token holders of the chain in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 180
 		},
@@ -312,7 +311,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Revenue earned by token holders of all the protocols on the chain in the last 30 days'
+				headerHelperText: 'Revenue earned by token holders of the chain in the last 30 days'
 			},
 			size: 180
 		}

@@ -96,6 +96,7 @@ const Mobile = () => {
 				gutter={6}
 				sameWidth
 				className="z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) sm:max-h-[60vh]"
+				portal
 			>
 				{query ? (
 					status === 'loading' ? (
@@ -195,6 +196,7 @@ const Desktop = () => {
 				gutter={6}
 				sameWidth
 				className="z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) sm:max-h-[60vh]"
+				portal
 			>
 				{query ? (
 					status === 'loading' ? (
