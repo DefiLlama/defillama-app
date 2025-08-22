@@ -65,7 +65,7 @@ export function Menu({ links }: { links: TNavLinks }) {
 									href={route}
 									key={`mobile-nav-${name}-${route}`}
 									data-linkactive={route === router.asPath.split('/?')[0].split('?')[0]}
-									className="rounded-md py-2 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
+									className="-ml-[6px] rounded-md p-2 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
 								>
 									{name}
 								</BasicLink>

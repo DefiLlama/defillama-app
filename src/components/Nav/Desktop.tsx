@@ -36,25 +36,44 @@ export const DesktopNav = ({ links }: { links: TNavLinks }) => {
 			</BasicLink>
 
 			<div className="flex flex-1 flex-col gap-[6px] overflow-y-auto">
-				{links.map(({ category, pages }) => (
-					<div key={`desktop-nav-${category}`} className={`group ${category === 'More' ? 'mt-auto' : ''}`}>
-						<hr className="hidden border-black/20 pt-2 group-last:block dark:border-white/20" />
-						{category !== 'Main' ? <p className="py-[3px] text-xs opacity-65">{category}</p> : null}
-						{pages.map(({ name, route, icon }) => (
-							<BasicLink
-								href={route}
-								key={`desktop-nav-${name}-${route}`}
-								data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
-								className={`-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${
-									['More', 'About Us'].includes(category) ? 'px-[6px] py-[3px]' : 'p-[6px]'
-								}`}
-							>
-								{icon ? <Icon name={icon as any} className="h-4 w-4" /> : null}
-								{name}
-							</BasicLink>
-						))}
-					</div>
-				))}
+				{links.map(({ category, pages }) =>
+					footerCategories.includes(category) ? (
+						<details key={`desktop-nav-${category}`} className={`group ${category === 'More' ? 'mt-auto' : ''}`}>
+							<summary className="-ml-[6px] flex items-center justify-between gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5">
+								<span>{category}</span>
+								<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
+							</summary>
+							<hr className="border-black/20 pt-2 group-last:block dark:border-white/20" />
+							<div>
+								{pages.map(({ name, route, icon }) => (
+									<BasicLink
+										href={route}
+										key={`desktop-nav-${name}-${route}`}
+										data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
+										className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+									>
+										{icon ? <Icon name={icon as any} className="h-4 w-4" /> : null}
+										{name}
+									</BasicLink>
+								))}
+							</div>
+						</details>
+					) : (
+						<div key={`desktop-nav-${category}`} className="group">
+							{pages.map(({ name, route, icon }) => (
+								<BasicLink
+									href={route}
+									key={`desktop-nav-${name}-${route}`}
+									data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
+									className="group/summary -ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+								>
+									{icon ? <Icon name={icon as any} className="group-hover/summary:animate-wiggle h-4 w-4" /> : null}
+									{name}
+								</BasicLink>
+							))}
+						</div>
+					)
+				)}
 			</div>
 
 			<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
@@ -121,3 +140,5 @@ export const DesktopNav = ({ links }: { links: TNavLinks }) => {
 		</nav>
 	)
 }
+
+const footerCategories = ['More', 'About Us']

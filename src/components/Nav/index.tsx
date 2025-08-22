@@ -3,9 +3,15 @@ import { DesktopNav } from './Desktop'
 import { MobileNav } from './Mobile'
 import { TNavLinks } from './types'
 
-const links: TNavLinks = Object.entries(defillamaPages)
-	.filter(([key]) => !['Metrics', 'Tools', 'Hidden'].includes(key))
-	.map(([category, pages]) => ({ category, pages }))
+const otherMainPages = [
+	{ name: 'Pricing', route: '/subscription', icon: 'banknote' },
+	{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
+]
+
+const links = ['Main', 'More', 'About Us'].map((category) => ({
+	category,
+	pages: defillamaPages[category].concat(category === 'Main' ? otherMainPages : [])
+})) as TNavLinks
 
 export default function Nav() {
 	return (

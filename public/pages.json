@@ -22,15 +22,6 @@
       "description": "Combined TVL, Revenue and other metrics by category of all protocols that are tracked by DefiLlama"
     },
     {
-      "name": "Dashboard Builder",
-      "route": "/pro",
-      "category": "Combined Metrics",
-      "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics",
-      "tags": [
-        "New"
-      ]
-    },
-    {
       "name": "TVL by Protocol",
       "route": "/",
       "category": "Total Value Locked",
@@ -541,6 +532,15 @@
   ],
   "Tools": [
     {
+      "name": "Dashboard Builder",
+      "route": "/pro",
+      "category": "Combined Metrics",
+      "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics",
+      "tags": [
+        "New"
+      ]
+    },
+    {
       "name": "Correlations Matrix by Coin",
       "route": "/correlation",
       "category": "Tools",
@@ -690,10 +690,6 @@
       "route": "https://api-docs.defillama.com"
     },
     {
-      "name": "Pricing",
-      "route": "/subscription"
-    },
-    {
       "name": "List your project",
       "route": "https://docs.llama.fi/list-your-project/submit-a-project"
     }
@@ -731,6 +727,10 @@
       "keys": [
         "docs"
       ]
+    },
+    {
+      "name": "Pricing",
+      "route": "/subscription"
     },
     {
       "name": "Subscribe to DefiLlama",
