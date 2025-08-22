@@ -7,7 +7,7 @@ import { Settings } from './Settings'
 
 const MobileSearch = lazy(() => import('~/components/Search').then((m) => ({ default: m.MobileSearch }))) as React.FC
 
-export const MobileNav = ({ links }: { links: TNavLinks }) => {
+export const MobileNav = ({ mainLinks, footerLinks }: { mainLinks: TNavLinks; footerLinks: TNavLinks }) => {
 	return (
 		<nav className="z-10 flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
 			<BasicLink href="/" className="mr-auto shrink-0">
@@ -28,7 +28,7 @@ export const MobileNav = ({ links }: { links: TNavLinks }) => {
 
 			<Settings />
 
-			<Menu links={links} />
+			<Menu mainLinks={mainLinks} footerLinks={footerLinks} />
 		</nav>
 	)
 }

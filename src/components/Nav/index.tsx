@@ -7,17 +7,17 @@ const otherMainPages = [
 	{ name: 'Pricing', route: '/subscription', icon: 'banknote' },
 	{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
 ]
-
-const links = ['Main', 'More', 'About Us'].map((category) => ({
+const mainLinks = [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
+const footerLinks = ['More', 'About Us'].map((category) => ({
 	category,
-	pages: defillamaPages[category].concat(category === 'Main' ? otherMainPages : [])
+	pages: defillamaPages[category]
 })) as TNavLinks
 
 export default function Nav() {
 	return (
 		<>
-			<DesktopNav links={links} />
-			<MobileNav links={links} />
+			<DesktopNav mainLinks={mainLinks} footerLinks={footerLinks} />
+			<MobileNav mainLinks={mainLinks} footerLinks={footerLinks} />
 		</>
 	)
 }

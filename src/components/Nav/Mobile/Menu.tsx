@@ -5,7 +5,7 @@ import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { TNavLinks } from '../types'
 
-export function Menu({ links }: { links: TNavLinks }) {
+export function Menu({ mainLinks, footerLinks }: { mainLinks: TNavLinks; footerLinks: TNavLinks }) {
 	const [show, setShow] = useState(false)
 	const buttonEl = useRef<HTMLButtonElement>(null)
 	const navEl = useRef<HTMLDivElement>(null)
@@ -56,7 +56,24 @@ export function Menu({ links }: { links: TNavLinks }) {
 						<Icon name="x" height={20} width={20} strokeWidth="4px" />
 					</button>
 
-					{links.map(({ category, pages }) => (
+					{mainLinks.map(({ category, pages }) => (
+						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
+							<p className="mb-1 text-xs opacity-65">{category}</p>
+							<hr className="border-black/20 dark:border-white/20" />
+							{pages.map(({ name, route }) => (
+								<BasicLink
+									href={route}
+									key={`mobile-nav-${name}-${route}`}
+									data-linkactive={route === router.asPath.split('/?')[0].split('?')[0]}
+									className="-ml-[6px] rounded-md p-2 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
+								>
+									{name}
+								</BasicLink>
+							))}
+						</div>
+					))}
+
+					{footerLinks.map(({ category, pages }) => (
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
 							<p className="mb-1 text-xs opacity-65">{category}</p>
 							<hr className="border-black/20 dark:border-white/20" />

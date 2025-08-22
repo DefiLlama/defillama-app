@@ -2,12 +2,13 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { ThemeSwitch } from './ThemeSwitch'
 import { TNavLinks } from './types'
 
-export const DesktopNav = ({ links }: { links: TNavLinks }) => {
+export const DesktopNav = ({ mainLinks, footerLinks }: { mainLinks: TNavLinks; footerLinks: TNavLinks }) => {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
@@ -36,44 +37,46 @@ export const DesktopNav = ({ links }: { links: TNavLinks }) => {
 			</BasicLink>
 
 			<div className="flex flex-1 flex-col gap-[6px] overflow-y-auto">
-				{links.map(({ category, pages }) =>
-					footerCategories.includes(category) ? (
-						<details key={`desktop-nav-${category}`} className={`group ${category === 'More' ? 'mt-auto' : ''}`}>
-							<summary className="-ml-[6px] flex items-center justify-between gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5">
-								<span>{category}</span>
-								<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
-							</summary>
-							<hr className="border-black/20 pt-2 group-last:block dark:border-white/20" />
-							<div>
-								{pages.map(({ name, route, icon }) => (
-									<BasicLink
-										href={route}
-										key={`desktop-nav-${name}-${route}`}
-										data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
-										className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-									>
-										{icon ? <Icon name={icon as any} className="h-4 w-4" /> : null}
-										{name}
-									</BasicLink>
-								))}
-							</div>
-						</details>
-					) : (
-						<div key={`desktop-nav-${category}`} className="group">
+				{mainLinks.map(({ category, pages }) => (
+					<div key={`desktop-nav-${category}`} className="group">
+						{pages.map(({ name, route, icon }) => (
+							<BasicLink
+								href={route}
+								key={`desktop-nav-${name}-${route}`}
+								data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
+								className="group/summary -ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+							>
+								{icon ? <Icon name={icon as any} className="group-hover/summary:animate-wiggle h-4 w-4" /> : null}
+								{name}
+							</BasicLink>
+						))}
+					</div>
+				))}
+
+				<YourDashboards />
+
+				{footerLinks.map(({ category, pages }) => (
+					<details key={`desktop-nav-${category}`} className={`group ${category === 'More' ? 'mt-auto' : ''}`}>
+						<summary className="-ml-[6px] flex items-center justify-between gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5">
+							<span>{category}</span>
+							<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
+						</summary>
+						<hr className="border-black/20 pt-2 group-last:block dark:border-white/20" />
+						<div>
 							{pages.map(({ name, route, icon }) => (
 								<BasicLink
 									href={route}
 									key={`desktop-nav-${name}-${route}`}
 									data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
-									className="group/summary -ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 								>
-									{icon ? <Icon name={icon as any} className="group-hover/summary:animate-wiggle h-4 w-4" /> : null}
+									{icon ? <Icon name={icon as any} className="h-4 w-4" /> : null}
 									{name}
 								</BasicLink>
 							))}
 						</div>
-					)
-				)}
+					</details>
+				))}
 			</div>
 
 			<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
@@ -141,4 +144,29 @@ export const DesktopNav = ({ links }: { links: TNavLinks }) => {
 	)
 }
 
-const footerCategories = ['More', 'About Us']
+const YourDashboards = () => {
+	const { asPath } = useRouter()
+	const { dashboards } = useDashboardAPI()
+
+	if (!dashboards?.length) return null
+
+	return (
+		<details open className="group mt-4">
+			<summary className="-ml-[6px] flex items-center justify-between gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5">
+				<span className="text-xs opacity-65">Your Dashboards</span>
+			</summary>
+			<div>
+				{dashboards.map(({ id, data }) => (
+					<BasicLink
+						href={`/pro/${id}`}
+						key={`desktop-nav-${data.dashboardName}-${id}`}
+						data-linkactive={`/pro/${id}` === asPath.split('/?')[0].split('?')[0]}
+						className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+					>
+						{data.dashboardName}
+					</BasicLink>
+				))}
+			</div>
+		</details>
+	)
+}
