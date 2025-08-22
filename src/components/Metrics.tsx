@@ -188,7 +188,10 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 	}, [pinnedMetrics, page.route])
 
 	return (
-		<div className="group relative col-span-1 flex min-h-[120px] flex-col" data-pinned={isPinned}>
+		<div
+			className={`relative col-span-1 flex min-h-[120px] flex-col ${page.route === '/' ? '' : 'group'}`}
+			data-pinned={isPinned}
+		>
 			<BasicLink
 				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
 				href={page.route}
@@ -222,32 +225,31 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 				</span>
 				<span className="pt-0 text-start whitespace-pre-wrap text-(--text-form)">{page.description ?? ''}</span>
 			</BasicLink>
-			{page.route !== '/' ? (
-				<Tooltip
-					content={isPinned ? 'Unpin from navigation' : 'Pin to navigation'}
-					render={
-						<button
-							onClick={(e) => {
-								const currentPinnedMetrics = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
-								window.localStorage.setItem(
-									'pinned-metrics',
-									JSON.stringify(
-										currentPinnedMetrics.includes(page.route)
-											? currentPinnedMetrics.filter((metric: string) => metric !== page.route)
-											: [...currentPinnedMetrics, page.route]
-									)
+
+			<Tooltip
+				content={isPinned ? 'Unpin from navigation' : 'Pin to navigation'}
+				render={
+					<button
+						onClick={(e) => {
+							const currentPinnedMetrics = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
+							window.localStorage.setItem(
+								'pinned-metrics',
+								JSON.stringify(
+									currentPinnedMetrics.includes(page.route)
+										? currentPinnedMetrics.filter((metric: string) => metric !== page.route)
+										: [...currentPinnedMetrics, page.route]
 								)
-								window.dispatchEvent(new Event('pinnedMetricsChange'))
-								e.preventDefault()
-								e.stopPropagation()
-							}}
-						/>
-					}
-					className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-[6px] text-white group-hover:block group-data-[pinned=true]:block group-data-[pinned=true]:bg-(--error)"
-				>
-					<Icon name="pin" height={14} width={14} />
-				</Tooltip>
-			) : null}
+							)
+							window.dispatchEvent(new Event('pinnedMetricsChange'))
+							e.preventDefault()
+							e.stopPropagation()
+						}}
+					/>
+				}
+				className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-[6px] text-white group-hover:block group-data-[pinned=true]:block"
+			>
+				<Icon name="pin" height={14} width={14} />
+			</Tooltip>
 		</div>
 	)
 }
