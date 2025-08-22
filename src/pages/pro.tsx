@@ -113,15 +113,19 @@ function ProContent({
 							{activeTab === 'discover' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
 						</button>
 					</div>
-					{isAuthenticated && (
-						<button
-							onClick={hasActiveSubscription ? createNewDashboard : () => setShowSubscribeModal(true)}
-							className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover)"
-						>
-							<Icon name="plus" height={16} width={16} />
-							Create New Dashboard
-						</button>
-					)}
+					<button
+						onClick={
+							!isAuthenticated
+								? () => router.push('/pro/preview')
+								: hasActiveSubscription
+								? createNewDashboard
+								: () => setShowSubscribeModal(true)
+						}
+						className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover)"
+					>
+						<Icon name="plus" height={16} width={16} />
+						Create New Dashboard
+					</button>
 				</div>
 			</div>
 
