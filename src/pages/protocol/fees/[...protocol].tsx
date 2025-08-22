@@ -331,7 +331,7 @@ export default function Protocols(props) {
 								}}
 								triggerProps={{
 									className:
-										'h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
+										'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 								}}
 								labelType="smol"
 							/>
