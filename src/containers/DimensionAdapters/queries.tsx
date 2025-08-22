@@ -853,13 +853,24 @@ export const getChainsByAdapterPageData = async ({
 		const chainsData = (
 			await Promise.allSettled(
 				allChains.map(async (chain) =>
-					getAdapterChainOverview({
-						adapterType,
-						dataType,
-						chain,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true
-					})
+					adapterType === 'fees'
+						? getAdapterProtocolSummary({
+								adapterType,
+								dataType,
+								protocol: chain,
+								excludeTotalDataChart: false,
+								excludeTotalDataChartBreakdown: true
+							}).then((c) => ({
+								...c,
+								chain: c.name
+							}))
+						: getAdapterChainOverview({
+								adapterType,
+								dataType,
+								chain,
+								excludeTotalDataChart: false,
+								excludeTotalDataChartBreakdown: true
+							})
 				)
 			)
 		)
@@ -873,13 +884,24 @@ export const getChainsByAdapterPageData = async ({
 			const bribesData = (
 				await Promise.allSettled(
 					allChains.map(async (chain) =>
-						getAdapterChainOverview({
-							adapterType,
-							dataType: 'dailyBribesRevenue',
-							chain,
-							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true
-						})
+						adapterType === 'fees'
+							? getAdapterProtocolSummary({
+									adapterType,
+									dataType: 'dailyBribesRevenue',
+									protocol: chain,
+									excludeTotalDataChart: false,
+									excludeTotalDataChartBreakdown: true
+								}).then((c) => ({
+									...c,
+									chain: c.name
+								}))
+							: getAdapterChainOverview({
+									adapterType,
+									dataType: 'dailyBribesRevenue',
+									chain,
+									excludeTotalDataChart: false,
+									excludeTotalDataChartBreakdown: true
+								})
 					)
 				)
 			)
@@ -896,13 +918,24 @@ export const getChainsByAdapterPageData = async ({
 			const tokensTaxesData = (
 				await Promise.allSettled(
 					allChains.map(async (chain) =>
-						getAdapterChainOverview({
-							adapterType,
-							dataType: 'dailyBribesRevenue',
-							chain,
-							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true
-						})
+						adapterType === 'fees'
+							? getAdapterProtocolSummary({
+									adapterType,
+									dataType: 'dailyTokenTaxes',
+									protocol: chain,
+									excludeTotalDataChart: false,
+									excludeTotalDataChartBreakdown: true
+								}).then((c) => ({
+									...c,
+									chain: c.name
+								}))
+							: getAdapterChainOverview({
+									adapterType,
+									dataType: 'dailyTokenTaxes',
+									chain,
+									excludeTotalDataChart: false,
+									excludeTotalDataChartBreakdown: true
+								})
 					)
 				)
 			)
@@ -927,14 +960,16 @@ export const getChainsByAdapterPageData = async ({
 		}
 
 		const chains = chainsData
-			.map((c) => ({
-				name: c.chain,
-				logo: chainIconUrl(c.chain),
-				total24h: c.total24h ?? null,
-				total30d: c.total30d ?? null,
-				...(bribesByChain[c.chain] ? { bribes: bribesByChain[c.chain] } : {}),
-				...(tokenTaxesByChain[c.chain] ? { tokenTax: tokenTaxesByChain[c.chain] } : {})
-			}))
+			.map((c) => {
+				return {
+					name: c.chain,
+					logo: chainIconUrl(c.chain),
+					total24h: c.total24h ?? null,
+					total30d: c.total30d ?? null,
+					...(bribesByChain[c.chain] ? { bribes: bribesByChain[c.chain] } : {}),
+					...(tokenTaxesByChain[c.chain] ? { tokenTax: tokenTaxesByChain[c.chain] } : {})
+				}
+			})
 			.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
 
 		return {

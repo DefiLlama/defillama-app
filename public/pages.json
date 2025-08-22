@@ -140,7 +140,7 @@
       "name": "Fees by Chain",
       "route": "/fees/chains",
       "category": "Fees & Revenue",
-      "description": "Sum of all fees paid by users when using protocols on the chain",
+      "description": "Total fees paid by users when using the chain",
       "totalTrackedKey": "fees.chains",
       "tab": "Chains"
     },
@@ -148,7 +148,7 @@
       "name": "Revenue by Chain",
       "route": "/revenue/chains",
       "category": "Fees & Revenue",
-      "description": "Sum of all revenue earned by protocols on the chain",
+      "description": "Subset of fees that the chain collects for itself",
       "totalTrackedKey": "revenue.chains",
       "tab": "Chains"
     },
