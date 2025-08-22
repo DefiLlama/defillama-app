@@ -23,7 +23,7 @@
     },
     {
       "name": "TVL by Protocol",
-      "route": "/",
+      "route": "/protocols",
       "category": "Total Value Locked",
       "description": "Protocols ranked by Total Value Locked in their smart contracts",
       "totalTrackedKey": "tvl.protocols",
