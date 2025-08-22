@@ -188,7 +188,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 	}, [pinnedMetrics, page.route])
 
 	return (
-		<div className="group relative col-span-1 flex min-h-[120px] flex-col">
+		<div className="group relative col-span-1 flex min-h-[120px] flex-col" data-pinned={isPinned}>
 			<BasicLink
 				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
 				href={page.route}
