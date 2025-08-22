@@ -101,7 +101,7 @@ export function ChainsByCategory({
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
 
 			<div className="flex flex-col gap-2 xl:flex-row">
-				<div className="relative isolate flex min-h-[406px] flex-1 flex-col rounded-md bg-(--cards-bg) pt-2">
+				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<CSVDownloadButton
 						onClick={downloadCsv}
 						smol
@@ -111,7 +111,7 @@ export function ChainsByCategory({
 						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
 					</React.Suspense>
 				</div>
-				<div className="min-h-[406px] flex-1 rounded-md bg-(--cards-bg) pt-2">
+				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}

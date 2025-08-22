@@ -77,17 +77,17 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 		<Layout title={`Forks - DefiLlama`} pageName={pageName}>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="relative isolate flex min-h-[406px] flex-1 flex-col rounded-md bg-(--cards-bg) pt-2">
+				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<CSVDownloadButton
 						onClick={downloadCSV}
 						smol
-						className="z-10 mx-2 ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						className="z-10 m-2 ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={forkColors} />
 					</React.Suspense>
 				</div>
-				<div className="min-h-[406px] flex-1 rounded-md bg-(--cards-bg) pt-2">
+				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}

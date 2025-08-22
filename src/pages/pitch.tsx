@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { trim } from 'lodash'
 import { maxAgeForNext } from '~/api'
-import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -195,7 +194,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 					<div className="flex flex-1 flex-col gap-4">
 						<h2 className="text-lg font-semibold">Filter Investors</h2>
 
-						<label className="flex flex-col gap-1 text-sm">
+						{/* <label className="flex flex-col gap-1 text-sm">
 							<span className="">Categories:</span>
 							<ReactSelect
 								isMulti
@@ -250,7 +249,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									)
 								}
 							/>
-						</label>
+						</label> */}
 						<label className="flex flex-col gap-1 text-sm">
 							<span className="">Minimum last investment time:</span>
 							<input

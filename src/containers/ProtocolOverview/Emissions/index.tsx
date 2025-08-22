@@ -404,8 +404,9 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div className="flex flex-col gap-2">
 				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
-					<LazyChart className="relative min-h-[406px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-						<div className="absolute right-2 z-10">
+					<LazyChart className="relative min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<div className="m-2 flex items-center justify-end gap-2">
+							<h1 className="mr-auto text-lg font-bold">Schedule</h1>
 							<SelectWithCombobox
 								allValues={availableCategories}
 								selectedValues={selectedCategories}
@@ -444,7 +445,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						<Suspense fallback={<></>}>
 							<AreaChart
 								customYAxis={chartConfig.customYAxis}
-								title="Schedule"
 								stacks={chartConfig.stacks}
 								chartData={displayData}
 								hallmarks={hallmarks}

@@ -37,7 +37,7 @@ export const DesktopNav = ({ links }: { links: TNavLinks }) => {
 
 			<div className="no-scrollbar flex flex-1 flex-col gap-[6px] overflow-y-auto">
 				{links.map(({ category, pages }) => (
-					<div key={`desktop-nav-${category}`} className="group first:mb-auto">
+					<div key={`desktop-nav-${category}`} className={`group ${category === 'More' ? 'mt-auto' : ''}`}>
 						<hr className="mb-3 hidden border-black/20 group-last:block dark:border-white/20" />
 						{category !== 'Main' ? <p className="mb-1 text-xs opacity-65">{category}</p> : null}
 						{pages.map(({ name, route, icon }) => (
@@ -45,7 +45,9 @@ export const DesktopNav = ({ links }: { links: TNavLinks }) => {
 								href={route}
 								key={`desktop-nav-${name}-${route}`}
 								data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
-								className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+								className={`-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${
+									['More', 'About Us'].includes(category) ? 'px-[6px] py-[3px]' : 'p-[6px]'
+								}`}
 							>
 								{icon ? <Icon name={icon as any} className="h-4 w-4" /> : null}
 								{name}

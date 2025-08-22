@@ -12,7 +12,9 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { DEFI_CHAINS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
 import {
 	assetsByChainColumnOrders,
@@ -235,6 +237,56 @@ export function PeggedChainsTable({ data }) {
 		return () => clearTimeout(id)
 	}, [projectName, instance])
 
+	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
+
+	const clearAllAggrOptions = () => {
+		DEFI_CHAINS_SETTINGS.forEach((item) => {
+			if (selectedAggregateTypes.includes(item.key)) {
+				updater(item.key)
+			}
+		})
+	}
+
+	const toggleAllAggrOptions = () => {
+		DEFI_CHAINS_SETTINGS.forEach((item) => {
+			if (!selectedAggregateTypes.includes(item.key)) {
+				updater(item.key)
+			}
+		})
+	}
+
+	const addAggrOption = (selectedKeys) => {
+		for (const item in groupTvls) {
+			// toggle on
+			if (!groupTvls[item] && selectedKeys.includes(item)) {
+				updater(item)
+			}
+
+			// toggle off
+			if (groupTvls[item] && !selectedKeys.includes(item)) {
+				updater(item)
+			}
+		}
+	}
+
+	const addOnlyOneAggrOption = (newOption) => {
+		DEFI_CHAINS_SETTINGS.forEach((item) => {
+			if (item.key === newOption) {
+				if (!selectedAggregateTypes.includes(item.key)) {
+					updater(item.key)
+				}
+			} else {
+				if (selectedAggregateTypes.includes(item.key)) {
+					updater(item.key)
+				}
+			}
+		})
+	}
+
+	const selectedAggregateTypes = React.useMemo(() => {
+		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+	}, [groupTvls])
+
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-between p-3">
@@ -254,6 +306,21 @@ export function PeggedChainsTable({ data }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</div>
+				<SelectWithCombobox
+					allValues={DEFI_CHAINS_SETTINGS}
+					selectedValues={selectedAggregateTypes}
+					setSelectedValues={addAggrOption}
+					selectOnlyOne={addOnlyOneAggrOption}
+					toggleAll={toggleAllAggrOptions}
+					clearAll={clearAllAggrOptions}
+					nestedMenu={false}
+					label={'Group Chains'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+					}}
+				/>
 			</div>
 			<VirtualTable instance={instance} />
 		</div>
