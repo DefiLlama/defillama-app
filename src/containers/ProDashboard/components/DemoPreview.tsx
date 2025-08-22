@@ -52,7 +52,7 @@ const DemoChartCard = ({ chart }: { chart: ChartConfig }) => {
 	)
 
 	return (
-		<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass) backdrop-blur-xl backdrop-filter">
+		<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
 			<div className="flex h-full flex-col p-4">
 				<div className="mb-2 flex items-center gap-2">
 					<div className="flex h-6 w-6 items-center justify-center rounded-full bg-(--primary) text-xs font-bold text-white">
@@ -115,7 +115,7 @@ const DemoMultiChartCard = ({ multi }: { multi: MultiChartConfig }) => {
 	})
 
 	return (
-		<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass) backdrop-blur-xl backdrop-filter">
+		<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
 			<div className="flex h-full flex-col p-4">
 				<div className="mb-2 flex items-center gap-2">
 					<h3 className="text-sm font-medium text-(--text-primary)">{multi.name}</h3>
@@ -398,7 +398,7 @@ export const DemoPreview = () => {
 
 	return (
 		<div className="pro-dashboard relative min-h-screen">
-			<div className="bg-opacity-30 border-b border-(--divider) bg-(--bg-glass) py-6 backdrop-blur-xl backdrop-filter">
+			<div className="border-b border-(--divider) bg-(--bg) py-6">
 				<div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6">
 					<div className="text-center">
 						<h1 className="mb-2 text-3xl font-bold text-(--text-primary)">Pro Dashboard Preview</h1>
@@ -423,7 +423,7 @@ export const DemoPreview = () => {
 
 					<div className="mx-auto max-w-5xl">
 						<div className="grid items-stretch gap-8 md:grid-cols-2">
-							<div className="flex flex-col rounded-sm border border-gray-200 bg-gray-50/50 px-6 py-8 text-center backdrop-blur-xl backdrop-filter dark:border-(--divider) dark:bg-(--bg-glass)">
+							<div className="flex flex-col rounded-sm border border-gray-200 bg-gray-50/50 px-6 py-8 text-center dark:border-(--divider) dark:bg-(--bg-glass)">
 								<h3 className="mb-3 text-2xl font-bold text-gray-700 dark:text-(--text-primary)">Free Account</h3>
 								<div className="mb-6 text-3xl font-bold text-gray-800 dark:text-(--text-primary)">
 									$0<span className="text-base font-normal text-gray-600 dark:text-(--text-secondary)">/month</span>
@@ -466,7 +466,7 @@ export const DemoPreview = () => {
 								</Link>
 							</div>
 
-							<div className="relative flex transform flex-col rounded-sm border-2 border-(--primary) bg-gradient-to-br from-(--primary)/10 to-purple-600/10 px-6 py-8 text-center shadow-(--primary)/10 shadow-xl backdrop-blur-xl backdrop-filter transition-transform hover:scale-[1.02]">
+							<div className="relative flex transform flex-col rounded-sm border-2 border-(--primary) bg-gradient-to-br from-(--primary)/10 to-purple-600/10 px-6 py-8 text-center shadow-(--primary)/10 shadow-xl transition-transform hover:scale-[1.02]">
 								<h3 className="mb-3 bg-gradient-to-r from-(--primary) to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
 									Pro
 								</h3>
@@ -521,11 +521,11 @@ export const DemoPreview = () => {
 				</div>
 			</div>
 
-			<div className="bg-opacity-30 bg-(--bg-glass) py-6 backdrop-blur-xl backdrop-filter">
+			<div className="bg-opacity-30 bg-(--bg-glass) py-6">
 				<div className="mx-auto max-w-[1400px]">
 					<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
 						<div className="min-h-[340px] md:col-span-1">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass) backdrop-blur-xl backdrop-filter">
+							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
 								<TextCard text={demoTextCard} />
 							</div>
 						</div>
@@ -547,19 +547,19 @@ export const DemoPreview = () => {
 						))}
 
 						<div className="min-h-[400px] md:col-span-2">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass) backdrop-blur-xl backdrop-filter">
+							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
 								<ProtocolsByChainTable tableId="demo-ethereum-protocols" chains={['Ethereum']} colSpan={2} />
 							</div>
 						</div>
 
 						<div className="min-h-[340px] md:col-span-1">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass) backdrop-blur-xl backdrop-filter">
+							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
 								<TextCard text={demoTextCard2} />
 							</div>
 						</div>
 
 						<div className="min-h-[340px] md:col-span-1">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass) backdrop-blur-xl backdrop-filter">
+							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
 								<TextCard text={demoTextCard3} />
 							</div>
 						</div>
@@ -575,7 +575,7 @@ export const DemoPreview = () => {
 						))}
 
 						<div className="min-h-[340px] md:col-span-1">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass) backdrop-blur-xl backdrop-filter">
+							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
 								<TextCard text={demoTextCard4} />
 							</div>
 						</div>
