@@ -4,6 +4,7 @@ import { getLSDPageData } from '~/api/categories/protocols'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LSDColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TagGroup } from '~/components/TagGroup'
 import { COINS_PRICES_API } from '~/constants'
 import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek, preparePieChartData } from '~/utils'
@@ -27,6 +28,9 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 	}
 })
 
+const GROUP_BY = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
+type GroupByType = (typeof GROUP_BY)[number]
+
 const PageView = ({
 	areaChartData,
 	pieChartData,
@@ -39,14 +43,14 @@ const PageView = ({
 	barChartStacks
 }) => {
 	const [tab, setTab] = React.useState('breakdown')
-	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly' | 'cumulative'>('weekly')
+	const [groupBy, setGroupBy] = React.useState<GroupByType>('Weekly')
 
 	const inflowsData = React.useMemo(() => {
 		const store = {}
 
-		const isWeekly = groupBy === 'weekly'
-		const isMonthly = groupBy === 'monthly'
-		const isCumulative = groupBy === 'cumulative'
+		const isWeekly = groupBy === 'Weekly'
+		const isMonthly = groupBy === 'Monthly'
+		const isCumulative = groupBy === 'Cumulative'
 		const totalByToken = {}
 		for (const date in inflowsChartData) {
 			for (const token in inflowsChartData[date]) {
@@ -123,41 +127,14 @@ const PageView = ({
 						</div>
 					) : (
 						<div className="flex w-full flex-col gap-1">
-							<div className="m-3 ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-								<button
-									data-active={groupBy === 'daily'}
-									className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-									onClick={() => setGroupBy('daily')}
-								>
-									Daily
-								</button>
+							<TagGroup
+								selectedValue={groupBy}
+								setValue={(period) => setGroupBy(period as GroupByType)}
+								values={GROUP_BY}
+								className="m-3 ml-auto"
+							/>
 
-								<button
-									data-active={groupBy === 'weekly'}
-									className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-									onClick={() => setGroupBy('weekly')}
-								>
-									Weekly
-								</button>
-
-								<button
-									data-active={groupBy === 'monthly'}
-									className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-									onClick={() => setGroupBy('monthly')}
-								>
-									Monthly
-								</button>
-
-								<button
-									data-active={groupBy === 'cumulative'}
-									className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-									onClick={() => setGroupBy('cumulative')}
-								>
-									Cumulative
-								</button>
-							</div>
-
-							{groupBy === 'cumulative' ? (
+							{groupBy === 'Cumulative' ? (
 								<React.Suspense fallback={<></>}>
 									<AreaChart
 										chartData={inflowsData}

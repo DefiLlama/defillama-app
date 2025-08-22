@@ -6,6 +6,7 @@ import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
+import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -77,9 +78,12 @@ function processGroupedChartData(
 	})
 }
 
+const DATA_TYPES = ['documented', 'realtime'] as const
+type DataType = (typeof DATA_TYPES)[number]
+
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const { width } = useWindowSize()
-	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
+	const [dataType, setDataType] = useState<DataType>('documented')
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -383,24 +387,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</div>
 			) : null}
 
-			{data.chartData?.realtime?.length > 0 && (
-				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) p-3 text-xs font-medium text-(--text-form)">
-					<button
-						data-active={dataType === 'documented'}
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						onClick={() => setDataType('documented')}
-					>
-						Documented
-					</button>
-					<button
-						data-active={dataType === 'realtime'}
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						onClick={() => setDataType('realtime')}
-					>
-						Realtime
-					</button>
-				</div>
-			)}
+			{data.chartData?.realtime?.length > 0 ? (
+				<TagGroup
+					selectedValue={dataType}
+					setValue={(period) => setDataType(period as DataType)}
+					values={DATA_TYPES}
+					className="ml-auto"
+				/>
+			) : null}
 
 			<div className="flex flex-col gap-2">
 				{categoriesFromData.length > 0 && rawChartData.length > 0 && (

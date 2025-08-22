@@ -140,7 +140,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 				: (props.defaultChartView ?? 'daily'),
 			defaultToggledCharts
 		}
-	}, [queryParamsString, props.availableCharts, props.metrics])
+	}, [queryParamsString, props])
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')

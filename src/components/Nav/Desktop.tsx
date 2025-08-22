@@ -128,7 +128,7 @@ export const DesktopNav = ({
 							<span>{category}</span>
 							<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
 						</summary>
-						<hr className="border-black/20 pt-2 group-last:block dark:border-white/20" />
+						<hr className="-ml-[6px] border-black/20 pt-2 group-last:block dark:border-white/20" />
 						<div>
 							{pages.map(({ name, route, icon }) => (
 								<BasicLink
@@ -147,7 +147,7 @@ export const DesktopNav = ({
 			</div>
 
 			<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
-				<hr className="border-black/20 pb-1 dark:border-white/20" />
+				<hr className="-ml-[6px] border-black/20 pb-1 dark:border-white/20" />
 				{isAccountLoading ? (
 					<div className="flex min-h-7 w-full items-center justify-center">
 						<div className="h-6 w-6 animate-spin rounded-full border-t-2 border-b-2 border-gray-400" />

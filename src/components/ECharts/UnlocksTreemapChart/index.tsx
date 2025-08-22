@@ -4,6 +4,7 @@ import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { TagGroup } from '~/components/TagGroup'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum, tokenIconUrl } from '~/utils'
 
@@ -41,12 +42,13 @@ type YearDataMap = {
 	[year: string]: YearData
 }
 
-type TimeView = 'currentYear' | 'currentMonth' | 'allYears'
+const TIME_VIEWS = ['Month', 'Current Year', 'All Years'] as const
+type TimeView = (typeof TIME_VIEWS)[number]
 
 export default function UnlocksTreemapChart({ unlocksData, height = '600px', filterYear }: UnlocksTreemapProps) {
 	const id = useMemo(() => crypto.randomUUID(), [])
 	const [isDark] = useDarkModeManager()
-	const [timeView, setTimeView] = useState<TimeView>('currentYear')
+	const [timeView, setTimeView] = useState<TimeView>('Current Year')
 	const [selectedDate, setSelectedDate] = useState(dayjs())
 
 	const currentYear = filterYear || dayjs().year()
@@ -63,8 +65,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 
 			if (year < currentYear) return
 
-			if (timeView === 'currentYear' && year > currentYear) return
-			if (timeView === 'currentMonth' && monthIndex !== selectedDate.month()) return
+			if (timeView === 'Current Year' && year > currentYear) return
+			if (timeView === 'Month' && monthIndex !== selectedDate.month()) return
 
 			if (!yearData[year]) {
 				yearData[year] = {
@@ -91,7 +93,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 			})
 		})
 
-		if (timeView === 'currentMonth') {
+		if (timeView === 'Month') {
 			const targetYear = selectedDate.year()
 			const targetMonthName = selectedDate.format('MMMM')
 			if (yearData[targetYear] && yearData[targetYear].children[targetMonthName]) {
@@ -143,7 +145,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 			}
 		}
 
-		if (timeView === 'currentYear' && yearData[currentYear]) {
+		if (timeView === 'Current Year' && yearData[currentYear]) {
 			const currentYearData = yearData[currentYear]
 
 			return Object.entries(currentYearData.children)
@@ -206,7 +208,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				.sort((a, b) => b.value - a.value)
 		}
 
-		if (timeView === 'allYears') {
+		if (timeView === 'All Years') {
 			Object.entries(yearData).forEach(([year, yearInfo]) => {
 				const yearNode: any = {
 					name: year,
@@ -309,7 +311,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					const pathNames = treePathInfo.map((item) => item.name).slice(0, -1)
 
 					let pathDisplay = pathNames.join(' > ')
-					if (timeView === 'currentMonth' && !pathNames.length) {
+					if (timeView === 'Month' && !pathNames.length) {
 						pathDisplay = ''
 					} else if (pathDisplay) {
 						pathDisplay += ' > '
@@ -443,7 +445,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	return (
 		<div className="mt-[-24px] flex flex-col gap-4">
 			<div className="flex flex-wrap items-center justify-end gap-4">
-				{timeView === 'currentMonth' && (
+				{timeView === 'Month' && (
 					<div className="order-1 flex items-center gap-2 md:order-0">
 						<button
 							onClick={goToPrevMonth}
@@ -466,29 +468,12 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					</div>
 				)}
 
-				<div className="mt-4 ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-					<button
-						onClick={() => setTimeView('currentMonth')}
-						data-active={timeView === 'currentMonth'}
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-					>
-						Month
-					</button>
-					<button
-						onClick={() => setTimeView('currentYear')}
-						data-active={timeView === 'currentYear'}
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-					>
-						Current Year
-					</button>
-					<button
-						onClick={() => setTimeView('allYears')}
-						data-active={timeView === 'allYears'}
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-					>
-						All Years
-					</button>
-				</div>
+				<TagGroup
+					selectedValue={timeView}
+					setValue={(period) => setTimeView(period as TimeView)}
+					values={TIME_VIEWS}
+					className="mt-4"
+				/>
 			</div>
 
 			<div id={id} style={{ width: '100%', height: height }} />

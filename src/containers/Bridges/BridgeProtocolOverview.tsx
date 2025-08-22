@@ -5,6 +5,7 @@ import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { SEO } from '~/components/SEO'
 import { BridgeAddressesTable, BridgeTokensTable } from '~/components/Table/Bridges'
+import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { BridgeChainSelector } from '~/containers/Bridges/BridgeChainSelector'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
@@ -15,6 +16,8 @@ import { formattedNum, getPercentChange } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const CHART_TYPES = ['Inflows', 'Tokens To', 'Tokens From'] as const
+type ChartType = (typeof CHART_TYPES)[number]
 
 const BridgeInfo = ({
 	displayName,
@@ -25,7 +28,7 @@ const BridgeInfo = ({
 	tableDataByChain,
 	config = {} as Record<string, string>
 }) => {
-	const [chartType, setChartType] = React.useState('Inflows')
+	const [chartType, setChartType] = React.useState<ChartType>('Inflows')
 	const [currentChain, setChain] = React.useState(defaultChain)
 
 	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
@@ -104,29 +107,12 @@ const BridgeInfo = ({
 
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="ml-auto w-full max-w-fit overflow-x-auto p-3">
-						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-							<button
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={chartType === 'Inflows'}
-								onClick={() => setChartType('Inflows')}
-							>
-								Inflows
-							</button>
-							<button
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={chartType === 'Tokens To'}
-								onClick={() => setChartType('Tokens To')}
-							>
-								Tokens To
-							</button>
-							<button
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={chartType === 'Tokens From'}
-								onClick={() => setChartType('Tokens From')}
-							>
-								Tokens From
-							</button>
-						</div>
+						<TagGroup
+							selectedValue={chartType}
+							setValue={(chartType) => setChartType(chartType as ChartType)}
+							values={CHART_TYPES}
+							className="ml-auto"
+						/>
 					</div>
 					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
