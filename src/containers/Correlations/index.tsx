@@ -136,7 +136,7 @@ export default function Correlations({ coinsData }) {
 
 	useEffect(() => {
 		if (!queryCoins?.length)
-			router.push(
+			router.replace(
 				{
 					pathname: router.pathname,
 					query: {
@@ -144,8 +144,7 @@ export default function Correlations({ coinsData }) {
 						coin: ['bitcoin', 'ethereum', 'tether', 'binancecoin']
 					}
 				},
-				undefined,
-				{ shallow: true }
+				undefined
 			)
 	}, [queryCoins, router])
 
