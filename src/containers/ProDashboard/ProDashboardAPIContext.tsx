@@ -199,34 +199,30 @@ export function ProDashboardAPIProvider({
 				return null
 			}
 
-			try {
-				const dashboard = await loadDashboardData(initialDashboardId)
+			const dashboard = await loadDashboardData(initialDashboardId)
 
-				if (!dashboard) {
-					throw new Error('Dashboard not found')
-				}
-
-				if (!dashboard?.data?.items || !Array.isArray(dashboard.data.items)) {
-					throw new Error('Invalid dashboard data structure')
-				}
-
-				setDashboardId(dashboard.id)
-				setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
-				setItems(dashboard.data.items)
-				setTimePeriodState(dashboard.data.timePeriod || '365d')
-				setCurrentDashboard(dashboard)
-				setDashboardVisibility(dashboard.visibility || 'private')
-				setDashboardTags(dashboard.tags || [])
-				setDashboardDescription(dashboard.description || '')
-
-				return dashboard
-			} catch (error: any) {
-				console.error('Failed to load dashboard:', error)
-				router.push('/pro')
+			if (!dashboard) {
+				console.log('Dashboard not found or no permission:', initialDashboardId)
 				return null
 			}
+
+			if (!dashboard?.data?.items || !Array.isArray(dashboard.data.items)) {
+				console.error('Invalid dashboard data structure')
+				return null
+			}
+
+			setDashboardId(dashboard.id)
+			setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
+			setItems(dashboard.data.items)
+			setTimePeriodState(dashboard.data.timePeriod || '365d')
+			setCurrentDashboard(dashboard)
+			setDashboardVisibility(dashboard.visibility || 'private')
+			setDashboardTags(dashboard.tags || [])
+			setDashboardDescription(dashboard.description || '')
+
+			return dashboard
 		},
-		enabled: !!initialDashboardId && isAuthenticated
+		enabled: !!initialDashboardId
 	})
 
 	// Save dashboard

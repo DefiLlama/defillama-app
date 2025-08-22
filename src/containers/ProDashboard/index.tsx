@@ -393,13 +393,6 @@ function ProDashboardContent() {
 				</div>
 			</div>
 
-			{!isAuthenticated && (
-				<div className="pro-text2 mb-4 border border-(--divider) bg-(--bg-tertiary) p-3 text-sm">
-					<Icon name="help-circle" height={16} width={16} className="mr-2 inline" />
-					Sign in to save and manage multiple dashboards
-				</div>
-			)}
-
 			{dashboardTags.length > 0 && (
 				<div className="mb-4 flex items-center gap-2">
 					<Icon name="bookmark" height={14} width={14} className="pro-text3" />

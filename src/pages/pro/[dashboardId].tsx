@@ -90,6 +90,23 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 		return <ProDashboardLoader />
 	}
 
+	if (dashboardId !== 'new' && !currentDashboard && !isLoadingDashboard) {
+		return (
+			<div className="flex min-h-[50vh] flex-col items-center justify-center p-4">
+				<div className="max-w-md space-y-6 text-center">
+					<h1 className="pro-text1 text-3xl font-bold">Dashboard Not Found</h1>
+					<p className="pro-text2 text-lg">This dashboard does not exist or you don't have permission to view it</p>
+					<button
+						onClick={() => router.push('/pro')}
+						className="rounded-md bg-(--primary) px-6 py-3 font-medium text-white transition-colors hover:bg-(--primary-hover)"
+					>
+						Browse Dashboards
+					</button>
+				</div>
+			</div>
+		)
+	}
+
 	if (dashboardId === 'new' && !isAuthenticated) {
 		return (
 			<div className="flex min-h-[50vh] flex-col items-center justify-center p-4">
@@ -111,7 +128,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 		return <ProDashboard />
 	}
 
-	if (!isAuthenticated) {
+	if (!isAuthenticated && dashboardVisibility === 'private') {
 		return (
 			<div className="flex min-h-[50vh] flex-col items-center justify-center p-4">
 				<div className="max-w-md space-y-6 text-center">

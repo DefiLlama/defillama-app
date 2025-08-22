@@ -94,13 +94,11 @@ export function useDashboardAPI() {
 	const loadDashboard = useCallback(
 		async (id: string) => {
 			try {
-				if (isAuthenticated) {
-					const dashboard = await dashboardAPI.getDashboard(id, authorizedFetch)
-					return dashboard
-				}
-				return null
+				const dashboard = await dashboardAPI.getDashboard(id, isAuthenticated ? authorizedFetch : undefined)
+				return dashboard
 			} catch (error: any) {
 				console.error('Failed to load dashboard:', error)
+				return null
 			}
 		},
 		[isAuthenticated, authorizedFetch]

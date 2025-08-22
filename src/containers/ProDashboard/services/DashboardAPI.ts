@@ -55,9 +55,10 @@ class DashboardAPIService {
 
 	async getDashboard(
 		id: string,
-		authorizedFetch: (url: string, options?: any) => Promise<Response>
+		authorizedFetch?: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/${id}`)
+		const url = `${AUTH_SERVER}/dashboards/${id}`
+		const response = authorizedFetch ? await authorizedFetch(url) : await fetch(url)
 		return this.handleResponse<Dashboard>(response)
 	}
 

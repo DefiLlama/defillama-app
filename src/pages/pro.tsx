@@ -7,7 +7,6 @@ import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard
 import { CreateDashboardModal } from '~/containers/ProDashboard/components/CreateDashboardModal'
 import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
-import { DemoPreview } from '~/containers/ProDashboard/components/DemoPreview'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -26,7 +25,7 @@ function ProPageContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()
 	const [activeTab, setActiveTab] = useState<'my-dashboards' | 'discover'>(
-		subscription?.status === 'active' ? 'my-dashboards' : 'discover'
+		isAuthenticated && subscription?.status === 'active' ? 'my-dashboards' : 'discover'
 	)
 
 	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
@@ -39,36 +38,30 @@ function ProPageContent() {
 		)
 	}
 
-	if (!isAuthenticated) {
-		return (
-			<Layout title="DefiLlama - Pro Dashboard">
-				<DemoPreview />
-			</Layout>
-		)
-	}
-
 	return (
 		<Layout title="DefiLlama - Pro Dashboard">
-			<AuthenticatedProContent
+			<ProContent
 				activeTab={activeTab}
 				setActiveTab={setActiveTab}
 				hasActiveSubscription={subscription?.status === 'active'}
+				isAuthenticated={isAuthenticated}
 			/>
 		</Layout>
 	)
 }
 
-function AuthenticatedProContent({
+function ProContent({
 	activeTab,
 	setActiveTab,
-	hasActiveSubscription
+	hasActiveSubscription,
+	isAuthenticated
 }: {
 	activeTab: 'my-dashboards' | 'discover'
 	setActiveTab: (tab: 'my-dashboards' | 'discover') => void
 	hasActiveSubscription: boolean
+	isAuthenticated: boolean
 }) {
 	const router = useRouter()
-	const { isAuthenticated } = useAuthContext()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const {
 		dashboards,
@@ -97,7 +90,7 @@ function AuthenticatedProContent({
 			<div className="mb-6">
 				<div className="flex items-center justify-between">
 					<div className="flex gap-8">
-						{hasActiveSubscription && (
+						{isAuthenticated && hasActiveSubscription && (
 							<button
 								onClick={() => setActiveTab('my-dashboards')}
 								className={`relative pb-3 text-base font-medium transition-colors ${
@@ -120,13 +113,15 @@ function AuthenticatedProContent({
 							{activeTab === 'discover' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
 						</button>
 					</div>
-					<button
-						onClick={hasActiveSubscription ? createNewDashboard : () => setShowSubscribeModal(true)}
-						className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover)"
-					>
-						<Icon name="plus" height={16} width={16} />
-						Create New Dashboard
-					</button>
+					{isAuthenticated && (
+						<button
+							onClick={hasActiveSubscription ? createNewDashboard : () => setShowSubscribeModal(true)}
+							className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover)"
+						>
+							<Icon name="plus" height={16} width={16} />
+							Create New Dashboard
+						</button>
+					)}
 				</div>
 			</div>
 
