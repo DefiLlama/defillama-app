@@ -71,16 +71,23 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 		return matchSorter(tabPages, deferredSearchValue, {
 			keys: ['category', 'metrics.*.name', 'metrics.*.description', 'metrics.*.keys'],
 			threshold: matchSorter.rankings.CONTAINS
-		}).map((item) => ({
-			...item,
-			metrics: item.metrics.filter(
-				(insight) =>
-					matchSorter([insight], deferredSearchValue, {
-						keys: ['name', 'description', 'keys'],
-						threshold: matchSorter.rankings.CONTAINS
-					}).length > 0
-			)
-		}))
+		}).map((item) => {
+			// If the category name matches the search term, show all metrics in that category
+			const categoryMatches = item.category.toLowerCase().includes(deferredSearchValue.toLowerCase())
+
+			return {
+				...item,
+				metrics: categoryMatches
+					? item.metrics // Show all metrics if category matches
+					: item.metrics.filter(
+							(insight) =>
+								matchSorter([insight], deferredSearchValue, {
+									keys: ['name', 'description', 'keys'],
+									threshold: matchSorter.rankings.CONTAINS
+								}).length > 0
+						)
+			}
+		})
 	}, [deferredSearchValue, tabPages])
 
 	const { data: totalTrackedByMetric } = useQuery({
