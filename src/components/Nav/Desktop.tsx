@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { Tooltip } from '../Tooltip'
 import { ThemeSwitch } from './ThemeSwitch'
 import { TNavLink, TNavLinks } from './types'
 
@@ -64,19 +65,38 @@ export const DesktopNav = ({
 
 				{pinnedPages.length > 0 ? (
 					<div className="group mt-4">
-						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65 hover:bg-black/5 focus-visible:bg-black/5">
-							Pinned Pages
-						</p>
+						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65">Pinned Pages</p>
 						<div>
 							{pinnedPages.map(({ name, route }) => (
-								<BasicLink
-									href={route}
-									key={`pinned-page-${name}-${route}`}
-									data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-								>
-									{name}
-								</BasicLink>
+								<span key={`pinned-page-${name}-${route}`} className="group relative flex flex-wrap items-center gap-1">
+									<BasicLink
+										href={route}
+										data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
+										className="-ml-[6px] flex-1 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+									>
+										{name}
+									</BasicLink>
+									<Tooltip
+										content="Unpin from navigation"
+										render={
+											<button
+												onClick={(e) => {
+													const currentPinnedPages = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
+													window.localStorage.setItem(
+														'pinned-metrics',
+														JSON.stringify(currentPinnedPages.filter((page: string) => page !== route))
+													)
+													window.dispatchEvent(new Event('pinnedMetricsChange'))
+													e.preventDefault()
+													e.stopPropagation()
+												}}
+											/>
+										}
+										className="absolute top-1 right-1 bottom-1 my-auto hidden rounded-md bg-(--error) px-1 py-1 text-white group-hover:block"
+									>
+										<Icon name="x" className="h-4 w-4" />
+									</Tooltip>
+								</span>
 							))}
 						</div>
 					</div>

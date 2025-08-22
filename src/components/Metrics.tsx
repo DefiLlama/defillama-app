@@ -224,7 +224,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 			</BasicLink>
 			{page.route !== '/' ? (
 				<Tooltip
-					content="Pin to navigation"
+					content={isPinned ? 'Unpin from navigation' : 'Pin to navigation'}
 					render={
 						<button
 							onClick={(e) => {
@@ -243,7 +243,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 							}}
 						/>
 					}
-					className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-[6px] text-white group-hover:block group-data-[pinned=true]:block"
+					className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-[6px] text-white group-hover:block group-data-[pinned=true]:block group-data-[pinned=true]:bg-(--error)"
 				>
 					<Icon name="pin" height={14} width={14} />
 				</Tooltip>
