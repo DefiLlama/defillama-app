@@ -144,7 +144,8 @@ export default function Correlations({ coinsData }) {
 						coin: ['bitcoin', 'ethereum', 'tether', 'binancecoin']
 					}
 				},
-				undefined
+				undefined,
+				{ shallow: true }
 			)
 	}, [queryCoins, router])
 
