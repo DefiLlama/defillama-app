@@ -67,8 +67,10 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 			return
 		}
 
-		setIsValidating(false)
-	}, [dashboardId])
+		if (!isLoadingDashboard && (currentDashboard || dashboardVisibility)) {
+			setIsValidating(false)
+		}
+	}, [dashboardId, isLoadingDashboard, currentDashboard, dashboardVisibility])
 
 	useEffect(() => {
 		if (
@@ -90,7 +92,7 @@ function DashboardPageContent({ dashboardId }: DashboardPageProps) {
 		return <ProDashboardLoader />
 	}
 
-	if (dashboardId !== 'new' && !currentDashboard && !isLoadingDashboard) {
+	if (dashboardId !== 'new' && !currentDashboard && !isLoadingDashboard && !isValidating) {
 		return (
 			<div className="flex min-h-[50vh] flex-col items-center justify-center p-4">
 				<div className="max-w-md space-y-6 text-center">
