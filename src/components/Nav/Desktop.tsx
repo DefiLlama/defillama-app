@@ -2,13 +2,22 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { ThemeSwitch } from './ThemeSwitch'
-import { TNavLinks } from './types'
+import { TNavLink, TNavLinks } from './types'
 
-export const DesktopNav = ({ mainLinks, footerLinks }: { mainLinks: TNavLinks; footerLinks: TNavLinks }) => {
+export const DesktopNav = ({
+	mainLinks,
+	pinnedPages,
+	userDashboards,
+	footerLinks
+}: {
+	mainLinks: TNavLinks
+	pinnedPages: TNavLink[]
+	userDashboards: TNavLink[]
+	footerLinks: TNavLinks
+}) => {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
@@ -53,7 +62,45 @@ export const DesktopNav = ({ mainLinks, footerLinks }: { mainLinks: TNavLinks; f
 					</div>
 				))}
 
-				<YourDashboards />
+				{pinnedPages.length > 0 ? (
+					<div className="group mt-4">
+						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65 hover:bg-black/5 focus-visible:bg-black/5">
+							Pinned Pages
+						</p>
+						<div>
+							{pinnedPages.map(({ name, route }) => (
+								<BasicLink
+									href={route}
+									key={`pinned-page-${name}-${route}`}
+									data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
+									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+								>
+									{name}
+								</BasicLink>
+							))}
+						</div>
+					</div>
+				) : null}
+
+				{userDashboards.length > 0 ? (
+					<div className="group mt-4">
+						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65 hover:bg-black/5 focus-visible:bg-black/5">
+							Your Dashboards
+						</p>
+						<div>
+							{userDashboards.map(({ name, route }) => (
+								<BasicLink
+									href={route}
+									key={`desktop-nav-${name}-${route}`}
+									data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
+									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+								>
+									{name}
+								</BasicLink>
+							))}
+						</div>
+					</div>
+				) : null}
 
 				{footerLinks.map(({ category, pages }) => (
 					<details key={`desktop-nav-${category}`} className={`group ${category === 'More' ? 'mt-auto' : ''}`}>
@@ -141,32 +188,5 @@ export const DesktopNav = ({ mainLinks, footerLinks }: { mainLinks: TNavLinks; f
 				<ThemeSwitch />
 			</div>
 		</nav>
-	)
-}
-
-const YourDashboards = () => {
-	const { asPath } = useRouter()
-	const { dashboards } = useDashboardAPI()
-
-	if (!dashboards?.length) return null
-
-	return (
-		<details open className="group mt-4">
-			<summary className="-ml-[6px] flex items-center justify-between gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5">
-				<span className="text-xs opacity-65">Your Dashboards</span>
-			</summary>
-			<div>
-				{dashboards.map(({ id, data }) => (
-					<BasicLink
-						href={`/pro/${id}`}
-						key={`desktop-nav-${data.dashboardName}-${id}`}
-						data-linkactive={`/pro/${id}` === asPath.split('/?')[0].split('?')[0]}
-						className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-					>
-						{data.dashboardName}
-					</BasicLink>
-				))}
-			</div>
-		</details>
 	)
 }

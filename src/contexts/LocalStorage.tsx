@@ -185,6 +185,14 @@ export function subscribeToLocalStorage(callback: () => void) {
 	}
 }
 
+export function subscribeToPinnedMetrics(callback: () => void) {
+	window.addEventListener('pinnedMetricsChange', callback)
+
+	return () => {
+		window.removeEventListener('pinnedMetricsChange', callback)
+	}
+}
+
 const toggleDarkMode = () => {
 	const isDarkMode = getThemeCookie() === 'true'
 	setThemeCookie(!isDarkMode)

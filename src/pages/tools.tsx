@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
+import { LinkToMetricOrToolPage } from '~/components/Metrics'
 import Layout from '~/layout'
 import defillamaPages from '~/public/pages.json'
 
@@ -40,35 +40,7 @@ export default function Tools() {
 			</div>
 			<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{pages.map((tool: any) => (
-					<BasicLink
-						key={`tool-${tool.name}-${tool.route}`}
-						className="col-span-1 flex min-h-[120px] flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
-						href={tool.route}
-					>
-						<span className="flex w-full flex-wrap items-center justify-end gap-1">
-							<span className="mr-auto font-medium">{tool.name}</span>
-							{tool.tags?.map((tag) =>
-								tag === 'Hot' ? (
-									<span
-										className="hidden items-center gap-1 rounded-md bg-[#D24C1F] px-[6px] py-[4px] text-[10px] text-white lg:flex"
-										key={`tag-${tool.route}-${tag}`}
-									>
-										<Icon name="flame" height={10} width={10} />
-										<span>Hot</span>
-									</span>
-								) : (
-									<span
-										className="hidden items-center gap-1 rounded-md bg-(--old-blue) px-[6px] py-[4px] text-[10px] text-white lg:flex"
-										key={`tag-${tool.route}-${tag}`}
-									>
-										<Icon name="sparkles" height={10} width={10} />
-										<span>New</span>
-									</span>
-								)
-							)}
-						</span>
-						<span className="text-start whitespace-pre-wrap text-(--text-form)">{tool.description ?? ''}</span>
-					</BasicLink>
+					<LinkToMetricOrToolPage key={`tool-${tool.name}-${tool.route}`} page={tool} totalTrackedByMetric={null} />
 				))}
 			</div>
 		</Layout>

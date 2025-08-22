@@ -1,14 +1,16 @@
-import { Fragment, useDeferredValue, useMemo, useState } from 'react'
+import { Fragment, useDeferredValue, useMemo, useState, useSyncExternalStore } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
+import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
 import trendingPages from '~/public/trending.json'
 import { fetchJson } from '~/utils/async'
 import { TagGroup } from './TagGroup'
+import { Tooltip } from './Tooltip'
 
 interface IPage {
 	name: string
@@ -16,19 +18,20 @@ interface IPage {
 	description: string
 	tags?: string[]
 	tab?: string
+	totalTrackedKey?: string
 }
 
 const trending = [{ category: 'Trending', metrics: trendingPages as Array<IPage> }]
 
-const metricsByCategory = trending.concat(
+export const metricsByCategory = trending.concat(
 	Object.entries(
-		defillamaPages.Metrics.reduce((acc, insight) => {
-			const category = insight.category || 'Others'
+		defillamaPages.Metrics.reduce((acc, metric) => {
+			const category = metric.category || 'Others'
 			acc[category] = acc[category] || []
 			acc[category].push({
-				...insight,
-				name: insight.name.includes(': ') ? insight.name.split(': ')[1] : insight.name,
-				description: insight.description ?? ''
+				...metric,
+				name: metric.name.includes(': ') ? metric.name.split(': ')[1] : metric.name,
+				description: metric.description ?? ''
 			})
 			return acc
 		}, {})
@@ -62,9 +65,9 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 			)
 			.map((page) => ({
 				category: page.category,
-				metrics: page.metrics.filter((insight) => {
+				metrics: page.metrics.filter((metric) => {
 					if (tab === 'All') return true
-					return insight.tab === tab
+					return metric.tab === tab
 				})
 			}))
 			.filter((page) => page.metrics.length > 0)
@@ -85,8 +88,8 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 				metrics: categoryMatches
 					? item.metrics // Show all metrics if category matches
 					: item.metrics.filter(
-							(insight) =>
-								matchSorter([insight], deferredSearchValue, {
+							(metric) =>
+								matchSorter([metric], deferredSearchValue, {
 									keys: ['name', 'description', 'keys'],
 									threshold: matchSorter.rankings.CONTAINS
 								}).length > 0
@@ -157,47 +160,95 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 							<hr className="flex-1 border-black/20 dark:border-white/20" />
 						</div>
 						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-							{metrics.map((insight: any) => (
-								<BasicLink
-									key={`insight-${insight.name}-${insight.route}`}
-									className="col-span-1 flex min-h-[120px] flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
-									href={insight.route}
-								>
-									<span className="flex w-full flex-wrap items-center justify-end gap-1">
-										<span className="mr-auto font-medium">{insight.name}</span>
-										{insight.tags?.map((tag) =>
-											tag === 'Hot' ? (
-												<span
-													className="hidden items-center gap-1 rounded-md bg-[#D24C1F] px-[6px] py-[4px] text-[10px] text-white lg:flex"
-													key={`tag-${insight.route}-${tag}`}
-												>
-													<Icon name="flame" height={10} width={10} />
-													<span>Hot</span>
-												</span>
-											) : (
-												<span
-													className="hidden items-center gap-1 rounded-md bg-(--old-blue) px-[6px] py-[4px] text-[10px] text-white lg:flex"
-													key={`tag-${insight.route}-${tag}`}
-												>
-													<Icon name="sparkles" height={10} width={10} />
-													<span>New</span>
-												</span>
-											)
-										)}
-										{totalTrackedByMetric && insight.totalTrackedKey ? (
-											<span className="text-xs text-(--link)">
-												{getTotalTracked(totalTrackedByMetric, insight.totalTrackedKey)}
-											</span>
-										) : null}
-									</span>
-									<span className="text-start whitespace-pre-wrap text-(--text-form)">{insight.description ?? ''}</span>
-								</BasicLink>
+							{metrics.map((metric) => (
+								<LinkToMetricOrToolPage
+									key={`metric-${metric.name}-${metric.route}`}
+									page={metric}
+									totalTrackedByMetric={totalTrackedByMetric}
+								/>
 							))}
 						</div>
 					</div>
 				))}
 			</div>
 		</>
+	)
+}
+
+export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: IPage; totalTrackedByMetric: any }) => {
+	const pinnedMetrics = useSyncExternalStore(
+		subscribeToPinnedMetrics,
+		() => localStorage.getItem('pinned-metrics') ?? '[]',
+		() => '[]'
+	)
+
+	const isPinned = useMemo(() => {
+		const pinnedPages = JSON.parse(pinnedMetrics)
+		return pinnedPages.includes(page.route)
+	}, [pinnedMetrics, page.route])
+
+	return (
+		<div className="group relative col-span-1 flex min-h-[120px] flex-col">
+			<BasicLink
+				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
+				href={page.route}
+			>
+				<span className="flex w-full flex-wrap items-center justify-end gap-1">
+					<span className="mr-auto font-medium">{page.name}</span>
+					{page.tags?.map((tag) =>
+						tag === 'Hot' ? (
+							<span
+								className="-mt-[4px] -mr-[2px] hidden items-center gap-1 rounded-md bg-[#D24C1F] px-[6px] py-[4px] text-[10px] text-white group-hover:hidden group-data-[pinned=true]:hidden lg:flex"
+								key={`tag-${page.route}-${tag}`}
+							>
+								<Icon name="flame" height={10} width={10} />
+								<span>Hot</span>
+							</span>
+						) : (
+							<span
+								className="-mt-[4px] -mr-[2px] hidden items-center gap-1 rounded-md bg-(--old-blue) px-[6px] py-[4px] text-[10px] text-white group-hover:hidden group-data-[pinned=true]:hidden lg:flex"
+								key={`tag-${page.route}-${tag}`}
+							>
+								<Icon name="sparkles" height={10} width={10} />
+								<span>New</span>
+							</span>
+						)
+					)}
+					{totalTrackedByMetric && page.totalTrackedKey ? (
+						<span className="text-xs text-(--link) group-hover:hidden group-data-[pinned=true]:hidden">
+							{getTotalTracked(totalTrackedByMetric, page.totalTrackedKey)}
+						</span>
+					) : null}
+				</span>
+				<span className="pt-0 text-start whitespace-pre-wrap text-(--text-form)">{page.description ?? ''}</span>
+			</BasicLink>
+			{page.route !== '/' ? (
+				<Tooltip
+					content="Pin to navigation"
+					render={
+						<button
+							onClick={(e) => {
+								const currentPinnedMetrics = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
+								window.localStorage.setItem(
+									'pinned-metrics',
+									JSON.stringify(
+										currentPinnedMetrics.includes(page.route)
+											? currentPinnedMetrics.filter((metric: string) => metric !== page.route)
+											: [...currentPinnedMetrics, page.route]
+									)
+								)
+								window.dispatchEvent(new Event('pinnedMetricsChange'))
+								e.preventDefault()
+								e.stopPropagation()
+							}}
+						/>
+					}
+					className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-[6px] text-white group-hover:block group-data-[pinned=true]:block"
+				>
+					<Icon name="pin" height={14} width={14} />
+				</Tooltip>
+			) : null}
+		</div>
 	)
 }
 
@@ -227,7 +278,7 @@ export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string
 							<span>New</span>
 						</span>
 						{currentMetric.map((metric, i) => (
-							<Fragment key={`insight-name-${metric}`}>
+							<Fragment key={`metric-name-${metric}`}>
 								{i === 1 ? (
 									<span>{metric}</span>
 								) : (

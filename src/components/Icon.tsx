@@ -73,6 +73,7 @@ type Name =
 	| 'pencil-ruler'
 	| 'blocks'
 	| 'banknote'
+	| 'pin'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -80,7 +81,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v8.svg#${name}`} />
+			<use href={`/icons/v9.svg#${name}`} />
 		</svg>
 	)
 })

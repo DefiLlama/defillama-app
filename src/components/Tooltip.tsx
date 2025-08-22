@@ -24,17 +24,10 @@ interface ITooltip {
 		| 'right'
 		| 'right-start'
 		| 'right-end'
+	portal?: boolean
 }
 
-export function Tooltip({
-	content,
-	children,
-	color,
-	fontSize,
-	placement = 'top-start',
-	className,
-	...props
-}: ITooltip) {
+export function Tooltip({ content, children, placement = 'top-start', className, ...props }: ITooltip) {
 	const store = Ariakit.useTooltipStore({ placement })
 
 	if (!content || content === '') return <>{children}</>
