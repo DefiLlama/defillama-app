@@ -68,7 +68,10 @@ export const DesktopNav = ({
 						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65">Pinned Pages</p>
 						<div>
 							{pinnedPages.map(({ name, route }) => (
-								<span key={`pinned-page-${name}-${route}`} className="group relative flex flex-wrap items-center gap-1">
+								<span
+									key={`pinned-page-${name}-${route}`}
+									className="group/pinned relative flex flex-wrap items-center gap-1"
+								>
 									<BasicLink
 										href={route}
 										data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
@@ -92,7 +95,7 @@ export const DesktopNav = ({
 												}}
 											/>
 										}
-										className="absolute top-1 right-1 bottom-1 my-auto hidden rounded-md bg-(--error) px-1 py-1 text-white group-hover:block"
+										className="absolute top-1 right-1 bottom-1 my-auto hidden rounded-md bg-(--error) px-1 py-1 text-white group-hover/pinned:block"
 									>
 										<Icon name="x" className="h-4 w-4" />
 									</Tooltip>
