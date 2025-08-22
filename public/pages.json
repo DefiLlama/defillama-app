@@ -615,7 +615,7 @@
     },
     {
       "name": "Correlations Matrix by Coin",
-      "route": "/correlations",
+      "route": "/correlation",
       "category": "Tools",
       "description": "View correlation relationships between different cryptocurrencies to identify market trends and diversification opportunities"
     },
