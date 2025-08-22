@@ -34,7 +34,7 @@
       "name": "TVL by Protocol",
       "route": "/",
       "category": "Total Value Locked",
-      "description": "Protocols ranked by TVL",
+      "description": "Protocols ranked by Total Value Locked in their smart contracts",
       "totalTrackedKey": "tvl.protocols",
       "tab": "Protocols"
     },
@@ -42,7 +42,7 @@
       "name": "TVL by Chain",
       "route": "/chains",
       "category": "Total Value Locked",
-      "description": "Chains ranked by TVL",
+      "description": "Chains ranked by combined TVL of all protocols on the chain",
       "totalTrackedKey": "tvl.chains",
       "tab": "Chains"
     },
