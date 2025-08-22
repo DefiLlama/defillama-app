@@ -85,11 +85,11 @@ async function pullData() {
 			const topCategories = [
 				'Combined Metrics',
 				'Total Value Locked',
+				'Yields',
 				'Fees & Revenue',
 				'Volume',
 				'Stablecoins',
 				'Token',
-				'Yields',
 				'Borrow Aggregator'
 			]
 
