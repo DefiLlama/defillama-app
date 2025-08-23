@@ -11,19 +11,20 @@ import {
 } from '@tanstack/react-table'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
-import { oldBlue } from '~/constants/colors'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import useWindowSize from '~/hooks/useWindowSize'
 import Layout from '~/layout'
 import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
 
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -123,7 +124,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 		selectedChains,
 		selectedSectors,
 		raisesByCategory,
-		fundingRoundsByMonth,
+		fundingRoundsByMonthChart,
 		investmentByRounds
 	} = useRaisesData({
 		raises,
@@ -132,6 +133,8 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 		sectors,
 		chains
 	})
+
+	console.log({ raisesByCategory, investmentByRounds, fundingRoundsByMonthChart })
 
 	return (
 		<Layout title={`Raises - DefiLlama`} pageName={pageName}>
@@ -189,7 +192,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				</div>
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
-						<BarChart chartData={fundingRoundsByMonth} title="" groupBy="monthly" color={oldBlue} valueSymbol="" />
+						<LineAndBarChart charts={fundingRoundsByMonthChart} groupBy="monthly" valueSymbol="" />
 					</React.Suspense>
 				</div>
 			</div>

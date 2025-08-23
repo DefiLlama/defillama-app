@@ -2,8 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IBarChartProps } from '~/components/ECharts/types'
-import { oldBlue } from '~/constants/colors'
+import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
@@ -11,21 +10,28 @@ import { downloadCsv } from './download'
 import { useRaisesData } from './hooks'
 import { RaisesTable } from './RaisesTable'
 
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname } = useRouter()
 
-	const { filteredRaisesList, selectedInvestors, selectedRounds, selectedChains, selectedSectors, monthlyInvestment } =
-		useRaisesData({
-			raises,
-			investors,
-			rounds,
-			sectors,
-			chains
-		})
-
-	const totalAmountRaised = monthlyInvestment.reduce((acc, curr) => (acc += curr[1]), 0)
+	const {
+		filteredRaisesList,
+		selectedInvestors,
+		selectedRounds,
+		selectedChains,
+		selectedSectors,
+		totalAmountRaised,
+		monthlyInvestmentChart
+	} = useRaisesData({
+		raises,
+		investors,
+		rounds,
+		sectors,
+		chains
+	})
 
 	return (
 		<Layout title={`Raises - DefiLlama`} pageName={['Raises Overview']}>
@@ -73,7 +79,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
-						<BarChart chartData={monthlyInvestment} title="" valueSymbol="$" color={oldBlue} groupBy="monthly" />
+						<LineAndBarChart charts={monthlyInvestmentChart} valueSymbol="$" groupBy="monthly" />
 					</React.Suspense>
 				</div>
 			</div>

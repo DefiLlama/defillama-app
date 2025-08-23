@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { oldBlue } from '~/constants/colors'
 import { slug, toYearMonth } from '~/utils'
 
 export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
@@ -165,29 +167,57 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			}
 		})
 
+		const finalMonthlyInvestment = []
+		const finalRaisesByCategory = []
+		const finalInvestmentByRounds = []
+		const finalFundingRoundsByMonth = []
+		let totalAmountRaised = 0
+
+		for (const date in monthlyInvestment) {
+			finalMonthlyInvestment.push([new Date(date).getTime(), monthlyInvestment[date]])
+			totalAmountRaised += monthlyInvestment[date]
+		}
+		for (const category in raisesByCategory) {
+			finalRaisesByCategory.push({ name: category, value: raisesByCategory[category] })
+		}
+		for (const round in investmentByRounds) {
+			finalInvestmentByRounds.push({ name: round, value: investmentByRounds[round] })
+		}
+		for (const date in fundingRoundsByMonth) {
+			finalFundingRoundsByMonth.push([new Date(date).getTime(), fundingRoundsByMonth[date]])
+		}
+
+		const monthlyInvestmentChart: ILineAndBarChartProps['charts'] = {
+			'Funding Amount': {
+				name: 'Funding Amount',
+				stack: 'Funding Amount',
+				data: finalMonthlyInvestment,
+				color: oldBlue,
+				type: 'bar'
+			}
+		}
+
+		const fundingRoundsByMonthChart: ILineAndBarChartProps['charts'] = {
+			'Funding Rounds': {
+				name: 'Funding Rounds',
+				stack: 'Funding Rounds',
+				data: finalFundingRoundsByMonth,
+				color: oldBlue,
+				type: 'bar'
+			}
+		}
+
 		return {
 			selectedInvestors,
 			selectedChains,
 			selectedRounds,
 			selectedSectors,
 			filteredRaisesList,
-			raisesByCategory: Object.entries(raisesByCategory)
-				.map(([name, value]) => ({
-					name,
-					value
-				}))
-				.sort((a, b) => b.value - a.value),
-			investmentByRounds: Object.entries(investmentByRounds)
-				.map(([name, value]) => ({
-					name,
-					value
-				}))
-				.sort((a, b) => b.value - a.value),
-			monthlyInvestment: Object.entries(monthlyInvestment).map((t) => [
-				new Date(t[0]).getTime() / 1e3,
-				Number.isNaN(Number(t[1])) ? 0 : Number(t[1]) * 1e6
-			]),
-			fundingRoundsByMonth: Object.entries(fundingRoundsByMonth).map((t) => [new Date(t[0]).getTime() / 1e3, t[1]])
+			raisesByCategory: finalRaisesByCategory.sort((a, b) => b.value - a.value),
+			investmentByRounds: finalInvestmentByRounds.sort((a, b) => b.value - a.value),
+			monthlyInvestmentChart,
+			fundingRoundsByMonthChart,
+			totalAmountRaised
 		}
 	}, [investor, investors, round, rounds, sector, sectors, chain, chains, raises, minRaised, maxRaised])
 
