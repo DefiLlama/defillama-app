@@ -26,14 +26,11 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorFn: (row) => row.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			// Use row.index which is already calculated by tanstack table
-			const index = row.index
 			const name = getValue() as string
 			const symbol = row.original.symbol
 
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={peggedAssetIconUrl(name)} data-lgonly />
 					<BasicLink
 						href={`/stablecoins/${row.original.gecko_id || name}`}

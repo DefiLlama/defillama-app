@@ -1,11 +1,11 @@
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { Dashboard } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 
 interface DashboardCardProps {
 	dashboard: Dashboard
-	onClick: () => void
 	onTagClick?: (tag: string) => void
 	onDelete?: (dashboardId: string, e: React.MouseEvent) => void
 	isDeleting?: boolean
@@ -14,7 +14,6 @@ interface DashboardCardProps {
 
 export function DashboardCard({
 	dashboard,
-	onClick,
 	onTagClick,
 	onDelete,
 	isDeleting,
@@ -67,9 +66,9 @@ export function DashboardCard({
 
 	if (viewMode === 'list') {
 		return (
-			<div
-				onClick={onClick}
-				className="pro-glass hover:bg-opacity-40 flex cursor-pointer items-center justify-between gap-4 p-4 transition-all hover:bg-(--bg-glass)"
+			<BasicLink
+				href={`/pro/${dashboard.id}`}
+				className="pro-glass hover:bg-opacity-40 flex cursor-pointer items-center justify-between gap-4 p-4 transition-all hover:bg-(--bg-glass) no-underline"
 			>
 				<div className="min-w-0 flex-1">
 					<div className="mb-2 flex items-center gap-3">
@@ -124,14 +123,14 @@ export function DashboardCard({
 						</div>
 					</div>
 				</div>
-			</div>
+			</BasicLink>
 		)
 	}
 
 	return (
-		<div
-			onClick={onClick}
-			className="pro-glass hover:bg-opacity-40 group flex h-full cursor-pointer flex-col p-4 transition-all hover:bg-(--bg-glass)"
+		<BasicLink
+			href={`/pro/${dashboard.id}`}
+			className="pro-glass hover:bg-opacity-40 group flex h-full cursor-pointer flex-col p-4 transition-all hover:bg-(--bg-glass) no-underline"
 		>
 			<div className="mb-3 flex items-start justify-between">
 				<div className="flex min-w-0 flex-1 items-center gap-2">
@@ -215,6 +214,6 @@ export function DashboardCard({
 					</div>
 				)}
 			</div>
-		</div>
+		</BasicLink>
 	)
 }
