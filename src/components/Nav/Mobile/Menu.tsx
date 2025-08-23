@@ -71,14 +71,7 @@ export function Menu({
 							<p className="mb-1 text-xs opacity-65">{category}</p>
 							<hr className="border-black/20 dark:border-white/20" />
 							{pages.map(({ name, route }) => (
-								<BasicLink
-									href={route}
-									key={`mobile-nav-${name}-${route}`}
-									data-linkactive={route === router.asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] rounded-md p-2 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
-								>
-									{name}
-								</BasicLink>
+								<LinkToPage route={route} name={name} key={`mobile-nav-${name}-${route}`} />
 							))}
 						</div>
 					))}
@@ -88,14 +81,7 @@ export function Menu({
 							<p className="mb-1 text-xs opacity-65">Pinned Pages</p>
 							<hr className="border-black/20 dark:border-white/20" />
 							{pinnedPages.map(({ name, route }) => (
-								<BasicLink
-									href={route}
-									key={`mobile-nav-pinned-${name}-${route}`}
-									data-linkactive={route === router.asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-								>
-									{name}
-								</BasicLink>
+								<LinkToPage route={route} name={name} key={`mobile-nav-pinned-${name}-${route}`} />
 							))}
 						</div>
 					) : null}
@@ -105,14 +91,7 @@ export function Menu({
 							<p className="mb-1 text-xs opacity-65">Your Dashboards</p>
 							<hr className="border-black/20 dark:border-white/20" />
 							{userDashboards.map(({ name, route }) => (
-								<BasicLink
-									href={route}
-									key={`mobile-nav-${name}-${route}`}
-									data-linkactive={route === router.asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-								>
-									{name}
-								</BasicLink>
+								<LinkToPage route={route} name={name} key={`mobile-nav-${name}-${route}`} />
 							))}
 						</div>
 					) : null}
@@ -122,14 +101,7 @@ export function Menu({
 							<p className="mb-1 text-xs opacity-65">{category}</p>
 							<hr className="border-black/20 dark:border-white/20" />
 							{pages.map(({ name, route }) => (
-								<BasicLink
-									href={route}
-									key={`mobile-nav-${name}-${route}`}
-									data-linkactive={route === router.asPath.split('/?')[0].split('?')[0]}
-									className="-ml-[6px] rounded-md p-2 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white"
-								>
-									{name}
-								</BasicLink>
+								<LinkToPage route={route} name={name} key={`mobile-nav-${name}-${route}`} />
 							))}
 						</div>
 					))}
@@ -151,5 +123,19 @@ export function Menu({
 				</nav>
 			</div>
 		</>
+	)
+}
+
+const LinkToPage = ({ route, name }: { route: string; name: string }) => {
+	const { asPath } = useRouter()
+
+	return (
+		<BasicLink
+			href={route}
+			data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
+			className="-ml-[6px] flex items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+		>
+			{name}
+		</BasicLink>
 	)
 }

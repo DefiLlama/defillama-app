@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useSyncExternalStore } from 'react'
+import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
 import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
@@ -35,7 +35,7 @@ const footerLinks = ['More', 'About Us'].map((category) => ({
 	pages: defillamaPages[category]
 })) as TNavLinks
 
-export default function Nav() {
+function NavComponent() {
 	const { dashboards } = useDashboardAPI()
 	const userDashboards = useMemo(
 		() => dashboards?.map(({ id, data }) => ({ name: data.dashboardName, route: `/pro/${id}` })) ?? [],
@@ -84,3 +84,5 @@ export default function Nav() {
 		</>
 	)
 }
+
+export const Nav = memo(NavComponent)

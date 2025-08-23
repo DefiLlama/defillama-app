@@ -393,6 +393,8 @@
 		--btn2-text: oklch(0.527 0.178 269.6);
 		--switch-bg: oklch(0.533 0.18 259 / 0.25);
 		--switch-border: oklch(0.533 0.18 259 / 0.5);
+		--link-button: oklch(0.533 0.18 259 / 0.12);
+		--link-button-hover: oklch(0.533 0.18 259 / 0.24);
 
 		/* Status Colors */
 		--success: oklch(0.549 0.181 143.4);

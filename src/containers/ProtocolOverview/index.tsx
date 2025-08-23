@@ -7,7 +7,6 @@ import { feesOptions, tvlOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
-import { DLNewsLogo } from '~/components/News/Logo'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SEO } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -342,7 +341,9 @@ const Articles = (props: IProtocolOverviewPageData) => {
 					<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
 				</h2>
 				<a href="https://www.dlnews.com">
-					<DLNewsLogo width={72} height={18} />
+					<svg width={72} height={18}>
+						<use href={`/dlnews.svg#dlnews-logo`} />
+					</svg>
 				</a>
 			</div>
 

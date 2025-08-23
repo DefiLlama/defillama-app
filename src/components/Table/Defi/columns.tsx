@@ -1,8 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import * as Ariakit from '@ariakit/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { Bookmark } from '~/components/Bookmark'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
@@ -11,7 +9,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import {
-	capitalizeFirstLetter,
 	formattedNum,
 	formattedPercent,
 	slug,
@@ -163,15 +160,15 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		size: 60,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<ButtonLight
-				className="flex items-center justify-center gap-4 p-[6px]!"
-				as="a"
+			<a
 				href={getValue() as string}
 				target="_blank"
 				rel="noopener noreferrer"
+				className="shrink-0 rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonLight>
+				<span className="sr-only">open in new tab</span>
+			</a>
 		)
 	},
 	{
@@ -206,9 +203,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
 					<Bookmark readableName={getValue() as string} data-bookmark className="absolute -left-[2px]" />
@@ -284,7 +279,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		sortUndefined: 'last',
 		accessorFn: (row) => (row.historicalPrice ? row.historicalPrice : undefined),
 
-		cell: ({ getValue, row }) => {
+		cell: ({ row }) => {
 			return (
 				<div className="relative">
 					<Suspense fallback={<></>}>
@@ -340,8 +335,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		sortUndefined: 'last',
 		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
 		cell: ({ getValue, row }) => {
-			const symbol = row.original.tSymbol
-
 			if (!row.original.unlocksPerDay) return '-'
 
 			return (
@@ -584,13 +577,6 @@ export const activeInvestorsColumns: ColumnDef<{
 	}
 ]
 
-interface IHacksRow {
-	name: string
-	date: string
-	amount: number
-	chains: string[]
-}
-
 export const bridgedChainColumns: ColumnDef<any>[] = [
 	{
 		header: 'Token',
@@ -824,15 +810,15 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: ({ getValue }) => (
 			<>
 				{getValue() === undefined ? null : (
-					<ButtonLight
-						className="flex items-center justify-center gap-4 p-[6px]!"
-						as="a"
-						href={getValue() as string}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonLight>
+					<a
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="shrink-0 rounded-md  bg-(--link-button) hover:bg-(--link-button-hover) p-[6px]"
+				>
+					<Icon name="arrow-up-right" height={14} width={14} />
+					<span className="sr-only">open in new tab</span>
+				</a>
 				)}
 			</>
 		),
@@ -850,15 +836,15 @@ export const cexColumn: ColumnDef<any>[] = [
 				{getValue() === undefined ? (
 					<QuestionHelper text="This CEX has no published their wallet addresses" />
 				) : (
-					<ButtonLight
-						className="flex items-center justify-center gap-4 p-[6px]!"
-						as="a"
-						href={getValue() as string}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonLight>
+					<a
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="shrink-0 rounded-md  bg-(--link-button) hover:bg-(--link-button-hover) p-[6px]"
+				>
+					<Icon name="arrow-up-right" height={14} width={14} />
+					<span className="sr-only">open in new tab</span>
+				</a>
 				)}
 			</>
 		),
@@ -1125,15 +1111,15 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonLight
-					className="flex items-center justify-center gap-4 p-[6px]!"
-					as="a"
+				<a
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
+					className="shrink-0 rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonLight>
+					<span className="sr-only">open in new tab</span>
+				</a>
 			) : null
 	},
 	{
@@ -1143,15 +1129,15 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonLight
-					className="flex items-center justify-center gap-4 p-[6px]!"
-					as="a"
+				<a
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
+					className="shrink-0 rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonLight>
+					<span className="sr-only">open in new tab</span>
+				</a>
 			) : null
 	},
 	{

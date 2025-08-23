@@ -2,7 +2,7 @@ import * as React from 'react'
 import Head from 'next/head'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { MetricsAndTools } from '~/components/Metrics'
-import Nav from '~/components/Nav'
+import { Nav } from '~/components/Nav'
 import { DesktopSearch } from '~/components/Search'
 import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select'
@@ -68,7 +68,13 @@ export default function Layout({
 	)
 }
 
-const IncludeInMetricsOptions = ({ options, label }: { options: { name: string; key: string }[]; label?: string }) => {
+const IncludeInMetricsOptions = React.memo(function IncludeInMetricsOptions({
+	options,
+	label
+}: {
+	options: { name: string; key: string }[]
+	label?: string
+}) {
 	const { selectedValues, setSelectedValues } = useProtocolsFilterState(options)
 
 	return (
@@ -89,7 +95,7 @@ const IncludeInMetricsOptions = ({ options, label }: { options: { name: string; 
 			/>
 		</>
 	)
-}
+})
 
 // sidebar + gap between nav & main + padding right
 // 228px + 4px + 16px = 248px

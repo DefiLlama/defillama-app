@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
-import { StyledButton } from '~/components/ButtonStyled/StyledButton'
 import { Icon } from '~/components/Icon'
 import { Tooltip as CustomTooltip } from '~/components/Tooltip'
 import { AUTH_SERVER } from '~/constants'
@@ -20,7 +19,6 @@ export const PaymentButton = ({
 	const isStripe = paymentMethod === 'stripe'
 	const icon = isStripe ? 'card' : 'wallet'
 	const text = isStripe ? 'Pay with Card' : 'Pay with Crypto'
-	const shadowClass = type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''
 
 	const disabled = loading === paymentMethod || !isAuthenticated || (!user?.verified && !user?.address)
 	return (
@@ -33,14 +31,14 @@ export const PaymentButton = ({
 						: null
 			}
 		>
-			<StyledButton
+			<button
 				onClick={() => handleSubscribe(paymentMethod, type)}
 				disabled={disabled}
-				className={shadowClass}
-				iconName={icon}
+				className={`group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-[14px] font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0] ${type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''}`}
 			>
-				{text}
-			</StyledButton>
+				{icon && <Icon name={icon} height={16} width={16} />}
+				<span className="break-words">{text}</span>
+			</button>
 		</CustomTooltip>
 	)
 }

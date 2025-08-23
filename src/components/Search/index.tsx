@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { memo, startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { useQuery } from '@tanstack/react-query'
@@ -33,7 +33,7 @@ interface ISearchItem {
 	deprecated?: boolean
 }
 
-export const DesktopSearch = () => {
+export const DesktopSearch = memo(function DesktopSearch() {
 	const isClient = useIsClient()
 
 	if (!isClient) {
@@ -50,9 +50,9 @@ export const DesktopSearch = () => {
 			<Desktop />
 		</InstantSearch>
 	)
-}
+})
 
-export const MobileSearch = () => {
+export const MobileSearch = memo(function MobileSearch() {
 	return (
 		<InstantSearch
 			indexName="pages"
@@ -63,7 +63,7 @@ export const MobileSearch = () => {
 			<Mobile />
 		</InstantSearch>
 	)
-}
+})
 
 const Mobile = () => {
 	const { query, refine } = useSearchBox()

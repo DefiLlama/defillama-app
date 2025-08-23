@@ -1,5 +1,4 @@
 import { Bookmark } from '~/components/Bookmark'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -63,20 +62,15 @@ export function NameYieldPool({
 
 			<span className="shrink-0">{index}</span>
 
-			{url ? (
-				<ButtonLight
-					className="hidden shrink-0 items-center justify-center gap-4 p-[6px]! lg:flex"
-					as="a"
-					href={url}
-					target="_blank"
-					rel="noopener noreferrer"
-					useTextColor={true}
-				>
-					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonLight>
-			) : (
-				''
-			)}
+			<a
+				href={url}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="hidden shrink-0 rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover) lg:flex"
+			>
+				<Icon name="arrow-up-right" height={14} width={14} />
+				<span className="sr-only">open in new tab</span>
+			</a>
 
 			<LinkWrapper
 				url={withoutLink ? null : tokenUrl}

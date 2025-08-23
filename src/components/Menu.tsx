@@ -1,44 +1,27 @@
 import { useMemo } from 'react'
 import * as Ariakit from '@ariakit/react'
-import { transparentize } from 'polished'
 import { BasicLink } from './Link'
 
 interface IMenuProps {
 	options: string[] | string
 	name: string
-	color?: string
 	isExternal?: boolean
 	onItemClick?: (value: any) => void
-	variant?: 'primary' | 'secondary'
 	className?: string
 	portal?: boolean
 }
 
-export function Menu({
-	options,
-	name,
-	color,
-	isExternal,
-	onItemClick,
-	variant = 'primary',
-	className,
-	portal,
-	...props
-}: IMenuProps) {
-	const { _options, style } = useMemo(() => {
+export function Menu({ options, name, isExternal, onItemClick, className, portal, ...props }: IMenuProps) {
+	const { _options } = useMemo(() => {
 		return {
-			_options: typeof options === 'string' ? [options] : options,
-			style: color
-				? ({ '--btn2-bg': transparentize(0.9, color), '--btn2-hover-bg': transparentize(0.8, color) } as any)
-				: {}
+			_options: typeof options === 'string' ? [options] : options
 		}
-	}, [options, color])
+	}, [options])
 
 	return (
 		<Ariakit.MenuProvider>
 			<Ariakit.MenuButton
 				{...props}
-				style={style}
 				className={
 					className ??
 					'relative flex max-w-fit cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn2-bg) px-3 py-2 text-(--text-primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)'

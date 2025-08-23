@@ -193,7 +193,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 			data-pinned={isPinned}
 		>
 			<BasicLink
-				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
+				className="hover: col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) bg-(--link-button) p-[10px] hover:bg-(--link-button-hover)"
 				href={page.route}
 			>
 				<span className="flex w-full flex-wrap items-center justify-end gap-1">
@@ -284,13 +284,13 @@ export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string
 								{i === 1 ? (
 									<span>{metric}</span>
 								) : (
-									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] px-[10px] py-1 font-semibold">
+									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-(--link-button) px-[10px] py-1 font-semibold hover:bg-(--link-button-hover)">
 										{metric}
 									</Ariakit.DialogDisclosure>
 								)}
 							</Fragment>
 						))}
-						<Ariakit.DialogDisclosure className="z-10 hidden items-center gap-1 px-[6px] py-1 text-xs text-(--text-form) md:flex">
+						<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-[6px] py-1 text-xs text-(--text-form)">
 							<Icon name="search" height={12} width={12} />
 							<span className="hidden sm:block">Click to browse & search</span>
 						</Ariakit.DialogDisclosure>

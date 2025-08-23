@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { getPercentChange } from '~/utils'
@@ -224,19 +223,16 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 																	<span className="flex items-center justify-center gap-2">
 																		<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
 																		{airdrop.page ? (
-																			<ButtonLight
-																				as="a"
+																			<a
 																				href={airdrop.page}
 																				target="_blank"
-																				rel="noreferrer noopener"
+																				rel="noopener noreferrer"
 																				key={`can-claim-${airdrop.name}`}
-																				className="flex items-center justify-center"
-																				color="#008000"
-																				style={{ padding: '2px 6px', fontSize: '12px', '--btn2-text': '#00ab00' }}
+																				className="shrink-0 rounded-md bg-(--link-button) px-[6px] py-[2px] hover:bg-(--link-button-hover)"
 																			>
-																				<span>Claim</span>
 																				<Icon name="arrow-up-right" height={14} width={14} />
-																			</ButtonLight>
+																				<span className="sr-only">open in new tab</span>
+																			</a>
 																		) : null}
 																	</span>
 																) : (
