@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import toast from 'react-hot-toast'
 import { DashboardItemConfig } from '../types'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 const MCP_SERVER = 'https://mcp.llama.fi'
 
@@ -32,6 +33,7 @@ export function GenerateDashboardModal({
 	existingDashboard,
 	onGenerate
 }: GenerateDashboardModalProps) {
+	const { user, isAuthenticated, authorizedFetch } = useAuthContext()
 	const [dashboardName, setDashboardName] = useState('')
 	const [aiDescription, setAiDescription] = useState('')
 	const [visibility, setVisibility] = useState<'private' | 'public'>('public')
@@ -42,6 +44,11 @@ export function GenerateDashboardModal({
 	if (!isOpen) return null
 
 	const handleGenerate = async () => {
+		if (!isAuthenticated || !user?.id) {
+			toast.error('Please sign in to generate dashboards')
+			return
+		}
+
 		if (!aiDescription.trim()) {
 			toast.error('Please describe what you want to add or change')
 			return
@@ -70,13 +77,17 @@ export function GenerateDashboardModal({
 							dashboardName: dashboardName.trim()
 					  }
 
-			const response = await fetch(`${MCP_SERVER}/dashboard-creator`, {
+			const response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify(requestBody)
 			})
+
+			if (!response) {
+				throw new Error('Authentication failed')
+			}
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`)
