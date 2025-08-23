@@ -120,7 +120,7 @@ function ProContent({
 						</button>
 					</div>
 					<div className="flex gap-3">
-						{(hasFeature('dashboard-gen') || featureFlagsLoading) && (
+						{!featureFlagsLoading && hasFeature('dashboard-gen') && (
 							<button
 								onClick={
 									!isAuthenticated
@@ -130,7 +130,6 @@ function ProContent({
 										: () => setShowSubscribeModal(true)
 								}
 								className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover) animate-ai-glow"
-								disabled={featureFlagsLoading}
 							>
 								<Icon name="sparkles" height={16} width={16} />
 								Generate with LlamaAI

@@ -8,7 +8,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ onAddChart, onGenerateWithAI }: EmptyStateProps) {
 	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
-	const showAIGeneration = hasFeature('dashboard-gen') && onGenerateWithAI
+	const showAIGeneration = !featureFlagsLoading && hasFeature('dashboard-gen') && onGenerateWithAI
 
 	return (
 		<div className="py-16 text-center">
@@ -18,14 +18,13 @@ export function EmptyState({ onAddChart, onGenerateWithAI }: EmptyStateProps) {
 				</div>
 				<h2 className="pro-text1 mb-3 text-2xl font-semibold">No charts added yet</h2>
 				<p className="pro-text2 mb-6 text-lg">
-					Start building your dashboard by adding charts{showAIGeneration || featureFlagsLoading ? ' manually or generate with LlamaAI' : ' manually'}
+					Start building your dashboard by adding charts{showAIGeneration ? ' manually or generate with LlamaAI' : ' manually'}
 				</p>
 				<div className="flex flex-col sm:flex-row gap-4 justify-center">
-					{(showAIGeneration || featureFlagsLoading) && (
+					{showAIGeneration && (
 						<button
 							className="flex items-center gap-2 border border-(--primary) text-(--primary) px-6 py-3 text-base font-medium hover:bg-(--primary) hover:text-white transition-colors"
 							onClick={onGenerateWithAI}
-							disabled={featureFlagsLoading}
 						>
 							<Icon name="sparkles" height={20} width={20} />
 							Generate with LlamaAI

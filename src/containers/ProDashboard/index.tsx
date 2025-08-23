@@ -312,14 +312,13 @@ function ProDashboardContent() {
 													New Dashboard
 												</button>
 
-												{(hasFeature('dashboard-gen') || featureFlagsLoading) && (
+												{!featureFlagsLoading && hasFeature('dashboard-gen') && (
 													<button
 														onClick={() => {
 															setShowGenerateDashboardModal(true)
 															setShowDashboardMenu(false)
 														}}
 														className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left"
-														disabled={featureFlagsLoading}
 													>
 														<Icon name="sparkles" height={16} width={16} />
 														Generate with LlamaAI
@@ -378,12 +377,11 @@ function ProDashboardContent() {
 								<Icon name="settings" height={16} width={16} className="pro-text1" />
 							</button>
 						)}
-						{!isReadOnly && items.length > 0 && (hasFeature('dashboard-gen') || featureFlagsLoading) && (
+						{!isReadOnly && items.length > 0 && !featureFlagsLoading && hasFeature('dashboard-gen') && (
 							<button
 								className="px-2.5 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors flex items-center gap-2 text-sm whitespace-nowrap animate-ai-glow"
 								onClick={() => setShowIterateDashboardModal(true)}
 								title="Edit with LlamaAI"
-								disabled={featureFlagsLoading}
 							>
 								<Icon name="sparkles" height={16} width={16} />
 							</button>
@@ -411,12 +409,11 @@ function ProDashboardContent() {
 							<Icon name="settings" height={20} width={20} className="pro-text1" />
 						</button>
 					)}
-					{!isReadOnly && items.length > 0 && (hasFeature('dashboard-gen') || featureFlagsLoading) && (
+					{!isReadOnly && items.length > 0 && !featureFlagsLoading && hasFeature('dashboard-gen') && (
 						<button
 							className="px-4 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors items-center gap-2 text-base whitespace-nowrap hidden md:flex animate-ai-glow"
 							onClick={() => setShowIterateDashboardModal(true)}
 							title="Edit with LlamaAI"
-							disabled={featureFlagsLoading}
 						>
 							<Icon name="sparkles" height={16} width={16} />
 							Edit with LlamaAI
