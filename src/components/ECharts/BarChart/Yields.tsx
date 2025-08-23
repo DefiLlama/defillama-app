@@ -10,9 +10,7 @@ import {
 import * as echarts from 'echarts/core'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { download } from '~/utils'
 
 echarts.use([
 	ToolboxComponent,
@@ -171,23 +169,9 @@ export default function BarChartYields({ chartData }: IChartProps) {
 		}
 	}, [id, chartData, createInstance, isDark])
 
-	// prepare csv data
-	const downloadCsv = () => {
-		const rows = [['timestamp', 'medianAPY', 'avg7day']]
-
-		chartData.forEach((item) => {
-			rows.push([item.timestamp, item.medianAPY, item.avg7day])
-		})
-
-		download('medianAPY.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
-
 	return (
 		<div className="relative flex flex-col items-end rounded-md bg-(--cards-bg) p-3">
 			<div id={id} className="min-h-[600px] w-full" />
-			<CSVDownloadButton onClick={downloadCsv} />
 		</div>
 	)
 }
-
-// todo csv

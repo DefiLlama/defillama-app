@@ -124,8 +124,6 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 							console.error('Error generating CSV:', error)
 						}
 					}}
-					replaceClassName
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
@@ -187,8 +185,6 @@ export const HacksContainer = ({
 								}
 							}}
 							smol
-							replaceClassName
-							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						/>
 					</div>
 					{chartType === 'Monthly Sum' ? (

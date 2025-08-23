@@ -86,7 +86,7 @@ export function RaisesTable({ raises, downloadCsv }) {
 					target="_blank"
 					rel="noreferrer noopener"
 					href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093"
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="f"
 				>
 					<span>Methodology & biases</span>
 					<Icon name="external-link" height={12} width={12} />
@@ -95,16 +95,10 @@ export function RaisesTable({ raises, downloadCsv }) {
 					onClick={() => {
 						window.open('https://api.llama.fi/raises')
 					}}
-					replaceClassName
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
 					Download.json
 				</CSVDownloadButton>
-				<CSVDownloadButton
-					onClick={downloadCsv}
-					replaceClassName
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-				/>
+				<CSVDownloadButton onClick={downloadCsv} />
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

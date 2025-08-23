@@ -144,12 +144,7 @@ export default function Chains({ data, uniqueCategories }) {
 		<Layout title="Top Protocols by chain on each category - DefiLlama" pageName={pageName}>
 			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-bg) bg-(--cards-bg) p-3">
 				<h1 className="mr-auto text-xl font-semibold">Protocols with highest TVL by chain on each category</h1>
-				<CSVDownloadButton
-					onClick={downloadCSV}
-					smol
-					replaceClassName
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-				/>
+				<CSVDownloadButton onClick={downloadCSV} smol />
 			</div>
 			<VirtualTable instance={table} />
 		</Layout>

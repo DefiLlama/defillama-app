@@ -111,6 +111,12 @@
       ]
     },
     {
+      "name": "Yields: Delta Neutral Strategies",
+      "route": "/yields/strategy",
+      "category": "Yields",
+      "description": "Find 'lend-borrow-farm' strategies across all our tracked pools"
+    },
+    {
       "name": "Yields: Leveraged Lending",
       "route": "/yields/loop",
       "category": "Yields",
@@ -139,12 +145,6 @@
       "route": "/yields/halal",
       "category": "Yields",
       "description": "Shariah-compliant yield pools"
-    },
-    {
-      "name": "Yields: Delta Neutral Strategies",
-      "route": "/yields/strategy",
-      "category": "Yields",
-      "description": "Find 'lend-borrow-farm' strategies across all our tracked pools"
     },
     {
       "name": "Revenue by Protocol",

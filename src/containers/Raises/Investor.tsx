@@ -96,18 +96,8 @@ function RaisesTable({ raises, downloadCsv }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton
-					onClick={downloadCsv}
-					replaceClassName
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-				/>
-				<CSVDownloadButton
-					onClick={() => window.open('https://api.llama.fi/raises')}
-					replaceClassName
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-				>
-					Download.json
-				</CSVDownloadButton>
+				<CSVDownloadButton onClick={downloadCsv} />
+				<CSVDownloadButton onClick={() => window.open('https://api.llama.fi/raises')}>Download.json</CSVDownloadButton>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>

@@ -258,8 +258,6 @@ const ChartByType = ({
 						}
 					}}
 					smol
-					replaceClassName
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				/>
 			</div>
 			<React.Suspense fallback={<></>}>

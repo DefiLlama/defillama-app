@@ -108,8 +108,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								download(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
 							}}
 							smol
-							replaceClassName
-							className="mt-auto mr-auto flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							className="mt-auto mr-auto"
 						/>
 					</div>
 				</div>
@@ -145,8 +144,6 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 							const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 							download(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
 						}}
-						replaceClassName
-						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					/>
 				}
 			/>
