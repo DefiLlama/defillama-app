@@ -105,7 +105,8 @@ export function ChainsByCategory({
 					<CSVDownloadButton
 						onClick={downloadCsv}
 						smol
-						className="z-10 mx-2 ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						replaceClassName
+						className="mr-2 ml-auto flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					/>
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={pieChartData} stackColors={colorsByChain} />

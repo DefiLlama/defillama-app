@@ -98,11 +98,13 @@ function RaisesTable({ raises, downloadCsv }) {
 				</label>
 				<CSVDownloadButton
 					onClick={downloadCsv}
-					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					replaceClassName
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				/>
 				<CSVDownloadButton
 					onClick={() => window.open('https://api.llama.fi/raises')}
-					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					replaceClassName
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
 					Download.json
 				</CSVDownloadButton>

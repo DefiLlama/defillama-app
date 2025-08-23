@@ -81,7 +81,8 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 					<CSVDownloadButton
 						onClick={downloadCSV}
 						smol
-						className="z-10 m-2 ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						replaceClassName
+						className="mr-2 ml-auto flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					/>
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={forkColors} />

@@ -134,7 +134,12 @@ export function ChainsWithStablecoins({
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 
-					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
+					<CSVDownloadButton
+						onClick={downloadCsv}
+						smol
+						replaceClassName
+						className="mt-auto mr-auto flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					/>
 				</div>
 				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />

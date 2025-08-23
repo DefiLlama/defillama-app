@@ -54,7 +54,8 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 					<>
 						<CSVDownloadButton
 							onClick={onCSVDownload}
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							replaceClassName
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						/>
 					</>
 				}

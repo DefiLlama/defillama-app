@@ -164,7 +164,11 @@ export function ChainsByAdapter(props: IProps) {
 							className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 						/>
 					</div>
-					<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
+					<CSVDownloadButton
+						onClick={downloadCsv}
+						replaceClassName
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					/>
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>

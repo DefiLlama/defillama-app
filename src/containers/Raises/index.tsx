@@ -73,7 +73,9 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					</p>
 					<CSVDownloadButton
 						onClick={() => downloadCsv({ raises })}
-						className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						smol
+						replaceClassName
+						className="mt-auto mr-auto flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					/>
 				</div>
 

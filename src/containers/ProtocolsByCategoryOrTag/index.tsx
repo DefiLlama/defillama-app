@@ -107,7 +107,9 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								}
 								download(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
 							}}
-							className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+							smol
+							replaceClassName
+							className="mt-auto mr-auto flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						/>
 					</div>
 				</div>
@@ -143,7 +145,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 							const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 							download(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
 						}}
-						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+						replaceClassName
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					/>
 				}
 			/>
