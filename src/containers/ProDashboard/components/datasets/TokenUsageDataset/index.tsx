@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
 	flexRender,
 	getCoreRowModel,
@@ -531,7 +531,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							</div>
 							<ProTableCSVButton
 								onClick={downloadCSV}
-								customClassName="flex items-center gap-2 px-3 h-[38px] text-sm border pro-border hover:bg-(--bg-tertiary) text-(--text-primary) transition-colors bg-(--bg-main) dark:bg-[#070e0f] disabled:opacity-50 disabled:cursor-not-allowed"
+								className="pro-border flex h-[38px] items-center gap-2 border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"
 							/>
 						</div>
 					</div>

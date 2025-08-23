@@ -329,7 +329,7 @@ export function BridgesOverviewByChain({
 						</>
 					)}
 					<div className="flex items-center justify-end p-3">
-						<CSVDownloadButton onClick={downloadChartCsv} customText="Download chart .csv" />
+						<CSVDownloadButton onClick={downloadChartCsv} />
 					</div>
 				</div>
 			</div>

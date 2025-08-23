@@ -191,7 +191,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
-							customClassName="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
+							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
 						/>
 					)}
 				</div>

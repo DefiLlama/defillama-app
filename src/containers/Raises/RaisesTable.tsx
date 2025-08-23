@@ -92,12 +92,13 @@ export function RaisesTable({ raises, downloadCsv }) {
 					<Icon name="external-link" height={12} width={12} />
 				</a>
 				<CSVDownloadButton
-					customText="Download .json"
 					onClick={() => {
 						window.open('https://api.llama.fi/raises')
 					}}
 					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-				/>
+				>
+					Download.json
+				</CSVDownloadButton>
 				<CSVDownloadButton
 					onClick={downloadCsv}
 					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"

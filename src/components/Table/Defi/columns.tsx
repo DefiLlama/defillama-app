@@ -164,7 +164,7 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 				href={getValue() as string}
 				target="_blank"
 				rel="noopener noreferrer"
-				className="shrink-0 rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
+				className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
 				<span className="sr-only">open in new tab</span>
@@ -1115,7 +1115,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="shrink-0 rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
+					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
 					<span className="sr-only">open in new tab</span>
@@ -1133,7 +1133,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="shrink-0 rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
+					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
 					<span className="sr-only">open in new tab</span>

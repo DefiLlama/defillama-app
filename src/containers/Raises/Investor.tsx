@@ -100,10 +100,11 @@ function RaisesTable({ raises, downloadCsv }) {
 					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 				<CSVDownloadButton
-					customText="Download .json"
 					onClick={() => window.open('https://api.llama.fi/raises')}
 					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-				/>
+				>
+					Download.json
+				</CSVDownloadButton>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>

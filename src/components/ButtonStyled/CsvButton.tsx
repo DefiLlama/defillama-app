@@ -7,21 +7,21 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
 
+// use children to pass in the text
 export const CSVDownloadButton = ({
 	onClick,
-	customText = '',
+	children,
 	className,
-	customClassName,
+	replaceClassName,
 	smol,
 	isLoading: loading
 }: {
 	onClick: () => void
-	isLight?: boolean
-	customText?: ReactNode
 	className?: string
-	customClassName?: string
+	replaceClassName?: boolean
 	smol?: boolean
 	isLoading?: boolean
+	children?: ReactNode
 }) => {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { loaders } = useAuthContext()
@@ -37,10 +37,11 @@ export const CSVDownloadButton = ({
 		<>
 			<button
 				className={
-					customClassName ||
-					`flex min-w-fit items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50 ${
-						className ?? ''
-					}`
+					replaceClassName
+						? className
+						: `flex min-w-fit items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50 ${
+								className ?? ''
+							}`
 				}
 				onClick={() => {
 					if (isLoading) return
@@ -67,12 +68,10 @@ export const CSVDownloadButton = ({
 							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 						></path>
 					</svg>
-				) : customText ? (
-					<span>{customText}</span>
 				) : (
 					<>
 						<Icon name="download-paper" className="h-3 w-3 shrink-0" />
-						{smol ? <span>.csv</span> : <span>Download .csv</span>}
+						{children || (smol ? <span>.csv</span> : <span>Download .csv</span>)}
 					</>
 				)}
 			</button>

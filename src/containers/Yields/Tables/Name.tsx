@@ -66,7 +66,7 @@ export function NameYieldPool({
 				href={url}
 				target="_blank"
 				rel="noopener noreferrer"
-				className="hidden shrink-0 rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover) lg:flex"
+				className="hidden shrink-0 items-center justify-center rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover) lg:flex"
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
 				<span className="sr-only">open in new tab</span>
