@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
@@ -12,7 +11,6 @@ type SortOption = 'popular' | 'recent' | 'likes'
 type ViewMode = 'grid' | 'list'
 
 export function DashboardDiscovery() {
-	const router = useRouter()
 	const [viewMode, setViewMode] = useState<ViewMode>('grid')
 	const [sortBy, setSortBy] = useState<SortOption>('popular')
 	const [selectedTags, setSelectedTags] = useState<string[]>([])
@@ -40,10 +38,6 @@ export function DashboardDiscovery() {
 	const handleTagClick = (tag: string) => {
 		setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
 		setPage(1)
-	}
-
-	const handleDashboardClick = (dashboardId: string) => {
-		router.push(`/pro/${dashboardId}`)
 	}
 
 	return (
@@ -143,7 +137,6 @@ export function DashboardDiscovery() {
 							<DashboardCard
 								key={dashboard.id}
 								dashboard={dashboard}
-								onClick={() => handleDashboardClick(dashboard.id)}
 								onTagClick={handleTagClick}
 								viewMode={viewMode}
 							/>
