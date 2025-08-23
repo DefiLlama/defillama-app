@@ -129,7 +129,7 @@ export function YieldFilterDropdowns({
 
 			{apyRange && <APYRange nestedMenu={nestedMenu} placement="bottom-start" />}
 
-			{availableRange && <AvailableRange nestedMenu={nestedMenu} placement="bottom-start" />}
+			{availableRange && <AvailableRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" />}
 
 			{(show7dBaseApy ||
 				show7dIL ||

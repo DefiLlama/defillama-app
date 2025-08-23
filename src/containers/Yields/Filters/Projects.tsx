@@ -7,7 +7,6 @@ interface IYieldProjectsProps {
 	pathname: string
 	label?: string
 	query?: 'lendingProtocol' | 'farmProtocol'
-	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
 }
 

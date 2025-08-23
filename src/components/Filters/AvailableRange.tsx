@@ -67,7 +67,7 @@ export function AvailableRange({
 								}`}</span>
 							</>
 						) : (
-							'Available'
+							'Filter by min/max Available'
 						)}
 					</>
 				) : (

@@ -71,7 +71,6 @@ export function McapRange({
 			}
 			onSubmit={handleSubmit}
 			onClear={handleClear}
-			variant={'third'}
 			nestedMenu={nestedMenu}
 			min={min}
 			max={max}

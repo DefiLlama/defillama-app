@@ -3,12 +3,12 @@ import * as Ariakit from '@ariakit/react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function TVLRange({
-	variant = 'third',
+	variant = 'primary',
 	nestedMenu,
 	triggerClassName,
 	placement
 }: {
-	variant?: 'secondary' | 'third'
+	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']

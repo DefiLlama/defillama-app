@@ -142,7 +142,7 @@
     },
     {
       "name": "Yields: Delta Neutral Strategies",
-      "route": "/yields/strategies",
+      "route": "/yields/strategy",
       "category": "Yields",
       "description": "Find 'lend-borrow-farm' strategies across all our tracked pools"
     },
