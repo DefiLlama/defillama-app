@@ -42,6 +42,8 @@ export const LargeTxDownloadButton = ({ data }: { data: any }) => {
 					})
 				download(`bridge-transactions.csv`, rows.map((r) => r.join(',')).join('\n'))
 			}}
+			smol
+			className="mr-2"
 		/>
 	)
 }

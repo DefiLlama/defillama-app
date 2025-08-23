@@ -303,11 +303,7 @@ const PageView = (props) => {
 						</span>
 					</p>
 
-					<CSVDownloadButton
-						onClick={downloadCsv}
-						smol
-						className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 min-h-[478px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">

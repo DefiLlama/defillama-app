@@ -284,7 +284,7 @@ export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string
 								{i === 1 ? (
 									<span>{metric}</span>
 								) : (
-									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] px-[10px] py-1 font-semibold">
+									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-(--link-button) px-[10px] py-1 font-semibold hover:bg-(--link-button-hover)">
 										{metric}
 									</Ariakit.DialogDisclosure>
 								)}

@@ -226,11 +226,7 @@ export const PeggedAssetInfo = ({
 										</tbody>
 									</table>
 								)}
-								<CSVDownloadButton
-									onClick={downloadCsv}
-									smol
-									className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-								/>
+								<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
 							</div>
 						</Ariakit.TabPanel>
 

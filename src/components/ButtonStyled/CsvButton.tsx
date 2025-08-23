@@ -39,7 +39,7 @@ export const CSVDownloadButton = ({
 				className={
 					replaceClassName
 						? className
-						: `flex min-w-fit items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50 ${
+						: `flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) ${
 								className ?? ''
 							}`
 				}
@@ -71,7 +71,12 @@ export const CSVDownloadButton = ({
 				) : (
 					<>
 						<Icon name="download-paper" className="h-3 w-3 shrink-0" />
-						{children || (smol ? <span>.csv</span> : <span>Download .csv</span>)}
+						{children ||
+							(smol ? (
+								<span>.csv</span>
+							) : (
+								<span className="overflow-hidden text-ellipsis whitespace-nowrap">Download .csv</span>
+							))}
 					</>
 				)}
 			</button>

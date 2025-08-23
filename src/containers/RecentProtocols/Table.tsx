@@ -203,10 +203,7 @@ export function RecentlyListedProtocolsTable({
 
 					{forkedList ? <HideForkedProtocols /> : null}
 
-					<CSVDownloadButton
-						onClick={downloadCSV}
-						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					<CSVDownloadButton onClick={downloadCSV} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />

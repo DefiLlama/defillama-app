@@ -71,10 +71,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<span className="text-(--text-label)">Total Funding Amount</span>
 						<span className="font-jetbrains text-2xl font-semibold">${formattedNum(totalAmountRaised)}</span>
 					</p>
-					<CSVDownloadButton
-						onClick={() => downloadCsv({ raises })}
-						className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					<CSVDownloadButton onClick={() => downloadCsv({ raises })} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
