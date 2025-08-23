@@ -13,8 +13,8 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const matches = React.useMemo(() => {
+		if (!deferredSearchValue) return options
 		return matchSorter(options, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})

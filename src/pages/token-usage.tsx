@@ -218,8 +218,8 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
+		if (!deferredSearchValue) return searchData || []
 		return matchSorter(searchData || [], deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			threshold: matchSorter.rankings.CONTAINS,
 			keys: ['name', 'symbol']
 		})

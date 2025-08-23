@@ -66,15 +66,11 @@ export function IncludeExcludeTokens({
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
-		return matchSorter(
-			tokens as Array<{ name: string; symbol: string; logo?: string; fallbackLogo?: string }>,
-			deferredSearchValue,
-			{
-				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-				keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
-				threshold: matchSorter.rankings.CONTAINS
-			}
-		)
+		if (!deferredSearchValue) return tokens
+		return matchSorter(tokens, deferredSearchValue, {
+			keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
+			threshold: matchSorter.rankings.CONTAINS
+		})
 	}, [tokens, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)

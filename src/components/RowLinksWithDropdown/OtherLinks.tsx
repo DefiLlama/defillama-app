@@ -14,8 +14,8 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
+		if (!deferredSearchValue) return options
 		return matchSorter(options, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['label'],
 			threshold: matchSorter.rankings.CONTAINS
 		})

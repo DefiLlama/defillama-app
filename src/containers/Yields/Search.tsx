@@ -3,21 +3,25 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
-import { TokenLogo } from '~/components/TokenLogo'
 
-export function YieldsSearch({ lend = false, searchData, value }) {
+export function YieldsSearch({
+	lend = false,
+	searchData,
+	value
+}: {
+	lend?: boolean
+	searchData: Array<{ name: string; symbol: string; logo?: string; fallbackLogo?: string }>
+	value: string
+}) {
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
+
 	const matches = React.useMemo(() => {
-		return matchSorter(
-			Object.values(searchData) as Array<{ name: string; symbol: string; logo?: string; fallbackLogo?: string }>,
-			deferredSearchValue,
-			{
-				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-				keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
-				threshold: matchSorter.rankings.CONTAINS
-			}
-		)
+		if (!deferredSearchValue) return searchData
+		return matchSorter(searchData, deferredSearchValue, {
+			keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
+			threshold: matchSorter.rankings.CONTAINS
+		})
 	}, [searchData, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
@@ -151,7 +155,6 @@ const Row = ({ data, lend, setOpen }) => {
 			disabled={loading}
 			className="flex cursor-pointer items-center gap-4 p-3 text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 		>
-			{data?.logo || data?.fallbackLogo ? <TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} /> : null}
 			<span>{data.symbol === 'USD_Stables' ? 'All USD Stablecoins' : `${data.name}`}</span>
 			{loading ? (
 				<svg

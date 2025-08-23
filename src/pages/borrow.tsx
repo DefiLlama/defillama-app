@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
@@ -18,7 +19,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	} = await getLendBorrowData()
 
 	let cgList = await getAllCGTokensList()
-	const cgTokens = cgList.filter((x) => x.symbol)
+	// const cgTokens = cgList.filter((x) => x.symbol)
 	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
 	const searchData = {
 		['USD_STABLES']: {
@@ -32,7 +33,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		.forEach((sRaw) => {
 			const s = sRaw.replaceAll(/\(.*\)/g, '').trim()
 
-			const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
+			// const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
 
 			searchData[s] = {
 				name: s,
@@ -142,16 +143,19 @@ const TokensSelect = ({
 
 	const tokenInSearchData = selectedValue !== '' ? searchData[selectedValue.toUpperCase()] : null
 
+	const searchDataArray = useMemo(() => {
+		return Object.values(searchData)
+	}, [searchData])
+
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const matches = React.useMemo(() => {
-		const data = Object.values(searchData)
-		return matchSorter(data, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+		if (!deferredSearchValue) return searchDataArray
+		return matchSorter(searchDataArray, deferredSearchValue, {
 			keys: ['name', 'symbol'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [searchData, deferredSearchValue])
+	}, [searchDataArray, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 

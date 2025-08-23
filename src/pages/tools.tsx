@@ -12,7 +12,6 @@ export default function Tools() {
 	const pages = useMemo(() => {
 		if (!deferredSearchValue) return defillamaPages.Tools
 		return matchSorter(defillamaPages.Tools, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name', 'description'],
 			threshold: matchSorter.rankings.CONTAINS
 		})

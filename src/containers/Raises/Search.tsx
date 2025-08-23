@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
@@ -9,8 +9,8 @@ export function RaisesSearch({ list }) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
+		if (!deferredSearchValue) return list || []
 		return matchSorter(list || [], deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [list, deferredSearchValue])

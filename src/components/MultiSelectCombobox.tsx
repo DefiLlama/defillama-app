@@ -21,7 +21,6 @@ export const MultiSelectCombobox = ({
 		if (!deferredSearchValue) return data
 
 		return matchSorter(data, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['label'],
 			threshold: matchSorter.rankings.CONTAINS
 		})

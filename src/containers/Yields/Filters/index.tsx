@@ -155,33 +155,15 @@ export function YieldFiltersV2({
 	)
 }
 
-function useFormatTokensSearchList({ searchData }) {
+const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
 	const data = React.useMemo(() => {
 		const stablecoinsSearch = {
 			name: `All USD Stablecoins`,
-			symbol: 'USD_Stables',
-			logo: 'https://icons.llamao.fi/icons/pegged/usd_native?h=48&w=48'
+			symbol: 'USD_Stables'
 		}
 
-		const yieldsList =
-			searchData.map((el) => [
-				`${el.name}`,
-				{
-					name: `${el.name}`,
-					symbol: el.symbol.toUpperCase(),
-					logo: el.image2 || null,
-					fallbackLogo: el.image || null
-				}
-			]) ?? []
-
-		return Object.fromEntries([[stablecoinsSearch.name, stablecoinsSearch]].concat(yieldsList))
+		return [stablecoinsSearch].concat(searchData) as Array<{ name: string; symbol: string }>
 	}, [searchData])
-
-	return { data }
-}
-
-const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
-	const { data } = useFormatTokensSearchList({ searchData })
 
 	return (
 		<div className="flex flex-col flex-wrap gap-2 *:flex-1 md:flex-row md:items-center">

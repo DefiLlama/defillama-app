@@ -26,12 +26,12 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 	}
 })
 
-export default function Protocols({ protocols }) {
+export default function Protocols({ protocols }: { protocols: Array<{ name: string; logo: string; route: string }> }) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
-		return matchSorter(protocols as Array<{ name: string; logo: string; route: string }>, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+		if (!deferredSearchValue) return protocols
+		return matchSorter(protocols, deferredSearchValue, {
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})

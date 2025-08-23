@@ -45,15 +45,15 @@ export function SelectWithCombobox({
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
 	const matches = React.useMemo(() => {
+		if (!deferredSearchValue) return allValues
+
 		if (valuesAreAnArrayOfStrings) {
 			return matchSorter(allValues as Array<string>, deferredSearchValue, {
-				baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 				threshold: matchSorter.rankings.CONTAINS
 			})
 		}
 
 		return matchSorter(allValues as Array<{ name: string }>, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
