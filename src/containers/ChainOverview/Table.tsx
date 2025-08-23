@@ -460,7 +460,7 @@ export const ChainProtocolsTable = ({
 							onEditCustomColumn={handleEditCustomColumn}
 							onDeleteCustomColumn={handleDeleteCustomColumn}
 						/>
-						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+						<TVLRange triggerClassName="w-full sm:w-auto" />
 						<CSVDownloadButton
 							onClick={handleDownloadCsv}
 							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"

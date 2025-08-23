@@ -193,7 +193,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 			data-pinned={isPinned}
 		>
 			<BasicLink
-				className="hover: col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) bg-(--link-button) p-[10px] hover:bg-(--link-button-hover)"
+				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-(--link-button)"
 				href={page.route}
 			>
 				<span className="flex w-full flex-wrap items-center justify-end gap-1">
@@ -284,7 +284,7 @@ export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string
 								{i === 1 ? (
 									<span>{metric}</span>
 								) : (
-									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-(--link-button) px-[10px] py-1 font-semibold hover:bg-(--link-button-hover)">
+									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] px-[10px] py-1 font-semibold">
 										{metric}
 									</Ariakit.DialogDisclosure>
 								)}

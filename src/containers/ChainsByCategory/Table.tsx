@@ -221,7 +221,7 @@ export function ChainsByCategoryTable({
 						/>
 					</div>
 
-					<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+					<TVLRange triggerClassName="w-full sm:w-auto" />
 				</div>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />

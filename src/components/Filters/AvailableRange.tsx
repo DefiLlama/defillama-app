@@ -35,9 +35,9 @@ export function AvailableRange({
 		)
 	}
 
-	const handleClear = () => {
-		const { minAvailable, maxAvailable, ...restQuery } = router.query
+	const { minAvailable, maxAvailable, ...restQuery } = router.query
 
+	const handleClear = () => {
 		router.push(
 			{
 				pathname: router.pathname,
@@ -50,7 +50,6 @@ export function AvailableRange({
 		)
 	}
 
-	const { minAvailable, maxAvailable } = router.query
 	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable) : null
 	const max = typeof maxAvailable === 'string' && maxAvailable !== '' ? Number(maxAvailable) : null
 
