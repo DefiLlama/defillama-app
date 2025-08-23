@@ -40,8 +40,66 @@ export function GenerateDashboardModal({
 	const [tags, setTags] = useState<string[]>([])
 	const [tagInput, setTagInput] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
+	const [errors, setErrors] = useState<{
+		dashboardName?: string
+		aiDescription?: string
+	}>({}) 
+	const [touchedFields, setTouchedFields] = useState<{
+		dashboardName?: boolean
+		aiDescription?: boolean
+	}>({})
 
 	if (!isOpen) return null
+
+	const validateDashboardName = (value: string): string | undefined => {
+		if (mode === 'create' && !value.trim()) {
+			return 'Dashboard name is required'
+		}
+		return undefined
+	}
+
+	const validateAiDescription = (value: string): string | undefined => {
+		if (!value.trim()) {
+			return 'Description is required'
+		}
+		if (value.trim().length < 50) {
+			return 'Description must be at least 50 characters'
+		}
+		if (value.length > 5000) {
+			return 'Description must be 5000 characters or less'
+		}
+		return undefined
+	}
+
+	const validateForm = (): boolean => {
+		const newErrors: typeof errors = {}
+		
+		const dashboardNameError = validateDashboardName(dashboardName)
+		const aiDescriptionError = validateAiDescription(aiDescription)
+		
+		if (dashboardNameError) newErrors.dashboardName = dashboardNameError
+		if (aiDescriptionError) newErrors.aiDescription = aiDescriptionError
+		
+		setErrors(newErrors)
+		return Object.keys(newErrors).length === 0
+	}
+
+	const handleFieldBlur = (field: keyof typeof touchedFields) => {
+		setTouchedFields(prev => ({ ...prev, [field]: true }))
+		
+		const newErrors = { ...errors }
+		if (field === 'dashboardName') {
+			const error = validateDashboardName(dashboardName)
+			if (error) newErrors.dashboardName = error
+			else delete newErrors.dashboardName
+		}
+		if (field === 'aiDescription') {
+			const error = validateAiDescription(aiDescription)
+			if (error) newErrors.aiDescription = error
+			else delete newErrors.aiDescription
+		}
+		setErrors(newErrors)
+	}
 
 	const handleGenerate = async () => {
 		if (!isAuthenticated || !user?.id) {
@@ -49,13 +107,8 @@ export function GenerateDashboardModal({
 			return
 		}
 
-		if (!aiDescription.trim()) {
-			toast.error('Please describe what you want to add or change')
-			return
-		}
-
-		if (mode === 'create' && !dashboardName.trim()) {
-			toast.error('Please provide both dashboard name and AI description')
+		if (!validateForm()) {
+			setTouchedFields({ dashboardName: true, aiDescription: true })
 			return
 		}
 
@@ -114,9 +167,9 @@ export function GenerateDashboardModal({
 			setVisibility('public')
 			setTags([])
 			setTagInput('')
+			setErrors({})
+			setTouchedFields({})
 			onClose()
-
-			toast.success(mode === 'iterate' ? 'Dashboard updated successfully!' : 'Dashboard generated successfully!')
 		} catch (error) {
 			console.error('Failed to generate dashboard:', error)
 			toast.error('Failed to generate dashboard. Please try again.')
@@ -132,6 +185,8 @@ export function GenerateDashboardModal({
 			setVisibility('public')
 			setTags([])
 			setTagInput('')
+			setErrors({})
+			setTouchedFields({})
 			onClose()
 		}
 	}
@@ -166,7 +221,7 @@ export function GenerateDashboardModal({
 						<h2 className="text-xl font-semibold pro-text1">
 							{mode === 'iterate' ? 'Edit with LlamaAI' : 'Generate using LlamaAI'}
 						</h2>
-						<button onClick={handleClose} className="p-1 pro-hover-bg transition-colors" disabled={isLoading}>
+						<button onClick={handleClose} className="p-1 pro-hover-bg transition-colors">
 							<Icon name="x" height={20} width={20} className="pro-text2" />
 						</button>
 					</div>
@@ -178,12 +233,25 @@ export function GenerateDashboardModal({
 								<input
 									type="text"
 									value={dashboardName}
-									onChange={(e) => setDashboardName(e.target.value)}
+									onChange={(e) => {
+										setDashboardName(e.target.value)
+										if (touchedFields.dashboardName) {
+											handleFieldBlur('dashboardName')
+										}
+									}}
+									onBlur={() => handleFieldBlur('dashboardName')}
 									placeholder="e.g., Ethereum vs Arbitrum Analysis"
-									className="w-full px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary)"
+									className={`w-full px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-text1 placeholder:pro-text3 focus:outline-hidden ${
+										touchedFields.dashboardName && errors.dashboardName
+											? 'border-red-500 focus:border-red-500'
+											: 'pro-border focus:border-(--primary)'
+									} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
 									disabled={isLoading}
 									autoFocus
 								/>
+								{touchedFields.dashboardName && errors.dashboardName && (
+									<p className="mt-1 text-sm text-red-500">{errors.dashboardName}</p>
+								)}
 							</div>
 						)}
 
@@ -195,21 +263,34 @@ export function GenerateDashboardModal({
 							</label>
 							<textarea
 								value={aiDescription}
-								onChange={(e) => setAiDescription(e.target.value)}
+								onChange={(e) => {
+									setAiDescription(e.target.value)
+									if (touchedFields.aiDescription) {
+										handleFieldBlur('aiDescription')
+									}
+								}}
+								onBlur={() => handleFieldBlur('aiDescription')}
 								placeholder={
 									mode === 'iterate'
 										? 'e.g., Add a chart showing weekly DEX volume breakdown by top 5 protocols, or Remove the stablecoin chart and add TVL comparison...'
 										: 'e.g., Build a DeFi yields dashboard with top earning protocols, comparing different chains and showing historical performance...'
 								}
 								rows={4}
-								className="w-full px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) resize-none"
+								className={`w-full px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-text1 placeholder:pro-text3 focus:outline-hidden resize-none ${
+									touchedFields.aiDescription && errors.aiDescription
+										? 'border-red-500 focus:border-red-500'
+										: 'pro-border focus:border-(--primary)'
+								} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
 								disabled={isLoading}
 								autoFocus={mode === 'iterate'}
 							/>
+							{touchedFields.aiDescription && errors.aiDescription && (
+								<p className="mt-1 text-sm text-red-500">{errors.aiDescription}</p>
+							)}
 							<p className="mt-1 text-xs pro-text3">
 								{mode === 'iterate'
 									? 'Be specific about what you want to add, remove, or modify'
-									: 'Be specific about what data, charts, and insights you want to see'}
+									: 'Be specific about what data, charts, and insights you want to see'} ({aiDescription.length}/5000)
 							</p>
 						</div>
 
@@ -258,17 +339,16 @@ export function GenerateDashboardModal({
 										onChange={(e) => setTagInput(e.target.value)}
 										onKeyDown={handleTagInputKeyDown}
 										placeholder="Enter tag name"
-										className="flex-1 px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary)"
+										className={`flex-1 px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
 										disabled={isLoading}
 									/>
 									<button
 										onClick={() => handleAddTag(tagInput)}
-										disabled={!tagInput.trim() || isLoading}
 										className={`px-4 py-2 border transition-colors ${
 											tagInput.trim() && !isLoading
 												? 'border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white'
-												: 'pro-border pro-text3 cursor-not-allowed'
-										}`}
+												: 'pro-border pro-text3'
+										} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
 									>
 										Add Tag
 									</button>
@@ -309,9 +389,9 @@ export function GenerateDashboardModal({
 						</button>
 						<button
 							onClick={handleGenerate}
-							disabled={!aiDescription.trim() || (mode === 'create' && !dashboardName.trim()) || isLoading}
+							disabled={isLoading}
 							className={`flex-1 px-4 py-2 transition-colors flex items-center justify-center gap-2 ${
-								aiDescription.trim() && (mode === 'iterate' || dashboardName.trim()) && !isLoading
+								!isLoading
 									? 'bg-(--primary) text-white hover:bg-(--primary-hover) animate-ai-glow'
 									: 'bg-(--bg-tertiary) pro-text3 cursor-not-allowed'
 							}`}
