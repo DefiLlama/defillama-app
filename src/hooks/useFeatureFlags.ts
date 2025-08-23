@@ -72,7 +72,6 @@ export function useFeatureFlags(): UseFeatureFlagsReturn {
 			if (cachedFlags) {
 				setFlags(cachedFlags)
 				setLoading(false)
-				return
 			}
 
 			const response = await authorizedFetch('https://auth.llama.fi/user/feature-flags')
@@ -98,7 +97,10 @@ export function useFeatureFlags(): UseFeatureFlagsReturn {
 		} catch (err) {
 			console.error('Error fetching feature flags:', err)
 			setError(err instanceof Error ? err.message : 'Failed to load feature flags')
-			setFlags({})
+			const cachedFlags = getCachedFlags()
+			if (!cachedFlags) {
+				setFlags({})
+			}
 		} finally {
 			setLoading(false)
 		}
