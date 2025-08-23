@@ -135,7 +135,8 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				right: '10%',
 				bottom: '7%',
 				top: (isSmall ? 60 : 10) + 48,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			tooltip: {
 				trigger: 'axis',

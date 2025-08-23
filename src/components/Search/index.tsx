@@ -4,9 +4,11 @@ import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { useQuery } from '@tanstack/react-query'
 import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 import { fetchJson } from '~/utils/async'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
+import { SearchFallback } from './Fallback'
 
 const { searchClient } = instantMeiliSearch(
 	'https://search.defillama.com',
@@ -31,9 +33,20 @@ interface ISearchItem {
 	deprecated?: boolean
 }
 
-export const GlobalSearch = () => {
+export const DesktopSearch = () => {
+	const isClient = useIsClient()
+
+	if (!isClient) {
+		return <SearchFallback />
+	}
+
 	return (
-		<InstantSearch indexName="pages" searchClient={searchClient as any} future={{ preserveSharedStateOnUnmount: true }}>
+		<InstantSearch
+			indexName="pages"
+			searchClient={searchClient as any}
+			future={{ preserveSharedStateOnUnmount: true }}
+			insights={false}
+		>
 			<Desktop />
 		</InstantSearch>
 	)
@@ -41,7 +54,12 @@ export const GlobalSearch = () => {
 
 export const MobileSearch = () => {
 	return (
-		<InstantSearch indexName="pages" searchClient={searchClient as any} future={{ preserveSharedStateOnUnmount: true }}>
+		<InstantSearch
+			indexName="pages"
+			searchClient={searchClient as any}
+			future={{ preserveSharedStateOnUnmount: true }}
+			insights={false}
+		>
 			<Mobile />
 		</InstantSearch>
 	)

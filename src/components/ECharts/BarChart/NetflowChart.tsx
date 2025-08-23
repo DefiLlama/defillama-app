@@ -88,7 +88,8 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 				bottom: 12,
 				left: 42,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			xAxis: {
 				type: 'value',

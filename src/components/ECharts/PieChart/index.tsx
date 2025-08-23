@@ -110,7 +110,8 @@ export default function PieChart({
 			},
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0

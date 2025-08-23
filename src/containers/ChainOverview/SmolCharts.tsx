@@ -27,7 +27,8 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 			animation: false,
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0
@@ -157,7 +158,8 @@ export function SmolLineChart({
 			animation: false,
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0
@@ -265,7 +267,8 @@ export function SmolBarChart({
 			animation: false,
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0
@@ -398,7 +401,8 @@ export function UpcomingUnlocksChart({
 			animation: false,
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0

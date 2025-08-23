@@ -42,7 +42,9 @@ const pressList = [
 function PressPage() {
 	return (
 		<Layout title="Press - DefiLlama">
-			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) text-xl font-semibold">Press & Media</h1>
+			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
+				Press & Media
+			</h1>
 
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h2 className="text-lg font-semibold">About DefiLlama</h2>

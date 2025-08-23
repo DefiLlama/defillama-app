@@ -553,16 +553,16 @@
       "description": "Calculate the percentage change in token price between two dates"
     },
     {
-      "name": "Token Liquidity",
-      "route": "/liquidity",
-      "category": "Tools",
-      "description": "Check how deep the liquidity is for a given token"
-    },
-    {
       "name": "DeFi Watchlist",
       "route": "/watchlist",
       "category": "Tools",
       "description": "Watchlist of all protocols on DefiLlama"
+    },
+    {
+      "name": "Token Liquidity",
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token"
     },
     {
       "name": "Transactions by Bridge",

@@ -434,7 +434,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 												bottom: 68,
 												left: 12,
 												right: 12,
-												containLabel: true
+												outerBoundsMode: 'same',
+												outerBoundsContain: 'axisLabel'
 											},
 											legend: {
 												top: 10,
@@ -466,7 +467,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 												bottom: 68,
 												left: 12,
 												right: 12,
-												containLabel: true
+												outerBoundsMode: 'same',
+												outerBoundsContain: 'axisLabel'
 											},
 											legend: {
 												top: 10,

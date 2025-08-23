@@ -59,7 +59,8 @@ export default function BarChartYields({ chartData }: IChartProps) {
 				left: '3%',
 				right: '7%',
 				bottom: '7%',
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			tooltip: {
 				trigger: 'axis',

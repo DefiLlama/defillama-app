@@ -102,7 +102,8 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 				left: 12,
 				right: 12,
 				bottom: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			tooltip: {
 				showDelay: 0,

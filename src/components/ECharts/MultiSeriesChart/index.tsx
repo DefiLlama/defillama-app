@@ -187,7 +187,8 @@ export default function MultiSeriesChart({
 				bottom: 68,
 				top: 40,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			xAxis,
 			yAxis: finalYAxis,

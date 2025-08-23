@@ -185,6 +185,7 @@ const chartOptions = {
 	grid: {
 		left: '3%',
 		right: '4%',
-		containLabel: true
+		outerBoundsMode: 'same',
+		outerBoundsContain: 'axisLabel'
 	}
 }

@@ -113,7 +113,8 @@ export function useDefaults({
 
 		const grid = {
 			left: 20,
-			containLabel: true,
+			outerBoundsMode: 'same',
+			outerBoundsContain: 'axisLabel',
 			bottom: 60,
 			top: title ? gridTop + 48 : gridTop + 20,
 			right: 20

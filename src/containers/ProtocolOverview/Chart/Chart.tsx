@@ -466,7 +466,8 @@ export default function ProtocolLineBarChart({
 				bottom: 68,
 				top: rangeHallmarks?.length > 0 ? 18 : 12,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			xAxis,
 			yAxis: finalYAxis,

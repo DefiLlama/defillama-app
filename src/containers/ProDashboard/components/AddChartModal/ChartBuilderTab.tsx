@@ -378,7 +378,8 @@ export function ChartBuilderTab({
 												bottom: 40,
 												left: 12,
 												right: 12,
-												containLabel: true
+												outerBoundsMode: 'same',
+												outerBoundsContain: 'axisLabel'
 											},
 											legend: {
 												show: true,

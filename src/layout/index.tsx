@@ -3,13 +3,13 @@ import Head from 'next/head'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { MetricsAndTools } from '~/components/Metrics'
 import Nav from '~/components/Nav'
+import { DesktopSearch } from '~/components/Search'
 import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select'
 import { SEO } from '~/components/SEO'
 import { useIsClient } from '~/hooks'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
-const GlobalSearch = React.lazy(() => import('~/components/Search').then((m) => ({ default: m.GlobalSearch })))
 
 interface ILayoutProps {
 	title: string
@@ -50,7 +50,7 @@ export default function Layout({
 			>
 				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
 					<React.Suspense fallback={<SearchFallback />}>
-						<GlobalSearch />
+						<DesktopSearch />
 					</React.Suspense>
 					{!includeInMetricsOptions || includeInMetricsOptions.length === 0 ? null : (
 						<IncludeInMetricsOptions options={includeInMetricsOptions} label={includeInMetricsOptionslabel} />

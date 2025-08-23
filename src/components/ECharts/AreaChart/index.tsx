@@ -255,7 +255,8 @@ export default function AreaChart({
 				bottom: 68,
 				top: 12,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			xAxis,
 			yAxis: {

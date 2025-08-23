@@ -325,7 +325,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 									bottom: 68,
 									left: 12,
 									right: 12,
-									containLabel: true
+									outerBoundsMode: 'same',
+									outerBoundsContain: 'axisLabel'
 								},
 								legend: {
 									show: true,

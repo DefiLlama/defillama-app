@@ -672,7 +672,8 @@ export const getOption = (
 			right: '1%',
 			top: '2%',
 			bottom: '2%',
-			containLabel: true
+			outerBoundsMode: 'same',
+			outerBoundsContain: 'axisLabel'
 		},
 		dataZoom: [
 			{
