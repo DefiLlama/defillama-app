@@ -5,12 +5,14 @@ import { Icon } from '~/components/Icon'
 import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { CreateDashboardModal } from '~/containers/ProDashboard/components/CreateDashboardModal'
+import { GenerateDashboardModal } from '~/containers/ProDashboard/components/GenerateDashboardModal'
 import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -63,6 +65,7 @@ function ProContent({
 }) {
 	const router = useRouter()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 	const {
 		dashboards,
 		isLoadingDashboards,
@@ -70,7 +73,10 @@ function ProContent({
 		deleteDashboard,
 		showCreateDashboardModal,
 		setShowCreateDashboardModal,
-		handleCreateDashboard
+		handleCreateDashboard,
+		showGenerateDashboardModal,
+		setShowGenerateDashboardModal,
+		handleGenerateDashboard
 	} = useProDashboard()
 
 	const handleSelectDashboard = (dashboardId: string) => {
@@ -113,19 +119,37 @@ function ProContent({
 							{activeTab === 'discover' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
 						</button>
 					</div>
-					<button
-						onClick={
-							!isAuthenticated
-								? () => router.push('/pro/preview')
-								: hasActiveSubscription
-								? createNewDashboard
-								: () => setShowSubscribeModal(true)
-						}
-						className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover)"
-					>
-						<Icon name="plus" height={16} width={16} />
-						Create New Dashboard
-					</button>
+					<div className="flex gap-3">
+						{(hasFeature('dashboard-gen') || featureFlagsLoading) && (
+							<button
+								onClick={
+									!isAuthenticated
+										? () => router.push('/pro/preview')
+										: hasActiveSubscription
+										? () => setShowGenerateDashboardModal(true)
+										: () => setShowSubscribeModal(true)
+								}
+								className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover) animate-ai-glow"
+								disabled={featureFlagsLoading}
+							>
+								<Icon name="sparkles" height={16} width={16} />
+								Generate with LlamaAI
+							</button>
+						)}
+						<button
+							onClick={
+								!isAuthenticated
+									? () => router.push('/pro/preview')
+									: hasActiveSubscription
+									? createNewDashboard
+									: () => setShowSubscribeModal(true)
+							}
+							className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover)"
+						>
+							<Icon name="plus" height={16} width={16} />
+							Create New Dashboard
+						</button>
+					</div>
 				</div>
 			</div>
 
@@ -145,6 +169,12 @@ function ProContent({
 				isOpen={showCreateDashboardModal}
 				onClose={() => setShowCreateDashboardModal(false)}
 				onCreate={handleCreateDashboard}
+			/>
+
+			<GenerateDashboardModal
+				isOpen={showGenerateDashboardModal}
+				onClose={() => setShowGenerateDashboardModal(false)}
+				onGenerate={handleGenerateDashboard}
 			/>
 
 			<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>

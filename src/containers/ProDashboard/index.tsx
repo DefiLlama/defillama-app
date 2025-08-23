@@ -7,12 +7,14 @@ import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { AddChartModal } from './components/AddChartModal'
 import { ChartGrid } from './components/ChartGrid'
 import { CreateDashboardModal } from './components/CreateDashboardModal'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { DemoPreview } from './components/DemoPreview'
 import { EmptyState } from './components/EmptyState'
+import { GenerateDashboardModal } from './components/GenerateDashboardModal'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
 import { TimePeriod, useProDashboard } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
@@ -27,6 +29,7 @@ function ProDashboardContent() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
 	const { isAuthenticated } = useAuthContext()
+	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 	const {
 		items,
 		protocolsLoading,
@@ -54,7 +57,13 @@ function ProDashboardContent() {
 		setDashboardDescription,
 		showCreateDashboardModal,
 		setShowCreateDashboardModal,
-		handleCreateDashboard
+		showGenerateDashboardModal,
+		setShowGenerateDashboardModal,
+		showIterateDashboardModal,
+		setShowIterateDashboardModal,
+		handleCreateDashboard,
+		handleGenerateDashboard,
+		handleIterateDashboard
 	} = useProDashboard()
 
 	const { trackView, toggleLike, isLiking } = useDashboardEngagement(dashboardId)
@@ -303,6 +312,20 @@ function ProDashboardContent() {
 													New Dashboard
 												</button>
 
+												{(hasFeature('dashboard-gen') || featureFlagsLoading) && (
+													<button
+														onClick={() => {
+															setShowGenerateDashboardModal(true)
+															setShowDashboardMenu(false)
+														}}
+														className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left"
+														disabled={featureFlagsLoading}
+													>
+														<Icon name="sparkles" height={16} width={16} />
+														Generate with LlamaAI
+													</button>
+												)}
+
 												{dashboards.length > 0 && (
 													<>
 														<div className="my-2 border-t border-(--divider)" />
@@ -355,6 +378,16 @@ function ProDashboardContent() {
 								<Icon name="settings" height={16} width={16} className="pro-text1" />
 							</button>
 						)}
+						{!isReadOnly && items.length > 0 && (hasFeature('dashboard-gen') || featureFlagsLoading) && (
+							<button
+								className="px-2.5 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors flex items-center gap-2 text-sm whitespace-nowrap animate-ai-glow"
+								onClick={() => setShowIterateDashboardModal(true)}
+								title="Edit with LlamaAI"
+								disabled={featureFlagsLoading}
+							>
+								<Icon name="sparkles" height={16} width={16} />
+							</button>
+						)}
 						<button
 							className={`px-2.5 py-2 md:px-4 md:py-2 ${
 								!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'cursor-not-allowed bg-(--bg-tertiary)'
@@ -376,6 +409,17 @@ function ProDashboardContent() {
 							title="Dashboard Settings"
 						>
 							<Icon name="settings" height={20} width={20} className="pro-text1" />
+						</button>
+					)}
+					{!isReadOnly && items.length > 0 && (hasFeature('dashboard-gen') || featureFlagsLoading) && (
+						<button
+							className="px-4 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors items-center gap-2 text-base whitespace-nowrap hidden md:flex animate-ai-glow"
+							onClick={() => setShowIterateDashboardModal(true)}
+							title="Edit with LlamaAI"
+							disabled={featureFlagsLoading}
+						>
+							<Icon name="sparkles" height={16} width={16} />
+							Edit with LlamaAI
 						</button>
 					)}
 					<button
@@ -425,7 +469,12 @@ function ProDashboardContent() {
 				editItem={editItem}
 			/>
 
-			{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={() => setShowAddModal(true)} />}
+			{!protocolsLoading && items.length === 0 && (
+				<EmptyState 
+					onAddChart={() => setShowAddModal(true)} 
+					onGenerateWithAI={hasFeature('dashboard-gen') ? () => setShowIterateDashboardModal(true) : undefined}
+				/>
+			)}
 
 			<DashboardSettingsModal
 				isOpen={showSettingsModal}
@@ -443,6 +492,26 @@ function ProDashboardContent() {
 				isOpen={showCreateDashboardModal}
 				onClose={() => setShowCreateDashboardModal(false)}
 				onCreate={handleCreateDashboard}
+			/>
+
+			<GenerateDashboardModal
+				isOpen={showGenerateDashboardModal}
+				onClose={() => setShowGenerateDashboardModal(false)}
+				onGenerate={handleGenerateDashboard}
+			/>
+
+			<GenerateDashboardModal
+				isOpen={showIterateDashboardModal}
+				onClose={() => setShowIterateDashboardModal(false)}
+				mode="iterate"
+				existingDashboard={{
+					dashboardName,
+					visibility: dashboardVisibility,
+					tags: dashboardTags,
+					description: dashboardDescription,
+					items
+				}}
+				onGenerate={handleIterateDashboard}
 			/>
 
 			<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>

@@ -47,7 +47,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const metric = dataType as string
 		const topN = Math.min(parseInt(limit as string), 20) // Max 20 protocols
 		const chainsArray = chains ? (chains as string).split(',').filter(Boolean) : ['all']
-		const categoriesArray = categories ? (categories as string).split(',').filter(Boolean) : []
+		const categoriesArray = categories
+			? (categories as string)
+					.split(',')
+					.filter(Boolean)
+					.map((cat) => cat.toLowerCase())
+			: []
 
 		const config = METRIC_CONFIG[metric]
 		if (!config) {
@@ -174,7 +179,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 			protocols.forEach((protocol: any) => {
 				if (protocol.name && protocol.category) {
-					protocolCategories.set(protocol.name, protocol.category)
+					protocolCategories.set(protocol.name, protocol.category.toLowerCase())
 				}
 			})
 		}

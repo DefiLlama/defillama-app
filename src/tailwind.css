@@ -11,6 +11,7 @@
 	--animate-slidein: slidein 300ms ease-out;
 	--animate-slideup: slideup 300ms ease-out;
 	--animate-linebeat: linebeat 1s ease-in-out infinite alternate;
+	--animate-ai-glow: ai-glow 3s ease-in-out infinite;
 
 	@keyframes loader {
 		0% {
@@ -67,6 +68,14 @@
 			left: calc(100% - 30%);
 			border-top-left-radius: 0;
 			border-top-right-radius: 8px;
+		}
+	}
+	@keyframes ai-glow {
+		0%, 100% {
+			box-shadow: 0 0 4px rgba(91, 133, 255, 0.2), 0 0 8px rgba(91, 133, 255, 0.15), 0 0 12px rgba(91, 133, 255, 0.1);
+		}
+		50% {
+			box-shadow: 0 0 8px rgba(91, 133, 255, 0.3), 0 0 16px rgba(91, 133, 255, 0.2), 0 0 20px rgba(91, 133, 255, 0.15);
 		}
 	}
 }

@@ -1,5 +1,4 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 import { QueryObserverResult, useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -129,11 +128,30 @@ interface ProDashboardContextType {
 	copyDashboard: () => Promise<void>
 	showCreateDashboardModal: boolean
 	setShowCreateDashboardModal: (show: boolean) => void
+	showGenerateDashboardModal: boolean
+	setShowGenerateDashboardModal: (show: boolean) => void
+	showIterateDashboardModal: boolean
+	setShowIterateDashboardModal: (show: boolean) => void
 	handleCreateDashboard: (data: {
 		dashboardName: string
 		visibility: 'private' | 'public'
 		tags: string[]
 		description: string
+		items?: DashboardItemConfig[]
+	}) => Promise<void>
+	handleGenerateDashboard: (data: {
+		dashboardName: string
+		visibility: 'private' | 'public'
+		tags: string[]
+		description: string
+		items: DashboardItemConfig[]
+	}) => Promise<void>
+	handleIterateDashboard: (data: {
+		dashboardName: string
+		visibility: 'private' | 'public'
+		tags: string[]
+		description: string
+		items: DashboardItemConfig[]
 	}) => Promise<void>
 }
 
@@ -146,7 +164,6 @@ export function ProDashboardAPIProvider({
 	children: ReactNode
 	initialDashboardId?: string
 }) {
-	const router = useRouter()
 	const { isAuthenticated, user } = useAuthContext()
 	const { data: { protocols = [], chains: rawChains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
 
@@ -160,6 +177,8 @@ export function ProDashboardAPIProvider({
 	const [dashboardTags, setDashboardTags] = useState<string[]>([])
 	const [dashboardDescription, setDashboardDescription] = useState<string>('')
 	const [showCreateDashboardModal, setShowCreateDashboardModal] = useState(false)
+	const [showGenerateDashboardModal, setShowGenerateDashboardModal] = useState(false)
+	const [showIterateDashboardModal, setShowIterateDashboardModal] = useState(false)
 
 	// Use the dashboard API hook
 	const {
@@ -333,10 +352,16 @@ export function ProDashboardAPIProvider({
 	}, [isAuthenticated])
 
 	const handleCreateDashboard = useCallback(
-		async (data: { dashboardName: string; visibility: 'private' | 'public'; tags: string[]; description: string }) => {
+		async (data: {
+			dashboardName: string
+			visibility: 'private' | 'public'
+			tags: string[]
+			description: string
+			items?: DashboardItemConfig[]
+		}) => {
 			try {
 				const dashboardData = {
-					items: [],
+					items: data.items || [],
 					dashboardName: data.dashboardName,
 					timePeriod: '365d' as TimePeriod,
 					visibility: data.visibility,
@@ -351,6 +376,40 @@ export function ProDashboardAPIProvider({
 			}
 		},
 		[createDashboard]
+	)
+
+	const handleGenerateDashboard = useCallback(
+		async (data: {
+			dashboardName: string
+			visibility: 'private' | 'public'
+			tags: string[]
+			description: string
+			items: DashboardItemConfig[]
+		}) => {
+			await handleCreateDashboard(data)
+		},
+		[handleCreateDashboard]
+	)
+
+	const handleIterateDashboard = useCallback(
+		async (data: {
+			dashboardName: string
+			visibility: 'private' | 'public'
+			tags: string[]
+			description: string
+			items: DashboardItemConfig[]
+		}) => {
+			setItems(data.items)
+
+			if (dashboardId) {
+				await saveDashboard({
+					visibility: data.visibility,
+					tags: data.tags,
+					description: data.description
+				})
+			}
+		},
+		[dashboardId, saveDashboard]
 	)
 
 	// Load dashboard
@@ -886,7 +945,13 @@ export function ProDashboardAPIProvider({
 		copyDashboard,
 		showCreateDashboardModal,
 		setShowCreateDashboardModal,
-		handleCreateDashboard
+		showGenerateDashboardModal,
+		setShowGenerateDashboardModal,
+		showIterateDashboardModal,
+		setShowIterateDashboardModal,
+		handleCreateDashboard,
+		handleGenerateDashboard,
+		handleIterateDashboard
 	}
 
 	return <ProDashboardContext.Provider value={value}>{children}</ProDashboardContext.Provider>
