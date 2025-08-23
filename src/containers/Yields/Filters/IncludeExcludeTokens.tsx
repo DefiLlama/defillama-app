@@ -207,7 +207,7 @@ export function IncludeExcludeTokens({
 											onClick={() => {
 												handleTokenInclude(token.symbol)
 											}}
-											className="hover: flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) bg-(--link-button) p-2 px-4 py-2 text-sm hover:bg-(--link-button-hover)"
+											className="flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 px-4 py-2 text-sm hover:bg-(--link-button)"
 										>
 											{(token?.logo || token?.fallbackLogo) && (
 												<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />
@@ -302,7 +302,7 @@ export function IncludeExcludeTokens({
 													dialogElement.scrollTo({ top: 0, behavior: 'smooth' })
 												}
 											}}
-											className="hover: flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) bg-(--link-button) p-2 px-4 py-2 text-sm hover:bg-(--link-button-hover)"
+											className="flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 px-4 py-2 text-sm hover:bg-(--link-button)"
 										>
 											{(token?.logo || token?.fallbackLogo) && (
 												<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />

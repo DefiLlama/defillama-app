@@ -365,7 +365,7 @@
 		--bg-muted: oklch(0.644 0.022 270.1); /* Muted background */
 		--bg-card: oklch(1 0 0); /* Card background */
 		--bg-glass: oklch(0.991 0.001 106.4); /* Glass background */
-		--bg-input: oklch(0.913 0 0); /* Input/form background */
+		--bg-input: oklch(0.95 0 0); /* Input/form background */
 
 		/* Brand Colors */
 		--primary: oklch(0.527 0.178 269.6);
