@@ -51,35 +51,34 @@ export const DesktopNav = ({
 				))}
 
 				{pinnedPages.length > 0 ? (
-					<div className="group mt-4">
+					<div className="mt-4">
 						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65">Pinned Pages</p>
-						<div>
-							{pinnedPages.map(({ name, route }) => (
-								<span key={`pinned-page-${name}-${route}`} className="group relative flex flex-wrap items-center gap-1">
-									<LinkToPage route={route} name={name} />
-									<Tooltip
-										content="Unpin from navigation"
-										render={
-											<button
-												onClick={(e) => {
-													const currentPinnedPages = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
-													window.localStorage.setItem(
-														'pinned-metrics',
-														JSON.stringify(currentPinnedPages.filter((page: string) => page !== route))
-													)
-													window.dispatchEvent(new Event('pinnedMetricsChange'))
-													e.preventDefault()
-													e.stopPropagation()
-												}}
-											/>
-										}
-										className="absolute top-1 right-1 bottom-1 my-auto hidden rounded-md bg-(--error) px-1 py-1 text-white group-hover:block"
-									>
-										<Icon name="x" className="h-4 w-4" />
-									</Tooltip>
-								</span>
-							))}
-						</div>
+
+						{pinnedPages.map(({ name, route }) => (
+							<span key={`pinned-page-${name}-${route}`} className="group relative flex flex-wrap items-center gap-1">
+								<LinkToPage route={route} name={name} />
+								<Tooltip
+									content="Unpin from navigation"
+									render={
+										<button
+											onClick={(e) => {
+												const currentPinnedPages = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
+												window.localStorage.setItem(
+													'pinned-metrics',
+													JSON.stringify(currentPinnedPages.filter((page: string) => page !== route))
+												)
+												window.dispatchEvent(new Event('pinnedMetricsChange'))
+												e.preventDefault()
+												e.stopPropagation()
+											}}
+										/>
+									}
+									className="absolute top-1 right-1 bottom-1 my-auto hidden rounded-md bg-(--error) px-1 py-1 text-white group-hover:block"
+								>
+									<Icon name="x" className="h-4 w-4" />
+								</Tooltip>
+							</span>
+						))}
 					</div>
 				) : null}
 
