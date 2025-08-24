@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('stablecoins', async () => 
 	}
 })
 
-const pageName = ['Stablecoins Supply', 'by', 'Chain']
+const pageName = ['Stablecoins', 'by', 'Market Cap']
 
 export default function PeggedAssets({
 	chains,

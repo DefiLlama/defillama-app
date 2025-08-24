@@ -46,7 +46,7 @@ export async function getStaticPaths() {
 	return { paths: paths.slice(0, 11), fallback: 'blocking' }
 }
 
-const pageName = ['Stablecoins Supply', 'by', 'Chain']
+const pageName = ['Stablecoins', 'by', 'Market Cap']
 
 export default function PeggedAssets({
 	chains,
