@@ -48,8 +48,17 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 								</span>
 								{session.rating !== undefined && session.rating !== -1 && (
 									<div className="flex items-center gap-1">
-										<Icon name="star" height={12} width={12} className="fill-current text-yellow-400" />
-										<span className="text-xs pro-text2">{session.rating}/5</span>
+										{session.rating === -99 ? (
+											<>
+												<Icon name="arrow-left" height={12} width={12} className="text-orange-500" />
+												<span className="text-xs text-orange-500">Undone</span>
+											</>
+										) : (
+											<>
+												<Icon name="star" height={12} width={12} className="fill-current text-yellow-400" />
+												<span className="text-xs pro-text2">{session.rating}/5</span>
+											</>
+										)}
 									</div>
 								)}
 							</div>

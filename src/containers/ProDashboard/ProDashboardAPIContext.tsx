@@ -200,6 +200,8 @@ interface ProDashboardContextType {
 	submitRating: (sessionId: string, rating: number, feedback?: string) => Promise<void>
 	skipRating: (sessionId: string) => Promise<void>
 	dismissRating: (sessionId: string) => void
+	undoAIGeneration: () => Promise<void>
+	canUndo: boolean
 }
 
 const ProDashboardContext = createContext<ProDashboardContextType | undefined>(undefined)
@@ -258,11 +260,9 @@ export function ProDashboardAPIProvider({
 		cleanItemsForSaving
 	})
 
-	// Helper functions to derive rating state from database
 	const getCurrentRatingSession = useCallback(() => {
 		if (!isAuthenticated || !currentDashboard?.aiGenerated || !user?.id) return null
 
-		// Find all unrated sessions for current user
 		const unratedSessions = Object.entries(currentDashboard.aiGenerated)
 			.filter(([_, sessionData]: [string, AISessionData]) => 
 				sessionData.userId === user.id && 
@@ -276,14 +276,13 @@ export function ProDashboardAPIProvider({
 
 		if (unratedSessions.length === 0) return null
 
-		// Sort by timestamp to get the latest session
 		unratedSessions.sort((a, b) => 
 			new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
 		)
 
 		return {
 			...unratedSessions[0],
-			rated: false // Ensure rated is always defined for unrated sessions
+			rated: false
 		}
 	}, [isAuthenticated, currentDashboard?.aiGenerated, user?.id])
 
@@ -326,7 +325,7 @@ export function ProDashboardAPIProvider({
 
 	// Save dashboard
 	const saveDashboard = useCallback(
-		async (overrides?: { visibility?: 'private' | 'public'; tags?: string[]; description?: string; aiGenerated?: Record<string, any> | null; items?: DashboardItemConfig[] }) => {
+		async (overrides?: { visibility?: 'private' | 'public'; tags?: string[]; description?: string; aiGenerated?: Record<string, any> | null; items?: DashboardItemConfig[]; aiUndoState?: any }) => {
 			if (!isAuthenticated) {
 				toast.error('Please sign in to save dashboards')
 				return
@@ -345,7 +344,8 @@ export function ProDashboardAPIProvider({
 				visibility: overrides?.visibility ?? dashboardVisibility,
 				tags: overrides?.tags ?? dashboardTags,
 				description: overrides?.description ?? dashboardDescription,
-				aiGenerated: overrides?.aiGenerated ?? currentDashboard?.aiGenerated ?? null
+				aiGenerated: overrides?.aiGenerated ?? currentDashboard?.aiGenerated ?? null,
+				...(overrides?.aiUndoState && { aiUndoState: overrides.aiUndoState })
 			}
 
 			if (dashboardId) {
@@ -578,13 +578,19 @@ export function ProDashboardAPIProvider({
 			}
 
 			if (dashboardId) {
-				// Save both the new items AND the AI generation context to database
+				const aiUndoState = data.aiGenerationContext ? {
+					items: items,
+					timestamp: new Date().toISOString(),
+					sessionId: data.aiGenerationContext.sessionId
+				} : undefined
+
 				await saveDashboard({
-					items: data.items, // Pass new items explicitly to avoid race condition
+					items: data.items,
 					visibility: data.visibility,
 					tags: data.tags,
 					description: data.description,
-					aiGenerated: updatedAiGenerated
+					aiGenerated: updatedAiGenerated,
+					aiUndoState
 				})
 
 				setItems(data.items)
@@ -592,7 +598,8 @@ export function ProDashboardAPIProvider({
 					...prev,
 					data: {
 						...prev.data,
-						items: data.items
+						items: data.items,
+						aiUndoState
 					},
 					aiGenerated: updatedAiGenerated || prev.aiGenerated
 				} : null)
@@ -600,7 +607,7 @@ export function ProDashboardAPIProvider({
 				setItems(data.items)
 			}
 		},
-		[dashboardId, saveDashboard, user?.id, currentDashboard?.aiGenerated]
+		[dashboardId, saveDashboard, user?.id, currentDashboard?.aiGenerated, items]
 	)
 
 	const submitRating = useCallback(
@@ -684,6 +691,44 @@ export function ProDashboardAPIProvider({
 	const dismissRating = useCallback(async (sessionId: string) => {
 		await skipRating(sessionId)
 	}, [skipRating])
+
+	const undoAIGeneration = useCallback(async () => {
+		if (!currentDashboard?.data?.aiUndoState || !dashboardId) {
+			return
+		}
+
+		const previousItems = currentDashboard.data.aiUndoState.items
+		const sessionId = currentDashboard.data.aiUndoState.sessionId
+		
+		const updatedAiGenerated = currentDashboard.aiGenerated ? {
+			...currentDashboard.aiGenerated,
+			[sessionId]: {
+				...currentDashboard.aiGenerated[sessionId],
+				rating: -99
+			}
+		} : null
+		
+		await saveDashboard({
+			items: previousItems,
+			aiUndoState: undefined,
+			aiGenerated: updatedAiGenerated
+		})
+
+		setItems(previousItems)
+		setCurrentDashboard(prev => prev ? {
+			...prev,
+			data: {
+				...prev.data,
+				items: previousItems,
+				aiUndoState: undefined
+			},
+			aiGenerated: updatedAiGenerated
+		} : null)
+	}, [currentDashboard?.data?.aiUndoState, currentDashboard?.aiGenerated, dashboardId, saveDashboard])
+
+	const canUndo = useMemo(() => {
+		return !!(currentDashboard?.data?.aiUndoState?.items)
+	}, [currentDashboard?.data?.aiUndoState])
 
 	// Load dashboard
 	const loadDashboard = useCallback(
@@ -1229,7 +1274,9 @@ export function ProDashboardAPIProvider({
 		handleIterateDashboard,
 		submitRating,
 		skipRating,
-		dismissRating
+		dismissRating,
+		undoAIGeneration,
+		canUndo
 	}
 
 	return <ProDashboardContext.Provider value={value}>{children}</ProDashboardContext.Provider>

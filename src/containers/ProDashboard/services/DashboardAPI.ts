@@ -9,6 +9,11 @@ export interface Dashboard {
 		items: DashboardItemConfig[]
 		dashboardName: string
 		timePeriod?: TimePeriod
+		aiUndoState?: {
+			items: DashboardItemConfig[]
+			timestamp: string
+			sessionId: string
+		}
 	}
 	visibility?: 'private' | 'public'
 	tags?: string[]

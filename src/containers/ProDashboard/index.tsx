@@ -69,7 +69,9 @@ function ProDashboardContent() {
 		getCurrentRatingSession,
 		submitRating,
 		skipRating,
-		dismissRating
+		dismissRating,
+		undoAIGeneration,
+		canUndo
 	} = useProDashboard()
 
 	const { trackView, toggleLike, isLiking } = useDashboardEngagement(dashboardId)
@@ -433,6 +435,17 @@ function ProDashboardContent() {
 						>
 							<Icon name="sparkles" height={16} width={16} />
 							Edit with LlamaAI
+						</button>
+					)}
+					
+					{canUndo && !isReadOnly && (
+						<button
+							className="px-4 py-2 border pro-border pro-text2 hover:pro-text1 hover:border-(--primary) transition-colors items-center gap-2 text-base whitespace-nowrap hidden md:flex"
+							onClick={undoAIGeneration}
+							title="Undo AI changes"
+						>
+							<Icon name="arrow-left" height={16} width={16} />
+							Undo
 						</button>
 					)}
 					
