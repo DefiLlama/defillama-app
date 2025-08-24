@@ -219,7 +219,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				? fetchJson(`https://defillama-datasets.llama.fi/temp/chainNfts`)
 				: Promise.resolve(null),
 			fetchJson(CHAINS_ASSETS).catch(() => ({})),
-			metadata.fees && chain !== 'All'
+			metadata.revenue && chain !== 'All'
 				? getAdapterChainOverview({
 						adapterType: 'fees',
 						chain: metadata.name,
@@ -254,7 +254,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						return null
 					})
 				: Promise.resolve(null),
-			metadata.chainFees
+			metadata.chainRevenue
 				? getAdapterProtocolSummary({
 						adapterType: 'fees',
 						protocol: metadata.name,

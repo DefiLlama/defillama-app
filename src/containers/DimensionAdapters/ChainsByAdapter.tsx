@@ -296,7 +296,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 		}
 	],
 	'App Revenue': [
-		NameColumn('app-revenue'),
+		NameColumn('revenue'),
 		{
 			id: 'total24h',
 			header: 'App Revenue 24h',
