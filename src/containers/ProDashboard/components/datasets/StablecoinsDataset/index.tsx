@@ -15,6 +15,7 @@ import {
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
+import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -146,15 +147,8 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 									)
 								].join('\n')
 
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `stablecoins-${chain}-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
+								
+								downloadCSV(`stablecoins-${chain}.csv`, csv, { addTimestamp: true })
 							}}
 							smol
 						/>

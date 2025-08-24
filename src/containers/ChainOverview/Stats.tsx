@@ -2,6 +2,7 @@ import { Fragment, lazy, memo, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
+import toast from 'react-hot-toast'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { downloadChart } from '~/components/ECharts/utils'
@@ -12,7 +13,8 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, chainIconUrl, formattedNum, slug } from '~/utils'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
@@ -43,6 +45,8 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 	const [darkMode] = useDarkModeManager()
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+
+	const { authorizedFetch, isAuthenticated } = useAuthContext()
 
 	const { toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart, groupBy, denomination } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
@@ -632,15 +636,35 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 					</div>
 				</div>
 				<CSVDownloadButton
-					onClick={() => {
-						window.open(
-							`https://api.llama.fi/simpleChainDataset/${
+					onClick={async () => {
+						if (!isAuthenticated) {
+							toast.error('Please sign in to download CSV data')
+							return
+						}
+
+						try {
+							const url = `https://api.llama.fi/simpleChainDataset/${
 								chainsNamesMap[props.metadata.name] || props.metadata.name
 							}?${Object.entries(tvlSettings)
 								.filter((t) => t[1] === true)
 								.map((t) => `${t[0]}=true`)
 								.join('&')}`.replaceAll(' ', '%20')
-						)
+
+							const response = await authorizedFetch(url)
+							
+							if (!response || !response.ok) {
+								toast.error('Failed to download CSV data')
+								return
+							}
+
+							const csvData = await response.text()
+							
+							
+							downloadCSV(`${props.metadata.name}.csv`, csvData)
+						} catch (error) {
+							console.error('CSV download error:', error)
+							toast.error('Failed to download CSV data')
+						}
 					}}
 					smol
 					className="ml-auto"

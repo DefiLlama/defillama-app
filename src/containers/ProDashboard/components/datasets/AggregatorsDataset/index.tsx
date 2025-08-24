@@ -14,6 +14,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
+import { downloadCSV } from '~/utils'
 import { AggregatorItem } from '~/containers/ProDashboard/types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -190,15 +191,8 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `aggregators-data-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
+								
+								downloadCSV('aggregators-data.csv', csv, { addTimestamp: true })
 							}}
 							smol
 						/>

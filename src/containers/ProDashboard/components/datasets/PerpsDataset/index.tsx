@@ -14,6 +14,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
+import { downloadCSV } from '~/utils'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -172,15 +173,8 @@ export function PerpsDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `perps-data-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
+								
+								downloadCSV('perps-data.csv', csv, { addTimestamp: true })
 							}}
 							smol
 						/>

@@ -22,7 +22,7 @@ import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/colum
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useUserConfig } from '~/hooks/useUserConfig'
-import { formattedNum, getPercentChange } from '~/utils'
+import { downloadCSV, formattedNum, getPercentChange } from '~/utils'
 import { CustomView, TableFilters } from '../../types'
 
 interface CustomColumn {
@@ -684,7 +684,7 @@ export function useProTable(
 		})
 	}
 
-	const downloadCSV = () => {
+	const handleDownloadCSV = () => {
 		if (!table) return
 
 		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible() && col.id !== 'expand')
@@ -714,26 +714,14 @@ export function useProTable(
 			})
 		})
 
-		const csvContent = [
-			headers.join(','),
-			...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
-		].join('\n')
-
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-		const link = document.createElement('a')
-		const url = URL.createObjectURL(blob)
-		link.setAttribute('href', url)
 		const filename =
 			chains.length === 1
-				? `${chains[0]}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+				? `${chains[0]}_protocols.csv`
 				: chains.length <= 3
-					? `${chains.join('_')}_protocols_${new Date().toISOString().split('T')[0]}.csv`
-					: `multi_chain_${chains.length}_protocols_${new Date().toISOString().split('T')[0]}.csv`
-		link.setAttribute('download', filename)
-		link.style.visibility = 'hidden'
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
+					? `${chains.join('_')}_protocols.csv`
+					: `multi_chain_${chains.length}_protocols.csv`
+
+		downloadCSV(filename, [headers, ...rows], { addTimestamp: true })
 	}
 
 	// Custom column management functions
@@ -857,7 +845,7 @@ export function useProTable(
 		columnPresets,
 		applyPreset,
 		activePreset: selectedPreset || activeCustomView,
-		downloadCSV,
+		downloadCSV: handleDownloadCSV,
 		customColumns,
 		addCustomColumn,
 		removeCustomColumn,

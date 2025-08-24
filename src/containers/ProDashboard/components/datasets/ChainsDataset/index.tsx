@@ -14,6 +14,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import useWindowSize from '~/hooks/useWindowSize'
+import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { TableBody } from '../../ProTable/TableBody'
@@ -312,20 +313,8 @@ export function ChainsDataset({
 				})
 		})
 
-		const csvContent = [
-			headers.join(','),
-			...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-		].join('\n')
-
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-		const link = document.createElement('a')
-		const url = URL.createObjectURL(blob)
-		link.setAttribute('href', url)
-		link.setAttribute('download', `chains-data-${new Date().toISOString().split('T')[0]}.csv`)
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
-		URL.revokeObjectURL(url)
+		
+		downloadCSV('chains-data.csv', [headers, ...rows], { addTimestamp: true })
 	}, [instance])
 
 	const columnOptions = React.useMemo(

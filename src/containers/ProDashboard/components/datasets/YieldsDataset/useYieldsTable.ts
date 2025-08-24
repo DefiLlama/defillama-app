@@ -13,6 +13,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import { downloadCSV } from '~/utils'
 import { yieldsDatasetColumns } from './columns'
 import { YieldsFilters } from './YieldsFiltersPanel'
 
@@ -356,15 +357,8 @@ export function useYieldsTable({
 
 		const csvContent = [headers.join(','), ...csvLines].join('\n')
 
-		const blob = new Blob([csvContent], { type: 'text/csv' })
-		const url = URL.createObjectURL(blob)
-		const a = document.createElement('a')
-		a.href = url
-		a.download = `yields-data-${new Date().toISOString().split('T')[0]}.csv`
-		document.body.appendChild(a)
-		a.click()
-		document.body.removeChild(a)
-		URL.revokeObjectURL(url)
+		
+		downloadCSV('yields-data.csv', csvContent, { addTimestamp: true })
 	}
 
 	const [poolName, setPoolName] = React.useState('')

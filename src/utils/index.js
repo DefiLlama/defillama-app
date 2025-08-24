@@ -488,6 +488,97 @@ export function download(filename, text) {
 	document.body.removeChild(element)
 }
 
+export function downloadCSV(filename, csvData, options = {}) {
+	try {
+		const { mimeType = 'text/csv;charset=utf-8;', addTimestamp = false } = options
+		
+		let csvContent
+		
+		if (Array.isArray(csvData)) {
+			csvContent = csvData
+				.map(row => 
+					row.map(cell => {
+						if (cell === null || cell === undefined) return ''
+						if (typeof cell === 'object') return JSON.stringify(cell)
+						const cellStr = String(cell)
+						if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+							return `"${cellStr.replace(/"/g, '""')}"`
+						}
+						return cellStr
+					}).join(',')
+				)
+				.join('\n')
+		} else {
+			csvContent = String(csvData)
+		}
+		
+		let finalFilename = filename
+		if (addTimestamp && !filename.includes(new Date().toISOString().split('T')[0])) {
+			const extension = filename.split('.').pop()
+			const nameWithoutExt = filename.replace(`.${extension}`, '')
+			finalFilename = `${nameWithoutExt}_${new Date().toISOString().split('T')[0]}.${extension}`
+		}
+		
+		const blob = new Blob([csvContent], { type: mimeType })
+		const downloadUrl = window.URL.createObjectURL(blob)
+		
+		const link = document.createElement('a')
+		link.href = downloadUrl
+		link.download = finalFilename
+		link.style.display = 'none'
+		
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+		
+		window.URL.revokeObjectURL(downloadUrl)
+	} catch (error) {
+		console.error('CSV download error:', error)
+		download(filename, String(csvData))
+	}
+}
+
+export function downloadDatasetCSV({
+	data,
+	columns,
+	columnHeaders = {},
+	filename,
+	filenameSuffix,
+	addTimestamp = true
+}) {
+	try {
+		if (!data || !Array.isArray(data) || data.length === 0) {
+			console.warn('No data provided for CSV download')
+			return
+		}
+		
+		const finalColumns = columns || Object.keys(data[0] || {})
+		const headers = finalColumns.map(col => columnHeaders[col] || col)
+		
+		const rows = data.map(item => 
+			finalColumns.map(col => {
+				const value = item[col]
+				if (value === null || value === undefined) return ''
+				if (typeof value === 'object') return JSON.stringify(value)
+				return String(value)
+			})
+		)
+		
+		const csvData = [headers, ...rows]
+		
+		let finalFilename = filename || 'dataset'
+		if (filenameSuffix) {
+			finalFilename += `_${filenameSuffix}`
+		}
+		finalFilename += '.csv'
+		
+		downloadCSV(finalFilename, csvData, { addTimestamp })
+		
+	} catch (error) {
+		console.error('Dataset CSV download error:', error)
+	}
+}
+
 export const formatPercentage = (value) => {
 	let zeroes = 0
 	let stop = false
