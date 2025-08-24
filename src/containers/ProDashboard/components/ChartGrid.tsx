@@ -8,6 +8,7 @@ import { DashboardItemConfig } from '../types'
 import { ChartBuilderCard } from './ChartBuilderCard'
 import { ChartCard } from './ChartCard'
 import { ConfirmationModal } from './ConfirmationModal'
+import { Rating } from './Rating'
 import {
 	AggregatorsDataset,
 	BridgeAggregatorsDataset,
@@ -36,10 +37,28 @@ interface ChartGridProps {
 }
 
 export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
-	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem, isReadOnly } =
-		useProDashboard()
+	const { 
+		chartsWithData, 
+		handleChartsReordered, 
+		handleRemoveItem, 
+		handleColSpanChange, 
+		handleEditItem, 
+		isReadOnly,
+		getCurrentRatingSession,
+		autoSkipOlderSessionsForRating,
+		submitRating,
+		skipRating
+	} = useProDashboard()
 	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
 	const [isSmallScreen, setIsSmallScreen] = useState(false)
+
+	const currentRatingSession = getCurrentRatingSession()
+
+	useEffect(() => {
+		if (currentRatingSession) {
+			autoSkipOlderSessionsForRating()
+		}
+	}, [currentRatingSession?.sessionId, autoSkipOlderSessionsForRating])
 
 	useEffect(() => {
 		const checkScreenSize = () => {
@@ -252,6 +271,18 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								</SortableItem>
 							</div>
 						))}
+						{currentRatingSession && !isReadOnly && (
+							<div className="md:col-span-2">
+								<Rating
+									sessionId={currentRatingSession.sessionId}
+									mode={currentRatingSession.mode}
+									variant="inline"
+									prompt={currentRatingSession.prompt}
+									onRate={submitRating}
+									onSkip={skipRating}
+								/>
+							</div>
+						)}
 						<div
 							onClick={onAddChartClick}
 							className="pro-border pro-bg7 hover:pro-bg2 flex min-h-[340px] cursor-pointer flex-col items-center justify-center border border-dashed transition-colors"

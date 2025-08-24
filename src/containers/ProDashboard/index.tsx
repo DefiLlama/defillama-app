@@ -15,8 +15,10 @@ import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { DemoPreview } from './components/DemoPreview'
 import { EmptyState } from './components/EmptyState'
 import { GenerateDashboardModal } from './components/GenerateDashboardModal'
+import { Rating } from './components/Rating'
+import { AIGenerationHistory } from './components/AIGenerationHistory'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
-import { TimePeriod, useProDashboard } from './ProDashboardAPIContext'
+import { TimePeriod, useProDashboard, AIGeneratedData } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
 
 function ProDashboardContent() {
@@ -63,7 +65,11 @@ function ProDashboardContent() {
 		setShowIterateDashboardModal,
 		handleCreateDashboard,
 		handleGenerateDashboard,
-		handleIterateDashboard
+		handleIterateDashboard,
+		getCurrentRatingSession,
+		submitRating,
+		skipRating,
+		dismissRating
 	} = useProDashboard()
 
 	const { trackView, toggleLike, isLiking } = useDashboardEngagement(dashboardId)
@@ -80,6 +86,9 @@ function ProDashboardContent() {
 	const hasChartItems = items?.some(
 		(item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder'
 	)
+
+	
+	const currentRatingSession = getCurrentRatingSession()
 
 	const handleNameSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
@@ -175,6 +184,12 @@ function ProDashboardContent() {
 										</span>
 									)}
 								</button>
+								{!featureFlagsLoading && hasFeature('dashboard-gen') && currentDashboard?.aiGenerated && Object.keys(currentDashboard.aiGenerated).length > 0 && (
+									<div className="flex items-center gap-1">
+										<Icon name="sparkles" height={14} width={14} className="text-(--primary)" />
+										<span className="text-xs text-(--primary) font-medium">AI Generated</span>
+									</div>
+								)}
 								{dashboardVisibility === 'public' && (
 									<div className="pro-text3 flex items-center gap-3 text-sm">
 										<div className="flex items-center gap-1" title="Views">
@@ -397,6 +412,7 @@ function ProDashboardContent() {
 							<Icon name="plus" height={16} width={16} />
 						</button>
 					</div>
+					
 				</div>
 
 				<div className="order-3 flex items-center gap-2">
@@ -419,6 +435,7 @@ function ProDashboardContent() {
 							Edit with LlamaAI
 						</button>
 					)}
+					
 					<button
 						className={`px-4 py-2 ${
 							!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'cursor-not-allowed bg-(--bg-tertiary)'
@@ -445,6 +462,22 @@ function ProDashboardContent() {
 						))}
 					</div>
 				</div>
+			)}
+
+			{!featureFlagsLoading && hasFeature('dashboard-gen') && currentDashboard?.aiGenerated && (
+				<AIGenerationHistory aiGenerated={currentDashboard.aiGenerated as AIGeneratedData} />
+			)}
+
+			{currentRatingSession && !isReadOnly && (
+				<Rating
+					sessionId={currentRatingSession.sessionId}
+					mode={currentRatingSession.mode}
+					variant="banner"
+					prompt={currentRatingSession.prompt}
+					onRate={submitRating}
+					onSkip={skipRating}
+					onDismiss={dismissRating}
+				/>
 			)}
 
 			{items.length > 0 && (

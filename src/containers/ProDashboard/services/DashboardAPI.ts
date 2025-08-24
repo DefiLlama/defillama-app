@@ -21,6 +21,14 @@ export interface Dashboard {
 	updated: string
 	collectionId?: string
 	collectionName?: string
+	aiGenerated?: Record<string, {
+		rating?: number 
+		feedback?: string
+		mode: 'create' | 'iterate'
+		timestamp: string
+		userId: string
+		rated?: boolean 
+	}> | null
 }
 
 export interface DashboardError {
@@ -70,10 +78,11 @@ class DashboardAPIService {
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
+			aiGenerated?: Record<string, any> | null
 		},
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const { visibility, tags, description, ...dashboardData } = data
+		const { visibility, tags, description, aiGenerated, ...dashboardData } = data
 		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards`, {
 			method: 'POST',
 			headers: {
@@ -83,7 +92,8 @@ class DashboardAPIService {
 				data: dashboardData,
 				visibility: visibility || 'private',
 				tags: tags || [],
-				description: description || ''
+				description: description || '',
+				aiGenerated: aiGenerated || null
 			})
 		})
 
@@ -99,10 +109,11 @@ class DashboardAPIService {
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
+			aiGenerated?: Record<string, any> | null
 		},
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const { visibility, tags, description, ...dashboardData } = data
+		const { visibility, tags, description, aiGenerated, ...dashboardData } = data
 		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/${id}`, {
 			method: 'POST',
 			headers: {
@@ -112,7 +123,8 @@ class DashboardAPIService {
 				data: dashboardData,
 				visibility: visibility || 'private',
 				tags: tags || [],
-				description: description || ''
+				description: description || '',
+				aiGenerated: aiGenerated || null
 			})
 		})
 

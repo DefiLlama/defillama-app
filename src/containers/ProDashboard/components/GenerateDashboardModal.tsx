@@ -23,6 +23,12 @@ interface GenerateDashboardModalProps {
 		tags: string[]
 		description: string
 		items: DashboardItemConfig[]
+		aiGenerationContext?: {
+			sessionId: string
+			mode: 'create' | 'iterate'
+			timestamp: string
+			prompt: string
+		}
 	}) => void
 }
 
@@ -62,8 +68,8 @@ export function GenerateDashboardModal({
 		if (!value.trim()) {
 			return 'Description is required'
 		}
-		if (value.trim().length < 50) {
-			return 'Description must be at least 50 characters'
+		if (value.trim().length < 20) {
+			return 'Description must be at least 20 characters'
 		}
 		if (value.length > 5000) {
 			return 'Description must be 5000 characters or less'
@@ -153,13 +159,21 @@ export function GenerateDashboardModal({
 			}
 
 			const items = data.dashboardConfig.items as DashboardItemConfig[]
+			const sessionId = data.metadata?.sessionId
+			const generationMode = data.metadata?.mode || mode
 
 			onGenerate({
 				dashboardName: mode === 'iterate' ? existingDashboard?.dashboardName || '' : dashboardName.trim(),
 				visibility: mode === 'iterate' ? existingDashboard?.visibility || 'private' : visibility,
 				tags: mode === 'iterate' ? existingDashboard?.tags || [] : tags,
 				description: mode === 'iterate' ? existingDashboard?.description || '' : '',
-				items
+				items,
+				aiGenerationContext: sessionId ? {
+					sessionId,
+					mode: generationMode,
+					timestamp: new Date().toISOString(),
+					prompt: aiDescription.trim()
+				} : undefined
 			})
 
 			setDashboardName('')
