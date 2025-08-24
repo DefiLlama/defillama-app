@@ -7,6 +7,7 @@ import { useEffect } from 'react'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
+import { FeatureFlagsProvider } from '~/contexts/FeatureFlagsContext'
 
 NProgress.configure({ showSpinner: false })
 
@@ -62,7 +63,9 @@ function App({ Component, pageProps }: AppProps) {
 	return (
 		<QueryClientProvider client={client}>
 			<AuthProvider>
-				<Component {...pageProps} />
+				<FeatureFlagsProvider>
+					<Component {...pageProps} />
+				</FeatureFlagsProvider>
 			</AuthProvider>
 			<ReactQueryDevtools initialIsOpen={false} />
 		</QueryClientProvider>

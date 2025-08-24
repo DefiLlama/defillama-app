@@ -7,14 +7,18 @@ import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { AddChartModal } from './components/AddChartModal'
 import { ChartGrid } from './components/ChartGrid'
 import { CreateDashboardModal } from './components/CreateDashboardModal'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { DemoPreview } from './components/DemoPreview'
 import { EmptyState } from './components/EmptyState'
+import { GenerateDashboardModal } from './components/GenerateDashboardModal'
+import { Rating } from './components/Rating'
+import { AIGenerationHistory } from './components/AIGenerationHistory'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
-import { TimePeriod, useProDashboard } from './ProDashboardAPIContext'
+import { TimePeriod, useProDashboard, AIGeneratedData } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
 
 function ProDashboardContent() {
@@ -27,6 +31,7 @@ function ProDashboardContent() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
 	const { isAuthenticated } = useAuthContext()
+	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 	const {
 		items,
 		protocolsLoading,
@@ -54,7 +59,19 @@ function ProDashboardContent() {
 		setDashboardDescription,
 		showCreateDashboardModal,
 		setShowCreateDashboardModal,
-		handleCreateDashboard
+		showGenerateDashboardModal,
+		setShowGenerateDashboardModal,
+		showIterateDashboardModal,
+		setShowIterateDashboardModal,
+		handleCreateDashboard,
+		handleGenerateDashboard,
+		handleIterateDashboard,
+		getCurrentRatingSession,
+		submitRating,
+		skipRating,
+		dismissRating,
+		undoAIGeneration,
+		canUndo
 	} = useProDashboard()
 
 	const { trackView, toggleLike, isLiking } = useDashboardEngagement(dashboardId)
@@ -71,6 +88,9 @@ function ProDashboardContent() {
 	const hasChartItems = items?.some(
 		(item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder'
 	)
+
+	
+	const currentRatingSession = getCurrentRatingSession()
 
 	const handleNameSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
@@ -166,6 +186,12 @@ function ProDashboardContent() {
 										</span>
 									)}
 								</button>
+								{!featureFlagsLoading && hasFeature('dashboard-gen') && currentDashboard?.aiGenerated && Object.keys(currentDashboard.aiGenerated).length > 0 && (
+									<div className="flex items-center gap-1">
+										<Icon name="sparkles" height={14} width={14} className="text-(--primary)" />
+										<span className="text-xs text-(--primary) font-medium">AI Generated</span>
+									</div>
+								)}
 								{dashboardVisibility === 'public' && (
 									<div className="pro-text3 flex items-center gap-3 text-sm">
 										<div className="flex items-center gap-1" title="Views">
@@ -303,6 +329,19 @@ function ProDashboardContent() {
 													New Dashboard
 												</button>
 
+												{!featureFlagsLoading && hasFeature('dashboard-gen') && (
+													<button
+														onClick={() => {
+															setShowGenerateDashboardModal(true)
+															setShowDashboardMenu(false)
+														}}
+														className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left"
+													>
+														<Icon name="sparkles" height={16} width={16} />
+														Generate with LlamaAI
+													</button>
+												)}
+
 												{dashboards.length > 0 && (
 													<>
 														<div className="my-2 border-t border-(--divider)" />
@@ -355,6 +394,15 @@ function ProDashboardContent() {
 								<Icon name="settings" height={16} width={16} className="pro-text1" />
 							</button>
 						)}
+						{!isReadOnly && items.length > 0 && !featureFlagsLoading && hasFeature('dashboard-gen') && (
+							<button
+								className="px-2.5 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors flex items-center gap-2 text-sm whitespace-nowrap animate-ai-glow"
+								onClick={() => setShowIterateDashboardModal(true)}
+								title="Edit with LlamaAI"
+							>
+								<Icon name="sparkles" height={16} width={16} />
+							</button>
+						)}
 						<button
 							className={`px-2.5 py-2 md:px-4 md:py-2 ${
 								!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'cursor-not-allowed bg-(--bg-tertiary)'
@@ -366,6 +414,7 @@ function ProDashboardContent() {
 							<Icon name="plus" height={16} width={16} />
 						</button>
 					</div>
+					
 				</div>
 
 				<div className="order-3 flex items-center gap-2">
@@ -378,6 +427,28 @@ function ProDashboardContent() {
 							<Icon name="settings" height={20} width={20} className="pro-text1" />
 						</button>
 					)}
+					{!isReadOnly && items.length > 0 && !featureFlagsLoading && hasFeature('dashboard-gen') && (
+						<button
+							className="px-4 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors items-center gap-2 text-base whitespace-nowrap hidden md:flex animate-ai-glow"
+							onClick={() => setShowIterateDashboardModal(true)}
+							title="Edit with LlamaAI"
+						>
+							<Icon name="sparkles" height={16} width={16} />
+							Edit with LlamaAI
+						</button>
+					)}
+					
+					{canUndo && !isReadOnly && (
+						<button
+							className="px-4 py-2 border pro-border pro-text2 hover:pro-text1 hover:border-(--primary) transition-colors items-center gap-2 text-base whitespace-nowrap hidden md:flex"
+							onClick={undoAIGeneration}
+							title="Undo AI changes"
+						>
+							<Icon name="arrow-left" height={16} width={16} />
+							Undo
+						</button>
+					)}
+					
 					<button
 						className={`px-4 py-2 ${
 							!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'cursor-not-allowed bg-(--bg-tertiary)'
@@ -406,6 +477,22 @@ function ProDashboardContent() {
 				</div>
 			)}
 
+			{!featureFlagsLoading && hasFeature('dashboard-gen') && currentDashboard?.aiGenerated && (
+				<AIGenerationHistory aiGenerated={currentDashboard.aiGenerated as AIGeneratedData} />
+			)}
+
+			{currentRatingSession && !isReadOnly && (
+				<Rating
+					sessionId={currentRatingSession.sessionId}
+					mode={currentRatingSession.mode}
+					variant="banner"
+					prompt={currentRatingSession.prompt}
+					onRate={submitRating}
+					onSkip={skipRating}
+					onDismiss={dismissRating}
+				/>
+			)}
+
 			{items.length > 0 && (
 				<ChartGrid
 					onAddChartClick={() => setShowAddModal(true)}
@@ -425,7 +512,12 @@ function ProDashboardContent() {
 				editItem={editItem}
 			/>
 
-			{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={() => setShowAddModal(true)} />}
+			{!protocolsLoading && items.length === 0 && (
+				<EmptyState 
+					onAddChart={() => setShowAddModal(true)} 
+					onGenerateWithAI={hasFeature('dashboard-gen') ? () => setShowIterateDashboardModal(true) : undefined}
+				/>
+			)}
 
 			<DashboardSettingsModal
 				isOpen={showSettingsModal}
@@ -443,6 +535,26 @@ function ProDashboardContent() {
 				isOpen={showCreateDashboardModal}
 				onClose={() => setShowCreateDashboardModal(false)}
 				onCreate={handleCreateDashboard}
+			/>
+
+			<GenerateDashboardModal
+				isOpen={showGenerateDashboardModal}
+				onClose={() => setShowGenerateDashboardModal(false)}
+				onGenerate={handleGenerateDashboard}
+			/>
+
+			<GenerateDashboardModal
+				isOpen={showIterateDashboardModal}
+				onClose={() => setShowIterateDashboardModal(false)}
+				mode="iterate"
+				existingDashboard={{
+					dashboardName,
+					visibility: dashboardVisibility,
+					tags: dashboardTags,
+					description: dashboardDescription,
+					items
+				}}
+				onGenerate={handleIterateDashboard}
 			/>
 
 			<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>

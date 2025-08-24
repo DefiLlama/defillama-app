@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
+import { TimePeriod } from '../ProDashboardAPIContext'
 
 export function useDashboardAPI() {
 	const router = useRouter()
@@ -34,6 +35,7 @@ export function useDashboardAPI() {
 		mutationFn: async (data: {
 			items: DashboardItemConfig[]
 			dashboardName: string
+			timePeriod?: TimePeriod
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
@@ -57,8 +59,10 @@ export function useDashboardAPI() {
 			data: {
 				items: DashboardItemConfig[]
 				dashboardName: string
+				timePeriod?: TimePeriod
 				visibility?: 'private' | 'public'
 				tags?: string[]
+				aiGenerated?: Record<string, any> | null
 				description?: string
 			}
 		}) => {
