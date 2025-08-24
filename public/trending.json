@@ -32,9 +32,10 @@
     "tab": "Protocols"
   },
   {
-    "name": "Metrics",
-    "route": "/metrics",
+    "name": "Airdrops",
+    "route": "/airdrops",
     "category": "Trending",
-    "description": ""
+    "description": "Tokenless protocols that may airdrop tokens to their users",
+    "tab": "Protocols"
   }
 ]

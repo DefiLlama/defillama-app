@@ -137,7 +137,9 @@ async function pullData() {
 		}
 
 		const trendingPages = trendingRoutes
-			.filter(([route]) => !route.includes('/chain/'))
+			.filter(
+				([route]) => !['/chain/', '/metrics', '/tools', '/subscription', '/pro'].some((page) => route.includes(page))
+			)
 			.slice(0, 5)
 			.map(([route]) => {
 				let pageData = null
