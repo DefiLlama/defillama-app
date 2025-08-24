@@ -279,6 +279,14 @@
       "tab": "Chains"
     },
     {
+      "name": "Perp Aggregator Volume by Protocol",
+      "route": "/perps-aggregators",
+      "category": "Volume",
+      "description": "Notional volume of all trades in a perp aggregator, includes leverage",
+      "totalTrackedKey": "perpAggregators.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "Options Premium Volume by Protocol",
       "route": "/options/premium-volume",
       "category": "Volume",
@@ -300,14 +308,6 @@
       "category": "Volume",
       "description": "Total notional value of all outstanding perpetual futures positions",
       "totalTrackedKey": "perpsOpenInterest.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Perp Aggregator Volume by Protocol",
-      "route": "/perps-aggregators",
-      "category": "Volume",
-      "description": "Notional volume of all trades in a perp aggregator, includes leverage",
-      "totalTrackedKey": "perpAggregators.protocols",
       "tab": "Protocols"
     },
     {

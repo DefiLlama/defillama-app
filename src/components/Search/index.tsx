@@ -31,6 +31,8 @@ interface ISearchItem {
 	route: string
 	type: string
 	deprecated?: boolean
+	hideType?: boolean
+	subName?: string
 }
 
 export const DesktopSearch = memo(function DesktopSearch() {
@@ -267,8 +269,14 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 				<Icon name="file-text" className="h-6 w-6" />
 			)}
 			<span>{route.name}</span>
+			{route.subName ? (
+				<>
+					<Icon name="chevron-right" height={16} width={16} className="text-(--text-form)" />
+					<span className="text-(--text-form)">{route.subName}</span>
+				</>
+			) : null}
 			{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
-			{recent ? (
+			{route.hideType ? null : recent ? (
 				<Icon name="clock" height={12} width={12} className="ml-auto" />
 			) : (
 				<span className="ml-auto text-xs text-(--link-text)">{route.type}</span>
