@@ -162,9 +162,9 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							resetEligibilityCheck()
 							airdropCheckerDialog.toggle()
 						}}
-						className="flex items-center gap-1 rounded-md bg-[#e4efe2] px-[10px] py-1 text-sm font-medium whitespace-nowrap text-[#007c00] dark:bg-[#18221d] dark:text-[#00ab00]"
+						className="flex items-center gap-1 rounded-md bg-(--link-button) px-[10px] py-1 text-sm font-medium whitespace-nowrap dark:bg-(--link-hover-bg)"
 					>
-						Check airdrops for address
+						🪂 Check airdrops for address
 					</button>
 
 					<Ariakit.Dialog store={airdropCheckerDialog} className="dialog">
