@@ -14,7 +14,7 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { capitalizeFirstLetter, chainIconUrl, formattedNum, slug } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
@@ -649,16 +649,9 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							}
 
 							const csvData = await response.text()
-							const blob = new Blob([csvData], { type: 'text/csv' })
-							const downloadUrl = window.URL.createObjectURL(blob)
 							
-							const a = document.createElement('a')
-							a.href = downloadUrl
-							a.download = `${props.metadata.name}.csv`
-							document.body.appendChild(a)
-							a.click()
-							document.body.removeChild(a)
-							window.URL.revokeObjectURL(downloadUrl)
+							
+							downloadCSV(`${props.metadata.name}.csv`, csvData)
 						} catch (error) {
 							console.error('CSV download error:', error)
 							toast.error('Failed to download CSV data')
