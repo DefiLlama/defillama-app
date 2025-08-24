@@ -304,7 +304,7 @@
     },
     {
       "name": "Perp Aggregator Volume by Protocol",
-      "route": "/perp-aggregators",
+      "route": "/perps-aggregators",
       "category": "Volume",
       "description": "Notional volume of all trades in a perp aggregator, includes leverage",
       "totalTrackedKey": "perpAggregators.protocols",
