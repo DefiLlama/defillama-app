@@ -56,8 +56,9 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 
 	const queryParamsString = useMemo(() => {
-		return JSON.stringify(router.query ?? {})
-	}, [router.query])
+		const { tvl, ...rest } = router.query ?? {}
+		return JSON.stringify(router.query ? (tvl === 'true' ? rest : router.query) : { protocol: [slug(props.name)] })
+	}, [router.query, props.name])
 
 	const { toggledMetrics, groupBy, tvlSettings, feesSettings } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)

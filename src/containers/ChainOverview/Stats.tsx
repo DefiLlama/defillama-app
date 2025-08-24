@@ -28,8 +28,17 @@ interface IStatsProps extends IChainOverviewData {
 export const Stats = memo(function Stats(props: IStatsProps) {
 	const router = useRouter()
 	const queryParamsString = useMemo(() => {
-		return JSON.stringify(router.query ?? {})
-	}, [router.query])
+		const { tvl, ...rest } = router.query ?? {}
+		return JSON.stringify(
+			router.query
+				? tvl === 'true'
+					? rest
+					: router.query
+				: props.metadata.id !== 'all'
+					? { chain: [props.metadata.id] }
+					: {}
+		)
+	}, [router.query, props.metadata.id])
 
 	const [darkMode] = useDarkModeManager()
 
