@@ -608,7 +608,9 @@ export const useFetchChainChartData = ({
 		raisesData,
 		fetchingChainIncentives,
 		chainIncentivesData,
-		finalTvlChart
+		finalTvlChart,
+		denomination,
+		groupBy
 	])
 
 	return {

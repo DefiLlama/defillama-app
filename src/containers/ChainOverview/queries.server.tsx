@@ -318,7 +318,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						.catch(() => null)
 				: Promise.resolve(null),
 			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
-			chain !== 'All'
+			metadata.incentives && chain !== 'All'
 				? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
 						.then((data) => {
 							const protocolData = data.protocols.find((item) => item.chain === metadata.name)

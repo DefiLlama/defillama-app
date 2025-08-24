@@ -36,34 +36,38 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata || !metadata[1].options) {
+		if (!metadata || (!metadata[1].optionsPremiumVolume && !metadata[1].optionsNotionalVolume)) {
 			return { notFound: true, props: null }
 		}
 
 		const [protocolData, premiumVolumeData, notionalVolumeData] = await Promise.all([
 			getProtocol(protocol),
-			getAdapterProtocolSummary({
-				adapterType: 'options',
-				protocol: metadata[1].displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
-			getAdapterProtocolSummary({
-				adapterType: 'options',
-				protocol: metadata[1].displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true,
-				dataType: 'dailyNotionalVolume'
-			}).catch(() => null)
+			metadata[1].optionsPremiumVolume
+				? getAdapterProtocolSummary({
+						adapterType: 'options',
+						protocol: metadata[1].displayName,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+					}).catch(() => null)
+				: null,
+			metadata[1].optionsNotionalVolume
+				? getAdapterProtocolSummary({
+						adapterType: 'options',
+						protocol: metadata[1].displayName,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyNotionalVolume'
+					}).catch(() => null)
+				: null
 		])
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
 		const optionsPremiumVolume: IProtocolOverviewPageData['optionsPremiumVolume'] = {
-			total24h: premiumVolumeData.total24h ?? null,
-			total7d: premiumVolumeData.total7d ?? null,
-			total30d: premiumVolumeData.total30d ?? null,
-			totalAllTime: premiumVolumeData.totalAllTime ?? null
+			total24h: premiumVolumeData?.total24h ?? null,
+			total7d: premiumVolumeData?.total7d ?? null,
+			total30d: premiumVolumeData?.total30d ?? null,
+			totalAllTime: premiumVolumeData?.totalAllTime ?? null
 		}
 
 		const optionsNotionalVolume: IProtocolOverviewPageData['optionsNotionalVolume'] = {

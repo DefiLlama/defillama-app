@@ -13,10 +13,11 @@ import { formatGovernanceData } from '~/api/categories/protocols'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
+import { TagGroup } from '~/components/TagGroup'
 import { formattedNum, toNiceDayMonthAndYear } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
-export function GovernanceTable({ data, governanceType }) {
+export function GovernanceTable({ data, governanceType, filters = null }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'start', desc: true }])
 	const [filterControversialProposals, setFilterProposals] = React.useState(false)
@@ -53,14 +54,7 @@ export function GovernanceTable({ data, governanceType }) {
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				<h1 className="mr-auto text-xl font-semibold">Proposals</h1>
-				<Switch
-					label="Filter Controversial Proposals"
-					value="controversial proposals"
-					checked={filterControversialProposals}
-					onChange={() => setFilterProposals(!filterControversialProposals)}
-				/>
-				<label className="relative w-full sm:max-w-[280px]">
+				<label className="relative mr-auto w-full sm:max-w-[280px]">
 					<span className="sr-only">Search proposals...</span>
 					<Icon
 						name="search"
@@ -78,6 +72,13 @@ export function GovernanceTable({ data, governanceType }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
+				{filters}
+				<Switch
+					label="Filter Controversial Proposals"
+					value="controversial proposals"
+					checked={filterControversialProposals}
+					onChange={() => setFilterProposals(!filterControversialProposals)}
+				/>
 			</div>
 			<VirtualTable instance={instance} />
 		</div>
@@ -145,8 +146,26 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 		staleTime: 60 * 60 * 1000
 	})
 
+	const { finalData, governanceType } = React.useMemo(() => {
+		if (!data || data.length === 0) {
+			return { finalData: {}, governanceType: null }
+		}
+		return {
+			finalData: data[apiCategoryIndex],
+			governanceType: apis[apiCategoryIndex].includes('governance-cache/snapshot')
+				? 'snapshot'
+				: apis[apiCategoryIndex].includes('governance-cache/compound')
+					? 'compound'
+					: 'tally'
+		}
+	}, [data, apiCategoryIndex, apis])
+
 	if (isLoading) {
-		return <p className="my-[180px] text-center">Loading...</p>
+		return (
+			<p className="flex min-h-[360px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
+				Loading...
+			</p>
+		)
 	}
 
 	const apisByCategory = apis.map((apiUrl) =>
@@ -157,37 +176,32 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 				: 'Tally'
 	)
 
-	return data && data.length > 0 ? (
-		<div className="flex flex-col">
-			{apisByCategory.length > 1 ? (
-				<div className="p-4">
-					<div className="ml-auto flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--btn-hover-bg) text-xs font-medium">
-						{apisByCategory.map((apiCat, index) => (
-							<button
-								key={apiCat + 'governance-table-filter'}
-								onClick={() => setApiCategoryIndex(index)}
-								data-active={apiCategoryIndex === index}
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--btn-hover-bg)"
-							>
-								{apiCat}
-							</button>
-						))}
-					</div>
-				</div>
-			) : null}
+	if (!data || data.length === 0) {
+		return (
+			<p className="flex min-h-[360px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
+				No data found
+			</p>
+		)
+	}
 
+	return (
+		<div className="flex flex-col">
 			<GovernanceTable
-				data={data[apiCategoryIndex]}
-				governanceType={
-					apis[apiCategoryIndex].includes('governance-cache/snapshot')
-						? 'snapshot'
-						: apis[apiCategoryIndex].includes('governance-cache/compound')
-							? 'compound'
-							: 'tally'
+				data={finalData}
+				governanceType={governanceType}
+				filters={
+					apisByCategory.length > 1 ? (
+						<TagGroup
+							selectedValue={apisByCategory[apiCategoryIndex]}
+							setValue={(value) => setApiCategoryIndex(apisByCategory.indexOf(value as any))}
+							values={apisByCategory}
+							className="ml-auto"
+						/>
+					) : null
 				}
 			/>
 		</div>
-	) : null
+	)
 }
 
 interface IProposal {

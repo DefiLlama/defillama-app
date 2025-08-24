@@ -295,7 +295,7 @@ export function ProtocolOverviewLayout({
 							Bridge Aggregator Volume
 						</BasicLink>
 					)}
-					{metrics.options && (
+					{(metrics.optionsPremiumVolume || metrics.optionsNotionalVolume) && (
 						<BasicLink
 							href={`/protocol/options/${slug(name)}`}
 							data-active={tab === 'options'}

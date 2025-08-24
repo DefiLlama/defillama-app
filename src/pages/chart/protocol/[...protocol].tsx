@@ -73,7 +73,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 					? { dexVolume: queryParams.dexVolume === 'false' ? 'false' : 'true' }
 					: props.metrics.perps
 						? { perpVolume: queryParams.perpVolume === 'false' ? 'false' : 'true' }
-						: props.metrics.options
+						: props.metrics.optionsPremiumVolume || props.metrics.optionsNotionalVolume
 							? {
 									optionsPremiumVolume: queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true',
 									optionsNotionalVolume: queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
