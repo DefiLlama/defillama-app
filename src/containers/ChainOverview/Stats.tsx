@@ -46,7 +46,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
-	const { authorizedFetch, isAuthenticated } = useAuthContext()
+	const { isAuthenticated } = useAuthContext()
 
 	const { toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart, groupBy, denomination } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
@@ -650,7 +650,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								.map((t) => `${t[0]}=true`)
 								.join('&')}`.replaceAll(' ', '%20')
 
-							const response = await authorizedFetch(url)
+							const response = await fetch(url)
 							
 							if (!response || !response.ok) {
 								toast.error('Failed to download CSV data')
