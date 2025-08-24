@@ -428,7 +428,7 @@ const PageView = (props) => {
 										href={riskData?.pool_url || 'https://exponential.fi/about-us'}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="flex items-center gap-2 font-medium text-[#445ed0] hover:underline dark:text-[#2172E5]"
+										className="flex items-center gap-2 font-medium text-(--link-text) hover:underline"
 									>
 										<span>{riskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
 										<Icon name="external-link" height={16} width={16} />

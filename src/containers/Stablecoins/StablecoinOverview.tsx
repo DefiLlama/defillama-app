@@ -10,6 +10,7 @@ import { SEO } from '~/components/SEO'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { oldBlue } from '~/constants/colors'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
@@ -64,8 +65,7 @@ export const PeggedAssetInfo = ({
 	totalCirculating,
 	unreleased,
 	mcap,
-	bridgeInfo,
-	backgroundColor
+	bridgeInfo
 }) => {
 	let {
 		name,
@@ -360,7 +360,7 @@ export const PeggedAssetInfo = ({
 								title={`Total ${symbol} Circulating`}
 								chartData={peggedAreaTotalData}
 								stacks={totalChartTooltipLabel}
-								color={backgroundColor}
+								color={oldBlue}
 								hideDefaultLegend={true}
 							/>
 						</React.Suspense>

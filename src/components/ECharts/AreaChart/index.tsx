@@ -28,7 +28,6 @@ export default function AreaChart({
 	hideGradient = false,
 	hideOthersInTooltip,
 	hideLegend = true,
-	hideDefaultLegend,
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,

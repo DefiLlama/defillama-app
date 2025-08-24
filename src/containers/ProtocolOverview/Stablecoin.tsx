@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import { primaryColor } from '~/constants/colors'
 import { getPeggedAssetPageData } from '~/containers/Stablecoins/queries.server'
 import { PeggedAssetInfo } from '~/containers/Stablecoins/StablecoinOverview'
 
@@ -18,5 +17,5 @@ export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 		return <p className="my-[180px] text-center">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
 	}
 
-	return <PeggedAssetInfo {...data.props} backgroundColor={primaryColor} />
+	return <PeggedAssetInfo {...data.props} />
 }

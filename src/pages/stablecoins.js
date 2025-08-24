@@ -1,5 +1,4 @@
 import { maxAgeForNext } from '~/api'
-import { primaryColor } from '~/constants/colors'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import Layout from '~/layout'
@@ -11,10 +10,7 @@ export const getStaticProps = withPerformanceLogging('stablecoins', async () => 
 	props.filteredPeggedAssets = props.filteredPeggedAssets || []
 
 	return {
-		props: {
-			...props,
-			backgroundColor: primaryColor
-		},
+		props,
 		revalidate: maxAgeForNext([22])
 	}
 })
@@ -28,8 +24,7 @@ export default function PeggedAssets({
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
 	doublecountedIds,
-	chain,
-	backgroundColor
+	chain
 }) {
 	return (
 		<Layout title={`Stablecoins Circulating - DefiLlama`} pageName={pageName}>
@@ -41,7 +36,6 @@ export default function PeggedAssets({
 				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
 				chartDataByPeggedAsset={chartDataByPeggedAsset}
 				doublecountedIds={doublecountedIds}
-				backgroundColor={backgroundColor}
 			/>
 		</Layout>
 	)
