@@ -40,12 +40,12 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 			headers: {
 				'x-cg-pro-api-key': process.env.CG_KEY
 			}
-		}),
+		}).catch(() => null),
 		fetchJson(`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`, {
 			headers: {
 				'x-cg-pro-api-key': process.env.CG_KEY
 			}
-		}),
+		}).catch(() => null),
 		fetchJson(`${COINS_PRICES_API}/current/coingecko:bitcoin`)
 	])
 	const cexs = await Promise.all(
