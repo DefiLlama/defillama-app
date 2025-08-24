@@ -159,7 +159,9 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 							<h2 className="text-lg font-bold">{category}</h2>
 							<hr className="flex-1 border-black/20 dark:border-white/20" />
 						</div>
-						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+						<div
+							className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${canDismiss ? 'lg:grid-cols-3 xl:grid-cols-4' : 'xl:grid-cols-3 2xl:grid-cols-4'}`}
+						>
 							{metrics.map((metric) => (
 								<LinkToMetricOrToolPage
 									key={`metric-${metric.name}-${metric.route}`}

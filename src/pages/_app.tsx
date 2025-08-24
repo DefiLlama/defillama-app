@@ -43,6 +43,22 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
+	// Scroll restoration for complete route changes (not shallow)
+	useEffect(() => {
+		const handleRouteChange = (url: string, { shallow }: { shallow: boolean }) => {
+			// Only restore scroll for complete route changes, not shallow ones
+			if (!shallow && typeof window !== 'undefined') {
+				window.scrollTo({ top: 0, behavior: 'smooth' })
+			}
+		}
+
+		router.events.on('routeChangeComplete', handleRouteChange)
+
+		return () => {
+			router.events.off('routeChangeComplete', handleRouteChange)
+		}
+	}, [router])
+
 	return (
 		<QueryClientProvider client={client}>
 			<AuthProvider>

@@ -4,7 +4,6 @@ import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
 import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
-import { useScrollToTop } from '~/hooks'
 
 interface IChartProps {
 	chartData: any[]
@@ -68,8 +67,6 @@ export const CategoryPerformanceContainer = ({
 	isCoinPage,
 	categoryName
 }) => {
-	useScrollToTop()
-
 	const [tab, setTab] = React.useState('linechart')
 	const [groupBy, setGroupBy] = React.useState<(typeof PERIODS)[number]>('30D')
 	const [groupByDenom, setGroupByDenom] = React.useState<(typeof DENOMS)[number]>('$')
