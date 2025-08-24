@@ -132,7 +132,8 @@
       "name": "Yields: All Projects",
       "route": "/yields/projects",
       "category": "Yields",
-      "description": "List of all projects that we track in our yields section"
+      "description": "List of all projects that we track in our yields section",
+      "totalTrackedKey": "yields.protocols"
     },
     {
       "name": "Yields: APY Overview",
@@ -175,7 +176,6 @@
       "route": "/earnings",
       "category": "Fees & Revenue",
       "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself",
-      "totalTrackedKey": "revenue.protocols",
       "tab": "Protocols"
     },
     {
@@ -183,7 +183,7 @@
       "route": "/fees/chains",
       "category": "Fees & Revenue",
       "description": "Total fees paid by users when using the chain",
-      "totalTrackedKey": "fees.chains",
+      "totalTrackedKey": "chainFees.chains",
       "tab": "Chains"
     },
     {
@@ -191,7 +191,7 @@
       "route": "/revenue/chains",
       "category": "Fees & Revenue",
       "description": "Subset of fees that the chain collects for itself",
-      "totalTrackedKey": "revenue.chains",
+      "totalTrackedKey": "chainRevenue.chains",
       "tab": "Chains"
     },
     {
@@ -213,6 +213,7 @@
       "route": "/rev/chains",
       "category": "Fees & Revenue",
       "description": "Sum of chain fees and MEV tips",
+      "totalTrackedKey": "chainFees.chains",
       "tab": "Chains"
     },
     {
@@ -220,6 +221,7 @@
       "route": "/app-revenue/chains",
       "category": "Fees & Revenue",
       "description": "Sum of all revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees",
+      "totalTrackedKey": "revenue.chains",
       "tab": "Chains"
     },
     {
@@ -291,7 +293,7 @@
       "route": "/options/premium-volume",
       "category": "Volume",
       "description": "Sum of value paid buying and selling options",
-      "totalTrackedKey": "options.protocols",
+      "totalTrackedKey": "optionsPremiumVolume.protocols",
       "tab": "Protocols"
     },
     {
@@ -299,7 +301,7 @@
       "route": "/options/notional-volume",
       "category": "Volume",
       "description": "Sum of the notional value of all options that have been traded on options exchanges",
-      "totalTrackedKey": "options.protocols",
+      "totalTrackedKey": "optionsNotionalVolume.protocols",
       "tab": "Protocols"
     },
     {
