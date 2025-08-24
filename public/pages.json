@@ -510,17 +510,17 @@
       "tab": "Protocols"
     },
     {
+      "name": "ETF",
+      "route": "/etfs",
+      "category": "Others",
+      "description": "AUM, Flows, Volume metrics of all ETFs"
+    },
+    {
       "name": "Expenses by Protocol",
       "route": "/expenses",
       "category": "Others",
       "description": "Breakdown of annual operational expenses by protocol",
       "tab": "Protocols"
-    },
-    {
-      "name": "ETF",
-      "route": "/etfs",
-      "category": "Others",
-      "description": "AUM, Flows, Volume metrics of all ETFs"
     },
     {
       "name": "Governance",
@@ -565,6 +565,12 @@
       "description": "Check how deep the liquidity is for a given token"
     },
     {
+      "name": "Yields: Watchlist",
+      "route": "/yields/watchlist",
+      "category": "Tools",
+      "description": "Watchlist of all pools that we track in our yields section"
+    },
+    {
       "name": "Transactions by Bridge",
       "route": "/bridge-transactions",
       "category": "Tools",
@@ -576,12 +582,6 @@
       "category": "Tools",
       "description": "Directory of all protocols websites on DefiLlama",
       "tab": "Protocols"
-    },
-    {
-      "name": "Yields: Watchlist",
-      "route": "/yields/watchlist",
-      "category": "Tools",
-      "description": "Watchlist of all pools that we track in our yields section"
     },
     {
       "name": "Compare Chains",

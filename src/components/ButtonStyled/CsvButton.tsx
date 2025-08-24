@@ -38,8 +38,8 @@ export const CSVDownloadButton = ({
 			<button
 				className={
 					replaceClassName
-						? className
-						: `flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) ${
+						? `relative data-[loading=true]:*:opacity-0 data-[loading=true]:*:last:opacity-100 ${className}`
+						: `relative flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[loading=true]:*:opacity-0 data-[loading=true]:*:last:opacity-100 ${
 								className ?? ''
 							}`
 				}
@@ -52,33 +52,30 @@ export const CSVDownloadButton = ({
 						setShowSubscribeModal(true)
 					}
 				}}
+				data-loading={isClient ? isLoading : true}
 				disabled={isClient ? isLoading : true}
 			>
-				{shouldShowLoading ? (
-					<svg
-						className="mx-auto h-[14px] w-[14px] shrink-0 animate-spin"
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-					>
-						<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-						<path
-							className="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-						></path>
-					</svg>
-				) : (
-					<>
-						<Icon name="download-paper" className="h-3 w-3 shrink-0" />
-						{children ||
-							(smol ? (
-								<span>.csv</span>
-							) : (
-								<span className="overflow-hidden text-ellipsis whitespace-nowrap">Download .csv</span>
-							))}
-					</>
+				<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+				{children || (
+					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}
+				{shouldShowLoading ? (
+					<span className="absolute top-0 right-0 bottom-0 left-0 z-10 flex items-center justify-center">
+						<svg
+							className="h-[14px] w-[14px] shrink-0 animate-spin"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+							<path
+								className="opacity-75"
+								fill="currentColor"
+								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							></path>
+						</svg>
+					</span>
+				) : null}
 			</button>
 			{isClient && (
 				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>

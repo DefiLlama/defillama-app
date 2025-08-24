@@ -84,9 +84,7 @@ export const DesktopNav = ({
 
 				{userDashboards.length > 0 ? (
 					<div className="group mt-4">
-						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65 hover:bg-black/5 focus-visible:bg-black/5">
-							Your Dashboards
-						</p>
+						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65">Your Dashboards</p>
 						<div>
 							{userDashboards.map(({ name, route }) => (
 								<LinkToPage key={`desktop-nav-${name}-${route}`} route={route} name={name} />
