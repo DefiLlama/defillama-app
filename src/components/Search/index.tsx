@@ -1,4 +1,5 @@
 import { memo, startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { useQuery } from '@tanstack/react-query'
@@ -252,10 +253,20 @@ const Desktop = () => {
 }
 
 const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: boolean }) => {
+	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
 			className="flex items-center gap-2 px-4 py-2 hover:bg-(--link-bg)"
-			render={<BasicLink href={route.route} />}
+			render={
+				<BasicLink
+					href={route.route}
+					shallow={
+						route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0])
+							? true
+							: false
+					}
+				/>
+			}
 			onClick={() => {
 				if (!recent) {
 					setRecentSearch(route)
