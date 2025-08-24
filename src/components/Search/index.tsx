@@ -228,7 +228,7 @@ const Desktop = () => {
 						<p className="flex items-center justify-center p-4">No results found</p>
 					) : (
 						results.hits.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+							<SearchItem key={`gs-${route.name}-${route.route}-${route.subName}`} route={route} />
 						))
 					)
 				) : isLoadingSearchList ? (
@@ -240,10 +240,10 @@ const Desktop = () => {
 				) : (
 					<>
 						{recentSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
+							<SearchItem key={`gs-r-${route.name}-${route.route}-${route.subName}`} route={route} recent />
 						))}
 						{defaultSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
+							<SearchItem key={`gs-dl-${route.name}-${route.route}-${route.subName}`} route={route} />
 						))}
 					</>
 				)}
