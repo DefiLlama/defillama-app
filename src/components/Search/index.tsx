@@ -256,7 +256,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
-			className="flex items-center gap-2 px-4 py-2 hover:bg-(--link-bg)"
+			className="flex flex-wrap items-center gap-2 px-4 py-2 hover:bg-(--link-bg)"
 			render={
 				<BasicLink
 					href={route.route}
