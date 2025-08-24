@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata || !metadata[1].bridges) {
+		if (!metadata || !metadata[1].bridge) {
 			return { notFound: true, props: null }
 		}
 

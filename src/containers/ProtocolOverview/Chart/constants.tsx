@@ -1,5 +1,6 @@
 import { oldBlue } from '~/constants/colors'
 
+// MAKE SURE TO UPDATE ON SERVER TOO https://github.com/DefiLlama/defillama-server/blob/master/defi/src/updateSearch.ts
 export const protocolCharts = {
 	TVL: 'tvl',
 	'Total Assets': 'totalAssets',

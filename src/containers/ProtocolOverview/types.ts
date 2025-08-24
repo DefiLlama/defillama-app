@@ -27,7 +27,7 @@ export interface IProtocolMetadata {
 	emissions?: boolean
 	bribeRevenue?: boolean
 	tokenTax?: boolean
-	bridges?: boolean
+	bridge?: boolean
 	stablecoins?: boolean
 }
 

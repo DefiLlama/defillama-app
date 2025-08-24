@@ -132,7 +132,7 @@ export const getProtocolMetrics = ({
 		perpsAggregators: metadata.perpsAggregators ? true : false,
 		bridgeAggregators: metadata.bridgeAggregators ? true : false,
 		stablecoins: metadata.stablecoins ? true : false,
-		bridge: metadata.bridges ? true : false,
+		bridge: metadata.bridge ? true : false,
 		treasury: metadata.treasury ? true : false,
 		unlocks: metadata.emissions ? true : false,
 		yields: metadata.yields ? true : false,
@@ -485,7 +485,7 @@ export const getProtocolOverviewPageData = async ({
 			: [],
 		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
 		fetchJson(HACKS_API).catch(() => ({ hacks: [] })),
-		metadata.bridges
+		metadata.bridge
 			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.displayName)}`)
 					.then((data) => data.dailyVolumes || null)
 					.catch(() => null)
