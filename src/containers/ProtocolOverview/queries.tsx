@@ -127,14 +127,16 @@ export const getProtocolMetrics = ({
 		tvlTab: tvlTab ? true : false,
 		dexs: metadata.dexs ? true : false,
 		perps: metadata.perps ? true : false,
-		options: metadata.options ? true : false,
+		optionsPremiumVolume: metadata.optionsPremiumVolume ? true : false,
+		optionsNotionalVolume: metadata.optionsNotionalVolume ? true : false,
 		dexAggregators: metadata.dexAggregators ? true : false,
 		perpsAggregators: metadata.perpsAggregators ? true : false,
 		bridgeAggregators: metadata.bridgeAggregators ? true : false,
 		stablecoins: metadata.stablecoins ? true : false,
-		bridge: metadata.bridges ? true : false,
+		bridge: metadata.bridge ? true : false,
 		treasury: metadata.treasury ? true : false,
 		unlocks: metadata.emissions ? true : false,
+		incentives: metadata.incentives ? true : false,
 		yields: metadata.yields ? true : false,
 		fees: metadata.fees ? true : false,
 		revenue: metadata.revenue ? true : false,
@@ -369,7 +371,7 @@ export const getProtocolOverviewPageData = async ({
 					.then((data) => formatAdapterData({ data, methodologyKey: 'bridgeAggregators' }))
 					.catch(() => null)
 			: Promise.resolve(null),
-		metadata.options
+		metadata.optionsPremiumVolume
 			? getAdapterProtocolSummary({
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume',
@@ -380,7 +382,7 @@ export const getProtocolOverviewPageData = async ({
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsPremiumVolume' }))
 					.catch(() => null)
 			: Promise.resolve(null),
-		metadata.options
+		metadata.optionsNotionalVolume
 			? getAdapterProtocolSummary({
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume',
@@ -425,7 +427,7 @@ export const getProtocolOverviewPageData = async ({
 			)
 			return []
 		}),
-		metadata?.emissions && protocolId
+		metadata?.incentives && protocolId
 			? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
 					.then((data) => {
 						const protocolEmissionsData = data.protocols.find((item) =>
@@ -485,7 +487,7 @@ export const getProtocolOverviewPageData = async ({
 			: [],
 		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
 		fetchJson(HACKS_API).catch(() => ({ hacks: [] })),
-		metadata.bridges
+		metadata.bridge
 			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.displayName)}`)
 					.then((data) => data.dailyVolumes || null)
 					.catch(() => null)
@@ -760,7 +762,7 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Treasury')
 	}
 
-	if (yields) {
+	if (yields && !protocolData.isParentProtocol) {
 		availableCharts.push('Median APY')
 	}
 

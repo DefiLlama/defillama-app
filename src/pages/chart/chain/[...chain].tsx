@@ -46,8 +46,17 @@ export default function ChainChartPage(props) {
 	const router = useRouter()
 	const selectedChain = props.metadata.name
 	const queryParamsString = useMemo(() => {
-		return JSON.stringify(router.query ?? {})
-	}, [router.query])
+		const { tvl, ...rest } = router.query ?? {}
+		return JSON.stringify(
+			router.query
+				? tvl === 'true'
+					? rest
+					: router.query
+				: props.metadata.id !== 'all'
+					? { chain: [props.metadata.id] }
+					: {}
+		)
+	}, [router.query, props.metadata.id])
 
 	const { toggledCharts, chainGeckoId, groupBy, denomination, tvlSettings, isThemeDark } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)

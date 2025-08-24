@@ -342,7 +342,6 @@ export const UnlocksTable = ({
 					onClear={handleUnlockValueClear}
 					min={min ?? ''}
 					max={max ?? ''}
-					variant="third"
 					placement="bottom-start"
 				/>
 
@@ -353,7 +352,6 @@ export const UnlocksTable = ({
 					onClear={handleUnlockPercClear}
 					min={minPerc ?? ''}
 					max={maxPerc ?? ''}
-					variant="third"
 					placement="bottom-start"
 				/>
 

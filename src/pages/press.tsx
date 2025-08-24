@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
+import { oldBlue } from '~/constants/colors'
 import Layout from '~/layout'
 
 const PressPanel = ({ imageFilename }) => (
@@ -157,7 +158,7 @@ function PressPage() {
 					We always pair our name with the llama icon. We prefer to use the full DefiLlama name and icon when possible,
 					but in situations where the association with DefiLlama is clear, the icon may be used on its own.
 				</p>
-				<p>The primary color used on DefiLlama is #2172E5.</p>
+				<p>The primary color used on DefiLlama is {oldBlue}.</p>
 			</div>
 		</Layout>
 	)

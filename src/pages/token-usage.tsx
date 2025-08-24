@@ -112,10 +112,7 @@ export default function Tokens({ searchData }) {
 										)
 									}
 								/>
-								<CSVDownloadButton
-									onClick={downloadCSV}
-									className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-								/>
+								<CSVDownloadButton onClick={downloadCSV} />
 							</div>
 						</div>
 

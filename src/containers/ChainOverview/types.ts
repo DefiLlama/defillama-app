@@ -7,10 +7,13 @@ export interface IChainMetadata {
 	name: string
 	activeUsers?: boolean
 	fees?: boolean
+	revenue?: boolean
 	chainFees?: boolean
+	chainRevenue?: boolean
 	perps?: boolean
 	dexAggregators?: boolean
-	options?: boolean
+	optionsPremiumVolume?: boolean
+	optionsNotionalVolume?: boolean
 	perpsAggregators?: boolean
 	bridgeAggregators?: boolean
 	inflows?: boolean
@@ -20,6 +23,7 @@ export interface IChainMetadata {
 	github?: boolean
 	id: string
 	protocolCount?: number
+	incentives?: boolean
 }
 
 export interface IChainOverviewData {

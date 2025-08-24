@@ -76,7 +76,6 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 								download('total-value-lost-in-hacks.csv', rows.map((r) => r.join(',')).join('\n'))
 							}}
 							smol
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</>
 				}

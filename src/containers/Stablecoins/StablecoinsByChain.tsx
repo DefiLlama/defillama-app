@@ -32,7 +32,6 @@ export function StablecoinsByChain({
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	backgroundColor,
 	doublecountedIds
 }) {
 	const [chartType, setChartType] = React.useState('Total Market Cap')
@@ -349,7 +348,7 @@ export function StablecoinsByChain({
 					)}
 					{chartType === 'USD Inflows' && usdInflows && (
 						<React.Suspense fallback={<></>}>
-							<BarChart chartData={usdInflows} color={backgroundColor} title="" />
+							<BarChart chartData={usdInflows} color={oldBlue} title="" />
 						</React.Suspense>
 					)}
 				</div>

@@ -841,11 +841,13 @@ export const getChainsByAdapterPageData = async ({
 	try {
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const allChains = []
+
 		for (const chain in metadataCache.chainMetadata) {
-			if (
-				ADAPTER_TYPES_TO_METADATA_TYPE[adapterType] &&
-				metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]
-			) {
+			const sType =
+				adapterType === 'fees' && dataType === 'dailyRevenue'
+					? 'chainRevenue'
+					: ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
+			if (sType && metadataCache.chainMetadata[chain][sType]) {
 				allChains.push(chain)
 			}
 		}
@@ -853,7 +855,7 @@ export const getChainsByAdapterPageData = async ({
 		const chainsData = (
 			await Promise.allSettled(
 				allChains.map(async (chain) =>
-					adapterType === 'fees'
+					adapterType === 'fees' && dataType !== 'dailyAppRevenue'
 						? getAdapterProtocolSummary({
 								adapterType,
 								dataType,

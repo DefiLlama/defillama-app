@@ -80,6 +80,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				setIsAuthenticated(true)
 				return { ...refreshResult.record }
 			} catch (error: any) {
+				if (error?.isAbort || error?.message?.includes('autocancelled')) {
+					if (pb.authStore.isValid && pb.authStore.record) {
+						setIsAuthenticated(true)
+						return { ...pb.authStore.record }
+					}
+					setIsAuthenticated(false)
+					return null
+				}
+
 				console.error('Error refreshing auth:', error)
 
 				if (error?.status === 401 || error?.code === 401) {

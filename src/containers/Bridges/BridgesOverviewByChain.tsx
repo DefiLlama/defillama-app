@@ -234,7 +234,7 @@ export function BridgesOverviewByChain({
 						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(monthTotalVolume, true)}</span>
 					</p>
 
-					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
+					<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{selectedChain === 'All' ? (
@@ -329,7 +329,7 @@ export function BridgesOverviewByChain({
 						</>
 					)}
 					<div className="flex items-center justify-end p-3">
-						<CSVDownloadButton onClick={downloadChartCsv} />
+						<CSVDownloadButton onClick={downloadChartCsv} smol />
 					</div>
 				</div>
 			</div>

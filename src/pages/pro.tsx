@@ -79,10 +79,6 @@ function ProContent({
 		handleGenerateDashboard
 	} = useProDashboard()
 
-	const handleSelectDashboard = (dashboardId: string) => {
-		router.push(`/pro/${dashboardId}`)
-	}
-
 	const handleDeleteDashboard = async (dashboardId: string) => {
 		await deleteDashboard(dashboardId)
 	}
@@ -156,7 +152,6 @@ function ProContent({
 				<DashboardList
 					dashboards={dashboards}
 					isLoading={isLoadingDashboards}
-					onSelectDashboard={handleSelectDashboard}
 					onCreateNew={createNewDashboard}
 					onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
 				/>

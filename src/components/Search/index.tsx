@@ -1,4 +1,5 @@
 import { memo, startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { useQuery } from '@tanstack/react-query'
@@ -31,6 +32,8 @@ interface ISearchItem {
 	route: string
 	type: string
 	deprecated?: boolean
+	hideType?: boolean
+	subName?: string
 }
 
 export const DesktopSearch = memo(function DesktopSearch() {
@@ -225,7 +228,7 @@ const Desktop = () => {
 						<p className="flex items-center justify-center p-4">No results found</p>
 					) : (
 						results.hits.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+							<SearchItem key={`gs-${route.name}-${route.route}-${route.subName}`} route={route} />
 						))
 					)
 				) : isLoadingSearchList ? (
@@ -237,10 +240,10 @@ const Desktop = () => {
 				) : (
 					<>
 						{recentSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
+							<SearchItem key={`gs-r-${route.name}-${route.route}-${route.subName}`} route={route} recent />
 						))}
 						{defaultSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
+							<SearchItem key={`gs-dl-${route.name}-${route.route}-${route.subName}`} route={route} />
 						))}
 					</>
 				)}
@@ -250,10 +253,20 @@ const Desktop = () => {
 }
 
 const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: boolean }) => {
+	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
-			className="flex items-center gap-2 px-4 py-2 hover:bg-(--link-bg)"
-			render={<BasicLink href={route.route} />}
+			className="flex flex-wrap items-center gap-2 px-4 py-2 hover:bg-(--link-bg)"
+			render={
+				<BasicLink
+					href={route.route}
+					shallow={
+						route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0])
+							? true
+							: false
+					}
+				/>
+			}
 			onClick={() => {
 				if (!recent) {
 					setRecentSearch(route)
@@ -267,8 +280,14 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 				<Icon name="file-text" className="h-6 w-6" />
 			)}
 			<span>{route.name}</span>
+			{route.subName ? (
+				<>
+					<Icon name="chevron-right" height={16} width={16} className="text-(--text-form)" />
+					<span className="text-(--text-form)">{route.subName}</span>
+				</>
+			) : null}
 			{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
-			{recent ? (
+			{route.hideType ? null : recent ? (
 				<Icon name="clock" height={12} width={12} className="ml-auto" />
 			) : (
 				<span className="ml-auto text-xs text-(--link-text)">{route.type}</span>

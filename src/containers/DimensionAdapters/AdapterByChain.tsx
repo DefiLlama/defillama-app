@@ -482,10 +482,7 @@ export function AdapterByChain(props: IProps) {
 						/>
 					)}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
-					<CSVDownloadButton
-						onClick={downloadCsv}
-						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					<CSVDownloadButton onClick={downloadCsv} />
 				</div>
 
 				<VirtualTable instance={instance} rowSize={64} compact />

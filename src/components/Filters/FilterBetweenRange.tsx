@@ -11,19 +11,17 @@ interface IFilterBetweenRange {
 	nestedMenu?: boolean
 	min: number | string | null
 	max: number | string | null
-	variant?: 'primary' | 'secondary' | 'third'
+	variant?: 'primary' | 'secondary'
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
 }
 
 const getVariantClasses = (variant: string) => {
 	switch (variant) {
-		case 'third':
-			return 'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 		case 'secondary':
 			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-md cursor-pointer text-(--text-primary) text-xs flex-nowrap'
 		default:
-			return 'bg-(--btn2-bg)  hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-lg cursor-pointer text-(--text-primary) flex-nowrap relative'
+			return 'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 	}
 }
 
@@ -117,7 +115,7 @@ function Form({
 				</button>
 				<button
 					type="submit"
-					className="inline-flex h-9 w-full items-center justify-center rounded-md bg-[#2172e5] px-4 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+					className="inline-flex h-9 w-full items-center justify-center rounded-md bg-(--link-active-bg) px-4 text-sm font-medium whitespace-nowrap text-white disabled:opacity-50"
 				>
 					Apply Filter
 				</button>

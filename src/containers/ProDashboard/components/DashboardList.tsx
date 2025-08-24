@@ -7,7 +7,6 @@ import { LoadingSpinner } from './LoadingSpinner'
 interface DashboardListProps {
 	dashboards: Dashboard[]
 	isLoading: boolean
-	onSelectDashboard: (dashboardId: string) => void
 	onCreateNew: () => void
 	onDeleteDashboard?: (dashboardId: string) => void
 }
@@ -15,7 +14,6 @@ interface DashboardListProps {
 export function DashboardList({
 	dashboards,
 	isLoading,
-	onSelectDashboard,
 	onCreateNew,
 	onDeleteDashboard
 }: DashboardListProps) {
@@ -64,7 +62,6 @@ export function DashboardList({
 						<DashboardCard
 							key={dashboard.id}
 							dashboard={dashboard}
-							onClick={() => onSelectDashboard(dashboard.id)}
 							onDelete={onDeleteDashboard ? handleDelete : undefined}
 							isDeleting={deletingId === dashboard.id}
 							viewMode="grid"

@@ -2142,7 +2142,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			}
 		}
 		return props.incomeStatement
-	}, [groupBy, props.incomeStatement.monthDates])
+	}, [groupBy, props.incomeStatement])
 
 	return (
 		<div className="col-span-full flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">

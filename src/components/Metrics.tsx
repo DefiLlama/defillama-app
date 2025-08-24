@@ -129,7 +129,7 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 					<input
 						type="text"
 						placeholder="Search..."
-						className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white"
+						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
 						value={searchValue}
 						onChange={(e) => setSearchValue(e.target.value)}
 					/>
@@ -193,7 +193,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 			data-pinned={isPinned}
 		>
 			<BasicLink
-				className="hover: col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) bg-(--link-button) p-[10px] hover:bg-(--link-button-hover)"
+				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-(--link-button)"
 				href={page.route}
 			>
 				<span className="flex w-full flex-wrap items-center justify-end gap-1">

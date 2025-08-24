@@ -278,7 +278,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 								<button
 									name="submit-btn"
 									disabled={fetchingEligibleAirdrops}
-									className="mt-3 rounded-md bg-[#2172e5] p-3 text-white hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+									className="mt-3 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50"
 								>
 									{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
 								</button>

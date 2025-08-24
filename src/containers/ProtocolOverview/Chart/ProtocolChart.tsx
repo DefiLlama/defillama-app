@@ -55,8 +55,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const [isThemeDark] = useDarkModeManager()
 
 	const queryParamsString = useMemo(() => {
-		return JSON.stringify(router.query ?? {})
-	}, [router.query])
+		const { tvl, ...rest } = router.query ?? {}
+		return JSON.stringify(router.query ? (tvl === 'true' ? rest : router.query) : { protocol: [slug(props.name)] })
+	}, [router.query, props.name])
 
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
@@ -81,11 +82,15 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			} else if (props.metrics.perps) {
 				defaultToggledCharts.push('Perp Volume')
 				toggled.perpVolume = queryParams.perpVolume === 'false' ? 'false' : 'true'
-			} else if (props.metrics.options) {
-				defaultToggledCharts.push('Options Premium Volume')
-				defaultToggledCharts.push('Options Notional Volume')
-				toggled.optionsPremiumVolume = queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true'
-				toggled.optionsNotionalVolume = queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.optionsPremiumVolume || props.metrics.optionsNotionalVolume) {
+				if (props.metrics.optionsPremiumVolume) {
+					defaultToggledCharts.push('Options Premium Volume')
+					toggled.optionsPremiumVolume = queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true'
+				}
+				if (props.metrics.optionsNotionalVolume) {
+					defaultToggledCharts.push('Options Notional Volume')
+					toggled.optionsNotionalVolume = queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
+				}
 			} else if (props.metrics.dexAggregators) {
 				defaultToggledCharts.push('DEX Aggregator Volume')
 				toggled.dexAggregatorVolume = queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true'
@@ -354,7 +359,6 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							}
 						}}
 						smol
-						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 					/>
 				</div>
 			</div>
@@ -634,7 +638,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isOptionsPremiumVolumeEnabled =
-		toggledMetrics.optionsPremiumVolume === 'true' && metrics.options && isRouterReady ? true : false
+		toggledMetrics.optionsPremiumVolume === 'true' && metrics.optionsPremiumVolume && isRouterReady ? true : false
 	const { data: optionsPremiumVolumeData = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<IAdapterSummary>({
 		queryKey: ['optionsPremiumVolume', name, isOptionsPremiumVolumeEnabled],
 		queryFn: () =>
@@ -653,7 +657,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isOptionsNotionalVolumeEnabled =
-		toggledMetrics.optionsNotionalVolume === 'true' && metrics.options && isRouterReady ? true : false
+		toggledMetrics.optionsNotionalVolume === 'true' && metrics.optionsNotionalVolume && isRouterReady ? true : false
 	const { data: optionsNotionalVolumeData = null, isLoading: fetchingOptionsNotionalVolume } =
 		useQuery<IAdapterSummary>({
 			queryKey: ['optionsNotionalVolume', name, isOptionsNotionalVolumeEnabled],
@@ -729,7 +733,9 @@ export const useFetchAndFormatChartData = ({
 		})
 
 	const isUnlocksEnabled =
-		(toggledMetrics.unlocks === 'true' || toggledMetrics.incentives === 'true') && metrics.unlocks && isRouterReady
+		(toggledMetrics.unlocks === 'true' || toggledMetrics.incentives === 'true') &&
+		(metrics.unlocks || metrics.incentives) &&
+		isRouterReady
 			? true
 			: false
 	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
@@ -1435,7 +1441,8 @@ export const useFetchAndFormatChartData = ({
 		bridgeVolumeData,
 		groupBy,
 		extraTvlCharts,
-		valueSymbol
+		valueSymbol,
+		isCEX
 	])
 
 	return chartData

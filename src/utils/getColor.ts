@@ -1,27 +1,27 @@
-import { primaryColor } from '~/constants/colors'
+import { oldBlue } from '~/constants/colors'
 import { fetchJson } from './async'
 
 export const getColor = async (path: string) => {
 	try {
-		if (!path) return primaryColor
+		if (!path) return oldBlue
 
 		const color = await fetchJson(path)
 
 		if (!color.startsWith('#')) {
 			console.log(path, color)
-			return primaryColor
+			return oldBlue
 		}
 
 		return color
 	} catch (error) {
 		console.log(path, 'rugged, but handled')
-		return primaryColor
+		return oldBlue
 	}
 }
 
 // Get unique generated color for color fallback
 export const getGeneratedColor = (index: number): string => {
-	if (index === 0) return primaryColor
+	if (index === 0) return oldBlue
 
 	// HSL-to-HEX logic
 	const hue = (240 + index * 137.5) % 360

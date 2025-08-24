@@ -28,8 +28,17 @@ interface IStatsProps extends IChainOverviewData {
 export const Stats = memo(function Stats(props: IStatsProps) {
 	const router = useRouter()
 	const queryParamsString = useMemo(() => {
-		return JSON.stringify(router.query ?? {})
-	}, [router.query])
+		const { tvl, ...rest } = router.query ?? {}
+		return JSON.stringify(
+			router.query
+				? tvl === 'true'
+					? rest
+					: router.query
+				: props.metadata.id !== 'all'
+					? { chain: [props.metadata.id] }
+					: {}
+		)
+	}, [router.query, props.metadata.id])
 
 	const [darkMode] = useDarkModeManager()
 
@@ -634,7 +643,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						)
 					}}
 					smol
-					className="ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="ml-auto"
 				/>
 			</div>
 			{!props.hideChart ? (
@@ -726,7 +735,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 									/>
 									<span
-										className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs"
+										className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs hover:bg-(--bg-input) focus-visible:bg-(--bg-input)"
 										style={{
 											borderColor: chainOverviewChartColors[tchart]
 										}}
@@ -786,7 +795,6 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								}
 							}}
 							smol
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					</div>
 

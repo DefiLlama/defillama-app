@@ -164,7 +164,7 @@ export function ChainsByAdapter(props: IProps) {
 							className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 						/>
 					</div>
-					<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
+					<CSVDownloadButton onClick={downloadCsv} />
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>
@@ -296,7 +296,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 		}
 	],
 	'App Revenue': [
-		NameColumn('app-revenue'),
+		NameColumn('revenue'),
 		{
 			id: 'total24h',
 			header: 'App Revenue 24h',

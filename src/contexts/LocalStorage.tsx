@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { useIsClient } from '~/hooks'
-// import { trackGoal } from 'fathom-client'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie, THEME_COOKIE_NAME } from '~/utils/cookies'
 

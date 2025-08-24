@@ -198,15 +198,12 @@ export function RecentlyListedProtocolsTable({
 									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
-						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+						<TVLRange triggerClassName="w-full sm:w-auto" />
 					</div>
 
 					{forkedList ? <HideForkedProtocols /> : null}
 
-					<CSVDownloadButton
-						onClick={downloadCSV}
-						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					<CSVDownloadButton onClick={downloadCSV} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />

@@ -28,7 +28,6 @@ export default function AreaChart({
 	hideGradient = false,
 	hideOthersInTooltip,
 	hideLegend = true,
-	hideDefaultLegend,
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
@@ -359,7 +358,6 @@ export default function AreaChart({
 								}
 							}}
 							smol
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 						/>
 					)}
 				</div>

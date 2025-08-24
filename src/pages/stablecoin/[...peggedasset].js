@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { primaryColor } from '~/constants/colors'
 import { getPeggedAssetPageData, getPeggedAssets } from '~/containers/Stablecoins/queries.server'
 import PeggedContainer from '~/containers/Stablecoins/StablecoinOverview'
 import { slug } from '~/utils'
@@ -26,8 +25,7 @@ export const getStaticProps = withPerformanceLogging(
 				totalCirculating,
 				unreleased,
 				mcap,
-				bridgeInfo,
-				backgroundColor: primaryColor
+				bridgeInfo
 			},
 			revalidate: maxAgeForNext([22])
 		}

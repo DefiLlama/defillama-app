@@ -13,7 +13,8 @@ export interface IProtocolMetadata {
 	dexs?: boolean
 	perps?: boolean
 	dexAggregators?: boolean
-	options?: boolean
+	optionsPremiumVolume?: boolean
+	optionsNotionalVolume?: boolean
 	perpsAggregators?: boolean
 	bridgeAggregators?: boolean
 	displayName?: string
@@ -25,9 +26,10 @@ export interface IProtocolMetadata {
 	treasury?: boolean
 	nfts?: boolean
 	emissions?: boolean
+	incentives?: boolean
 	bribeRevenue?: boolean
 	tokenTax?: boolean
-	bridges?: boolean
+	bridge?: boolean
 	stablecoins?: boolean
 }
 
@@ -36,7 +38,8 @@ export interface IProtocolPageMetrics {
 	tvlTab: boolean
 	dexs: boolean
 	perps: boolean
-	options: boolean
+	optionsPremiumVolume: boolean
+	optionsNotionalVolume: boolean
 	dexAggregators: boolean
 	perpsAggregators: boolean
 	bridgeAggregators: boolean
@@ -44,6 +47,7 @@ export interface IProtocolPageMetrics {
 	bridge: boolean
 	treasury: boolean
 	unlocks: boolean
+	incentives: boolean
 	yields: boolean
 	fees: boolean
 	revenue: boolean

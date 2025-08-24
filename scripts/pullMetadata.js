@@ -136,8 +136,6 @@ async function pullData() {
 			})
 		}
 
-		fs.writeFileSync(path.join('public', 'pages.json'), JSON.stringify(finalDefillamaPages, null, 2))
-
 		const trendingPages = trendingRoutes
 			.filter(([route]) => !route.includes('/chain/'))
 			.slice(0, 5)
@@ -173,7 +171,10 @@ async function pullData() {
 				}
 			})
 
-		fs.writeFileSync(path.join('public', 'trending.json'), JSON.stringify(trendingPages, null, 2))
+		if (trendingPages.length !== 0) {
+			fs.writeFileSync(path.join('public', 'pages.json'), JSON.stringify(finalDefillamaPages, null, 2))
+			fs.writeFileSync(path.join('public', 'trending.json'), JSON.stringify(trendingPages, null, 2))
+		}
 
 		console.log('Data pulled and cached successfully.')
 		return true
