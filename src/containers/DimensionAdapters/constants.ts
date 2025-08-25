@@ -30,6 +30,8 @@ export enum ADAPTER_DATA_TYPE_KEYS {
 	'dailyHoldersRevenue' = 'dhr',
 	'dailyBribesRevenue' = 'dbr',
 	'dailyTokenTaxes' = 'dtt',
+	'dailyAppRevenue' = 'dar',
+	'dailyAppFees' = 'daf',
 	'dailyNotionalVolume' = 'dnv',
 	'dailyPremiumVolume' = 'dpv',
 	'openInterestAtEnd' = 'doi',
