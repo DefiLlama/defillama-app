@@ -85,7 +85,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</div>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} downloadCsv={prepareCsv} />
+			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
 		</Layout>
 	)
 }
