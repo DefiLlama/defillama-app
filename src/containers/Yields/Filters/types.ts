@@ -35,7 +35,7 @@ export interface IDropdownMenusProps {
 	showTotalSupplied?: boolean
 	showTotalBorrowed?: boolean
 	showAvailable?: boolean
-	onCSVDownload?: () => void
+	prepareCsv?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
 }
 
 export interface IYieldFiltersProps extends IDropdownMenusProps {
@@ -47,5 +47,5 @@ export interface IYieldFiltersProps extends IDropdownMenusProps {
 	strategyInputsData?: Array<{ name: string; symbol: string; image?: string | null; image2?: string | null }>
 	noOfStrategies?: number
 	showSearchOnMobile?: boolean
-	onCSVDownload?: () => void
+	prepareCsv?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
 }

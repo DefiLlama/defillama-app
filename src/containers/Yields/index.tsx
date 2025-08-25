@@ -190,8 +190,11 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				'Pool Meta': row.poolMeta
 			}
 		})
-		const csv = [headers].concat(csvData.map((row) => headers.map((header) => row[header]))).join('\n')
-		download('yields.csv', csv)
+
+		return {
+			filename: 'yields.csv',
+			rows: [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
+		}
 	}, [poolsData])
 
 	return (
@@ -251,7 +254,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				showTotalBorrowed={true}
 				showAvailable={true}
 				showLTV={true}
-				onCSVDownload={prepareCsv}
+				prepareCsv={prepareCsv}
 			/>
 
 			{loading ? (
