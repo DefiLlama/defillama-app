@@ -1,17 +1,17 @@
 import { maxAgeForNext } from '~/api'
 import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getChainsByAdapterPageData } from '~/containers/DimensionAdapters/queries'
+import { getChainsByFeesAdapterPageData } from '~/containers/DimensionAdapters/queries'
 import { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = ADAPTER_DATA_TYPES.REVENUE
+const dataType = ADAPTER_DATA_TYPES.DAILY_REVENUE
 const type = 'Revenue'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByAdapterPageData({ adapterType, dataType, route: 'revenue' })
+	const data = await getChainsByFeesAdapterPageData({ adapterType, dataType })
 
 	return {
 		props: data,

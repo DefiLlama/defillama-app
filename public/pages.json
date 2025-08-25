@@ -245,20 +245,20 @@
       "tab": "Protocols"
     },
     {
-      "name": "Bridge Aggregator Volume by Protocol",
-      "route": "/bridge-aggregators",
-      "category": "Volume",
-      "description": "Sum of the value of all assets that were bridged through a bridge aggregator",
-      "totalTrackedKey": "bridgeAggregators.protocols",
-      "tab": "Protocols"
-    },
-    {
       "name": "DEX Volume by Chain",
       "route": "/dexs/chains",
       "category": "Volume",
       "description": "Sum of all volume of spot token swaps that go through all DEXs on the chain",
       "totalTrackedKey": "dexs.chains",
       "tab": "Chains"
+    },
+    {
+      "name": "Bridge Aggregator Volume by Protocol",
+      "route": "/bridge-aggregators",
+      "category": "Volume",
+      "description": "Sum of the value of all assets that were bridged through a bridge aggregator",
+      "totalTrackedKey": "bridgeAggregators.protocols",
+      "tab": "Protocols"
     },
     {
       "name": "DEX Aggregator Volume by Protocol",
@@ -561,16 +561,16 @@
       "description": "Watchlist of all protocols on DefiLlama"
     },
     {
-      "name": "Token Liquidity",
-      "route": "/liquidity",
-      "category": "Tools",
-      "description": "Check how deep the liquidity is for a given token"
-    },
-    {
       "name": "Yields: Watchlist",
       "route": "/yields/watchlist",
       "category": "Tools",
       "description": "Watchlist of all pools that we track in our yields section"
+    },
+    {
+      "name": "Token Liquidity",
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token"
     },
     {
       "name": "Transactions by Bridge",

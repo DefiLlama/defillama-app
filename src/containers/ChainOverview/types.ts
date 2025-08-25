@@ -24,6 +24,7 @@ export interface IChainMetadata {
 	id: string
 	protocolCount?: number
 	incentives?: boolean
+	dimAgg: Record<string, Record<string, { '24h': number; '7d': number; '30d': number }>>
 }
 
 export interface IChainOverviewData {

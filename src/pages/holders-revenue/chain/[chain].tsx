@@ -12,7 +12,7 @@ import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = ADAPTER_DATA_TYPES.HOLDERS_REVENUE
+const dataType = ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
 const type = 'Holders Revenue'
 
 export const getStaticPaths = async () => {

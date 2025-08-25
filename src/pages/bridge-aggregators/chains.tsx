@@ -1,16 +1,17 @@
 import { maxAgeForNext } from '~/api'
 import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByAdapterPageData } from '~/containers/DimensionAdapters/queries'
 import { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.BRIDGE_AGGREGATORS
+const dataType = ADAPTER_DATA_TYPES.DAILY_BRIDGE_VOLUME
 const type = 'Bridge Aggregator Volume'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByAdapterPageData({ adapterType, route: 'bridge-aggregators' })
+	const data = await getChainsByAdapterPageData({ adapterType, dataType, route: 'bridge-aggregators' })
 
 	return {
 		props: data,

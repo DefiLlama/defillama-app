@@ -7,7 +7,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.PERPS
-const dataType = ADAPTER_DATA_TYPES.OPEN_INTEREST
+const dataType = ADAPTER_DATA_TYPES.OPEN_INTEREST_AT_END
 const type = 'Open Interest'
 
 export const getStaticProps = withPerformanceLogging(`${type}/index`, async () => {

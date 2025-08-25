@@ -8,7 +8,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = ADAPTER_DATA_TYPES.REVENUE
+const dataType = ADAPTER_DATA_TYPES.DAILY_REVENUE
 const type = 'Revenue'
 
 export const getStaticProps = withPerformanceLogging(`${type}/index`, async () => {

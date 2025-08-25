@@ -7,7 +7,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.OPTIONS
-const dataType = ADAPTER_DATA_TYPES.NOTIONAL_VOLUME
+const dataType = ADAPTER_DATA_TYPES.DAILY_NOTIONAL_VOLUME
 const type = 'Options Notional Volume'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {

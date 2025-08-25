@@ -4,7 +4,7 @@ import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = ADAPTER_DATA_TYPES.HOLDERS_REVENUE
+const dataType = ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {

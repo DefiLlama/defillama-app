@@ -1,10 +1,13 @@
 import { ACTIVE_USERS_API, CHAINS_ASSETS, TEMP_CHAIN_NFTS } from '~/constants'
 import { IChainAssets } from '~/containers/ChainOverview/types'
-import { getAdapterChainOverview, IAdapterOverview } from '~/containers/DimensionAdapters/queries'
+import {
+	getAdapterChainOverview,
+	getDimensionAdapterOverviewOfAllChains,
+	IAdapterOverview
+} from '~/containers/DimensionAdapters/queries'
 import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
 import { getColorFromNumber, slug } from '~/utils'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from '../DimensionAdapters/constants'
+import { fetchJson } from '~/utils/async'
 import { IChainsByCategory, IChainsByCategoryData } from './types'
 
 export const getChainsByCategory = async ({
@@ -26,7 +29,7 @@ export const getChainsByCategory = async ({
 		appRevenue
 	] = await Promise.all([
 		fetchJson(`https://api.llama.fi/chains2/${category}`) as Promise<IChainsByCategory>,
-		getDimensionAdapterOverviewOfAllChains({ adapterType: 'dexs' }),
+		getDimensionAdapterOverviewOfAllChains({ adapterType: 'dexs', dataType: 'dailyVolume' }),
 		getAdapterChainOverview({
 			adapterType: 'fees',
 			chain: 'All',
@@ -114,8 +117,8 @@ export const getChainsByCategory = async ({
 			const nftVolume = chainNftsVolume[name] ?? null
 			const totalFees24h = fees?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
 			const totalRevenue24h = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
-			const totalAppRevenue24h = appRevenue?.find((x) => x.chain === chain.name)?.total24h ?? null
-			const totalVolume24h = dexs?.find((x) => x.chain === chain.name)?.total24h ?? null
+			const totalAppRevenue24h = appRevenue?.[chain.name]?.['24h'] ?? null
+			const totalVolume24h = dexs?.[chain.name]?.['24h'] ?? null
 			const stablesMcap = stablesChainMcaps.find((x) => slug(x.name) === name)?.mcap ?? null
 			const users = activeUsers['chain#' + name]?.users?.value
 			const protocols = metadataCache.chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
@@ -132,38 +135,4 @@ export const getChainsByCategory = async ({
 			}
 		})
 	}
-}
-
-async function getDimensionAdapterOverviewOfAllChains({
-	adapterType,
-	dataType
-}: {
-	adapterType: `${ADAPTER_TYPES}`
-	dataType?: `${ADAPTER_DATA_TYPES}`
-}) {
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-
-	const chains = []
-	for (const chain in metadataCache.chainMetadata) {
-		if (metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]) {
-			chains.push(chain)
-		}
-	}
-
-	const data = await Promise.all(
-		chains.map((chain) =>
-			getAdapterChainOverview({
-				chain,
-				adapterType,
-				excludeTotalDataChart: true,
-				excludeTotalDataChartBreakdown: true,
-				dataType
-			}).catch(() => {
-				postRuntimeLogs(`getDimensionAdapterOverviewOfAllChains:${chain}:${adapterType}:failed`)
-				return null
-			})
-		)
-	)
-
-	return data.filter(Boolean)
 }
