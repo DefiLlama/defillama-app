@@ -7,6 +7,7 @@ import { CreateDashboardModal } from '~/containers/ProDashboard/components/Creat
 import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
 import { GenerateDashboardModal } from '~/containers/ProDashboard/components/GenerateDashboardModal'
+import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -17,7 +18,7 @@ import Layout from '~/layout'
 function ProPageContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()
-	const [activeTab, setActiveTab] = useState<'my-dashboards' | 'discover'>(
+	const [activeTab, setActiveTab] = useState<'my-dashboards' | 'discover' | 'liked'>(
 		isAuthenticated && subscription?.status === 'active' ? 'my-dashboards' : 'discover'
 	)
 
@@ -49,8 +50,8 @@ function ProContent({
 	hasActiveSubscription,
 	isAuthenticated
 }: {
-	activeTab: 'my-dashboards' | 'discover'
-	setActiveTab: (tab: 'my-dashboards' | 'discover') => void
+	activeTab: 'my-dashboards' | 'discover' | 'liked'
+	setActiveTab: (tab: 'my-dashboards' | 'discover' | 'liked') => void
 	hasActiveSubscription: boolean
 	isAuthenticated: boolean
 }) {
@@ -96,6 +97,7 @@ function ProContent({
 								)}
 							</button>
 						)}
+
 						<button
 							onClick={() => setActiveTab('discover')}
 							className={`relative pb-3 text-base font-medium transition-colors ${
@@ -105,6 +107,17 @@ function ProContent({
 							Discover
 							{activeTab === 'discover' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
 						</button>
+						{isAuthenticated && (
+							<button
+								onClick={() => setActiveTab('liked')}
+								className={`relative pb-3 text-base font-medium transition-colors ${
+									activeTab === 'liked' ? 'pro-text1' : 'pro-text3 hover:pro-text1'
+								}`}
+							>
+								Liked
+								{activeTab === 'liked' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
+							</button>
+						)}
 					</div>
 					<div className="flex gap-3">
 						{!featureFlagsLoading && hasFeature('dashboard-gen') && (
@@ -146,6 +159,8 @@ function ProContent({
 					onCreateNew={createNewDashboard}
 					onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
 				/>
+			) : activeTab === 'liked' ? (
+				<LikedDashboards />
 			) : (
 				<DashboardDiscovery />
 			)}
