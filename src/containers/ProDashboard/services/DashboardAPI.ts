@@ -21,6 +21,7 @@ export interface Dashboard {
 	updated: string
 	collectionId?: string
 	collectionName?: string
+	aiGenerated?: any
 }
 
 export interface DashboardError {

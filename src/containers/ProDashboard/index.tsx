@@ -13,9 +13,12 @@ import { CreateDashboardModal } from './components/CreateDashboardModal'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { DemoPreview } from './components/DemoPreview'
 import { EmptyState } from './components/EmptyState'
+import { ChatbotFloat, ChatPanel } from './components/Chatbot'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
+import { useChatbot } from './hooks/useChatbot'
 import { TimePeriod, useProDashboard } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
+import { CSVRegistryProvider } from './hooks/useCSVRegistry'
 
 function ProDashboardContent() {
 	const router = useRouter()
@@ -58,6 +61,18 @@ function ProDashboardContent() {
 	} = useProDashboard()
 
 	const { trackView, toggleLike, isLiking } = useDashboardEngagement(dashboardId)
+
+	const {
+		isOpen: chatbotOpen,
+		conversationId,
+		messages,
+		isConnected: chatbotConnected,
+		isTyping: chatbotTyping,
+		toolExecutionStatus,
+		toggleChat,
+		closeChat,
+		sendMessage: sendChatMessage
+	} = useChatbot()
 
 	const timePeriods: { value: TimePeriod; label: string }[] = [
 		{ value: '30d', label: '30d' },
@@ -448,10 +463,26 @@ function ProDashboardContent() {
 			<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
 				<SubscribePlusCard context="modal" returnUrl={router.asPath} />
 			</SubscribeModal>
+
+			{/* Chatbot Integration */}
+			<ChatbotFloat isOpen={chatbotOpen} onClick={toggleChat} />
+			<ChatPanel
+				isOpen={chatbotOpen}
+				onClose={closeChat}
+				messages={messages}
+				isTyping={chatbotTyping}
+				isConnected={chatbotConnected}
+				toolExecutionStatus={toolExecutionStatus}
+				onSendMessage={sendChatMessage}
+			/>
 		</div>
 	)
 }
 
 export default function ProDashboard() {
-	return <ProDashboardContent />
+	return (
+		<CSVRegistryProvider>
+			<ProDashboardContent />
+		</CSVRegistryProvider>
+	)
 }

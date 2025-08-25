@@ -3,3 +3,8 @@ export { useAutoSave } from './useAutoSave'
 export { useDashboardPermissions } from './useDashboardPermissions'
 export { useDashboardDiscovery } from './useDashboardDiscovery'
 export { useDashboardEngagement } from './useDashboardEngagement'
+
+export { useChatbot } from './useChatbot'
+export { useSSEConnection } from './useSSEConnection'
+export { useToolExecution } from './useToolExecution'
+export { useChartExtraction } from './useChartExtraction'

@@ -8,6 +8,7 @@ import { useYieldsTable } from './useYieldsTable'
 import { YieldsColumnManagementPanel } from './YieldsColumnManagementPanel'
 import { YieldsFilters, YieldsFiltersPanel } from './YieldsFiltersPanel'
 import { YieldsTableHeader } from './YieldsTableHeader'
+import { useRegisterCSVExtractor } from '../../../hooks/useCSVRegistry'
 
 interface YieldsDatasetProps {
 	chains?: string[]
@@ -77,6 +78,9 @@ export function YieldsDataset({
 			}
 		}, [handleTableFiltersChange, uniqueTableId])
 	})
+
+	// Register the CSV extractor for this table
+	useRegisterCSVExtractor(uniqueTableId || 'yields-table', downloadCSV)
 
 	if (isLoading) {
 		return (

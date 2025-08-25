@@ -684,57 +684,67 @@ export function useProTable(
 		})
 	}
 
-	const downloadCSV = () => {
-		if (!table) return
+	const downloadCSV = React.useCallback(
+		(returnContent: boolean = false): string | void => {
+			if (!table) return
 
-		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible() && col.id !== 'expand')
+			const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible() && col.id !== 'expand')
 
-		const sortedColumns =
-			columnOrder.length > 0
-				? visibleColumns.sort((a, b) => {
-						const indexA = columnOrder.indexOf(a.id)
-						const indexB = columnOrder.indexOf(b.id)
-						if (indexA === -1) return 1
-						if (indexB === -1) return -1
-						return indexA - indexB
-					})
-				: visibleColumns
+			const sortedColumns =
+				columnOrder.length > 0
+					? visibleColumns.sort((a, b) => {
+							const indexA = columnOrder.indexOf(a.id)
+							const indexB = columnOrder.indexOf(b.id)
+							if (indexA === -1) return 1
+							if (indexB === -1) return -1
+							return indexA - indexB
+						})
+					: visibleColumns
 
-		const headers = sortedColumns.map((col) => {
-			const hdr = col.columnDef.header
-			return typeof hdr === 'string' ? hdr : col.id
-		})
-
-		const rows = table.getSortedRowModel().rows.map((row) => {
-			return sortedColumns.map((col) => {
-				const value = row.getValue(col.id)
-				if (value === null || value === undefined) return ''
-				if (typeof value === 'object') return JSON.stringify(value)
-				return String(value)
+			const headers = sortedColumns.map((col) => {
+				const hdr = col.columnDef.header
+				return typeof hdr === 'string' ? hdr : col.id
 			})
-		})
 
-		const csvContent = [
-			headers.join(','),
-			...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
-		].join('\n')
+			const allRows = table.getSortedRowModel().rows
+			const rowsToProcess = returnContent ? allRows.slice(0, 200) : allRows
+			const rows = rowsToProcess.map((row) => {
+				return sortedColumns.map((col) => {
+					const value = row.getValue(col.id)
+					if (value === null || value === undefined) return ''
+					if (typeof value === 'object') return JSON.stringify(value)
+					return String(value)
+				})
+			})
 
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-		const link = document.createElement('a')
-		const url = URL.createObjectURL(blob)
-		link.setAttribute('href', url)
-		const filename =
-			chains.length === 1
-				? `${chains[0]}_protocols_${new Date().toISOString().split('T')[0]}.csv`
-				: chains.length <= 3
-					? `${chains.join('_')}_protocols_${new Date().toISOString().split('T')[0]}.csv`
-					: `multi_chain_${chains.length}_protocols_${new Date().toISOString().split('T')[0]}.csv`
-		link.setAttribute('download', filename)
-		link.style.visibility = 'hidden'
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
-	}
+			const csvContent = [
+				headers.join(','),
+				...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
+			].join('\n')
+
+			// If returnContent is true, return the CSV string instead of downloading
+			if (returnContent) {
+				return csvContent
+			}
+
+			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+			const link = document.createElement('a')
+			const url = URL.createObjectURL(blob)
+			link.setAttribute('href', url)
+			const filename =
+				chains.length === 1
+					? `${chains[0]}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+					: chains.length <= 3
+						? `${chains.join('_')}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+						: `multi_chain_${chains.length}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+			link.setAttribute('download', filename)
+			link.style.visibility = 'hidden'
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+		},
+		[table, columnOrder, chains]
+	)
 
 	// Custom column management functions
 	const addCustomColumn = (column: CustomColumn) => {

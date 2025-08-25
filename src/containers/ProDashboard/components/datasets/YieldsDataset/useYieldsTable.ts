@@ -305,7 +305,7 @@ export function useYieldsTable({
 		})
 	}
 
-	const downloadCSV = () => {
+	const downloadCSV = React.useCallback((returnContent: boolean = false): string | void => {
 		if (!table) return
 
 		const visibleColumnIds = columnOrder.filter((id) => columnVisibility[id] !== false)
@@ -333,7 +333,8 @@ export function useYieldsTable({
 			ltv: 'LTV'
 		}
 
-		const rows = table.getFilteredRowModel().rows
+		const allRows = table.getFilteredRowModel().rows
+		const rows = returnContent ? allRows.slice(0, 200) : allRows
 		const csvData = rows.map((row) => row.original)
 
 		const headers = visibleColumnIds.map((id) => headerMap[id] || id)
@@ -356,6 +357,11 @@ export function useYieldsTable({
 
 		const csvContent = [headers.join(','), ...csvLines].join('\n')
 
+		// If returnContent is true, return the CSV string instead of downloading
+		if (returnContent) {
+			return csvContent
+		}
+
 		const blob = new Blob([csvContent], { type: 'text/csv' })
 		const url = URL.createObjectURL(blob)
 		const a = document.createElement('a')
@@ -365,7 +371,7 @@ export function useYieldsTable({
 		a.click()
 		document.body.removeChild(a)
 		URL.revokeObjectURL(url)
-	}
+	}, [table, columnOrder, columnVisibility])
 
 	const [poolName, setPoolName] = React.useState('')
 	React.useEffect(() => {

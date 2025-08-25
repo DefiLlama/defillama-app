@@ -189,6 +189,9 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						<div
 							key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
 							className={`${getColSpanClass(item.colSpan)}`}
+							data-chart-id={item.id}
+							data-multi-id={item.kind === 'multi' ? item.id : undefined}
+							data-builder-id={item.kind === 'builder' ? item.id : undefined}
 						>
 							<div className={`pro-glass relative h-full ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
 								<div className={item.kind === 'table' ? 'pr-12' : ''}>{renderItemContent(item)}</div>
@@ -209,6 +212,9 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							<div
 								key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
 								className={`${getColSpanClass(item.colSpan)}`}
+								data-chart-id={item.id}
+								data-multi-id={item.kind === 'multi' ? item.id : undefined}
+								data-builder-id={item.kind === 'builder' ? item.id : undefined}
 							>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
 									<div

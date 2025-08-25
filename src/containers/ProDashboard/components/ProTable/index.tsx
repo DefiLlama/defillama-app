@@ -8,6 +8,7 @@ import { TableBody } from './TableBody'
 import { TableHeader } from './TableHeader'
 import { TablePagination } from './TablePagination'
 import { useProTable } from './useProTable'
+import { useRegisterCSVExtractor } from '../../hooks/useCSVRegistry'
 
 export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	tableId,
@@ -68,6 +69,9 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 			handleTableColumnsChange(tableId, newColumnOrder, newColumnVisibility, newCustomColumns, newActiveViewId)
 		}
 	})
+
+	// Register the CSV extractor for this table
+	useRegisterCSVExtractor(tableId, downloadCSV)
 
 	const handleFiltersChange = (newFilters: TableFilters) => {
 		handleTableFiltersChange(tableId, newFilters)
