@@ -90,14 +90,15 @@ const PageView = (props) => {
 
 	// prepare csv data
 	const prepareCsv = useCallback(() => {
+		if (!chart?.data || !query?.pool) return { filename: `yields.csv`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
-		chart.data?.forEach((item) => {
+		chart?.data?.forEach((item) => {
 			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
 		})
 
 		return { filename: `${query.pool}.csv`, rows: rows as (string | number | boolean)[][] }
-	}, [chart.data, query.pool])
+	}, [chart?.data, query?.pool])
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
 	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? 0
