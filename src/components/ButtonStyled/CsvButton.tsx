@@ -49,7 +49,7 @@ export const CSVDownloadButton = ({
 						setShowSubscribeModal(true)
 					}
 				}}
-				data-loading={true}
+				data-loading={isClient ? isLoading : true}
 				disabled={isClient ? isLoading : true}
 			>
 				<Icon name="download-paper" className="h-3 w-3 shrink-0" />
