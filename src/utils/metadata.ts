@@ -31,7 +31,7 @@ interface IChainMetadata {
 	id: string
 	protocolCount?: number
 	incentives?: boolean
-	dimAgg: Record<string, Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>>
+	dimAgg?: Record<string, Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>>
 }
 
 interface IProtocolMetadata {
