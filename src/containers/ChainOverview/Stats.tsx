@@ -1,11 +1,12 @@
 import { Fragment, lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { downloadChart } from '~/components/ECharts/utils'
+import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -116,13 +117,41 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
-	const prepateCsv = useCallback(() => {
-		try {
-			downloadChart(finalCharts, `${props.chain}.csv`)
-		} catch (error) {
-			console.error('Error generating CSV:', error)
-		}
+	const prepareCsv = useCallback(() => {
+		return prepareChartCsv(finalCharts, `${props.chain}.csv`)
 	}, [finalCharts, props.chain])
+
+	const { mutate: downloadAndPrepareChartCsv, isPending: isDownloadingChartCsv } = useMutation({
+		mutationFn: async () => {
+			if (!isAuthenticated) {
+				toast.error('Please sign in to download CSV data')
+				return
+			}
+
+			try {
+				const url = `https://api.llama.fi/simpleChainDataset/${
+					chainsNamesMap[props.metadata.name] || props.metadata.name
+				}?${Object.entries(tvlSettings)
+					.filter((t) => t[1] === true)
+					.map((t) => `${t[0]}=true`)
+					.join('&')}`.replaceAll(' ', '%20')
+
+				const response = await fetch(url)
+
+				if (!response || !response.ok) {
+					toast.error('Failed to download CSV data')
+					return
+				}
+
+				const csvData = await response.text()
+
+				downloadCSV(`${props.metadata.name}.csv`, csvData)
+			} catch (error) {
+				console.error('CSV download error:', error)
+				toast.error('Failed to download CSV data')
+			}
+		}
+	})
 
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
@@ -644,36 +673,8 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 					</div>
 				</div>
 				<CSVDownloadButton
-					onClick={async () => {
-						// TODO csv
-						if (!isAuthenticated) {
-							toast.error('Please sign in to download CSV data')
-							return
-						}
-
-						try {
-							const url = `https://api.llama.fi/simpleChainDataset/${
-								chainsNamesMap[props.metadata.name] || props.metadata.name
-							}?${Object.entries(tvlSettings)
-								.filter((t) => t[1] === true)
-								.map((t) => `${t[0]}=true`)
-								.join('&')}`.replaceAll(' ', '%20')
-
-							const response = await fetch(url)
-
-							if (!response || !response.ok) {
-								toast.error('Failed to download CSV data')
-								return
-							}
-
-							const csvData = await response.text()
-
-							downloadCSV(`${props.metadata.name}.csv`, csvData)
-						} catch (error) {
-							console.error('CSV download error:', error)
-							toast.error('Failed to download CSV data')
-						}
-					}}
+					onClick={() => downloadAndPrepareChartCsv()}
+					isLoading={isDownloadingChartCsv}
 					smol
 					className="ml-auto"
 				/>
@@ -818,7 +819,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							</div>
 						) : null}
 						<EmbedChart />
-						<CSVDownloadButton onClick={prepateCsv} smol />
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 
 					{isFetchingChartData ? (

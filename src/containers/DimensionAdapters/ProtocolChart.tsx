@@ -6,7 +6,7 @@ import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
-import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_TYPES } from './constants'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
@@ -214,7 +214,8 @@ const ChartByType = ({
 
 			const csvTitle = title ? slug(title) : chartType
 			const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
-			download(filename, rows.map((r) => r.join(',')).join('\n'))
+
+			return { filename, rows }
 		} catch (error) {
 			console.error('Error generating CSV:', error)
 		}
@@ -255,7 +256,7 @@ const ChartByType = ({
 					}}
 					portal
 				/>
-				<CSVDownloadButton onClick={prepareCsv} smol />
+				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 			</div>
 			<React.Suspense fallback={<></>}>
 				<LineAndBarChart

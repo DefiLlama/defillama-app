@@ -9,7 +9,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import Layout from '~/layout'
-import { download, formattedNum, preparePieChartData } from '~/utils'
+import { formattedNum, preparePieChartData } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -50,8 +50,13 @@ export const OraclesByChain = ({
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
 
 	const prepareCsv = React.useCallback(() => {
-		const header = Object.keys(tokensList[0]).join(',')
-		download('oracles.csv', [header, ...tokensList.map((r) => Object.values(r).join(','))].join('\n'))
+		const headers = Object.keys(tokensList[0])
+		const rows = [headers].concat(
+			tokensList.map((row) =>
+				headers.map((header) => (Array.isArray(row[header]) ? row[header].join(', ') : row[header]))
+			)
+		)
+		return { filename: 'oracles.csv', rows }
 	}, [tokensList])
 
 	return (
@@ -60,7 +65,7 @@ export const OraclesByChain = ({
 
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton onClick={prepareCsv} smol className="mr-2 ml-auto" />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
 					</React.Suspense>

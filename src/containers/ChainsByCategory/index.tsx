@@ -6,7 +6,7 @@ import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { download, formattedNum, getPercentChange, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { formattedNum, getPercentChange, preparePieChartData, toNiceCsvDate } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
 import { IChainsByCategoryData } from './types'
 
@@ -217,7 +217,7 @@ export function ChainsByCategory({
 		return { showByGroup, chainsTableData }
 	}, [category, chains, tvlSettings, minMaxTvl, chainsGroupbyParent])
 
-	const prepateCsv = React.useCallback(() => {
+	const prepareCsv = React.useCallback(() => {
 		const headers = ['Date', 'Timestamp']
 		for (const chain in dominanceCharts) {
 			headers.push(chain)
@@ -240,9 +240,7 @@ export function ChainsByCategory({
 			rows.push(row)
 		}
 
-		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-
-		download(`defillama-chains-dominance.csv`, csvContent)
+		return { filename: `defillama-chains-dominance.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
 	}, [dominanceCharts])
 
 	return (
@@ -261,7 +259,7 @@ export function ChainsByCategory({
 					</React.Suspense>
 				</div>
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton onClick={prepateCsv} smol className="mr-2 ml-auto" />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<LineAndBarChart charts={dominanceCharts} valueSymbol="%" expandTo100Percent solidChartAreaStyle />
 					</React.Suspense>

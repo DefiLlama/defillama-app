@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { downloadChart, formatBarChart } from '~/components/ECharts/utils'
+import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { Select } from '~/components/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -172,15 +172,11 @@ export default function Protocols(props) {
 	}, [charts, groupBy, props.charts])
 
 	const prepareCsv = useCallback(() => {
-		try {
-			const dataByChartType = {}
-			for (const chartType in finalCharts) {
-				dataByChartType[chartType] = finalCharts[chartType].data
-			}
-			downloadChart(dataByChartType, `${props.name}-total-options-volume.csv`)
-		} catch (error) {
-			console.error('Error generating CSV:', error)
+		const dataByChartType = {}
+		for (const chartType in finalCharts) {
+			dataByChartType[chartType] = finalCharts[chartType].data
 		}
+		return prepareChartCsv(dataByChartType, `${props.name}-total-options-volume.csv`)
 	}, [finalCharts, props.name])
 
 	return (
@@ -239,7 +235,7 @@ export default function Protocols(props) {
 								labelType="smol"
 							/>
 						) : null}
-						<CSVDownloadButton onClick={prepareCsv} smol />
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<LineAndBarChart charts={finalCharts} valueSymbol="$" />

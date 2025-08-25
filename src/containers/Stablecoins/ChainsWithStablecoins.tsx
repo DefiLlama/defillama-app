@@ -6,7 +6,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { download, formattedNum, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { formattedNum, preparePieChartData, toNiceCsvDate } from '~/utils'
 import { PeggedChainsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -54,7 +54,7 @@ export function ChainsWithStablecoins({
 					}, 0)
 				])
 			})
-		download('stablecoinsChainTotals.csv', rows.map((r) => r.join(',')).join('\n'))
+		return { filename: 'stablecoinsChainTotals.csv', rows: rows as (string | number | boolean)[][] }
 	}, [stackedData, chainList])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
@@ -134,7 +134,7 @@ export function ChainsWithStablecoins({
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 
-					<CSVDownloadButton onClick={prepareeCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton prepareCsv={prepareeCsv} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />

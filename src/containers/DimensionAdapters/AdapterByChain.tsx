@@ -25,7 +25,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { chainIconUrl, download, formattedNum, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { chainCharts } from '../ChainOverview/constants'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { AdapterByChainChart } from './ChainChart'
@@ -247,7 +247,7 @@ export function AdapterByChain(props: IProps) {
 		instance.setColumnSizing(colSize[1])
 	}, [instance, windowSize])
 
-	const prepateCsv = useCallback(() => {
+	const prepareCsv = useCallback(() => {
 		const header = [
 			'Protocol',
 			'Category',
@@ -277,9 +277,7 @@ export function AdapterByChain(props: IProps) {
 			]
 		})
 
-		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
-
-		download(`${props.type}-${props.chain}-protocols.csv`, csv)
+		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows: [header, ...csvdata] }
 	}, [props, protocols])
 
 	const { category, chain, ...queries } = router.query
@@ -482,7 +480,7 @@ export function AdapterByChain(props: IProps) {
 						/>
 					)}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
-					<CSVDownloadButton onClick={prepateCsv} />
+					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 
 				<VirtualTable instance={instance} rowSize={64} compact />

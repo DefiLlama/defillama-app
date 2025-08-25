@@ -9,7 +9,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, download, formattedNum, toNiceCsvDate } from '~/utils'
+import { chainIconUrl, formattedNum, toNiceCsvDate } from '~/utils'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
@@ -69,8 +69,11 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				return String(value).includes(',') ? `"${String(value)}"` : String(value)
 			})
 		})
-		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-		download(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
+
+		return {
+			filename: `defillama-${props.category}-${props.chain || 'all'}-protocols.csv`,
+			rows: [headers, ...rows] as (string | number | boolean)[][]
+		}
 	}, [finalProtocols, categoryColumns, props.category, props.chain])
 
 	const prepareCsvFromChart = useCallback(() => {
@@ -78,7 +81,10 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 		for (const item of props.charts['TVL']?.data ?? []) {
 			rows.push([item[0], toNiceCsvDate(item[0] / 1000), item[1]])
 		}
-		download(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
+		return {
+			filename: `${props.category}-TVL.csv`,
+			rows: rows as (string | number | boolean)[][]
+		}
 	}, [props.charts, props.category])
 
 	return (
@@ -125,7 +131,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								<span className="font-jetbrains text-right">{formattedNum(props.perpVolume7d, true)}</span>
 							</p>
 						)}
-						<CSVDownloadButton onClick={prepareCsvFromChart} smol className="mt-auto mr-auto" />
+						<CSVDownloadButton prepareCsv={prepareCsvFromChart} smol className="mt-auto mr-auto" />
 					</div>
 				</div>
 				<div className="col-span-2 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) py-2">
@@ -141,7 +147,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columnToSearch="name"
 				header="Protocol Rankings"
 				defaultSorting={sortByRevenue.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : []}
-				customFilters={<CSVDownloadButton onClick={prepareCsv} />}
+				customFilters={<CSVDownloadButton prepareCsv={prepareCsv} />}
 			/>
 		</>
 	)

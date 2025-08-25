@@ -7,7 +7,7 @@ import { ETFColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
-import { download, firstDayOfMonth, formattedNum, lastDayOfWeek, toNiceCsvDate } from '~/utils'
+import { firstDayOfMonth, formattedNum, lastDayOfWeek, toNiceCsvDate } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const LineAndBarChart = React.lazy(
@@ -141,18 +141,14 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 	}, [charts, tickers])
 
 	const prepareCsv = React.useCallback(() => {
-		try {
-			let rows = []
+		let rows = []
 
-			rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum']]
-			for (const date in flows) {
-				rows.push([date, toNiceCsvDate(date), flows[date]['Bitcoin'] ?? '', flows[date]['Ethereum'] ?? ''])
-			}
-			const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
-			download(filename, rows.map((r) => r.join(',')).join('\n'))
-		} catch (error) {
-			console.error('Error generating CSV:', error)
+		rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum']]
+		for (const date in flows) {
+			rows.push([date, toNiceCsvDate(date), flows[date]['Bitcoin'] ?? '', flows[date]['Ethereum'] ?? ''])
 		}
+		const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
+		return { filename, rows: rows as (string | number | boolean)[][] }
 	}, [flows])
 
 	return (
@@ -201,7 +197,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							}}
 							portal
 						/>
-						<CSVDownloadButton onClick={prepareCsv} smol />
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 					<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<LineAndBarChart

@@ -8,7 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { getForkPageData } from '~/containers/Forks/queries'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import Layout from '~/layout'
-import { download, preparePieChartData } from '~/utils'
+import { preparePieChartData } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -69,16 +69,16 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 				'Forked TVL / Original TVL %': row.ftot
 			}
 		})
-		const csv = [headers].concat(csvData.map((row) => headers.map((header) => row[header]))).join('\n')
-		download('forks.csv', csv)
+		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
+		return { filename: 'forks.csv', rows: rows as (string | number | boolean)[][] }
 	}, [tokensList])
 
 	return (
 		<Layout title={`Forks - DefiLlama`} pageName={pageName}>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<CSVDownloadButton onClick={prepareCsv} smol className="mr-2 ml-auto" />
+				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={forkColors} />
 					</React.Suspense>

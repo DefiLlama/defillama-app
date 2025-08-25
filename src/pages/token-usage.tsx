@@ -15,7 +15,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import Layout from '~/layout'
-import { download, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -74,8 +74,9 @@ export default function Tokens({ searchData }) {
 			}
 		})
 		const headers = ['Protocol', 'Category', 'Amount (USD)']
-		const csv = [headers.join(',')].concat(data.map((row) => headers.map((header) => row[header]).join(','))).join('\n')
-		download(`protocols-by-token-${tokenSymbol}.csv`, csv)
+		const rows = [headers, ...data.map((row) => headers.map((header) => row[header]))]
+
+		return { filename: `protocols-by-token-${tokenSymbol}.csv`, rows: rows as (string | number | boolean)[][] }
 	}
 
 	return (
@@ -112,7 +113,7 @@ export default function Tokens({ searchData }) {
 										)
 									}
 								/>
-								<CSVDownloadButton onClick={prepareCsv} />
+								<CSVDownloadButton prepareCsv={prepareCsv} />
 							</div>
 						</div>
 

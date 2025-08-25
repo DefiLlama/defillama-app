@@ -1,31 +1,53 @@
 import { memo, ReactNode, useState } from 'react'
 import { useRouter } from 'next/router'
+import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { download } from '~/utils'
 
-// use children to pass in the text
-export const CSVDownloadButton = memo(function CSVDownloadButton({
-	onClick,
-	children,
-	className,
-	replaceClassName,
-	smol,
-	isLoading: loading
-}: {
-	onClick: () => void
+interface CSVDownloadButtonProps {
+	// Common props
 	className?: string
 	replaceClassName?: boolean
 	smol?: boolean
-	isLoading?: boolean
 	children?: ReactNode
-}) {
+}
+
+// Option 1: With prepareCsv
+interface CSVDownloadButtonWithPrepareCsv extends CSVDownloadButtonProps {
+	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+	onClick?: never
+	isLoading?: never
+}
+
+// Option 2: With onClick and isLoading
+interface CSVDownloadButtonWithOnClick extends CSVDownloadButtonProps {
+	onClick: () => void
+	isLoading: boolean
+	prepareCsv?: never
+}
+
+// Union type
+type CSVDownloadButtonPropsUnion = CSVDownloadButtonWithPrepareCsv | CSVDownloadButtonWithOnClick
+
+// use children to pass in the text
+export const CSVDownloadButton = memo(function CSVDownloadButton({
+	className,
+	replaceClassName,
+	smol,
+	children,
+	onClick,
+	isLoading: loading,
+	prepareCsv
+}: CSVDownloadButtonPropsUnion) {
+	const [staticLoading, setStaticLoading] = useState(false)
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { loaders } = useAuthContext()
-	const isLoading = loaders.userLoading || isSubscriptionLoading || loading ? true : false
+	const isLoading = loaders.userLoading || isSubscriptionLoading || loading || staticLoading ? true : false
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const isClient = useIsClient()
 	const router = useRouter()
@@ -40,11 +62,25 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 								className ?? ''
 							}`
 				}
-				onClick={() => {
+				onClick={async () => {
 					if (isLoading) return
 
 					if (!loaders.userLoading && subscription?.status === 'active') {
-						onClick()
+						if (onClick) {
+							onClick()
+						} else {
+							try {
+								setStaticLoading(true)
+								const { filename, rows } = prepareCsv()
+
+								download(filename, rows.map((row) => row.join(',')).join('\n'))
+							} catch (error) {
+								toast.error('Failed to download CSV')
+								console.error(error)
+							} finally {
+								setStaticLoading(false)
+							}
+						}
 					} else if (!isLoading) {
 						setShowSubscribeModal(true)
 					}

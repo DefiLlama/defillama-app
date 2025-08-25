@@ -1,4 +1,4 @@
-import { download, firstDayOfMonth, lastDayOfWeek, toNiceCsvDate } from '~/utils'
+import { firstDayOfMonth, lastDayOfWeek, toNiceCsvDate } from '~/utils'
 
 export function stringToColour() {
 	return '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')
@@ -106,7 +106,7 @@ export const formatLineChart = ({
 	}
 }
 
-export function downloadChart(data: Record<string, Array<[string | number, number]>>, filename: string) {
+export function prepareChartCsv(data: Record<string, Array<[string | number, number]>>, filename: string) {
 	let rows = []
 	const charts = []
 	const dateStore = {}
@@ -127,11 +127,6 @@ export function downloadChart(data: Record<string, Array<[string | number, numbe
 		}
 		rows.push([date, toNiceCsvDate(+date / 1000), ...values])
 	}
-	download(
-		filename,
-		rows
-			.sort((a, b) => a[0] - b[0])
-			.map((r) => r.join(','))
-			.join('\n')
-	)
+
+	return { filename, rows: rows.sort((a, b) => a[0] - b[0]) }
 }

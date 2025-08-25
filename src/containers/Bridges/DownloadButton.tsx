@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useCallback } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { download, toNiceCsvDate } from '~/utils'
+import { toNiceCsvDate } from '~/utils'
 
 export const LargeTxDownloadButton = ({ data }: { data: any }) => {
 	const prepareCsv = useCallback(() => {
@@ -39,8 +39,9 @@ export const LargeTxDownloadButton = ({ data }: { data: any }) => {
 					tx.txHash.split(':')[1] ?? ''
 				])
 			})
-		download(`bridge-transactions.csv`, rows.map((r) => r.join(',')).join('\n'))
+
+		return { filename: 'bridge-transactions.csv', rows }
 	}, [data])
 
-	return <CSVDownloadButton onClick={prepareCsv} smol className="mr-2" />
+	return <CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2" />
 }

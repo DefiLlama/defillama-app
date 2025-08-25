@@ -4,7 +4,10 @@ import { useIsClient } from '~/hooks'
 import { useMedia } from '~/hooks/useMedia'
 import { PeggedFiltersDropdowns } from './Dropdowns'
 
-export function PeggedFilters(props: { pathname: string; downloadCsv: () => void }) {
+export function PeggedFilters(props: {
+	pathname: string
+	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+}) {
 	const isSmall = useMedia(`(max-width: 639px)`)
 	const isClient = useIsClient()
 	return (

@@ -181,7 +181,7 @@ export const ChainsByAdapterChart = ({
 			rows.push(row)
 		}
 
-		download(`${type}-chains-${new Date().toISOString().split('T')[0]}.csv`, rows.map((r) => r.join(',')).join('\n'))
+		return { filename: `${type}-chains-${new Date().toISOString().split('T')[0]}.csv`, rows }
 	}, [chartData, allChains, type])
 
 	return (
@@ -229,7 +229,7 @@ export const ChainsByAdapterChart = ({
 						}}
 						portal
 					/>
-					<CSVDownloadButton onClick={prepareCsv} smol />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol />
 				</div>
 			</>
 

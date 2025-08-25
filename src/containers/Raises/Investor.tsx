@@ -30,7 +30,7 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 
 const columnResizeMode = 'onChange'
 
-function RaisesTable({ raises, downloadCsv }) {
+function RaisesTable({ raises, prepareCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -96,8 +96,10 @@ function RaisesTable({ raises, downloadCsv }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton onClick={downloadCsv} />
-				<CSVDownloadButton onClick={() => window.open('https://api.llama.fi/raises')}>Download.json</CSVDownloadButton>
+				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton onClick={() => window.open('https://api.llama.fi/raises')} isLoading={false}>
+					Download.json
+				</CSVDownloadButton>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>
@@ -127,7 +129,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 	})
 
 	const prepareCsv = React.useCallback(() => {
-		prepareRaisesCsv({ raises: filteredRaisesList })
+		return prepareRaisesCsv({ raises: filteredRaisesList })
 	}, [filteredRaisesList])
 
 	return (
@@ -204,7 +206,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				</LazyChart>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} downloadCsv={prepareCsv} />
+			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
 		</Layout>
 	)
 }

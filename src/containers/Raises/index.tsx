@@ -34,7 +34,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 	})
 
 	const prepareCsv = React.useCallback(() => {
-		prepareRaisesCsv({ raises: filteredRaisesList })
+		return prepareRaisesCsv({ raises: filteredRaisesList })
 	}, [filteredRaisesList])
 
 	return (
@@ -75,7 +75,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<span className="text-(--text-label)">Total Funding Amount</span>
 						<span className="font-jetbrains text-2xl font-semibold">${formattedNum(totalAmountRaised)}</span>
 					</p>
-					<CSVDownloadButton onClick={prepareCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">

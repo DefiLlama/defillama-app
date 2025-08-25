@@ -17,7 +17,6 @@ import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } 
 import Layout from '~/layout'
 import {
 	capitalizeFirstLetter,
-	download,
 	formattedNum,
 	getBlockExplorer,
 	peggedAssetIconUrl,
@@ -132,7 +131,7 @@ export const PeggedAssetInfo = ({
 					}, 0)
 				])
 			})
-		download('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
+		return { filename: 'stablecoinsChains.csv', rows: rows as (string | number | boolean)[][] }
 	}, [stackedData, chainsUnique])
 
 	return (
@@ -226,7 +225,7 @@ export const PeggedAssetInfo = ({
 										</tbody>
 									</table>
 								)}
-								<CSVDownloadButton onClick={prepareCsv} smol className="mt-auto mr-auto" />
+								<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 							</div>
 						</Ariakit.TabPanel>
 

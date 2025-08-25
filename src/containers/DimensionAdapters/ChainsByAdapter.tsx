@@ -20,7 +20,7 @@ import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { download, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
 import { IChainsByAdapterPageData } from './types'
 
@@ -123,9 +123,8 @@ export function ChainsByAdapter(props: IProps) {
 		const csvdata = chains.map((protocol) => {
 			return [protocol.name, protocol.total24h, protocol.total30d]
 		})
-		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
 
-		download(`${props.type}-chains-protocols.csv`, csv)
+		return { filename: `${props.type}-chains-protocols.csv`, rows: [header, ...csvdata] }
 	}, [props, chains])
 
 	return (
@@ -164,7 +163,7 @@ export function ChainsByAdapter(props: IProps) {
 							className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 						/>
 					</div>
-					<CSVDownloadButton onClick={prepareCsv} />
+					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>

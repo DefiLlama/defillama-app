@@ -14,7 +14,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
-import { download, formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
+import { formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
 
 const pageName = ['Protocols', 'ranked by', 'Treasury']
 
@@ -72,10 +72,8 @@ export function Treasuries({ data, entity }) {
 				'Change 1m': row.change_1m
 			}
 		})
-		const csv = [headers.join(',')]
-			.concat(dataToDownload.map((row) => headers.map((header) => row[header]).join(',')))
-			.join('\n')
-		download('treasuries.csv', csv)
+		const rows = [headers].concat(dataToDownload.map((row) => headers.map((header) => row[header])))
+		return { filename: 'treasuries.csv', rows: rows as (string | number | boolean)[][] }
 	}, [data])
 
 	useEffect(() => {
@@ -96,7 +94,7 @@ export function Treasuries({ data, entity }) {
 				header={'Treasuries'}
 				customFilters={
 					<>
-						<CSVDownloadButton onClick={prepareCsv} />
+						<CSVDownloadButton prepareCsv={prepareCsv} />
 					</>
 				}
 			/>

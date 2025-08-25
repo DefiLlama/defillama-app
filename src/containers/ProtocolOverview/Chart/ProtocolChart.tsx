@@ -11,7 +11,7 @@ import {
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { downloadChart, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import { formatBarChart, formatLineChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
@@ -162,11 +162,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const metricsDialogStore = Ariakit.useDialogStore()
 
 	const prepareCsv = useCallback(() => {
-		try {
-			downloadChart(finalCharts, `${props.name}.csv`)
-		} catch (error) {
-			console.error('Error generating CSV:', error)
-		}
+		return prepareChartCsv(finalCharts, `${props.name}.csv`)
 	}, [finalCharts, props.name])
 
 	return (
@@ -358,7 +354,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					<EmbedChart />
-					<CSVDownloadButton onClick={prepareCsv} smol />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol />
 				</div>
 			</div>
 			<div className="flex min-h-[360px] flex-col">

@@ -1,4 +1,4 @@
-import { download, toNiceCsvDate } from '~/utils'
+import { toNiceCsvDate } from '~/utils'
 
 // prepare csv data
 export const prepareRaisesCsv = ({ raises }) => {
@@ -42,5 +42,5 @@ export const prepareRaisesCsv = ({ raises }) => {
 			)
 		})
 
-	download(`raises.csv`, rows.map((r) => r.join(',')).join('\n'))
+	return { filename: `raises.csv`, rows: rows as (string | number | boolean)[][] }
 }

@@ -11,7 +11,7 @@ import {
 	IProtocolTotalValueLostInHacksByProtocol
 } from '~/containers/Hacks/queries'
 import Layout from '~/layout'
-import { download, formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('protocols/total-value-lost-in-hacks', async () => {
@@ -46,7 +46,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 				protocol.totalHacked - protocol.returnedFunds
 			])
 		}
-		download('total-value-lost-in-hacks.csv', rows.map((r) => r.join(',')).join('\n'))
+		return { filename: 'total-value-lost-in-hacks.csv', rows: rows as (string | number | boolean)[][] }
 	}, [protocols])
 
 	return (
@@ -73,7 +73,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
-						<CSVDownloadButton onClick={prepareCsv} smol />
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
 			/>

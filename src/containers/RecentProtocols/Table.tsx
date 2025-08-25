@@ -21,7 +21,7 @@ import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
-import { download, formattedNum, toNiceDaysAgo } from '~/utils'
+import { formattedNum, toNiceDaysAgo } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
 	data,
@@ -156,10 +156,8 @@ export function RecentlyListedProtocolsTable({
 				'Listed At': new Date(row.listedAt * 1000).toLocaleDateString()
 			}
 		})
-		download(
-			'protocols.csv',
-			[headers, ...csvData.map((row) => headers.map((header) => row[header]).join(','))].join('\n')
-		)
+		const rows = [headers, ...csvData.map((row) => headers.map((header) => row[header]))]
+		return { filename: 'protocols.csv', rows: rows as (string | number | boolean)[][] }
 	}, [data])
 
 	return (
@@ -203,7 +201,7 @@ export function RecentlyListedProtocolsTable({
 
 					{forkedList ? <HideForkedProtocols /> : null}
 
-					<CSVDownloadButton onClick={prepareCsv} />
+					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />

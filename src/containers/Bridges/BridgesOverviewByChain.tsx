@@ -10,7 +10,7 @@ import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
 import { TxsTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
 import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { download, formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
+import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -135,10 +135,11 @@ export function BridgesOverviewByChain({
 					}, 0)
 				])
 			})
-		download(fileName, rows.map((r) => r.join(',')).join('\n'))
+
+		return { filename: fileName, rows }
 	}, [filteredBridges, messagingProtocols, bridgeNameToChartDataIndex, chartDataByBridge])
 
-	const prepateChartCsv = React.useCallback(() => {
+	const prepareChartCsv = React.useCallback(() => {
 		let rows = []
 		let fileName = 'bridge-chart-data.csv'
 
@@ -181,11 +182,7 @@ export function BridgesOverviewByChain({
 			})
 		}
 
-		if (rows.length === 0) {
-			alert('Not supported for this chart type')
-		} else {
-			download(fileName, rows.map((r) => r.join(',')).join('\n'))
-		}
+		return { filename: fileName, rows }
 	}, [
 		selectedChain,
 		chartView,
@@ -243,7 +240,7 @@ export function BridgesOverviewByChain({
 						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(monthTotalVolume, true)}</span>
 					</p>
 
-					<CSVDownloadButton onClick={prepareCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{selectedChain === 'All' ? (
@@ -338,7 +335,7 @@ export function BridgesOverviewByChain({
 						</>
 					)}
 					<div className="flex items-center justify-end p-3">
-						<CSVDownloadButton onClick={prepateChartCsv} smol />
+						<CSVDownloadButton prepareCsv={prepareChartCsv} smol />
 					</div>
 				</div>
 			</div>

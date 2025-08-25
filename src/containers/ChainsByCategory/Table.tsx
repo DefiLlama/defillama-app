@@ -23,7 +23,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import useWindowSize from '~/hooks/useWindowSize'
-import { chainIconUrl, download, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
 
@@ -168,7 +168,7 @@ export function ChainsByCategoryTable({
 		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
-	const prepateCsv = React.useCallback(() => {
+	const prepareCsv = React.useCallback(() => {
 		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
@@ -189,8 +189,7 @@ export function ChainsByCategoryTable({
 			})
 		})
 
-		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-		download(`defillama-chains.csv`, csvContent)
+		return { filename: `defillama-chains.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
 	}, [instance])
 
 	return (
@@ -248,7 +247,7 @@ export function ChainsByCategoryTable({
 					</div>
 
 					<TVLRange triggerClassName="w-full sm:w-auto" />
-					<CSVDownloadButton onClick={prepateCsv} />
+					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />

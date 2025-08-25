@@ -231,9 +231,12 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			return data
 		})
 
-		const csv = [headers.join(','), ...csvData.map((row) => headers.map((h) => row[h]).join(','))].join('\n')
+		const rows = [headers, ...csvData.map((row) => headers.map((h) => row[h]))]
 
-		download(`token-usage-${tokenSymbols.join('-') || 'unknown'}.csv`, csv)
+		return {
+			filename: `token-usage-${tokenSymbols.join('-') || 'unknown'}.csv`,
+			rows: rows as (string | number | boolean)[][]
+		}
 	}
 
 	if (!tokenSymbols || tokenSymbols.length === 0) {

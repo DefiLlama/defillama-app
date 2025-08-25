@@ -10,14 +10,14 @@ import {
 } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { downloadChart } from '~/components/ECharts/utils'
+import { prepareChartCsv } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, download, formattedNum, toNiceDayMonthAndYear } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, toNiceDayMonthAndYear } from '~/utils'
 import { IHacksPageData } from './queries'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -64,7 +64,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 			for (const { name, date, amount, chains, classification, target, technique, bridge, language, link } of data) {
 				rows.push([name, date, amount, chains?.join(','), classification, target, technique, bridge, language, link])
 			}
-			download('hacks.csv', rows.map((r) => r.join(',')).join('\n'))
+			return { filename: 'hacks.csv', rows }
 		} catch (error) {
 			console.error('Error generating CSV:', error)
 		}
@@ -91,7 +91,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton onClick={prepareCsv} />
+				<CSVDownloadButton prepareCsv={prepareCsv} />
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>
@@ -113,21 +113,17 @@ export const HacksContainer = ({
 	const [chartType, setChartType] = React.useState('Monthly Sum')
 
 	const prepareCsv = React.useCallback(() => {
-		try {
-			if (chartType === 'Monthly Sum') {
-				downloadChart(
-					{ 'Total Value Hacked': monthlyHacksChartData['Total Value Hacked'].data },
-					`total-value-hacked.csv`
-				)
-			} else {
-				let rows: Array<Array<string | number>> = [['Technique', 'Value']]
-				for (const { name, value } of pieChartData) {
-					rows.push([name, value])
-				}
-				download('total-hacked-by-technique.csv', rows.map((r) => r.join(',')).join('\n'))
+		if (chartType === 'Monthly Sum') {
+			return prepareChartCsv(
+				{ 'Total Value Hacked': monthlyHacksChartData['Total Value Hacked'].data },
+				`total-value-hacked.csv`
+			)
+		} else {
+			let rows: Array<Array<string | number>> = [['Technique', 'Value']]
+			for (const { name, value } of pieChartData) {
+				rows.push([name, value])
 			}
-		} catch (error) {
-			console.error('Error generating CSV:', error)
+			return { filename: 'total-hacked-by-technique.csv', rows }
 		}
 	}, [monthlyHacksChartData, pieChartData, chartType])
 
@@ -151,7 +147,7 @@ export const HacksContainer = ({
 				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="m-2 flex flex-wrap items-center justify-between gap-2">
 						<TagGroup setValue={setChartType} selectedValue={chartType} values={chartTypeList} />
-						<CSVDownloadButton onClick={prepareCsv} smol />
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 					{chartType === 'Monthly Sum' ? (
 						<React.Suspense fallback={<></>}>

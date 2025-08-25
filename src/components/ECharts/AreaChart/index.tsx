@@ -3,7 +3,7 @@ import * as echarts from 'echarts/core'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { download, slug, toNiceCsvDate } from '~/utils'
+import { slug, toNiceCsvDate } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { stringToColour } from '../utils'
@@ -310,26 +310,22 @@ export default function AreaChart({
 	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
 
 	const prepareCsv = useCallback(() => {
-		try {
-			let rows = []
-			if (!chartsStack || chartsStack.length === 0) {
-				rows = [['Timestamp', 'Date', 'Value']]
-				for (const [date, value] of chartData ?? []) {
-					rows.push([date, toNiceCsvDate(date), value])
-				}
-			} else {
-				rows = [['Timestamp', 'Date', ...chartsStack]]
-				for (const item of chartData ?? []) {
-					const { date, ...rest } = item
-					rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
-				}
+		let rows = []
+		if (!chartsStack || chartsStack.length === 0) {
+			rows = [['Timestamp', 'Date', 'Value']]
+			for (const [date, value] of chartData ?? []) {
+				rows.push([date, toNiceCsvDate(date), value])
 			}
-			const Mytitle = title ? slug(title) : 'data'
-			const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-			download(filename, rows.map((r) => r.join(',')).join('\n'))
-		} catch (error) {
-			console.error('Error generating CSV:', error)
+		} else {
+			rows = [['Timestamp', 'Date', ...chartsStack]]
+			for (const item of chartData ?? []) {
+				const { date, ...rest } = item
+				rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
+			}
 		}
+		const Mytitle = title ? slug(title) : 'data'
+		const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+		return { filename, rows }
 	}, [chartData, chartsStack, title])
 
 	return (
@@ -356,7 +352,7 @@ export default function AreaChart({
 							portal
 						/>
 					)}
-					{hideDownloadButton ? null : <CSVDownloadButton onClick={prepareCsv} smol />}
+					{hideDownloadButton ? null : <CSVDownloadButton prepareCsv={prepareCsv} smol />}
 				</div>
 			) : null}
 			<div
