@@ -18,7 +18,7 @@ import Layout from '~/layout'
 function ProPageContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()
-	const [activeTab, setActiveTab] = useState<'my-dashboards' | 'discover' | 'liked'>(
+	const [activeTab, setActiveTab] = useState<'my-dashboards' | 'discover' | 'favorites'>(
 		isAuthenticated && subscription?.status === 'active' ? 'my-dashboards' : 'discover'
 	)
 
@@ -50,8 +50,8 @@ function ProContent({
 	hasActiveSubscription,
 	isAuthenticated
 }: {
-	activeTab: 'my-dashboards' | 'discover' | 'liked'
-	setActiveTab: (tab: 'my-dashboards' | 'discover' | 'liked') => void
+	activeTab: 'my-dashboards' | 'discover' | 'favorites'
+	setActiveTab: (tab: 'my-dashboards' | 'discover' | 'favorites') => void
 	hasActiveSubscription: boolean
 	isAuthenticated: boolean
 }) {
@@ -109,13 +109,13 @@ function ProContent({
 						</button>
 						{isAuthenticated && (
 							<button
-								onClick={() => setActiveTab('liked')}
+								onClick={() => setActiveTab('favorites')}
 								className={`relative pb-3 text-base font-medium transition-colors ${
-									activeTab === 'liked' ? 'pro-text1' : 'pro-text3 hover:pro-text1'
+									activeTab === 'favorites' ? 'pro-text1' : 'pro-text3 hover:pro-text1'
 								}`}
 							>
-								Liked
-								{activeTab === 'liked' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
+								Favorites
+								{activeTab === 'favorites' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
 							</button>
 						)}
 					</div>
@@ -159,7 +159,7 @@ function ProContent({
 					onCreateNew={createNewDashboard}
 					onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
 				/>
-			) : activeTab === 'liked' ? (
+			) : activeTab === 'favorites' ? (
 				<LikedDashboards />
 			) : (
 				<DashboardDiscovery />

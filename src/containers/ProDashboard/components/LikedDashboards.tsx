@@ -20,9 +20,9 @@ export function LikedDashboards() {
 				<div className="mb-4">
 					<Icon name="star" height={48} width={48} className="mx-auto text-(--text-tertiary)" />
 				</div>
-				<h3 className="mb-2 text-lg font-medium text-(--text-primary)">No liked dashboards yet</h3>
+				<h3 className="mb-2 text-lg font-medium text-(--text-primary)">No favorite dashboards yet</h3>
 				<p className="text-(--text-tertiary)">
-					Dashboards you like will appear here. Start exploring and liking dashboards from the Discover tab!
+					Dashboards you mark as favorites will appear here. Start exploring dashboards from the Discover tab!
 				</p>
 			</div>
 		)
