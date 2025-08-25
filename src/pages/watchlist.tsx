@@ -24,7 +24,7 @@ export const getStaticProps = withPerformanceLogging('watchlist', async () => {
 	])
 
 	const { protocols, parentProtocols } = protocolsData
-	const { chains, chainAssets } = chainsData
+	const { chains } = chainsData
 	const { protocols: protocolsVolumeByChain } = protocolsVolumeByChainData
 
 	const protocolsList = formatProtocolsData({
@@ -39,8 +39,7 @@ export const getStaticProps = withPerformanceLogging('watchlist', async () => {
 			parentProtocols,
 			protocolsVolumeByChain,
 			protocolsFeesAndRevenueByChain,
-			chains,
-			chainAssets
+			chains
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -51,8 +50,7 @@ export default function Portfolio({
 	parentProtocols,
 	protocolsVolumeByChain,
 	protocolsFeesAndRevenueByChain,
-	chains,
-	chainAssets
+	chains
 }) {
 	return (
 		<Layout title={`Watchlist - DefiLlama`} includeInMetricsOptions={tvlOptions}>
@@ -62,7 +60,6 @@ export default function Portfolio({
 				protocolsVolumeByChain={protocolsVolumeByChain}
 				protocolsFeesAndRevenueByChain={protocolsFeesAndRevenueByChain}
 				chains={chains}
-				chainAssets={chainAssets}
 			/>
 		</Layout>
 	)

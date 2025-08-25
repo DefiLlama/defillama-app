@@ -1,4 +1,4 @@
-import { IChainAssets } from '~/containers/ChainOverview/types'
+import { IChainAsset } from '~/containers/ChainOverview/types'
 
 interface IChainTvl {
 	tvl: number
@@ -53,6 +53,12 @@ interface IChainTvl {
 			tvlPrevWeek: number
 			tvlPrevMonth: number
 		}
+		dcAndLsOverlap?: {
+			tvl: number
+			tvlPrevDay: number
+			tvlPrevWeek: number
+			tvlPrevMonth: number
+		}
 	}
 	change_1d: number | null
 	change_7d: number | null
@@ -76,15 +82,18 @@ interface IChain extends IChainTvl {
 	stablesMcap: number | null
 	users: number | null
 	totalAppRevenue24h: number | null
+	chainAssets: IChainAsset | null
+	childGroups: Record<string, Array<string>> | null
 }
 
-export interface IChainsByCategoryData extends Omit<IChainsByCategory, 'chainTvls' | 'categories'> {
+export interface IChainsByCategoryData {
 	category: string
 	allCategories: Array<{
 		label: string
 		to: string
 	}>
 	colorsByChain: Record<string, string>
-	chainAssets: IChainAssets
 	chains: Array<IChain>
+	totalTvlByDate: Record<string, Record<number, number>>
+	tvlChartsByChain: Record<string, Record<string, Record<number, number>>>
 }

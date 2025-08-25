@@ -16,11 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		})
 
 		const chains = data.chains || []
-		const chainAssets = data.chainAssets || {}
 
 		const formattedChains = chains.map((chain: any) => {
-			const assets = chainAssets[chain.name]
-
 			return {
 				name: chain.name,
 				icon: chain.icon || null,

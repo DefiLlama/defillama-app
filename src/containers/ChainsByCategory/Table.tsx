@@ -11,6 +11,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { Bookmark } from '~/components/Bookmark'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -22,7 +23,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import useWindowSize from '~/hooks/useWindowSize'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, download, formattedNum, formattedPercent, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
 
@@ -167,6 +168,31 @@ export function ChainsByCategoryTable({
 		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
+	const handleDownloadCsv = () => {
+		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
+		const headers = visibleColumns.map((col) => {
+			if (typeof col.columnDef.header === 'string') {
+				return col.columnDef.header
+			}
+			return col.id
+		})
+
+		const rows = instance.getSortedRowModel().rows.map((row) => {
+			return visibleColumns.map((col) => {
+				const cell = row.getAllCells().find((c) => c.column.id === col.id)
+				if (!cell) return ''
+
+				const value = cell.getValue()
+				if (value === null || value === undefined) return ''
+
+				return value
+			})
+		})
+
+		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
+		download(`defillama-chains.csv`, csvContent)
+	}
+
 	return (
 		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
@@ -222,6 +248,7 @@ export function ChainsByCategoryTable({
 					</div>
 
 					<TVLRange triggerClassName="w-full sm:w-auto" />
+					<CSVDownloadButton onClick={handleDownloadCsv} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
@@ -402,10 +429,10 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: 'Bridged TVL',
 		accessorKey: 'chainAssets',
-		accessorFn: (row) => row.chainAssets?.total ?? undefined,
+		accessorFn: (row) => (row.chainAssets?.total?.total ? +(+row.chainAssets.total.total).toFixed(2) : undefined),
 		cell: ({ row }) => {
 			const chainAssets: any = row.original.chainAssets
-			if (!chainAssets?.total) return null
+			if (!chainAssets?.total?.total) return null
 
 			const chainAssetsBreakdown = (
 				<div className="flex w-52 flex-col gap-1">
@@ -438,7 +465,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 
 			return (
 				<Tooltip content={chainAssetsBreakdown} className="justify-end">
-					{formattedNum(+chainAssets.total, true)}
+					{formattedNum(+chainAssets.total?.total, true)}
 				</Tooltip>
 			)
 		},

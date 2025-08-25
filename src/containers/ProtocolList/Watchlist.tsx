@@ -20,8 +20,7 @@ export function DefiWatchlistContainer({
 	parentProtocols,
 	protocolsVolumeByChain,
 	protocolsFeesAndRevenueByChain,
-	chains,
-	chainAssets
+	chains
 }) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
@@ -92,9 +91,9 @@ export function DefiWatchlistContainer({
 			data: chains,
 			applyLqAndDc: true,
 			extraTvlsEnabled,
-			chainAssets
+			chainAssets: null
 		})
-	}, [chains, chainAssets, extraTvlsEnabled])
+	}, [chains, extraTvlsEnabled])
 
 	const filteredChains = useMemo(() => {
 		return formattedChains.filter((c) => savedChains.has(c.name))
