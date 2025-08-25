@@ -11,12 +11,7 @@ interface DashboardListProps {
 	onDeleteDashboard?: (dashboardId: string) => void
 }
 
-export function DashboardList({
-	dashboards,
-	isLoading,
-	onCreateNew,
-	onDeleteDashboard
-}: DashboardListProps) {
+export function DashboardList({ dashboards, isLoading, onCreateNew, onDeleteDashboard }: DashboardListProps) {
 	const [deletingId, setDeletingId] = useState<string | null>(null)
 
 	const handleDelete = async (dashboardId: string, e: React.MouseEvent) => {
@@ -57,7 +52,7 @@ export function DashboardList({
 					</button>
 				</div>
 			) : (
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 					{dashboards.map((dashboard) => (
 						<DashboardCard
 							key={dashboard.id}

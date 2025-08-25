@@ -12,13 +12,7 @@ interface DashboardCardProps {
 	viewMode?: 'grid' | 'list'
 }
 
-export function DashboardCard({
-	dashboard,
-	onTagClick,
-	onDelete,
-	isDeleting,
-	viewMode = 'grid'
-}: DashboardCardProps) {
+export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, viewMode = 'grid' }: DashboardCardProps) {
 	const handleTagClick = (e: React.MouseEvent, tag: string) => {
 		e.stopPropagation()
 		onTagClick?.(tag)
@@ -66,15 +60,12 @@ export function DashboardCard({
 
 	if (viewMode === 'list') {
 		return (
-			<BasicLink
-				href={`/pro/${dashboard.id}`}
-				className="pro-glass hover:bg-opacity-40 flex cursor-pointer items-center justify-between gap-4 p-4 transition-all hover:bg-(--bg-glass) no-underline"
-			>
+			<div className="pro-glass hover:bg-opacity-40 flex cursor-pointer items-center justify-between gap-4 p-4 no-underline transition-all hover:bg-(--bg-glass)">
 				<div className="min-w-0 flex-1">
 					<div className="mb-2 flex items-center gap-3">
-						<h3 className="pro-text1 truncate text-lg font-medium">
+						<h2 className="pro-text1 truncate text-lg font-medium">
 							{dashboard.data.dashboardName || 'Untitled Dashboard'}
-						</h3>
+						</h2>
 						{dashboard.visibility === 'public' ? (
 							<span title="Public dashboard">
 								<Icon name="earth" height={16} width={16} className="pro-text3" />
@@ -123,20 +114,20 @@ export function DashboardCard({
 						</div>
 					</div>
 				</div>
-			</BasicLink>
+				<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
+					<span className="sr-only">View dashboard</span>
+				</BasicLink>
+			</div>
 		)
 	}
 
 	return (
-		<BasicLink
-			href={`/pro/${dashboard.id}`}
-			className="pro-glass hover:bg-opacity-40 group flex h-full cursor-pointer flex-col p-4 transition-all hover:bg-(--bg-glass) no-underline"
-		>
+		<div className="pro-glass hover:bg-opacity-40 group focus-visible:bg-opacity-40 relative flex h-full cursor-pointer flex-col p-4 no-underline transition-all hover:bg-(--bg-glass) focus-visible:bg-(--bg-glass)">
 			<div className="mb-3 flex items-start justify-between">
 				<div className="flex min-w-0 flex-1 items-center gap-2">
-					<h3 className="pro-text1 truncate text-lg font-medium">
+					<h2 className="pro-text1 truncate text-lg font-medium">
 						{dashboard.data.dashboardName || 'Untitled Dashboard'}
-					</h3>
+					</h2>
 					{dashboard.visibility === 'public' ? (
 						<span title="Public dashboard" className="shrink-0">
 							<Icon name="earth" height={16} width={16} className="pro-text3" />
@@ -151,7 +142,7 @@ export function DashboardCard({
 					<button
 						onClick={(e) => onDelete(dashboard.id, e)}
 						disabled={isDeleting}
-						className="shrink-0 p-1 text-(--text-tertiary) opacity-0 transition-all group-hover:opacity-100 hover:text-red-500"
+						className="z-10 shrink-0 p-1 text-(--text-tertiary) opacity-0 transition-all group-focus-within:opacity-100 group-hover:opacity-100 hover:text-red-500"
 						title="Delete dashboard"
 					>
 						{isDeleting ? (
@@ -214,6 +205,9 @@ export function DashboardCard({
 					</div>
 				)}
 			</div>
-		</BasicLink>
+			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
+				<span className="sr-only">View dashboard</span>
+			</BasicLink>
+		</div>
 	)
 }

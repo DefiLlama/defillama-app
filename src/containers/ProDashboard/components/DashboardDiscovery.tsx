@@ -132,14 +132,13 @@ export function DashboardDiscovery() {
 						Showing {dashboards.length} of {totalItems} dashboards
 					</div>
 
-					<div className={viewMode === 'grid' ? 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
+					<div
+						className={
+							viewMode === 'grid' ? 'grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' : 'space-y-4'
+						}
+					>
 						{dashboards.map((dashboard) => (
-							<DashboardCard
-								key={dashboard.id}
-								dashboard={dashboard}
-								onTagClick={handleTagClick}
-								viewMode={viewMode}
-							/>
+							<DashboardCard key={dashboard.id} dashboard={dashboard} onTagClick={handleTagClick} viewMode={viewMode} />
 						))}
 					</div>
 
