@@ -114,11 +114,11 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 		if (item.kind === 'table') {
 			if (item.tableType === 'dataset') {
-				if (item.datasetType === 'cex') return <CexDataset />
-				if (item.datasetType === 'revenue') return <RevenueDataset chains={item.chains} />
-				if (item.datasetType === 'holders-revenue') return <HoldersRevenueDataset chains={item.chains} />
-				if (item.datasetType === 'earnings') return <EarningsDataset chains={item.chains} />
-				if (item.datasetType === 'fees') return <FeesDataset chains={item.chains} />
+				if (item.datasetType === 'cex') return <CexDataset tableId={item.id} />
+				if (item.datasetType === 'revenue') return <RevenueDataset chains={item.chains} tableId={item.id} />
+				if (item.datasetType === 'holders-revenue') return <HoldersRevenueDataset chains={item.chains} tableId={item.id} />
+				if (item.datasetType === 'earnings') return <EarningsDataset chains={item.chains} tableId={item.id} />
+				if (item.datasetType === 'fees') return <FeesDataset chains={item.chains} tableId={item.id} />
 				if (item.datasetType === 'token-usage')
 					return <TokenUsageDataset config={item} onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} />
 				if (item.datasetType === 'yields')
@@ -133,11 +133,11 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							/>
 						</div>
 					)
-				if (item.datasetType === 'aggregators') return <AggregatorsDataset chains={item.chains} />
-				if (item.datasetType === 'perps') return <PerpsDataset chains={item.chains} />
-				if (item.datasetType === 'options') return <OptionsDataset chains={item.chains} />
-				if (item.datasetType === 'dexs') return <DexsDataset chains={item.chains} />
-				if (item.datasetType === 'bridge-aggregators') return <BridgeAggregatorsDataset chains={item.chains} />
+				if (item.datasetType === 'aggregators') return <AggregatorsDataset chains={item.chains} tableId={item.id} />
+				if (item.datasetType === 'perps') return <PerpsDataset chains={item.chains} tableId={item.id} />
+				if (item.datasetType === 'options') return <OptionsDataset chains={item.chains} tableId={item.id} />
+				if (item.datasetType === 'dexs') return <DexsDataset chains={item.chains} tableId={item.id} />
+				if (item.datasetType === 'bridge-aggregators') return <BridgeAggregatorsDataset chains={item.chains} tableId={item.id} />
 				if (item.datasetType === 'trending-contracts')
 					return (
 						<TrendingContractsDataset
@@ -161,7 +161,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							columnVisibility={item.columnVisibility}
 						/>
 					)
-				return <StablecoinsDataset chain={item.datasetChain || 'All'} />
+				return <StablecoinsDataset chain={item.datasetChain || 'All'} tableId={item.id} />
 			}
 
 			return (

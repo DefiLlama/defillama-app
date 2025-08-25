@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import {
 	flexRender,
 	getCoreRowModel,
@@ -16,6 +16,7 @@ import { download, formattedNum } from '~/utils'
 import { reactSelectStyles } from '../../../utils/reactSelectStyles'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
+import { useRegisterCSVExtractor } from '../../../hooks/useCSVRegistry'
 import { getColumns } from './columns'
 import { useTokenSearch } from './useTokenSearch'
 import { useTokenUsageData } from './useTokenUsageData'
@@ -206,7 +207,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		return overlap
 	}, [rawData, tokenSymbols])
 
-	const downloadCSV = () => {
+	const downloadCSV = useCallback((returnContent: boolean = false) => {
 		const isMultiToken = tokenSymbols.length > 1
 		const headers = ['Protocol', 'Category']
 
@@ -233,8 +234,15 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 
 		const csv = [headers.join(','), ...csvData.map((row) => headers.map((h) => row[h]).join(','))].join('\n')
 
+		if (returnContent) {
+			return csv
+		}
+
 		download(`token-usage-${tokenSymbols.join('-') || 'unknown'}.csv`, csv)
-	}
+	}, [table, tokenSymbols])
+
+	// Register CSV extractor with the registry
+	useRegisterCSVExtractor(config.id, downloadCSV)
 
 	if (!tokenSymbols || tokenSymbols.length === 0) {
 		return (
@@ -530,7 +538,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								<span className="pro-text1 text-xs font-medium whitespace-nowrap sm:text-sm">Include CEXs</span>
 							</div>
 							<ProTableCSVButton
-								onClick={downloadCSV}
+								onClick={() => downloadCSV()}
 								className="pro-border flex h-[38px] items-center gap-2 border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"
 							/>
 						</div>

@@ -17,10 +17,11 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { useRegisterCSVExtractor } from '../../../hooks/useCSVRegistry'
 import { revenueDatasetColumns } from './columns'
 import { useRevenueData } from './useRevenueData'
 
-export function RevenueDataset({ chains }: { chains?: string[] }) {
+export function RevenueDataset({ chains, tableId }: { chains?: string[]; tableId?: string }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -62,6 +63,52 @@ export function RevenueDataset({ chains }: { chains?: string[] }) {
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel()
 	})
+
+	const downloadCSV = React.useCallback((returnContent: boolean = false) => {
+		const rows = instance.getFilteredRowModel().rows
+		const csvData = rows.map((row) => row.original)
+		const headers =
+			chains && chains.length > 0
+				? ['Protocol', 'Category', '24h Revenue', '7d Revenue', '30d Revenue', 'Chains']
+				: [
+						'Protocol',
+						'Category',
+						'24h Revenue',
+						'7d Revenue',
+						'30d Revenue',
+						'24h Change',
+						'7d Change',
+						'Chains'
+					]
+
+		const csv = [
+			headers.join(','),
+			...csvData.map((item) => {
+				const values = [item.name, item.category, item.total24h, item.total7d, item.total30d]
+				if (!(chains && chains.length > 0)) {
+					values.push(item.change_1d, item.change_7d)
+				}
+				values.push(item.chains?.join(';') || '')
+				return values.join(',')
+			})
+		].join('\n')
+
+		if (returnContent) {
+			return csv
+		}
+
+		const blob = new Blob([csv], { type: 'text/csv' })
+		const url = URL.createObjectURL(blob)
+		const a = document.createElement('a')
+		a.href = url
+		a.download = `revenue-data-${new Date().toISOString().split('T')[0]}.csv`
+		document.body.appendChild(a)
+		a.click()
+		document.body.removeChild(a)
+		URL.revokeObjectURL(url)
+	}, [instance, chains])
+
+	useRegisterCSVExtractor(tableId, downloadCSV)
 
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
@@ -138,45 +185,7 @@ export function RevenueDataset({ chains }: { chains?: string[] }) {
 					</h3>
 					<div className="flex items-center gap-2">
 						<ProTableCSVButton
-							onClick={() => {
-								const rows = instance.getFilteredRowModel().rows
-								const csvData = rows.map((row) => row.original)
-								const headers =
-									chains && chains.length > 0
-										? ['Protocol', 'Category', '24h Revenue', '7d Revenue', '30d Revenue', 'Chains']
-										: [
-												'Protocol',
-												'Category',
-												'24h Revenue',
-												'7d Revenue',
-												'30d Revenue',
-												'24h Change',
-												'7d Change',
-												'Chains'
-											]
-
-								const csv = [
-									headers.join(','),
-									...csvData.map((item) => {
-										const values = [item.name, item.category, item.total24h, item.total7d, item.total30d]
-										if (!(chains && chains.length > 0)) {
-											values.push(item.change_1d, item.change_7d)
-										}
-										values.push(item.chains?.join(';') || '')
-										return values.join(',')
-									})
-								].join('\n')
-
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `revenue-data-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
-							}}
+							onClick={() => downloadCSV()}
 							smol
 						/>
 						<input

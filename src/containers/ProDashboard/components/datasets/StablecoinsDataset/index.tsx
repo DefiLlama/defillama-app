@@ -15,6 +15,7 @@ import {
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
+import { useRegisterCSVExtractor } from '../../../hooks/useCSVRegistry'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -23,9 +24,10 @@ import { useStablecoinsData } from './useStablecoinsData'
 
 interface StablecoinsDatasetProps {
 	chain: string
+	tableId?: string
 }
 
-export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
+export function StablecoinsDataset({ chain, tableId }: StablecoinsDatasetProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'mcap', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -89,6 +91,46 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 		return () => clearTimeout(id)
 	}, [projectName, instance])
 
+	const downloadCSV = React.useCallback(
+		(returnContent: boolean = false) => {
+			const rows = instance.getFilteredRowModel().rows
+			const csvData = rows.map((row) => row.original)
+			const headers = ['Stablecoin', 'Market Cap', '24h Change', '7d Change', '1m Change', 'Price', 'Chains']
+			const csv = [
+				headers.join(','),
+				...csvData.map((item) =>
+					[
+						item.name,
+						item.mcap,
+						item.change_1d,
+						item.change_7d,
+						item.change_1m,
+						item.price,
+						item.chains?.join(';') || ''
+					].join(',')
+				)
+			].join('\n')
+
+			if (returnContent) {
+				return csv
+			}
+
+			const blob = new Blob([csv], { type: 'text/csv' })
+			const url = URL.createObjectURL(blob)
+			const a = document.createElement('a')
+			a.href = url
+			a.download = `stablecoins-${chain}-${new Date().toISOString().split('T')[0]}.csv`
+			document.body.appendChild(a)
+			a.click()
+			document.body.removeChild(a)
+			URL.revokeObjectURL(url)
+		},
+		[instance, chain]
+	)
+
+	// Register CSV extractor with the registry
+	useRegisterCSVExtractor(tableId, downloadCSV)
+
 	if (isLoading) {
 		return (
 			<div className="flex h-full w-full flex-col p-4">
@@ -126,38 +168,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 				<div className="flex items-center justify-between gap-4">
 					<h3 className="pro-text1 text-lg font-semibold">{chain} Stablecoins</h3>
 					<div className="flex items-center gap-2">
-						<ProTableCSVButton
-							onClick={() => {
-								const rows = instance.getFilteredRowModel().rows
-								const csvData = rows.map((row) => row.original)
-								const headers = ['Stablecoin', 'Market Cap', '24h Change', '7d Change', '1m Change', 'Price', 'Chains']
-								const csv = [
-									headers.join(','),
-									...csvData.map((item) =>
-										[
-											item.name,
-											item.mcap,
-											item.change_1d,
-											item.change_7d,
-											item.change_1m,
-											item.price,
-											item.chains?.join(';') || ''
-										].join(',')
-									)
-								].join('\n')
-
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `stablecoins-${chain}-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
-							}}
-							smol
-						/>
+						<ProTableCSVButton onClick={() => downloadCSV()} smol />
 						<input
 							type="text"
 							placeholder="Search stablecoins..."

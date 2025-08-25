@@ -18,6 +18,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { useRegisterCSVExtractor } from '../../../hooks/useCSVRegistry'
 import { trendingContractsColumns } from './columns'
 import { useTrendingContractsData } from './useTrendingContractsData'
 
@@ -108,6 +109,53 @@ export function TrendingContractsDataset({
 		return () => clearTimeout(id)
 	}, [contractSearch, instance])
 
+	const downloadCSV = React.useCallback((returnContent: boolean = false) => {
+		const rows = instance.getFilteredRowModel().rows
+		const csvData = rows.map((row) => row.original)
+		const headers = [
+			'Contract',
+			'Name', 
+			'Transactions',
+			'Tx Growth',
+			'Active Accounts',
+			'Account Growth',
+			'Gas Spent',
+			'Gas Growth'
+		]
+		const csv = [
+			headers.join(','),
+			...csvData.map((item) => {
+				return [
+					item.contract,
+					item.name || '',
+					item.txns,
+					item.txns_percentage_growth,
+					item.active_accounts,
+					item.accounts_percentage_growth,
+					item.gas_spend,
+					item.gas_spend_percentage_growth
+				].join(',')
+			})
+		].join('\n')
+
+		if (returnContent) {
+			return csv
+		}
+
+		const blob = new Blob([csv], { type: 'text/csv' })
+		const url = URL.createObjectURL(blob)
+		const a = document.createElement('a')
+		a.href = url
+		a.download = `trending-contracts-${chain.toLowerCase()}-${timeframe}-${new Date().toISOString().split('T')[0]}.csv`
+		document.body.appendChild(a)
+		a.click()
+		document.body.removeChild(a)
+		URL.revokeObjectURL(url)
+	}, [instance, chain, timeframe])
+
+	// Register CSV extractor with the registry
+	useRegisterCSVExtractor(tableId, downloadCSV)
+
 	if (isLoading) {
 		return (
 			<div className="flex h-full w-full flex-col p-4">
@@ -170,45 +218,7 @@ export function TrendingContractsDataset({
 							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 						/>
 						<ProTableCSVButton
-							onClick={() => {
-								const rows = instance.getFilteredRowModel().rows
-								const csvData = rows.map((row) => row.original)
-								const headers = [
-									'Contract',
-									'Name',
-									'Transactions',
-									'Tx Growth',
-									'Active Accounts',
-									'Account Growth',
-									'Gas Spent',
-									'Gas Growth'
-								]
-								const csv = [
-									headers.join(','),
-									...csvData.map((item) => {
-										return [
-											item.contract,
-											item.name || '',
-											item.txns,
-											item.txns_percentage_growth,
-											item.active_accounts,
-											item.accounts_percentage_growth,
-											item.gas_spend,
-											item.gas_spend_percentage_growth
-										].join(',')
-									})
-								].join('\n')
-
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `trending-contracts-${chain.toLowerCase()}-${timeframe}-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
-							}}
+							onClick={() => downloadCSV()}
 							smol
 						/>
 						<input

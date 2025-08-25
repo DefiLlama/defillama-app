@@ -18,75 +18,82 @@ export const useChartExtraction = () => {
 	const { chartsWithData, getProtocolInfo } = useProDashboard()
 	const { getCSVExtractor } = useCSVRegistry()
 
-	const extractChartImage = useCallback(async (itemId: string): Promise<string | null> => {
+	const extractChartImage = useCallback(
+		async (itemId: string): Promise<string | null> => {
+			try {
+				const item = chartsWithData?.find((item) => item.id === itemId)
 
-		try {
-			const item = chartsWithData?.find(item => item.id === itemId)
-			
-			if (item && item.kind === 'table') {
-				return null
-			}
-
-			await new Promise(resolve => setTimeout(resolve, 500))
-
-			const selectors = [
-				`[data-chart-id="${itemId}"] canvas[data-zr-dom-id]`,
-				`[data-chart-id="${itemId}"] canvas`,
-				`#${itemId} canvas[data-zr-dom-id]`,
-				`#${itemId} canvas`,
-				`[data-multi-id="${itemId}"] canvas[data-zr-dom-id]`,
-				`[data-builder-id="${itemId}"] canvas[data-zr-dom-id]`
-			]
-
-			let canvas: HTMLCanvasElement | null = null
-
-			for (const selector of selectors) {
-				canvas = document.querySelector(selector)
-				if (canvas) {
-					break
+				if (item && item.kind === 'table') {
+					return null
 				}
-			}
 
-			if (!canvas) {
+				await new Promise((resolve) => setTimeout(resolve, 500))
+
+				const selectors = [
+					`[data-chart-id="${itemId}"] canvas[data-zr-dom-id]`,
+					`[data-chart-id="${itemId}"] canvas`,
+					`#${itemId} canvas[data-zr-dom-id]`,
+					`#${itemId} canvas`,
+					`[data-multi-id="${itemId}"] canvas[data-zr-dom-id]`,
+					`[data-builder-id="${itemId}"] canvas[data-zr-dom-id]`
+				]
+
+				let canvas: HTMLCanvasElement | null = null
+
+				for (const selector of selectors) {
+					canvas = document.querySelector(selector)
+					if (canvas) {
+						break
+					}
+				}
+
+				if (!canvas) {
+					return null
+				}
+
+				const imageData = canvas.toDataURL('image/png')
+				return imageData
+			} catch (error) {
 				return null
 			}
+		},
+		[chartsWithData]
+	)
 
-			const imageData = canvas.toDataURL('image/png')			
-			return imageData
-		} catch (error) {
-			return null
-		}
-	}, [chartsWithData])
+	const extractChartCSV = useCallback(
+		async (itemId: string): Promise<string | null> => {
+			try {
+				const chartItem = chartsWithData?.find((item) => item.id === itemId)
 
-	const extractChartCSV = useCallback(async (itemId: string): Promise<string | null> => {
-	
-		try {
-			const chartItem = chartsWithData?.find(item => item.id === itemId)
-			
-			if (!chartItem) {
+				if (!chartItem) {
+					return null
+				}
+
+				let csvContent = ''
+
+				if (chartItem.kind === 'chart') {
+					csvContent = generateChartCSV(chartItem)
+				} else if (chartItem.kind === 'multi') {
+					csvContent = generateMultiChartCSV(chartItem)
+				} else if (chartItem.kind === 'builder') {
+					csvContent = generateBuilderChartCSV(chartItem)
+				} else if (chartItem.kind === 'table') {
+					if (chartItem.tableType === 'dataset') {
+						csvContent = await generateDatasetCSV(chartItem)
+					} else {
+						csvContent = await extractTableCSV(itemId)
+					}
+				} else {
+					return null
+				}
+
+				return csvContent
+			} catch (error) {
 				return null
 			}
-
-			let csvContent = ''
-
-			if (chartItem.kind === 'chart') {
-				csvContent = generateChartCSV(chartItem)
-			} else if (chartItem.kind === 'multi') {
-				csvContent = generateMultiChartCSV(chartItem)
-			} else if (chartItem.kind === 'builder') {
-				csvContent = generateBuilderChartCSV(chartItem)
-			} else if (chartItem.kind === 'table') {
-				csvContent = await extractTableCSV(itemId)
-			} else {
-				return null
-			}
-
-			return csvContent
-
-		} catch (error) {
-			return null
-		}
-	}, [chartsWithData])
+		},
+		[chartsWithData]
+	)
 
 	const formatTimestamp = (timestamp: string): string => {
 		return new Date(Number(timestamp) * 1000).toLocaleDateString()
@@ -99,13 +106,10 @@ export const useChartExtraction = () => {
 
 		const itemName = getItemName(chartItem)
 		const chartTypeTitle = 'Data'
-		
+
 		const headers = ['Date', `${itemName} ${chartTypeTitle}`]
-		
-		const rows = chartItem.data.map(([timestamp, value]: [string, number]) => [
-			formatTimestamp(timestamp),
-			value
-		])
+
+		const rows = chartItem.data.map(([timestamp, value]: [string, number]) => [formatTimestamp(timestamp), value])
 
 		return [headers, ...rows].map((row) => row.join(',')).join('\n')
 	}
@@ -133,8 +137,8 @@ export const useChartExtraction = () => {
 
 		const sortedDates = Array.from(allDates).sort()
 		const headers = ['Date', ...Object.keys(allSeries)]
-		
-		const rows = sortedDates.map(date => {
+
+		const rows = sortedDates.map((date) => {
 			const row = [date]
 			for (const seriesName of Object.keys(allSeries)) {
 				row.push(allSeries[seriesName][date]?.toString() || '0')
@@ -142,20 +146,20 @@ export const useChartExtraction = () => {
 			return row
 		})
 
-		return [headers, ...rows].map(row => row.join(',')).join('\n')
+		return [headers, ...rows].map((row) => row.join(',')).join('\n')
 	}
 
 	const generateBuilderChartCSV = (chartItem: ChartItem): string => {
 		return chartItem.data && Array.isArray(chartItem.data) ? generateChartCSV(chartItem) : ''
 	}
 
-	const extractTableCSV = async (itemId: string): Promise<string> => {		
+	const extractTableCSV = async (itemId: string): Promise<string> => {
 		try {
 			const csvExtractor = getCSVExtractor(itemId)
-			
+
 			if (csvExtractor) {
 				const csvContent = csvExtractor(true)
-				
+
 				if (typeof csvContent === 'string') {
 					return csvContent
 				} else {
@@ -164,9 +168,28 @@ export const useChartExtraction = () => {
 			} else {
 				return 'Error: No CSV extractor found for table'
 			}
-			
 		} catch (error) {
 			return `Error: Failed to extract table data - ${error instanceof Error ? error.message : 'Unknown error'}`
+		}
+	}
+
+	const generateDatasetCSV = async (chartItem: any): Promise<string> => {
+		try {
+			if (!chartItem.datasetType) {
+				return 'Error: No dataset type specified'
+			}
+
+			// Get the CSV extractor function for this dataset
+			const csvExtractor = getCSVExtractor(chartItem.id)
+			if (!csvExtractor) {
+				return 'Error: No CSV extractor found for this dataset'
+			}
+
+			// Call the extractor with true to get CSV content directly
+			const csvContent = csvExtractor(true)
+			return typeof csvContent === 'string' ? csvContent : 'Error: CSV extractor returned no data'
+		} catch (error) {
+			return `Error: Failed to extract dataset CSV - ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
 	}
 

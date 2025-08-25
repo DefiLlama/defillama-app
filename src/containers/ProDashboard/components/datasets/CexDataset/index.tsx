@@ -17,10 +17,11 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { useRegisterCSVExtractor } from '../../../hooks/useCSVRegistry'
 import { cexDatasetColumns } from './columns'
 import { useCexData } from './useCexData'
 
-export function CexDataset() {
+export function CexDataset({ tableId }: { tableId?: string } = {}) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'cleanTvl', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -57,6 +58,54 @@ export function CexDataset() {
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel()
 	})
+
+	const downloadCSV = React.useCallback((returnContent: boolean = false) => {
+		const rows = instance.getFilteredRowModel().rows
+		const csvData = rows.map((row) => row.original)
+		const headers = [
+			'Exchange',
+			'TVL',
+			'24h Inflows',
+			'7d Inflows',
+			'1m Inflows',
+			'Spot Volume',
+			'Open Interest',
+			'Leverage',
+			'Audit'
+		]
+		const csv = [
+			headers.join(','),
+			...csvData.map((item) =>
+				[
+					item.name,
+					item.cleanTvl,
+					item['24hInflows'],
+					item['7dInflows'],
+					item['1mInflows'],
+					item.spotVolume || '',
+					item.oi || '',
+					item.leverage || '',
+					item.audit || ''
+				].join(',')
+			)
+		].join('\n')
+
+		if (returnContent) {
+			return csv
+		}
+
+		const blob = new Blob([csv], { type: 'text/csv' })
+		const url = URL.createObjectURL(blob)
+		const a = document.createElement('a')
+		a.href = url
+		a.download = `cex-data-${new Date().toISOString().split('T')[0]}.csv`
+		document.body.appendChild(a)
+		a.click()
+		document.body.removeChild(a)
+		URL.revokeObjectURL(url)
+	}, [instance])
+
+	useRegisterCSVExtractor(tableId, downloadCSV)
 
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
@@ -128,47 +177,7 @@ export function CexDataset() {
 					<h3 className="pro-text1 text-lg font-semibold">Centralized Exchanges</h3>
 					<div className="flex items-center gap-2">
 						<ProTableCSVButton
-							onClick={() => {
-								const rows = instance.getFilteredRowModel().rows
-								const csvData = rows.map((row) => row.original)
-								const headers = [
-									'Exchange',
-									'TVL',
-									'24h Inflows',
-									'7d Inflows',
-									'1m Inflows',
-									'Spot Volume',
-									'Open Interest',
-									'Leverage',
-									'Audit'
-								]
-								const csv = [
-									headers.join(','),
-									...csvData.map((item) =>
-										[
-											item.name,
-											item.cleanTvl,
-											item['24hInflows'],
-											item['7dInflows'],
-											item['1mInflows'],
-											item.spotVolume || '',
-											item.oi || '',
-											item.leverage || '',
-											item.audit || ''
-										].join(',')
-									)
-								].join('\n')
-
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `cex-data-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
-							}}
+							onClick={() => downloadCSV()}
 							smol
 						/>
 						<input

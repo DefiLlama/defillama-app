@@ -19,6 +19,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { useRegisterCSVExtractor } from '../../../hooks/useCSVRegistry'
 import { dexsDatasetColumns } from './columns'
 import { useDexsData } from './useDexsData'
 
@@ -26,7 +27,7 @@ type DexItemWithMarketShare = DexItem & {
 	marketShare7d: number
 }
 
-export function DexsDataset({ chains }: { chains?: string[] }) {
+export function DexsDataset({ chains, tableId }: { chains?: string[]; tableId?: string }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -73,6 +74,57 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel()
 	})
+
+	const downloadCSV = React.useCallback((returnContent: boolean = false) => {
+		const rows = instance.getFilteredRowModel().rows
+		const csvData = rows.map((row) => row.original)
+		const headers = [
+			'Protocol',
+			'24h Volume',
+			'% of Total',
+			'7d Volume',
+			'7d Market Share',
+			'30d Volume',
+			'Cumulative Volume',
+			'24h Change',
+			'7d Change'
+		]
+		const csv = [
+			headers.join(','),
+			...csvData.map((item, index) => {
+				const total24h = csvData.reduce((sum, p) => sum + (p.total24h || 0), 0)
+				const percentage = total24h > 0 ? (item.total24h / total24h) * 100 : 0
+				const cumulative = csvData.slice(0, index + 1).reduce((sum, p) => sum + (p.total24h || 0), 0)
+				return [
+					item.name,
+					item.total24h,
+					percentage.toFixed(2),
+					item.total7d,
+					item.marketShare7d?.toFixed(2) || '0',
+					item.total30d,
+					cumulative,
+					item.change_1d,
+					item.change_7d
+				].join(',')
+			})
+		].join('\n')
+
+		if (returnContent) {
+			return csv
+		}
+
+		const blob = new Blob([csv], { type: 'text/csv' })
+		const url = URL.createObjectURL(blob)
+		const a = document.createElement('a')
+		a.href = url
+		a.download = `dexs-data-${new Date().toISOString().split('T')[0]}.csv`
+		document.body.appendChild(a)
+		a.click()
+		document.body.removeChild(a)
+		URL.revokeObjectURL(url)
+	}, [instance])
+
+	useRegisterCSVExtractor(tableId, downloadCSV)
 
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
@@ -156,50 +208,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 					</h3>
 					<div className="flex items-center gap-2">
 						<ProTableCSVButton
-							onClick={() => {
-								const rows = instance.getFilteredRowModel().rows
-								const csvData = rows.map((row) => row.original)
-								const headers = [
-									'Protocol',
-									'24h Volume',
-									'% of Total',
-									'7d Volume',
-									'7d Market Share',
-									'30d Volume',
-									'Cumulative Volume',
-									'24h Change',
-									'7d Change'
-								]
-								const csv = [
-									headers.join(','),
-									...csvData.map((item, index) => {
-										const total24h = csvData.reduce((sum, p) => sum + (p.total24h || 0), 0)
-										const percentage = total24h > 0 ? (item.total24h / total24h) * 100 : 0
-										const cumulative = csvData.slice(0, index + 1).reduce((sum, p) => sum + (p.total24h || 0), 0)
-										return [
-											item.name,
-											item.total24h,
-											percentage.toFixed(2),
-											item.total7d,
-											item.marketShare7d?.toFixed(2) || '0',
-											item.total30d,
-											cumulative,
-											item.change_1d,
-											item.change_7d
-										].join(',')
-									})
-								].join('\n')
-
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `dexs-data-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
-							}}
+							onClick={() => downloadCSV()}
 							smol
 						/>
 						<input

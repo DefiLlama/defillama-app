@@ -17,6 +17,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { TableBody } from '../../ProTable/TableBody'
+import { useRegisterCSVExtractor } from '../../../hooks/useCSVRegistry'
 import { ChainsTableHeader } from './ChainsTableHeader'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { chainsDatasetColumns } from './columns'
@@ -294,7 +295,7 @@ export function ChainsDataset({
 		}
 	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, columnPresets, instance])
 
-	const handleExportCSV = React.useCallback(() => {
+	const handleExportCSV = React.useCallback((returnContent: boolean = false) => {
 		const headers = instance
 			.getVisibleFlatColumns()
 			.filter((col) => col.id !== 'expand')
@@ -317,6 +318,10 @@ export function ChainsDataset({
 			...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
 		].join('\n')
 
+		if (returnContent) {
+			return csvContent
+		}
+
 		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
 		const link = document.createElement('a')
 		const url = URL.createObjectURL(blob)
@@ -327,6 +332,9 @@ export function ChainsDataset({
 		document.body.removeChild(link)
 		URL.revokeObjectURL(url)
 	}, [instance])
+
+	// Register CSV extractor with the registry
+	useRegisterCSVExtractor(uniqueTableId, handleExportCSV)
 
 	const columnOptions = React.useMemo(
 		() =>
