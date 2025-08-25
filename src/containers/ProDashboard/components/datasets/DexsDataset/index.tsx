@@ -16,7 +16,7 @@ import {
 import { TagGroup } from '~/components/TagGroup'
 import { DexItem } from '~/containers/ProDashboard/types'
 import useWindowSize from '~/hooks/useWindowSize'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -39,6 +39,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 	})
 
 	const { data, isLoading, error, refetch } = useDexsData(chains)
+	const { downloadCSV, isLoading: isCSVLoading } = useCSVDownload()
 	const windowSize = useWindowSize()
 
 	const enrichedData = React.useMemo<DexItemWithMarketShare[]>(() => {
@@ -194,6 +195,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 								
 								downloadCSV('dexs-data.csv', csv, { addTimestamp: true })
 							}}
+							isLoading={isCSVLoading}
 							smol
 						/>
 						<input

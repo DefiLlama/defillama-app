@@ -49,6 +49,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		applyPreset,
 		activePreset,
 		downloadCSV,
+		isCSVLoading,
 		customColumns: currentCustomColumns,
 		addCustomColumn,
 		removeCustomColumn,
@@ -83,6 +84,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 				showColumnPanel={showColumnPanel}
 				setShowColumnPanel={setShowColumnPanel}
 				downloadCSV={downloadCSV}
+				isCSVLoading={isCSVLoading}
 				colSpan={colSpan}
 				customViews={currentCustomViews}
 				onSaveView={saveCustomView}

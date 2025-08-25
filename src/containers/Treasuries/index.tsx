@@ -14,13 +14,15 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
-import { download, formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
+import { formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 
 const pageName = ['Protocols', 'ranked by', 'Treasury']
 
 export function Treasuries({ data, entity }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = useState<SortingState>([])
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 	const tableColumns = useMemo(
 		() => (entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey)) : columns),
 		[entity]
@@ -41,7 +43,7 @@ export function Treasuries({ data, entity }) {
 
 	const [projectName, setProjectName] = useState('')
 
-	const downloadCSV = () => {
+	const handleCSVDownload = () => {
 		const headers = [
 			'Name',
 			'Category',
@@ -75,7 +77,7 @@ export function Treasuries({ data, entity }) {
 		const csv = [headers.join(',')]
 			.concat(dataToDownload.map((row) => headers.map((header) => row[header]).join(',')))
 			.join('\n')
-		download('treasuries.csv', csv)
+		downloadCSV('treasuries.csv', csv)
 	}
 
 	useEffect(() => {
@@ -96,7 +98,7 @@ export function Treasuries({ data, entity }) {
 				header={'Treasuries'}
 				customFilters={
 					<>
-						<CSVDownloadButton onClick={downloadCSV} />
+						<CSVDownloadButton onClick={handleCSVDownload} isLoading={isDownloadLoading} />
 					</>
 				}
 			/>

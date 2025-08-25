@@ -13,7 +13,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { yieldsDatasetColumns } from './columns'
 import { YieldsFilters } from './YieldsFiltersPanel'
 
@@ -52,6 +52,7 @@ export function useYieldsTable({
 	const [selectedPreset, setSelectedPreset] = React.useState<string | null>(null)
 	const [showFiltersPanel, setShowFiltersPanel] = React.useState(false)
 	const [filters, setFilters] = React.useState<YieldsFilters>(initialFilters || {})
+	const { downloadCSV: downloadCSVWithLoading, isLoading: isCSVLoading } = useCSVDownload()
 
 	const filteredData = React.useMemo(() => {
 		if (!data) return []
@@ -306,59 +307,59 @@ export function useYieldsTable({
 		})
 	}
 
-	// const downloadCSV = () => {
-	// 	if (!table) return
+	const downloadCSV = React.useCallback(() => {
+		if (!table) return
 
-	// 	const visibleColumnIds = columnOrder.filter((id) => columnVisibility[id] !== false)
-	// 	const headerMap: Record<string, string> = {
-	// 		pool: 'Pool',
-	// 		project: 'Project',
-	// 		chains: 'Chain',
-	// 		tvl: 'TVL',
-	// 		apy: 'APY',
-	// 		apyBase: 'Base APY',
-	// 		apyReward: 'Reward APY',
-	// 		rewardTokensSymbols: 'Reward Tokens',
-	// 		change1d: '24h Change',
-	// 		change7d: '7d Change',
-	// 		il7d: '7d IL',
-	// 		apyBase7d: 'Base APY (7d)',
-	// 		apyNet7d: 'Net APY (7d)',
-	// 		apyMean30d: 'Mean APY (30d)',
-	// 		volumeUsd1d: 'Volume (24h)',
-	// 		volumeUsd7d: 'Volume (7d)',
-	// 		apyBorrow: 'Borrow APY',
-	// 		totalSupplyUsd: 'Total Supplied',
-	// 		totalBorrowUsd: 'Total Borrowed',
-	// 		totalAvailableUsd: 'Available',
-	// 		ltv: 'LTV'
-	// 	}
+		const visibleColumnIds = columnOrder.filter((id) => columnVisibility[id] !== false)
+		const headerMap: Record<string, string> = {
+			pool: 'Pool',
+			project: 'Project',
+			chains: 'Chain',
+			tvl: 'TVL',
+			apy: 'APY',
+			apyBase: 'Base APY',
+			apyReward: 'Reward APY',
+			rewardTokensSymbols: 'Reward Tokens',
+			change1d: '24h Change',
+			change7d: '7d Change',
+			il7d: '7d IL',
+			apyBase7d: 'Base APY (7d)',
+			apyNet7d: 'Net APY (7d)',
+			apyMean30d: 'Mean APY (30d)',
+			volumeUsd1d: 'Volume (24h)',
+			volumeUsd7d: 'Volume (7d)',
+			apyBorrow: 'Borrow APY',
+			totalSupplyUsd: 'Total Supplied',
+			totalBorrowUsd: 'Total Borrowed',
+			totalAvailableUsd: 'Available',
+			ltv: 'LTV'
+		}
 
-	// 	const rows = table.getFilteredRowModel().rows
-	// 	const csvData = rows.map((row) => row.original)
+		const rows = table.getFilteredRowModel().rows
+		const csvData = rows.map((row) => row.original)
 
-	// 	const headers = visibleColumnIds.map((id) => headerMap[id] || id)
+		const headers = visibleColumnIds.map((id) => headerMap[id] || id)
 
-	// 	const csvLines = csvData.map((item) =>
-	// 		visibleColumnIds
-	// 			.map((id) => {
-	// 				const value = item[id]
-	// 				if (value === undefined || value === null) return ''
-	// 				if (Array.isArray(value)) {
-	// 					return `"${value.join(';')}"`
-	// 				}
-	// 				if (typeof value === 'string') {
-	// 					return `"${value.replace(/"/g, '""')}"`
-	// 				}
-	// 				return value
-	// 			})
-	// 			.join(',')
-	// 	)
+		const csvLines = csvData.map((item) =>
+			visibleColumnIds
+				.map((id) => {
+					const value = item[id]
+					if (value === undefined || value === null) return ''
+					if (Array.isArray(value)) {
+						return `"${value.join(';')}"`
+					}
+					if (typeof value === 'string') {
+						return `"${value.replace(/"/g, '""')}"`
+					}
+					return value
+				})
+				.join(',')
+		)
 
-	// 	const csvContent = [headers.join(','), ...csvLines].join('\n')
+		const csvContent = [headers.join(','), ...csvLines].join('\n')
 
-	// 	downloadCSV('yields-data.csv', csvContent, { addTimestamp: true })
-	// }
+		downloadCSVWithLoading('yields-data.csv', csvContent, { addTimestamp: true })
+	}, [table, columnOrder, columnVisibility, downloadCSVWithLoading])
 
 	const [poolName, setPoolName] = React.useState('')
 	React.useEffect(() => {
@@ -456,6 +457,7 @@ export function useYieldsTable({
 		applyPreset,
 		activePreset: selectedPreset,
 		downloadCSV,
+		isCSVLoading,
 		poolName,
 		setPoolName,
 		isLoading,

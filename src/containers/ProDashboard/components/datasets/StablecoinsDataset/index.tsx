@@ -15,7 +15,7 @@ import {
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -37,6 +37,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 	})
 
 	const { data, isLoading, error } = useStablecoinsData(chain)
+	const { downloadCSV, isLoading: isCSVLoading } = useCSVDownload()
 	const windowSize = useWindowSize()
 
 	const instance = useReactTable({
@@ -150,6 +151,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 								
 								downloadCSV(`stablecoins-${chain}.csv`, csv, { addTimestamp: true })
 							}}
+							isLoading={isCSVLoading}
 							smol
 						/>
 						<input

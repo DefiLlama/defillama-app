@@ -18,8 +18,9 @@ import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/colum
 import { VirtualTable } from '~/components/Table/Table'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import useWindowSize from '~/hooks/useWindowSize'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import Layout from '~/layout'
-import { downloadCsv } from './download'
+import { prepareCsvData } from './download'
 import { useRaisesData } from './hooks'
 
 const LineAndBarChart = React.lazy(
@@ -30,7 +31,7 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 
 const columnResizeMode = 'onChange'
 
-function RaisesTable({ raises, downloadCsv }) {
+function RaisesTable({ raises, downloadCsv, isCSVLoading }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -96,7 +97,7 @@ function RaisesTable({ raises, downloadCsv }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton onClick={downloadCsv} />
+				<CSVDownloadButton onClick={downloadCsv} isLoading={isCSVLoading} />
 				<CSVDownloadButton onClick={() => window.open('https://api.llama.fi/raises')}>Download.json</CSVDownloadButton>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
@@ -108,6 +109,7 @@ const pageName = ['Deals by Investor']
 
 export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname } = useRouter()
+	const { downloadCSV: downloadCSVFromHook, isLoading: isCSVLoading } = useCSVDownload()
 
 	const {
 		filteredRaisesList,
@@ -202,7 +204,14 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				</LazyChart>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} downloadCsv={() => downloadCsv({ raises })} />
+			<RaisesTable 
+				raises={filteredRaisesList} 
+				downloadCsv={() => {
+					const { headers, rows } = prepareCsvData({ raises })
+					downloadCSVFromHook('raises.csv', [headers, ...rows])
+				}}
+				isCSVLoading={isCSVLoading}
+			/>
 		</Layout>
 	)
 }

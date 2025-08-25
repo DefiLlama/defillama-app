@@ -16,7 +16,8 @@ import {
 	useCalcGroupExtraPeggedByDay,
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
-import { download, formattedNum, getPercentChange, preparePieChartData, slug, toNiceCsvDate } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
+import { formattedNum, getPercentChange, preparePieChartData, slug, toNiceCsvDate } from '~/utils'
 import { PeggedAssetsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -35,6 +36,7 @@ export function StablecoinsByChain({
 	doublecountedIds
 }) {
 	const [chartType, setChartType] = React.useState('Total Market Cap')
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const chartTypeList =
 		selectedChain !== 'All'
@@ -135,7 +137,7 @@ export function StablecoinsByChain({
 
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
-	const downloadCsv = () => {
+	const handleCSVDownload = () => {
 		const filteredPeggedNames = peggedAssetNames.filter((name, i) => filteredIndexes.includes(i))
 		const rows = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
 		stackedData
@@ -150,7 +152,7 @@ export function StablecoinsByChain({
 					}, 0)
 				])
 			})
-		download('stablecoins.csv', rows.map((r) => r.join(',')).join('\n'))
+		downloadCSV('stablecoins.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
 	let title = `Stablecoins Market Cap`
@@ -222,7 +224,7 @@ export function StablecoinsByChain({
 		<>
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
-			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
+			<PeggedFilters pathname={path} downloadCsv={handleCSVDownload} isDownloadLoading={isDownloadLoading} />
 
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">

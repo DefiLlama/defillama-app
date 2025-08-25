@@ -10,6 +10,7 @@ interface ChainsTableHeaderProps {
 	showColumnSelector: boolean
 	setShowColumnSelector: (show: boolean) => void
 	handleExportCSV: () => void
+	isCSVLoading?: boolean
 	category?: string
 }
 
@@ -21,6 +22,7 @@ export function ChainsTableHeader({
 	showColumnSelector,
 	setShowColumnSelector,
 	handleExportCSV,
+	isCSVLoading,
 	category
 }: ChainsTableHeaderProps) {
 	const presetButtons = [
@@ -57,7 +59,7 @@ export function ChainsTableHeader({
 					</div>
 
 					<div className="flex items-center gap-2">
-						<ProTableCSVButton onClick={handleExportCSV} smol />
+						<ProTableCSVButton onClick={handleExportCSV} isLoading={isCSVLoading} smol />
 
 						<button
 							onClick={() => setShowColumnSelector(!showColumnSelector)}

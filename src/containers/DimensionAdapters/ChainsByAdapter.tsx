@@ -20,7 +20,8 @@ import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { download, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { ChainsByAdapterChart } from './ChainChart'
 import { IChainsByAdapterPageData } from './types'
 
@@ -43,6 +44,7 @@ interface IProps extends IChainsByAdapterPageData {
 
 export function ChainsByAdapter(props: IProps) {
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
+	const { downloadCSV: downloadCSVFromHook, isLoading: isCSVLoading } = useCSVDownload()
 
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -123,10 +125,10 @@ export function ChainsByAdapter(props: IProps) {
 		const csvdata = chains.map((protocol) => {
 			return [protocol.name, protocol.total24h, protocol.total30d]
 		})
-		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
 
-		download(`${props.type}-chains-protocols.csv`, csv)
-	}, [props, chains])
+		const filename = `${props.type}-chains-protocols.csv`
+		downloadCSVFromHook(filename, [header, ...csvdata])
+	}, [props, chains, downloadCSVFromHook])
 
 	return (
 		<>
@@ -164,7 +166,7 @@ export function ChainsByAdapter(props: IProps) {
 							className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 						/>
 					</div>
-					<CSVDownloadButton onClick={downloadCsv} />
+					<CSVDownloadButton onClick={downloadCsv} isLoading={isCSVLoading} />
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>

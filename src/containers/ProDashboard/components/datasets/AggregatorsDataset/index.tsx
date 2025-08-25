@@ -14,7 +14,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { AggregatorItem } from '~/containers/ProDashboard/types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -39,6 +39,7 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 	})
 
 	const { data, isLoading, error, refetch } = useAggregatorsData(chains)
+	const { downloadCSV, isLoading: isCSVLoading } = useCSVDownload()
 	const windowSize = useWindowSize()
 
 	const enrichedData = React.useMemo<AggregatorItemWithMarketShare[]>(() => {
@@ -194,6 +195,7 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 								
 								downloadCSV('aggregators-data.csv', csv, { addTimestamp: true })
 							}}
+							isLoading={isCSVLoading}
 							smol
 						/>
 						<input

@@ -15,7 +15,8 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import Layout from '~/layout'
-import { download, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -43,6 +44,7 @@ const pageName = ['Token', 'usage in', 'Protocols']
 export default function Tokens({ searchData }) {
 	const router = useRouter()
 	const { token, includecex } = router.query
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const tokenSymbol = token ? (typeof token === 'string' ? token : token[0]) : null
 	const includeCentraliseExchanges = includecex
@@ -65,7 +67,7 @@ export default function Tokens({ searchData }) {
 		)
 	}, [protocols, includeCentraliseExchanges])
 
-	const downloadCSV = () => {
+	const handleCSVDownload = () => {
 		const data = filteredProtocols.map((p) => {
 			return {
 				Protocol: p.name,
@@ -75,7 +77,7 @@ export default function Tokens({ searchData }) {
 		})
 		const headers = ['Protocol', 'Category', 'Amount (USD)']
 		const csv = [headers.join(',')].concat(data.map((row) => headers.map((header) => row[header]).join(','))).join('\n')
-		download(`protocols-by-token-${tokenSymbol}.csv`, csv)
+		downloadCSV(`protocols-by-token-${tokenSymbol}.csv`, csv)
 	}
 
 	return (
@@ -112,7 +114,7 @@ export default function Tokens({ searchData }) {
 										)
 									}
 								/>
-								<CSVDownloadButton onClick={downloadCSV} />
+								<CSVDownloadButton onClick={handleCSVDownload} isLoading={isDownloadLoading} />
 							</div>
 						</div>
 

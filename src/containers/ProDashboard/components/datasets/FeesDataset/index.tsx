@@ -13,8 +13,8 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
-import { downloadCSV } from '~/utils'
 import useWindowSize from '~/hooks/useWindowSize'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -33,6 +33,7 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 
 	const { data, isLoading, error } = useFeesData(chains)
 	const windowSize = useWindowSize()
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const instance = useReactTable({
 		data: data || [],
@@ -159,9 +160,9 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 									)
 								].join('\n')
 
-								
 								downloadCSV('fees-data.csv', csv, { addTimestamp: true })
 							}}
+							isLoading={isDownloadLoading}
 							smol
 						/>
 						<input

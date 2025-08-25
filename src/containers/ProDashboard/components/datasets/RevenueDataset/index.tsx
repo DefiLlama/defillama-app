@@ -13,8 +13,8 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
-import { downloadCSV } from '~/utils'
 import useWindowSize from '~/hooks/useWindowSize'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -33,6 +33,7 @@ export function RevenueDataset({ chains }: { chains?: string[] }) {
 
 	const { data, isLoading, error, refetch } = useRevenueData(chains)
 	const windowSize = useWindowSize()
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const columnsToUse = React.useMemo(() => {
 		if (chains && chains.length > 0) {
@@ -168,9 +169,9 @@ export function RevenueDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								
 								downloadCSV('revenue-data.csv', csv, { addTimestamp: true })
 							}}
+							isLoading={isDownloadLoading}
 							smol
 						/>
 						<input

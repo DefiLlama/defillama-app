@@ -25,7 +25,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { chainIconUrl, download, formattedNum, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { chainCharts } from '../ChainOverview/constants'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { AdapterByChainChart } from './ChainChart'
@@ -92,6 +93,7 @@ const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'],
 export function AdapterByChain(props: IProps) {
 	const router = useRouter()
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
+	const { downloadCSV: downloadCSVFromHook, isLoading: isCSVLoading } = useCSVDownload()
 
 	const { selectedCategories, protocols, columnsOptions } = useMemo(() => {
 		const selectedCategories =
@@ -277,10 +279,9 @@ export function AdapterByChain(props: IProps) {
 			]
 		})
 
-		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
-
-		download(`${props.type}-${props.chain}-protocols.csv`, csv)
-	}, [props, protocols])
+		const filename = `${props.type}-${props.chain}-protocols.csv`
+		downloadCSVFromHook(filename, [header, ...csvdata])
+	}, [props, protocols, downloadCSVFromHook])
 
 	const { category, chain, ...queries } = router.query
 
@@ -482,7 +483,7 @@ export function AdapterByChain(props: IProps) {
 						/>
 					)}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
-					<CSVDownloadButton onClick={downloadCsv} />
+					<CSVDownloadButton onClick={downloadCsv} isLoading={isCSVLoading} />
 				</div>
 
 				<VirtualTable instance={instance} rowSize={64} compact />

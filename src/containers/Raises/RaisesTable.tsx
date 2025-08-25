@@ -16,7 +16,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 
 const columnResizeMode = 'onChange'
 
-export function RaisesTable({ raises, downloadCsv }) {
+export function RaisesTable({ raises, downloadCsv, isCSVLoading }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -98,7 +98,7 @@ export function RaisesTable({ raises, downloadCsv }) {
 				>
 					Download.json
 				</CSVDownloadButton>
-				<CSVDownloadButton onClick={downloadCsv} />
+				<CSVDownloadButton onClick={downloadCsv} isLoading={isCSVLoading} />
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

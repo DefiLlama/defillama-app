@@ -6,7 +6,8 @@ import { Tooltip } from '~/components/Tooltip'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { download, formattedNum, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
+import { formattedNum, preparePieChartData, toNiceCsvDate } from '~/utils'
 import { PeggedChainsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -34,13 +35,14 @@ export function ChainsWithStablecoins({
 }) {
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const filteredPeggedAssets = chainCirculatings
 	const chainTotals = useCalcCirculating(filteredPeggedAssets)
 
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
-	const downloadCsv = () => {
+	const handleCSVDownload = () => {
 		const rows = [['Timestamp', 'Date', ...chainList, 'Total']]
 		stackedData
 			.sort((a, b) => a.date - b.date)
@@ -54,7 +56,7 @@ export function ChainsWithStablecoins({
 					}, 0)
 				])
 			})
-		download('stablecoinsChainTotals.csv', rows.map((r) => r.join(',')).join('\n'))
+		downloadCSV('stablecoinsChainTotals.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
@@ -134,7 +136,7 @@ export function ChainsWithStablecoins({
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 
-					<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton onClick={handleCSVDownload} isLoading={isDownloadLoading} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />

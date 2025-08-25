@@ -13,7 +13,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -32,6 +32,7 @@ export function CexDataset() {
 	})
 
 	const { data, isLoading, error } = useCexData()
+	const { downloadCSV, isLoading: isCSVLoading } = useCSVDownload()
 	const windowSize = useWindowSize()
 
 	const filteredData = React.useMemo(() => {
@@ -163,6 +164,7 @@ export function CexDataset() {
 								
 								downloadCSV('cex-data.csv', csv, { addTimestamp: true })
 							}}
+							isLoading={isCSVLoading}
 							smol
 						/>
 						<input

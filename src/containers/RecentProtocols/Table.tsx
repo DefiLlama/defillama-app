@@ -21,7 +21,8 @@ import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
-import { download, formattedNum, toNiceDaysAgo } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
+import { formattedNum, toNiceDaysAgo } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
 	data,
@@ -45,6 +46,7 @@ export function RecentlyListedProtocolsTable({
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const windowSize = useWindowSize()
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const router = useRouter()
 
@@ -143,7 +145,7 @@ export function RecentlyListedProtocolsTable({
 		)
 	}
 
-	const downloadCSV = () => {
+	const handleCSVDownload = () => {
 		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
 		const csvData = data.map((row) => {
 			return {
@@ -156,7 +158,7 @@ export function RecentlyListedProtocolsTable({
 				'Listed At': new Date(row.listedAt * 1000).toLocaleDateString()
 			}
 		})
-		download(
+		downloadCSV(
 			'protocols.csv',
 			[headers, ...csvData.map((row) => headers.map((header) => row[header]).join(','))].join('\n')
 		)
@@ -203,7 +205,7 @@ export function RecentlyListedProtocolsTable({
 
 					{forkedList ? <HideForkedProtocols /> : null}
 
-					<CSVDownloadButton onClick={downloadCSV} />
+					<CSVDownloadButton onClick={handleCSVDownload} isLoading={isDownloadLoading} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />

@@ -6,8 +6,11 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, download, formattedNum, slug } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 
 export function BridgedTVLChainsList({ assets, chains, flows1d }) {
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
+	
 	const data = Object.keys(assets)
 		.map((name) => {
 			const chainAssets = assets?.[name]
@@ -39,7 +42,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 			.concat(csvData.map((row) => headers.map((header) => row[header]).join(',')))
 			.join('\n')
 
-		download('bridged-chains.csv', csv)
+		downloadCSV('bridged-chains.csv', csv)
 	}
 
 	return (
@@ -52,7 +55,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 				columnToSearch={['name']}
 				customFilters={
 					<>
-						<CSVDownloadButton onClick={onCSVDownload} smol />
+						<CSVDownloadButton onClick={onCSVDownload} isLoading={isDownloadLoading} smol />
 					</>
 				}
 			/>

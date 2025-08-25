@@ -14,7 +14,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -33,6 +33,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 	})
 	const [protocolName, setProtocolName] = React.useState('')
 	const { data, isLoading, error } = useBridgeAggregatorsData(chains)
+	const { downloadCSV, isLoading: isCSVLoading } = useCSVDownload()
 
 	const instance = useReactTable({
 		data: data || [],
@@ -193,6 +194,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 								
 								downloadCSV('aggregators-data.csv', csv, { addTimestamp: true })
 							}}
+							isLoading={isCSVLoading}
 							smol
 						/>
 						<input

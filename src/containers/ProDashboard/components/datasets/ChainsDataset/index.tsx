@@ -14,7 +14,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import useWindowSize from '~/hooks/useWindowSize'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { TableBody } from '../../ProTable/TableBody'
@@ -54,6 +54,7 @@ export function ChainsDataset({
 	const [showColumnPanel, setShowColumnPanel] = React.useState(false)
 
 	const { data, isLoading, error } = useChainsData(category)
+	const { downloadCSV, isLoading: isCSVLoading } = useCSVDownload()
 	const windowSize = useWindowSize()
 
 	const totals = React.useMemo(() => {
@@ -313,9 +314,8 @@ export function ChainsDataset({
 				})
 		})
 
-		
 		downloadCSV('chains-data.csv', [headers, ...rows], { addTimestamp: true })
-	}, [instance])
+	}, [instance, downloadCSV])
 
 	const columnOptions = React.useMemo(
 		() =>
@@ -367,6 +367,7 @@ export function ChainsDataset({
 					showColumnSelector={false}
 					setShowColumnSelector={() => {}}
 					handleExportCSV={() => {}}
+					isCSVLoading={isCSVLoading}
 					category={category}
 				/>
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
@@ -388,6 +389,7 @@ export function ChainsDataset({
 					showColumnSelector={false}
 					setShowColumnSelector={() => {}}
 					handleExportCSV={() => {}}
+					isCSVLoading={isCSVLoading}
 					category={category}
 				/>
 				<div className="flex min-h-[500px] flex-1 items-center justify-center">
@@ -407,6 +409,7 @@ export function ChainsDataset({
 				showColumnSelector={showColumnPanel}
 				setShowColumnSelector={setShowColumnPanel}
 				handleExportCSV={handleExportCSV}
+				isCSVLoading={isCSVLoading}
 				category={category}
 			/>
 

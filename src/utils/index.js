@@ -489,9 +489,18 @@ export function download(filename, text) {
 }
 
 export function downloadCSV(filename, csvData, options = {}) {
+	const { 
+		mimeType = 'text/csv;charset=utf-8;', 
+		addTimestamp = false,
+		onLoadingStart,
+		onLoadingEnd,
+		onError
+	} = options
+
+	if (onLoadingStart) onLoadingStart()
+
 	try {
-		const { mimeType = 'text/csv;charset=utf-8;', addTimestamp = false } = options
-		
+
 		let csvContent
 		
 		if (Array.isArray(csvData)) {
@@ -532,19 +541,26 @@ export function downloadCSV(filename, csvData, options = {}) {
 		document.body.removeChild(link)
 		
 		window.URL.revokeObjectURL(downloadUrl)
+
+		if (onLoadingEnd) onLoadingEnd()
 	} catch (error) {
-		console.error('CSV download error:', error)
+		if (onError) onError(error)
+		else if (onLoadingEnd) onLoadingEnd()
+		
 		download(filename, String(csvData))
 	}
 }
 
 export function downloadDatasetCSV({
 	data,
-	columns,
+	columns = null,
 	columnHeaders = {},
-	filename,
-	filenameSuffix,
-	addTimestamp = true
+	filename = null,
+	filenameSuffix = null,
+	addTimestamp = true,
+	onLoadingStart = null,
+	onLoadingEnd = null,
+	onError = null
 }) {
 	try {
 		if (!data || !Array.isArray(data) || data.length === 0) {
@@ -572,10 +588,16 @@ export function downloadDatasetCSV({
 		}
 		finalFilename += '.csv'
 		
-		downloadCSV(finalFilename, csvData, { addTimestamp })
+		downloadCSV(finalFilename, csvData, { 
+			addTimestamp,
+			onLoadingStart,
+			onLoadingEnd,
+			onError
+		})
 		
 	} catch (error) {
-		console.error('Dataset CSV download error:', error)
+		if (onError) onError(error)
+		else if (onLoadingEnd) onLoadingEnd()
 	}
 }
 

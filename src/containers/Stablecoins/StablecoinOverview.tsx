@@ -14,10 +14,10 @@ import { oldBlue } from '~/constants/colors'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import Layout from '~/layout'
 import {
 	capitalizeFirstLetter,
-	download,
 	formattedNum,
 	getBlockExplorer,
 	peggedAssetIconUrl,
@@ -67,6 +67,7 @@ export const PeggedAssetInfo = ({
 	mcap,
 	bridgeInfo
 }) => {
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 	let {
 		name,
 		onCoinGecko,
@@ -118,7 +119,7 @@ export const PeggedAssetInfo = ({
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
-	const downloadCsv = () => {
+	const handleCSVDownload = () => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
 		stackedData
 			.sort((a, b) => a.date - b.date)
@@ -132,7 +133,7 @@ export const PeggedAssetInfo = ({
 					}, 0)
 				])
 			})
-		download('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
+		downloadCSV('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
 	return (
@@ -226,7 +227,7 @@ export const PeggedAssetInfo = ({
 										</tbody>
 									</table>
 								)}
-								<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
+								<CSVDownloadButton onClick={handleCSVDownload} isLoading={isDownloadLoading} smol className="mt-auto mr-auto" />
 							</div>
 						</Ariakit.TabPanel>
 

@@ -7,6 +7,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
 import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { ADAPTER_TYPES } from './constants'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
@@ -77,6 +78,7 @@ const ChartByType = ({
 }) => {
 	const [chartInterval, changeChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(allTypes)
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const mainChartData = React.useMemo(() => {
 		const chartData = {}
@@ -252,11 +254,12 @@ const ChartByType = ({
 							const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${
 								new Date().toISOString().split('T')[0]
 							}.csv`
-							download(filename, rows.map((r) => r.join(',')).join('\n'))
+							downloadCSV(filename, rows, { addTimestamp: false })
 						} catch (error) {
 							console.error('Error generating CSV:', error)
 						}
 					}}
+					isLoading={isDownloadLoading}
 					smol
 				/>
 			</div>

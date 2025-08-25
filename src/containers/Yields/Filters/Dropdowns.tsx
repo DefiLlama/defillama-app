@@ -52,7 +52,8 @@ export function YieldFilterDropdowns({
 	showTotalSupplied,
 	showTotalBorrowed,
 	showAvailable,
-	onCSVDownload
+	onCSVDownload,
+	isCSVDownloading
 }: IDropdownMenusProps) {
 	const router = useRouter()
 
@@ -316,6 +317,7 @@ export function YieldFilterDropdowns({
 							: 'flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)'
 					}
 					onClick={onCSVDownload}
+					isLoading={isCSVDownloading}
 				/>
 			) : null}
 		</>

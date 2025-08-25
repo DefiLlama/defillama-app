@@ -13,7 +13,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -32,6 +32,7 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 	})
 
 	const { data, isLoading, error } = useEarningsData(chains)
+	const { downloadCSV, isLoading: isCSVLoading } = useCSVDownload()
 	const windowSize = useWindowSize()
 
 	const columnsToUse = React.useMemo(() => {
@@ -168,9 +169,9 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								
 								downloadCSV('earnings-data.csv', csv, { addTimestamp: true })
 							}}
+							isLoading={isCSVLoading}
 							smol
 						/>
 						<input

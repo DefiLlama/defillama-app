@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Announcement } from '~/components/Announcement'
 import { LocalLoader } from '~/components/LocalLoader'
-import { download } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { YieldsPoolsTable } from './Tables/Pools'
@@ -12,6 +12,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 	const { query, pathname, push } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 	const [loading, setLoading] = React.useState(true)
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const {
 		selectedProjects,
@@ -127,7 +128,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		pathname,
 		pairTokens
 	])
-	const downloadCSV = React.useCallback(() => {
+	const handleCSVDownload = React.useCallback(() => {
 		const headers = [
 			'Pool',
 			'Project',
@@ -191,8 +192,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 			}
 		})
 		const csv = [headers].concat(csvData.map((row) => headers.map((header) => row[header]))).join('\n')
-		download('yields.csv', csv)
-	}, [poolsData])
+		downloadCSV('yields.csv', csv)
+	}, [poolsData, downloadCSV])
 
 	return (
 		<>
@@ -251,7 +252,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				showTotalBorrowed={true}
 				showAvailable={true}
 				showLTV={true}
-				onCSVDownload={downloadCSV}
+				onCSVDownload={handleCSVDownload}
+				isCSVDownloading={isDownloadLoading}
 			/>
 
 			{loading ? (
