@@ -194,7 +194,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 							<button
 								key={tag}
 								onClick={(e) => handleTagClick(e, tag)}
-								className="bg-opacity-50 pro-text2 pro-border border bg-(--bg-main) px-2 py-1 text-xs hover:border-(--divider)"
+								className="bg-opacity-50 pro-text2 pro-border z-10 border bg-(--bg-main) px-2 py-1 text-xs hover:border-(--divider) focus-visible:border-(--divider)"
 							>
 								{tag}
 							</button>
