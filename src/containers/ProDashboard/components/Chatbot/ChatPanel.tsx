@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MessageItem } from './MessageItem'
 import { ToolExecutionStatus } from './ToolExecutionStatus'
@@ -67,21 +67,19 @@ export const ChatPanel = ({
 	return (
 		<>
 			<div
-				className={`fixed top-0 right-0 h-full z-50 w-96 transform transition-transform duration-300 ease-in-out shadow-xl ${
+				className={`fixed top-0 right-0 z-50 h-full w-[480px] transform shadow-xl transition-transform duration-300 ease-in-out ${
 					isOpen ? 'translate-x-0' : 'translate-x-full'
 				}`}
 			>
 				<div className="pro-glass flex h-full flex-col border-l border-(--form-control-border) bg-(--bg-glass) backdrop-blur">
 					<div className="flex items-center justify-between border-b border-(--form-control-border) p-4">
 						<div className="flex items-center gap-2">
-							<div className="h-8 w-8 rounded-full bg-(--primary) flex items-center justify-center">
+							<div className="flex h-8 w-8 items-center justify-center rounded-full bg-(--primary)">
 								<Icon name="sparkles" height={16} width={16} className="text-white" />
 							</div>
 							<div>
 								<h3 className="text-lg font-semibold text-(--text-primary)">LlamaAI</h3>
-								<p className="text-xs text-(--text-secondary)">
-									{isConnected ? 'Streaming...' : ''}
-								</p>
+								<p className="text-xs text-(--text-secondary)">{isConnected ? 'Streaming...' : ''}</p>
 							</div>
 						</div>
 						<button
@@ -93,12 +91,12 @@ export const ChatPanel = ({
 						</button>
 					</div>
 
-					<div className="flex-1 overflow-y-auto p-4 space-y-4">
+					<div className="flex-1 space-y-4 overflow-y-auto p-4">
 						{messages.length === 0 && (
-							<div className="text-center text-(--text-secondary) mt-8">
+							<div className="mt-8 text-center text-(--text-secondary)">
 								<Icon name="sparkles" height={32} width={32} className="mx-auto mb-2 opacity-50" />
 								<p>Ask me anything about your dashboard!</p>
-								<p className="text-xs mt-2">I can analyze charts, extract data, and provide insights.</p>
+								<p className="mt-2 text-xs">I can analyze charts, extract data, and provide insights.</p>
 							</div>
 						)}
 
@@ -106,21 +104,28 @@ export const ChatPanel = ({
 							<MessageItem key={message.id} message={message} />
 						))}
 
-						{toolExecutionStatus?.isExecuting && (
-							<ToolExecutionStatus status={toolExecutionStatus} />
-						)}
+						{toolExecutionStatus?.isExecuting && <ToolExecutionStatus status={toolExecutionStatus} />}
 
 						{isTyping && (
 							<div className="flex items-center gap-2 text-(--text-secondary)">
-								<div className="h-6 w-6 rounded-full bg-(--primary) flex items-center justify-center">
+								<div className="flex h-6 w-6 items-center justify-center rounded-full bg-(--primary)">
 									<Icon name="sparkles" height={12} width={12} className="text-white" />
 								</div>
 								<div className="flex items-center gap-1">
 									<span className="text-sm">LlamaAI is thinking</span>
 									<div className="flex gap-1">
-										<div className="h-1 w-1 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }}></div>
-										<div className="h-1 w-1 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }}></div>
-										<div className="h-1 w-1 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }}></div>
+										<div
+											className="h-1 w-1 animate-bounce rounded-full bg-current"
+											style={{ animationDelay: '0ms' }}
+										></div>
+										<div
+											className="h-1 w-1 animate-bounce rounded-full bg-current"
+											style={{ animationDelay: '150ms' }}
+										></div>
+										<div
+											className="h-1 w-1 animate-bounce rounded-full bg-current"
+											style={{ animationDelay: '300ms' }}
+										></div>
 									</div>
 								</div>
 							</div>
@@ -138,7 +143,7 @@ export const ChatPanel = ({
 								onChange={(e) => setInputValue(e.target.value)}
 								onKeyDown={handleKeyDown}
 								placeholder="Ask about your dashboard..."
-								className="flex-1 rounded border border-(--form-control-border) bg-(--bg-main) px-3 py-2 text-(--text-primary) placeholder-text-(--text-secondary) focus:border-(--primary) focus:outline-none"
+								className="placeholder-text-(--text-secondary) flex-1 rounded border border-(--form-control-border) bg-(--bg-main) px-3 py-2 text-(--text-primary) focus:border-(--primary) focus:outline-none"
 							/>
 							<button
 								onClick={handleSendMessage}
@@ -148,9 +153,7 @@ export const ChatPanel = ({
 								<Icon name="chevron-right" height={16} width={16} />
 							</button>
 						</div>
-						<p className="text-xs text-(--text-secondary) mt-2">
-							Press Enter to send, Shift+Enter for new line
-						</p>
+						<p className="mt-2 text-xs text-(--text-secondary)">Press Enter to send, Shift+Enter for new line</p>
 					</div>
 				</div>
 			</div>
