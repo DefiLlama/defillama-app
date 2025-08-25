@@ -17,7 +17,7 @@ export default function DashboardPage() {
 	return (
 		<Layout title="DefiLlama - Pro Dashboard">
 			{router.isReady ? (
-				<ProDashboardAPIProvider initialDashboardId={initialId}>
+				<ProDashboardAPIProvider initialDashboardId={initialId} key={`dashboard-api-provider-${dashboardId}`}>
 					<DashboardPageContent dashboardId={dashboardId} />
 				</ProDashboardAPIProvider>
 			) : (
