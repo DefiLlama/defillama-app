@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import ProDashboard from '~/containers/ProDashboard'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
@@ -9,50 +8,26 @@ import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashbo
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
-import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticPaths = async () => {
-	return {
-		paths: [],
-		fallback: 'blocking'
-	}
-}
-
-export const getStaticProps = withPerformanceLogging('pro/[dashboardId]', async ({ params }) => {
-	const dashboardId = params?.dashboardId as string
-
-	if (!dashboardId) {
-		return {
-			notFound: true
-		}
-	}
-
-	return {
-		props: {
-			dashboardId
-		},
-		revalidate: maxAgeForNext([22])
-	}
-})
-
-interface DashboardPageProps {
-	dashboardId: string
-}
-
-export default function DashboardPage({ dashboardId }: DashboardPageProps) {
+export default function DashboardPage() {
 	const router = useRouter()
+	const dashboardId = router.query.dashboardId as string
 	const initialId = dashboardId === 'new' ? undefined : dashboardId
 
 	return (
 		<Layout title="DefiLlama - Pro Dashboard">
-			<ProDashboardAPIProvider initialDashboardId={initialId}>
-				<DashboardPageContent dashboardId={dashboardId} />
-			</ProDashboardAPIProvider>
+			{router.isReady ? (
+				<ProDashboardAPIProvider initialDashboardId={initialId}>
+					<DashboardPageContent dashboardId={dashboardId} />
+				</ProDashboardAPIProvider>
+			) : (
+				<ProDashboardLoader />
+			)}
 		</Layout>
 	)
 }
 
-function DashboardPageContent({ dashboardId }: DashboardPageProps) {
+function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 	const router = useRouter()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()

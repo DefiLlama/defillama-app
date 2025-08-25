@@ -1,27 +1,18 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { CreateDashboardModal } from '~/containers/ProDashboard/components/CreateDashboardModal'
-import { GenerateDashboardModal } from '~/containers/ProDashboard/components/GenerateDashboardModal'
 import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
+import { GenerateDashboardModal } from '~/containers/ProDashboard/components/GenerateDashboardModal'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
-import { withPerformanceLogging } from '~/utils/perf'
-
-export const getStaticProps = withPerformanceLogging('index/pro', async () => {
-	return {
-		props: {},
-		revalidate: maxAgeForNext([22])
-	}
-})
 
 function ProPageContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
@@ -122,10 +113,10 @@ function ProContent({
 									!isAuthenticated
 										? () => router.push('/pro/preview')
 										: hasActiveSubscription
-										? () => setShowGenerateDashboardModal(true)
-										: () => setShowSubscribeModal(true)
+											? () => setShowGenerateDashboardModal(true)
+											: () => setShowSubscribeModal(true)
 								}
-								className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover) animate-ai-glow"
+								className="animate-ai-glow flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover)"
 							>
 								<Icon name="sparkles" height={16} width={16} />
 								Generate with LlamaAI
@@ -136,8 +127,8 @@ function ProContent({
 								!isAuthenticated
 									? () => router.push('/pro/preview')
 									: hasActiveSubscription
-									? createNewDashboard
-									: () => setShowSubscribeModal(true)
+										? createNewDashboard
+										: () => setShowSubscribeModal(true)
 							}
 							className="flex items-center gap-2 bg-(--primary) px-4 py-2 text-sm text-white hover:bg-(--primary-hover)"
 						>
