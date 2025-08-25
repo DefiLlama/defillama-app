@@ -9,15 +9,14 @@ interface TabNavigationProps {
 
 export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNavigationProps) {
 	const tabs = [
-		{ id: 'chart' as const, label: 'Chart', subtitle: '(Single)', mobileLabel: 'Chart' },
-		{ id: 'composer' as const, label: 'Chart Composer', subtitle: '(Multi)', mobileLabel: 'Composer' },
+		{ id: 'charts' as const, label: 'Charts', subtitle: '(Single & Multi)', mobileLabel: 'Charts' },
 		{ id: 'builder' as const, label: 'Chart Builder', mobileLabel: 'Builder' },
 		{ id: 'table' as const, label: 'Table', subtitle: '(Dataset)', mobileLabel: 'Table' },
 		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' }
 	]
 
 	return (
-		<div className="mb-4 grid grid-cols-5 gap-0 md:mb-6">
+		<div className="mb-4 grid grid-cols-4 gap-0 md:mb-6">
 			{tabs.map((tab, index) => (
 				<button
 					key={tab.id}
@@ -30,7 +29,10 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 					disabled={!!editItem}
 				>
 					<span className="lg:hidden">{tab.mobileLabel}</span>
-					<span className="hidden lg:inline">{tab.label}</span>
+					<span className="hidden lg:inline">
+						{tab.label}
+						{tab.subtitle && <span className="text-xs opacity-70"> {tab.subtitle}</span>}
+					</span>
 				</button>
 			))}
 		</div>

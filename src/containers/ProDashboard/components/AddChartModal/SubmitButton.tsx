@@ -16,6 +16,7 @@ interface SubmitButtonProps {
 	selectedDatasetChain?: string | null
 	selectedTokens?: string[]
 	chartBuilder?: ChartBuilderConfig
+	chartCreationMode?: 'separate' | 'combined'
 	onSubmit: () => void
 }
 
@@ -34,16 +35,12 @@ export function SubmitButton({
 	selectedDatasetChain,
 	selectedTokens = [],
 	chartBuilder,
+	chartCreationMode = 'separate',
 	onSubmit
 }: SubmitButtonProps) {
 	const isDisabled =
 		chartTypesLoading ||
-		(selectedMainTab === 'chart' &&
-			selectedChartTab === 'chain' &&
-			(!selectedChain || selectedChartTypes.length === 0)) ||
-		(selectedMainTab === 'chart' &&
-			selectedChartTab === 'protocol' &&
-			(!selectedProtocol || selectedChartTypes.length === 0)) ||
+		(selectedMainTab === 'charts' && composerItems.length === 0) ||
 		(selectedMainTab === 'table' &&
 			selectedTableType === 'protocols' &&
 			(!selectedChains || selectedChains.length === 0)) ||
@@ -52,7 +49,6 @@ export function SubmitButton({
 		(selectedMainTab === 'table' &&
 			selectedTableType === 'token-usage' &&
 			(!selectedTokens || selectedTokens.length === 0)) ||
-		(selectedMainTab === 'composer' && composerItems.length === 0) ||
 		(selectedMainTab === 'text' && !textContent.trim()) ||
 		(selectedMainTab === 'builder' && (!chartBuilder || chartBuilder.chains.length === 0))
 
@@ -62,16 +58,20 @@ export function SubmitButton({
 		switch (selectedMainTab) {
 			case 'table':
 				return 'Add Table'
-			case 'composer':
-				return 'Add Multi-Chart'
+			case 'charts':
+				if (chartCreationMode === 'combined') {
+					return 'Add Multi-Chart'
+				} else if (composerItems.length > 1) {
+					return `Add ${composerItems.length} Charts`
+				} else if (composerItems.length === 1) {
+					return 'Add Chart'
+				} else if (selectedChartTypes.length > 1) {
+					return `Add ${selectedChartTypes.length} Charts`
+				}
+				return 'Add Chart'
 			case 'text':
 				return 'Add Text'
 			case 'builder':
-				return 'Add Chart'
-			case 'chart':
-				if (selectedChartTypes.length > 1) {
-					return `Add ${selectedChartTypes.length} Charts`
-				}
 				return 'Add Chart'
 			default:
 				return 'Add Chart'
@@ -79,9 +79,9 @@ export function SubmitButton({
 	}
 
 	return (
-		<div className="mt-5 flex justify-end md:mt-7">
+		<div className="pro-border mt-2 flex justify-end border-t pt-2">
 			<button
-				className="bg-(--primary) px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50 md:px-6 md:py-3 md:text-base"
+				className="bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors duration-200 hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50 md:px-4 md:py-2 md:text-sm"
 				onClick={onSubmit}
 				disabled={isDisabled}
 			>

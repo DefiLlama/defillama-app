@@ -143,8 +143,9 @@ export default function MultiSeriesChart({
 		if (needMultipleAxes) {
 			finalYAxis = uniqueMetricTypes.slice(0, 3).map((_, index) => ({
 				...yAxis,
+				axisLabel: { ...(yAxis as any).axisLabel, margin: 4 },
 				position: index === 0 ? 'left' : index === 1 ? 'right' : 'left',
-				offset: index === 2 ? 60 : 0
+				offset: index === 2 ? 40 : 0
 			}))
 
 			seriesWithHallmarks = seriesWithHallmarks.map((s: any) => {
@@ -157,7 +158,7 @@ export default function MultiSeriesChart({
 		}
 
 		const legendRightPadding = needMultipleAxes ? 40 : legend.right
-		const gridLeftPadding = uniqueMetricTypes.length > 2 ? 72 : 12
+		const gridLeftPadding = 12
 
 		chartInstance.setOption({
 			graphic,
@@ -185,7 +186,7 @@ export default function MultiSeriesChart({
 			grid: {
 				left: gridLeftPadding,
 				bottom: 68,
-				top: 40,
+				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
 				outerBoundsContain: 'axisLabel'

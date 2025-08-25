@@ -3,16 +3,20 @@ import { ChartConfig, DashboardItemConfig } from '../../types'
 import { ChartBuilderConfig, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
-	const [selectedMainTab, setSelectedMainTab] = useState<MainTabType>('chart')
+	const [selectedMainTab, setSelectedMainTab] = useState<MainTabType>('charts')
 	const [selectedChartTab, setSelectedChartTab] = useState<ChartTabType>('chain')
 	const [composerItems, setComposerItems] = useState<ChartConfig[]>([])
-	const [composerSubType, setComposerSubType] = useState<ChartTabType>('chain')
-	const [composerChartName, setComposerChartName] = useState<string>('')
 	const [selectedChain, setSelectedChain] = useState<string | null>(null)
 	const [selectedChains, setSelectedChains] = useState<string[]>([])
 	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
 	const [selectedChartTypes, setSelectedChartTypes] = useState<string[]>([])
+	const [unifiedChartName, setUnifiedChartName] = useState<string>('')
+	const [chartCreationModeState, setChartCreationModeState] = useState<'separate' | 'combined'>('separate')
+
+	const setChartCreationMode = (mode: 'separate' | 'combined') => {
+		setChartCreationModeState(mode)
+	}
 	const [textTitle, setTextTitle] = useState<string>('')
 	const [textContent, setTextContent] = useState<string>('')
 	const [selectedTableType, setSelectedTableType] = useState<CombinedTableType>('protocols')
@@ -36,19 +40,29 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	useEffect(() => {
 		if (editItem) {
 			if (editItem.kind === 'chart') {
-				setSelectedMainTab('chart')
+				setSelectedMainTab('charts')
 				setSelectedChartTab(editItem.protocol ? 'protocol' : 'chain')
 				setSelectedChain(editItem.chain || null)
 				setSelectedProtocol(editItem.protocol || null)
 				setSelectedChartType(editItem.type)
 				setSelectedChartTypes([editItem.type])
+				setChartCreationModeState('separate')
+				setUnifiedChartName('')
 			} else if (editItem.kind === 'multi') {
-				setSelectedMainTab('composer')
+				setSelectedMainTab('charts')
 				setComposerItems(editItem.items)
-				setComposerChartName(editItem.name || '')
+				setUnifiedChartName(editItem.name || '')
+				setChartCreationModeState('combined')
 				if (editItem.items.length > 0) {
 					const firstItem = editItem.items[0]
-					setComposerSubType(firstItem.protocol ? 'protocol' : 'chain')
+					setSelectedChartTab(firstItem.protocol ? 'protocol' : 'chain')
+					const chartTypes = editItem.items.map((item) => item.type)
+					setSelectedChartTypes(chartTypes)
+					if (firstItem.protocol) {
+						setSelectedProtocol(firstItem.protocol)
+					} else if (firstItem.chain) {
+						setSelectedChain(firstItem.chain)
+					}
 				}
 			} else if (editItem.kind === 'table') {
 				setSelectedMainTab('table')
@@ -74,17 +88,16 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setChartBuilder(editItem.config)
 			}
 		} else {
-			// Reset state when not editing
-			setSelectedMainTab('chart')
+			setSelectedMainTab('charts')
 			setSelectedChartTab('chain')
 			setComposerItems([])
-			setComposerSubType('chain')
-			setComposerChartName('')
 			setSelectedChain(null)
 			setSelectedChains([])
 			setSelectedProtocol(null)
 			setSelectedChartType('tvl')
 			setSelectedChartTypes([])
+			setUnifiedChartName('')
+			setChartCreationModeState('separate')
 			setTextTitle('')
 			setTextContent('')
 			setSelectedTableType('protocols')
@@ -108,11 +121,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 
 	const resetState = () => {
 		setComposerItems([])
-		setComposerChartName('')
 		setTextTitle('')
 		setTextContent('')
 		setSelectedChartType('tvl')
 		setSelectedChartTypes([])
+		setUnifiedChartName('')
+		setChartCreationModeState('separate')
 		setSelectedChain(null)
 		setSelectedChains([])
 		setSelectedProtocol(null)
@@ -138,13 +152,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedMainTab,
 		selectedChartTab,
 		composerItems,
-		composerSubType,
-		composerChartName,
 		selectedChain,
 		selectedChains,
 		selectedProtocol,
 		selectedChartType,
 		selectedChartTypes,
+		unifiedChartName,
+		chartCreationMode: chartCreationModeState,
 		textTitle,
 		textContent,
 		selectedTableType,
@@ -162,13 +176,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedMainTab,
 			setSelectedChartTab,
 			setComposerItems,
-			setComposerSubType,
-			setComposerChartName,
 			setSelectedChain,
 			setSelectedChains,
 			setSelectedProtocol,
 			setSelectedChartType,
 			setSelectedChartTypes,
+			setUnifiedChartName,
+			setChartCreationMode,
 			setTextTitle,
 			setTextContent,
 			setSelectedTableType,

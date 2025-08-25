@@ -6,7 +6,7 @@ export interface AddChartModalProps {
 	editItem?: DashboardItemConfig | null
 }
 
-export type MainTabType = 'chart' | 'composer' | 'table' | 'text' | 'builder'
+export type MainTabType = 'charts' | 'table' | 'text' | 'builder'
 export type ChartTabType = 'chain' | 'protocol'
 export type CombinedTableType =
 	| 'protocols'
@@ -55,13 +55,13 @@ export interface ModalState {
 	selectedMainTab: MainTabType
 	selectedChartTab: ChartTabType
 	composerItems: ChartConfig[]
-	composerSubType: ChartTabType
-	composerChartName: string
 	selectedChain: string | null
 	selectedChains: string[]
 	selectedProtocol: string | null
 	selectedChartType: string
 	selectedChartTypes: string[]
+	unifiedChartName: string
+	chartCreationMode: 'separate' | 'combined'
 	textTitle: string
 	textContent: string
 	selectedTableType: CombinedTableType
@@ -77,13 +77,13 @@ export interface ModalActions {
 	setSelectedMainTab: (tab: MainTabType) => void
 	setSelectedChartTab: (tab: ChartTabType) => void
 	setComposerItems: React.Dispatch<React.SetStateAction<ChartConfig[]>>
-	setComposerSubType: (type: ChartTabType) => void
-	setComposerChartName: (name: string) => void
 	setSelectedChain: (chain: string | null) => void
 	setSelectedChains: (chains: string[]) => void // New action for multi-chain selection
 	setSelectedProtocol: (protocol: string | null) => void
 	setSelectedChartType: (type: string) => void
 	setSelectedChartTypes: (types: string[]) => void
+	setUnifiedChartName: (name: string) => void
+	setChartCreationMode: (mode: 'separate' | 'combined') => void
 	setTextTitle: (title: string) => void
 	setTextContent: (content: string) => void
 	setSelectedTableType: (type: CombinedTableType) => void
@@ -97,12 +97,11 @@ export interface ModalActions {
 	handleProtocolChange: (option: any) => void
 	handleDatasetChainChange: (option: any) => void
 	handleTokensChange: (options: any) => void
-	handleAddToComposer: () => void
+	handleAddToComposer: (typesToAdd?: string[]) => void
 	handleRemoveFromComposer: (id: string) => void
 	handleMainTabChange: (tab: MainTabType) => void
 	handleSubmit: () => void
 	handleChartTabChange: (tab: ChartTabType) => void
-	handleComposerSubTypeChange: (type: ChartTabType) => void
 	setChartBuilder: React.Dispatch<React.SetStateAction<ChartBuilderConfig>>
 	updateChartBuilder: (updates: Partial<ChartBuilderConfig>) => void
 }

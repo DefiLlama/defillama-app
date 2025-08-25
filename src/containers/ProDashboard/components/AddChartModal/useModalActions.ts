@@ -68,7 +68,6 @@ export function useModalActions(
 		actions.setSelectedChain(option.value)
 		actions.setSelectedProtocol(null)
 		actions.setSelectedChartType('tvl')
-		actions.setSelectedChartTypes([])
 	}
 
 	const handleChainsChange = (options: any[]) => {
@@ -80,7 +79,6 @@ export function useModalActions(
 		actions.setSelectedProtocol(option.value)
 		actions.setSelectedChain(null)
 		actions.setSelectedChartType('tvl')
-		actions.setSelectedChartTypes([])
 	}
 
 	const handleDatasetChainChange = (option: any) => {
@@ -93,33 +91,50 @@ export function useModalActions(
 		}
 	}
 
-	const handleAddToComposer = () => {
-		if (state.composerSubType === 'chain' && state.selectedChain) {
+	const handleAddToComposer = (typesToAdd?: string[]) => {
+		const chartTypesToAdd = typesToAdd || state.selectedChartTypes
+		let addedCount = 0
+
+		if (state.selectedChartTab === 'chain' && state.selectedChain && chartTypesToAdd.length > 0) {
 			const chain = chains.find((c: Chain) => c.name === state.selectedChain)
-			const newChart: ChartConfig = {
-				id: `${state.selectedChain}-${state.selectedChartType}-${Date.now()}`,
-				kind: 'chart',
-				chain: state.selectedChain,
-				type: state.selectedChartType,
-				grouping: 'day',
-				geckoId: ['chainMcap', 'chainPrice'].includes(state.selectedChartType) ? chain?.gecko_id : undefined
+
+			const filteredTypes = chartTypesToAdd.filter((chartType) => {
+				return !state.composerItems.some((item) => item.chain === state.selectedChain && item.type === chartType)
+			})
+
+			if (filteredTypes.length > 0) {
+				const newCharts = filteredTypes.map((chartType) => ({
+					id: `${state.selectedChain}-${chartType}-${Date.now()}-${Math.random()}`,
+					kind: 'chart' as const,
+					chain: state.selectedChain,
+					type: chartType,
+					grouping: 'day' as const,
+					geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
+				}))
+				actions.setComposerItems((prev) => [...prev, ...newCharts])
+				addedCount = filteredTypes.length
 			}
-			actions.setComposerItems((prev) => [...prev, newChart])
-		} else if (state.composerSubType === 'protocol' && state.selectedProtocol) {
+		} else if (state.selectedChartTab === 'protocol' && state.selectedProtocol && chartTypesToAdd.length > 0) {
 			const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
-			const newChart: ChartConfig = {
-				id: `${state.selectedProtocol}-${state.selectedChartType}-${Date.now()}`,
-				kind: 'chart',
-				protocol: state.selectedProtocol,
-				chain: '',
-				type: state.selectedChartType,
-				grouping: 'day',
-				geckoId: protocol?.geckoId
+
+			const filteredTypes = chartTypesToAdd.filter((chartType) => {
+				return !state.composerItems.some((item) => item.protocol === state.selectedProtocol && item.type === chartType)
+			})
+
+			if (filteredTypes.length > 0) {
+				const newCharts = filteredTypes.map((chartType) => ({
+					id: `${state.selectedProtocol}-${chartType}-${Date.now()}-${Math.random()}`,
+					kind: 'chart' as const,
+					protocol: state.selectedProtocol,
+					chain: '',
+					type: chartType,
+					grouping: 'day' as const,
+					geckoId: protocol?.geckoId
+				}))
+				actions.setComposerItems((prev) => [...prev, ...newCharts])
+				addedCount = filteredTypes.length
 			}
-			actions.setComposerItems((prev) => [...prev, newChart])
 		}
-		actions.setSelectedChartType('tvl')
-		actions.setSelectedChartTypes([])
 	}
 
 	const handleRemoveFromComposer = (id: string) => {
@@ -132,6 +147,10 @@ export function useModalActions(
 		actions.setSelectedProtocol(null)
 		actions.setSelectedChartType('tvl')
 		actions.setSelectedChartTypes([])
+		if (tab === 'charts') {
+			actions.setUnifiedChartName('')
+			actions.setChartCreationMode('separate')
+		}
 	}
 
 	const handleChartTabChange = (tab: ChartTabType) => {
@@ -139,15 +158,6 @@ export function useModalActions(
 		actions.setSelectedChain(null)
 		actions.setSelectedProtocol(null)
 		actions.setSelectedChartType('tvl')
-		actions.setSelectedChartTypes([])
-	}
-
-	const handleComposerSubTypeChange = (type: ChartTabType) => {
-		actions.setComposerSubType(type)
-		actions.setSelectedChain(null)
-		actions.setSelectedProtocol(null)
-		actions.setSelectedChartType('tvl')
-		actions.setSelectedChartTypes([])
 	}
 
 	const updateChartBuilder = (updates: Partial<typeof state.chartBuilder>) => {
@@ -156,37 +166,46 @@ export function useModalActions(
 
 	const handleSubmit = () => {
 		if (editItem) {
-			// Edit mode - create new item with same ID and update in place
 			let newItem: DashboardItemConfig | null = null
 
-			if (state.selectedMainTab === 'composer' && state.composerItems.length > 0) {
+			if (
+				state.selectedMainTab === 'charts' &&
+				state.chartCreationMode === 'combined' &&
+				state.composerItems.length > 0
+			) {
 				newItem = {
 					...editItem,
 					kind: 'multi',
-					name: state.composerChartName.trim() || undefined,
+					name: state.unifiedChartName.trim() || undefined,
 					items: state.composerItems
 				} as MultiChartConfig
-			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'chain' && state.selectedChain) {
+			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'chain' && state.selectedChain) {
 				const chain = chains.find((c: Chain) => c.name === state.selectedChain)
-				const chartTypeDetails = CHART_TYPES[state.selectedChartType]
+				const chartType = state.selectedChartTypes[0] || state.selectedChartType
+				const chartTypeDetails = CHART_TYPES[chartType]
 				newItem = {
 					...editItem,
 					kind: 'chart',
 					chain: state.selectedChain,
 					protocol: undefined,
-					type: state.selectedChartType,
+					type: chartType,
 					grouping: chartTypeDetails?.groupable ? 'day' : undefined,
-					geckoId: ['chainMcap', 'chainPrice'].includes(state.selectedChartType) ? chain?.gecko_id : undefined
+					geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
 				} as ChartConfig
-			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'protocol' && state.selectedProtocol) {
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.selectedChartTab === 'protocol' &&
+				state.selectedProtocol
+			) {
 				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
-				const chartTypeDetails = CHART_TYPES[state.selectedChartType]
+				const chartType = state.selectedChartTypes[0] || state.selectedChartType
+				const chartTypeDetails = CHART_TYPES[chartType]
 				newItem = {
 					...editItem,
 					kind: 'chart',
 					chain: '',
 					protocol: state.selectedProtocol,
-					type: state.selectedChartType,
+					type: chartType,
 					grouping: chartTypeDetails?.groupable ? 'day' : undefined,
 					geckoId: protocol?.geckoId
 				} as ChartConfig
@@ -345,32 +364,32 @@ export function useModalActions(
 				handleEditItem(editItem.id, newItem)
 			}
 		} else {
-			// Add mode - use existing handlers
-			if (state.selectedMainTab === 'composer' && state.composerItems.length > 0) {
-				handleAddMultiChart(state.composerItems, state.composerChartName.trim() || undefined)
-			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'chain' && state.selectedChain) {
-				const chain = chains.find((c: Chain) => c.name === state.selectedChain)
-				// Handle multiple selected charts
-				if (state.selectedChartTypes.length > 0) {
-					state.selectedChartTypes.forEach((chartType) => {
-						const geckoId = ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
-						handleAddChart(state.selectedChain, chartType, 'chain', geckoId)
-					})
-				} else if (state.selectedChartType) {
-					// Fallback to single chart for backward compatibility
-					const geckoId = ['chainMcap', 'chainPrice'].includes(state.selectedChartType) ? chain?.gecko_id : undefined
-					handleAddChart(state.selectedChain, state.selectedChartType, 'chain', geckoId)
-				}
-			} else if (state.selectedMainTab === 'chart' && state.selectedChartTab === 'protocol' && state.selectedProtocol) {
-				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
-				// Handle multiple selected charts
-				if (state.selectedChartTypes.length > 0) {
-					state.selectedChartTypes.forEach((chartType) => {
-						handleAddChart(state.selectedProtocol, chartType, 'protocol', protocol?.geckoId)
-					})
-				} else if (state.selectedChartType) {
-					// Fallback to single chart for backward compatibility
-					handleAddChart(state.selectedProtocol, state.selectedChartType, 'protocol', protocol?.geckoId)
+			if (state.selectedMainTab === 'charts') {
+				if (state.composerItems.length > 0) {
+					if (state.chartCreationMode === 'combined') {
+						handleAddMultiChart(state.composerItems, state.unifiedChartName.trim() || undefined)
+					} else {
+						state.composerItems.forEach((item) => {
+							if (item.chain) {
+								handleAddChart(item.chain, item.type, 'chain', item.geckoId)
+							} else if (item.protocol) {
+								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId)
+							}
+						})
+					}
+				} else if (state.chartCreationMode === 'separate' && state.selectedChartTypes.length > 0) {
+					if (state.selectedChain) {
+						const chain = chains.find((c: Chain) => c.name === state.selectedChain)
+						state.selectedChartTypes.forEach((chartType) => {
+							const geckoId = ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
+							handleAddChart(state.selectedChain, chartType, 'chain', geckoId)
+						})
+					} else if (state.selectedProtocol) {
+						const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
+						state.selectedChartTypes.forEach((chartType) => {
+							handleAddChart(state.selectedProtocol, chartType, 'protocol', protocol?.geckoId)
+						})
+					}
 				}
 			} else if (state.selectedMainTab === 'table') {
 				if (state.selectedTableType === 'protocols' && state.selectedChains.length > 0) {
@@ -439,7 +458,6 @@ export function useModalActions(
 			handleRemoveFromComposer,
 			handleMainTabChange,
 			handleChartTabChange,
-			handleComposerSubTypeChange,
 			handleSubmit,
 			setChartBuilder: actions.setChartBuilder,
 			updateChartBuilder
