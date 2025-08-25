@@ -13,7 +13,8 @@ import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
-import { chainIconUrl, download, slug } from '~/utils'
+import { chainIconUrl, slug } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { withPerformanceLogging } from '~/utils/perf'
 import { descriptions } from './categories'
 
@@ -66,6 +67,7 @@ const pageName = ['Top Protocols']
 
 export default function Chains({ data, uniqueCategories }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const columnHelper = createColumnHelper<any>()
 
@@ -125,7 +127,7 @@ export default function Chains({ data, uniqueCategories }) {
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	const downloadCSV = React.useCallback(() => {
+	const handleCSVDownload = React.useCallback(() => {
 		const headers = ['Chain', ...uniqueCategories]
 		const csvData = data.map((row) => {
 			return {
@@ -137,14 +139,14 @@ export default function Chains({ data, uniqueCategories }) {
 		const csv = [headers, ...csvData.map((row) => headers.map((header) => row[header]))]
 			.map((row) => row.join(','))
 			.join('\n')
-		download('top-protocols.csv', csv)
-	}, [data, uniqueCategories])
+		downloadCSV('top-protocols.csv', csv)
+	}, [data, uniqueCategories, downloadCSV])
 
 	return (
 		<Layout title="Top Protocols by chain on each category - DefiLlama" pageName={pageName}>
 			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-bg) bg-(--cards-bg) p-3">
 				<h1 className="mr-auto text-xl font-semibold">Protocols with highest TVL by chain on each category</h1>
-				<CSVDownloadButton onClick={downloadCSV} smol />
+				<CSVDownloadButton onClick={handleCSVDownload} isLoading={isDownloadLoading} smol />
 			</div>
 			<VirtualTable instance={table} />
 		</Layout>

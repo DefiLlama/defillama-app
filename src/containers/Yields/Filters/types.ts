@@ -36,6 +36,7 @@ export interface IDropdownMenusProps {
 	showTotalBorrowed?: boolean
 	showAvailable?: boolean
 	onCSVDownload?: () => void
+	isCSVDownloading?: boolean
 }
 
 export interface IYieldFiltersProps extends IDropdownMenusProps {
@@ -48,4 +49,5 @@ export interface IYieldFiltersProps extends IDropdownMenusProps {
 	noOfStrategies?: number
 	showSearchOnMobile?: boolean
 	onCSVDownload?: () => void
+	isCSVDownloading?: boolean
 }

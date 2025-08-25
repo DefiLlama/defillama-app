@@ -14,7 +14,7 @@ import {
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -32,6 +32,7 @@ export function HoldersRevenueDataset({ chains }: { chains?: string[] }) {
 	})
 
 	const { data, isLoading, error } = useHoldersRevenueData(chains)
+	const { downloadCSV, isLoading: isCSVLoading } = useCSVDownload()
 	const windowSize = useWindowSize()
 
 	const columnsToUse = React.useMemo(() => {
@@ -178,6 +179,7 @@ export function HoldersRevenueDataset({ chains }: { chains?: string[] }) {
 								
 								downloadCSV('holders-revenue-data.csv', csv, { addTimestamp: true })
 							}}
+							isLoading={isCSVLoading}
 							smol
 						/>
 						<input

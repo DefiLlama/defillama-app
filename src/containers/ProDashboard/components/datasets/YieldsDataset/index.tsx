@@ -46,6 +46,7 @@ export function YieldsDataset({
 		applyPreset,
 		activePreset,
 		downloadCSV,
+		isCSVLoading,
 		poolName,
 		setPoolName,
 		showFiltersPanel,
@@ -89,6 +90,7 @@ export function YieldsDataset({
 					showColumnPanel={false}
 					setShowColumnPanel={() => {}}
 					downloadCSV={() => {}}
+					isCSVLoading={isCSVLoading}
 					poolName=""
 					setPoolName={() => {}}
 					showFiltersPanel={false}
@@ -114,6 +116,7 @@ export function YieldsDataset({
 					showColumnPanel={false}
 					setShowColumnPanel={() => {}}
 					downloadCSV={() => {}}
+					isCSVLoading={isCSVLoading}
 					poolName=""
 					setPoolName={() => {}}
 					showFiltersPanel={false}
@@ -137,6 +140,7 @@ export function YieldsDataset({
 				showColumnPanel={showColumnPanel}
 				setShowColumnPanel={setShowColumnPanel}
 				downloadCSV={downloadCSV}
+				isCSVLoading={isCSVLoading}
 				poolName={poolName}
 				setPoolName={setPoolName}
 				showFiltersPanel={showFiltersPanel}

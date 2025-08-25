@@ -3,7 +3,8 @@ import * as echarts from 'echarts/core'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { download, slug, toNiceCsvDate } from '~/utils'
+import { slug, toNiceCsvDate } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { stringToColour } from '../utils'
@@ -34,6 +35,7 @@ export default function AreaChart({
 	...props
 }: IChartProps) {
 	const id = useId()
+	const { downloadCSV: downloadCSVFromHook, isLoading: isCSVLoading } = useCSVDownload()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
@@ -337,26 +339,32 @@ export default function AreaChart({
 						<CSVDownloadButton
 							onClick={() => {
 								try {
-									let rows = []
+									let headers: string[]
+									let rows: any[][]
+									
 									if (!chartsStack || chartsStack.length === 0) {
-										rows = [['Timestamp', 'Date', 'Value']]
+										headers = ['Timestamp', 'Date', 'Value']
+										rows = []
 										for (const [date, value] of chartData ?? []) {
 											rows.push([date, toNiceCsvDate(date), value])
 										}
 									} else {
-										rows = [['Timestamp', 'Date', ...chartsStack]]
+										headers = ['Timestamp', 'Date', ...chartsStack]
+										rows = []
 										for (const item of chartData ?? []) {
 											const { date, ...rest } = item
 											rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
 										}
 									}
+									
 									const Mytitle = title ? slug(title) : 'data'
 									const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-									download(filename, rows.map((r) => r.join(',')).join('\n'))
+									downloadCSVFromHook(filename, [headers, ...rows])
 								} catch (error) {
 									console.error('Error generating CSV:', error)
 								}
 							}}
+							isLoading={isCSVLoading}
 							smol
 						/>
 					)}

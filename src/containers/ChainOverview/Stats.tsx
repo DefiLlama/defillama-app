@@ -5,7 +5,6 @@ import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { downloadChart } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -14,7 +13,8 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
+import { capitalizeFirstLetter, chainIconUrl, formattedNum, slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
@@ -46,7 +46,8 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
-	const { isAuthenticated } = useAuthContext()
+	const { authorizedFetch, isAuthenticated } = useAuthContext()
+	const { downloadCSV, downloadChart, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const { toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart, groupBy, denomination } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
@@ -650,7 +651,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								.map((t) => `${t[0]}=true`)
 								.join('&')}`.replaceAll(' ', '%20')
 
-							const response = await fetch(url)
+							const response = await authorizedFetch(url)
 							
 							if (!response || !response.ok) {
 								toast.error('Failed to download CSV data')
@@ -659,13 +660,13 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 							const csvData = await response.text()
 							
-							
 							downloadCSV(`${props.metadata.name}.csv`, csvData)
 						} catch (error) {
 							console.error('CSV download error:', error)
 							toast.error('Failed to download CSV data')
 						}
 					}}
+					isLoading={isDownloadLoading}
 					smol
 					className="ml-auto"
 				/>
@@ -818,6 +819,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									console.error('Error generating CSV:', error)
 								}
 							}}
+							isLoading={isDownloadLoading}
 							smol
 						/>
 					</div>

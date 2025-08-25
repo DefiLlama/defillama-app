@@ -9,7 +9,8 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, download, formattedNum, toNiceCsvDate } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
+import { chainIconUrl, formattedNum, toNiceCsvDate } from '~/utils'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
@@ -18,6 +19,7 @@ const sortByRevenue = ['Trading App']
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const { finalProtocols, charts } = useMemo(() => {
 		const toggledSettings = Object.entries(tvlSettings)
@@ -105,8 +107,9 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								for (const item of props.charts['TVL']?.data ?? []) {
 									rows.push([item[0], toNiceCsvDate(item[0] / 1000), item[1]])
 								}
-								download(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
+								downloadCSV(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
 							}}
+							isLoading={isDownloadLoading}
 							smol
 							className="mt-auto mr-auto"
 						/>
@@ -142,8 +145,9 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								})
 							})
 							const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-							download(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
+							downloadCSV(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
 						}}
+						isLoading={isDownloadLoading}
 					/>
 				}
 			/>

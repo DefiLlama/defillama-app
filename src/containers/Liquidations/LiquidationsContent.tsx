@@ -14,6 +14,7 @@ import {
 } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { download, liquidationsIconUrl } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { StackBySwitch } from './StackBySwitch'
 import { TotalLiquidable } from './TotalLiquidable'
@@ -26,6 +27,7 @@ const LiquidationsChart = React.lazy(() =>
 export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData; options: ISearchItem[] }) => {
 	const { data, prevData } = props
 	const [bobo, setBobo] = React.useState(false)
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
@@ -53,8 +55,9 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				<CSVDownloadButton
 					onClick={async () => {
 						const csvString = await getLiquidationsCsvData(data.symbol)
-						download(`${data.symbol}-all-positions.csv`, csvString)
+						downloadCSV(`${data.symbol}-all-positions.csv`, csvString)
 					}}
+					isLoading={isDownloadLoading}
 					smol
 					className="mt-auto mr-auto"
 				/>

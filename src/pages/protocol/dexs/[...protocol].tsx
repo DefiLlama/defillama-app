@@ -1,7 +1,8 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { downloadChart, formatBarChart } from '~/components/ECharts/utils'
+import { formatBarChart } from '~/components/ECharts/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
@@ -105,6 +106,7 @@ const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export default function Protocols(props) {
 	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
+	const { downloadChart, isLoading } = useCSVDownload()
 	const finalCharts = useMemo(() => {
 		return {
 			'DEX Volume': {
@@ -171,6 +173,7 @@ export default function Protocols(props) {
 									console.error('Error generating CSV:', error)
 								}
 							}}
+							isLoading={isLoading}
 							smol
 						/>
 					</div>

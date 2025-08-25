@@ -106,32 +106,55 @@ export const formatLineChart = ({
 	}
 }
 
-export function downloadChart(data: Record<string, Array<[string | number, number]>>, filename: string) {
-	let rows = []
-	const charts = []
-	const dateStore = {}
-	for (const chartName in data) {
-		charts.push(chartName)
-		for (const [date, value] of data[chartName]) {
-			if (!dateStore[date]) {
-				dateStore[date] = {}
-			}
-			dateStore[date][chartName] = value
-		}
-	}
-	rows.push(['Timestamp', 'Date', ...charts])
-	for (const date in dateStore) {
-		const values = []
+export function downloadChart(
+	data: Record<string, Array<[string | number, number]>>, 
+	filename: string,
+	options: {
+		onLoadingStart?: () => void;
+		onLoadingEnd?: () => void;
+		onError?: (error: Error) => void;
+	} = {}
+) {
+	const { onLoadingStart, onLoadingEnd, onError } = options
+
+	if (onLoadingStart) onLoadingStart()
+
+	try {
+		const rows = []
+		const charts = []
+		const dateStore = {}
+		
 		for (const chartName in data) {
-			values.push(dateStore[date]?.[chartName] ?? '')
+			charts.push(chartName)
+			for (const [date, value] of data[chartName]) {
+				if (!dateStore[date]) {
+					dateStore[date] = {}
+				}
+				dateStore[date][chartName] = value
+			}
 		}
-		rows.push([date, toNiceCsvDate(+date / 1000), ...values])
+		
+		rows.push(['Timestamp', 'Date', ...charts])
+		for (const date in dateStore) {
+			const values = []
+			for (const chartName in data) {
+				values.push(dateStore[date]?.[chartName] ?? '')
+			}
+			rows.push([date, toNiceCsvDate(+date / 1000), ...values])
+		}
+		
+		download(
+			filename,
+			rows
+				.sort((a, b) => a[0] - b[0])
+				.map((r) => r.join(','))
+				.join('\n')
+		)
+
+		if (onLoadingEnd) onLoadingEnd()
+	} catch (error) {
+		if (onError) onError(error as Error)
+		else if (onLoadingEnd) onLoadingEnd()
+		throw error
 	}
-	download(
-		filename,
-		rows
-			.sort((a, b) => a[0] - b[0])
-			.map((r) => r.join(','))
-			.join('\n')
-	)
 }

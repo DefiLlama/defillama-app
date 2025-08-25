@@ -17,7 +17,8 @@ import {
 	useYieldPoolData
 } from '~/containers/Yields/queries/client'
 import Layout from '~/layout'
-import { download, formattedNum, getColorFromNumber, slug } from '~/utils'
+import { formattedNum, getColorFromNumber, slug } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { fetchApi } from '~/utils/async'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -87,6 +88,7 @@ const PageView = (props) => {
 	const { data: chartBorrow, isLoading: fetchingChartDataBorrow } = useYieldChartLendBorrow(query.pool)
 
 	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	// prepare csv data
 	const downloadCsv = () => {
@@ -96,7 +98,7 @@ const PageView = (props) => {
 			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
 		})
 
-		download(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
+		downloadCSV(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
 	}
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
@@ -303,7 +305,7 @@ const PageView = (props) => {
 						</span>
 					</p>
 
-					<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton onClick={downloadCsv} isLoading={isDownloadLoading} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 min-h-[478px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">

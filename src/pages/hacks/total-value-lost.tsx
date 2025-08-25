@@ -12,6 +12,7 @@ import {
 } from '~/containers/Hacks/queries'
 import Layout from '~/layout'
 import { download, formattedNum, tokenIconUrl } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('protocols/total-value-lost-in-hacks', async () => {
@@ -25,6 +26,7 @@ export const getStaticProps = withPerformanceLogging('protocols/total-value-lost
 const pageName = ['Protocols', 'ranked by', 'Total Value Lost in Hacks']
 
 export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostInHacksByProtocol) {
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 	const [selectedColumns, setSelectedColumns] = React.useState<Array<string>>([
 		'Name',
 		'Total Hacked',
@@ -73,8 +75,9 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 										protocol.totalHacked - protocol.returnedFunds
 									])
 								}
-								download('total-value-lost-in-hacks.csv', rows.map((r) => r.join(',')).join('\n'))
+								downloadCSV('total-value-lost-in-hacks.csv', rows.map((r) => r.join(',')).join('\n'))
 							}}
+							isLoading={isDownloadLoading}
 							smol
 						/>
 					</>

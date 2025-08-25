@@ -13,6 +13,7 @@ interface TableHeaderProps {
 	showColumnPanel: boolean
 	setShowColumnPanel: (show: boolean) => void
 	downloadCSV: () => void
+	isCSVLoading?: boolean
 	colSpan?: 1 | 2
 	customViews?: CustomView[]
 	onSaveView?: (name: string) => void
@@ -31,6 +32,7 @@ export function TableHeader({
 	showColumnPanel,
 	setShowColumnPanel,
 	downloadCSV,
+	isCSVLoading,
 	colSpan = 2,
 	customViews = [],
 	onSaveView,
@@ -176,7 +178,7 @@ export function TableHeader({
 				</div>
 			)}
 
-			<ProTableCSVButton onClick={downloadCSV} smol />
+			<ProTableCSVButton onClick={downloadCSV} isLoading={isCSVLoading} smol />
 
 			<Tooltip content="Create custom calculated columns with formulas like 'tvl / mcap' or '(fees_24h + revenue_24h) * 365'">
 				<button

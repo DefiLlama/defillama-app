@@ -14,7 +14,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
-import { downloadCSV } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import useWindowSize from '~/hooks/useWindowSize'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -53,6 +53,7 @@ export function TrendingContractsDataset({
 	const activeChain = chain.toLowerCase()
 	const { data, isLoading, error } = useTrendingContractsData(activeChain, timeframe)
 	const results = data?.results ?? []
+	const { downloadCSV, isLoading: isCSVLoading } = useCSVDownload()
 
 	const windowSize = useWindowSize()
 
@@ -203,6 +204,7 @@ export function TrendingContractsDataset({
 								
 								downloadCSV(`trending-contracts-${chain.toLowerCase()}-${timeframe}.csv`, csv, { addTimestamp: true })
 							}}
+							isLoading={isCSVLoading}
 							smol
 						/>
 						<input

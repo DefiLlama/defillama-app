@@ -12,7 +12,8 @@ import {
 import { components } from 'react-select'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { SortIcon } from '~/components/Table/SortIcon'
-import { download, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { reactSelectStyles } from '../../../utils/reactSelectStyles'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -82,6 +83,8 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 })
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
+	
+	const { downloadCSV: downloadCSVFromHook, isLoading: isCSVLoading } = useCSVDownload()
 
 	const tokenSymbols = config.tokenSymbols || []
 	const includeCex = config.includeCex ?? false
@@ -231,9 +234,10 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			return data
 		})
 
-		const csv = [headers.join(','), ...csvData.map((row) => headers.map((h) => row[h]).join(','))].join('\n')
+		const csvRows = csvData.map((row) => headers.map((h) => row[h]))
+		const filename = `token-usage-${tokenSymbols.join('-') || 'unknown'}.csv`
 
-		download(`token-usage-${tokenSymbols.join('-') || 'unknown'}.csv`, csv)
+		downloadCSVFromHook(filename, [headers, ...csvRows])
 	}
 
 	if (!tokenSymbols || tokenSymbols.length === 0) {
@@ -531,6 +535,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							</div>
 							<ProTableCSVButton
 								onClick={downloadCSV}
+								isLoading={isCSVLoading}
 								className="pro-border flex h-[38px] items-center gap-2 border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"
 							/>
 						</div>

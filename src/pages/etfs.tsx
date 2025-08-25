@@ -8,6 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
 import { download, firstDayOfMonth, formattedNum, lastDayOfWeek, toNiceCsvDate } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const LineAndBarChart = React.lazy(
@@ -79,6 +80,7 @@ const groupByList = ['Daily', 'Weekly', 'Monthly', 'Cumulative']
 const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps) => {
 	const [groupBy, setGroupBy] = React.useState<(typeof groupByList)[number]>('Weekly')
 	const [tickers, setTickers] = React.useState(['Bitcoin', 'Ethereum'])
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const charts = React.useMemo(() => {
 		const bitcoin = {}
@@ -196,11 +198,12 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 										rows.push([date, toNiceCsvDate(date), flows[date]['Bitcoin'] ?? '', flows[date]['Ethereum'] ?? ''])
 									}
 									const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
-									download(filename, rows.map((r) => r.join(',')).join('\n'))
+									downloadCSV(filename, rows.map((r) => r.join(',')).join('\n'))
 								} catch (error) {
 									console.error('Error generating CSV:', error)
 								}
 							}}
+							isLoading={isDownloadLoading}
 							smol
 						/>
 					</div>

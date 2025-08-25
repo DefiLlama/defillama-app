@@ -6,7 +6,8 @@ import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
-import { downloadCsv } from './download'
+import { prepareCsvData } from './download'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { useRaisesData } from './hooks'
 import { RaisesTable } from './RaisesTable'
 
@@ -16,6 +17,7 @@ const LineAndBarChart = React.lazy(
 
 const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname } = useRouter()
+	const { downloadCSV: downloadCSVFromHook, isLoading: isCSVLoading } = useCSVDownload()
 
 	const {
 		filteredRaisesList,
@@ -71,7 +73,10 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<span className="text-(--text-label)">Total Funding Amount</span>
 						<span className="font-jetbrains text-2xl font-semibold">${formattedNum(totalAmountRaised)}</span>
 					</p>
-					<CSVDownloadButton onClick={() => downloadCsv({ raises })} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton onClick={() => {
+						const { headers, rows } = prepareCsvData({ raises })
+						downloadCSVFromHook('raises.csv', [headers, ...rows])
+					}} isLoading={isCSVLoading} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
@@ -81,7 +86,10 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</div>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} downloadCsv={() => downloadCsv({ raises })} />
+			<RaisesTable raises={filteredRaisesList} downloadCsv={() => {
+				const { headers, rows } = prepareCsvData({ raises })
+				downloadCSVFromHook('raises.csv', [headers, ...rows])
+			}} isCSVLoading={isCSVLoading} />
 		</Layout>
 	)
 }

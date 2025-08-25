@@ -7,8 +7,9 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import Layout from '~/layout'
-import { download, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { preparePieChartData, toNiceCsvDate } from '~/utils'
 import { getChainsByCategory } from './queries'
 import { ChainsByCategoryTable } from './Table'
 import { IChainsByCategoryData } from './types'
@@ -32,6 +33,7 @@ export function ChainsByCategory({
 	const { query } = useRouter()
 	const { minTvl, maxTvl } = query
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 
 	const { dataByChain, pieChartData, chainsWithExtraTvlsAndDominanceByDay, chainsUniqueFiltered } =
 		React.useMemo(() => {
@@ -69,7 +71,7 @@ export function ChainsByCategory({
 			}
 		}, [chains, chainAssets, extraTvlsEnabled, stackedDataset, tvlTypes, minTvl, maxTvl, chainsUnique])
 
-	const downloadCsv = async () => {
+	const handleCSVDownload = async () => {
 		window.alert('Data download might take up to 1 minute, click OK to proceed')
 		const rows = [['Timestamp', 'Date', ...chainsUniqueFiltered]]
 		const { stackedDataset } = await getChainsByCategory({ category: 'All' })
@@ -84,7 +86,7 @@ export function ChainsByCategory({
 			.forEach((day) => {
 				rows.push([day.date, toNiceCsvDate(day.date), ...chainsUniqueFiltered.map((chain) => day[chain] ?? '')])
 			})
-		download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
+		downloadCSV('chains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
 	const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
@@ -102,7 +104,7 @@ export function ChainsByCategory({
 
 			<div className="flex flex-col gap-2 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton onClick={downloadCsv} smol className="mr-2 ml-auto" />
+					<CSVDownloadButton onClick={handleCSVDownload} isLoading={isDownloadLoading} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
 					</React.Suspense>

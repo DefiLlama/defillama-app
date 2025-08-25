@@ -8,8 +8,9 @@ import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import Layout from '~/layout'
-import { download, formattedNum, preparePieChartData } from '~/utils'
+import { formattedNum, preparePieChartData } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
@@ -27,6 +28,7 @@ export const OraclesByChain = ({
 	chain
 }) => {
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 	const { tokenTvls, tokensList } = React.useMemo(() => {
 		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1])
 			.filter((item) => item[0] !== 'date')
@@ -49,9 +51,9 @@ export const OraclesByChain = ({
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
 
-	const downloadCsv = () => {
+	const handleCSVDownload = () => {
 		const header = Object.keys(tokensList[0]).join(',')
-		download('oracles.csv', [header, ...tokensList.map((r) => Object.values(r).join(','))].join('\n'))
+		downloadCSV('oracles.csv', [header, ...tokensList.map((r) => Object.values(r).join(','))].join('\n'))
 	}
 
 	return (
@@ -60,7 +62,7 @@ export const OraclesByChain = ({
 
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton onClick={downloadCsv} smol className="mr-2 ml-auto" />
+					<CSVDownloadButton onClick={handleCSVDownload} isLoading={isDownloadLoading} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
 					</React.Suspense>

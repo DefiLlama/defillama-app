@@ -27,7 +27,8 @@ import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvl } from '~/constants'
 import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
-import { chainIconUrl, download, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
@@ -49,6 +50,7 @@ export const ChainProtocolsTable = ({
 	sampleRow?: any
 }) => {
 	const { customColumns, setCustomColumns } = useCustomColumns()
+	const { downloadCSV: downloadCSVFromHook, isLoading: isCSVLoading } = useCSVDownload()
 
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -407,9 +409,9 @@ export const ChainProtocolsTable = ({
 			})
 		})
 
-		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		const chainName = router.query.chain || 'all'
-		download(`defillama-${chainName}-protocols.csv`, csvContent)
+		const filename = `defillama-${chainName}-protocols.csv`
+		downloadCSVFromHook(filename, [headers, ...rows])
 	}
 
 	return (
@@ -461,7 +463,7 @@ export const ChainProtocolsTable = ({
 							onDeleteCustomColumn={handleDeleteCustomColumn}
 						/>
 						<TVLRange triggerClassName="w-full sm:w-auto" />
-						<CSVDownloadButton onClick={handleDownloadCsv} />
+						<CSVDownloadButton onClick={handleDownloadCsv} isLoading={isCSVLoading} />
 					</div>
 				</div>
 			</div>

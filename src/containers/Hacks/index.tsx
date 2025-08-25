@@ -18,6 +18,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, download, formattedNum, toNiceDayMonthAndYear } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { IHacksPageData } from './queries'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -31,6 +32,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [projectName, setProjectName] = React.useState('')
+	const { downloadCSV, isLoading: isDownloadLoading } = useCSVDownload()
 	const instance = useReactTable({
 		data: data,
 		columns: hacksColumns,
@@ -119,11 +121,12 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 									link
 								])
 							}
-							download('hacks.csv', rows.map((r) => r.join(',')).join('\n'))
+							downloadCSV('hacks.csv', rows.map((r) => r.join(',')).join('\n'))
 						} catch (error) {
 							console.error('Error generating CSV:', error)
 						}
 					}}
+					isLoading={isDownloadLoading}
 				/>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
@@ -144,6 +147,7 @@ export const HacksContainer = ({
 	pieChartData
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
+	const { downloadCSV: downloadChartCSV, isLoading: isChartDownloadLoading } = useCSVDownload()
 
 	return (
 		<Layout title={`Hacks - DefiLlama`} pageName={pageName}>
@@ -178,12 +182,13 @@ export const HacksContainer = ({
 										for (const { name, value } of pieChartData) {
 											rows.push([name, value])
 										}
-										download('total-hacked-by-technique.csv', rows.map((r) => r.join(',')).join('\n'))
+										downloadChartCSV('total-hacked-by-technique.csv', rows.map((r) => r.join(',')).join('\n'))
 									}
 								} catch (error) {
 									console.error('Error generating CSV:', error)
 								}
 							}}
+							isLoading={isChartDownloadLoading}
 							smol
 						/>
 					</div>

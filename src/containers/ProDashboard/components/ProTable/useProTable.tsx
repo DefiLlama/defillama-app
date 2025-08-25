@@ -22,7 +22,8 @@ import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/colum
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useUserConfig } from '~/hooks/useUserConfig'
-import { downloadCSV, formattedNum, getPercentChange } from '~/utils'
+import { formattedNum, getPercentChange } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 import { CustomView, TableFilters } from '../../types'
 
 interface CustomColumn {
@@ -141,6 +142,7 @@ export function useProTable(
 	onFilterClick?: () => void,
 	options?: UseProTableOptions
 ) {
+	const { downloadCSV: downloadCSVFromHook, isLoading: isCSVLoading } = useCSVDownload()
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsListMultiChain(chains)
 	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByMultiChain(chains)
 	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
@@ -721,7 +723,7 @@ export function useProTable(
 					? `${chains.join('_')}_protocols.csv`
 					: `multi_chain_${chains.length}_protocols.csv`
 
-		downloadCSV(filename, [headers, ...rows], { addTimestamp: true })
+		downloadCSVFromHook(filename, [headers, ...rows], { addTimestamp: true })
 	}
 
 	// Custom column management functions
@@ -846,6 +848,7 @@ export function useProTable(
 		applyPreset,
 		activePreset: selectedPreset || activeCustomView,
 		downloadCSV: handleDownloadCSV,
+		isCSVLoading,
 		customColumns,
 		addCustomColumn,
 		removeCustomColumn,

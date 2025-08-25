@@ -11,6 +11,7 @@ import { TxsTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
 import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { download, formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
+import { useCSVDownload } from '~/hooks/useCSVDownload'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -34,6 +35,8 @@ export function BridgesOverviewByChain({
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging'>('bridges')
+	const { downloadCSV: downloadMainCSV, isLoading: isMainDownloadLoading } = useCSVDownload()
+	const { downloadCSV: downloadChartCSV, isLoading: isChartDownloadLoading } = useCSVDownload()
 
 	useEffect(() => {
 		setChartView('netflow')
@@ -135,7 +138,7 @@ export function BridgesOverviewByChain({
 					}, 0)
 				])
 			})
-		download(fileName, rows.map((r) => r.join(',')).join('\n'))
+		downloadMainCSV(fileName, rows.map((r) => r.join(',')).join('\n'))
 	}
 
 	const downloadChartCsv = () => {
@@ -184,7 +187,7 @@ export function BridgesOverviewByChain({
 		if (rows.length === 0) {
 			alert('Not supported for this chart type')
 		} else {
-			download(fileName, rows.map((r) => r.join(',')).join('\n'))
+			downloadChartCSV(fileName, rows.map((r) => r.join(',')).join('\n'))
 		}
 	}
 
@@ -234,7 +237,7 @@ export function BridgesOverviewByChain({
 						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(monthTotalVolume, true)}</span>
 					</p>
 
-					<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton onClick={downloadCsv} isLoading={isMainDownloadLoading} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{selectedChain === 'All' ? (
@@ -329,7 +332,7 @@ export function BridgesOverviewByChain({
 						</>
 					)}
 					<div className="flex items-center justify-end p-3">
-						<CSVDownloadButton onClick={downloadChartCsv} smol />
+						<CSVDownloadButton onClick={downloadChartCsv} isLoading={isChartDownloadLoading} smol />
 					</div>
 				</div>
 			</div>
