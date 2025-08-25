@@ -30,16 +30,13 @@ export const CSVDownloadButton = ({
 	const isClient = useIsClient()
 	const router = useRouter()
 
-	// Show loading state only after client hydration to prevent hydration mismatch
-	const shouldShowLoading = isClient && isLoading
-
 	return (
 		<>
 			<button
 				className={
 					replaceClassName
-						? `relative data-[loading=true]:*:opacity-0 data-[loading=true]:*:last:opacity-100 ${className}`
-						: `relative flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[loading=true]:*:opacity-0 data-[loading=true]:*:last:opacity-100 ${
+						? `relative data-[loading=true]:cursor-wait ${className}`
+						: `relative flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[loading=true]:cursor-wait ${
 								className ?? ''
 							}`
 				}
@@ -52,14 +49,14 @@ export const CSVDownloadButton = ({
 						setShowSubscribeModal(true)
 					}
 				}}
-				data-loading={isClient ? isLoading : true}
+				data-loading={true}
 				disabled={isClient ? isLoading : true}
 			>
 				<Icon name="download-paper" className="h-3 w-3 shrink-0" />
 				{children || (
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}
-				{shouldShowLoading ? (
+				{loading ? (
 					<span className="absolute top-0 right-0 bottom-0 left-0 z-10 flex items-center justify-center">
 						<svg
 							className="h-[14px] w-[14px] shrink-0 animate-spin"
