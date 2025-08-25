@@ -47,7 +47,7 @@ export function ProDashboardLoader() {
 				<div className="absolute inset-0 flex items-center justify-center">
 					<div className="relative">
 						<img
-							src="/llama.png"
+							src="/icons/llama.webp"
 							alt="Loading"
 							className="h-16 w-16 animate-pulse object-contain"
 							style={{ animationDuration: '1.5s' }}

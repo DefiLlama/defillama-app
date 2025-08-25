@@ -1,10 +1,7 @@
 /* eslint-disable no-unused-vars*/
 import { useRouter } from 'next/router'
 import { ECBasicOption } from 'echarts/types/dist/shared'
-import type { ISearchItem } from '~/components/Search/types'
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import { liquidationsIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -651,7 +648,7 @@ export const getOption = (
 			type: 'image',
 			z: 0,
 			style: {
-				image: isDark ? logoLight.src : logoDark.src,
+				image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},

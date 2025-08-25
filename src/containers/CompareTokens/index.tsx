@@ -132,7 +132,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/placeholder.png'
+									e.currentTarget.src = '/icons/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
@@ -257,7 +257,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/placeholder.png'
+									e.currentTarget.src = '/icons/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
@@ -331,7 +331,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										width={'20px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/placeholder.png'
+											e.currentTarget.src = '/icons/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
@@ -346,7 +346,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										width={'20px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/placeholder.png'
+											e.currentTarget.src = '/icons/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>

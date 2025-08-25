@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-	--font-inter: Inter var, sans-serif;
+	--font-inter: Inter var, 'Inter-fallback', sans-serif;
 	--font-jetbrains: JetBrains Mono, monospace;
 
 	--animate-loader: loader 800ms linear infinite;
@@ -71,11 +71,18 @@
 		}
 	}
 	@keyframes ai-glow {
-		0%, 100% {
-			box-shadow: 0 0 4px rgba(91, 133, 255, 0.2), 0 0 8px rgba(91, 133, 255, 0.15), 0 0 12px rgba(91, 133, 255, 0.1);
+		0%,
+		100% {
+			box-shadow:
+				0 0 4px rgba(91, 133, 255, 0.2),
+				0 0 8px rgba(91, 133, 255, 0.15),
+				0 0 12px rgba(91, 133, 255, 0.1);
 		}
 		50% {
-			box-shadow: 0 0 8px rgba(91, 133, 255, 0.3), 0 0 16px rgba(91, 133, 255, 0.2), 0 0 20px rgba(91, 133, 255, 0.15);
+			box-shadow:
+				0 0 8px rgba(91, 133, 255, 0.3),
+				0 0 16px rgba(91, 133, 255, 0.2),
+				0 0 20px rgba(91, 133, 255, 0.15);
 		}
 	}
 }
@@ -338,6 +345,12 @@
 
 @layer base {
 	@font-face {
+		font-family: 'Inter-fallback';
+		size-adjust: 107%;
+		src: local('Arial');
+	}
+
+	@font-face {
 		font-family: 'Inter var';
 		font-style: normal;
 		font-weight: 100 900;
@@ -354,9 +367,6 @@
 	}
 
 	:root {
-		--font-jetbrains: 'JetBrains Mono', monospace;
-		--font-inter: 'Inter var', sans-serif;
-
 		/* Text Colors */
 		--text-primary: oklch(0.239 0 0); /* Main text */
 		--text-secondary: oklch(0.47 0.025 273.6); /* Secondary text */
@@ -424,8 +434,6 @@
 	}
 
 	html {
-		font-family: var(--font-inter);
-		line-height: inherit;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
@@ -487,7 +495,7 @@
 	}
 
 	body {
-		@apply bg-(--app-bg) text-sm text-black dark:text-white;
+		@apply font-inter bg-(--app-bg) text-sm leading-[1.4288em] text-black dark:text-white;
 	}
 
 	#__next,

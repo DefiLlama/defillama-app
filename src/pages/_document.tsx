@@ -43,6 +43,11 @@ export default function Document() {
 					data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
 					data-host-url="https://tasty.defillama.com"
 				></script>
+				<link rel="icon" href="/favicon.ico" />
+				<link rel="icon" href="/icons/favicon-32x32.png" />
+				<link rel="icon" href="/icons/favicon-16x16.png" />
+				<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+				<link rel="manifest" href="/manifest.json" />
 			</Head>
 			<body>
 				<Main />

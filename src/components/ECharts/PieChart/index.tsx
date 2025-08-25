@@ -5,8 +5,6 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import { formattedNum } from '~/utils'
 import type { IPieChartProps } from '../types'
 
@@ -93,7 +91,7 @@ export default function PieChart({
 			type: 'image',
 			z: 999,
 			style: {
-				image: isDark ? logoLight.src : logoDark.src,
+				image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},

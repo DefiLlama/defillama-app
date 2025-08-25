@@ -24,7 +24,7 @@ export const DesktopNav = ({
 			<BasicLink href="/" className="shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img
-					src="/defillama-press-kit/defi/PNG/defillama.png"
+					src="/icons/defillama.webp"
 					height={53}
 					width={155}
 					className="mr-auto mb-4 hidden object-contain object-left dark:block"
@@ -32,7 +32,7 @@ export const DesktopNav = ({
 					fetchPriority="high"
 				/>
 				<img
-					src="/defillama-press-kit/defi/PNG/defillama-dark.png"
+					src="/icons/defillama-dark.webp"
 					height={53}
 					width={155}
 					className="mr-auto mb-4 object-contain object-left dark:hidden"

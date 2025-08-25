@@ -13,8 +13,6 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import type { ICollectionScatterChartProps } from './types'
 
 echarts.use([
@@ -90,7 +88,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 				type: 'image',
 				z: 0,
 				style: {
-					image: isDark ? logoLight.src : logoDark.src,
+					image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
 					height: 40,
 					opacity: 0.3
 				},

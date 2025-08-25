@@ -13,7 +13,7 @@ const MobileFallback = () => {
 			<BasicLink href="/" className="mr-auto shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img
-					src="/defillama-press-kit/defi/PNG/defillama.png"
+					src="/icons/defillama.webp"
 					alt=""
 					height={36}
 					width={105}

@@ -19,7 +19,7 @@ export function SubscribeLayout({ children }) {
 				<header className="sticky top-0 z-50 border-b border-[#39393E]/40 bg-[#13141a]/80 backdrop-blur-md">
 					<div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 xl:max-w-7xl">
 						<BasicLink href="/" className="flex items-center gap-3">
-							<img src="/llama.png" alt="DefiLlama" width={32} height={32} className="rounded-full" />
+							<img src="/icons/llama.webp" alt="DefiLlama" width={32} height={32} className="rounded-full" />
 							<span className="hidden text-lg font-bold sm:inline-block">DefiLlama</span>
 						</BasicLink>
 
@@ -49,7 +49,7 @@ export function SubscribeLayout({ children }) {
 					<div className="mx-auto max-w-6xl xl:max-w-7xl">
 						<div className="flex flex-col items-center justify-between gap-6 md:flex-row">
 							<div className="flex items-center gap-3">
-								<img src="/llama.png" alt="DefiLlama" width={28} height={28} className="rounded-full" />
+								<img src="/icons/llama.webp" alt="DefiLlama" width={28} height={28} className="rounded-full" />
 								<span className="font-bold">DefiLlama</span>
 							</div>
 

@@ -12,8 +12,6 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import type { IOrderBookChartProps } from './types'
 
 echarts.use([
@@ -123,7 +121,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				type: 'image',
 				z: 0,
 				style: {
-					image: isDark ? logoLight.src : logoDark.src,
+					image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
 					height: 40,
 					opacity: 0.3
 				},

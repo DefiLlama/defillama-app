@@ -12,8 +12,6 @@ import {
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useMedia } from '~/hooks/useMedia'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import { formattedNum } from '~/utils'
 
 const CHART_SYMBOLS = {
@@ -89,7 +87,7 @@ export function useDefaults({
 			type: 'image',
 			z: 0,
 			style: {
-				image: isThemeDark ? logoLight.src : logoDark.src,
+				image: isThemeDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},

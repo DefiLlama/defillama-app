@@ -8,8 +8,6 @@ import { capitalize } from 'lodash'
 import { TagGroup } from '~/components/TagGroup'
 import { NETFLOWS_API } from '~/constants'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -167,7 +165,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					left: 'center',
 					top: 'center',
 					style: {
-						image: isThemeDark ? logoLight.src : logoDark.src,
+						image: isThemeDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
 						height: 40,
 						opacity: 0.3
 					},
