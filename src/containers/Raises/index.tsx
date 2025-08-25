@@ -6,7 +6,7 @@ import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
-import { downloadCsv } from './download'
+import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 import { RaisesTable } from './RaisesTable'
 
@@ -32,6 +32,10 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		sectors,
 		chains
 	})
+
+	const prepareCsv = React.useCallback(() => {
+		prepareRaisesCsv({ raises: filteredRaisesList })
+	}, [filteredRaisesList])
 
 	return (
 		<Layout title={`Raises - DefiLlama`} pageName={['Raises Overview']}>
@@ -71,7 +75,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<span className="text-(--text-label)">Total Funding Amount</span>
 						<span className="font-jetbrains text-2xl font-semibold">${formattedNum(totalAmountRaised)}</span>
 					</p>
-					<CSVDownloadButton onClick={() => downloadCsv({ raises })} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton onClick={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
@@ -81,7 +85,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</div>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} downloadCsv={() => downloadCsv({ raises })} />
+			<RaisesTable raises={filteredRaisesList} downloadCsv={prepareCsv} />
 		</Layout>
 	)
 }

@@ -1,4 +1,4 @@
-import { Fragment, lazy, memo, Suspense, useMemo } from 'react'
+import { Fragment, lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
@@ -12,8 +12,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
-import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { IChainOverviewData } from './types'
@@ -115,6 +115,14 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 	}
 
 	const metricsDialogStore = Ariakit.useDialogStore()
+
+	const prepateCsv = useCallback(() => {
+		try {
+			downloadChart(finalCharts, `${props.chain}.csv`)
+		} catch (error) {
+			console.error('Error generating CSV:', error)
+		}
+	}, [finalCharts, props.chain])
 
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
@@ -637,6 +645,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 				</div>
 				<CSVDownloadButton
 					onClick={async () => {
+						// TODO csv
 						if (!isAuthenticated) {
 							toast.error('Please sign in to download CSV data')
 							return
@@ -651,15 +660,14 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								.join('&')}`.replaceAll(' ', '%20')
 
 							const response = await fetch(url)
-							
+
 							if (!response || !response.ok) {
 								toast.error('Failed to download CSV data')
 								return
 							}
 
 							const csvData = await response.text()
-							
-							
+
 							downloadCSV(`${props.metadata.name}.csv`, csvData)
 						} catch (error) {
 							console.error('CSV download error:', error)
@@ -810,16 +818,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							</div>
 						) : null}
 						<EmbedChart />
-						<CSVDownloadButton
-							onClick={() => {
-								try {
-									downloadChart(finalCharts, `${props.chain}.csv`)
-								} catch (error) {
-									console.error('Error generating CSV:', error)
-								}
-							}}
-							smol
-						/>
+						<CSVDownloadButton onClick={prepateCsv} smol />
 					</div>
 
 					{isFetchingChartData ? (

@@ -140,6 +140,21 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 		return newCharts
 	}, [charts, tickers])
 
+	const prepareCsv = React.useCallback(() => {
+		try {
+			let rows = []
+
+			rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum']]
+			for (const date in flows) {
+				rows.push([date, toNiceCsvDate(date), flows[date]['Bitcoin'] ?? '', flows[date]['Ethereum'] ?? ''])
+			}
+			const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
+			download(filename, rows.map((r) => r.join(',')).join('\n'))
+		} catch (error) {
+			console.error('Error generating CSV:', error)
+		}
+	}, [flows])
+
 	return (
 		<>
 			<div className="flex min-h-[434px] flex-col gap-1 md:flex-row">
@@ -186,23 +201,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 							}}
 							portal
 						/>
-						<CSVDownloadButton
-							onClick={() => {
-								try {
-									let rows = []
-
-									rows = [['Timestamp', 'Date', 'Bitcoin', 'Ethereum']]
-									for (const date in flows) {
-										rows.push([date, toNiceCsvDate(date), flows[date]['Bitcoin'] ?? '', flows[date]['Ethereum'] ?? ''])
-									}
-									const filename = `etf-flows-${new Date().toISOString().split('T')[0]}.csv`
-									download(filename, rows.map((r) => r.join(',')).join('\n'))
-								} catch (error) {
-									console.error('Error generating CSV:', error)
-								}
-							}}
-							smol
-						/>
+						<CSVDownloadButton onClick={prepareCsv} smol />
 					</div>
 					<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<LineAndBarChart

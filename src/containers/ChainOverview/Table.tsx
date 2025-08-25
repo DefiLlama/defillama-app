@@ -1,4 +1,4 @@
-import { useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
@@ -371,7 +371,7 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
-	const handleDownloadCsv = () => {
+	const prepateCsv = useCallback(() => {
 		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
@@ -410,7 +410,7 @@ export const ChainProtocolsTable = ({
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		const chainName = router.query.chain || 'all'
 		download(`defillama-${chainName}-protocols.csv`, csvContent)
-	}
+	}, [instance, router.query.chain])
 
 	return (
 		<div className="isolate rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -461,7 +461,7 @@ export const ChainProtocolsTable = ({
 							onDeleteCustomColumn={handleDeleteCustomColumn}
 						/>
 						<TVLRange triggerClassName="w-full sm:w-auto" />
-						<CSVDownloadButton onClick={handleDownloadCsv} />
+						<CSVDownloadButton onClick={prepateCsv} />
 					</div>
 				</div>
 			</div>

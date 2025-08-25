@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
@@ -55,6 +55,32 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 		return columns(props.category)
 	}, [props.category])
 
+	const prepareCsv = useCallback(() => {
+		const headers = categoryColumns.map((col) => col.header as string)
+		const rows = finalProtocols.map((protocol) => {
+			return categoryColumns.map((col: any) => {
+				const value =
+					'accessorFn' in col && col.accessorFn
+						? col?.accessorFn?.(protocol)
+						: protocol[col.id as keyof typeof protocol]
+				if (value === null || value === undefined) return ''
+				if (col.id === 'name') return `"${protocol.name}"`
+				if (typeof value === 'number') return value
+				return String(value).includes(',') ? `"${String(value)}"` : String(value)
+			})
+		})
+		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
+		download(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
+	}, [finalProtocols, categoryColumns, props.category, props.chain])
+
+	const prepareCsvFromChart = useCallback(() => {
+		const rows: any = [['Timestamp', 'Date', props.category]]
+		for (const item of props.charts['TVL']?.data ?? []) {
+			rows.push([item[0], toNiceCsvDate(item[0] / 1000), item[1]])
+		}
+		download(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
+	}, [props.charts, props.category])
+
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
@@ -99,17 +125,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								<span className="font-jetbrains text-right">{formattedNum(props.perpVolume7d, true)}</span>
 							</p>
 						)}
-						<CSVDownloadButton
-							onClick={() => {
-								const rows: any = [['Timestamp', 'Date', props.category]]
-								for (const item of props.charts['TVL']?.data ?? []) {
-									rows.push([item[0], toNiceCsvDate(item[0] / 1000), item[1]])
-								}
-								download(`${props.category}-TVL.csv`, rows.map((r) => r.join(',')).join('\n'))
-							}}
-							smol
-							className="mt-auto mr-auto"
-						/>
+						<CSVDownloadButton onClick={prepareCsvFromChart} smol className="mt-auto mr-auto" />
 					</div>
 				</div>
 				<div className="col-span-2 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) py-2">
@@ -125,27 +141,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columnToSearch="name"
 				header="Protocol Rankings"
 				defaultSorting={sortByRevenue.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : []}
-				customFilters={
-					<CSVDownloadButton
-						onClick={() => {
-							const headers = categoryColumns.map((col) => col.header as string)
-							const rows = finalProtocols.map((protocol) => {
-								return categoryColumns.map((col: any) => {
-									const value =
-										'accessorFn' in col && col.accessorFn
-											? col?.accessorFn?.(protocol)
-											: protocol[col.id as keyof typeof protocol]
-									if (value === null || value === undefined) return ''
-									if (col.id === 'name') return `"${protocol.name}"`
-									if (typeof value === 'number') return value
-									return String(value).includes(',') ? `"${String(value)}"` : String(value)
-								})
-							})
-							const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-							download(`defillama-${props.category}-${props.chain || 'all'}-protocols.csv`, csvContent)
-						}}
-					/>
-				}
+				customFilters={<CSVDownloadButton onClick={prepareCsv} />}
 			/>
 		</>
 	)

@@ -180,6 +180,46 @@ const ChartByType = ({
 		return { charts }
 	}, [allTypes, chartInterval, chartType, selectedTypes, totalDataChartBreakdown])
 
+	const prepareCsv = React.useCallback(() => {
+		try {
+			let rows = []
+			const dataToExport = mainChartData.charts
+			const chartKeys = Object.keys(dataToExport)
+
+			if (chartKeys.length > 0) {
+				rows = [['Timestamp', 'Date', ...selectedTypes]]
+				const dateMap = new Map()
+
+				selectedTypes.forEach((type) => {
+					if (dataToExport[type]) {
+						dataToExport[type].data.forEach(([timestamp, value]) => {
+							if (!dateMap.has(timestamp)) {
+								dateMap.set(timestamp, {})
+							}
+							dateMap.get(timestamp)[type] = value
+						})
+					}
+				})
+
+				const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a - b)
+
+				sortedDates.forEach((timestamp) => {
+					const row = [timestamp, toNiceCsvDate(timestamp / 1000)]
+					selectedTypes.forEach((type) => {
+						row.push(dateMap.get(timestamp)?.[type] ?? '')
+					})
+					rows.push(row)
+				})
+			}
+
+			const csvTitle = title ? slug(title) : chartType
+			const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
+			download(filename, rows.map((r) => r.join(',')).join('\n'))
+		} catch (error) {
+			console.error('Error generating CSV:', error)
+		}
+	}, [mainChartData.charts, selectedTypes, title, chartInterval, chartType])
+
 	return (
 		<>
 			<div className="flex flex-wrap items-center justify-end gap-1 p-2">
@@ -215,50 +255,7 @@ const ChartByType = ({
 					}}
 					portal
 				/>
-				<CSVDownloadButton
-					onClick={() => {
-						try {
-							let rows = []
-							const dataToExport = mainChartData.charts
-							const chartKeys = Object.keys(dataToExport)
-
-							if (chartKeys.length > 0) {
-								rows = [['Timestamp', 'Date', ...selectedTypes]]
-								const dateMap = new Map()
-
-								selectedTypes.forEach((type) => {
-									if (dataToExport[type]) {
-										dataToExport[type].data.forEach(([timestamp, value]) => {
-											if (!dateMap.has(timestamp)) {
-												dateMap.set(timestamp, {})
-											}
-											dateMap.get(timestamp)[type] = value
-										})
-									}
-								})
-
-								const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a - b)
-
-								sortedDates.forEach((timestamp) => {
-									const row = [timestamp, toNiceCsvDate(timestamp / 1000)]
-									selectedTypes.forEach((type) => {
-										row.push(dateMap.get(timestamp)?.[type] ?? '')
-									})
-									rows.push(row)
-								})
-							}
-
-							const csvTitle = title ? slug(title) : chartType
-							const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${
-								new Date().toISOString().split('T')[0]
-							}.csv`
-							download(filename, rows.map((r) => r.join(',')).join('\n'))
-						} catch (error) {
-							console.error('Error generating CSV:', error)
-						}
-					}}
-					smol
-				/>
+				<CSVDownloadButton onClick={prepareCsv} smol />
 			</div>
 			<React.Suspense fallback={<></>}>
 				<LineAndBarChart

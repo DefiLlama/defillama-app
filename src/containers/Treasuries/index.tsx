@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -41,7 +41,7 @@ export function Treasuries({ data, entity }) {
 
 	const [projectName, setProjectName] = useState('')
 
-	const downloadCSV = () => {
+	const prepareCsv = useCallback(() => {
 		const headers = [
 			'Name',
 			'Category',
@@ -76,7 +76,7 @@ export function Treasuries({ data, entity }) {
 			.concat(dataToDownload.map((row) => headers.map((header) => row[header]).join(',')))
 			.join('\n')
 		download('treasuries.csv', csv)
-	}
+	}, [data])
 
 	useEffect(() => {
 		const projectsColumns = instance.getColumn('name')
@@ -96,7 +96,7 @@ export function Treasuries({ data, entity }) {
 				header={'Treasuries'}
 				customFilters={
 					<>
-						<CSVDownloadButton onClick={downloadCSV} />
+						<CSVDownloadButton onClick={prepareCsv} />
 					</>
 				}
 			/>

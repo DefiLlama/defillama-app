@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -160,6 +160,14 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 	})
 
 	const metricsDialogStore = Ariakit.useDialogStore()
+
+	const prepareCsv = useCallback(() => {
+		try {
+			downloadChart(finalCharts, `${props.name}.csv`)
+		} catch (error) {
+			console.error('Error generating CSV:', error)
+		}
+	}, [finalCharts, props.name])
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -350,16 +358,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					<EmbedChart />
-					<CSVDownloadButton
-						onClick={() => {
-							try {
-								downloadChart(finalCharts, `${props.name}.csv`)
-							} catch (error) {
-								console.error('Error generating CSV:', error)
-							}
-						}}
-						smol
-					/>
+					<CSVDownloadButton onClick={prepareCsv} smol />
 				</div>
 			</div>
 			<div className="flex min-h-[360px] flex-col">

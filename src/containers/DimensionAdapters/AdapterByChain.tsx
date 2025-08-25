@@ -247,7 +247,7 @@ export function AdapterByChain(props: IProps) {
 		instance.setColumnSizing(colSize[1])
 	}, [instance, windowSize])
 
-	const downloadCsv = useCallback(() => {
+	const prepateCsv = useCallback(() => {
 		const header = [
 			'Protocol',
 			'Category',
@@ -482,7 +482,7 @@ export function AdapterByChain(props: IProps) {
 						/>
 					)}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
-					<CSVDownloadButton onClick={downloadCsv} />
+					<CSVDownloadButton onClick={prepateCsv} />
 				</div>
 
 				<VirtualTable instance={instance} rowSize={64} compact />

@@ -127,7 +127,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		pathname,
 		pairTokens
 	])
-	const downloadCSV = React.useCallback(() => {
+	const prepareCsv = React.useCallback(() => {
 		const headers = [
 			'Pool',
 			'Project',
@@ -251,7 +251,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				showTotalBorrowed={true}
 				showAvailable={true}
 				showLTV={true}
-				onCSVDownload={downloadCSV}
+				onCSVDownload={prepareCsv}
 			/>
 
 			{loading ? (

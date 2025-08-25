@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -207,6 +207,29 @@ export default function BarChart({
 
 	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
 
+	const prepareCsv = useCallback(() => {
+		try {
+			let rows = []
+			if (!stackKeys || stackKeys.length === 0) {
+				rows = [['Timestamp', 'Date', 'Value']]
+				for (const [date, value] of chartData ?? []) {
+					rows.push([date, toNiceCsvDate(date), value])
+				}
+			} else {
+				rows = [['Timestamp', 'Date', ...selectedStacks]]
+				for (const item of chartData ?? []) {
+					const { date, ...rest } = item
+					rows.push([date, toNiceCsvDate(date), ...selectedStacks.map((stack) => rest[stack] ?? '')])
+				}
+			}
+			const Mytitle = title ? slug(title) : 'data'
+			const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+			download(filename, rows.map((r) => r.join(',')).join('\n'))
+		} catch (error) {
+			console.error('Error generating CSV:', error)
+		}
+	}, [chartData, stackKeys, selectedStacks, title])
+
 	return (
 		<div className="relative">
 			{title || showLegend || !hideDownloadButton ? (
@@ -232,33 +255,7 @@ export default function BarChart({
 							portal
 						/>
 					)}
-					{hideDownloadButton ? null : (
-						<CSVDownloadButton
-							onClick={() => {
-								try {
-									let rows = []
-									if (!stackKeys || stackKeys.length === 0) {
-										rows = [['Timestamp', 'Date', 'Value']]
-										for (const [date, value] of chartData ?? []) {
-											rows.push([date, toNiceCsvDate(date), value])
-										}
-									} else {
-										rows = [['Timestamp', 'Date', ...selectedStacks]]
-										for (const item of chartData ?? []) {
-											const { date, ...rest } = item
-											rows.push([date, toNiceCsvDate(date), ...selectedStacks.map((stack) => rest[stack] ?? '')])
-										}
-									}
-									const Mytitle = title ? slug(title) : 'data'
-									const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-									download(filename, rows.map((r) => r.join(',')).join('\n'))
-								} catch (error) {
-									console.error('Error generating CSV:', error)
-								}
-							}}
-							smol
-						/>
-					)}
+					{hideDownloadButton ? null : <CSVDownloadButton onClick={prepareCsv} smol />}
 				</div>
 			) : null}
 			<div

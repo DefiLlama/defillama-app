@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 import exponentialLogo from '~/assets/exponential.avif'
@@ -89,7 +89,7 @@ const PageView = (props) => {
 	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 	// prepare csv data
-	const downloadCsv = () => {
+	const prepareCsv = useCallback(() => {
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
 		chart.data?.forEach((item) => {
@@ -97,7 +97,7 @@ const PageView = (props) => {
 		})
 
 		download(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
-	}
+	}, [chart.data, query.pool])
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
 	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? 0
@@ -303,7 +303,7 @@ const PageView = (props) => {
 						</span>
 					</p>
 
-					<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton onClick={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 min-h-[478px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">

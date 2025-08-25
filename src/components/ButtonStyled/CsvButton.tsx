@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react'
+import { memo, ReactNode, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { SubscribeModal } from '~/components/Modal/SubscribeModal'
@@ -8,7 +8,7 @@ import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
 
 // use children to pass in the text
-export const CSVDownloadButton = ({
+export const CSVDownloadButton = memo(function CSVDownloadButton({
 	onClick,
 	children,
 	className,
@@ -22,7 +22,7 @@ export const CSVDownloadButton = ({
 	smol?: boolean
 	isLoading?: boolean
 	children?: ReactNode
-}) => {
+}) {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { loaders } = useAuthContext()
 	const isLoading = loaders.userLoading || isSubscriptionLoading || loading ? true : false
@@ -81,4 +81,4 @@ export const CSVDownloadButton = ({
 			)}
 		</>
 	)
-}
+})

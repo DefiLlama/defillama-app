@@ -22,7 +22,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 		.filter((row) => row?.total)
 		.sort((a, b) => b.total.total - a.total.total)
 
-	const onCSVDownload = () => {
+	const prepareCsv = React.useCallback(() => {
 		const csvData = data.map((row) => {
 			return {
 				Chain: row.name,
@@ -40,7 +40,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 			.join('\n')
 
 		download('bridged-chains.csv', csv)
-	}
+	}, [data])
 
 	return (
 		<>
@@ -52,7 +52,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 				columnToSearch={['name']}
 				customFilters={
 					<>
-						<CSVDownloadButton onClick={onCSVDownload} smol />
+						<CSVDownloadButton onClick={prepareCsv} smol />
 					</>
 				}
 			/>

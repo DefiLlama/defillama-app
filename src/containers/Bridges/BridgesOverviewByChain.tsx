@@ -98,7 +98,7 @@ export function BridgesOverviewByChain({
 		})
 	}, [chainVolumeData])
 
-	const downloadCsv = () => {
+	const prepareCsv = React.useCallback(() => {
 		const allBridges = [...(filteredBridges || []), ...(messagingProtocols || [])]
 		const allBridgeNames = allBridges.map((bridge) => bridge.displayName)
 
@@ -136,9 +136,9 @@ export function BridgesOverviewByChain({
 				])
 			})
 		download(fileName, rows.map((r) => r.join(',')).join('\n'))
-	}
+	}, [filteredBridges, messagingProtocols, bridgeNameToChartDataIndex, chartDataByBridge])
 
-	const downloadChartCsv = () => {
+	const prepateChartCsv = React.useCallback(() => {
 		let rows = []
 		let fileName = 'bridge-chart-data.csv'
 
@@ -186,7 +186,16 @@ export function BridgesOverviewByChain({
 		} else {
 			download(fileName, rows.map((r) => r.join(',')).join('\n'))
 		}
-	}
+	}, [
+		selectedChain,
+		chartView,
+		chartType,
+		chainVolumeData,
+		chainNetFlowData,
+		chainPercentageNet,
+		tokenDeposits,
+		tokenWithdrawals
+	])
 
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = React.useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
@@ -234,7 +243,7 @@ export function BridgesOverviewByChain({
 						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(monthTotalVolume, true)}</span>
 					</p>
 
-					<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
+					<CSVDownloadButton onClick={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{selectedChain === 'All' ? (
@@ -329,7 +338,7 @@ export function BridgesOverviewByChain({
 						</>
 					)}
 					<div className="flex items-center justify-end p-3">
-						<CSVDownloadButton onClick={downloadChartCsv} smol />
+						<CSVDownloadButton onClick={prepateChartCsv} smol />
 					</div>
 				</div>
 			</div>

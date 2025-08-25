@@ -217,7 +217,7 @@ export function ChainsByCategory({
 		return { showByGroup, chainsTableData }
 	}, [category, chains, tvlSettings, minMaxTvl, chainsGroupbyParent])
 
-	const downloadCsv = React.useCallback(() => {
+	const prepateCsv = React.useCallback(() => {
 		const headers = ['Date', 'Timestamp']
 		for (const chain in dominanceCharts) {
 			headers.push(chain)
@@ -261,7 +261,7 @@ export function ChainsByCategory({
 					</React.Suspense>
 				</div>
 				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton onClick={downloadCsv} smol className="mr-2 ml-auto" />
+					<CSVDownloadButton onClick={prepateCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<LineAndBarChart charts={dominanceCharts} valueSymbol="%" expandTo100Percent solidChartAreaStyle />
 					</React.Suspense>

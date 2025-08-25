@@ -1,7 +1,7 @@
 import { download, toNiceCsvDate } from '~/utils'
 
 // prepare csv data
-export const downloadCsv = ({ raises }) => {
+export const prepareRaisesCsv = ({ raises }) => {
 	const rows = [
 		[
 			'Name',

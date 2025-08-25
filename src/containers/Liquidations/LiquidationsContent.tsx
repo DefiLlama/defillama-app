@@ -52,6 +52,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				</p>
 				<CSVDownloadButton
 					onClick={async () => {
+						// TODO csv
 						const csvString = await getLiquidationsCsvData(data.symbol)
 						download(`${data.symbol}-all-positions.csv`, csvString)
 					}}

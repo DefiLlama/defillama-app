@@ -118,7 +118,7 @@ export function ChainsByAdapter(props: IProps) {
 		instance.setColumnSizing(colSize[1])
 	}, [instance, windowSize])
 
-	const downloadCsv = useCallback(() => {
+	const prepareCsv = useCallback(() => {
 		const header = ['Chain', 'Total 1d', 'Total 1m']
 		const csvdata = chains.map((protocol) => {
 			return [protocol.name, protocol.total24h, protocol.total30d]
@@ -164,7 +164,7 @@ export function ChainsByAdapter(props: IProps) {
 							className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
 						/>
 					</div>
-					<CSVDownloadButton onClick={downloadCsv} />
+					<CSVDownloadButton onClick={prepareCsv} />
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>

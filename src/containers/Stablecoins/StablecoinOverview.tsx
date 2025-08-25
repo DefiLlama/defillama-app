@@ -118,7 +118,7 @@ export const PeggedAssetInfo = ({
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
-	const downloadCsv = () => {
+	const prepareCsv = React.useCallback(() => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
 		stackedData
 			.sort((a, b) => a.date - b.date)
@@ -133,7 +133,7 @@ export const PeggedAssetInfo = ({
 				])
 			})
 		download('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
+	}, [stackedData, chainsUnique])
 
 	return (
 		<>
@@ -226,7 +226,7 @@ export const PeggedAssetInfo = ({
 										</tbody>
 									</table>
 								)}
-								<CSVDownloadButton onClick={downloadCsv} smol className="mt-auto mr-auto" />
+								<CSVDownloadButton onClick={prepareCsv} smol className="mt-auto mr-auto" />
 							</div>
 						</Ariakit.TabPanel>
 

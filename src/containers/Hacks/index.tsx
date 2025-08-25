@@ -56,6 +56,20 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 		return () => clearTimeout(id)
 	}, [projectName, instance])
 
+	const prepareCsv = React.useCallback(() => {
+		try {
+			let rows: Array<Array<string | number | boolean>> = [
+				['Name', 'Date', 'Amount', 'Chains', 'Classification', 'Target', 'Technique', 'Bridge', 'Language', 'Link']
+			]
+			for (const { name, date, amount, chains, classification, target, technique, bridge, language, link } of data) {
+				rows.push([name, date, amount, chains?.join(','), classification, target, technique, bridge, language, link])
+			}
+			download('hacks.csv', rows.map((r) => r.join(',')).join('\n'))
+		} catch (error) {
+			console.error('Error generating CSV:', error)
+		}
+	}, [data])
+
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-end gap-2 p-3">
@@ -77,54 +91,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton
-					onClick={() => {
-						try {
-							let rows: Array<Array<string | number | boolean>> = [
-								[
-									'Name',
-									'Date',
-									'Amount',
-									'Chains',
-									'Classification',
-									'Target',
-									'Technique',
-									'Bridge',
-									'Language',
-									'Link'
-								]
-							]
-							for (const {
-								name,
-								date,
-								amount,
-								chains,
-								classification,
-								target,
-								technique,
-								bridge,
-								language,
-								link
-							} of data) {
-								rows.push([
-									name,
-									date,
-									amount,
-									chains?.join(','),
-									classification,
-									target,
-									technique,
-									bridge,
-									language,
-									link
-								])
-							}
-							download('hacks.csv', rows.map((r) => r.join(',')).join('\n'))
-						} catch (error) {
-							console.error('Error generating CSV:', error)
-						}
-					}}
-				/>
+				<CSVDownloadButton onClick={prepareCsv} />
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>
@@ -144,6 +111,25 @@ export const HacksContainer = ({
 	pieChartData
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
+
+	const prepareCsv = React.useCallback(() => {
+		try {
+			if (chartType === 'Monthly Sum') {
+				downloadChart(
+					{ 'Total Value Hacked': monthlyHacksChartData['Total Value Hacked'].data },
+					`total-value-hacked.csv`
+				)
+			} else {
+				let rows: Array<Array<string | number>> = [['Technique', 'Value']]
+				for (const { name, value } of pieChartData) {
+					rows.push([name, value])
+				}
+				download('total-hacked-by-technique.csv', rows.map((r) => r.join(',')).join('\n'))
+			}
+		} catch (error) {
+			console.error('Error generating CSV:', error)
+		}
+	}, [monthlyHacksChartData, pieChartData, chartType])
 
 	return (
 		<Layout title={`Hacks - DefiLlama`} pageName={pageName}>
@@ -165,27 +151,7 @@ export const HacksContainer = ({
 				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="m-2 flex flex-wrap items-center justify-between gap-2">
 						<TagGroup setValue={setChartType} selectedValue={chartType} values={chartTypeList} />
-						<CSVDownloadButton
-							onClick={() => {
-								try {
-									if (chartType === 'Monthly Sum') {
-										downloadChart(
-											{ 'Total Value Hacked': monthlyHacksChartData['Total Value Hacked'].data },
-											`total-value-hacked.csv`
-										)
-									} else {
-										let rows: Array<Array<string | number>> = [['Technique', 'Value']]
-										for (const { name, value } of pieChartData) {
-											rows.push([name, value])
-										}
-										download('total-hacked-by-technique.csv', rows.map((r) => r.join(',')).join('\n'))
-									}
-								} catch (error) {
-									console.error('Error generating CSV:', error)
-								}
-							}}
-							smol
-						/>
+						<CSVDownloadButton onClick={prepareCsv} smol />
 					</div>
 					{chartType === 'Monthly Sum' ? (
 						<React.Suspense fallback={<></>}>

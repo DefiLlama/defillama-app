@@ -49,10 +49,10 @@ export const OraclesByChain = ({
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
 
-	const downloadCsv = () => {
+	const prepareCsv = React.useCallback(() => {
 		const header = Object.keys(tokensList[0]).join(',')
 		download('oracles.csv', [header, ...tokensList.map((r) => Object.values(r).join(','))].join('\n'))
-	}
+	}, [tokensList])
 
 	return (
 		<Layout title={`Oracles - DefiLlama`} includeInMetricsOptions={tvlOptions} pageName={pageName}>
@@ -60,7 +60,7 @@ export const OraclesByChain = ({
 
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton onClick={downloadCsv} smol className="mr-2 ml-auto" />
+					<CSVDownloadButton onClick={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
 					</React.Suspense>

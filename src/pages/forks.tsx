@@ -59,7 +59,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, forkedTokensData])
 
-	const downloadCSV = () => {
+	const prepareCsv = React.useCallback(() => {
 		const headers = ['Name', 'Forked Protocols', 'TVL', 'Forked TVL / Original TVL %']
 		const csvData = tokensList.map((row) => {
 			return {
@@ -71,14 +71,14 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 		})
 		const csv = [headers].concat(csvData.map((row) => headers.map((header) => row[header]))).join('\n')
 		download('forks.csv', csv)
-	}
+	}, [tokensList])
 
 	return (
 		<Layout title={`Forks - DefiLlama`} pageName={pageName}>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<CSVDownloadButton onClick={downloadCSV} smol className="mr-2 ml-auto" />
+					<CSVDownloadButton onClick={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={forkColors} />
 					</React.Suspense>

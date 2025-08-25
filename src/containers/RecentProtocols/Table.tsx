@@ -143,7 +143,7 @@ export function RecentlyListedProtocolsTable({
 		)
 	}
 
-	const downloadCSV = () => {
+	const prepareCsv = React.useCallback(() => {
 		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
 		const csvData = data.map((row) => {
 			return {
@@ -160,7 +160,7 @@ export function RecentlyListedProtocolsTable({
 			'protocols.csv',
 			[headers, ...csvData.map((row) => headers.map((header) => row[header]).join(','))].join('\n')
 		)
-	}
+	}, [data])
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -203,7 +203,7 @@ export function RecentlyListedProtocolsTable({
 
 					{forkedList ? <HideForkedProtocols /> : null}
 
-					<CSVDownloadButton onClick={downloadCSV} />
+					<CSVDownloadButton onClick={prepareCsv} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />

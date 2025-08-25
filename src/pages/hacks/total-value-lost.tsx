@@ -36,6 +36,19 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 		return columns.filter((c) => selectedColumns.includes(c.id))
 	}, [selectedColumns])
 
+	const prepareCsv = React.useCallback(() => {
+		const rows: Array<Array<string | number>> = [['Name', 'Total Hacked', 'Returned Funds', 'Net User Loss']]
+		for (const protocol of protocols) {
+			rows.push([
+				protocol.name,
+				protocol.totalHacked,
+				protocol.returnedFunds,
+				protocol.totalHacked - protocol.returnedFunds
+			])
+		}
+		download('total-value-lost-in-hacks.csv', rows.map((r) => r.join(',')).join('\n'))
+	}, [protocols])
+
 	return (
 		<Layout title="Total Value Lost in Hacks - DefiLlama" pageName={pageName}>
 			<TableWithSearch
@@ -60,23 +73,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
-						<CSVDownloadButton
-							onClick={() => {
-								const rows: Array<Array<string | number>> = [
-									['Name', 'Total Hacked', 'Returned Funds', 'Net User Loss']
-								]
-								for (const protocol of protocols) {
-									rows.push([
-										protocol.name,
-										protocol.totalHacked,
-										protocol.returnedFunds,
-										protocol.totalHacked - protocol.returnedFunds
-									])
-								}
-								download('total-value-lost-in-hacks.csv', rows.map((r) => r.join(',')).join('\n'))
-							}}
-							smol
-						/>
+						<CSVDownloadButton onClick={prepareCsv} smol />
 					</>
 				}
 			/>

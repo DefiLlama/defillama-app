@@ -170,6 +170,20 @@ export const ChainsByAdapterChart = ({
 		return getChartDataByChainAndInterval({ chartData, chartInterval, chartType, selectedChains })
 	}, [chartData, chartInterval, selectedChains, chartType])
 
+	const prepareCsv = React.useCallback(() => {
+		const rows: any = [['Timestamp', 'Date', ...allChains]]
+
+		for (const date in chartData) {
+			const row: any = [date, toNiceCsvDate(date)]
+			for (const chain of allChains) {
+				row.push(chartData[date][chain] ?? '')
+			}
+			rows.push(row)
+		}
+
+		download(`${type}-chains-${new Date().toISOString().split('T')[0]}.csv`, rows.map((r) => r.join(',')).join('\n'))
+	}, [chartData, allChains, type])
+
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<>
@@ -215,25 +229,7 @@ export const ChainsByAdapterChart = ({
 						}}
 						portal
 					/>
-					<CSVDownloadButton
-						onClick={() => {
-							const rows: any = [['Timestamp', 'Date', ...allChains]]
-
-							for (const date in chartData) {
-								const row: any = [date, toNiceCsvDate(date)]
-								for (const chain of allChains) {
-									row.push(chartData[date][chain] ?? '')
-								}
-								rows.push(row)
-							}
-
-							download(
-								`${type}-chains-${new Date().toISOString().split('T')[0]}.csv`,
-								rows.map((r) => r.join(',')).join('\n')
-							)
-						}}
-						smol
-					/>
+					<CSVDownloadButton onClick={prepareCsv} smol />
 				</div>
 			</>
 

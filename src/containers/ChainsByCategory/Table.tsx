@@ -168,7 +168,7 @@ export function ChainsByCategoryTable({
 		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
-	const handleDownloadCsv = () => {
+	const prepateCsv = React.useCallback(() => {
 		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
@@ -191,7 +191,7 @@ export function ChainsByCategoryTable({
 
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		download(`defillama-chains.csv`, csvContent)
-	}
+	}, [instance])
 
 	return (
 		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>
@@ -248,7 +248,7 @@ export function ChainsByCategoryTable({
 					</div>
 
 					<TVLRange triggerClassName="w-full sm:w-auto" />
-					<CSVDownloadButton onClick={handleDownloadCsv} />
+					<CSVDownloadButton onClick={prepateCsv} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />

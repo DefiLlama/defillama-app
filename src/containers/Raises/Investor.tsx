@@ -19,7 +19,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import useWindowSize from '~/hooks/useWindowSize'
 import Layout from '~/layout'
-import { downloadCsv } from './download'
+import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 
 const LineAndBarChart = React.lazy(
@@ -126,7 +126,9 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 		chains
 	})
 
-	console.log({ raisesByCategory, investmentByRounds, fundingRoundsByMonthChart })
+	const prepareCsv = React.useCallback(() => {
+		prepareRaisesCsv({ raises: filteredRaisesList })
+	}, [filteredRaisesList])
 
 	return (
 		<Layout title={`Raises - DefiLlama`} pageName={pageName}>
@@ -202,7 +204,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				</LazyChart>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} downloadCsv={() => downloadCsv({ raises })} />
+			<RaisesTable raises={filteredRaisesList} downloadCsv={prepareCsv} />
 		</Layout>
 	)
 }

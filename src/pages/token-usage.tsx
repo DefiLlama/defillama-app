@@ -65,7 +65,7 @@ export default function Tokens({ searchData }) {
 		)
 	}, [protocols, includeCentraliseExchanges])
 
-	const downloadCSV = () => {
+	const prepareCsv = () => {
 		const data = filteredProtocols.map((p) => {
 			return {
 				Protocol: p.name,
@@ -112,7 +112,7 @@ export default function Tokens({ searchData }) {
 										)
 									}
 								/>
-								<CSVDownloadButton onClick={downloadCSV} />
+								<CSVDownloadButton onClick={prepareCsv} />
 							</div>
 						</div>
 
