@@ -2,6 +2,7 @@ import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { Icon } from '../Icon'
 
 interface IProps {
 	options: { label: string; to: string }[]
@@ -52,11 +53,17 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					}}
 					className="max-sm:drawer z-10 flex h-[calc(100vh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] lg:h-full lg:max-h-[var(--popover-available-height)] dark:border-[hsl(204,3%,32%)]"
 				>
-					<Ariakit.Combobox
-						placeholder="Search..."
-						autoFocus
-						className="m-3 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
-					/>
+					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+						<Icon name="x" className="h-5 w-5" />
+					</Ariakit.PopoverDismiss>
+
+					<span className="relative mb-2 p-3">
+						<Ariakit.Combobox
+							placeholder="Search..."
+							autoFocus
+							className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
+						/>
+					</span>
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList>
 							{matches.slice(0, viewableMatches + 1).map((value) => (

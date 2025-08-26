@@ -5,6 +5,7 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
+import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer, findOptimizerPools } from '~/containers/Yields/utils'
@@ -193,6 +194,10 @@ const TokensSelect = ({
 						}}
 						className="max-sm:drawer z-10 flex h-[calc(100vh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] lg:h-full lg:max-h-[var(--popover-available-height)] dark:border-[hsl(204,3%,32%)]"
 					>
+						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+							<Icon name="x" className="h-5 w-5" />
+						</Ariakit.PopoverDismiss>
+
 						<Ariakit.Combobox
 							placeholder="Search..."
 							autoFocus

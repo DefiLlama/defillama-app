@@ -690,7 +690,12 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										<Icon name="plus" className="h-[14px] w-[14px]" />
 									</Ariakit.DialogDisclosure>
 									<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
-										<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
+										<span className="flex items-center justify-between gap-1">
+											<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
+											<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
+												<Icon name="x" className="h-5 w-5" />
+											</Ariakit.DialogDismiss>
+										</span>
 										<div className="flex flex-wrap gap-2">
 											{props.charts.map((tchart) => (
 												<button

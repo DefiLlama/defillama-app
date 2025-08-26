@@ -2,6 +2,7 @@ import { FormEventHandler, ReactNode } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { NestedMenu } from '~/components/NestedMenu'
 import { cn } from '~/utils/cn'
+import { Icon } from '../Icon'
 
 interface IFilterBetweenRange {
 	name: string
@@ -66,6 +67,10 @@ export function FilterBetweenRange({
 				}}
 				className="max-sm:drawer z-10 flex h-[calc(100vh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] lg:h-full lg:max-h-[var(--popover-available-height)] dark:border-[hsl(204,3%,32%)]"
 			>
+				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+					<Icon name="x" className="h-5 w-5" />
+				</Ariakit.PopoverDismiss>
+
 				<div className="mx-auto w-full sm:w-[260px]">
 					<Form min={min} max={max} onSubmit={onSubmit} onClear={onClear} />
 				</div>

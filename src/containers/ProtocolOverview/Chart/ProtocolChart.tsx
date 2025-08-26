@@ -167,7 +167,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start">
+			<div className="flex flex-wrap items-center justify-start gap-2">
 				{props.availableCharts.length > 0 ? (
 					<Ariakit.DialogProvider store={metricsDialogStore}>
 						<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
@@ -175,7 +175,13 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							<Icon name="plus" className="h-[14px] w-[14px]" />
 						</Ariakit.DialogDisclosure>
 						<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
-							<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
+							<span className="flex items-center justify-between gap-1">
+								<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
+								<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
+									<Icon name="x" className="h-5 w-5" />
+								</Ariakit.DialogDismiss>
+							</span>
+
 							<div className="flex flex-wrap gap-2">
 								{props.availableCharts.map((chart) => (
 									<button

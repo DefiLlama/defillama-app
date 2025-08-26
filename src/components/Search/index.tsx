@@ -88,6 +88,10 @@ const Mobile = () => {
 				hideOnInteractOutside
 				portal
 			>
+				<Ariakit.DialogDismiss className="-mb-8 ml-auto p-2 opacity-50 sm:hidden">
+					<Icon name="x" className="h-5 w-5" />
+				</Ariakit.DialogDismiss>
+
 				<Ariakit.ComboboxProvider
 					setValue={(value) => {
 						startTransition(() => {
@@ -100,10 +104,6 @@ const Mobile = () => {
 							placeholder="Search..."
 							className="w-full rounded-md bg-white px-3 py-1 pr-10 text-base dark:bg-black"
 						/>
-						<Ariakit.DialogDismiss className="absolute top-[4px] right-[6px] opacity-50">
-							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={24} width={24} />
-						</Ariakit.DialogDismiss>
 					</span>
 
 					<div className="flex flex-col gap-1">

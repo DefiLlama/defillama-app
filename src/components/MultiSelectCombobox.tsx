@@ -70,6 +70,7 @@ export const MultiSelectCombobox = ({
 			<Ariakit.ComboboxPopover
 				unmountOnHide
 				hideOnInteractOutside
+				preventBodyScroll
 				gutter={6}
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
@@ -78,6 +79,22 @@ export const MultiSelectCombobox = ({
 				portal
 				sameWidth
 			>
+				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+					<Icon name="x" className="h-5 w-5" />
+				</Ariakit.PopoverDismiss>
+
+				<span className="relative mb-2 p-3">
+					<input
+						placeholder="Search..."
+						className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
+						onChange={(e) => {
+							startTransition(() => {
+								setSearchValue(e.target.value)
+							})
+						}}
+					/>
+				</span>
+
 				<Ariakit.ComboboxList>
 					{matches.slice(0, viewableMatches).map((item) => (
 						<Ariakit.ComboboxItem

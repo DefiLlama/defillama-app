@@ -179,6 +179,10 @@ export default function Protocols({ emissions }) {
 							}}
 							className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 						>
+							<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+								<Icon name="x" className="h-5 w-5" />
+							</Ariakit.PopoverDismiss>
+
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 								<button
 									onClick={() => {
