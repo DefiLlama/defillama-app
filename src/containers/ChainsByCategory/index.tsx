@@ -25,6 +25,133 @@ export function ChainsByCategory({
 	tvlChartsByChain,
 	totalTvlByDate
 }: IChainsByCategoryData) {
+	const { pieChartData, dominanceCharts } = useFormatChartData({
+		tvlChartsByChain,
+		totalTvlByDate,
+		colorsByChain
+	})
+
+	const { showByGroup, chainsTableData } = useGroupAndFormatChains({ chains, category })
+
+	const prepareCsv = React.useCallback(() => {
+		const headers = ['Date', 'Timestamp']
+		for (const chain in dominanceCharts) {
+			headers.push(chain)
+		}
+
+		const domByDate: Record<string, Record<string, number>> = {}
+		for (const chain in dominanceCharts) {
+			for (const [date, dominance] of dominanceCharts[chain].data) {
+				domByDate[date] = domByDate[date] ?? {}
+				domByDate[date][chain] = dominance
+			}
+		}
+
+		const rows: Array<Array<string | number>> = []
+		for (const date in domByDate) {
+			const row: Array<string | number> = [toNiceCsvDate(+date / 1e3), date]
+			for (const chain in dominanceCharts) {
+				row.push(domByDate[date][chain] ?? '')
+			}
+			rows.push(row)
+		}
+
+		return { filename: `defillama-chains-dominance.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
+	}, [dominanceCharts])
+
+	return (
+		<Layout
+			title={`${category} Chains DeFi TVL - DefiLlama`}
+			includeInMetricsOptions={tvlOptions}
+			includeInMetricsOptionslabel="Include in TVL"
+			pageName={pageName}
+		>
+			<RowLinksWithDropdown links={allCategories} activeLink={category} />
+
+			<div className="flex flex-col gap-2 xl:flex-row">
+				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+					<React.Suspense fallback={<></>}>
+						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
+					</React.Suspense>
+				</div>
+				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
+					<React.Suspense fallback={<></>}>
+						<LineAndBarChart charts={dominanceCharts} valueSymbol="%" expandTo100Percent solidChartAreaStyle />
+					</React.Suspense>
+				</div>
+			</div>
+
+			<React.Suspense
+				fallback={
+					<div
+						style={{ minHeight: `${chainsTableData.length * 50 + 200}px` }}
+						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
+					/>
+				}
+			>
+				<ChainsByCategoryTable data={chainsTableData} showByGroup={showByGroup} />
+			</React.Suspense>
+		</Layout>
+	)
+}
+
+const useFormatChartData = ({
+	tvlChartsByChain,
+	totalTvlByDate,
+	colorsByChain
+}: {
+	tvlChartsByChain: IChainsByCategoryData['tvlChartsByChain']
+	totalTvlByDate: IChainsByCategoryData['totalTvlByDate']
+	colorsByChain: IChainsByCategoryData['colorsByChain']
+}) => {
+	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+	const data = React.useMemo(() => {
+		const charts: ILineAndBarChartProps['charts'] = {}
+		const toggledTvlSettings = Object.entries(tvlSettings)
+			.filter(([_, value]) => value)
+			.map(([key]) => key)
+
+		for (const chain in tvlChartsByChain['tvl']) {
+			const data = []
+			for (const date in totalTvlByDate['tvl']) {
+				let total = totalTvlByDate['tvl'][date]
+				let value = tvlChartsByChain['tvl']?.[chain]?.[date]
+				for (const key of toggledTvlSettings) {
+					if (tvlChartsByChain[key]?.[chain]?.[date] != null) {
+						value = (value ?? 0) + (tvlChartsByChain[key]?.[chain]?.[date] ?? 0)
+					}
+					total += totalTvlByDate?.[key]?.[date] ?? 0
+				}
+				data.push([+date, value != null ? (value / total) * 100 : null])
+			}
+			charts[chain] = {
+				name: chain,
+				stack: chain,
+				type: 'line' as const,
+				color: colorsByChain[chain],
+				data: data.filter((_, index) => index % 2 === 1 && index !== data.length - 1)
+			}
+		}
+
+		const recentTvls: Array<{ name: string; value: number }> = []
+		for (const chain in charts) {
+			recentTvls.push({ name: chain, value: charts[chain].data[charts[chain].data.length - 1][1] })
+		}
+
+		return { dominanceCharts: charts, pieChartData: preparePieChartData({ data: recentTvls, limit: 10 }) }
+	}, [tvlSettings, totalTvlByDate, tvlChartsByChain, colorsByChain])
+
+	return data
+}
+
+export const useGroupAndFormatChains = ({
+	chains,
+	category
+}: {
+	chains: IChainsByCategoryData['chains']
+	category: string
+}) => {
 	const { query } = useRouter()
 
 	const minMaxTvl = React.useMemo(() => {
@@ -38,13 +165,7 @@ export function ChainsByCategory({
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [chainsGroupbyParent] = useLocalStorageSettingsManager('tvl_chains')
 
-	const { pieChartData, dominanceCharts } = useFormatChartData({
-		tvlChartsByChain,
-		totalTvlByDate,
-		colorsByChain
-	})
-
-	const { chainsTableData } = React.useMemo(() => {
+	return React.useMemo(() => {
 		const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 		const toggledTvlSettings = Object.entries(tvlSettings)
 			.filter(([_, value]) => value)
@@ -92,6 +213,8 @@ export function ChainsByCategory({
 				}
 			})
 			.filter((chain) => (minTvl ? chain.tvl >= minTvl : true) && (maxTvl ? chain.tvl <= maxTvl : true))
+
+		if (!showByGroup) return { showByGroup, chainsTableData: data }
 
 		const chainsTableData = []
 		for (const chain of data) {
@@ -213,115 +336,4 @@ export function ChainsByCategory({
 
 		return { showByGroup, chainsTableData }
 	}, [category, chains, tvlSettings, minMaxTvl, chainsGroupbyParent])
-
-	const prepareCsv = React.useCallback(() => {
-		const headers = ['Date', 'Timestamp']
-		for (const chain in dominanceCharts) {
-			headers.push(chain)
-		}
-
-		const domByDate: Record<string, Record<string, number>> = {}
-		for (const chain in dominanceCharts) {
-			for (const [date, dominance] of dominanceCharts[chain].data) {
-				domByDate[date] = domByDate[date] ?? {}
-				domByDate[date][chain] = dominance
-			}
-		}
-
-		const rows: Array<Array<string | number>> = []
-		for (const date in domByDate) {
-			const row: Array<string | number> = [toNiceCsvDate(+date / 1e3), date]
-			for (const chain in dominanceCharts) {
-				row.push(domByDate[date][chain] ?? '')
-			}
-			rows.push(row)
-		}
-
-		return { filename: `defillama-chains-dominance.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
-	}, [dominanceCharts])
-
-	return (
-		<Layout
-			title={`${category} Chains DeFi TVL - DefiLlama`}
-			includeInMetricsOptions={tvlOptions}
-			includeInMetricsOptionslabel="Include in TVL"
-			pageName={pageName}
-		>
-			<RowLinksWithDropdown links={allCategories} activeLink={category} />
-
-			<div className="flex flex-col gap-2 xl:flex-row">
-				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<React.Suspense fallback={<></>}>
-						<PieChart chartData={pieChartData} stackColors={colorsByChain} />
-					</React.Suspense>
-				</div>
-				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
-					<React.Suspense fallback={<></>}>
-						<LineAndBarChart charts={dominanceCharts} valueSymbol="%" expandTo100Percent solidChartAreaStyle />
-					</React.Suspense>
-				</div>
-			</div>
-
-			<React.Suspense
-				fallback={
-					<div
-						style={{ minHeight: `${chainsTableData.length * 50 + 200}px` }}
-						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
-					/>
-				}
-			>
-				<ChainsByCategoryTable data={chainsTableData} />
-			</React.Suspense>
-		</Layout>
-	)
-}
-
-const useFormatChartData = ({
-	tvlChartsByChain,
-	totalTvlByDate,
-	colorsByChain
-}: {
-	tvlChartsByChain: IChainsByCategoryData['tvlChartsByChain']
-	totalTvlByDate: IChainsByCategoryData['totalTvlByDate']
-	colorsByChain: IChainsByCategoryData['colorsByChain']
-}) => {
-	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
-	const data = React.useMemo(() => {
-		const charts: ILineAndBarChartProps['charts'] = {}
-		const toggledTvlSettings = Object.entries(tvlSettings)
-			.filter(([_, value]) => value)
-			.map(([key]) => key)
-
-		for (const chain in tvlChartsByChain['tvl']) {
-			const data = []
-			for (const date in totalTvlByDate['tvl']) {
-				let total = totalTvlByDate['tvl'][date]
-				let value = tvlChartsByChain['tvl']?.[chain]?.[date]
-				for (const key of toggledTvlSettings) {
-					if (tvlChartsByChain[key]?.[chain]?.[date] != null) {
-						value = (value ?? 0) + (tvlChartsByChain[key]?.[chain]?.[date] ?? 0)
-					}
-					total += totalTvlByDate?.[key]?.[date] ?? 0
-				}
-				data.push([+date, value != null ? (value / total) * 100 : null])
-			}
-			charts[chain] = {
-				name: chain,
-				stack: chain,
-				type: 'line' as const,
-				color: colorsByChain[chain],
-				data: data.filter((_, index) => index % 2 === 1 && index !== data.length - 1)
-			}
-		}
-
-		const recentTvls: Array<{ name: string; value: number }> = []
-		for (const chain in charts) {
-			recentTvls.push({ name: chain, value: charts[chain].data[charts[chain].data.length - 1][1] })
-		}
-
-		return { dominanceCharts: charts, pieChartData: preparePieChartData({ data: recentTvls, limit: 10 }) }
-	}, [tvlSettings, totalTvlByDate, tvlChartsByChain, colorsByChain])
-
-	return data
 }

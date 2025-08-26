@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ChainsByCategory } from '~/containers/ChainsByCategory'
-import { getChainsByCategory2 } from '~/containers/ChainsByCategory/queries'
+import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -11,7 +11,7 @@ export const getStaticProps = withPerformanceLogging(
 			category: [category]
 		}
 	}) => {
-		const data = await getChainsByCategory2({ category })
+		const data = await getChainsByCategory({ category })
 		return {
 			props: data,
 			revalidate: maxAgeForNext([22])

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { getChainsByCategory2 } from '~/containers/ChainsByCategory/queries'
+import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { chainIconUrl } from '~/utils'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			categoryParam = 'Rollup'
 		}
 
-		const data = await getChainsByCategory2({
+		const data = await getChainsByCategory({
 			category: categoryParam,
 			sampledChart: true
 		})

@@ -30,11 +30,13 @@ const optionsKey = 'chains-overview-table-columns'
 export function ChainsByCategoryTable({
 	data,
 	useStickyHeader = true,
-	borderless = false
+	borderless = false,
+	showByGroup
 }: {
 	data: Array<IFormattedDataWithExtraTvl>
 	useStickyHeader?: boolean
 	borderless?: boolean
+	showByGroup: boolean
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
 		subscribeToLocalStorage,
@@ -214,21 +216,23 @@ export function ChainsByCategoryTable({
 
 				<div className="flex items-center gap-2 max-sm:w-full max-sm:flex-col">
 					<div className="flex w-full items-center gap-2 sm:w-auto">
-						<SelectWithCombobox
-							allValues={DEFI_CHAINS_SETTINGS}
-							selectedValues={selectedAggregateTypes}
-							setSelectedValues={addAggrOption}
-							selectOnlyOne={addOnlyOneAggrOption}
-							toggleAll={toggleAllAggrOptions}
-							clearAll={clearAllAggrOptions}
-							nestedMenu={false}
-							label={'Group Chains'}
-							labelType="smol"
-							triggerProps={{
-								className:
-									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-							}}
-						/>
+						{showByGroup ? (
+							<SelectWithCombobox
+								allValues={DEFI_CHAINS_SETTINGS}
+								selectedValues={selectedAggregateTypes}
+								setSelectedValues={addAggrOption}
+								selectOnlyOne={addOnlyOneAggrOption}
+								toggleAll={toggleAllAggrOptions}
+								clearAll={clearAllAggrOptions}
+								nestedMenu={false}
+								label={'Group Chains'}
+								labelType="smol"
+								triggerProps={{
+									className:
+										'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+								}}
+							/>
+						) : null}
 						<SelectWithCombobox
 							allValues={columnOptions}
 							selectedValues={selectedColumns}

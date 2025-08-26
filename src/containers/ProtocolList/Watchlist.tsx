@@ -6,7 +6,8 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlistManager } from '~/contexts/LocalStorage'
-import { formatDataWithExtraTvls, formatProtocolsList } from '~/hooks/data/defi'
+import { formatProtocolsList } from '~/hooks/data/defi'
+import { useGroupAndFormatChains } from '../ChainsByCategory'
 import { WatchListTabs } from '../Yields/Watchlist'
 
 export function DefiWatchlistContainer({
@@ -72,23 +73,14 @@ export function DefiWatchlistContainer({
 		toRemove.forEach((name) => removeProtocol(name))
 	}
 
-	const formattedChains = useMemo(() => {
-		if (!chains) return []
-		return formatDataWithExtraTvls({
-			data: chains,
-			applyLqAndDc: true,
-			extraTvlsEnabled,
-			chainAssets: null
-		})
-	}, [chains, extraTvlsEnabled])
+	const { chainOptions, savedChainsList } = useMemo(() => {
+		return {
+			chainOptions: (chains || []).map((c) => ({ key: c.name, name: c.name })),
+			savedChainsList: chains.filter((c) => savedChains.has(c.name))
+		}
+	}, [chains, savedChains])
 
-	const filteredChains = useMemo(() => {
-		return formattedChains.filter((c) => savedChains.has(c.name))
-	}, [formattedChains, savedChains])
-
-	const chainOptions = useMemo(() => {
-		return (formattedChains || []).map((c) => ({ key: c.name, name: c.name }))
-	}, [formattedChains])
+	const { chainsTableData } = useGroupAndFormatChains({ chains: savedChainsList, category: 'All' })
 
 	const selectedChainNames = useMemo(() => Array.from(savedChains), [savedChains])
 
@@ -178,8 +170,8 @@ export function DefiWatchlistContainer({
 							</span>
 						)}
 					</div>
-					{filteredChains.length ? (
-						<ChainsByCategoryTable data={filteredChains} useStickyHeader={false} borderless />
+					{chainsTableData.length ? (
+						<ChainsByCategoryTable data={chainsTableData} useStickyHeader={false} borderless showByGroup={true} />
 					) : (
 						<div className="p-8 text-center">
 							<div className="mx-auto max-w-sm">

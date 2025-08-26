@@ -10,7 +10,7 @@ import { getColorFromNumber, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IChainsByCategory, IChainsByCategoryData } from './types'
 
-export const getChainsByCategory2 = async ({
+export const getChainsByCategory = async ({
 	category,
 	sampledChart
 }: {
