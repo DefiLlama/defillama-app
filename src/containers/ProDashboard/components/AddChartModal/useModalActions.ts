@@ -356,7 +356,7 @@ export function useModalActions(
 					...editItem,
 					kind: 'builder',
 					name: state.chartBuilderName.trim() || undefined,
-					config: state.chartBuilder as any
+					config: state.chartBuilder
 				}
 			}
 
@@ -436,7 +436,7 @@ export function useModalActions(
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())
 			} else if (state.selectedMainTab === 'builder' && state.chartBuilder.chains.length > 0) {
-				handleAddChartBuilder(state.chartBuilderName.trim() || undefined, state.chartBuilder as any)
+				handleAddChartBuilder(state.chartBuilderName.trim() || undefined, state.chartBuilder)
 			}
 		}
 

@@ -118,6 +118,7 @@ interface ProDashboardContextType {
 				| 'holders-revenue'
 				| 'protocol-revenue'
 				| 'supply-side-revenue'
+				| 'tvl'
 			chains: string[]
 			categories: string[]
 			groupBy: 'protocol'
