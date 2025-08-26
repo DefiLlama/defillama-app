@@ -79,16 +79,16 @@ export function RaisesTable({ raises, prepareCsv }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 py-[2px] pl-7 text-base text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				<a
 					target="_blank"
 					rel="noreferrer noopener"
 					href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/7093"
-					className="f"
+					className="flex items-center gap-1"
 				>
-					<span>Methodology & biases</span>
+					<span className="whitespace-nowrap">Methodology & biases</span>
 					<Icon name="external-link" height={12} width={12} />
 				</a>
 				<CSVDownloadButton

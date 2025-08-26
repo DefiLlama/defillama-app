@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Icon } from '~/components/Icon'
 
 export function InputFilter({ placeholder, filterKey }: { placeholder: string; filterKey: string }) {
 	const router = useRouter()
@@ -40,13 +39,12 @@ export function InputFilter({ placeholder, filterKey }: { placeholder: string; f
 
 	return (
 		<div className="relative flex flex-col rounded-md">
-			<Icon name="search" height={16} width={16} className="absolute top-[10px] left-[6px] opacity-50" />
 			<input
 				placeholder={placeholder}
 				onChange={onChange}
 				type="number"
 				ref={ref}
-				className="rounded-md border border-(--form-control-border) bg-white p-2 pl-8 text-sm text-black dark:bg-[#22242a] dark:text-white"
+				className="rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 text-base"
 			/>
 		</div>
 	)

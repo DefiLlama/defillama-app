@@ -163,7 +163,8 @@ export function RecentlyListedProtocolsTable({
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				<div className="relative mr-auto w-full sm:max-w-[280px]">
+				<label className="relative mr-auto w-full sm:max-w-[280px]">
+					<span className="sr-only">Search protocols</span>
 					<Icon
 						name="search"
 						height={16}
@@ -176,9 +177,9 @@ export function RecentlyListedProtocolsTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-[2px] pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
 					/>
-				</div>
+				</label>
 
 				<div className="flex items-start gap-2 max-sm:w-full max-sm:flex-col sm:items-center">
 					<div className="flex w-full items-center gap-2 sm:w-auto">

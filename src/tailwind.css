@@ -523,6 +523,12 @@
 		@apply disabled:cursor-not-allowed;
 	}
 
+	/* Prevent zoom on iOS Safari for form elements */
+	input,
+	textarea {
+		@apply text-base placeholder:text-sm;
+	}
+
 	input,
 	textarea,
 	select {

@@ -130,7 +130,7 @@ const useFormatChartData = ({
 				stack: chain,
 				type: 'line' as const,
 				color: colorsByChain[chain],
-				data: data.filter((_, index) => index % 2 === 1 && index !== data.length - 1)
+				data: data.filter((_, index) => index % 2 === 1 && index !== data.length)
 			}
 		}
 

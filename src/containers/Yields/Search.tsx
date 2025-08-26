@@ -49,14 +49,14 @@ export function YieldsSearch({
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[70vh] sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+					className="max-sm:drawer z-10 flex max-h-[var(--popover-available-height)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
 				>
 					<input
 						placeholder={lend ? 'Collateral Token' : 'Token to Borrow'}
 						onChange={(e) => {
 							setSearchValue?.(e.target.value)
 						}}
-						className="mb-4 rounded-md border border-(--form-control-border) bg-white p-4 text-sm text-black sm:hidden dark:bg-[#22242a] dark:text-white"
+						className="mb-4 rounded-md border border-(--form-control-border) bg-white p-4 text-base text-black sm:hidden dark:bg-[#22242a] dark:text-white"
 					/>
 					{matches.length ? (
 						<>
@@ -94,16 +94,16 @@ interface IInputProps {
 function Input({ placeholder, onSearchTermChange, open, setOpen }: IInputProps) {
 	return (
 		<>
-			<button onClick={(prev) => setOpen(!prev)} className="absolute top-[10px] left-[6px] opacity-50">
+			<button onClick={(prev) => setOpen(!prev)} className="absolute top-2 left-2 opacity-50">
 				{open ? (
 					<>
 						<span className="sr-only">Close Search</span>
-						<Icon name="x" height={20} width={20} />
+						<Icon name="x" height={18} width={18} />
 					</>
 				) : (
 					<>
 						<span className="sr-only">Open Search</span>
-						<Icon name="search" height={18} width={18} />
+						<Icon name="search" height={16} width={16} />
 					</>
 				)}
 			</button>
@@ -114,7 +114,7 @@ function Input({ placeholder, onSearchTermChange, open, setOpen }: IInputProps) 
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="rounded-md border border-(--form-control-border) bg-white p-2 pl-8 text-sm text-black dark:bg-[#22242a] dark:text-white"
+				className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 pl-7 text-base text-black dark:text-white"
 			/>
 		</>
 	)

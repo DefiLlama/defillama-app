@@ -55,7 +55,7 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 						setCollectionName(e.target.value)
 					}}
 					placeholder="Search marketplace..."
-					className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+					className="w-full rounded-md border border-(--form-control-border) bg-white py-[2px] pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
 				/>
 			</div>
 			<VirtualTable instance={instance} />

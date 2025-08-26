@@ -40,7 +40,7 @@ export function RaisesSearch({ list }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! w-full!'
 					}}
-					className="max-sm:drawer z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-[hsl(204,20%,88%)] bg-(--bg-main) sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+					className="max-sm:drawer z-10 flex max-h-[var(--popover-available-height)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
 				>
 					{matches.length ? (
 						<>
@@ -82,16 +82,16 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 	return (
 		<>
 			{!hideIcon ? (
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[9px] opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-2 left-2 opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={16} width={16} />
+							<Icon name="x" height={18} width={18} />
 						</>
 					) : (
 						<>
 							<span className="sr-only">Open Search</span>
-							<Icon name="search" height={14} width={14} />
+							<Icon name="search" height={16} width={16} />
 						</>
 					)}
 				</button>
@@ -104,7 +104,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[5px] pl-8 text-sm text-black dark:text-white"
+				className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 pl-7 text-base text-black dark:text-white"
 			/>
 		</>
 	)

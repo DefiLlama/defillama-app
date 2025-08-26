@@ -127,7 +127,7 @@ export function YieldFiltersV2({
 				{trackingStats ? <p>{trackingStats}</p> : null}
 				<SavedFilters currentFilters={query} />
 			</div>
-			<div className="flex flex-col gap-4 rounded-b-md p-3">
+			<div className="flex flex-col gap-2 rounded-b-md p-3">
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}

@@ -147,7 +147,8 @@ export function ChainsByAdapter(props: IProps) {
 			)}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
-					<div className="relative mr-auto w-full sm:max-w-[280px]">
+					<label className="relative mr-auto w-full sm:max-w-[280px]">
+						<span className="sr-only">Search chains</span>
 						<Icon
 							name="search"
 							height={16}
@@ -160,9 +161,9 @@ export function ChainsByAdapter(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white py-[2px] pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
 						/>
-					</div>
+					</label>
 					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />

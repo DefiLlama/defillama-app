@@ -342,27 +342,6 @@
       "tab": "Protocols"
     },
     {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol",
-      "totalTrackedKey": "emissions.protocols",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols"
-    },
-    {
-      "name": "Unlocks: Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols"
-    },
-    {
       "name": "Protocols by Market Cap",
       "route": "/mcaps",
       "category": "Token",
@@ -434,6 +413,27 @@
       "route": "/raises/investors",
       "category": "Raises",
       "description": "List of investors that have invested in a project"
+    },
+    {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols"
+    },
+    {
+      "name": "Unlocks: Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols"
     },
     {
       "name": "Borrow Aggregator: Simple",

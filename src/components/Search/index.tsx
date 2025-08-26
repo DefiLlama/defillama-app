@@ -73,82 +73,72 @@ const Mobile = () => {
 
 	const { results, status, error } = useInstantSearch({ catchError: true })
 
-	const [open, setOpen] = useState(false)
-	const inputField = useRef<HTMLInputElement>(null)
-
 	const { searchList, isLoadingSearchList, errorSearchList, defaultSearchList, recentSearchList } = useSearchList()
 
 	return (
-		<Ariakit.ComboboxProvider
-			resetValueOnHide
-			setValue={(value) => {
-				startTransition(() => {
-					refine(value)
-				})
-			}}
-			open={open}
-			setOpen={setOpen}
-		>
-			<span className="lg:hidden">
-				{open ? (
-					<>
-						<Ariakit.Combobox
-							placeholder="Search..."
-							autoSelect
-							ref={inputField}
-							autoFocus
-							className="absolute top-2 right-2 left-2 rounded-t-md bg-(--cards-bg) p-3 text-base text-(--text-primary)"
-						/>
-						<button onClick={() => setOpen(false)} className="absolute top-5 right-5 z-10">
-							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={24} width={24} />
-						</button>
-					</>
-				) : (
-					<button onClick={() => setOpen(true)} className="-my-[2px] rounded-md bg-[#445ed0] p-3 text-white shadow">
-						<span className="sr-only">Search</span>
-						<Icon name="search" height={16} width={16} />
-					</button>
-				)}
-			</span>
-			<Ariakit.ComboboxPopover
+		<Ariakit.DialogProvider>
+			<Ariakit.DialogDisclosure className="-my-[2px] rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
+				<span className="sr-only">Search</span>
+				<Icon name="search" height={16} width={16} />
+			</Ariakit.DialogDisclosure>
+
+			<Ariakit.Dialog
+				className="dialog max-sm:drawer thin-scrollbar h-[calc(100vh-80px)] max-h-[var(--popover-available-height)] p-4 max-sm:h-[calc(100vh-80px)]"
 				unmountOnHide
 				hideOnInteractOutside
-				gutter={6}
-				sameWidth
-				className="z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) sm:max-h-[60vh]"
 				portal
 			>
-				{query ? (
-					status === 'loading' ? (
-						<p className="flex items-center justify-center p-4">Loading...</p>
-					) : error ? (
-						<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
-					) : !results?.hits?.length ? (
-						<p className="flex items-center justify-center p-4">No results found</p>
-					) : (
-						results.hits.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
-						))
-					)
-				) : isLoadingSearchList ? (
-					<p className="flex items-center justify-center p-4">Loading...</p>
-				) : errorSearchList ? (
-					<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
-				) : !searchList?.length ? (
-					<p className="flex items-center justify-center p-4">No results found</p>
-				) : (
-					<>
-						{recentSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
-						))}
-						{defaultSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
-						))}
-					</>
-				)}
-			</Ariakit.ComboboxPopover>
-		</Ariakit.ComboboxProvider>
+				<Ariakit.ComboboxProvider
+					setValue={(value) => {
+						startTransition(() => {
+							refine(value)
+						})
+					}}
+				>
+					<span className="relative isolate w-full">
+						<Ariakit.Combobox
+							placeholder="Search..."
+							className="w-full rounded-md bg-white px-3 py-1 pr-10 text-base dark:bg-black"
+						/>
+						<Ariakit.DialogDismiss className="absolute top-[4px] right-[6px] opacity-50">
+							<span className="sr-only">Close Search</span>
+							<Icon name="x" height={24} width={24} />
+						</Ariakit.DialogDismiss>
+					</span>
+
+					<div className="flex flex-col gap-1">
+						{query ? (
+							status === 'loading' ? (
+								<p className="flex items-center justify-center p-4">Loading...</p>
+							) : error ? (
+								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
+							) : !results?.hits?.length ? (
+								<p className="flex items-center justify-center p-4">No results found</p>
+							) : (
+								results.hits.map((route: ISearchItem) => (
+									<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+								))
+							)
+						) : isLoadingSearchList ? (
+							<p className="flex items-center justify-center p-4">Loading...</p>
+						) : errorSearchList ? (
+							<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
+						) : !searchList?.length ? (
+							<p className="flex items-center justify-center p-4">No results found</p>
+						) : (
+							<>
+								{recentSearchList.map((route: ISearchItem) => (
+									<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
+								))}
+								{defaultSearchList.map((route: ISearchItem) => (
+									<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
+								))}
+							</>
+						)}
+					</div>
+				</Ariakit.ComboboxProvider>
+			</Ariakit.Dialog>
+		</Ariakit.DialogProvider>
 	)
 }
 
@@ -187,16 +177,16 @@ const Desktop = () => {
 			setOpen={setOpen}
 		>
 			<span className="relative isolate hidden w-full lg:inline-block lg:max-w-[50vw]">
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[8px] opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[6px] left-[8px] opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={16} width={16} />
+							<Icon name="x" height={18} width={18} />
 						</>
 					) : (
 						<>
 							<span className="sr-only">Open Search</span>
-							<Icon name="search" height={14} width={14} />
+							<Icon name="search" height={16} width={16} />
 						</>
 					)}
 				</button>
@@ -204,7 +194,7 @@ const Desktop = () => {
 					placeholder="Search..."
 					autoSelect
 					ref={inputField}
-					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[5px] pl-7 text-sm text-black dark:text-white"
+					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[2px] pl-7 text-base text-black dark:text-white"
 				/>
 				<span className="absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center rounded-md bg-(--link-bg) p-1 text-xs text-(--link-text)">
 					⌘K
@@ -216,7 +206,7 @@ const Desktop = () => {
 				hideOnEscape
 				gutter={6}
 				sameWidth
-				className="z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) sm:max-h-[60vh]"
+				className="max-sm:drawer z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
 				portal
 			>
 				{query ? (
@@ -256,7 +246,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
-			className="flex flex-wrap items-center gap-2 px-4 py-2 hover:bg-(--link-bg)"
+			className="flex flex-wrap items-center gap-2 px-2 py-2 hover:bg-(--link-bg) lg:px-4"
 			render={
 				<BasicLink
 					href={route.route}

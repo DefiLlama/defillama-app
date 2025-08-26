@@ -431,7 +431,8 @@ export function AdapterByChain(props: IProps) {
 			) : null}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
-					<div className="relative mr-auto w-full sm:max-w-[280px]">
+					<label className="relative mr-auto w-full sm:max-w-[280px]">
+						<span className="sr-only">Search protocols</span>
 						<Icon
 							name="search"
 							height={16}
@@ -444,9 +445,9 @@ export function AdapterByChain(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 py-[2px] pl-7 text-base text-black dark:bg-black dark:text-white"
 						/>
-					</div>
+					</label>
 					<SelectWithCombobox
 						allValues={columnsOptions}
 						selectedValues={selectedColumns}

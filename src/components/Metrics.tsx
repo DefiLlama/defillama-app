@@ -119,7 +119,8 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 						</Ariakit.DialogDismiss>
 					) : null}
 				</div>
-				<div className="relative">
+				<label className="relative">
+					<span className="sr-only">Search pages</span>
 					<Icon
 						name="search"
 						height={16}
@@ -129,11 +130,11 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 					<input
 						type="text"
 						placeholder="Search..."
-						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
+						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
 						value={searchValue}
 						onChange={(e) => setSearchValue(e.target.value)}
 					/>
-				</div>
+				</label>
 				<div className="flex flex-wrap gap-2">
 					{pages.map(({ category }) => (
 						<button
@@ -334,7 +335,7 @@ export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string
 					</svg>
 				</div>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer thin-scrollbar h-[70vh] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] lg:h-[calc(100vh-32px)]"
+					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100vh-80px)] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)]"
 					unmountOnHide
 				>
 					<Metrics canDismiss={true} />

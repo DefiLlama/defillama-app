@@ -87,11 +87,13 @@ export default function Tokens({ searchData }) {
 
 			<div className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				{isLoading ? (
-					<div className="mx-auto my-32 flex w-full items-center justify-center">
+					<div className="mx-auto flex min-h-[380px] w-full items-center justify-center">
 						<LocalLoader />
 					</div>
 				) : !tokenSymbol || !protocols || protocols.length === 0 ? (
-					<></>
+					<div className="mx-auto flex min-h-[380px] w-full items-center justify-center">
+						<p className="text-center text-sm">{!tokenSymbol ? 'No token selected' : 'No protocols found'}</p>
+					</div>
 				) : (
 					<>
 						<div className="flex flex-wrap items-center justify-between gap-2 p-3">
@@ -239,16 +241,16 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 			setOpen={setOpen}
 		>
 			<span className="relative isolate w-full lg:max-w-[50vw]">
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[9px] opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-2 left-2 opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={16} width={16} />
+							<Icon name="x" height={18} width={18} />
 						</>
 					) : (
 						<>
 							<span className="sr-only">Open Search</span>
-							<Icon name="search" height={14} width={14} />
+							<Icon name="search" height={16} width={16} />
 						</>
 					)}
 				</button>
@@ -256,7 +258,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				<Ariakit.Combobox
 					placeholder="Search tokens..."
 					autoSelect
-					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[5px] pl-8 text-sm text-black dark:text-white"
+					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 pl-7 text-base text-black dark:text-white"
 				/>
 			</span>
 
@@ -265,7 +267,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				hideOnInteractOutside
 				gutter={6}
 				sameWidth
-				className="z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-[hsl(204,20%,88%)] bg-(--bg-main) sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+				className="z-10 flex max-h-[var(--popover-available-height)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
 			>
 				{matches.length ? (
 					<>
@@ -281,7 +283,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 								focusOnHover
 								hideOnClick={false}
 								setValueOnClick={true}
-								className="flex cursor-pointer items-center gap-4 p-3 text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
+								className="flex cursor-pointer items-center gap-4 p-3 text-base text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 							>
 								{data?.logo || data?.fallbackLogo ? (
 									<TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} />

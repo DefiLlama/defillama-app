@@ -408,7 +408,7 @@ export function ProtocolsTableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-1 pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-[2px] pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>
