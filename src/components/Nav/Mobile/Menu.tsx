@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { Account } from '../Account'
 import { TNavLink, TNavLinks } from '../types'
 
 export function Menu({
@@ -20,9 +20,6 @@ export function Menu({
 	const [show, setShow] = useState(false)
 	const buttonEl = useRef<HTMLButtonElement>(null)
 	const navEl = useRef<HTMLDivElement>(null)
-
-	const router = useRouter()
-	const { isAuthenticated, user, logout } = useAuthContext()
 
 	useEffect(() => {
 		function handleClick(e) {
@@ -105,18 +102,7 @@ export function Menu({
 
 					<hr className="my-3 border-black/20 dark:border-white/20" />
 
-					{isAuthenticated ? (
-						<div className="flex flex-col gap-2">
-							{user && <span className="p-3 text-sm text-[#8a8c90]">{user.email}</span>}
-							<button onClick={logout} className="rounded-md p-3 text-left">
-								Logout
-							</button>
-						</div>
-					) : (
-						<BasicLink href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`} className="rounded-md p-3">
-							Sign In / Subscribe
-						</BasicLink>
-					)}
+					<Account />
 				</nav>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
