@@ -38,6 +38,22 @@ export function SubscribePlusCard({
 			</div>
 			<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
+				<li className="flex flex-nowrap items-start gap-2.5">
+					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<span>Create Custom DefiLlama Pro Dashboards</span>
+				</li>
+				<li className="flex flex-nowrap items-start gap-2.5">
+					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<span>CSV Data downloads</span>
+				</li>
+				<li className="flex flex-nowrap items-start gap-2.5">
+					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<span>Personalized Analysis with Custom Columns</span>
+				</li>
+				<li className="flex flex-nowrap items-start gap-2.5">
+					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<span>Access to upcoming DefiLlama products</span>
+				</li>
 				<li className="flex flex-col gap-3">
 					<div className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
@@ -65,22 +81,6 @@ export function SubscribePlusCard({
 							<span>Redesigned for better usability on all devices</span>
 						</li>
 					</ul>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>CSV Data downloads</span>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Personalized Analysis with Custom Columns</span>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Create Custom DefiLlama Pro Dashboards</span>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Access to upcoming DefiLlama products</span>
 				</li>
 			</ul>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
