@@ -333,7 +333,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								},
 								legend: {
 									show: true,
-									top: 10,
+									top: 0,
 									type: 'scroll',
 									selectedMode: 'multiple',
 									pageButtonItemGap: 5,
