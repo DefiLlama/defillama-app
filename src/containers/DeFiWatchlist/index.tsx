@@ -34,7 +34,9 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
 		return {
 			protocolOptions: (protocols || []).map((c) => ({ key: c.name, name: c.name })),
-			savedProtocolsList: protocols.filter((c) => savedProtocols.has(c.name)),
+			savedProtocolsList: protocols.filter(
+				(c) => savedProtocols.has(c.name) || c.childProtocols?.some((cp) => savedProtocols.has(cp.name))
+			),
 			selectedProtocolNames: Array.from(savedProtocols)
 		}
 	}, [protocols, savedProtocols])
