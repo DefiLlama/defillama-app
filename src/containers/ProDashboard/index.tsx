@@ -69,9 +69,12 @@ function ProDashboardContent() {
 		isConnected: chatbotConnected,
 		isTyping: chatbotTyping,
 		toolExecutionStatus,
+		selectedModel,
 		toggleChat,
 		closeChat,
-		sendMessage: sendChatMessage
+		sendMessage: sendChatMessage,
+		handleModelSelect,
+		stopGeneration
 	} = useChatbot()
 
 	const timePeriods: { value: TimePeriod; label: string }[] = [
@@ -473,7 +476,10 @@ function ProDashboardContent() {
 				isTyping={chatbotTyping}
 				isConnected={chatbotConnected}
 				toolExecutionStatus={toolExecutionStatus}
+				selectedModel={selectedModel}
+				onModelSelect={handleModelSelect}
 				onSendMessage={sendChatMessage}
+				onStopGeneration={stopGeneration}
 			/>
 		</div>
 	)

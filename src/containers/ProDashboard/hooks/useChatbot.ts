@@ -13,6 +13,7 @@ export interface ChatbotState {
 	isConnected: boolean
 	isTyping: boolean
 	toolExecutionStatus: ToolExecutionStatus | null
+	selectedModel: string | undefined
 }
 
 export const useChatbot = () => {
@@ -21,6 +22,7 @@ export const useChatbot = () => {
 	const [messages, setMessages] = useState<ChatMessage[]>([])
 	const [isTyping, setIsTyping] = useState(false)
 	const [toolExecutionStatus, setToolExecutionStatus] = useState<ToolExecutionStatus | null>(null)
+	const [selectedModel, setSelectedModel] = useState<string | undefined>(undefined)
 
 	
 	const { 
@@ -71,6 +73,14 @@ export const useChatbot = () => {
 			case 'end':
 				setIsTyping(false)
 				setToolExecutionStatus(null)
+				break
+
+			case 'cancelled':
+				setIsTyping(false)
+				setToolExecutionStatus(null)
+				if (event.content) {
+					addMessage('assistant', event.content)
+				}
 				break
 
 			case 'error':
@@ -203,11 +213,11 @@ export const useChatbot = () => {
 		}
 
 		try {
-			await sendSSEMessage(message, dashboardContext, conversationId)
+			await sendSSEMessage(message, dashboardContext, conversationId, selectedModel)
 		} catch (error) {
 			addMessage('assistant', 'Sorry, I had trouble connecting to the AI service. Please make sure the chat service is available and try again.')
 		}
-	}, [conversationId, addMessage, sendSSEMessage, items, dashboardName, timePeriod, dashboardVisibility, dashboardTags, dashboardDescription, currentDashboard])
+	}, [conversationId, addMessage, sendSSEMessage, items, dashboardName, timePeriod, dashboardVisibility, dashboardTags, dashboardDescription, currentDashboard, selectedModel])
 
 	
 	const toggleChat = useCallback(() => {
@@ -220,6 +230,32 @@ export const useChatbot = () => {
 	}, [])
 
 	
+	const handleModelSelect = useCallback((modelId: string) => {
+		setSelectedModel(modelId)
+	}, [])
+
+	const stopGeneration = useCallback(async () => {
+		if (!conversationId) {
+			return
+		}
+
+		try {
+			const response = await fetch(`http://localhost:3001/api/chat/${conversationId}/stop`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			})
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`)
+			}
+		} catch (error) {
+			console.error('Error stopping generation:', error)
+			throw error
+		}
+	}, [conversationId])
+
 	const clearConversation = useCallback(() => {
 		setMessages([])
 		setConversationId(null)
@@ -236,11 +272,14 @@ export const useChatbot = () => {
 		isConnected,
 		isTyping,
 		toolExecutionStatus,
+		selectedModel,
 		
 		
 		toggleChat,
 		closeChat,
 		sendMessage,
+		handleModelSelect,
+		stopGeneration,
 		clearConversation
 	}
 }

@@ -19,7 +19,7 @@ export const useSSEConnection = ({ onStreamEvent }: SSEConnectionOptions) => {
 	const abortControllerRef = useRef<AbortController | null>(null)
 
 	const sendMessage = useCallback(
-		async (message: string, dashboardContext: Record<string, unknown>, conversationId: string | null) => {
+		async (message: string, dashboardContext: Record<string, unknown>, conversationId: string | null, model?: string) => {
 			disconnect()
 
 			try {
@@ -33,6 +33,10 @@ export const useSSEConnection = ({ onStreamEvent }: SSEConnectionOptions) => {
 
 				if (conversationId) {
 					payload.conversation_id = conversationId
+				}
+
+				if (model) {
+					payload.model = model
 				}
 
 				const response = await fetch(`http://localhost:3001/api/chat`, {
