@@ -147,10 +147,12 @@ const useFormatChartData = ({
 
 export const useGroupAndFormatChains = ({
 	chains,
-	category
+	category,
+	hideGroupBy = false
 }: {
 	chains: IChainsByCategoryData['chains']
 	category: string
+	hideGroupBy?: boolean
 }) => {
 	const { query } = useRouter()
 
@@ -166,7 +168,7 @@ export const useGroupAndFormatChains = ({
 	const [chainsGroupbyParent] = useLocalStorageSettingsManager('tvl_chains')
 
 	return React.useMemo(() => {
-		const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
+		const showByGroup = ['All', 'Non-EVM'].includes(category) && !hideGroupBy ? true : false
 		const toggledTvlSettings = Object.entries(tvlSettings)
 			.filter(([_, value]) => value)
 			.map(([key]) => key)
@@ -335,5 +337,5 @@ export const useGroupAndFormatChains = ({
 		}
 
 		return { showByGroup, chainsTableData }
-	}, [category, chains, tvlSettings, minMaxTvl, chainsGroupbyParent])
+	}, [category, chains, tvlSettings, minMaxTvl, chainsGroupbyParent, hideGroupBy])
 }

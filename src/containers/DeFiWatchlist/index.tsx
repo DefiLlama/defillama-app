@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
-import type { IFormattedProtocol } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -8,6 +7,7 @@ import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlistManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { ChainProtocolsTable } from '../ChainOverview/Table'
+import { IProtocol } from '../ChainOverview/types'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
 import { WatchListTabs } from '../Yields/Watchlist'
 
@@ -74,7 +74,7 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		}
 	}, [chains, savedChains])
 
-	const { chainsTableData } = useGroupAndFormatChains({ chains: savedChainsList, category: 'All' })
+	const { chainsTableData } = useGroupAndFormatChains({ chains: savedChainsList, category: 'All', hideGroupBy: true })
 
 	const handleChainSelection = (selectedValues: string[]) => {
 		const currentSet = new Set(selectedChainNames)
@@ -96,22 +96,27 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 					addPortfolio={addPortfolio}
 					removePortfolio={removePortfolio}
 				/>
-				{/* {protocolsTableData.length > 0 && <TopMovers protocols={protocolsTableData} />} */}
+				{protocolsTableData.length > 0 && <TopMovers protocols={protocolsTableData} />}
 
-				<ProtocolSelection
-					protocolOptions={protocolOptions}
-					selectedProtocolNames={selectedProtocolNames}
-					handleProtocolSelection={handleProtocolSelection}
-					selectedPortfolio={selectedPortfolio}
-				/>
-				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<div className="mb-4 flex items-center justify-between">
-						<h2 className="text-lg font-medium">Protocols</h2>
-						{selectedProtocolNames.length > 0 && (
-							<span className="text-sm text-(--text-secondary)">
-								{selectedProtocolNames.length} protocol{selectedProtocolNames.length === 1 ? '' : 's'}
-							</span>
-						)}
+				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex flex-col items-start gap-2 p-2">
+						<div>
+							<h2 className="mb-1 text-lg font-medium">Manage Protocols</h2>
+							<p className="text-sm text-(--text-secondary)">
+								Select or deselect protocols for the "{selectedPortfolio}" portfolio
+							</p>
+						</div>
+						<SelectWithCombobox
+							allValues={protocolOptions}
+							selectedValues={selectedProtocolNames}
+							setSelectedValues={handleProtocolSelection}
+							label={
+								selectedProtocolNames.length > 0
+									? `${selectedProtocolNames.length} protocol${selectedProtocolNames.length === 1 ? '' : 's'} selected`
+									: 'Select protocols...'
+							}
+							labelType="regular"
+						/>
 					</div>
 					{protocolsTableData.length ? (
 						<ChainProtocolsTable protocols={protocolsTableData} useStickyHeader={false} borderless />
@@ -133,37 +138,28 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 					)}
 				</div>
 
-				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<div className="mb-3">
-						<h2 className="mb-1 text-lg font-medium">Manage Chains</h2>
-						<p className="text-sm text-(--text-secondary)">
-							Select or deselect chains for the "{selectedPortfolio}" portfolio
-						</p>
-					</div>
-					<SelectWithCombobox
-						allValues={chainOptions}
-						selectedValues={selectedChainNames}
-						setSelectedValues={handleChainSelection}
-						label={
-							selectedChainNames.length > 0
-								? `${selectedChainNames.length} chain${selectedChainNames.length === 1 ? '' : 's'} selected`
-								: 'Select chains...'
-						}
-						labelType="regular"
-					/>
-				</div>
-
-				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<div className="mb-4 flex items-center justify-between">
-						<h2 className="text-lg font-medium">Chains</h2>
-						{selectedChainNames.length > 0 && (
-							<span className="text-sm text-(--text-secondary)">
-								{selectedChainNames.length} chain{selectedChainNames.length === 1 ? '' : 's'}
-							</span>
-						)}
+				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex flex-col items-start gap-2 p-2">
+						<div>
+							<h2 className="mb-1 text-lg font-medium">Manage Chains</h2>
+							<p className="text-sm text-(--text-secondary)">
+								Select or deselect chains for the "{selectedPortfolio}" portfolio
+							</p>
+						</div>
+						<SelectWithCombobox
+							allValues={chainOptions}
+							selectedValues={selectedChainNames}
+							setSelectedValues={handleChainSelection}
+							label={
+								selectedChainNames.length > 0
+									? `${selectedChainNames.length} chain${selectedChainNames.length === 1 ? '' : 's'} selected`
+									: 'Select chains...'
+							}
+							labelType="regular"
+						/>
 					</div>
 					{chainsTableData.length ? (
-						<ChainsByCategoryTable data={chainsTableData} useStickyHeader={false} borderless showByGroup={true} />
+						<ChainsByCategoryTable data={chainsTableData} useStickyHeader={false} borderless showByGroup={false} />
 					) : (
 						<div className="p-8 text-center">
 							<div className="mx-auto max-w-sm">
@@ -236,44 +232,8 @@ function PortfolioSelection({
 	)
 }
 
-type ProtocolSelectionProps = {
-	protocolOptions: Array<{ key: string; name: string }>
-	selectedProtocolNames: string[]
-	handleProtocolSelection: (selectedValues: string[]) => void
-	selectedPortfolio: string
-}
-
-function ProtocolSelection({
-	protocolOptions,
-	selectedProtocolNames,
-	handleProtocolSelection,
-	selectedPortfolio
-}: ProtocolSelectionProps) {
-	return (
-		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-			<div className="mb-3">
-				<h2 className="mb-1 text-lg font-medium">Manage Protocols</h2>
-				<p className="text-sm text-(--text-secondary)">
-					Select or deselect protocols for the "{selectedPortfolio}" portfolio
-				</p>
-			</div>
-			<SelectWithCombobox
-				allValues={protocolOptions}
-				selectedValues={selectedProtocolNames}
-				setSelectedValues={handleProtocolSelection}
-				label={
-					selectedProtocolNames.length > 0
-						? `${selectedProtocolNames.length} protocol${selectedProtocolNames.length === 1 ? '' : 's'} selected`
-						: 'Select protocols...'
-				}
-				labelType="regular"
-			/>
-		</div>
-	)
-}
-
 type TopMoversProps = {
-	protocols: IFormattedProtocol[]
+	protocols: IProtocol[]
 }
 
 function TopMovers({ protocols }: TopMoversProps) {
@@ -294,12 +254,12 @@ function TopMovers({ protocols }: TopMoversProps) {
 		const movers: Record<string, Array<{ name: string; change: number; chains: string[] }>> = {}
 
 		periods.forEach((period) => {
-			const changeKey = `change_${period}`
+			const changeKey = `change${period}`
 			let candidates = protocols
-				.filter((p) => p[changeKey] !== null && p[changeKey] !== undefined)
+				.filter((p) => p.tvlChange?.[changeKey] != null && p.tvlChange[changeKey] != null)
 				.map((p) => ({
 					name: p.name,
-					change: p[changeKey] as number,
+					change: p.tvlChange?.[changeKey] as number,
 					chains: p.chains || []
 				}))
 
