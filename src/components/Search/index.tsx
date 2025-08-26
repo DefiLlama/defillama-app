@@ -83,7 +83,7 @@ const Mobile = () => {
 			</Ariakit.DialogDisclosure>
 
 			<Ariakit.Dialog
-				className="dialog max-sm:drawer thin-scrollbar h-[calc(100vh-80px)] max-h-[var(--popover-available-height)] p-4 max-sm:h-[calc(100vh-80px)]"
+				className="dialog max-sm:drawer h-[calc(100vh-80px)] max-h-[var(--popover-available-height)] bg-(--bg-main) p-4 max-sm:h-[calc(100vh-80px)]"
 				unmountOnHide
 				hideOnInteractOutside
 				portal

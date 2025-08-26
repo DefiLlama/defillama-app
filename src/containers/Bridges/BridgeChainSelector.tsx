@@ -39,7 +39,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 					handleClick(values)
 				}}
 			>
-				<Ariakit.Select className="relative z-10 flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+				<Ariakit.Select className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 					{currentChain}
 					<Ariakit.SelectArrow className="ml-auto" />
 				</Ariakit.Select>

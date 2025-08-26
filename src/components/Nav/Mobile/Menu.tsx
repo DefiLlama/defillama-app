@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -43,28 +44,24 @@ export function Menu({
 	}, [])
 
 	return (
-		<>
-			<button
-				onClick={() => setShow(!show)}
-				ref={buttonEl}
-				className="-my-[2px] rounded-md bg-[#445ed0] p-3 text-white shadow"
-			>
+		<Ariakit.DialogProvider open={show} setOpen={setShow}>
+			<Ariakit.DialogDisclosure ref={buttonEl} className="-my-[2px] rounded-md bg-[#445ed0] p-3 text-white shadow">
 				<span className="sr-only">Open Navigation Menu</span>
 				<Icon name="menu" height={16} width={16} />
-			</button>
+			</Ariakit.DialogDisclosure>
 
-			<div
+			<Ariakit.Dialog
 				data-active={show}
 				className="fixed top-0 right-0 bottom-0 left-0 hidden bg-black/10 data-[active=true]:block"
 			>
 				<nav
 					ref={navEl}
-					className="animate-slidein fixed top-0 right-0 bottom-0 flex w-full max-w-[300px] flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white"
+					className="animate-slidein fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white"
 				>
-					<button onClick={(prev) => setShow(!prev)} className="ml-auto">
+					<Ariakit.DialogDismiss className="ml-auto">
 						<span className="sr-only">Close Navigation Menu</span>
 						<Icon name="x" height={20} width={20} strokeWidth="4px" />
-					</button>
+					</Ariakit.DialogDismiss>
 
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
@@ -121,8 +118,8 @@ export function Menu({
 						</BasicLink>
 					)}
 				</nav>
-			</div>
-		</>
+			</Ariakit.Dialog>
+		</Ariakit.DialogProvider>
 	)
 }
 

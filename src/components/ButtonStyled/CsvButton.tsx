@@ -57,8 +57,8 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 			<button
 				className={
 					replaceClassName
-						? `relative data-[loading=true]:cursor-wait ${className}`
-						: `relative flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[loading=true]:cursor-wait ${
+						? `relative isolate data-[loading=true]:cursor-wait ${className}`
+						: `relative isolate flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[loading=true]:cursor-wait ${
 								className ?? ''
 							}`
 				}

@@ -18,7 +18,7 @@ export const Switch = ({
 	isLoading?: boolean
 }) => {
 	return (
-		<label className={`relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm ${className ?? ''}`}>
+		<label className={`relative isolate flex cursor-pointer flex-nowrap items-center gap-1 text-sm ${className ?? ''}`}>
 			<input
 				type="checkbox"
 				value={value}
