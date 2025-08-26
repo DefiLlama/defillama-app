@@ -320,7 +320,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							chartOptions={{
 								grid: {
 									top: 40,
-									bottom: 68,
+									bottom: 0,
 									left: 12,
 									right: 12,
 									outerBoundsMode: 'same',

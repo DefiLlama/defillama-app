@@ -32,7 +32,6 @@ interface IMultiSeriesChartProps {
 export default function MultiSeriesChart({
 	series,
 	valueSymbol = '',
-	title,
 	height,
 	chartOptions,
 	groupBy,
@@ -130,7 +129,7 @@ export default function MultiSeriesChart({
 			}
 		}
 
-		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
 
 		const metricTypes = new Set(processedSeries.map((s: any) => s.metricType).filter(Boolean))
 		const uniqueMetricTypes = Array.from(metricTypes)
@@ -182,14 +181,14 @@ export default function MultiSeriesChart({
 							}
 						}
 					: tooltip,
-			title: titleDefaults,
 			grid: {
 				left: gridLeftPadding,
 				bottom: 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
+				outerBoundsContain: 'axisLabel',
+				...grid
 			},
 			xAxis,
 			yAxis: finalYAxis,
