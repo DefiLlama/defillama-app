@@ -72,6 +72,7 @@ export function useFeatureFlags(): UseFeatureFlagsReturn {
 			if (cachedFlags) {
 				setFlags(cachedFlags)
 				setLoading(false)
+				return
 			}
 
 			const response = await authorizedFetch('https://auth.llama.fi/user/feature-flags')
