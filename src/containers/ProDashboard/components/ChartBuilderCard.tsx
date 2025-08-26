@@ -232,73 +232,68 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		const fileName = `${builder.name || config.metric}_${config.chains.join('-')}_${config.categories.length > 0 ? config.categories.join('-') + '_' : ''}${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
-	}, [chartSeries, builder.name, config.metric, config.chains])
+	}, [chartSeries, builder.name, config.metric, config.chains, config.categories])
 
 	return (
-		<div className="flex h-full min-h-[340px] flex-col px-4 pt-2 pb-4">
-			<div className="mb-2">
-				<div className={``}>
-					<div className="mb-2 flex items-center gap-2">
-						<h3 className="text-sm font-medium text-(--text1)">{builder.name || `${config.metric} by Protocol`}</h3>
-					</div>
-					<div className="flex items-center justify-end gap-2">
-						{!isReadOnly && !isTvlChart && (
-							<div className="flex overflow-hidden border border-(--form-control-border)">
-								{groupingOptions.map((option, index) => (
-									<button
-										key={option}
-										onClick={() => handleGroupingChange(builder.id, option)}
-										className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
-											builder.grouping === option || (!builder.grouping && option === 'day')
-												? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
-												: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
-										}`}
-									>
-										<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
-										<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
-									</button>
-								))}
-							</div>
-						)}
-						{!isReadOnly && (
-							<button
-								onClick={() => handlePercentageChange(builder.id, config.displayAs !== 'percentage')}
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-								title={config.displayAs === 'percentage' ? 'Show absolute values' : 'Show percentage'}
-							>
-								<Icon name={config.displayAs === 'percentage' ? 'percent' : 'dollar-sign'} height={12} width={12} />
-								<span className="hidden xl:inline">
-									{config.displayAs === 'percentage' ? 'Percentage' : 'Absolute'}
-								</span>
-							</button>
-						)}
-						{!isReadOnly && (
-							<button
-								onClick={() => handleHideOthersChange(builder.id, !config.hideOthers)}
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-								title={config.hideOthers ? 'Show all protocols' : 'Show only top protocols'}
-							>
-								<Icon name="layers" height={12} width={12} />
-								<span className="hidden xl:inline">{config.hideOthers ? `Top ${config.limit}` : 'All'}</span>
-							</button>
-						)}
-						{chartSeries.length > 0 && (
-							<ProTableCSVButton
-								onClick={handleCsvExport}
-								smol
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-							/>
-						)}
-					</div>
+		<div className="flex h-full min-h-[340px] flex-col gap-2 px-4 pt-2 pb-4">
+			<div>
+				<div className="flex items-center justify-end gap-2">
+					<h3 className="mr-auto text-sm font-medium text-(--text1)">
+						{builder.name || `${config.metric} by Protocol`}
+					</h3>
+					{!isReadOnly && !isTvlChart && (
+						<div className="flex overflow-hidden border border-(--form-control-border)">
+							{groupingOptions.map((option, index) => (
+								<button
+									key={option}
+									onClick={() => handleGroupingChange(builder.id, option)}
+									className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
+										builder.grouping === option || (!builder.grouping && option === 'day')
+											? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
+											: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
+									}`}
+								>
+									<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+									<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
+								</button>
+							))}
+						</div>
+					)}
+					{!isReadOnly && (
+						<button
+							onClick={() => handlePercentageChange(builder.id, config.displayAs !== 'percentage')}
+							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+							title={config.displayAs === 'percentage' ? 'Show absolute values' : 'Show percentage'}
+						>
+							<Icon name={config.displayAs === 'percentage' ? 'percent' : 'dollar-sign'} height={12} width={12} />
+							<span className="hidden xl:inline">{config.displayAs === 'percentage' ? 'Percentage' : 'Absolute'}</span>
+						</button>
+					)}
+					{!isReadOnly && (
+						<button
+							onClick={() => handleHideOthersChange(builder.id, !config.hideOthers)}
+							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+							title={config.hideOthers ? 'Show all protocols' : 'Show only top protocols'}
+						>
+							<Icon name="layers" height={12} width={12} />
+							<span className="hidden xl:inline">{config.hideOthers ? `Top ${config.limit}` : 'All'}</span>
+						</button>
+					)}
+					{chartSeries.length > 0 && (
+						<ProTableCSVButton
+							onClick={handleCsvExport}
+							smol
+							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+						/>
+					)}
 				</div>
-				<div className="mt-1 text-xs text-(--text3)">
+				<p className="mt-1 text-xs text-(--text3)">
 					{config.chains.join(', ')} • Top {config.limit} protocols{config.hideOthers ? ' only' : ''}
 					{config.categories.length > 0 && ` • ${config.categories.join(', ')}`}
 					{timePeriod && timePeriod !== 'all' && ` • ${timePeriod.toUpperCase()}`}
-				</div>
+				</p>
 			</div>
-
-			<div style={{ height: '300px', flexGrow: 1 }}>
+			<div className="min-h-[300px] flex-1">
 				{isLoading ? (
 					<div className="flex h-full items-center justify-center">
 						<div className="text-center">

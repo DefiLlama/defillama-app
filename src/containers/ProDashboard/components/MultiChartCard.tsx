@@ -273,90 +273,86 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
 	return (
-		<div className="flex h-full min-h-[340px] flex-col px-4 pt-2 pb-4">
-			<div className="mb-2">
-				<div className={``}>
-					<div className="mb-2 flex items-center gap-2">
-						<h3 className="text-sm font-medium text-(--text-primary)">
-							{multi.name || `Multi-Chart (${multi.items.length})`}
-						</h3>
-						{hasPartialFailures && (
-							<div className="flex items-center gap-1 text-xs text-yellow-500">
-								<Icon name="alert-triangle" height={12} width={12} />
-								<span className="hidden sm:inline">Partial data</span>
-								<span className="sm:hidden">!</span>
-							</div>
-						)}
-					</div>
-					<div className="flex items-center justify-end gap-2">
-						{!isReadOnly && allChartsGroupable && hasAnyData && (
-							<div className="flex overflow-hidden border border-(--form-control-border)">
-								{groupingOptions.map((option, index) => (
-									<button
-										key={option}
-										onClick={() => handleGroupingChange(multi.id, option)}
-										className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
-											multi.grouping === option
-												? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
-												: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
-										}`}
-									>
-										<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
-										<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
-									</button>
-								))}
-							</div>
-						)}
-						{!isReadOnly && hasAnyData && !hasMultipleMetrics && allChartsAreBarType && (
-							<button
-								onClick={() => {
-									handleCumulativeChange(multi.id, !showCumulative)
-									if (!showCumulative) {
-										handleStackedChange(multi.id, false)
-									}
-								}}
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-								title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
-							>
-								<Icon name="trending-up" height={12} width={12} />
-								<span className="hidden xl:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
-							</button>
-						)}
-						{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && (
-							<button
-								onClick={() => {
-									handleStackedChange(multi.id, !showStacked)
-									handlePercentageChange(multi.id, false)
-								}}
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-								title={showStacked ? 'Show separate' : 'Show stacked'}
-							>
-								<Icon name="layers" height={12} width={12} />
-								<span className="hidden xl:inline">{showStacked ? 'Stacked' : 'Separate'}</span>
-							</button>
-						)}
-						{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
-							<button
-								onClick={() => {
-									handlePercentageChange(multi.id, !showPercentage)
-									handleStackedChange(multi.id, false)
-								}}
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-								title={showPercentage ? 'Show absolute values' : 'Show percentage'}
-							>
-								<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
-								<span className="hidden xl:inline">{showPercentage ? 'Percentage' : 'Absolute'}</span>
-							</button>
-						)}
-						{series.length > 0 && (
-							<ProTableCSVButton
-								onClick={handleCsvExport}
-								smol
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-							/>
-						)}
-					</div>
+		<div className="flex h-full min-h-[340px] flex-col gap-2 px-4 pt-2 pb-4">
+			<div className="flex items-center justify-end gap-2">
+				<div className="mr-auto flex items-center gap-2">
+					<h3 className="text-sm font-medium text-(--text-primary)">
+						{multi.name || `Multi-Chart (${multi.items.length})`}
+					</h3>
+					{hasPartialFailures && (
+						<p className="flex items-center gap-1 text-xs text-yellow-500">
+							<Icon name="alert-triangle" height={12} width={12} />
+							<span className="hidden sm:inline">Partial data</span>
+							<span className="sm:hidden">!</span>
+						</p>
+					)}
 				</div>
+				{!isReadOnly && allChartsGroupable && hasAnyData && (
+					<div className="flex overflow-hidden border border-(--form-control-border)">
+						{groupingOptions.map((option, index) => (
+							<button
+								key={option}
+								onClick={() => handleGroupingChange(multi.id, option)}
+								className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
+									multi.grouping === option
+										? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
+										: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
+								}`}
+							>
+								<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+								<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
+							</button>
+						))}
+					</div>
+				)}
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && allChartsAreBarType && (
+					<button
+						onClick={() => {
+							handleCumulativeChange(multi.id, !showCumulative)
+							if (!showCumulative) {
+								handleStackedChange(multi.id, false)
+							}
+						}}
+						className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+						title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
+					>
+						<Icon name="trending-up" height={12} width={12} />
+						<span className="hidden xl:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
+					</button>
+				)}
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && (
+					<button
+						onClick={() => {
+							handleStackedChange(multi.id, !showStacked)
+							handlePercentageChange(multi.id, false)
+						}}
+						className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+						title={showStacked ? 'Show separate' : 'Show stacked'}
+					>
+						<Icon name="layers" height={12} width={12} />
+						<span className="hidden xl:inline">{showStacked ? 'Stacked' : 'Separate'}</span>
+					</button>
+				)}
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
+					<button
+						onClick={() => {
+							handlePercentageChange(multi.id, !showPercentage)
+							handleStackedChange(multi.id, false)
+						}}
+						className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+						title={showPercentage ? 'Show absolute values' : 'Show percentage'}
+					>
+						<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
+						<span className="hidden xl:inline">{showPercentage ? 'Percentage' : 'Absolute'}</span>
+					</button>
+				)}
+				{series.length > 0 && (
+					<ProTableCSVButton
+						onClick={handleCsvExport}
+						smol
+						className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+					/>
+				)}
 			</div>
 
 			{/* Status info for failures */}

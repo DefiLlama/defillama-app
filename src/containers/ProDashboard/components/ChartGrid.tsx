@@ -8,7 +8,6 @@ import { DashboardItemConfig } from '../types'
 import { ChartBuilderCard } from './ChartBuilderCard'
 import { ChartCard } from './ChartCard'
 import { ConfirmationModal } from './ConfirmationModal'
-import { Rating } from './Rating'
 import {
 	AggregatorsDataset,
 	BridgeAggregatorsDataset,
@@ -27,6 +26,7 @@ import {
 	YieldsDataset
 } from './datasets'
 import { ProtocolsByChainTable } from './ProTable'
+import { Rating } from './Rating'
 import { TextCard } from './TextCard'
 
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
@@ -37,12 +37,12 @@ interface ChartGridProps {
 }
 
 export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
-	const { 
-		chartsWithData, 
-		handleChartsReordered, 
-		handleRemoveItem, 
-		handleColSpanChange, 
-		handleEditItem, 
+	const {
+		chartsWithData,
+		handleChartsReordered,
+		handleRemoveItem,
+		handleColSpanChange,
+		handleEditItem,
 		isReadOnly,
 		getCurrentRatingSession,
 		autoSkipOlderSessionsForRating,
@@ -235,7 +235,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											item.kind === 'table' ? 'overflow-visible' : 'overflow-hidden'
 										}`}
 									>
-										<div className="absolute top-1 right-1 z-20 flex gap-1">
+										<div className="flex items-center justify-end gap-1 p-1">
 											<button
 												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
 												onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
