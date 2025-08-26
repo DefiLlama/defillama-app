@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
@@ -102,7 +102,9 @@ export function Menu({
 
 					<hr className="my-3 border-black/20 dark:border-white/20" />
 
-					<Account />
+					<Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
+						<Account />
+					</Suspense>
 				</nav>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>

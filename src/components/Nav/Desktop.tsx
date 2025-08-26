@@ -2,12 +2,11 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { Tooltip } from '../Tooltip'
-import { Account } from './Account'
 import { ThemeSwitch } from './ThemeSwitch'
 import { TNavLink, TNavLinks } from './types'
+
+const Account = React.lazy(() => import('./Account').then((mod) => ({ default: mod.Account })))
 
 export const DesktopNav = ({
 	mainLinks,
@@ -112,7 +111,9 @@ export const DesktopNav = ({
 
 			<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
 				<hr className="-ml-[6px] border-black/20 pb-1 dark:border-white/20" />
-				<Account />
+				<React.Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
+					<Account />
+				</React.Suspense>
 				<ThemeSwitch />
 			</div>
 		</nav>
