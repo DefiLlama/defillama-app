@@ -1,22 +1,17 @@
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
 import type { IFormattedProtocol } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlistManager } from '~/contexts/LocalStorage'
-import { formatProtocolsList } from '~/hooks/data/defi'
+import { formatProtocolsList2 } from '~/hooks/data/defi'
+import { ChainProtocolsTable } from '../ChainOverview/Table'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
 import { WatchListTabs } from '../Yields/Watchlist'
 
-export function DefiWatchlistContainer({
-	protocolsList,
-	parentProtocols,
-	protocolsVolumeByChain,
-	protocolsFeesAndRevenueByChain,
-	chains
-}) {
+export function DefiWatchlistContainer({ protocols, chains }) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const {
@@ -36,31 +31,29 @@ export function DefiWatchlistContainer({
 		removeProtocol: removeChain
 	} = useWatchlistManager('chains')
 
-	const formattedProtocols = useMemo(() => {
-		return formatProtocolsList({
-			extraTvlsEnabled,
-			protocols: protocolsList,
-			volumeData: protocolsVolumeByChain,
-			feesData: protocolsFeesAndRevenueByChain,
-			parentProtocols: parentProtocols,
-			noSubrows: true
-		})
-	}, [protocolsList, parentProtocols, extraTvlsEnabled, protocolsVolumeByChain, protocolsFeesAndRevenueByChain])
+	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
+		return {
+			protocolOptions: (protocols || []).map((c) => ({ key: c.name, name: c.name })),
+			savedProtocolsList: protocols.filter((c) => savedProtocols.has(c.name)),
+			selectedProtocolNames: Array.from(savedProtocols)
+		}
+	}, [protocols, savedProtocols])
 
-	const filteredProtocols = useMemo(() => {
-		return formattedProtocols.filter((p) => savedProtocols.has(p.name))
-	}, [savedProtocols, formattedProtocols])
+	const router = useRouter()
 
-	const protocolOptions = useMemo(() => {
-		return formattedProtocols.map((protocol) => ({
-			key: protocol.name,
-			name: protocol.name
-		}))
-	}, [formattedProtocols])
+	const minTvl =
+		typeof router.query.minTvl === 'string' && router.query.minTvl !== '' && !Number.isNaN(Number(router.query.minTvl))
+			? +router.query.minTvl
+			: null
 
-	const selectedProtocolNames = useMemo(() => {
-		return Array.from(savedProtocols)
-	}, [savedProtocols])
+	const maxTvl =
+		typeof router.query.maxTvl === 'string' && router.query.maxTvl !== '' && !Number.isNaN(Number(router.query.maxTvl))
+			? +router.query.maxTvl
+			: null
+
+	const protocolsTableData = useMemo(() => {
+		return formatProtocolsList2({ protocols: savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl })
+	}, [savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl])
 
 	const handleProtocolSelection = (selectedValues: string[]) => {
 		const currentSet = new Set(selectedProtocolNames)
@@ -73,16 +66,15 @@ export function DefiWatchlistContainer({
 		toRemove.forEach((name) => removeProtocol(name))
 	}
 
-	const { chainOptions, savedChainsList } = useMemo(() => {
+	const { chainOptions, savedChainsList, selectedChainNames } = useMemo(() => {
 		return {
 			chainOptions: (chains || []).map((c) => ({ key: c.name, name: c.name })),
-			savedChainsList: chains.filter((c) => savedChains.has(c.name))
+			savedChainsList: chains.filter((c) => savedChains.has(c.name)),
+			selectedChainNames: Array.from(savedChains)
 		}
 	}, [chains, savedChains])
 
 	const { chainsTableData } = useGroupAndFormatChains({ chains: savedChainsList, category: 'All' })
-
-	const selectedChainNames = useMemo(() => Array.from(savedChains), [savedChains])
 
 	const handleChainSelection = (selectedValues: string[]) => {
 		const currentSet = new Set(selectedChainNames)
@@ -104,7 +96,7 @@ export function DefiWatchlistContainer({
 					addPortfolio={addPortfolio}
 					removePortfolio={removePortfolio}
 				/>
-				{filteredProtocols.length > 0 && <TopMovers protocols={filteredProtocols} />}
+				{/* {protocolsTableData.length > 0 && <TopMovers protocols={protocolsTableData} />} */}
 
 				<ProtocolSelection
 					protocolOptions={protocolOptions}
@@ -121,8 +113,8 @@ export function DefiWatchlistContainer({
 							</span>
 						)}
 					</div>
-					{filteredProtocols.length ? (
-						<ProtocolsByChainTable data={filteredProtocols} useStickyHeader={false} />
+					{protocolsTableData.length ? (
+						<ChainProtocolsTable protocols={protocolsTableData} useStickyHeader={false} borderless />
 					) : (
 						<div className="p-8 text-center">
 							<div className="mx-auto max-w-sm">

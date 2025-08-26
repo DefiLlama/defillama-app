@@ -43,10 +43,14 @@ export interface CustomColumnDef {
 
 export const ChainProtocolsTable = ({
 	protocols,
-	sampleRow = sampleProtocol
+	sampleRow = sampleProtocol,
+	useStickyHeader = false,
+	borderless = false
 }: {
 	protocols: Array<IProtocol>
 	sampleRow?: any
+	useStickyHeader?: boolean
+	borderless?: boolean
 }) => {
 	const { customColumns, setCustomColumns } = useCustomColumns()
 
@@ -416,9 +420,11 @@ export const ChainProtocolsTable = ({
 	}, [instance, router.query.chain])
 
 	return (
-		<div className="isolate rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex flex-wrap items-center gap-2 p-3">
-				<div className="flex w-full grow text-lg font-semibold md:w-auto">Protocol Rankings</div>
+		<div className={borderless ? 'isolate' : 'isolate rounded-md border border-(--cards-border) bg-(--cards-bg)'}>
+			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+				{borderless ? null : (
+					<div className="mr-auto flex w-full grow text-lg font-semibold md:w-auto">Protocol Rankings</div>
+				)}
 
 				<div className="flex items-center gap-2 max-md:w-full max-sm:flex-col">
 					<TagGroup
@@ -468,7 +474,7 @@ export const ChainProtocolsTable = ({
 					</div>
 				</div>
 			</div>
-			<VirtualTable instance={instance} />
+			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
 			<CustomColumnModal
 				dialogStore={customColumnDialogStore}
 				onSave={handleSaveCustomColumn}
