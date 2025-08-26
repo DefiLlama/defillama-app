@@ -495,7 +495,7 @@
 	}
 
 	body {
-		@apply font-inter bg-(--app-bg) text-sm leading-[1.4288em] text-black dark:text-white;
+		@apply font-inter bg-(--app-bg) text-sm text-black dark:text-white;
 	}
 
 	#__next,
