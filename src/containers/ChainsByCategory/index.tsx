@@ -305,7 +305,7 @@ const useFormatChartData = ({
 					if (tvlChartsByChain[key]?.[chain]?.[date] != null) {
 						value = (value ?? 0) + (tvlChartsByChain[key]?.[chain]?.[date] ?? 0)
 					}
-					total += totalTvlByDate[key][date] ?? 0
+					total += totalTvlByDate?.[key]?.[date] ?? 0
 				}
 				data.push([+date, value != null ? (value / total) * 100 : null])
 			}
