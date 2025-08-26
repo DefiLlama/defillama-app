@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useRouter } from 'next/router'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
@@ -5,7 +6,7 @@ import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
 import { LoadingDots } from '../LoadingDots'
 
-export const Account = () => {
+export const Account = memo(function Account() {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
@@ -75,4 +76,4 @@ export const Account = () => {
 			)}
 		</>
 	)
-}
+})

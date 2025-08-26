@@ -103,6 +103,7 @@ export function Select({
 		>
 			<Ariakit.Select
 				className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+				aria-label={`${label} dropdown`}
 				{...triggerProps}
 			>
 				{labelType === 'smol' ? (

@@ -1,4 +1,4 @@
-import { Fragment, useDeferredValue, useMemo, useState, useSyncExternalStore } from 'react'
+import { Fragment, memo, useDeferredValue, useMemo, useState, useSyncExternalStore } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
@@ -263,7 +263,7 @@ const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => 
 	return `${value} tracked`
 }
 
-export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string> }) => {
+export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: { currentMetric: Array<string> }) {
 	const dialogStore = Ariakit.useDialogStore()
 	return (
 		<>
@@ -344,4 +344,4 @@ export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string
 			</Ariakit.DialogProvider>
 		</>
 	)
-}
+})
