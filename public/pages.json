@@ -342,9 +342,9 @@
       "tab": "Protocols"
     },
     {
-      "name": "Unlocks Overview",
+      "name": "Unlocks: Overview",
       "route": "/unlocks",
-      "category": "Token",
+      "category": "Unlocks",
       "description": "Overview of token emissions by protocol",
       "totalTrackedKey": "emissions.protocols",
       "keys": [
@@ -353,9 +353,9 @@
       "tab": "Protocols"
     },
     {
-      "name": "Unlocks Calendar",
+      "name": "Unlocks: Calendar",
       "route": "/unlocks/calendar",
-      "category": "Token",
+      "category": "Unlocks",
       "description": "Upcoming total token emissions by date",
       "keys": [
         "emissions"
