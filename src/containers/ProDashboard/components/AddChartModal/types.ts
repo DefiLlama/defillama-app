@@ -28,6 +28,7 @@ export type CombinedTableType =
 
 export interface ChartBuilderConfig {
 	metric:
+		| 'tvl'
 		| 'fees'
 		| 'revenue'
 		| 'volume'

@@ -26,12 +26,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [includeCex, setIncludeCex] = useState<boolean>(false)
 	const [chartBuilderName, setChartBuilderName] = useState<string>('')
 	const [chartBuilder, setChartBuilder] = useState<ChartBuilderConfig>({
-		metric: 'fees',
+		metric: 'tvl',
 		chains: [],
 		categories: [],
 		groupBy: 'protocol',
-		limit: 3,
-		chartType: 'stackedBar',
+		limit: 10,
+		chartType: 'stackedArea',
 		displayAs: 'timeSeries',
 		additionalFilters: {}
 	})
@@ -107,12 +107,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setIncludeCex(false)
 			setChartBuilderName('')
 			setChartBuilder({
-				metric: 'fees',
+				metric: 'tvl',
 				chains: [],
 				categories: [],
 				groupBy: 'protocol',
 				limit: 10,
-				chartType: 'stackedBar',
+				chartType: 'stackedArea',
 				displayAs: 'timeSeries',
 				additionalFilters: {}
 			})
@@ -137,12 +137,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setIncludeCex(false)
 		setChartBuilderName('')
 		setChartBuilder({
-			metric: 'fees',
+			metric: 'tvl',
 			chains: [],
 			categories: [],
 			groupBy: 'protocol',
 			limit: 10,
-			chartType: 'stackedBar',
+			chartType: 'stackedArea',
 			displayAs: 'timeSeries',
 			additionalFilters: {}
 		})

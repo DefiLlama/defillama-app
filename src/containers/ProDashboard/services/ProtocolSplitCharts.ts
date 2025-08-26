@@ -53,6 +53,7 @@ export default class SProtocolSplitCharts {
 
 	static async getProtocolSplitData(
 		metric:
+			| 'tvl'
 			| 'fees'
 			| 'revenue'
 			| 'volume'
@@ -127,5 +128,9 @@ export default class SProtocolSplitCharts {
 
 	static async getVolumeSplit(chains: string[], limit?: number, categories: string[] = []) {
 		return this.getProtocolSplitData('volume', chains, limit, categories)
+	}
+
+	static async getTvlSplit(chains: string[], limit?: number, categories: string[] = []) {
+		return this.getProtocolSplitData('tvl', chains, limit, categories)
 	}
 }

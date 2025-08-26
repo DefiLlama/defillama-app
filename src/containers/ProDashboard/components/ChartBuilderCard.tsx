@@ -28,6 +28,7 @@ interface ChartBuilderCardProps {
 				| 'holders-revenue'
 				| 'protocol-revenue'
 				| 'supply-side-revenue'
+				| 'tvl'
 			chains: string[]
 			categories: string[]
 			groupBy: 'protocol'
@@ -80,6 +81,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const config = builder.config
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
+	const isTvlChart = config.metric === 'tvl'
+
 	const { data: chartData, isLoading } = useQuery({
 		queryKey: [
 			'chartBuilder',
@@ -127,7 +130,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		if (!chartData || !chartData.series) return []
 
 		let processedSeries = chartData.series
-		if (builder.grouping && builder.grouping !== 'day') {
+		if (builder.grouping && builder.grouping !== 'day' && !isTvlChart) {
 			processedSeries = chartData.series.map((s: any) => {
 				const aggregatedData: Map<number, number> = new Map()
 
@@ -204,7 +207,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				stack: 'total'
 			})
 		}))
-	}, [chartData, config.displayAs, config.chartType, builder.grouping])
+	}, [chartData, config.displayAs, config.chartType, builder.grouping, isTvlChart])
 
 	const handleCsvExport = useCallback(() => {
 		if (!chartSeries || chartSeries.length === 0) return
@@ -239,7 +242,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						<h3 className="text-sm font-medium text-(--text1)">{builder.name || `${config.metric} by Protocol`}</h3>
 					</div>
 					<div className="flex items-center justify-end gap-2">
-						{!isReadOnly && (
+						{!isReadOnly && !isTvlChart && (
 							<div className="flex overflow-hidden border border-(--form-control-border)">
 								{groupingOptions.map((option, index) => (
 									<button

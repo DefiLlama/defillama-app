@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { PROTOCOLS_API } from '~/constants'
@@ -20,6 +20,7 @@ interface ChartBuilderTabProps {
 }
 
 const METRIC_OPTIONS = [
+	{ value: 'tvl', label: 'TVL' },
 	{ value: 'fees', label: 'Fees' },
 	{ value: 'revenue', label: 'Revenue' },
 	{ value: 'volume', label: 'DEX Volume' },
@@ -115,7 +116,7 @@ export function ChartBuilderTab({
 	})
 
 	const handleMetricChange = (option: any) => {
-		onChartBuilderChange({ metric: option?.value || 'fees' })
+		onChartBuilderChange({ metric: option?.value || 'tvl' })
 	}
 
 	const handleChainsChange = (options: any[]) => {
@@ -184,18 +185,20 @@ export function ChartBuilderTab({
 							/>
 						</div>
 
-						<div className="mb-1.5">
-							<ItemMultiSelect
-								label="Categories"
-								options={categoryOptions}
-								selectedValues={chartBuilder.categories}
-								onChange={handleCategoriesChange}
-								placeholder="Select categories..."
-								isLoading={false}
-								itemType="text"
-								maxSelections={5}
-							/>
-						</div>
+						{chartBuilder.metric !== 'tvl' && (
+							<div className="mb-1.5">
+								<ItemMultiSelect
+									label="Categories"
+									options={categoryOptions}
+									selectedValues={chartBuilder.categories}
+									onChange={handleCategoriesChange}
+									placeholder="Select categories..."
+									isLoading={false}
+									itemType="text"
+									maxSelections={5}
+								/>
+							</div>
+						)}
 
 						<div className="mb-1.5">
 							<ItemSelect
@@ -309,26 +312,28 @@ export function ChartBuilderTab({
 												? previewData.series.filter((s) => !s.name.startsWith('Others'))
 												: previewData.series
 
-											filteredSeries = filteredSeries.map((s) => {
-												const aggregatedData: Map<number, number> = new Map()
+											if (chartBuilder.metric !== 'tvl') {
+												filteredSeries = filteredSeries.map((s) => {
+													const aggregatedData: Map<number, number> = new Map()
 
-												s.data.forEach(([timestamp, value]: [number, number]) => {
-													const date = new Date(timestamp * 1000)
-													const weekDate = new Date(date)
-													const day = weekDate.getDay()
-													const diff = weekDate.getDate() - day + (day === 0 ? -6 : 1)
-													weekDate.setDate(diff)
-													weekDate.setHours(0, 0, 0, 0)
-													const weekKey = Math.floor(weekDate.getTime() / 1000)
+													s.data.forEach(([timestamp, value]: [number, number]) => {
+														const date = new Date(timestamp * 1000)
+														const weekDate = new Date(date)
+														const day = weekDate.getDay()
+														const diff = weekDate.getDate() - day + (day === 0 ? -6 : 1)
+														weekDate.setDate(diff)
+														weekDate.setHours(0, 0, 0, 0)
+														const weekKey = Math.floor(weekDate.getTime() / 1000)
 
-													aggregatedData.set(weekKey, (aggregatedData.get(weekKey) || 0) + value)
+														aggregatedData.set(weekKey, (aggregatedData.get(weekKey) || 0) + value)
+													})
+
+													return {
+														...s,
+														data: Array.from(aggregatedData.entries()).sort((a, b) => a[0] - b[0])
+													}
 												})
-
-												return {
-													...s,
-													data: Array.from(aggregatedData.entries()).sort((a, b) => a[0] - b[0])
-												}
-											})
+											}
 
 											if (chartBuilder.displayAs === 'percentage') {
 												const timestampTotals = new Map<number, number>()
