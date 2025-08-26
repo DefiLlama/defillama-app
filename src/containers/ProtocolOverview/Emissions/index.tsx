@@ -4,6 +4,7 @@ import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/catego
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
+import { LoadingDots } from '~/components/LoadingDots'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TagGroup } from '~/components/TagGroup'
@@ -604,7 +605,12 @@ export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
 	const { data = null, isLoading } = useGetProtocolEmissions(slug(protocolName))
 
 	if (isLoading) {
-		return <p className="my-[180px] text-center">Loading...</p>
+		return (
+			<p className="my-[180px] flex items-center justify-center gap-1 text-center">
+				Loading
+				<LoadingDots />
+			</p>
+		)
 	}
 
 	if (!data) {

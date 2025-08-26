@@ -9,6 +9,7 @@ import { useIsClient } from '~/hooks'
 import { fetchJson } from '~/utils/async'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
+import { LoadingDots } from '../LoadingDots'
 import { SearchFallback } from './Fallback'
 
 const { searchClient } = instantMeiliSearch(
@@ -109,7 +110,10 @@ const Mobile = () => {
 					<div className="flex flex-col gap-1">
 						{query ? (
 							status === 'loading' ? (
-								<p className="flex items-center justify-center p-4">Loading...</p>
+								<p className="flex items-center justify-center gap-1 p-4">
+									Loading
+									<LoadingDots />
+								</p>
 							) : error ? (
 								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
 							) : !results?.hits?.length ? (
@@ -120,7 +124,10 @@ const Mobile = () => {
 								))
 							)
 						) : isLoadingSearchList ? (
-							<p className="flex items-center justify-center p-4">Loading...</p>
+							<p className="flex items-center justify-center gap-1 p-4">
+								Loading
+								<LoadingDots />
+							</p>
 						) : errorSearchList ? (
 							<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
 						) : !searchList?.length ? (
@@ -210,7 +217,10 @@ const Desktop = () => {
 			>
 				{query ? (
 					status === 'loading' ? (
-						<p className="flex items-center justify-center p-4">Loading...</p>
+						<p className="flex items-center justify-center gap-1 p-4">
+							Loading
+							<LoadingDots />
+						</p>
 					) : error ? (
 						<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
 					) : !results?.hits?.length ? (
@@ -221,7 +231,10 @@ const Desktop = () => {
 						))
 					)
 				) : isLoadingSearchList ? (
-					<p className="flex items-center justify-center p-4">Loading...</p>
+					<p className="flex items-center justify-center gap-1 p-4">
+						Loading
+						<LoadingDots />
+					</p>
 				) : errorSearchList ? (
 					<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
 				) : !searchList?.length ? (

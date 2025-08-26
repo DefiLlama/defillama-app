@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { LazyChart } from '~/components/LazyChart'
+import { LoadingDots } from '~/components/LoadingDots'
 import {
 	useConfigPool,
 	useYieldChartData,
@@ -279,8 +280,9 @@ const PageView = () => {
 
 			<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
 				{fetchingLendData ? (
-					<p className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
-						Loading...
+					<p className="col-span-full flex h-[408px] items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
+						Loading
+						<LoadingDots />
 					</p>
 				) : (
 					lendHistory?.data?.length && (

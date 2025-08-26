@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { LoadingDots } from '~/components/LoadingDots'
 import { getPeggedAssetPageData } from '~/containers/Stablecoins/queries.server'
 import { PeggedAssetInfo } from '~/containers/Stablecoins/StablecoinOverview'
 
@@ -10,7 +11,12 @@ export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 	})
 
 	if (isLoading) {
-		return <p className="my-[180px] text-center">Loading...</p>
+		return (
+			<p className="my-[180px] flex items-center justify-center gap-1 text-center">
+				Loading
+				<LoadingDots />
+			</p>
+		)
 	}
 
 	if (!data) {

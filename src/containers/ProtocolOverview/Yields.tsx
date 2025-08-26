@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { LoadingDots } from '~/components/LoadingDots'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { slug } from '~/utils'
@@ -50,7 +51,10 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 					</p>
 
 					{isLoading ? (
-						<p className="my-[180px] text-center">Loading...</p>
+						<p className="my-[180px] flex items-center justify-center gap-1 text-center">
+							Loading
+							<LoadingDots />
+						</p>
 					) : !poolsList ? (
 						<p className="my-[180px] text-center"></p>
 					) : (

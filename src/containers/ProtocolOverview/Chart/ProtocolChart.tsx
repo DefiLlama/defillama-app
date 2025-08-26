@@ -14,6 +14,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, formatLineChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/LoadingDots'
 import { Tooltip } from '~/components/Tooltip'
 import {
 	BRIDGEVOLUME_API_SLUG,
@@ -365,8 +366,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			</div>
 			<div className="flex min-h-[360px] flex-col">
 				{loadingCharts ? (
-					<p className="my-auto flex min-h-[360px] flex-col items-center justify-center text-center text-xs">
-						fetching {loadingCharts}...
+					<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
+						fetching {loadingCharts}
+						<LoadingDots />
 					</p>
 				) : (
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>

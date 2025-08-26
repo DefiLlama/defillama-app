@@ -2,6 +2,7 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
+import { LoadingDots } from '~/components/LoadingDots'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
@@ -79,7 +80,10 @@ export default function Protocols(props) {
 		>
 			<div className="grid grid-cols-2 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 				{isLoading ? (
-					<p className="col-span-full flex h-[400px] items-center justify-center text-center">Loading...</p>
+					<p className="col-span-full flex h-[400px] items-center justify-center gap-1 text-center">
+						Loading
+						<LoadingDots />
+					</p>
 				) : (
 					<>
 						{chainsSplit && chainsUnique?.length > 1 && (

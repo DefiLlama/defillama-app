@@ -1,6 +1,7 @@
 import { useDeferredValue, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import { LoadingDots } from '~/components/LoadingDots'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
@@ -103,7 +104,10 @@ export default function TrendingContracts() {
 					/>
 				</div>
 				{isLoading ? (
-					<p className="p-3 text-center">Loading...</p>
+					<p className="flex items-center justify-center gap-1 p-3 text-center">
+						Loading
+						<LoadingDots />
+					</p>
 				) : error ? (
 					<p className="p-3 text-center">Sorry, couldn't fetch trending contracts.</p>
 				) : (

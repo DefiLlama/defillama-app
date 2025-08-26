@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { LoadingDots } from '~/components/LoadingDots'
 import { ForksByProtocol } from '~/containers/Forks'
 import { getForkPageData } from '~/containers/Forks/queries'
 
@@ -21,7 +22,12 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 	})
 
 	if (isLoading) {
-		return <p className="my-[180px] text-center">Loading...</p>
+		return (
+			<p className="my-[180px] flex items-center justify-center gap-1 text-center">
+				Loading
+				<LoadingDots />
+			</p>
+		)
 	}
 
 	if (error) {

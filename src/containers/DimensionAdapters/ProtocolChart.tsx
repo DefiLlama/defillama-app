@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { LoadingDots } from '~/components/LoadingDots'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
@@ -40,7 +41,12 @@ export const DimensionProtocolChartByType = ({
 	})
 
 	if (isLoading) {
-		return <p className="p-3 text-center text-sm">Loading...</p>
+		return (
+			<p className="flex items-center justify-center gap-1 p-3 text-center text-sm">
+				Loading
+				<LoadingDots />
+			</p>
+		)
 	}
 
 	if (error) {

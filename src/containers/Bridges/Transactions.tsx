@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { LoadingDots } from '~/components/LoadingDots'
 import { BRIDGETX_API } from '~/constants'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { download, toNiceCsvDate } from '~/utils'
@@ -158,10 +159,17 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 						))}
 					</select>
 					<button
-						className="rounded-lg bg-(--link-bg) px-3 py-2 text-base font-semibold whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-active-bg) disabled:cursor-not-allowed disabled:opacity-60"
+						className="flex items-center justify-center gap-1 rounded-lg bg-(--link-bg) px-3 py-2 text-base font-semibold whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-active-bg) disabled:cursor-not-allowed disabled:opacity-60"
 						disabled={isPending}
 					>
-						{isPending ? 'Downloading...' : 'Download .CSV'}
+						{isPending ? (
+							<>
+								Downloading
+								<LoadingDots />
+							</>
+						) : (
+							'Download .CSV'
+						)}
 					</button>
 
 					{dateError ? <p className="text-center text-red-500">{dateError}</p> : null}

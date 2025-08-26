@@ -3,6 +3,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
+import { LoadingDots } from '../LoadingDots'
 
 export const Account = () => {
 	const { asPath } = useRouter()
@@ -14,7 +15,10 @@ export const Account = () => {
 		<>
 			{isAccountLoading ? (
 				<div className="flex min-h-7 w-full items-center justify-center">
-					<p>Loading...</p>
+					<p className="flex items-center gap-1">
+						Loading
+						<LoadingDots />
+					</p>
 				</div>
 			) : (
 				<>

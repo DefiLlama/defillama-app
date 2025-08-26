@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/LoadingDots'
 import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import { AddChartModal } from './components/AddChartModal'
+import { AIGenerationHistory } from './components/AIGenerationHistory'
 import { ChartGrid } from './components/ChartGrid'
 import { CreateDashboardModal } from './components/CreateDashboardModal'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
@@ -16,9 +18,8 @@ import { DemoPreview } from './components/DemoPreview'
 import { EmptyState } from './components/EmptyState'
 import { GenerateDashboardModal } from './components/GenerateDashboardModal'
 import { Rating } from './components/Rating'
-import { AIGenerationHistory } from './components/AIGenerationHistory'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
-import { TimePeriod, useProDashboard, AIGeneratedData } from './ProDashboardAPIContext'
+import { AIGeneratedData, TimePeriod, useProDashboard } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
 
 function ProDashboardContent() {
@@ -89,7 +90,6 @@ function ProDashboardContent() {
 		(item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder'
 	)
 
-	
 	const currentRatingSession = getCurrentRatingSession()
 
 	const handleNameSubmit = (e: React.FormEvent) => {
@@ -186,12 +186,15 @@ function ProDashboardContent() {
 										</span>
 									)}
 								</button>
-								{!featureFlagsLoading && hasFeature('dashboard-gen') && currentDashboard?.aiGenerated && Object.keys(currentDashboard.aiGenerated).length > 0 && (
-									<div className="flex items-center gap-1">
-										<Icon name="sparkles" height={14} width={14} className="text-(--primary)" />
-										<span className="text-xs text-(--primary) font-medium">AI Generated</span>
-									</div>
-								)}
+								{!featureFlagsLoading &&
+									hasFeature('dashboard-gen') &&
+									currentDashboard?.aiGenerated &&
+									Object.keys(currentDashboard.aiGenerated).length > 0 && (
+										<div className="flex items-center gap-1">
+											<Icon name="sparkles" height={14} width={14} className="text-(--primary)" />
+											<span className="text-xs font-medium text-(--primary)">AI Generated</span>
+										</div>
+									)}
 								{dashboardVisibility === 'public' && (
 									<div className="pro-text3 flex items-center gap-3 text-sm">
 										<div className="flex items-center gap-1" title="Views">
@@ -347,7 +350,10 @@ function ProDashboardContent() {
 														<div className="my-2 border-t border-(--divider)" />
 														<div className="pro-text3 px-3 py-1 text-xs">My Dashboards</div>
 														{isLoadingDashboards ? (
-															<div className="pro-text3 px-3 py-2 text-sm">Loading...</div>
+															<div className="pro-text3 flex items-center justify-center gap-1 px-3 py-2 text-sm">
+																Loading
+																<LoadingDots />
+															</div>
 														) : (
 															<div className="thin-scrollbar max-h-64 overflow-y-auto">
 																{dashboards.map((dashboard) => (
@@ -396,7 +402,7 @@ function ProDashboardContent() {
 						)}
 						{!isReadOnly && items.length > 0 && !featureFlagsLoading && hasFeature('dashboard-gen') && (
 							<button
-								className="px-2.5 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors flex items-center gap-2 text-sm whitespace-nowrap animate-ai-glow"
+								className="animate-ai-glow flex items-center gap-2 border border-(--primary) px-2.5 py-2 text-sm whitespace-nowrap text-(--primary) transition-colors hover:bg-(--primary) hover:text-white"
 								onClick={() => setShowIterateDashboardModal(true)}
 								title="Edit with LlamaAI"
 							>
@@ -414,7 +420,6 @@ function ProDashboardContent() {
 							<Icon name="plus" height={16} width={16} />
 						</button>
 					</div>
-					
 				</div>
 
 				<div className="order-3 flex items-center gap-2">
@@ -429,7 +434,7 @@ function ProDashboardContent() {
 					)}
 					{!isReadOnly && items.length > 0 && !featureFlagsLoading && hasFeature('dashboard-gen') && (
 						<button
-							className="px-4 py-2 border border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white transition-colors items-center gap-2 text-base whitespace-nowrap hidden md:flex animate-ai-glow"
+							className="animate-ai-glow hidden items-center gap-2 border border-(--primary) px-4 py-2 text-base whitespace-nowrap text-(--primary) transition-colors hover:bg-(--primary) hover:text-white md:flex"
 							onClick={() => setShowIterateDashboardModal(true)}
 							title="Edit with LlamaAI"
 						>
@@ -437,10 +442,10 @@ function ProDashboardContent() {
 							Edit with LlamaAI
 						</button>
 					)}
-					
+
 					{canUndo && !isReadOnly && (
 						<button
-							className="px-4 py-2 border pro-border pro-text2 hover:pro-text1 hover:border-(--primary) transition-colors items-center gap-2 text-base whitespace-nowrap hidden md:flex"
+							className="pro-border pro-text2 hover:pro-text1 hidden items-center gap-2 border px-4 py-2 text-base whitespace-nowrap transition-colors hover:border-(--primary) md:flex"
 							onClick={undoAIGeneration}
 							title="Undo AI changes"
 						>
@@ -448,7 +453,7 @@ function ProDashboardContent() {
 							Undo
 						</button>
 					)}
-					
+
 					<button
 						className={`px-4 py-2 ${
 							!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'cursor-not-allowed bg-(--bg-tertiary)'
@@ -513,8 +518,8 @@ function ProDashboardContent() {
 			/>
 
 			{!protocolsLoading && items.length === 0 && (
-				<EmptyState 
-					onAddChart={() => setShowAddModal(true)} 
+				<EmptyState
+					onAddChart={() => setShowAddModal(true)}
 					onGenerateWithAI={hasFeature('dashboard-gen') ? () => setShowIterateDashboardModal(true) : undefined}
 				/>
 			)}

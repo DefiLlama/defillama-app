@@ -9,6 +9,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/LoadingDots'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -829,7 +830,10 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 					{isFetchingChartData ? (
 						<div className="m-auto flex min-h-[360px] items-center justify-center">
-							<p>Loading...</p>
+							<p className="flex items-center gap-1">
+								Loading
+								<LoadingDots />
+							</p>
 						</div>
 					) : (
 						<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>

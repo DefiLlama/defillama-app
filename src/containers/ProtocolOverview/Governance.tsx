@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-table'
 import { formatGovernanceData } from '~/api/categories/protocols'
 import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/LoadingDots'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
@@ -162,8 +163,9 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 
 	if (isLoading) {
 		return (
-			<p className="flex min-h-[360px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
-				Loading...
+			<p className="flex min-h-[360px] items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
+				Loading
+				<LoadingDots />
 			</p>
 		)
 	}
