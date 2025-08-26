@@ -1,18 +1,12 @@
 import { useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
-import * as Ariakit from '@ariakit/react'
 import type { IFormattedProtocol } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { ProtocolsByChainTable } from '~/components/Table/Defi/Protocols'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlistManager } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
 import { formatDataWithExtraTvls, formatProtocolsList } from '~/hooks/data/defi'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { WatchListTabs } from '../Yields/Watchlist'
 
 export function DefiWatchlistContainer({
@@ -54,14 +48,7 @@ export function DefiWatchlistContainer({
 
 	const filteredProtocols = useMemo(() => {
 		return formattedProtocols.filter((p) => savedProtocols.has(p.name))
-	}, [
-		protocolsList,
-		savedProtocols,
-		extraTvlsEnabled,
-		parentProtocols,
-		protocolsVolumeByChain,
-		protocolsFeesAndRevenueByChain
-	])
+	}, [savedProtocols, formattedProtocols])
 
 	const protocolOptions = useMemo(() => {
 		return formattedProtocols.map((protocol) => ({

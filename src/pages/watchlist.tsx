@@ -3,7 +3,7 @@ import { getDexVolumeByChain, getFeesAndRevenueProtocolsByChain } from '~/api/ca
 import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { tvlOptions } from '~/components/Filters/options'
 import { PROTOCOLS_API } from '~/constants'
-import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
+import { getChainsByCategory2 } from '~/containers/ChainsByCategory/queries'
 import { DefiWatchlistContainer } from '~/containers/ProtocolList/Watchlist'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging('watchlist', async () => {
 		getFeesAndRevenueProtocolsByChain({
 			chain: 'All'
 		}),
-		getChainsByCategory({ category: 'All', sampledChart: true })
+		getChainsByCategory2({ category: 'All', sampledChart: true })
 	])
 
 	const { protocols, parentProtocols } = protocolsData

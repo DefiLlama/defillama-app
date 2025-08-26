@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
+import { getChainsByCategory2 } from '~/containers/ChainsByCategory/queries'
+import { chainIconUrl } from '~/utils'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -10,17 +11,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			categoryParam = 'Rollup'
 		}
 
-		const data = await getChainsByCategory({
+		const data = await getChainsByCategory2({
 			category: categoryParam,
 			sampledChart: true
 		})
 
 		const chains = data.chains || []
 
-		const formattedChains = chains.map((chain: any) => {
+		const formattedChains = chains.map((chain) => {
 			return {
 				name: chain.name,
-				icon: chain.icon || null,
+				icon: chainIconUrl(chain.name),
 				protocols: chain.protocols || 0,
 				users: chain.users || null,
 				change_1d: chain.change_1d || null,
@@ -40,9 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			}
 		})
 
-		const sortedChains = formattedChains
-			.filter((chain: any) => chain.tvl > 0)
-			.sort((a: any, b: any) => (b.tvl || 0) - (a.tvl || 0))
+		const sortedChains = formattedChains.filter((chain) => chain.tvl > 0).sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 
 		res.status(200).json(sortedChains)
 	} catch (error) {
