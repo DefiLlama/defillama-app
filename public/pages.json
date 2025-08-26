@@ -455,7 +455,7 @@
     },
     {
       "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/total-value-lost",
+      "route": "/hacks/total-value-lost",
       "category": "Hacks",
       "description": "Net user loss, total value lost in hacks by a protocol",
       "tab": "Protocols"
