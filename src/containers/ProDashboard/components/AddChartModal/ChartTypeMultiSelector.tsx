@@ -45,11 +45,11 @@ export function ChartTypeMultiSelector({
 						<>
 							<button
 								onClick={() => onChange([])}
-								className="pro-text3 text-[10px] transition-colors hover:text-(--primary)"
+								className="pro-text3 text-2.5 transition-colors hover:text-(--primary)"
 							>
 								Clear
 							</button>
-							<span className="pro-text2 text-[10px] font-medium">
+							<span className="pro-text2 text-2.5 font-medium">
 								{selectedChartTypes.length}/{chartTypeOptions.length}
 							</span>
 						</>

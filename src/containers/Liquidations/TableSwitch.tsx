@@ -11,7 +11,7 @@ export const TableSwitch = () => {
 		<div className="flex items-center justify-start p-3">
 			<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form) max-sm:w-full">
 				<button
-					className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+					className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 					data-active={!isLiqsShowingInspector}
 					onClick={() => toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}
 				>
@@ -19,7 +19,7 @@ export const TableSwitch = () => {
 					<span>Distribution</span>
 				</button>
 				<button
-					className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+					className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 					data-active={isLiqsShowingInspector}
 					onClick={() => toggleLiqsSettings(LIQS_SHOWING_INSPECTOR)}
 				>

@@ -20,9 +20,9 @@ interface IFilterBetweenRange {
 const getVariantClasses = (variant: string) => {
 	switch (variant) {
 		case 'secondary':
-			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-md cursor-pointer text-(--text-primary) text-xs flex-nowrap'
+			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 px-3 py-1.5 rounded-md cursor-pointer text-(--text-primary) text-xs flex-nowrap'
 		default:
-			return 'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+			return 'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 	}
 }
 

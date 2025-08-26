@@ -58,7 +58,7 @@ export const FullOldViewButton = ({ className }: FullOldViewButtonProps) => {
 				>
 					{isClient && (isLoading || isSubscriptionLoading) ? (
 						<svg
-							className="h-[14px] w-[14px] animate-spin"
+							className="h-3.5 w-3.5 animate-spin"
 							xmlns="http://www.w3.org/2000/svg"
 							fill="none"
 							viewBox="0 0 24 24"

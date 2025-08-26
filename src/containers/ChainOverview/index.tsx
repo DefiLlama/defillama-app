@@ -31,11 +31,11 @@ export function ChainOverview(props: IChainOverviewData) {
 							rel="noreferrer noopener"
 							href={app.href}
 							key={`llama-app-${app.href}`}
-							className="relative flex max-h-[64px] max-w-[70vw] min-w-fit flex-1 items-center gap-[10px] overflow-hidden rounded-lg border border-(--cards-bg) bg-(--cards-bg) p-[10px]"
+							className="relative flex max-h-[64px] max-w-[70vw] min-w-fit flex-1 items-center gap-2.5 overflow-hidden rounded-lg border border-(--cards-bg) bg-(--cards-bg) p-2.5"
 						>
 							{app.background}
 							<>{app.icon}</>
-							<span className="flex flex-1 flex-col gap-[2px]">
+							<span className="flex flex-1 flex-col gap-0.5">
 								<span className="col-span-1 row-span-1 overflow-hidden text-sm font-semibold text-ellipsis whitespace-nowrap">
 									{app.name}
 								</span>

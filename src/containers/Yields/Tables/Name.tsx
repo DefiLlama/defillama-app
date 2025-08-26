@@ -66,7 +66,7 @@ export function NameYieldPool({
 				href={url}
 				target="_blank"
 				rel="noopener noreferrer"
-				className="hidden shrink-0 items-center justify-center rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover) lg:flex"
+				className="hidden shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover) lg:flex"
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
 				<span className="sr-only">open in new tab</span>
@@ -81,7 +81,7 @@ export function NameYieldPool({
 						<span className="shrink-0 overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)">
 							{value}
 						</span>
-						<span className="ml-1 flex-shrink-1 overflow-hidden rounded-lg bg-(--bg-tertiary) px-1 py-[2px] text-xs text-ellipsis whitespace-nowrap text-black group-data-[tooltipcontent=true]:whitespace-break-spaces dark:text-white">
+						<span className="ml-1 flex-shrink-1 overflow-hidden rounded-lg bg-(--bg-tertiary) px-1 py-0.5 text-xs text-ellipsis whitespace-nowrap text-black group-data-[tooltipcontent=true]:whitespace-break-spaces dark:text-white">
 							{poolMeta}
 						</span>
 					</>

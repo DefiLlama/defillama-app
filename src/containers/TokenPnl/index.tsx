@@ -27,7 +27,7 @@ const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
 			<span>{label}:</span>
 			<input
 				type="date"
-				className={`rounded-md bg-white p-[6px] text-base text-black outline-0 dark:bg-black dark:text-white ${
+				className={`rounded-md bg-white p-1.5 text-base text-black outline-0 dark:bg-black dark:text-white ${
 					hasError ? 'border-2 border-red-500' : 'border border-(--form-control-border)'
 				}`}
 				value={value}
@@ -175,7 +175,7 @@ export function TokenPnl({ coinsData }) {
 									setModalOpen(1)
 									dialogStore.toggle()
 								}}
-								className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+								className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 							>
 								<img
 									src={selectedCoins[0].image}
@@ -193,7 +193,7 @@ export function TokenPnl({ coinsData }) {
 										setModalOpen(1)
 										dialogStore.toggle()
 									}}
-									className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black/60 dark:bg-black dark:text-white/60"
+									className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black/60 dark:bg-black dark:text-white/60"
 								>
 									<Icon name="search" height={16} width={16} />
 									<span>Search coins...</span>
@@ -215,7 +215,7 @@ export function TokenPnl({ coinsData }) {
 										<p>{error instanceof Error ? error.message : 'An error occurred'}</p>
 										<button
 											onClick={() => refetch()}
-											className="rounded-md bg-(--link-active-bg) px-4 py-[6px] text-white"
+											className="rounded-md bg-(--link-active-bg) px-4 py-1.5 text-white"
 										>
 											Retry
 										</button>

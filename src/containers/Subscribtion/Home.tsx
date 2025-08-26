@@ -218,7 +218,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 				{isAuthenticated && isSubscribed ? null : (
 					<div
-						className="relative -bottom-[60px] z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
+						className="relative -bottom-15 z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
 						style={{
 							filter: 'blur(64px)',
 							background: 'linear-gradient(90deg, #5C5EFC 0%, #462A92 100%)'
@@ -297,22 +297,22 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				<h2 className="text-[32px] font-extrabold">They trust us</h2>
 
 				<div className="grid grid-cols-2 place-items-center gap-20 md:grid-cols-4 lg:grid-cols-5">
-					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-[60px] object-contain" />
+					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-15 object-contain" />
 					<img src="/icons/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
 					<span className="flex flex-col gap-2">
-						<img src="/icons/ecb-1.svg" alt="" className="h-[28px] object-contain" />
-						<img src="/icons/ecb-2.svg" alt="European Central Bank" className="h-[10px] object-contain" />
+						<img src="/icons/ecb-1.svg" alt="" className="h-7 object-contain" />
+						<img src="/icons/ecb-2.svg" alt="European Central Bank" className="h-2.5 object-contain" />
 					</span>
-					<img src="/icons/mas.svg" alt="Monetary Authority of Singapore" className="h-[60px] object-contain" />
+					<img src="/icons/mas.svg" alt="Monetary Authority of Singapore" className="h-15 object-contain" />
 					<img src="/icons/bis.svg" alt="Bank of International Settlements" className="h-[48px] object-contain" />
-					<img src="/icons/nber.svg" alt="National Bureau of Economic Research" className="h-[60px] object-contain" />
-					<img src="/icons/imf.svg" alt="International Monetary Fund" className="h-[28px] object-contain" />
-					<img src="/icons/boc.svg" alt="Bank of Canada" className="h-[60px] object-contain" />
-					<img src="/icons/boe.svg" alt="Bank of England" className="h-[28px] object-contain" />
-					<img src="/icons/binance.svg" alt="Binance" className="h-[28px] object-contain" />
-					<img src="/icons/okx.svg" alt="OKX" className="h-[28px] object-contain" />
-					<img src="/icons/chainlink.svg" alt="Chainlink" className="h-[28px] object-contain" />
-					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-[28px] object-contain" />
+					<img src="/icons/nber.svg" alt="National Bureau of Economic Research" className="h-15 object-contain" />
+					<img src="/icons/imf.svg" alt="International Monetary Fund" className="h-7 object-contain" />
+					<img src="/icons/boc.svg" alt="Bank of Canada" className="h-15 object-contain" />
+					<img src="/icons/boe.svg" alt="Bank of England" className="h-7 object-contain" />
+					<img src="/icons/binance.svg" alt="Binance" className="h-7 object-contain" />
+					<img src="/icons/okx.svg" alt="OKX" className="h-7 object-contain" />
+					<img src="/icons/chainlink.svg" alt="Chainlink" className="h-7 object-contain" />
+					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-7 object-contain" />
 				</div>
 			</div>
 			{returnUrl && (

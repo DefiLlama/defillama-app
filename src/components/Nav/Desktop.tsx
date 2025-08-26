@@ -41,7 +41,7 @@ export const DesktopNav = ({
 				/>
 			</BasicLink>
 
-			<div className="flex flex-1 flex-col gap-[6px] overflow-y-auto">
+			<div className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
 				{mainLinks.map(({ category, pages }) => (
 					<div key={`desktop-nav-${category}`} className="group">
 						{pages.map(({ name, route, icon }) => (
@@ -95,11 +95,11 @@ export const DesktopNav = ({
 
 				{footerLinks.map(({ category, pages }) => (
 					<details key={`desktop-nav-${category}`} className={`group ${category === 'More' ? 'mt-auto' : ''}`}>
-						<summary className="-ml-[6px] flex items-center justify-between gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5">
+						<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5">
 							<span>{category}</span>
 							<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
 						</summary>
-						<hr className="-ml-[6px] border-black/20 pt-2 group-last:block dark:border-white/20" />
+						<hr className="-ml-1.5 border-black/20 pt-2 group-last:block dark:border-white/20" />
 						<div>
 							{pages.map(({ name, route, icon }) => (
 								<LinkToPage key={`desktop-nav-${name}-${route}`} route={route} name={name} icon={icon} />
@@ -110,7 +110,7 @@ export const DesktopNav = ({
 			</div>
 
 			<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
-				<hr className="-ml-[6px] border-black/20 pb-1 dark:border-white/20" />
+				<hr className="-ml-1.5 border-black/20 pb-1 dark:border-white/20" />
 				<React.Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
 					<Account />
 				</React.Suspense>
@@ -127,7 +127,7 @@ const LinkToPage = ({ route, name, icon }: { route: string; name: string; icon?:
 		<BasicLink
 			href={route}
 			data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
-			className="group/link -ml-[6px] flex flex-1 items-center gap-3 rounded-md p-[6px] hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 		>
 			{icon ? <Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" /> : null}
 			{name}

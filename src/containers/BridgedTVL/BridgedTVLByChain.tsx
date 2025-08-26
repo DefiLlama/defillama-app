@@ -89,7 +89,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								{chartTypes.map(({ type, name }) =>
 									Boolean(chainData[type]?.total) && chainData[type]?.total !== '0' ? (
 										<button
-											className="shrink-0 px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+											className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 											data-active={chartType === type}
 											onClick={() => setChartType(type)}
 											key={'bridged-' + name}
@@ -100,7 +100,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								)}
 								{inflows ? (
 									<button
-										className="shrink-0 px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										data-active={chartType === 'inflows'}
 										onClick={() => setChartType('inflows')}
 									>
@@ -109,7 +109,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 								) : null}
 								{chainData?.ownTokens?.total ? (
 									<button
-										className="shrink-0 px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										data-active={chartType === 'ownTokens'}
 										onClick={() => setChartType('ownTokens')}
 									>

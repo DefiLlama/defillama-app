@@ -194,7 +194,7 @@ export const ChainsByAdapterChart = ({
 								key={`${dataInterval}-${type}`}
 								onClick={() => setChartInterval(dataInterval)}
 								data-active={dataInterval === chartInterval}
-								className="shrink-0 cursor-pointer px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 cursor-pointer px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								{dataInterval}
 							</a>
@@ -203,7 +203,7 @@ export const ChainsByAdapterChart = ({
 					<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 						{CHART_TYPES.map((dataType) => (
 							<button
-								className="shrink-0 px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={dataType === chartType}
 								key={`${dataType}-${type}`}
 								onClick={() => setChartType(dataType)}
@@ -225,7 +225,7 @@ export const ChainsByAdapterChart = ({
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+								'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 						}}
 						portal
 					/>

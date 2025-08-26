@@ -300,7 +300,7 @@ export function ColumnManagementPanel({
 							<span className="flex items-center gap-1">
 								Saved Views
 								{customViews.length > 0 && (
-									<span className="ml-1 rounded-full bg-blue-500 px-1.5 py-0.5 text-[10px] text-white">
+									<span className="text-2.5 ml-1 rounded-full bg-blue-500 px-1.5 py-0.5 text-white">
 										{customViews.length}
 									</span>
 								)}

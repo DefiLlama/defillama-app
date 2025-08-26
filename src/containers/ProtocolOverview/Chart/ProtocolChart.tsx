@@ -172,7 +172,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 					<Ariakit.DialogProvider store={metricsDialogStore}>
 						<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 							<span>Add Metrics</span>
-							<Icon name="plus" className="h-[14px] w-[14px]" />
+							<Icon name="plus" className="h-3.5 w-3.5" />
 						</Ariakit.DialogDisclosure>
 						<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
 							<span className="flex items-center justify-between gap-1">
@@ -212,9 +212,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									>
 										<span>{chart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
 										{toggledMetrics[protocolCharts[chart]] === 'true' ? (
-											<Icon name="x" className="h-[14px] w-[14px]" />
+											<Icon name="x" className="h-3.5 w-3.5" />
 										) : (
-											<Icon name="plus" className="h-[14px] w-[14px]" />
+											<Icon name="plus" className="h-3.5 w-3.5" />
 										)}
 									</button>
 								))}
@@ -242,9 +242,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									>
 										<span>Events</span>
 										{toggledMetrics.events === 'true' ? (
-											<Icon name="x" className="h-[14px] w-[14px]" />
+											<Icon name="x" className="h-3.5 w-3.5" />
 										) : (
-											<Icon name="plus" className="h-[14px] w-[14px]" />
+											<Icon name="plus" className="h-3.5 w-3.5" />
 										)}
 									</button>
 								) : null}
@@ -283,7 +283,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							}}
 						>
 							<span>{tchart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
-							<Icon name="x" className="h-[14px] w-[14px]" />
+							<Icon name="x" className="h-3.5 w-3.5" />
 						</span>
 					</label>
 				))}
@@ -311,7 +311,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							}}
 						>
 							<span>Events</span>
-							<Icon name="x" className="h-[14px] w-[14px]" />
+							<Icon name="x" className="h-3.5 w-3.5" />
 						</span>
 					</label>
 				) : null}

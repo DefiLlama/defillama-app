@@ -9,7 +9,7 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 		<>
 			<tr className="group">
 				<th className="flex items-center gap-1 text-left font-normal text-(--text-label)">
-					<button onClick={() => setOpen(!open)} className="flex items-center gap-[2px] whitespace-nowrap">
+					<button onClick={() => setOpen(!open)} className="flex items-center gap-0.5 whitespace-nowrap">
 						{helperText ? (
 							<Tooltip content={helperText} className="whitespace-nowrap underline decoration-dotted">
 								{rowHeader}
@@ -21,7 +21,7 @@ export const RowWithSubRows = ({ subRows, protocolName, dataType, rowHeader, row
 							name="chevron-down"
 							height={16}
 							width={16}
-							className="relative top-[2px] transition-transform duration-100 group-open:rotate-180"
+							className="relative top-0.5 transition-transform duration-100 group-open:rotate-180"
 						/>
 					</button>
 					{protocolName && dataType ? (

@@ -68,7 +68,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 				>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}

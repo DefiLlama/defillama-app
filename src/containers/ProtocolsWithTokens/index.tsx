@@ -120,7 +120,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 								labelType="smol"
 								triggerProps={{
 									className:
-										'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+										'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 								}}
 							/>
 						)}
@@ -203,7 +203,7 @@ const defaultColumns = (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 						{row.subRows?.length > 0 ? (
 							<button
-								className="absolute -left-[18px]"
+								className="absolute -left-4.5"
 								{...{
 									onClick: row.getToggleExpandedHandler()
 								}}

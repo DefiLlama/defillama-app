@@ -39,7 +39,7 @@ export function SubscribeModal({ isOpen, onClose, children }: SubscribeModalProp
 	if (!isOpen || !isMounted) return null
 
 	return createPortal(
-		<div className="bg-opacity-30 fixed inset-0 z-50 flex items-center justify-center bg-black bg-transparent p-4 backdrop-blur-[2px]">
+		<div className="bg-opacity-30 backdrop-blur-0.5 fixed inset-0 z-50 flex items-center justify-center bg-black bg-transparent p-4">
 			<div
 				ref={modalContentRef}
 				onMouseDown={(e) => e.stopPropagation()}

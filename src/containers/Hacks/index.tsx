@@ -88,7 +88,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 py-[2px] pl-7 text-base text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 py-0.5 pl-7 text-base text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				<CSVDownloadButton prepareCsv={prepareCsv} />
@@ -223,7 +223,7 @@ export const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<a
-				className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-[6px] hover:bg-(--btn2-hover-bg)"
+				className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-1.5 hover:bg-(--btn2-hover-bg)"
 				href={getValue() as string}
 				target="_blank"
 				rel="noopener noreferrer"

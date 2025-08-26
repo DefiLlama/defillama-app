@@ -29,7 +29,7 @@ export const Switch = ({
 			<span
 				className={`border ${
 					checked ? 'border-(--switch-border) bg-(--switch-bg)' : 'border-(--bg-input) bg-(--bg-input)'
-				} h-[18px] w-[34px] rounded p-[2px]`}
+				} h-4.5 w-[34px] rounded p-0.5`}
 			>
 				{!checked ? (
 					<span className="mr-auto block h-3 w-3 shrink-0 rounded-[3px] bg-[#707A7A]"></span>

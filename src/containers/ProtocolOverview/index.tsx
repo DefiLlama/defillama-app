@@ -227,7 +227,7 @@ const ProtocolTVL = ({
 						name="chevron-down"
 						height={16}
 						width={16}
-						className="relative top-[2px] transition-transform duration-100 group-open:rotate-180"
+						className="relative top-0.5 transition-transform duration-100 group-open:rotate-180"
 					/>
 				</span>
 			</summary>
@@ -263,7 +263,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 					href="#key-metrics"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				<Fees formatPrice={props.formatPrice} {...props} />
@@ -338,7 +338,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 						href="#dl-news"
 						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 					/>
-					<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 				</h2>
 				<a href="https://www.dlnews.com">
 					<svg width={72} height={18}>
@@ -1126,7 +1126,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1200,7 +1200,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1252,7 +1252,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 								name="chevron-down"
 								height={16}
 								width={16}
-								className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+								className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 							/>
 							<Flag
 								protocol={props.name}
@@ -1326,7 +1326,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 							name="chevron-down"
 							height={16}
 							width={16}
-							className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+							className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 						/>
 						<Flag
 							protocol={props.name}
@@ -1416,7 +1416,7 @@ const SmolStats = ({
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={protocolName}
@@ -1501,7 +1501,7 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1555,7 +1555,7 @@ const Raises = (props: IProtocolOverviewPageData) => {
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1656,7 +1656,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 					href="#protocol-information"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			{props.description ? <p>{props.description}</p> : null}
 			{props.category ? (
@@ -1743,15 +1743,15 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					href="#methodology"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			{props.methodologyURL ? (
 				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
 					<span>{props.methodology ?? ''}</span>
 					{props.methodologyURL ? (
-						<span className="relative top-[2px] left-1 inline-block">
-							<Icon name="external-link" className="h-[14px] w-[14px]" />
+						<span className="relative top-0.5 left-1 inline-block">
+							<Icon name="external-link" className="h-3.5 w-3.5" />
 							<span className="sr-only">View code on GitHub</span>
 						</span>
 					) : null}
@@ -1815,8 +1815,8 @@ const MethodologyByAdapter = ({
 							>
 								<span>{child[0]}:</span> <span>{child[1]}</span>
 								{child[2] ? (
-									<span className="relative top-[2px] left-1 inline-block">
-										<Icon name="external-link" className="h-[14px] w-[14px]" />
+									<span className="relative top-0.5 left-1 inline-block">
+										<Icon name="external-link" className="h-3.5 w-3.5" />
 										<span className="sr-only">View code on GitHub</span>
 									</span>
 								) : null}
@@ -1839,8 +1839,8 @@ const MethodologyByAdapter = ({
 					<a href={adapter.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 						<span className="font-medium">{title}:</span> <span>{adapter.methodology}</span>
 						{adapter.methodologyURL ? (
-							<span className="relative top-[2px] left-1 inline-block">
-								<Icon name="external-link" className="h-[14px] w-[14px]" />
+							<span className="relative top-0.5 left-1 inline-block">
+								<Icon name="external-link" className="h-3.5 w-3.5" />
 								<span className="sr-only">View code on GitHub</span>
 							</span>
 						) : null}
@@ -1868,7 +1868,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 					href="#unlocks"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				{unlocks.recent ? (
@@ -1911,7 +1911,7 @@ function Governance(props: IProtocolOverviewPageData) {
 					href="#governance"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col gap-1">
 				<h3 className="border-b border-(--cards-border) py-1">Last proposal</h3>
@@ -1943,7 +1943,7 @@ function Yields(props: IProtocolOverviewPageData) {
 					href="#yields"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div>
 				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
@@ -1978,7 +1978,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 					href="#hacks"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				{props.hacks.map((hack) => (
@@ -2034,7 +2034,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 								className="flex items-center gap-1 underline"
 							>
 								<span>Source</span>
-								<Icon name="external-link" className="h-[14px] w-[14px]" />
+								<Icon name="external-link" className="h-3.5 w-3.5" />
 							</a>
 						) : null}
 					</div>
@@ -2056,7 +2056,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 					href="#competitors"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-wrap items-center gap-4">
 				{props.competitors.map((similarProtocol) => (
@@ -2155,7 +2155,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						href="#income-statement"
 						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 					/>
-					<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 				</h2>
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{incomeStatementGroupByOptions.map((groupOption) => (

@@ -182,20 +182,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					<button
 						onClick={prev}
-						className="shrink-0 px-3 py-[6px] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						className="shrink-0 px-3 py-1.5 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						aria-label={`Previous ${viewMode === 'List' ? '30 days' : viewMode}`}
 					>
 						←
 					</button>
 					<button
 						onClick={goToToday}
-						className="shrink-0 px-3 py-[6px] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						className="shrink-0 px-3 py-1.5 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					>
 						Today
 					</button>
 					<button
 						onClick={next}
-						className="shrink-0 px-3 py-[6px] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						className="shrink-0 px-3 py-1.5 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						aria-label={`Next ${viewMode === 'List' ? '30 days' : viewMode}`}
 					>
 						→
@@ -203,7 +203,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 				</div>
 				<button
 					onClick={() => setShowOnlyWatchlist((prev) => !prev)}
-					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-[6px] text-xs text-black dark:bg-black dark:text-white"
+					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-1.5 text-xs text-black dark:bg-black dark:text-white"
 				>
 					<Icon
 						name="bookmark"
@@ -215,7 +215,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 				</button>
 				<button
 					onClick={() => setShowOnlyInsider((prev) => !prev)}
-					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-[6px] text-xs text-black dark:bg-black dark:text-white"
+					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-1.5 text-xs text-black dark:bg-black dark:text-white"
 				>
 					<Icon name="key" height={16} width={16} style={{ fill: showOnlyInsider ? 'var(--text-primary)' : 'none' }} />
 					{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}

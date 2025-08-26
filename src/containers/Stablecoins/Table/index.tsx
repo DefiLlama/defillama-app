@@ -108,7 +108,7 @@ export function PeggedAssetsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[2px] pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-0.5 pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>
@@ -202,7 +202,7 @@ export function PeggedAssetByChainTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[2px] pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-0.5 pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>
@@ -316,7 +316,7 @@ export function PeggedChainsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[2px] pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-0.5 pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				<SelectWithCombobox
@@ -331,7 +331,7 @@ export function PeggedChainsTable({ data }) {
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 					}}
 				/>
 			</div>

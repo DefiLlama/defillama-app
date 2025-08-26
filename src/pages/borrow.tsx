@@ -95,7 +95,7 @@ export default function YieldBorrow(data) {
 						placeholder="Select token for collateral"
 					/>
 					{borrowToken && !collateralToken ? (
-						<small className="mt-[2px] text-center text-orange-500">
+						<small className="mt-0.5 text-center text-orange-500">
 							Select your collateral token to see real borrow cost!
 						</small>
 					) : null}

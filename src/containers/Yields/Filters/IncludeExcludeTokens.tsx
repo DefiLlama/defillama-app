@@ -156,7 +156,7 @@ export function IncludeExcludeTokens({
 									setTab(dataType as 'Tokens' | 'Pairs')
 									setSearchValue('')
 								}}
-								className="shrink-0 rounded-md px-[10px] py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 rounded-md px-2.5 py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={tab === dataType}
 								key={dataType}
 							>
@@ -196,7 +196,7 @@ export function IncludeExcludeTokens({
 									autoSelect
 									autoFocus
 									placeholder="Search for a token to filter by..."
-									className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white"
+									className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white"
 								/>
 							</div>
 							{matches.length ? (
@@ -285,7 +285,7 @@ export function IncludeExcludeTokens({
 									autoSelect
 									autoFocus
 									placeholder="Search for a token to add to current pair..."
-									className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white"
+									className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white"
 								/>
 							</div>
 							{matches.length ? (

@@ -254,7 +254,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							<span className="">Minimum last investment time:</span>
 							<input
 								type="date"
-								className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+								className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								value={unixToDateString(filters.minLastRoundTime)}
 								onChange={handleDateChange}
 								max={new Date().toISOString().split('T')[0]}
@@ -271,7 +271,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								type="number"
 								value={filters.minimumInvestments}
 								onChange={(e) => handleFilterChange('minimumInvestments', parseInt(e.target.value))}
-								className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+								className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 							/>
 						</label>
 
@@ -286,7 +286,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									value={projectInfo.projectName}
 									onChange={handleProjectInfoChange}
 									required
-									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
@@ -295,7 +295,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									name="link"
 									value={projectInfo.link}
 									onChange={handleProjectInfoChange}
-									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
@@ -305,7 +305,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									value={projectInfo.textPitch}
 									onChange={handleProjectInfoChange}
 									required
-									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
@@ -316,7 +316,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									value={projectInfo.founderEmail}
 									onChange={handleProjectInfoChange}
 									required
-									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<button

@@ -130,7 +130,7 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 					<input
 						type="text"
 						placeholder="Search..."
-						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
+						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
 						value={searchValue}
 						onChange={(e) => setSearchValue(e.target.value)}
 					/>
@@ -196,7 +196,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 			data-pinned={isPinned}
 		>
 			<BasicLink
-				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-(--link-button)"
+				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 hover:bg-(--link-button)"
 				href={page.route}
 			>
 				<span className="flex w-full flex-wrap items-center justify-end gap-1">
@@ -204,7 +204,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 					{page.tags?.map((tag) =>
 						tag === 'Hot' ? (
 							<span
-								className="-mt-[4px] -mr-[2px] flex items-center gap-1 rounded-md bg-[#D24C1F] px-[6px] py-[4px] text-[10px] text-white group-hover:hidden group-data-[pinned=true]:hidden"
+								className="text-2.5 -mt-1 -mr-0.5 flex items-center gap-1 rounded-md bg-[#D24C1F] px-1.5 py-1 text-white group-hover:hidden group-data-[pinned=true]:hidden"
 								key={`tag-${page.route}-${tag}`}
 							>
 								<Icon name="flame" height={10} width={10} />
@@ -212,7 +212,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 							</span>
 						) : (
 							<span
-								className="-mt-[4px] -mr-[2px] flex items-center gap-1 rounded-md bg-(--old-blue) px-[6px] py-[4px] text-[10px] text-white group-hover:hidden group-data-[pinned=true]:hidden"
+								className="text-2.5 -mt-1 -mr-0.5 flex items-center gap-1 rounded-md bg-(--old-blue) px-1.5 py-1 text-white group-hover:hidden group-data-[pinned=true]:hidden"
 								key={`tag-${page.route}-${tag}`}
 							>
 								<Icon name="sparkles" height={10} width={10} />
@@ -249,7 +249,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 						}}
 					/>
 				}
-				className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-[6px] text-white group-hover:block group-data-[pinned=true]:block"
+				className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-1.5 text-white group-hover:block group-data-[pinned=true]:block"
 			>
 				<Icon name="pin" height={14} width={14} style={{ '--icon-fill': isPinned ? 'white' : 'none' } as any} />
 			</Tooltip>
@@ -287,13 +287,13 @@ export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string
 								{i === 1 ? (
 									<span>{metric}</span>
 								) : (
-									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-(--link-button) px-[10px] py-1 font-semibold hover:bg-(--link-button-hover)">
+									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-(--link-button) px-2.5 py-1 font-semibold hover:bg-(--link-button-hover)">
 										{metric}
 									</Ariakit.DialogDisclosure>
 								)}
 							</Fragment>
 						))}
-						<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-[6px] py-1 text-xs text-(--text-form)">
+						<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-1.5 py-1 text-xs text-(--text-form)">
 							<Icon name="search" height={12} width={12} />
 							<span className="hidden sm:block">Click to browse & search</span>
 						</Ariakit.DialogDisclosure>

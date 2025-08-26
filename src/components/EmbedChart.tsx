@@ -44,7 +44,7 @@ export function EmbedChart() {
 
 	return (
 		<Ariakit.PopoverProvider>
-			<Ariakit.PopoverDisclosure className="flex h-[30px] w-[30px] items-center justify-center rounded-md border border-(--form-control-border) text-sm font-medium text-(--text-form)! hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+			<Ariakit.PopoverDisclosure className="flex items-center justify-center rounded-md border border-(--form-control-border) px-2 py-2 text-sm font-medium text-(--text-form)! hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 				<Icon name="code" height={12} width={12} />
 				<span className="sr-only">Embed Chart</span>
 			</Ariakit.PopoverDisclosure>

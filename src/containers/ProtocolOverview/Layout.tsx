@@ -141,20 +141,20 @@ export function ProtocolOverviewLayout({
 											render={<BasicLink href={`/protocol/${slug(value)}`} />}
 											data-active={name === value}
 											className={`group relative flex items-center gap-2 py-2 ${
-												i === 0 ? 'px-3' : 'ml-[22px] pr-3'
+												i === 0 ? 'px-3' : 'ml-5.5 pr-3'
 											} shrink-0 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) data-[active=true]:bg-(--primary-hover)`}
 										>
 											{i !== 0 && (
 												<>
-													<span className="absolute top-0 bottom-0 left-0 block h-full w-[2px] bg-(--form-control-border) group-last:h-[50%]" />
-													<span className="-mr-2 h-[2px] w-3 bg-(--form-control-border)" />
+													<span className="absolute top-0 bottom-0 left-0 block h-full w-0.5 bg-(--form-control-border) group-last:h-[50%]" />
+													<span className="-mr-2 h-0.5 w-3 bg-(--form-control-border)" />
 												</>
 											)}
 											<TokenLogo logo={tokenIconUrl(value)} size={24} />
 											{i === 0 ? (
 												<span className="flex flex-col">
 													<span>{`${value} (Combined)`}</span>
-													<span className="text-[10px] text-(--text-form)">Aggregated view</span>
+													<span className="text-2.5 text-(--text-form)">Aggregated view</span>
 												</span>
 											) : (
 												<span>{value}</span>

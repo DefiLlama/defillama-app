@@ -63,7 +63,7 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 							>
 								<Ariakit.MenuButtonArrow placement="left" />
 							</button>
-							<h1 className="px-3 py-[6px] text-base font-medium">{label}</h1>
+							<h1 className="px-3 py-1.5 text-base font-medium">{label}</h1>
 						</div>
 					</>
 				) : null}

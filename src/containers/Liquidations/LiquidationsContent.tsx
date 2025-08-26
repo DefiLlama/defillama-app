@@ -92,14 +92,14 @@ const CurrencyToggle = (props: { symbol: string }) => {
 			<button
 				data-active={!isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}
-				className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+				className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				{props.symbol.toUpperCase()}
 			</button>
 			<button
 				data-active={isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}
-				className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+				className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				USD
 			</button>

@@ -151,7 +151,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							rel="noreferrer noopener"
 							key={`claim-${protocol.name}`}
 							color="#008000"
-							className="flex items-center gap-1 rounded-md bg-[#e4efe2] px-[10px] py-1 text-sm font-medium whitespace-nowrap text-[#007c00] dark:bg-[#18221d] dark:text-[#00ab00]"
+							className="flex items-center gap-1 rounded-md bg-[#e4efe2] px-2.5 py-1 text-sm font-medium whitespace-nowrap text-[#007c00] dark:bg-[#18221d] dark:text-[#00ab00]"
 						>
 							<span>{protocol.name}</span>
 							<Icon name="arrow-up-right" height={14} width={14} />
@@ -162,7 +162,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							resetEligibilityCheck()
 							airdropCheckerDialog.toggle()
 						}}
-						className="flex items-center gap-1 rounded-md bg-(--link-button) px-[10px] py-1 text-sm font-medium whitespace-nowrap dark:bg-(--link-hover-bg)"
+						className="flex items-center gap-1 rounded-md bg-(--link-button) px-2.5 py-1 text-sm font-medium whitespace-nowrap dark:bg-(--link-hover-bg)"
 					>
 						🪂 Check airdrops for address
 					</button>
@@ -228,7 +228,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 																				target="_blank"
 																				rel="noopener noreferrer"
 																				key={`can-claim-${airdrop.name}`}
-																				className="shrink-0 rounded-md bg-(--link-button) px-[6px] py-[2px] hover:bg-(--link-button-hover)"
+																				className="shrink-0 rounded-md bg-(--link-button) px-1.5 py-0.5 hover:bg-(--link-button-hover)"
 																			>
 																				<Icon name="arrow-up-right" height={14} width={14} />
 																				<span className="sr-only">open in new tab</span>

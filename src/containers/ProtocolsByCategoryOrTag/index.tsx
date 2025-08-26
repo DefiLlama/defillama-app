@@ -179,7 +179,7 @@ const columns = (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}

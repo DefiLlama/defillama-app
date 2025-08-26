@@ -151,7 +151,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white px-2 py-[6px] pl-7 text-base text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1.5 pl-7 text-base text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 					{/* <ReactSelect
@@ -276,7 +276,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-[6px] pl-7 text-base text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1.5 pl-7 text-base text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 				</div>

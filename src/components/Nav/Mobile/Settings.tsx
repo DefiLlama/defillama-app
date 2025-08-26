@@ -32,7 +32,7 @@ export function Settings() {
 
 	return (
 		<Ariakit.SelectProvider value={selectedOptions} setValue={onChange}>
-			<Ariakit.Select className="-my-[2px] rounded-md bg-[#445ed0] p-3 text-white shadow">
+			<Ariakit.Select className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow">
 				<span className="sr-only">Open Settings Menu</span>
 				<Icon name="settings" height={16} width={16} />
 			</Ariakit.Select>

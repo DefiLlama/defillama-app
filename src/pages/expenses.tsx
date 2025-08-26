@@ -104,7 +104,7 @@ const columns: ColumnDef<any>[] = [
 		cell: ({ getValue }) =>
 			getValue() ? (
 				<a
-					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-bg) px-[10px] py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					href={getValue()[0] as string}
 					target="_blank"
 					rel="noopener noreferrer"

@@ -164,7 +164,7 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 				href={getValue() as string}
 				target="_blank"
 				rel="noopener noreferrer"
-				className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
+				className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
 				<span className="sr-only">open in new tab</span>
@@ -206,7 +206,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<Bookmark readableName={getValue() as string} data-bookmark className="absolute -left-[2px]" />
+					<Bookmark readableName={getValue() as string} data-bookmark className="absolute -left-0.5" />
 					<TokenLogo logo={tokenIconUrl(getValue())} />
 					<BasicLink
 						href={`/unlocks/${slug(getValue() as string)}`}
@@ -440,7 +440,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 				>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -814,7 +814,7 @@ export const cexColumn: ColumnDef<any>[] = [
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="shrink-0 rounded-md  bg-(--link-button) hover:bg-(--link-button-hover) p-[6px]"
+					className="shrink-0 rounded-md  bg-(--link-button) hover:bg-(--link-button-hover) p-1.5"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
 					<span className="sr-only">open in new tab</span>
@@ -840,7 +840,7 @@ export const cexColumn: ColumnDef<any>[] = [
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="shrink-0 rounded-md  bg-(--link-button) hover:bg-(--link-button-hover) p-[6px]"
+					className="shrink-0 rounded-md  bg-(--link-button) hover:bg-(--link-button-hover) p-1.5"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
 					<span className="sr-only">open in new tab</span>
@@ -1115,7 +1115,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
+					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
 					<span className="sr-only">open in new tab</span>
@@ -1133,7 +1133,7 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-[6px] hover:bg-(--link-button-hover)"
+					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
 					<span className="sr-only">open in new tab</span>

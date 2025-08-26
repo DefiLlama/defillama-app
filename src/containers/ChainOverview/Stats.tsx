@@ -187,7 +187,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						<Tooltip
 							content={`${formattedNum(valueChange24hUSD, true)}`}
 							render={<p />}
-							className="relative bottom-[2px] flex flex-nowrap items-center gap-2"
+							className="relative bottom-0.5 flex flex-nowrap items-center gap-2"
 						>
 							<span
 								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
@@ -220,7 +220,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.stablecoins.mcap, true)}</span>
 								</summary>
@@ -336,7 +336,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total24h, true)}</span>
 								</summary>
@@ -381,7 +381,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total24h, true)}</span>
 								</summary>
@@ -441,7 +441,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.users.activeUsers, false)}</span>
 								</summary>
@@ -469,7 +469,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.tvl, true)}</span>
 								</summary>
@@ -522,7 +522,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">
 										{formatRaisedAmount(props.chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
@@ -569,7 +569,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">
 										{formattedNum(
@@ -687,7 +687,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								<Ariakit.DialogProvider store={metricsDialogStore}>
 									<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 										<span>Add Metrics</span>
-										<Icon name="plus" className="h-[14px] w-[14px]" />
+										<Icon name="plus" className="h-3.5 w-3.5" />
 									</Ariakit.DialogDisclosure>
 									<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
 										<span className="flex items-center justify-between gap-1">
@@ -733,14 +733,14 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 													</span>
 													{chainCharts[tchart] === 'tvl' ? (
 														router.query[chainCharts[tchart]] === 'false' ? (
-															<Icon name="plus" className="h-[14px] w-[14px]" />
+															<Icon name="plus" className="h-3.5 w-3.5" />
 														) : (
-															<Icon name="x" className="h-[14px] w-[14px]" />
+															<Icon name="x" className="h-3.5 w-3.5" />
 														)
 													) : router.query[chainCharts[tchart]] === 'true' ? (
-														<Icon name="x" className="h-[14px] w-[14px]" />
+														<Icon name="x" className="h-3.5 w-3.5" />
 													) : (
-														<Icon name="plus" className="h-[14px] w-[14px]" />
+														<Icon name="plus" className="h-3.5 w-3.5" />
 													)}
 												</button>
 											))}
@@ -786,7 +786,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 													)
 												: tchart}
 										</span>
-										<Icon name="x" className="h-[14px] w-[14px]" />
+										<Icon name="x" className="h-3.5 w-3.5" />
 									</span>
 								</label>
 							))}

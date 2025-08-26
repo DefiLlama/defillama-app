@@ -31,7 +31,7 @@ export default function Tools() {
 					<input
 						type="text"
 						placeholder="Search..."
-						className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white"
+						className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white"
 						value={searchValue}
 						onChange={(e) => setSearchValue(e.target.value)}
 					/>

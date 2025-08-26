@@ -211,7 +211,7 @@ export function ChainsByCategoryTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[2px] pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white py-0.5 pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 
@@ -230,7 +230,7 @@ export function ChainsByCategoryTable({
 								labelType="smol"
 								triggerProps={{
 									className:
-										'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+										'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 								}}
 							/>
 						) : null}
@@ -246,7 +246,7 @@ export function ChainsByCategoryTable({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
 					</div>
@@ -340,7 +340,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 				>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -358,7 +358,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 							)}
 						</button>
 					) : (
-						<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-[2px]" />
+						<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-0.5" />
 					)}
 					<span className="shrink-0">{index + 1}</span>
 

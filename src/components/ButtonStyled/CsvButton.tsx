@@ -58,7 +58,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 				className={
 					replaceClassName
 						? `relative isolate data-[loading=true]:cursor-wait ${className}`
-						: `relative isolate flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-[6px] text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[loading=true]:cursor-wait ${
+						: `relative isolate flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[loading=true]:cursor-wait ${
 								className ?? ''
 							}`
 				}
@@ -95,7 +95,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 				{loading ? (
 					<span className="absolute top-0 right-0 bottom-0 left-0 z-10 flex items-center justify-center">
 						<svg
-							className="h-[14px] w-[14px] shrink-0 animate-spin"
+							className="h-3.5 w-3.5 shrink-0 animate-spin"
 							xmlns="http://www.w3.org/2000/svg"
 							fill="none"
 							viewBox="0 0 24 24"

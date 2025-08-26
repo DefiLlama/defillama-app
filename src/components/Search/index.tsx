@@ -77,7 +77,7 @@ const Mobile = () => {
 
 	return (
 		<Ariakit.DialogProvider>
-			<Ariakit.DialogDisclosure className="-my-[2px] rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
+			<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
 				<span className="sr-only">Search</span>
 				<Icon name="search" height={16} width={16} />
 			</Ariakit.DialogDisclosure>
@@ -177,7 +177,7 @@ const Desktop = () => {
 			setOpen={setOpen}
 		>
 			<span className="relative isolate hidden w-full lg:inline-block lg:max-w-[50vw]">
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[6px] left-[8px] opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-1.5 left-2 opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
@@ -194,7 +194,7 @@ const Desktop = () => {
 					placeholder="Search..."
 					autoSelect
 					ref={inputField}
-					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[2px] pl-7 text-base text-black dark:text-white"
+					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.5 pl-7 text-base text-black dark:text-white"
 				/>
 				<span className="absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center rounded-md bg-(--link-bg) p-1 text-xs text-(--link-text)">
 					⌘K

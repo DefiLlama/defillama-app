@@ -41,7 +41,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -75,7 +75,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
 								<Tooltip
 									content="Deprecated"
-									className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
+									className="text-2.5 flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-white dark:bg-red-400"
 								>
 									!
 								</Tooltip>
@@ -470,7 +470,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 				>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -620,7 +620,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 				>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -760,7 +760,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 				<span className="flex items-center gap-2">
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}

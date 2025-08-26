@@ -140,7 +140,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 			<button
 				className={
 					className ??
-					'mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-[14px] text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed'
+					'mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-3.5 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed'
 				}
 				onClick={dialogState.toggle}
 				suppressHydrationWarning

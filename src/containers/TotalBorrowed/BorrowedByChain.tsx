@@ -34,7 +34,7 @@ export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData
 							</span>
 						</p>
 						{props.change24h != null ? (
-							<p className="relative bottom-[2px] flex flex-nowrap items-center gap-2 text-sm">
+							<p className="relative bottom-0.5 flex flex-nowrap items-center gap-2 text-sm">
 								<span
 									className={`font-jetbrains text-right text-ellipsis ${
 										props.change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
@@ -88,7 +88,7 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
