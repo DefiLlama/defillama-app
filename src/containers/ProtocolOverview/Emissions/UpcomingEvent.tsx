@@ -37,6 +37,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 
 			<Ariakit.Menu
 				unmountOnHide
+				hideOnInteractOutside
 				gutter={8}
 				className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 				portal
@@ -301,6 +302,7 @@ export const UpcomingEvent = ({
 				<Ariakit.Hovercard
 					className="z-10 flex flex-col gap-2 rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-4 dark:border-[hsl(204,3%,32%)] dark:bg-[#121316]"
 					unmountOnHide
+					hideOnInteractOutside
 					portal={true}
 				>
 					<span className="flex items-center justify-between">

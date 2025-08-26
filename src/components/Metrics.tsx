@@ -337,6 +337,7 @@ export const MetricsAndTools = ({ currentMetric }: { currentMetric: Array<string
 				<Ariakit.Dialog
 					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100vh-80px)] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)]"
 					unmountOnHide
+					hideOnInteractOutside
 				>
 					<Metrics canDismiss={true} />
 				</Ariakit.Dialog>

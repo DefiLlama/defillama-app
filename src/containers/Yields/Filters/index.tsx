@@ -59,6 +59,7 @@ function SavedFilters({ currentFilters }) {
 				</Ariakit.MenuButton>
 				<Ariakit.Menu
 					unmountOnHide
+					hideOnInteractOutside
 					gutter={8}
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'

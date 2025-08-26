@@ -287,6 +287,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 					</Ariakit.MenuButton>
 					<Ariakit.Menu
 						unmountOnHide
+						hideOnInteractOutside
 						sameWidth
 						className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 					>

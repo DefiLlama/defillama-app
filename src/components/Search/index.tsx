@@ -203,7 +203,6 @@ const Desktop = () => {
 			<Ariakit.ComboboxPopover
 				unmountOnHide
 				hideOnInteractOutside
-				hideOnEscape
 				gutter={6}
 				sameWidth
 				className="max-sm:drawer z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
