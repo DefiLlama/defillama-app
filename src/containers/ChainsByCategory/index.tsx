@@ -53,6 +53,7 @@ export function ChainsByCategory({
 			.filter(([_, value]) => value)
 			.map(([key]) => key)
 		const { minTvl, maxTvl } = JSON.parse(minMaxTvl)
+
 		const data = chains
 			.map((chain) => {
 				let finalTvl: number | null = chain.tvl
@@ -90,11 +91,7 @@ export function ChainsByCategory({
 					mcaptvl: chain.mcap ? +formattedNum(chain.mcap / finalTvl, false) : null
 				}
 			})
-			.filter(
-				(chain) =>
-					(typeof minTvl === 'string' && minTvl !== '' ? chain.tvl >= +minTvl : true) &&
-					(typeof maxTvl === 'string' && maxTvl !== '' ? chain.tvl <= +maxTvl : true)
-			)
+			.filter((chain) => (minTvl ? chain.tvl >= minTvl : true) && (maxTvl ? chain.tvl <= maxTvl : true))
 
 		const chainsTableData = []
 		for (const chain of data) {
