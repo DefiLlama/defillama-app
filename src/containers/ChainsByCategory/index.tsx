@@ -111,6 +111,7 @@ const useFormatChartData = ({
 		const toggledTvlSettings = Object.entries(tvlSettings)
 			.filter(([_, value]) => value)
 			.map(([key]) => key)
+		const recentTvlByChain: Record<string, number> = {}
 
 		for (const chain in tvlChartsByChain['tvl']) {
 			const data = []
@@ -123,6 +124,7 @@ const useFormatChartData = ({
 					}
 					total += totalTvlByDate?.[key]?.[date] ?? 0
 				}
+				recentTvlByChain[chain] = value
 				data.push([+date, value != null ? (value / total) * 100 : null])
 			}
 			charts[chain] = {
@@ -134,12 +136,7 @@ const useFormatChartData = ({
 			}
 		}
 
-		const recentTvls: Array<{ name: string; value: number }> = []
-		for (const chain in charts) {
-			recentTvls.push({ name: chain, value: charts[chain].data[charts[chain].data.length - 1][1] })
-		}
-
-		return { dominanceCharts: charts, pieChartData: preparePieChartData({ data: recentTvls, limit: 10 }) }
+		return { dominanceCharts: charts, pieChartData: preparePieChartData({ data: recentTvlByChain, limit: 10 }) }
 	}, [tvlSettings, totalTvlByDate, tvlChartsByChain, colorsByChain])
 
 	return data
