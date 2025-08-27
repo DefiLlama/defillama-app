@@ -592,10 +592,14 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 				</span>
 			)
 
-			const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
-			const chartKey = ['Chain', 'Rollup'].includes(row.original.category)
-				? (chainChartsKeys[type] ?? protocolChartsKeys[type])
-				: protocolChartsKeys[type]
+			const basePath =
+				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+					? 'chain'
+					: 'protocol'
+			const chartKey =
+				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+					? (chainChartsKeys[type] ?? protocolChartsKeys[type])
+					: protocolChartsKeys[type]
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
