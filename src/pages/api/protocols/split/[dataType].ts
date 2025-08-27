@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { CHART_API, DIMENISIONS_OVERVIEW_API, PROTOCOL_API, PROTOCOLS_API } from '~/constants'
+import { CATEGORY_CHART_API, CHART_API, DIMENISIONS_OVERVIEW_API, PROTOCOL_API, PROTOCOLS_API } from '~/constants'
 
 interface ChartSeries {
 	name: string
@@ -125,7 +125,67 @@ const fetchChainTotalTvl = async (chains: string[]): Promise<[number, number][]>
 	return Array.from(summed.entries()).sort((a, b) => a[0] - b[0])
 }
 
-const getTvlData = async (chains: string[], categories: string[], topN: number): Promise<ProtocolSplitData> => {
+const fetchCategoryTvl = async (chains: string[], categories: string[]): Promise<[number, number][]> => {
+	if (categories.length === 0) {
+		return fetchChainTotalTvl(chains)
+	}
+
+	const isAllChains = chains.length === 0 || chains.some((c) => c.toLowerCase() === 'all')
+	const categoryDataPromises: Promise<[number, number][]>[] = []
+
+	for (const category of categories) {
+		if (isAllChains) {
+			categoryDataPromises.push(
+				(async () => {
+					try {
+						const r = await fetch(`${CATEGORY_CHART_API}/${toSlug(category)}`)
+						if (!r.ok) return []
+						const j = await r.json()
+						const tvl = j?.tvl || {}
+						const mapped = Object.entries(tvl).map(
+							([ts, v]: [string, any]) => [parseInt(ts, 10), Number(v) || 0] as [number, number]
+						)
+						return filterOutToday(normalizeDailyPairs(mapped))
+					} catch (e) {
+						console.error('Error fetching category tvl', category, e)
+						return []
+					}
+				})()
+			)
+		} else {
+			for (const chain of chains) {
+				categoryDataPromises.push(
+					(async () => {
+						try {
+							const r = await fetch(`${CATEGORY_CHART_API}/${toSlug(category)}/${toSlug(chain)}`)
+							if (!r.ok) return []
+							const j = await r.json()
+							const tvl = j?.tvl || {}
+							const mapped = Object.entries(tvl).map(
+								([ts, v]: [string, any]) => [parseInt(ts, 10), Number(v) || 0] as [number, number]
+							)
+							return filterOutToday(normalizeDailyPairs(mapped))
+						} catch (e) {
+							console.error('Error fetching category tvl', category, chain, e)
+							return []
+						}
+					})()
+				)
+			}
+		}
+	}
+
+	const allCategoryData = await Promise.all(categoryDataPromises)
+	const summed = sumSeriesByTimestamp(allCategoryData)
+	return Array.from(summed.entries()).sort((a, b) => a[0] - b[0])
+}
+
+const getTvlData = async (
+	chains: string[],
+	categories: string[],
+	topN: number,
+	groupByParent: boolean = false
+): Promise<ProtocolSplitData> => {
 	const selectedChains = (chains && chains.length > 0 ? chains : ['all']).filter(Boolean)
 	const isAll = selectedChains.some((c) => c.toLowerCase() === 'all')
 	const categoriesFilter = (categories || []).map((c) => c.toLowerCase())
@@ -168,16 +228,27 @@ const getTvlData = async (chains: string[], categories: string[], topN: number):
 	childScores.sort((a, b) => b.value - a.value)
 
 	const picked = new Map<string, { name: string; slug: string }>()
-	for (const c of childScores) {
-		const key = c.parentId || `protocol:${c.childSlug}`
-		if (picked.has(key)) continue
-		const name = c.parentId ? parentIdToName.get(c.parentId) || c.childName : c.childName
-		const slug = c.parentId ? parentIdToSlug.get(c.parentId) || c.childSlug : c.childSlug
-		picked.set(key, { name, slug })
-		if (picked.size >= topN) break
+	if (groupByParent) {
+		for (const c of childScores) {
+			const key = c.parentId || `protocol:${c.childSlug}`
+			if (picked.has(key)) continue
+			const name = c.parentId ? parentIdToName.get(c.parentId) || c.childName : c.childName
+			const slug = c.parentId ? parentIdToSlug.get(c.parentId) || c.childSlug : c.childSlug
+			picked.set(key, { name, slug })
+			if (picked.size >= topN) break
+		}
+	} else {
+		for (const c of childScores) {
+			const key = `protocol:${c.childSlug}`
+			if (picked.has(key)) continue
+			picked.set(key, { name: c.childName, slug: c.childSlug })
+			if (picked.size >= topN) break
+		}
 	}
 	const top = Array.from(picked.values())
-	const uniqueTotal = new Set(childScores.map((c) => c.parentId || `protocol:${c.childSlug}`)).size
+	const uniqueTotal = groupByParent
+		? new Set(childScores.map((c) => c.parentId || `protocol:${c.childSlug}`)).size
+		: childScores.length
 
 	if (top.length === 0) {
 		const displayChains = isAll ? ['All'] : selectedChains
@@ -200,7 +271,7 @@ const getTvlData = async (chains: string[], categories: string[], topN: number):
 		top.map(async (t) => {
 			try {
 				const r = await fetch(`${PROTOCOL_API}/${t.slug}`)
-				if (!r.ok) return { name: t.name, data: [] as [number, number][] }
+				if (!r.ok) return { name: t.name, data: [] as [number, number][], failed: true }
 				const j = await r.json()
 				const chainTvls = j?.chainTvls || {}
 
@@ -235,12 +306,31 @@ const getTvlData = async (chains: string[], categories: string[], topN: number):
 				return { name: t.name, data }
 			} catch (e) {
 				console.error('Error fetching protocol tvl', t.slug, e)
-				return { name: t.name, data: [] as [number, number][] }
+				return { name: t.name, data: [] as [number, number][], failed: true }
 			}
 		})
 	)
 
-	const totalSeries = await fetchChainTotalTvl(isAll ? ['all'] : selectedChains)
+	const failedProtocols = protocolSeries.filter((s: any) => s.failed)
+	if (failedProtocols.length > 0) {
+		console.error(`Failed to fetch data for ${failedProtocols.length} protocols, returning empty chart`)
+		const displayChains = isAll ? ['All'] : selectedChains
+		return {
+			series: [],
+			metadata: {
+				chain: displayChains.join(','),
+				chains: displayChains,
+				categories,
+				metric: 'TVL',
+				topN,
+				totalProtocols: 0,
+				othersCount: 0,
+				marketSector: categories.join(',') || null
+			}
+		}
+	}
+
+	const totalSeries = await fetchCategoryTvl(isAll ? ['all'] : selectedChains, categoriesFilter)
 
 	const timestampSet = new Set<number>()
 	totalSeries.forEach(([t]) => timestampSet.add(t))
@@ -294,7 +384,7 @@ const getTvlData = async (chains: string[], categories: string[], topN: number):
 
 async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { chains, limit = '10', categories } = req.query
+		const { chains, limit = '10', categories, groupByParent } = req.query
 
 		let chainsArray = chains ? (chains as string).split(',').filter(Boolean) : []
 		if (chainsArray.length === 0 || chainsArray.some((c) => c.toLowerCase() === 'all')) {
@@ -302,8 +392,9 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 		}
 		const categoriesArray = categories ? (categories as string).split(',').filter(Boolean) : []
 		const topN = Math.min(parseInt(limit as string), 20)
+		const shouldGroupByParent = groupByParent === 'true'
 
-		const result = await getTvlData(chainsArray, categoriesArray, topN)
+		const result = await getTvlData(chainsArray, categoriesArray, topN, shouldGroupByParent)
 
 		res.status(200).json(result)
 	} catch (error) {
@@ -317,7 +408,7 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { dataType, chains, limit = '10', categories } = req.query
+		const { dataType, chains, limit = '10', categories, groupByParent } = req.query
 		const metric = dataType as string
 
 		if (metric === 'tvl') {
@@ -332,6 +423,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					.filter(Boolean)
 					.map((cat) => cat.toLowerCase())
 			: []
+		const shouldGroupByParent = groupByParent === 'true'
 
 		const config = METRIC_CONFIG[metric]
 		if (!config) {
@@ -451,17 +543,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const lastDayProtocols = lastDayData[1]
 
 		let protocolCategories: Map<string, string> = new Map()
-		if (categoriesArray.length > 0) {
-			const protocolsResponse = await fetch(PROTOCOLS_API)
-			const protocolsData = await protocolsResponse.json()
-			const protocols = protocolsData.protocols || []
+		let protocolToParentId: Map<string, string> = new Map()
+		let parentIdToName: Map<string, string> = new Map()
+		let parentIdToSlug: Map<string, string> = new Map()
 
-			protocols.forEach((protocol: any) => {
-				if (protocol.name && protocol.category) {
+		const protocolsResponse = await fetch(PROTOCOLS_API)
+		const protocolsData = await protocolsResponse.json()
+		const protocols = protocolsData.protocols || []
+		const parentProtocols = protocolsData.parentProtocols || []
+
+		for (const pp of parentProtocols) {
+			if (pp?.id && pp?.name) {
+				parentIdToName.set(pp.id, pp.name)
+				parentIdToSlug.set(pp.id, toSlug(pp.name))
+			}
+		}
+
+		protocols.forEach((protocol: any) => {
+			if (protocol.name) {
+				if (protocol.category) {
 					protocolCategories.set(protocol.name, protocol.category.toLowerCase())
 				}
-			})
-		}
+				if (protocol.parentProtocol) {
+					protocolToParentId.set(protocol.name, protocol.parentProtocol)
+				}
+			}
+		})
 
 		let protocolEntries = Object.entries(lastDayProtocols).map(([name, value]) => ({ name, value: value as number }))
 
@@ -469,10 +576,63 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			protocolEntries = protocolEntries.filter((p) => categoriesArray.includes(protocolCategories.get(p.name) || ''))
 		}
 
-		protocolEntries.sort((a, b) => b.value - a.value)
+		let topProtocols: string[]
+		let topProtocolsSet: Set<string>
+		let protocolNameMapping: Map<string, string> = new Map()
+		let protocolFamilyValues: Map<string, { name: string; value: number; isParent: boolean }> = new Map()
 
-		const topProtocols = protocolEntries.slice(0, topN).map((p) => p.name)
-		const topProtocolsSet = new Set(topProtocols)
+		if (shouldGroupByParent) {
+			for (const entry of protocolEntries) {
+				const parentId = protocolToParentId.get(entry.name)
+				if (parentId) {
+					const parentName = parentIdToName.get(parentId) || entry.name
+					const existing = protocolFamilyValues.get(parentId)
+					if (existing) {
+						protocolFamilyValues.set(parentId, {
+							name: parentName,
+							value: existing.value + entry.value,
+							isParent: true
+						})
+					} else {
+						protocolFamilyValues.set(parentId, {
+							name: parentName,
+							value: entry.value,
+							isParent: true
+						})
+					}
+				} else {
+					const key = `protocol:${entry.name}`
+					protocolFamilyValues.set(key, {
+						name: entry.name,
+						value: entry.value,
+						isParent: false
+					})
+				}
+			}
+
+			const sortedFamilies = Array.from(protocolFamilyValues.values()).sort((a, b) => b.value - a.value)
+			topProtocols = sortedFamilies.slice(0, topN).map((f) => f.name)
+			topProtocolsSet = new Set(topProtocols)
+
+			for (const [protocolName, parentId] of protocolToParentId.entries()) {
+				const parentName = parentIdToName.get(parentId)
+				if (parentName && topProtocolsSet.has(parentName)) {
+					protocolNameMapping.set(protocolName, parentName)
+				}
+			}
+		} else {
+			protocolEntries.sort((a, b) => b.value - a.value)
+			topProtocols = protocolEntries.slice(0, topN).map((p) => p.name)
+			topProtocolsSet = new Set(topProtocols)
+
+			for (const entry of protocolEntries) {
+				protocolFamilyValues.set(`protocol:${entry.name}`, {
+					name: entry.name,
+					value: entry.value,
+					isParent: false
+				})
+			}
+		}
 
 		const protocolData: Map<string, [number, number][]> = new Map()
 		topProtocols.forEach((protocol) => {
@@ -499,11 +659,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				const protocolValue = value as number
 				dayTotal += protocolValue
 
-				if (topProtocolsSet.has(protocolName)) {
+				const displayName = shouldGroupByParent ? protocolNameMapping.get(protocolName) || protocolName : protocolName
+
+				if (topProtocolsSet.has(displayName)) {
 					topTotal += protocolValue
-					const series = protocolData.get(protocolName)
+					const series = protocolData.get(displayName)
 					if (series) {
-						series.push([timestamp, protocolValue])
+						const existingIndex = series.findIndex(([ts]) => ts === timestamp)
+						if (existingIndex >= 0) {
+							series[existingIndex][1] += protocolValue
+						} else {
+							series.push([timestamp, protocolValue])
+						}
 					}
 				}
 			})
@@ -517,7 +684,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const series: ChartSeries[] = []
 
 		topProtocols.forEach((protocol, index) => {
-			const protocolDataMap = new Map(protocolData.get(protocol) || [])
+			const sortedData = (protocolData.get(protocol) || []).sort((a, b) => a[0] - b[0])
+			const protocolDataMap = new Map(sortedData)
 
 			const alignedData: [number, number][] = allTimestamps.map((timestamp) => {
 				return [timestamp, protocolDataMap.get(timestamp) || 0]
@@ -538,8 +706,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		})
 
 		const hasOthersData = othersData.some(([_, value]) => value > 0)
+		const totalFamilies = shouldGroupByParent ? protocolFamilyValues.size : protocolEntries.length
+		const othersCount = Math.max(0, totalFamilies - topN)
+
 		if (hasOthersData) {
-			const othersCount = protocolEntries.length - topN
 			series.push({
 				name: `Others (${othersCount} protocols)`,
 				data: othersData,
@@ -555,8 +725,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				categories: categoriesArray,
 				metric: config.metricName,
 				topN,
-				totalProtocols: protocolEntries.length,
-				othersCount: Math.max(0, protocolEntries.length - topN),
+				totalProtocols: totalFamilies,
+				othersCount: othersCount,
 				marketSector: categoriesArray.join(',') || null
 			}
 		})

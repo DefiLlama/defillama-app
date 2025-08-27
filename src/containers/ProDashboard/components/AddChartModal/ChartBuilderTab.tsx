@@ -1,9 +1,9 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { PROTOCOLS_API } from '~/constants'
 import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
-import { ChartPreview } from '../ChartPreview'
 import { ItemMultiSelect } from '../ItemMultiSelect'
 import { ItemSelect } from '../ItemSelect'
 import { ChartBuilderConfig } from './types'
@@ -61,8 +61,6 @@ export function ChartBuilderTab({
 	onChartBuilderChange,
 	onChartBuilderNameChange
 }: ChartBuilderTabProps) {
-	const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-
 	const { data: protocols } = useQuery({
 		queryKey: ['protocols'],
 		queryFn: async () => {
@@ -90,7 +88,14 @@ export function ChartBuilderTab({
 	}, [protocols])
 
 	const { data: previewData, isLoading: previewLoading } = useQuery({
-		queryKey: ['chartBuilder', chartBuilder.metric, chartBuilder.chains, chartBuilder.limit, chartBuilder.categories],
+		queryKey: [
+			'chartBuilder',
+			chartBuilder.metric,
+			chartBuilder.chains,
+			chartBuilder.limit,
+			chartBuilder.categories,
+			chartBuilder.groupByParent
+		],
 		queryFn: async () => {
 			if (chartBuilder.chains.length === 0) return null
 
@@ -98,7 +103,8 @@ export function ChartBuilderTab({
 				chartBuilder.metric,
 				chartBuilder.chains,
 				chartBuilder.limit,
-				chartBuilder.categories
+				chartBuilder.categories,
+				chartBuilder.groupByParent
 			)
 
 			if (data && data.series.length > 0) {
@@ -185,20 +191,18 @@ export function ChartBuilderTab({
 							/>
 						</div>
 
-						{chartBuilder.metric !== 'tvl' && (
-							<div className="mb-1.5">
-								<ItemMultiSelect
-									label="Categories"
-									options={categoryOptions}
-									selectedValues={chartBuilder.categories}
-									onChange={handleCategoriesChange}
-									placeholder="Select categories..."
-									isLoading={false}
-									itemType="text"
-									maxSelections={5}
-								/>
-							</div>
-						)}
+						<div className="mb-1.5">
+							<ItemMultiSelect
+								label="Categories"
+								options={categoryOptions}
+								selectedValues={chartBuilder.categories}
+								onChange={handleCategoriesChange}
+								placeholder="Select categories..."
+								isLoading={false}
+								itemType="text"
+								maxSelections={5}
+							/>
+						</div>
 
 						<div className="mb-1.5">
 							<ItemSelect
@@ -211,35 +215,28 @@ export function ChartBuilderTab({
 							/>
 						</div>
 
-						<div className="mb-1.5">
-							<label className="flex cursor-pointer items-center gap-2">
-								<div className="relative h-4 w-4">
-									<input
-										type="checkbox"
-										checked={chartBuilder.hideOthers || false}
+						<div className="mb-1">
+							<Ariakit.CheckboxProvider value={chartBuilder.hideOthers || false}>
+								<label className="flex cursor-pointer items-center gap-1.5">
+									<Ariakit.Checkbox
 										onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
-										className="sr-only"
+										className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
 									/>
-									<div
-										className={`h-4 w-4 border-2 transition-all ${
-											chartBuilder.hideOthers ? 'border-(--primary1) bg-(--primary1)' : 'pro-bg2 border-gray-600'
-										}`}
-									>
-										{chartBuilder.hideOthers && (
-											<svg
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="white"
-												strokeWidth="3"
-												className="h-full w-full p-0.5"
-											>
-												<polyline points="20 6 9 17 4 12" />
-											</svg>
-										)}
-									</div>
-								</div>
-								<span className="pro-text2 text-[11px]">Hide "Others" (show only top {chartBuilder.limit})</span>
-							</label>
+									<span className="pro-text2 text-[10px]">Hide "Others" (show only top {chartBuilder.limit})</span>
+								</label>
+							</Ariakit.CheckboxProvider>
+						</div>
+
+						<div className="mb-1">
+							<Ariakit.CheckboxProvider value={chartBuilder.groupByParent || false}>
+								<label className="flex cursor-pointer items-center gap-1.5">
+									<Ariakit.Checkbox
+										onChange={(e) => onChartBuilderChange({ groupByParent: e.target.checked })}
+										className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+									/>
+									<span className="pro-text2 text-[10px]">Group by parent protocol</span>
+								</label>
+							</Ariakit.CheckboxProvider>
 						</div>
 					</div>
 
@@ -294,7 +291,7 @@ export function ChartBuilderTab({
 
 					<div
 						className="pro-bg2 relative flex flex-1 items-center justify-center rounded"
-						style={{ minHeight: '500px' }}
+						style={{ minHeight: '450px' }}
 					>
 						{previewLoading ? (
 							<div className="text-center">
@@ -305,7 +302,7 @@ export function ChartBuilderTab({
 							<div className="absolute inset-0 p-2">
 								<Suspense fallback={<div className="pro-bg3 h-full w-full animate-pulse"></div>}>
 									<MultiSeriesChart
-										height="500px"
+										height="450px"
 										key={`chart-${chartBuilder.displayAs}-${chartBuilder.chartType}-${chartBuilder.hideOthers}`}
 										series={(() => {
 											let filteredSeries = chartBuilder.hideOthers

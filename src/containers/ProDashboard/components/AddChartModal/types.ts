@@ -49,6 +49,7 @@ export interface ChartBuilderConfig {
 	chartType: 'stackedBar' | 'stackedArea' | 'line'
 	displayAs: 'timeSeries' | 'percentage'
 	hideOthers?: boolean
+	groupByParent?: boolean
 	additionalFilters?: Record<string, any>
 }
 

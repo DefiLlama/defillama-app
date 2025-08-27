@@ -20,15 +20,22 @@ export default class SProtocolSplitCharts {
 	private static cache: Map<string, { data: ProtocolSplitData; timestamp: number }> = new Map()
 	private static CACHE_DURATION = 60 * 60 * 1000
 
-	private static getCacheKey(metric: string, chains: string[], limit: number, categories: string[]): string {
-		return `${metric}-${chains.join(',')}-${limit}-${categories.join(',') || 'all'}`
+	private static getCacheKey(
+		metric: string,
+		chains: string[],
+		limit: number,
+		categories: string[],
+		groupByParent?: boolean
+	): string {
+		return `${metric}-${chains.join(',')}-${limit}-${categories.join(',') || 'all'}-${groupByParent || false}`
 	}
 
 	private static async fetchSplitData(
 		metric: string,
 		chains: string[],
 		limit: number,
-		categories: string[]
+		categories: string[],
+		groupByParent?: boolean
 	): Promise<ProtocolSplitData> {
 		const params = new URLSearchParams()
 
@@ -40,6 +47,10 @@ export default class SProtocolSplitCharts {
 
 		if (categories.length > 0) {
 			params.append('categories', categories.join(','))
+		}
+
+		if (groupByParent) {
+			params.append('groupByParent', 'true')
 		}
 
 		const response = await fetch(`/api/protocols/split/${metric}?${params.toString()}`)
@@ -70,9 +81,10 @@ export default class SProtocolSplitCharts {
 			| 'supply-side-revenue',
 		chains: string[],
 		limit: number = 10,
-		categories: string[] = []
+		categories: string[] = [],
+		groupByParent?: boolean
 	): Promise<ProtocolSplitData> {
-		const cacheKey = this.getCacheKey(metric, chains, limit, categories)
+		const cacheKey = this.getCacheKey(metric, chains, limit, categories, groupByParent)
 		const cached = this.cache.get(cacheKey)
 
 		if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
@@ -80,7 +92,7 @@ export default class SProtocolSplitCharts {
 		}
 
 		try {
-			const data = await this.fetchSplitData(metric, chains, limit, categories)
+			const data = await this.fetchSplitData(metric, chains, limit, categories, groupByParent)
 
 			this.cache.set(cacheKey, {
 				data,
@@ -118,19 +130,19 @@ export default class SProtocolSplitCharts {
 		}
 	}
 
-	static async getFeesSplit(chains: string[], limit?: number, categories: string[] = []) {
-		return this.getProtocolSplitData('fees', chains, limit, categories)
+	static async getFeesSplit(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolSplitData('fees', chains, limit, categories, groupByParent)
 	}
 
-	static async getRevenueSplit(chains: string[], limit?: number, categories: string[] = []) {
-		return this.getProtocolSplitData('revenue', chains, limit, categories)
+	static async getRevenueSplit(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolSplitData('revenue', chains, limit, categories, groupByParent)
 	}
 
-	static async getVolumeSplit(chains: string[], limit?: number, categories: string[] = []) {
-		return this.getProtocolSplitData('volume', chains, limit, categories)
+	static async getVolumeSplit(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolSplitData('volume', chains, limit, categories, groupByParent)
 	}
 
-	static async getTvlSplit(chains: string[], limit?: number, categories: string[] = []) {
-		return this.getProtocolSplitData('tvl', chains, limit, categories)
+	static async getTvlSplit(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolSplitData('tvl', chains, limit, categories, groupByParent)
 	}
 }
