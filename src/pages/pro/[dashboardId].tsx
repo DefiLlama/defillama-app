@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import ProDashboard from '~/containers/ProDashboard'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashboardEngagement'
@@ -69,16 +70,19 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 
 	if (dashboardId !== 'new' && !currentDashboard && !isLoadingDashboard && !isValidating) {
 		return (
-			<div className="flex min-h-[50vh] flex-col items-center justify-center p-4">
+			<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 				<div className="max-w-md space-y-6 text-center">
-					<h1 className="pro-text1 text-3xl font-bold">Dashboard Not Found</h1>
-					<p className="pro-text2 text-lg">This dashboard does not exist or you don't have permission to view it</p>
-					<button
-						onClick={() => router.push('/pro')}
-						className="rounded-md bg-(--primary) px-6 py-3 font-medium text-white transition-colors hover:bg-(--primary-hover)"
+					<h1 className="text-3xl font-bold">Dashboard Not Found</h1>
+					<p className="text-base text-(--text-label)">
+						This dashboard does not exist or you don't have permission to view it
+					</p>
+
+					<BasicLink
+						href="/pro"
+						className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 rounded-md px-6 py-3 font-medium"
 					>
 						Browse Dashboards
-					</button>
+					</BasicLink>
 				</div>
 			</div>
 		)

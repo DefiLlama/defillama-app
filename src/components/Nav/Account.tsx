@@ -66,7 +66,7 @@ export const Account = memo(function Account() {
 					) : (
 						<BasicLink
 							href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
-							className="flex items-center justify-center gap-2 rounded-lg bg-[#e8e8f7] p-1 text-sm font-medium text-[#5959d2] hover:bg-[#5C5CF9]/20 dark:bg-[#111324] dark:text-[#6c6cff]"
+							className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 flex items-center justify-center gap-2 rounded-md p-1 text-sm font-medium"
 						>
 							<Icon name="users" className="h-4 w-4" />
 							Sign In / Subscribe
