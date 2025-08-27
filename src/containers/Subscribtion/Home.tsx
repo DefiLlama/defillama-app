@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { LocalLoader } from '~/components/LocalLoader'
+import { FreeCard } from '~/components/SubscribeCards/FreeCard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
@@ -256,6 +257,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							ref={pricingContainer}
 							className="pricing-container relative z-10 flex snap-x snap-mandatory flex-row justify-start gap-4 overflow-x-auto scroll-smooth py-4 max-md:-mx-2 max-md:pl-2 md:justify-center md:overflow-visible"
 						>
+							<FreeCard context="page" />
 							<SubscribePlusCard
 								context="page"
 								active={
