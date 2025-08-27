@@ -41,7 +41,7 @@ export function FreeCard({ context = 'page' }: FreeCardProps) {
 				</li>
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Access to many more tools & DeFi metrics</span>
+					<span>Access to all our data through the dashboard</span>
 				</li>
 			</ul>
 		</div>
