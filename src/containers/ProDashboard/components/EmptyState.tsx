@@ -11,34 +11,30 @@ export function EmptyState({ onAddChart, onGenerateWithAI }: EmptyStateProps) {
 	const showAIGeneration = !featureFlagsLoading && hasFeature('dashboard-gen') && onGenerateWithAI
 
 	return (
-		<div className="py-16 text-center">
-			<div className="pro-glass mx-auto max-w-lg p-12">
-				<div className="mb-6">
-					<Icon name="bar-chart-2" height={64} width={64} className="pro-text3 mx-auto opacity-50" />
-				</div>
-				<h2 className="pro-text1 mb-3 text-2xl font-semibold">No charts added yet</h2>
-				<p className="pro-text2 mb-6 text-lg">
-					Start building your dashboard by adding charts
-					{showAIGeneration ? ' manually or generate with LlamaAI' : ' manually'}
-				</p>
-				<div className="flex flex-col justify-center gap-4 sm:flex-row">
-					{showAIGeneration && (
-						<button
-							className="flex items-center gap-2 border border-(--primary) px-6 py-3 text-base font-medium text-(--primary) transition-colors hover:bg-(--primary) hover:text-white"
-							onClick={onGenerateWithAI}
-						>
-							<Icon name="sparkles" height={20} width={20} />
-							Generate with LlamaAI
-						</button>
-					)}
+		<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
+			<Icon name="bar-chart-2" height={48} width={48} className="text-(--text-label)" />
+			<h1 className="text-3xl font-bold">No charts added yet</h1>
+			<p className="text-center text-base text-(--text-label)">
+				Start building your dashboard by adding charts
+				{showAIGeneration ? ' manually or generate with LlamaAI' : ' manually'}
+			</p>
+			<div className="mt-7 flex flex-col justify-center gap-4 sm:flex-row">
+				{showAIGeneration && (
 					<button
-						className="flex items-center gap-2 bg-(--primary) px-6 py-3 text-base font-medium text-white hover:bg-(--primary-hover)"
-						onClick={onAddChart}
+						className="bg-pro-blue-100 text-pro-blue-400 hover:bg-pro-blue-300/20 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 hover:dark:bg-pro-blue-300/30 flex items-center gap-1 rounded-md px-6 py-3 font-medium"
+						onClick={onGenerateWithAI}
 					>
-						<Icon name="plus" height={20} width={20} />
-						Add Your First Chart
+						<Icon name="sparkles" height={20} width={20} />
+						Generate with LlamaAI
 					</button>
-				</div>
+				)}
+				<button
+					className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 flex items-center gap-1 rounded-md px-6 py-3 font-medium"
+					onClick={onAddChart}
+				>
+					<Icon name="plus" height={20} width={20} />
+					Add Your First Chart
+				</button>
 			</div>
 		</div>
 	)

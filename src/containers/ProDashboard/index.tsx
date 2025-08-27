@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/LoadingDots'
 import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
@@ -113,18 +114,16 @@ function ProDashboardContent() {
 	}
 
 	return (
-		<div className="pro-dashboard p-4 md:p-6">
-			<div className="mb-4">
-				<button
-					onClick={() => router.push('/pro')}
-					className="pro-text2 hover:pro-text1 flex items-center gap-2 transition-colors"
-				>
-					<Icon name="arrow-left" height={16} width={16} />
-					Back to Dashboards
-				</button>
-			</div>
+		<div className="pro-dashboard flex flex-1 flex-col gap-2">
+			<BasicLink
+				href="/pro"
+				className="hover:text-pro-link-900 dark:hover:text-pro-link-100 mt-3 mr-auto mb-2 flex items-center gap-2 text-(--text-label)"
+			>
+				<Icon name="arrow-left" height={16} width={16} />
+				Back to Dashboards
+			</BasicLink>
 
-			<div className="mb-4 flex flex-col gap-4 md:mb-2 md:flex-row md:items-center md:justify-between">
+			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<Tooltip content={!hasChartItems ? 'Add chart items to enable time period selection' : null} placement="bottom">
 					<div className={`order-2 flex gap-0 overflow-x-auto md:order-1 ${isReadOnly ? 'invisible' : ''}`}>
 						{timePeriods.map((period) => (
@@ -470,7 +469,7 @@ function ProDashboardContent() {
 			</div>
 
 			{dashboardTags.length > 0 && (
-				<div className="mb-4 flex items-center gap-2">
+				<div className="flex items-center gap-2">
 					<Icon name="bookmark" height={14} width={14} className="pro-text3" />
 					<div className="flex flex-wrap gap-2">
 						{dashboardTags.map((tag) => (

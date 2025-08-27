@@ -77,8 +77,6 @@ function ProContent({
 
 	return (
 		<div className="pro-dashboard flex flex-1 flex-col pt-6">
-			<h1 className="mb-6 text-2xl font-bold text-(--text-primary)">Pro Dashboard</h1>
-
 			<div className="mb-6">
 				<div className="flex items-center justify-between">
 					<div className="flex gap-8">

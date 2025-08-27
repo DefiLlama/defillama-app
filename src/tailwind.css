@@ -11,6 +11,14 @@
 	--color-pro-purple-300: oklch(0.612 0.213 278.1); /* Vibrant purple */
 	--color-pro-purple-400: oklch(0.41 0.13 279.09); /* Deep purple */
 
+	--color-pro-blue-100: oklch(0.935 0.02 257); /* Light blue/gray */
+	--color-pro-blue-200: oklch(0.78 0.12 257); /* Muted blue */
+	--color-pro-blue-300: oklch(0.612 0.213 257); /* Vibrant blue */
+	--color-pro-blue-400: oklch(0.41 0.13 257); /* Deep blue */
+
+	--color-pro-link-100: oklch(0.59 0.18 262.36);
+	--color-pro-link-900: oklch(0.45 0.14 262.83);
+
 	--animate-loader: loader 800ms linear infinite;
 	--animate-wiggle: wiggle 300ms ease-out;
 	--animate-slidein: slidein 300ms ease-out;
@@ -406,7 +414,7 @@
 		/* Link Colors */
 		--link-bg: oklch(0.953 0.015 257.2);
 		--link-hover-bg: oklch(0.905 0.034 265.2);
-		--link-text: oklch(0.535 0.179 258.6);
+		--link-text: oklch(0.535 0.179 258.6); /* should be oklch(0.535 0.179 258.6) */
 		--link-active-bg: oklch(0.535 0.179 258.6);
 
 		/* Button Colors */
