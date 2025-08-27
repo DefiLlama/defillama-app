@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { LoadingDots } from '~/components/LoadingDots'
 
 export function ProDashboardLoader() {
 	const [dotCount, setDotCount] = React.useState(1)
@@ -11,7 +12,7 @@ export function ProDashboardLoader() {
 	}, [])
 
 	return (
-		<div className="flex min-h-[60vh] flex-col items-center justify-center gap-8">
+		<div className="flex flex-1 flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 			<div className="relative h-24 w-24">
 				<div className="absolute inset-0 rounded-full border border-(--primary) opacity-10" />
 
@@ -63,7 +64,10 @@ export function ProDashboardLoader() {
 				</div>
 			</div>
 
-			<div className="text-lg font-medium text-(--text-secondary)">Loading{'.'.repeat(dotCount)}</div>
+			<p className="flex items-center gap-1">
+				Loading
+				<LoadingDots />
+			</p>
 		</div>
 	)
 }
