@@ -3,7 +3,7 @@ import { LoadingDots } from '~/components/LoadingDots'
 
 export function ProDashboardLoader() {
 	return (
-		<div className="isolate flex flex-1 flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+		<div className="isolate flex flex-1 flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 			<div className="relative h-24 w-24">
 				<div className="border-pro-purple-400 absolute inset-0 rounded-full border opacity-10" />
 

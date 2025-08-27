@@ -41,7 +41,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 			selectedCategories,
 			protocols
 		}
-	}, [router.query, props])
+	}, [router.query, props, category])
 
 	const addCategory = (newCategory) => {
 		router.push(

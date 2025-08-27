@@ -31,6 +31,7 @@ export interface IProtocolMetadata {
 	tokenTax?: boolean
 	bridge?: boolean
 	stablecoins?: boolean
+	safeHarbor?: boolean
 }
 
 export interface IProtocolPageMetrics {
@@ -147,6 +148,7 @@ export interface IProtocolOverviewPageData {
 	description?: string
 	website?: string | null
 	twitter?: string | null
+	safeHarbor?: boolean
 	methodology?: string | null
 	methodologyURL?: string | null
 	github?: Array<string> | null

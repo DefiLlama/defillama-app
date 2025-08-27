@@ -6,9 +6,9 @@ import Layout from '~/layout'
 export default function HomePage() {
 	return (
 		<Layout title="DefiLlama - Page not found">
-			<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 				<Image src={lostLlama} width={350} height={350} alt="Want a ride?" />
-				<p className="text-base font-medium">
+				<p className="text-center text-base text-(--text-label)">
 					This page doesn&apos;t exist. Check out{' '}
 					<BasicLink href="/metrics" className="underline">
 						other dashboards

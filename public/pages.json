@@ -530,6 +530,12 @@
       "category": "Others",
       "description": "Overview of all governance proposals by protocol",
       "tab": "Protocols"
+    }, 
+    {
+      "name": "Safe Harbor Agreements",
+      "route": "/safe-harbor-agreements",
+      "category": "Others",
+      "description": "Overview of protocols with Safe Harbor Agreements"
     }
   ],
   "Tools": [

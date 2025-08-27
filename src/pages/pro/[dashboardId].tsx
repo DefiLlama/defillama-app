@@ -70,7 +70,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 
 	if (dashboardId !== 'new' && !currentDashboard && !isLoadingDashboard && !isValidating) {
 		return (
-			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 				<h1 className="text-3xl font-bold">Dashboard Not Found</h1>
 				<p className="text-center text-base text-(--text-label)">
 					This dashboard does not exist or you don't have permission to view it
@@ -87,7 +87,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 
 	if (dashboardId === 'new' && !isAuthenticated) {
 		return (
-			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 				<h1 className="text-3xl font-bold">Sign In Required</h1>
 				<p className="text-center text-base text-(--text-label)">Please sign in to create a new dashboard</p>
 				<button

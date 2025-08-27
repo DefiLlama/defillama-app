@@ -808,6 +808,7 @@ export const getProtocolOverviewPageData = async ({
 		description: protocolData.description ?? '',
 		website: protocolData.referralUrl ?? protocolData.url ?? null,
 		twitter: protocolData.twitter ?? null,
+		safeHarbor: metadata.safeHarbor ?? false,
 		github: protocolData.github
 			? typeof protocolData.github === 'string'
 				? [protocolData.github]
