@@ -2,15 +2,6 @@ import * as React from 'react'
 import { LoadingDots } from '~/components/LoadingDots'
 
 export function ProDashboardLoader() {
-	const [dotCount, setDotCount] = React.useState(1)
-
-	React.useEffect(() => {
-		const interval = setInterval(() => {
-			setDotCount((prev) => (prev === 3 ? 1 : prev + 1))
-		}, 500)
-		return () => clearInterval(interval)
-	}, [])
-
 	return (
 		<div className="flex flex-1 flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 			<div className="relative h-24 w-24">

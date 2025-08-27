@@ -70,15 +70,14 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 
 	if (dashboardId !== 'new' && !currentDashboard && !isLoadingDashboard && !isValidating) {
 		return (
-			<div className="flex flex-1 flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 				<h1 className="text-3xl font-bold">Dashboard Not Found</h1>
-				<p className="text-base text-(--text-label)">
+				<p className="text-center text-base text-(--text-label)">
 					This dashboard does not exist or you don't have permission to view it
 				</p>
-
 				<BasicLink
 					href="/pro"
-					className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 rounded-md px-6 py-3 font-medium"
+					className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 mt-7 rounded-md px-6 py-3 font-medium"
 				>
 					Browse Dashboards
 				</BasicLink>
@@ -88,13 +87,12 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 
 	if (dashboardId === 'new' && !isAuthenticated) {
 		return (
-			<div className="flex flex-1 flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 				<h1 className="text-3xl font-bold">Sign In Required</h1>
-				<p className="text-base text-(--text-label)">Please sign in to create a new dashboard</p>
-
+				<p className="text-center text-base text-(--text-label)">Please sign in to create a new dashboard</p>
 				<button
 					onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
-					className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 rounded-md px-6 py-3 font-medium"
+					className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 mt-7 rounded-md px-6 py-3 font-medium"
 				>
 					Sign In
 				</button>
