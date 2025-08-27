@@ -27,10 +27,10 @@ export async function getStaticProps() {
 	const revenueByProtocol = {}
 	const dexVolumeByProtocol = {}
 	for (const protocol of protocols) {
-		tvlByProtocol[protocol.name] = protocol.tvl?.default?.tvl ?? 0
-		feesByProtocol[protocol.name] = protocol.fees?.total24h ?? 0
-		revenueByProtocol[protocol.name] = protocol.revenue?.total24h ?? 0
-		dexVolumeByProtocol[protocol.name] = protocol.dexs?.total24h ?? 0
+		tvlByProtocol[protocol.name] = protocol.tvl?.default?.tvl ?? null
+		feesByProtocol[protocol.name] = protocol.fees?.total24h ?? null
+		revenueByProtocol[protocol.name] = protocol.revenue?.total24h ?? null
+		dexVolumeByProtocol[protocol.name] = protocol.dexs?.total24h ?? null
 	}
 
 	const finalProtocols = []
@@ -44,10 +44,10 @@ export async function getStaticProps() {
 				chains: pmetadata.chains,
 				logo: tokenIconUrl(pmetadata.displayName),
 				url: `https://safeharbor.securityalliance.org/database/${slug(pmetadata.displayName)}`,
-				tvl: tvlByProtocol[pmetadata.displayName] ?? 0,
-				fees: feesByProtocol[pmetadata.displayName] ?? 0,
-				revenue: revenueByProtocol[pmetadata.displayName] ?? 0,
-				dexVolume: dexVolumeByProtocol[pmetadata.displayName] ?? 0
+				tvl: tvlByProtocol[pmetadata.displayName] ?? null,
+				fees: feesByProtocol[pmetadata.displayName] ?? null,
+				revenue: revenueByProtocol[pmetadata.displayName] ?? null,
+				dexVolume: dexVolumeByProtocol[pmetadata.displayName] ?? null
 			})
 		}
 	}
@@ -163,7 +163,7 @@ const columns: ColumnDef<{
 	{
 		header: 'TVL',
 		accessorFn: (protocol) => protocol.tvl,
-		cell: ({ getValue }) => formattedNum(getValue() as number, true),
+		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
 			align: 'end'
 		}
@@ -171,7 +171,7 @@ const columns: ColumnDef<{
 	{
 		header: 'Fees',
 		accessorFn: (protocol) => protocol.fees,
-		cell: ({ getValue }) => formattedNum(getValue() as number, true),
+		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
 			align: 'end'
 		}
@@ -179,7 +179,7 @@ const columns: ColumnDef<{
 	{
 		header: 'Revenue',
 		accessorFn: (protocol) => protocol.revenue,
-		cell: ({ getValue }) => formattedNum(getValue() as number, true),
+		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
 			align: 'end'
 		}
@@ -187,7 +187,7 @@ const columns: ColumnDef<{
 	{
 		header: 'DEX Volume',
 		accessorFn: (protocol) => protocol.dexVolume,
-		cell: ({ getValue }) => formattedNum(getValue() as number, true),
+		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
 			align: 'end'
 		}
