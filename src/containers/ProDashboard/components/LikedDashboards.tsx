@@ -8,7 +8,7 @@ export function LikedDashboards() {
 
 	if (isLoading) {
 		return (
-			<div className="flex h-40 items-center justify-center">
+			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 				<LoadingSpinner />
 			</div>
 		)
@@ -16,12 +16,10 @@ export function LikedDashboards() {
 
 	if (dashboards.length === 0) {
 		return (
-			<div className="py-12 text-center">
-				<div className="mb-4">
-					<Icon name="star" height={48} width={48} className="mx-auto text-(--text-tertiary)" />
-				</div>
-				<h3 className="mb-2 text-lg font-medium text-(--text-primary)">No favorite dashboards yet</h3>
-				<p className="text-(--text-tertiary)">
+			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
+				<Icon name="star" height={48} width={48} className="text-(--text-label)" />
+				<h2 className="text-center text-2xl font-bold">No favorite dashboards yet</h2>
+				<p className="text-center text-(--text-label)">
 					Dashboards you mark as favorites will appear here. Start exploring dashboards from the Discover tab!
 				</p>
 			</div>

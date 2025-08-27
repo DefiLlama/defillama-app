@@ -28,24 +28,22 @@ export function DashboardList({ dashboards, isLoading, onCreateNew, onDeleteDash
 
 	if (isLoading) {
 		return (
-			<div className="flex h-40 items-center justify-center">
+			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 				<LoadingSpinner />
 			</div>
 		)
 	}
 
 	return (
-		<div>
+		<>
 			{dashboards.length === 0 ? (
-				<div className="py-12 text-center">
-					<div className="mb-4">
-						<Icon name="layers" height={48} width={48} className="mx-auto text-(--text-tertiary)" />
-					</div>
-					<h3 className="mb-2 text-lg font-medium text-(--text-primary)">No dashboards yet</h3>
-					<p className="mb-4 text-(--text-tertiary)">Create your first dashboard to get started</p>
+				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
+					<Icon name="layers" height={48} width={48} className="text-(--text-label)" />
+					<h2 className="text-center text-2xl font-bold">No dashboards yet</h2>
+					<p className="text-center text-(--text-label)">Create your first dashboard to get started</p>
 					<button
 						onClick={onCreateNew}
-						className="mx-auto flex items-center gap-2 bg-(--primary) px-4 py-2 text-white hover:bg-(--primary-hover)"
+						className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 mt-7 flex items-center gap-1 rounded-md px-6 py-3 font-medium"
 					>
 						<Icon name="plus" height={16} width={16} />
 						Create Dashboard
@@ -64,6 +62,6 @@ export function DashboardList({ dashboards, isLoading, onCreateNew, onDeleteDash
 					))}
 				</div>
 			)}
-		</div>
+		</>
 	)
 }
