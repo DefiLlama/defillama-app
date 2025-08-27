@@ -255,7 +255,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					<div className="relative">
 						<div
 							ref={pricingContainer}
-							className="relative z-10 grid snap-x snap-mandatory grid-cols-1 gap-4 py-4 max-md:-mx-2 max-md:pl-2 md:grid-cols-2 lg:grid-cols-3"
+							className="relative z-10 grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 md:justify-items-center xl:grid-cols-3 xl:justify-items-stretch 2xl:[grid-template-columns:repeat(auto-fit,400px)]"
 						>
 							<FreeCard context="page" />
 							<SubscribePlusCard
