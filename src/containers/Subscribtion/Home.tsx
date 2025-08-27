@@ -106,7 +106,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	return (
 		<>
-			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
+			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1720px]">
 				<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
 					<div
 						style={{
@@ -255,7 +255,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					<div className="relative">
 						<div
 							ref={pricingContainer}
-							className="relative z-10 grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 md:justify-items-center xl:grid-cols-3 xl:justify-items-stretch 2xl:[grid-template-columns:repeat(auto-fit,400px)]"
+							className="relative z-10 grid grid-cols-1 justify-items-stretch gap-4 *:max-w-full! md:grid-cols-2 xl:grid-cols-3 2xl:[grid-template-columns:repeat(auto-fit,400px)]"
 						>
 							<FreeCard context="page" />
 							<SubscribePlusCard
