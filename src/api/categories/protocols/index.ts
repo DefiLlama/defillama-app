@@ -244,7 +244,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		if (!list.includes(protocolName))
 			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
 
-		const allEmmisions = await fetchJson(PROTOCOL_EMISSIONS_API)
+		const allEmissions = await fetchJson(PROTOCOL_EMISSIONS_API)
 
 		const res = await fetchJson(`${PROTOCOL_EMISSION_API}/${protocolName}`).then((r) => JSON.parse(r.body))
 
@@ -374,7 +374,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			chartData,
 			pieChartData,
 			stackColors,
-			meta: allEmmisions?.find((p) => p?.token === metadata?.token) ?? {},
+			meta: allEmissions?.find((p) => p?.token === metadata?.token) ?? {},
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
