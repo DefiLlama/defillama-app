@@ -11,7 +11,7 @@ export function FreeCard({ context = 'page' }: FreeCardProps) {
 	const shouldShowLightMode = isModal && !isDarkMode
 	return (
 		<div
-			className={`price-card flex w-[92vw] shrink-0 snap-center flex-col px-4 py-8 md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 ${
+			className={`flex w-[92vw] shrink-0 snap-center flex-col px-4 py-8 md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 ${
 				shouldShowLightMode ? 'border-[#e5e7eb] bg-[#f8f9fa]' : 'border-[#4a4a50] bg-[#22242930]'
 			} relative overflow-hidden rounded-xl border shadow-md backdrop-blur-md transition-all duration-300${
 				isModal ? '' : 'hover:transform md:hover:scale-[1.02]'

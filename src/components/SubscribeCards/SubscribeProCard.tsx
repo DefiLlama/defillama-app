@@ -17,7 +17,7 @@ export function SubscribeProCard({
 }) {
 	return (
 		<div
-			className={`price-card relative flex w-[92vw] shrink-0 snap-center flex-col overflow-hidden rounded-xl border-2 border-[#4a4a50] bg-[#22242966] px-5 py-8 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+			className={`relative flex w-[92vw] shrink-0 snap-center flex-col overflow-hidden rounded-xl border-2 border-[#4a4a50] bg-[#22242966] px-5 py-8 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
 			style={{ boxShadow: '0 0 15px rgba(138, 138, 255, 0.12), 0 0 5px rgba(92, 92, 249, 0.08)' }}
 		>
 			<div className="absolute inset-0 overflow-hidden">

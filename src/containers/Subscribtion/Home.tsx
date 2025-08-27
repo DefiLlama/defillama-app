@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { LocalLoader } from '~/components/LocalLoader'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
-import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
+import { EnterpriseCardContent } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -106,7 +106,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	return (
 		<>
-			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1720px]">
+			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
 				<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
 					<div
 						style={{
@@ -255,7 +255,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					<div className="relative">
 						<div
 							ref={pricingContainer}
-							className="relative z-10 grid grid-cols-1 justify-items-stretch gap-4 *:max-w-full! md:grid-cols-2 xl:grid-cols-3 xl:justify-center 2xl:[grid-template-columns:repeat(auto-fit,400px)] 2xl:justify-center"
+							className="relative z-10 grid grid-cols-1 gap-4 *:*:max-w-[408px]! *:max-w-full! *:items-center lg:grid-cols-3"
 						>
 							<FreeCard context="page" />
 							<SubscribePlusCard
@@ -270,27 +270,14 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 								context="page"
 								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
 							/>
-							<SubscribeEnterpriseCard />
-						</div>
-						<div className="mt-4 flex justify-center gap-2 md:hidden">
-							{[0, 1, 2].map((index) => (
-								<button
-									key={index}
-									className={`h-2 w-2 rounded-full transition-colors duration-300 ${
-										activePriceCard === index ? 'bg-white' : 'bg-gray-500'
-									}`}
-									aria-label={`Go to slide ${index + 1}`}
-									onClick={() => {
-										const ref = pricingContainer.current
-										if (ref && ref.children[index]) {
-											const cardElement = ref.children[index] as HTMLElement
-											// Calculate scroll position to center the card, considering container padding/margins
-											const scrollLeft = cardElement.offsetLeft + cardElement.offsetWidth / 2 - ref.offsetWidth / 2
-											ref.scrollTo({ left: scrollLeft, behavior: 'smooth' })
-										}
-									}}
-								/>
-							))}
+							<div
+								className={`col-span-full rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:transform md:px-5 md:hover:scale-[1.02]`}
+							>
+								<span className="mx-auto flex w-[92vw] flex-col md:w-auto md:max-w-[400px]">
+									<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
+									<EnterpriseCardContent />
+								</span>
+							</div>
 						</div>
 					</div>
 				)}
