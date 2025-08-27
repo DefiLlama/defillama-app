@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export interface FeatureFlags {
@@ -27,7 +27,7 @@ export function useFeatureFlags(): UseFeatureFlagsReturn {
 		try {
 			const cachedFlags = localStorage.getItem(FEATURE_FLAGS_CACHE_KEY)
 			const cachedTimestamp = localStorage.getItem(FEATURE_FLAGS_TIMESTAMP_KEY)
-			
+
 			if (!cachedFlags || !cachedTimestamp) {
 				return null
 			}
@@ -67,7 +67,7 @@ export function useFeatureFlags(): UseFeatureFlagsReturn {
 
 		try {
 			setError(null)
-			
+
 			const cachedFlags = getCachedFlags()
 			if (cachedFlags) {
 				setFlags(cachedFlags)
@@ -76,7 +76,7 @@ export function useFeatureFlags(): UseFeatureFlagsReturn {
 			}
 
 			const response = await authorizedFetch('https://auth.llama.fi/user/feature-flags')
-			
+
 			if (!response) {
 				throw new Error('Failed to fetch feature flags')
 			}

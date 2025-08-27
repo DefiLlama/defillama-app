@@ -57,7 +57,7 @@ export const Account = memo(function Account() {
 							)}
 							<button
 								onClick={logout}
-								className="text-(-error) flex items-center justify-center gap-2 rounded-lg bg-red-500/10 p-1 text-sm font-medium text-(--error)"
+								className="flex items-center justify-center gap-2 rounded-md bg-red-500/10 p-1 text-sm font-medium text-(--error)"
 							>
 								<Icon name="x" className="h-4 w-4" />
 								Logout

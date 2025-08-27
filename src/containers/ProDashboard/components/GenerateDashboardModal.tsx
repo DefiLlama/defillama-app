@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Icon } from '~/components/Icon'
 import toast from 'react-hot-toast'
-import { DashboardItemConfig } from '../types'
+import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { DashboardItemConfig } from '../types'
 
 const MCP_SERVER = 'https://mcp.llama.fi'
 
@@ -49,7 +49,7 @@ export function GenerateDashboardModal({
 	const [errors, setErrors] = useState<{
 		dashboardName?: string
 		aiDescription?: string
-	}>({}) 
+	}>({})
 	const [touchedFields, setTouchedFields] = useState<{
 		dashboardName?: boolean
 		aiDescription?: boolean
@@ -79,20 +79,20 @@ export function GenerateDashboardModal({
 
 	const validateForm = (): boolean => {
 		const newErrors: typeof errors = {}
-		
+
 		const dashboardNameError = validateDashboardName(dashboardName)
 		const aiDescriptionError = validateAiDescription(aiDescription)
-		
+
 		if (dashboardNameError) newErrors.dashboardName = dashboardNameError
 		if (aiDescriptionError) newErrors.aiDescription = aiDescriptionError
-		
+
 		setErrors(newErrors)
 		return Object.keys(newErrors).length === 0
 	}
 
 	const handleFieldBlur = (field: keyof typeof touchedFields) => {
-		setTouchedFields(prev => ({ ...prev, [field]: true }))
-		
+		setTouchedFields((prev) => ({ ...prev, [field]: true }))
+
 		const newErrors = { ...errors }
 		if (field === 'dashboardName') {
 			const error = validateDashboardName(dashboardName)
@@ -130,11 +130,11 @@ export function GenerateDashboardModal({
 								dashboardName: existingDashboard?.dashboardName || '',
 								items: existingDashboard?.items || []
 							}
-					  }
+						}
 					: {
 							message: aiDescription.trim(),
 							dashboardName: dashboardName.trim()
-					  }
+						}
 
 			const response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
 				method: 'POST',
@@ -168,12 +168,14 @@ export function GenerateDashboardModal({
 				tags: mode === 'iterate' ? existingDashboard?.tags || [] : tags,
 				description: mode === 'iterate' ? existingDashboard?.description || '' : '',
 				items,
-				aiGenerationContext: sessionId ? {
-					sessionId,
-					mode: generationMode,
-					timestamp: new Date().toISOString(),
-					prompt: aiDescription.trim()
-				} : undefined
+				aiGenerationContext: sessionId
+					? {
+							sessionId,
+							mode: generationMode,
+							timestamp: new Date().toISOString(),
+							prompt: aiDescription.trim()
+						}
+					: undefined
 			})
 
 			setDashboardName('')
@@ -226,16 +228,16 @@ export function GenerateDashboardModal({
 
 	return (
 		<div
-			className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs dark:bg-black/70"
 			onClick={handleClose}
 		>
-			<div className="pro-bg1 shadow-2xl w-full max-w-lg border pro-border" onClick={(e) => e.stopPropagation()}>
+			<div className="pro-bg1 pro-border w-full max-w-lg border shadow-2xl" onClick={(e) => e.stopPropagation()}>
 				<div className="p-6">
-					<div className="flex items-center justify-between mb-6">
-						<h2 className="text-xl font-semibold pro-text1">
+					<div className="mb-6 flex items-center justify-between">
+						<h2 className="pro-text1 text-xl font-semibold">
 							{mode === 'iterate' ? 'Edit with LlamaAI' : 'Generate using LlamaAI'}
 						</h2>
-						<button onClick={handleClose} className="p-1 pro-hover-bg transition-colors">
+						<button onClick={handleClose} className="pro-hover-bg p-1 transition-colors">
 							<Icon name="x" height={20} width={20} className="pro-text2" />
 						</button>
 					</div>
@@ -243,7 +245,7 @@ export function GenerateDashboardModal({
 					<div className="space-y-6">
 						{mode === 'create' && (
 							<div>
-								<label className="block text-sm font-medium pro-text1 mb-3">Dashboard Name</label>
+								<label className="pro-text1 mb-3 block text-sm font-medium">Dashboard Name</label>
 								<input
 									type="text"
 									value={dashboardName}
@@ -255,11 +257,11 @@ export function GenerateDashboardModal({
 									}}
 									onBlur={() => handleFieldBlur('dashboardName')}
 									placeholder="e.g., Ethereum vs Arbitrum Analysis"
-									className={`w-full px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-text1 placeholder:pro-text3 focus:outline-hidden ${
+									className={`bg-opacity-50 pro-text1 placeholder:pro-text3 w-full border bg-(--bg-glass) px-3 py-2 focus:outline-hidden ${
 										touchedFields.dashboardName && errors.dashboardName
 											? 'border-red-500 focus:border-red-500'
 											: 'pro-border focus:border-(--primary)'
-									} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+									} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 									disabled={isLoading}
 									autoFocus
 								/>
@@ -270,7 +272,7 @@ export function GenerateDashboardModal({
 						)}
 
 						<div>
-							<label className="block text-sm font-medium pro-text1 mb-3">
+							<label className="pro-text1 mb-3 block text-sm font-medium">
 								{mode === 'iterate'
 									? 'Describe what you want to add or change'
 									: 'Describe the dashboard you want to create'}
@@ -290,62 +292,63 @@ export function GenerateDashboardModal({
 										: 'e.g., Build a DeFi yields dashboard with top earning protocols, comparing different chains and showing historical performance...'
 								}
 								rows={4}
-								className={`w-full px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-text1 placeholder:pro-text3 focus:outline-hidden resize-none ${
+								className={`bg-opacity-50 pro-text1 placeholder:pro-text3 w-full resize-none border bg-(--bg-glass) px-3 py-2 focus:outline-hidden ${
 									touchedFields.aiDescription && errors.aiDescription
 										? 'border-red-500 focus:border-red-500'
 										: 'pro-border focus:border-(--primary)'
-								} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+								} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 								disabled={isLoading}
 								autoFocus={mode === 'iterate'}
 							/>
 							{touchedFields.aiDescription && errors.aiDescription && (
 								<p className="mt-1 text-sm text-red-500">{errors.aiDescription}</p>
 							)}
-							<p className="mt-1 text-xs pro-text3">
+							<p className="pro-text3 mt-1 text-xs">
 								{mode === 'iterate'
 									? 'Be specific about what you want to add, remove, or modify'
-									: 'Be specific about what data, charts, and insights you want to see'} ({aiDescription.length}/5000)
+									: 'Be specific about what data, charts, and insights you want to see'}{' '}
+								({aiDescription.length}/5000)
 							</p>
 						</div>
 
 						{mode === 'create' && (
 							<div>
-								<label className="block text-sm font-medium pro-text1 mb-3">Visibility</label>
+								<label className="pro-text1 mb-3 block text-sm font-medium">Visibility</label>
 								<div className="flex gap-3">
 									<button
 										onClick={() => setVisibility('public')}
 										disabled={isLoading}
-										className={`flex-1 px-4 py-3 border transition-colors ${
+										className={`flex-1 border px-4 py-3 transition-colors ${
 											visibility === 'public'
-												? 'border-(--primary) bg-(--primary) bg-opacity-20 pro-text1'
+												? 'bg-opacity-20 pro-text1 border-(--primary) bg-(--primary)'
 												: 'pro-border pro-text3 hover:pro-text1'
-										} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+										} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 									>
-										<Icon name="earth" height={16} width={16} className="inline mr-2" />
+										<Icon name="earth" height={16} width={16} className="mr-2 inline" />
 										Public
 									</button>
 									<button
 										onClick={() => setVisibility('private')}
 										disabled={isLoading}
-										className={`flex-1 px-4 py-3 border transition-colors ${
+										className={`flex-1 border px-4 py-3 transition-colors ${
 											visibility === 'private'
-												? 'border-(--primary) bg-(--primary) bg-opacity-20 pro-text1'
+												? 'bg-opacity-20 pro-text1 border-(--primary) bg-(--primary)'
 												: 'pro-border pro-text3 hover:pro-text1'
-										} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+										} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 									>
-										<Icon name="key" height={16} width={16} className="inline mr-2" />
+										<Icon name="key" height={16} width={16} className="mr-2 inline" />
 										Private
 									</button>
 								</div>
 								{visibility === 'public' && (
-									<p className="mt-2 text-sm pro-text3">Public dashboards are visible in the Discover tab</p>
+									<p className="pro-text3 mt-2 text-sm">Public dashboards are visible in the Discover tab</p>
 								)}
 							</div>
 						)}
 
 						{mode === 'create' && (
 							<div>
-								<label className="block text-sm font-medium pro-text1 mb-3">Tags</label>
+								<label className="pro-text1 mb-3 block text-sm font-medium">Tags</label>
 								<div className="flex gap-2">
 									<input
 										type="text"
@@ -353,29 +356,29 @@ export function GenerateDashboardModal({
 										onChange={(e) => setTagInput(e.target.value)}
 										onKeyDown={handleTagInputKeyDown}
 										placeholder="Enter tag name"
-										className={`flex-1 px-3 py-2 bg-(--bg-glass) bg-opacity-50 border pro-border pro-text1 placeholder:pro-text3 focus:outline-hidden focus:border-(--primary) ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+										className={`bg-opacity-50 pro-border pro-text1 placeholder:pro-text3 flex-1 border bg-(--bg-glass) px-3 py-2 focus:border-(--primary) focus:outline-hidden ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 										disabled={isLoading}
 									/>
 									<button
 										onClick={() => handleAddTag(tagInput)}
-										className={`px-4 py-2 border transition-colors ${
+										className={`border px-4 py-2 transition-colors ${
 											tagInput.trim() && !isLoading
 												? 'border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white'
 												: 'pro-border pro-text3'
-										} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+										} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 									>
 										Add Tag
 									</button>
 								</div>
 
-								<p className="mt-2 text-xs pro-text3">Press Enter to add tag</p>
+								<p className="pro-text3 mt-2 text-xs">Press Enter to add tag</p>
 
 								{tags.length > 0 && (
-									<div className="flex flex-wrap gap-2 mt-3">
+									<div className="mt-3 flex flex-wrap gap-2">
 										{tags.map((tag) => (
 											<span
 												key={tag}
-												className="px-3 py-1 bg-(--bg-glass) bg-opacity-50 text-sm pro-text2 border pro-border flex items-center gap-1"
+												className="bg-opacity-50 pro-text2 pro-border flex items-center gap-1 border bg-(--bg-glass) px-3 py-1 text-sm"
 											>
 												{tag}
 												<button
@@ -393,21 +396,21 @@ export function GenerateDashboardModal({
 						)}
 					</div>
 
-					<div className="flex gap-3 mt-8">
+					<div className="mt-8 flex gap-3">
 						<button
 							onClick={handleClose}
 							disabled={isLoading}
-							className="flex-1 px-4 py-2 border pro-border pro-text1 hover:bg-(--bg-main) transition-colors disabled:opacity-50"
+							className="pro-border pro-text1 flex-1 border px-4 py-2 transition-colors hover:bg-(--bg-main) disabled:opacity-50"
 						>
 							Cancel
 						</button>
 						<button
 							onClick={handleGenerate}
 							disabled={isLoading}
-							className={`flex-1 px-4 py-2 transition-colors flex items-center justify-center gap-2 ${
+							className={`flex flex-1 items-center justify-center gap-2 px-4 py-2 transition-colors ${
 								!isLoading
-									? 'bg-(--primary) text-white hover:bg-(--primary-hover) animate-ai-glow'
-									: 'bg-(--bg-tertiary) pro-text3 cursor-not-allowed'
+									? 'animate-ai-glow bg-(--primary) text-white hover:bg-(--primary-hover)'
+									: 'pro-text3 cursor-not-allowed bg-(--bg-tertiary)'
 							}`}
 						>
 							{isLoading ? (

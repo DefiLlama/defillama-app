@@ -305,8 +305,10 @@ export const descriptions = {
 	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights',
 	'Canonical Bridge': 'The official bridge designated by a blockchain for transferring its assets across networks',
 	Interface: 'Projects that provide a user interface to interact with external protocols',
-	'Video Infrastructure': 'Protocols that provide decentralized tools and infrastructure for video streaming, transcoding, recording, playback, or media processing',
-	'DePIN': 'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance'
+	'Video Infrastructure':
+		'Protocols that provide decentralized tools and infrastructure for video streaming, transcoding, recording, playback, or media processing',
+	DePIN:
+		'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance'
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))

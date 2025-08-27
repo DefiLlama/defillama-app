@@ -18,12 +18,13 @@ export function EmptyState({ onAddChart, onGenerateWithAI }: EmptyStateProps) {
 				</div>
 				<h2 className="pro-text1 mb-3 text-2xl font-semibold">No charts added yet</h2>
 				<p className="pro-text2 mb-6 text-lg">
-					Start building your dashboard by adding charts{showAIGeneration ? ' manually or generate with LlamaAI' : ' manually'}
+					Start building your dashboard by adding charts
+					{showAIGeneration ? ' manually or generate with LlamaAI' : ' manually'}
 				</p>
-				<div className="flex flex-col sm:flex-row gap-4 justify-center">
+				<div className="flex flex-col justify-center gap-4 sm:flex-row">
 					{showAIGeneration && (
 						<button
-							className="flex items-center gap-2 border border-(--primary) text-(--primary) px-6 py-3 text-base font-medium hover:bg-(--primary) hover:text-white transition-colors"
+							className="flex items-center gap-2 border border-(--primary) px-6 py-3 text-base font-medium text-(--primary) transition-colors hover:bg-(--primary) hover:text-white"
 							onClick={onGenerateWithAI}
 						>
 							<Icon name="sparkles" height={20} width={20} />

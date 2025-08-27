@@ -147,7 +147,6 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 									)
 								].join('\n')
 
-								
 								downloadCSV(`stablecoins-${chain}.csv`, csv, { addTimestamp: true })
 							}}
 							smol

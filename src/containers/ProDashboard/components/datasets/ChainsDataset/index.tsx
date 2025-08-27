@@ -313,7 +313,6 @@ export function ChainsDataset({
 				})
 		})
 
-		
 		downloadCSV('chains-data.csv', [headers, ...rows], { addTimestamp: true })
 	}, [instance])
 

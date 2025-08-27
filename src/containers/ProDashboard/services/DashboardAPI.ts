@@ -26,14 +26,17 @@ export interface Dashboard {
 	updated: string
 	collectionId?: string
 	collectionName?: string
-	aiGenerated?: Record<string, {
-		rating?: number 
-		feedback?: string
-		mode: 'create' | 'iterate'
-		timestamp: string
-		userId: string
-		rated?: boolean 
-	}> | null
+	aiGenerated?: Record<
+		string,
+		{
+			rating?: number
+			feedback?: string
+			mode: 'create' | 'iterate'
+			timestamp: string
+			userId: string
+			rated?: boolean
+		}
+	> | null
 }
 
 export interface DashboardError {

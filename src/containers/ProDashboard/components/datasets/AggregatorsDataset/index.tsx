@@ -14,9 +14,9 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
-import { downloadCSV } from '~/utils'
 import { AggregatorItem } from '~/containers/ProDashboard/types'
 import useWindowSize from '~/hooks/useWindowSize'
+import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -191,7 +191,6 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								
 								downloadCSV('aggregators-data.csv', csv, { addTimestamp: true })
 							}}
 							smol

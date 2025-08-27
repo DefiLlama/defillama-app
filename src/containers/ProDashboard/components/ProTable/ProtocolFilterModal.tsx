@@ -137,7 +137,8 @@ export function ProtocolFilterModal({
 		onClose()
 	}
 
-	const hasActiveFilters = selectedProtocols.length > 0 || selectedCategories.length > 0 || selectedExcludedCategories.length > 0
+	const hasActiveFilters =
+		selectedProtocols.length > 0 || selectedCategories.length > 0 || selectedExcludedCategories.length > 0
 
 	const protocolOptions = React.useMemo(() => {
 		return protocols.map((protocol) => ({

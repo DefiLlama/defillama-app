@@ -1,5 +1,5 @@
-import { createContext, useContext, ReactNode } from 'react'
-import { useFeatureFlags, FeatureFlags } from '~/hooks/useFeatureFlags'
+import { createContext, ReactNode, useContext } from 'react'
+import { FeatureFlags, useFeatureFlags } from '~/hooks/useFeatureFlags'
 
 interface FeatureFlagsContextType {
 	flags: FeatureFlags

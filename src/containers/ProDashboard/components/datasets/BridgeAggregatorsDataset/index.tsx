@@ -190,7 +190,6 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								
 								downloadCSV('aggregators-data.csv', csv, { addTimestamp: true })
 							}}
 							smol

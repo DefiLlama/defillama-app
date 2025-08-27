@@ -175,7 +175,6 @@ export function HoldersRevenueDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								
 								downloadCSV('holders-revenue-data.csv', csv, { addTimestamp: true })
 							}}
 							smol
