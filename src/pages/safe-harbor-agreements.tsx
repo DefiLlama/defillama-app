@@ -4,45 +4,57 @@ import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { PROTOCOLS_API } from '~/constants'
-import { ILiteProtocol } from '~/containers/ChainOverview/types'
+import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
+import { IProtocol } from '~/containers/ChainOverview/types'
 import Layout from '~/layout'
-import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 export async function getStaticProps() {
-	const [safeHarborProtocols, { protocols }]: [Record<string, boolean>, { protocols: Array<ILiteProtocol> }] =
-		await Promise.all([fetchJson('https://api.llama.fi/_fe/static/safe-harbor-projects'), fetchJson(PROTOCOLS_API)])
+	const [safeHarborProtocols, { protocols }]: [Record<string, boolean>, { protocols: Array<IProtocol> }] =
+		await Promise.all([
+			fetchJson('https://api.llama.fi/_fe/static/safe-harbor-projects'),
+			getProtocolsByChain({
+				chain: 'All',
+				metadata: { name: 'All', stablecoins: true, fees: true, dexs: true, perps: true, id: 'all' }
+			})
+		])
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const protocolMetadata = metadataCache.protocolMetadata
 
 	const tvlByProtocol = {}
+	const feesByProtocol = {}
+	const revenueByProtocol = {}
+	const dexVolumeByProtocol = {}
 	for (const protocol of protocols) {
-		tvlByProtocol[protocol.defillamaId] = protocol.tvl
-		if (protocol.parentProtocol) {
-			tvlByProtocol[protocol.parentProtocol] = (tvlByProtocol[protocol.parentProtocol] ?? 0) + protocol.tvl
-		}
+		tvlByProtocol[protocol.name] = protocol.tvl?.default?.tvl ?? 0
+		feesByProtocol[protocol.name] = protocol.fees?.total24h ?? 0
+		revenueByProtocol[protocol.name] = protocol.revenue?.total24h ?? 0
+		dexVolumeByProtocol[protocol.name] = protocol.dexs?.total24h ?? 0
 	}
 
 	const finalProtocols = []
 	for (const protocolId in safeHarborProtocols) {
-		if (safeHarborProtocols[protocolId] && protocolMetadata[protocolId]) {
+		const pmetadata = protocolMetadata[protocolId]
+		if (safeHarborProtocols[protocolId] && pmetadata) {
 			finalProtocols.push({
 				defillamaId: protocolId,
-				name: protocolMetadata[protocolId].displayName,
-				slug: slug(protocolMetadata[protocolId].displayName),
-				chains: protocolMetadata[protocolId].chains,
-				logo: tokenIconUrl(protocolMetadata[protocolId].displayName),
-				url: `https://safeharbor.securityalliance.org/database/${slug(protocolMetadata[protocolId].displayName)}`
+				name: pmetadata.displayName,
+				slug: slug(pmetadata.displayName),
+				chains: pmetadata.chains,
+				logo: tokenIconUrl(pmetadata.displayName),
+				url: `https://safeharbor.securityalliance.org/database/${slug(pmetadata.displayName)}`,
+				tvl: tvlByProtocol[pmetadata.displayName] ?? 0,
+				fees: feesByProtocol[pmetadata.displayName] ?? 0,
+				revenue: revenueByProtocol[pmetadata.displayName] ?? 0,
+				dexVolume: dexVolumeByProtocol[pmetadata.displayName] ?? 0
 			})
 		}
 	}
 
 	return {
 		props: {
-			protocols: finalProtocols.sort(
-				(a, b) => (tvlByProtocol[b.defillamaId] ?? 0) - (tvlByProtocol[a.defillamaId] ?? 0)
-			)
+			protocols: finalProtocols.sort((a, b) => b.tvl - a.tvl)
 		}
 	}
 }
@@ -63,7 +75,17 @@ export default function SafeHarborAgreements({ protocols }) {
 	)
 }
 
-const columns: ColumnDef<{ name: string; url: string; chains: string[]; slug: string; logo: string }>[] = [
+const columns: ColumnDef<{
+	name: string
+	url: string
+	chains: string[]
+	slug: string
+	logo: string
+	tvl: number
+	fees: number
+	revenue: number
+	dexVolume: number
+}>[] = [
 	{
 		id: 'name',
 		header: 'Name',
@@ -137,6 +159,38 @@ const columns: ColumnDef<{ name: string; url: string; chains: string[]; slug: st
 			)
 		},
 		size: 280
+	},
+	{
+		header: 'TVL',
+		accessorFn: (protocol) => protocol.tvl,
+		cell: ({ getValue }) => formattedNum(getValue() as number, true),
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Fees',
+		accessorFn: (protocol) => protocol.fees,
+		cell: ({ getValue }) => formattedNum(getValue() as number, true),
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Revenue',
+		accessorFn: (protocol) => protocol.revenue,
+		cell: ({ getValue }) => formattedNum(getValue() as number, true),
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'DEX Volume',
+		accessorFn: (protocol) => protocol.dexVolume,
+		cell: ({ getValue }) => formattedNum(getValue() as number, true),
+		meta: {
+			align: 'end'
+		}
 	},
 	{
 		header: 'Agreement',

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
@@ -15,34 +14,19 @@ export function SubscribeProCard({
 	onCancelSubscription?: () => void
 	isLegacyActive?: boolean
 }) {
+	const [isDarkMode] = useDarkModeManager()
+	const isModal = false
+	const shouldShowLightMode = isModal && !isDarkMode
 	return (
 		<div
-			className={`relative flex w-[92vw] shrink-0 snap-center flex-col overflow-hidden rounded-xl border-2 border-[#4a4a50] bg-[#22242966] px-5 py-8 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
-			style={{ boxShadow: '0 0 15px rgba(138, 138, 255, 0.12), 0 0 5px rgba(92, 92, 249, 0.08)' }}
+			className={`flex w-[92vw] shrink-0 snap-center flex-col px-4 py-8 md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 ${
+				shouldShowLightMode ? 'border-[#e5e7eb] bg-[#f8f9fa]' : 'border-[#4a4a50] bg-[#22242930]'
+			} relative overflow-hidden rounded-xl border shadow-md backdrop-blur-md transition-all duration-300${
+				isModal ? '' : 'hover:transform md:hover:scale-[1.02]'
+			}`}
 		>
-			<div className="absolute inset-0 overflow-hidden">
-				<div
-					className="absolute top-[-15%] left-[-5%] h-[25%] w-[25%] animate-pulse rounded-full bg-[#5c5cf9] opacity-[0.01] blur-3xl"
-					style={{ animationDuration: '5s' }}
-				></div>
-				<div
-					className="absolute right-[-5%] bottom-[-15%] h-[20%] w-[20%] animate-pulse rounded-full bg-[#7B7BFF] opacity-[0.012] blur-3xl"
-					style={{ animationDelay: '2.5s', animationDuration: '6s' }}
-				></div>
-				<div
-					className="absolute top-[50%] left-[50%] h-[15%] w-[15%] translate-x-[-50%] translate-y-[-50%] animate-ping rounded-full bg-[#462A92] opacity-[0.015] blur-3xl"
-					style={{ animationDuration: '8s' }}
-				></div>
-			</div>
-			<div
-				className="absolute inset-0 animate-pulse rounded-xl border border-[#8a8aff2a]"
-				style={{
-					animationDuration: '5s',
-					boxShadow: '0 0 30px rgba(138, 138, 255, 0.4), inset 0 0 15px rgba(92, 92, 249, 0.2)',
-					background:
-						'linear-gradient(135deg, rgba(92, 92, 249, 0.05) 0%, rgba(138, 138, 255, 0.02) 50%, rgba(70, 42, 146, 0.03) 100%)'
-				}}
-			></div>
+			<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-gray-500 to-transparent opacity-20"></div>
+			<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-gray-600 opacity-5 blur-2xl"></div>
 			<h2 className="relative z-10 text-center text-[2rem] font-extrabold whitespace-nowrap text-[#5C5CF9]">API</h2>
 			<div className="relative z-10 mt-1 flex items-center justify-center">
 				<span className="bg-linear-to-r from-[#5C5CF9] to-[#8a8aff] bg-clip-text text-center text-2xl font-medium text-transparent">
