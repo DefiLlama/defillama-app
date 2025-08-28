@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
@@ -33,6 +34,7 @@ const GenerateDashboardModal = lazy(() =>
 function ProPageContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()
+
 	const [activeTab, setActiveTab] = useState<'my-dashboards' | 'discover' | 'favorites'>(
 		isAuthenticated && subscription?.status === 'active' ? 'my-dashboards' : 'discover'
 	)
@@ -59,9 +61,9 @@ function ProPageContent() {
 	)
 }
 
+const tabs = ['my-dashboards', 'discover', 'favorites'] as const
+
 function ProContent({
-	activeTab,
-	setActiveTab,
 	hasActiveSubscription,
 	isAuthenticated
 }: {
@@ -71,6 +73,14 @@ function ProContent({
 	isAuthenticated: boolean
 }) {
 	const router = useRouter()
+	const { tab } = router.query
+	const activeTab =
+		typeof tab === 'string' && tabs.includes(tab as any)
+			? tab
+			: isAuthenticated && hasActiveSubscription
+				? 'my-dashboards'
+				: 'discover'
+
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 	const {
@@ -95,30 +105,32 @@ function ProContent({
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex overflow-x-auto">
 					{isAuthenticated && hasActiveSubscription && (
-						<button
-							onClick={() => setActiveTab('my-dashboards')}
+						<BasicLink
+							href={`/pro?tab=my-dashboards`}
+							shallow
 							data-active={activeTab === 'my-dashboards'}
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 						>
 							My Dashboards
-						</button>
+						</BasicLink>
 					)}
-
-					<button
-						onClick={() => setActiveTab('discover')}
+					<BasicLink
+						href={`/pro?tab=discover`}
+						shallow
 						data-active={activeTab === 'discover'}
 						className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 					>
 						Discover
-					</button>
+					</BasicLink>
 					{isAuthenticated && (
-						<button
-							onClick={() => setActiveTab('favorites')}
+						<BasicLink
+							href={`/pro?tab=favorites`}
+							shallow
 							data-active={activeTab === 'favorites'}
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 						>
 							Favorites
-						</button>
+						</BasicLink>
 					)}
 				</div>
 				<div className="ml-auto flex flex-wrap gap-2">

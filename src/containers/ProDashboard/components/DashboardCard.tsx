@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { Dashboard } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
-import { LoadingSpinner } from './LoadingSpinner'
 
 interface DashboardCardProps {
 	dashboard: Dashboard
@@ -84,13 +84,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 							render={<button disabled={isDeleting} onClick={(e) => onDelete(dashboard.id, e)} />}
 							className="z-10 flex items-center justify-center gap-2 rounded-md bg-red-500/10 px-2 py-1.75 text-sm font-medium text-(--error)"
 						>
-							{isDeleting ? (
-								<div className="h-4 w-4">
-									<LoadingSpinner />
-								</div>
-							) : (
-								<Icon name="trash-2" height={12} width={12} />
-							)}
+							{isDeleting ? <LoadingSpinner size={12} /> : <Icon name="trash-2" height={12} width={12} />}
 						</Tooltip>
 					</>
 				) : null}

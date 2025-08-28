@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
-import { Dashboard } from '../services/DashboardAPI'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
 import { LoadingSpinner } from './LoadingSpinner'
