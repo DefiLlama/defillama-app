@@ -16,6 +16,16 @@
 	--color-pro-blue-300: oklch(0.612 0.213 257); /* Vibrant blue */
 	--color-pro-blue-400: oklch(0.41 0.13 257); /* Deep blue */
 
+	--color-pro-green-100: oklch(0.935 0.02 143); /* Light green/gray */
+	--color-pro-green-200: oklch(0.78 0.12 143); /* Muted green */
+	--color-pro-green-300: oklch(0.612 0.213 143); /* Vibrant green */
+	--color-pro-green-400: oklch(0.41 0.13 143); /* Deep green */
+
+	--color-pro-gold-100: oklch(0.94 0.01 71.72); /* Light version of pro-gold-400 */
+	--color-pro-gold-200: oklch(0.78 0.08 60); /* Medium gold */
+	--color-pro-gold-300: oklch(0.612 0.15 60); /* Vibrant gold */
+	--color-pro-gold-400: oklch(0.41 0.12 60); /* Deep gold */
+
 	--color-pro-link-100: oklch(0.59 0.18 262.36);
 	--color-pro-link-900: oklch(0.45 0.14 262.83);
 
