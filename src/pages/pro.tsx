@@ -1,12 +1,6 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
-import { CreateDashboardModal } from '~/containers/ProDashboard/components/CreateDashboardModal'
-import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
-import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
-import { GenerateDashboardModal } from '~/containers/ProDashboard/components/GenerateDashboardModal'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
@@ -14,6 +8,27 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
+
+const SubscribeModal = lazy(() =>
+	import('~/components/Modal/SubscribeModal').then((m) => ({ default: m.SubscribeModal }))
+)
+const SubscribePlusCard = lazy(() =>
+	import('~/components/SubscribeCards/SubscribePlusCard').then((m) => ({ default: m.SubscribePlusCard }))
+)
+const CreateDashboardModal = lazy(() =>
+	import('~/containers/ProDashboard/components/CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
+)
+const DashboardDiscovery = lazy(() =>
+	import('~/containers/ProDashboard/components/DashboardDiscovery').then((m) => ({ default: m.DashboardDiscovery }))
+)
+const DashboardList = lazy(() =>
+	import('~/containers/ProDashboard/components/DashboardList').then((m) => ({ default: m.DashboardList }))
+)
+const GenerateDashboardModal = lazy(() =>
+	import('~/containers/ProDashboard/components/GenerateDashboardModal').then((m) => ({
+		default: m.GenerateDashboardModal
+	}))
+)
 
 function ProPageContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
@@ -149,33 +164,47 @@ function ProContent({
 			</div>
 
 			{activeTab === 'my-dashboards' ? (
-				<DashboardList
-					dashboards={dashboards}
-					isLoading={isLoadingDashboards}
-					onCreateNew={createNewDashboard}
-					onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
-				/>
+				<Suspense fallback={<></>}>
+					<DashboardList
+						dashboards={dashboards}
+						isLoading={isLoadingDashboards}
+						onCreateNew={createNewDashboard}
+						onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
+					/>
+				</Suspense>
 			) : activeTab === 'favorites' ? (
-				<LikedDashboards />
+				<Suspense fallback={<></>}>
+					<LikedDashboards />
+				</Suspense>
 			) : (
-				<DashboardDiscovery />
+				<Suspense fallback={<></>}>
+					<DashboardDiscovery />
+				</Suspense>
 			)}
 
-			<CreateDashboardModal
-				isOpen={showCreateDashboardModal}
-				onClose={() => setShowCreateDashboardModal(false)}
-				onCreate={handleCreateDashboard}
-			/>
+			<Suspense fallback={<></>}>
+				<CreateDashboardModal
+					isOpen={showCreateDashboardModal}
+					onClose={() => setShowCreateDashboardModal(false)}
+					onCreate={handleCreateDashboard}
+				/>
+			</Suspense>
 
-			<GenerateDashboardModal
-				isOpen={showGenerateDashboardModal}
-				onClose={() => setShowGenerateDashboardModal(false)}
-				onGenerate={handleGenerateDashboard}
-			/>
+			<Suspense fallback={<></>}>
+				<GenerateDashboardModal
+					isOpen={showGenerateDashboardModal}
+					onClose={() => setShowGenerateDashboardModal(false)}
+					onGenerate={handleGenerateDashboard}
+				/>
+			</Suspense>
 
-			<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-				<SubscribePlusCard context="modal" returnUrl={router.asPath} />
-			</SubscribeModal>
+			<Suspense fallback={<></>}>
+				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
+					<Suspense fallback={<></>}>
+						<SubscribePlusCard context="modal" returnUrl={router.asPath} />
+					</Suspense>
+				</SubscribeModal>
+			</Suspense>
 		</div>
 	)
 }
