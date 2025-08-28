@@ -4,7 +4,7 @@ import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/catego
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
-import { LoadingDots } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TagGroup } from '~/components/TagGroup'
@@ -602,19 +602,22 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 }
 
 export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
-	const { data = null, isLoading } = useGetProtocolEmissions(slug(protocolName))
+	const { data = null, isLoading, error } = useGetProtocolEmissions(slug(protocolName))
 
 	if (isLoading) {
 		return (
-			<p className="my-[180px] flex items-center justify-center gap-1 text-center">
-				Loading
-				<LoadingDots />
-			</p>
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<LocalLoader />
+			</div>
 		)
 	}
 
 	if (!data) {
-		return <p className="my-[180px] text-center"></p>
+		return (
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+			</div>
+		)
 	}
 
 	return <ChartContainer data={data as any} />

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
-import { LoadingDots } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
@@ -92,10 +92,9 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 		>
 			{isLoading ? (
-				<p className="flex min-h-[408px] items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-center">
-					Loading
-					<LoadingDots />
-				</p>
+				<div className="flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<LocalLoader />
+				</div>
 			) : (
 				<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
 					{chainsSplit && chainsUnique?.length > 1 && (

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { maxAgeForNext } from '~/api'
-import { LoadingDots } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
 import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
@@ -167,10 +167,9 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 	return (
 		<div className="flex min-h-[360px] flex-col">
 			{loadingCharts ? (
-				<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
-					fetching {loadingCharts}
-					<LoadingDots />
-				</p>
+				<div className="flex min-h-[360px] items-center justify-center">
+					<LocalLoader />
+				</div>
 			) : (
 				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 					<ProtocolLineBarChart

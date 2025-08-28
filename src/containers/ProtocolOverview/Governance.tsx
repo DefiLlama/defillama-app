@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-table'
 import { formatGovernanceData } from '~/api/categories/protocols'
 import { Icon } from '~/components/Icon'
-import { LoadingDots } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
@@ -141,7 +141,7 @@ export const fetchAndFormatGovernanceData = async (
 export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 	const [apiCategoryIndex, setApiCategoryIndex] = React.useState<number>(0)
 
-	const { data, isLoading } = useQuery({
+	const { data, isLoading, error } = useQuery({
 		queryKey: [JSON.stringify(apis)],
 		queryFn: () => fetchAndFormatGovernanceData(apis),
 		staleTime: 60 * 60 * 1000
@@ -163,10 +163,9 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 
 	if (isLoading) {
 		return (
-			<p className="flex min-h-[360px] items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
-				Loading
-				<LoadingDots />
-			</p>
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<LocalLoader />
+			</div>
 		)
 	}
 
@@ -180,9 +179,9 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 
 	if (!data || data.length === 0) {
 		return (
-			<p className="flex min-h-[360px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
-				No data found
-			</p>
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+			</div>
 		)
 	}
 

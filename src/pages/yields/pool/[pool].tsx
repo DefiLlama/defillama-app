@@ -7,7 +7,7 @@ import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { BasicLink } from '~/components/Link'
-import { LoadingDots } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
@@ -234,10 +234,7 @@ const PageView = (props) => {
 	if (!isReady || isLoading) {
 		return (
 			<div className="flex h-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<p className="flex items-center justify-center gap-1 text-center">
-					Loading
-					<LoadingDots />
-				</p>
+				<LocalLoader />
 			</div>
 		)
 	}
@@ -445,10 +442,9 @@ const PageView = (props) => {
 				)}
 
 				{isLoading ? (
-					<p className="col-span-full flex h-[408px] items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
-						Loading
-						<LoadingDots />
-					</p>
+					<div className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<LocalLoader />
+					</div>
 				) : (
 					<>
 						{barChartData?.length ? (
@@ -481,10 +477,9 @@ const PageView = (props) => {
 			</div>
 
 			{fetchingChartDataBorrow ? (
-				<p className="col-span-full flex h-[408px] items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
-					Loading
-					<LoadingDots />
-				</p>
+				<div className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<LocalLoader />
+				</div>
 			) : areaChartDataBorrow?.length ? (
 				<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
 					{areaChartDataBorrow?.length ? (

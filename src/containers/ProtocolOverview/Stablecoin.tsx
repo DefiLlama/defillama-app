@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { LoadingDots } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { getPeggedAssetPageData } from '~/containers/Stablecoins/queries.server'
 import { PeggedAssetInfo } from '~/containers/Stablecoins/StablecoinOverview'
 
@@ -12,15 +12,18 @@ export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 
 	if (isLoading) {
 		return (
-			<p className="my-[180px] flex items-center justify-center gap-1 text-center">
-				Loading
-				<LoadingDots />
-			</p>
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<LocalLoader />
+			</div>
 		)
 	}
 
 	if (!data) {
-		return <p className="my-[180px] text-center">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+		return (
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+			</div>
+		)
 	}
 
 	return <PeggedAssetInfo {...data.props} />

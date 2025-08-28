@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
-import { LoadingDots } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { SEO } from '~/components/SEO'
 import { BridgeAddressesTable, BridgeTokensTable } from '~/components/Table/Bridges'
 import { TagGroup } from '~/components/TagGroup'
@@ -172,19 +172,18 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 
 	if (isLoading) {
 		return (
-			<p className="my-[180px] flex items-center justify-center gap-1 text-center">
-				Loading
-				<LoadingDots />
-			</p>
+			<div className="flex min-h-[408px] items-center justify-center">
+				<LocalLoader />
+			</div>
 		)
 	}
 
-	if (error) {
-		return <p className="my-[180px] text-center">{error.message}</p>
-	}
-
-	if (!data) {
-		return <p className="my-[180px] text-center">Something went wrong, couldn't fetch data</p>
+	if (error || !data) {
+		return (
+			<div className="flex min-h-[408px] items-center justify-center">
+				<p>{error instanceof Error ? error.message : "Something went wrong, couldn't fetch data"}</p>
+			</div>
+		)
 	}
 
 	return (

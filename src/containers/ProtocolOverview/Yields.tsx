@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { LoadingDots } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { slug } from '~/utils'
@@ -8,7 +8,11 @@ import { sluggify } from '~/utils/cache-client'
 
 export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }) {
 	const protocolSlug = slug(protocol)
-	const { data: poolsList, isLoading } = useQuery({
+	const {
+		data: poolsList,
+		isLoading,
+		error
+	} = useQuery({
 		queryKey: ['yields-pools-list', protocolSlug],
 		queryFn: () =>
 			getYieldPageData().then(
@@ -51,12 +55,13 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 					</p>
 
 					{isLoading ? (
-						<p className="my-[180px] flex items-center justify-center gap-1 text-center">
-							Loading
-							<LoadingDots />
-						</p>
+						<div className="flex min-h-[408px] items-center justify-center">
+							<LocalLoader />
+						</div>
 					) : !poolsList ? (
-						<p className="my-[180px] text-center"></p>
+						<div className="flex min-h-[408px] items-center justify-center">
+							<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+						</div>
 					) : (
 						<YieldsPoolsTable data={poolsList} />
 					)}
