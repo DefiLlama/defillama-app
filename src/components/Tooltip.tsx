@@ -44,12 +44,12 @@ export function Tooltip({ content, children, placement = 'top-start', className,
 			>
 				{children}
 			</Ariakit.TooltipAnchor>
-
 			<Ariakit.Tooltip
 				store={store}
-				className="z-50 max-h-[80vh] max-w-56 overflow-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm whitespace-pre-wrap dark:border-[hsl(204,3%,32%)]"
+				className="z-50 max-h-[80vh] max-w-56 overflow-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm whitespace-pre-wrap data-[fullwidth=true]:max-w-[var(--popover-available-width)] dark:border-[hsl(204,3%,32%)]"
 				unmountOnHide
 				portal
+				data-fullwidth={props['data-fullwidth']}
 			>
 				{content}
 			</Ariakit.Tooltip>

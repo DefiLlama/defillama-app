@@ -73,5 +73,9 @@ export const YieldsTableWrapper = ({
 		instance.setColumnOrder(order)
 	}, [windowSize, instance, columnSizes, columnSizesKeys, columnOrders])
 
-	return <VirtualTable instance={instance} rowSize={rowSize} />
+	return (
+		<span className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<VirtualTable instance={instance} rowSize={rowSize} />
+		</span>
+	)
 }

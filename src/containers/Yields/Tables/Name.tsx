@@ -102,6 +102,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 						render={<a href={url} target="_blank" rel="noopener noreferrer" />}
 						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 						content={children}
+						data-fullwidth
 					>
 						{children}
 					</Tooltip>
@@ -109,6 +110,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 					<Tooltip
 						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 						content={children}
+						data-fullwidth
 					>
 						{children}
 					</Tooltip>
