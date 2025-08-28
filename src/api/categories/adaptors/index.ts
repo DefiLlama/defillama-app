@@ -213,10 +213,10 @@ export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>):
 	).map<IJoin2ReturnType[number]>((bar) => {
 		const date = bar.date
 		delete bar.date
-		const ordredItems = Object.entries(bar)
+		const orderedItems = Object.entries(bar)
 		return {
 			date,
-			...ordredItems.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number])
+			...orderedItems.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number])
 		}
 	})
 
