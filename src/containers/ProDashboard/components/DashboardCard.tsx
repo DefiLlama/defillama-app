@@ -56,11 +56,15 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 	}, [dashboard.data.items])
 
 	return (
-		<div className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[220px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--text-label)">
+		<div
+			className={`hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--text-label)`}
+		>
 			<div className="flex items-center gap-2">
 				<h2 className="mr-auto text-lg font-medium text-black dark:text-white">
 					{dashboard.data.dashboardName || 'Untitled Dashboard'}
 				</h2>
+
+				{viewMode !== 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
 
 				{onDelete ? (
 					<>
@@ -92,30 +96,12 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 				) : null}
 			</div>
 
-			{dashboard.tags && dashboard.tags.length > 0 && (
-				<div className="flex max-w-[60%] flex-wrap gap-1">
-					{dashboard.tags.slice(0, 2).map((tag) => (
-						<button
-							key={tag}
-							onClick={(e) => {
-								e.stopPropagation()
-								onTagClick?.(tag)
-							}}
-							className="hover:pro-btn-purple z-10 rounded-md border border-(--switch-border) px-2 py-1 text-xs hover:border-transparent"
-						>
-							{tag}
-						</button>
-					))}
-					{dashboard.tags.length > 2 && (
-						<span className="pro-text3 px-2 py-1 text-xs">+{dashboard.tags.length - 2}</span>
-					)}
-				</div>
-			)}
+			{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
 
 			{dashboard.description ? <p className="line-clamp-2 text-sm">{dashboard.description}</p> : null}
 
 			{dashboard.data.items?.length ? (
-				<div className="mt-5 flex flex-col">
+				<div className={`flex flex-col ${viewMode === 'grid' ? 'mt-5' : 'mt-2'}`}>
 					<span className="flex items-center gap-1 text-black dark:text-white">
 						<Icon name="layers" height={14} width={14} />
 						<p className="flex items-center gap-1">{dashboard.data.items.length} items</p>
@@ -124,7 +110,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 				</div>
 			) : null}
 
-			<div className="mt-auto flex items-center justify-between gap-2 pt-5">
+			<div className={`mt-auto flex items-center justify-between gap-2 ${viewMode === 'grid' ? 'pt-5' : 'pt-2'}`}>
 				<div className="flex items-center gap-2">
 					<p className="flex items-center gap-1" title="Views">
 						<Icon name="eye" height={16} width={16} />
@@ -146,6 +132,27 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
 				<span className="sr-only">View dashboard</span>
 			</BasicLink>
+		</div>
+	)
+}
+
+const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (tag: string) => void }) => {
+	if (!dashboard.tags || dashboard.tags.length === 0) return null
+	return (
+		<div className="flex max-w-[60%] flex-wrap gap-1">
+			{dashboard.tags.slice(0, 2).map((tag) => (
+				<button
+					key={tag}
+					onClick={(e) => {
+						e.stopPropagation()
+						onTagClick?.(tag)
+					}}
+					className="hover:pro-btn-purple z-10 rounded-md border border-(--switch-border) px-2 py-1 text-xs hover:border-transparent"
+				>
+					{tag}
+				</button>
+			))}
+			{dashboard.tags.length > 2 && <span className="pro-text3 px-2 py-1 text-xs">+{dashboard.tags.length - 2}</span>}
 		</div>
 	)
 }
