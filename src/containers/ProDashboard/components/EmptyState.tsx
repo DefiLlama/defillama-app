@@ -21,7 +21,7 @@ export function EmptyState({ onAddChart, onGenerateWithAI }: EmptyStateProps) {
 			<div className="mt-7 flex flex-col justify-center gap-4 sm:flex-row">
 				{showAIGeneration && (
 					<button
-						className="bg-pro-blue-100 text-pro-blue-400 hover:bg-pro-blue-300/20 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 hover:dark:bg-pro-blue-300/30 flex items-center gap-1 rounded-md px-6 py-3 font-medium"
+						className="pro-btn-blue flex items-center gap-1 rounded-md px-6 py-3 font-medium"
 						onClick={onGenerateWithAI}
 					>
 						<Icon name="sparkles" height={20} width={20} />
@@ -29,7 +29,7 @@ export function EmptyState({ onAddChart, onGenerateWithAI }: EmptyStateProps) {
 					</button>
 				)}
 				<button
-					className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 flex items-center gap-1 rounded-md px-6 py-3 font-medium"
+					className="pro-btn-purple flex items-center gap-1 rounded-md px-6 py-3 font-medium"
 					onClick={onAddChart}
 				>
 					<Icon name="plus" height={20} width={20} />

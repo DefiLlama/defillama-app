@@ -169,7 +169,7 @@ const columns: ColumnDef<{
 		}
 	},
 	{
-		header: 'Fees',
+		header: '24h Fees',
 		accessorFn: (protocol) => protocol.fees,
 		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
@@ -177,7 +177,7 @@ const columns: ColumnDef<{
 		}
 	},
 	{
-		header: 'Revenue',
+		header: '24h Revenue',
 		accessorFn: (protocol) => protocol.revenue,
 		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
@@ -185,7 +185,7 @@ const columns: ColumnDef<{
 		}
 	},
 	{
-		header: 'DEX Volume',
+		header: '24h DEX Volume',
 		accessorFn: (protocol) => protocol.dexVolume,
 		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {

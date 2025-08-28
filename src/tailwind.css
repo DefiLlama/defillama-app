@@ -356,6 +356,18 @@
 	}
 }
 
+@utility pro-btn-purple {
+	@apply bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 focus-visible:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 focus-visible:dark:bg-pro-purple-300/30;
+}
+
+@utility pro-btn-blue {
+	@apply bg-pro-blue-100 text-pro-blue-400 hover:bg-pro-blue-300/20 focus-visible:bg-pro-blue-300/20 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 hover:dark:bg-pro-blue-300/30 focus-visible:dark:bg-pro-blue-300/30;
+}
+
+@utility pro-link {
+	@apply hover:text-pro-link-900 dark:hover:text-pro-link-100 text-(--text-label);
+}
+
 @layer base {
 	@font-face {
 		font-family: 'Inter-fallback';

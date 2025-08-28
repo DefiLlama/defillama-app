@@ -75,10 +75,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 				<p className="text-center text-base text-(--text-label)">
 					This dashboard does not exist or you don't have permission to view it
 				</p>
-				<BasicLink
-					href="/pro"
-					className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 mt-7 rounded-md px-6 py-3 font-medium"
-				>
+				<BasicLink href="/pro" className="pro-btn-purple mt-7 rounded-md px-6 py-3 font-medium">
 					Browse Dashboards
 				</BasicLink>
 			</div>
@@ -92,7 +89,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 				<p className="text-center text-base text-(--text-label)">Please sign in to create a new dashboard</p>
 				<button
 					onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
-					className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 mt-7 rounded-md px-6 py-3 font-medium"
+					className="pro-btn-purple mt-7 rounded-md px-6 py-3 font-medium"
 				>
 					Sign In
 				</button>

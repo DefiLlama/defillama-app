@@ -28,7 +28,7 @@ export const Account = memo(function Account() {
 							{user && (
 								<BasicLink
 									href="/subscription"
-									className="flex items-center gap-1.5 truncate text-sm font-medium text-(--text-form) hover:text-(--link) hover:underline"
+									className="pro-link flex items-center gap-1.5 truncate text-sm font-medium hover:underline"
 								>
 									<Icon name="users" className="h-4 w-4 shrink-0" />
 									{user.email}
@@ -66,7 +66,7 @@ export const Account = memo(function Account() {
 					) : (
 						<BasicLink
 							href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
-							className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 flex items-center justify-center gap-2 rounded-md p-1 text-sm font-medium"
+							className="pro-btn-purple flex items-center justify-center gap-2 rounded-md p-1 text-sm font-medium"
 						>
 							<Icon name="users" className="h-4 w-4" />
 							Sign In / Subscribe

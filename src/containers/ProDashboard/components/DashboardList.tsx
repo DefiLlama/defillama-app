@@ -43,7 +43,7 @@ export function DashboardList({ dashboards, isLoading, onCreateNew, onDeleteDash
 					<p className="text-center text-(--text-label)">Create your first dashboard to get started</p>
 					<button
 						onClick={onCreateNew}
-						className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 mt-7 flex items-center gap-1 rounded-md px-6 py-3 font-medium"
+						className="pro-btn-purple mt-7 flex items-center gap-1 rounded-md px-6 py-3 font-medium"
 					>
 						<Icon name="plus" height={16} width={16} />
 						Create Dashboard
