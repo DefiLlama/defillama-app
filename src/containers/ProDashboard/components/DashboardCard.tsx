@@ -1,5 +1,7 @@
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { Tooltip } from '~/components/Tooltip'
 import { Dashboard } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -13,12 +15,7 @@ interface DashboardCardProps {
 }
 
 export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, viewMode = 'grid' }: DashboardCardProps) {
-	const handleTagClick = (e: React.MouseEvent, tag: string) => {
-		e.stopPropagation()
-		onTagClick?.(tag)
-	}
-
-	const getItemTypeCount = () => {
+	const itemTypes = useMemo(() => {
 		const counts: Record<string, number> = {}
 		dashboard.data.items?.forEach((item: DashboardItemConfig) => {
 			if (!item || typeof item !== 'object') {
@@ -56,154 +53,95 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 		}
 
 		return summary
-	}
-
-	if (viewMode === 'list') {
-		return (
-			<div className="pro-glass hover:bg-opacity-40 flex cursor-pointer items-center justify-between gap-4 p-4 no-underline transition-all hover:bg-(--bg-glass)">
-				<div className="min-w-0 flex-1">
-					<div className="mb-2 flex items-center gap-3">
-						<h2 className="pro-text1 truncate text-lg font-medium">
-							{dashboard.data.dashboardName || 'Untitled Dashboard'}
-						</h2>
-						{dashboard.visibility === 'public' ? (
-							<span title="Public dashboard">
-								<Icon name="earth" height={16} width={16} className="pro-text3" />
-							</span>
-						) : (
-							<span title="Private dashboard">
-								<Icon name="key" height={16} width={16} className="pro-text3" />
-							</span>
-						)}
-					</div>
-
-					{dashboard.description && <p className="pro-text3 mb-2 line-clamp-2 text-sm">{dashboard.description}</p>}
-
-					<div className="pro-text3 flex items-center gap-4 text-sm">
-						<span>{getItemTypeCount()}</span>
-						<span>•</span>
-						<span>Updated {new Date(dashboard.updated).toLocaleDateString()}</span>
-					</div>
-				</div>
-				<div className="flex items-center gap-6">
-					{dashboard.tags && dashboard.tags.length > 0 && (
-						<div className="hidden max-w-xs flex-wrap gap-1 lg:flex">
-							{dashboard.tags.slice(0, 3).map((tag) => (
-								<button
-									key={tag}
-									onClick={(e) => handleTagClick(e, tag)}
-									className="bg-opacity-50 pro-text2 pro-border border bg-(--bg-main) px-2 py-1 text-xs hover:border-(--divider)"
-								>
-									{tag}
-								</button>
-							))}
-							{dashboard.tags.length > 3 && (
-								<span className="pro-text3 px-2 py-1 text-xs">+{dashboard.tags.length - 3}</span>
-							)}
-						</div>
-					)}
-
-					<div className="flex items-center gap-4 text-sm">
-						<div className="flex items-center gap-1" title="Views">
-							<Icon name="eye" height={16} width={16} className="pro-text3" />
-							<span className="pro-text2">{dashboard.viewCount || 0}</span>
-						</div>
-						<div className="flex items-center gap-1" title="Likes">
-							<Icon name="star" height={16} width={16} className="pro-text3" />
-							<span className="pro-text2">{dashboard.likeCount || 0}</span>
-						</div>
-					</div>
-				</div>
-				<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
-					<span className="sr-only">View dashboard</span>
-				</BasicLink>
-			</div>
-		)
-	}
+	}, [dashboard.data.items])
 
 	return (
-		<div className="pro-glass hover:bg-opacity-40 group focus-visible:bg-opacity-40 relative flex h-full cursor-pointer flex-col p-4 no-underline transition-all hover:bg-(--bg-glass) focus-visible:bg-(--bg-glass)">
-			<div className="mb-3 flex items-start justify-between">
-				<div className="flex min-w-0 flex-1 items-center gap-2">
-					<h2 className="pro-text1 truncate text-lg font-medium">
-						{dashboard.data.dashboardName || 'Untitled Dashboard'}
-					</h2>
-					{dashboard.visibility === 'public' ? (
-						<span title="Public dashboard" className="shrink-0">
-							<Icon name="earth" height={16} width={16} className="pro-text3" />
-						</span>
-					) : (
-						<span title="Private dashboard" className="shrink-0">
-							<Icon name="key" height={16} width={16} className="pro-text3" />
-						</span>
+		<div className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[220px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--text-label)">
+			<div className="flex items-center gap-2">
+				<h2 className="mr-auto text-lg font-medium text-black dark:text-white">
+					{dashboard.data.dashboardName || 'Untitled Dashboard'}
+				</h2>
+
+				{onDelete ? (
+					<>
+						{dashboard.visibility === 'public' ? (
+							<p className="bg-pro-green-100 text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+								<Icon name="earth" height={12} width={12} />
+								<span>Public </span>
+							</p>
+						) : (
+							<p className="bg-pro-gold-100 text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+								<Icon name="key" height={12} width={12} />
+								<span>Private</span>
+							</p>
+						)}
+						<Tooltip
+							content="Delete dashboard"
+							render={<button disabled={isDeleting} onClick={(e) => onDelete(dashboard.id, e)} />}
+							className="z-10 flex items-center justify-center gap-2 rounded-md bg-red-500/10 px-2 py-1.75 text-sm font-medium text-(--error)"
+						>
+							{isDeleting ? (
+								<div className="h-4 w-4">
+									<LoadingSpinner />
+								</div>
+							) : (
+								<Icon name="trash-2" height={12} width={12} />
+							)}
+						</Tooltip>
+					</>
+				) : null}
+			</div>
+
+			{dashboard.tags && dashboard.tags.length > 0 && (
+				<div className="flex max-w-[60%] flex-wrap gap-1">
+					{dashboard.tags.slice(0, 2).map((tag) => (
+						<button
+							key={tag}
+							onClick={(e) => {
+								e.stopPropagation()
+								onTagClick?.(tag)
+							}}
+							className="hover:pro-btn-purple z-10 rounded-md border border-(--switch-border) px-2 py-1 text-xs hover:border-transparent"
+						>
+							{tag}
+						</button>
+					))}
+					{dashboard.tags.length > 2 && (
+						<span className="pro-text3 px-2 py-1 text-xs">+{dashboard.tags.length - 2}</span>
 					)}
 				</div>
-				{onDelete && (
-					<button
-						onClick={(e) => onDelete(dashboard.id, e)}
-						disabled={isDeleting}
-						className="z-10 shrink-0 p-1 text-(--text-tertiary) opacity-0 transition-all group-focus-within:opacity-100 group-hover:opacity-100 hover:text-red-500"
-						title="Delete dashboard"
-					>
-						{isDeleting ? (
-							<div className="h-4 w-4">
-								<LoadingSpinner />
-							</div>
-						) : (
-							<Icon name="trash-2" height={16} width={16} />
-						)}
-					</button>
-				)}
-			</div>
+			)}
 
-			{dashboard.description && <p className="pro-text3 mb-3 line-clamp-2 text-sm">{dashboard.description}</p>}
+			{dashboard.description ? <p className="line-clamp-2 text-sm">{dashboard.description}</p> : null}
 
-			<div className="pro-text3 flex-1 space-y-2 text-sm">
+			{dashboard.data.items?.length ? (
+				<div className="mt-5 flex flex-col">
+					<span className="flex items-center gap-1 text-black dark:text-white">
+						<Icon name="layers" height={14} width={14} />
+						<p className="flex items-center gap-1">{dashboard.data.items.length} items</p>
+					</span>
+					<p className="text-xs">{itemTypes}</p>
+				</div>
+			) : null}
+
+			<div className="mt-auto flex items-center justify-between gap-2 pt-5">
 				<div className="flex items-center gap-2">
-					<Icon name="layers" height={14} width={14} />
-					<span>{dashboard.data.items?.length || 0} items</span>
+					<p className="flex items-center gap-1" title="Views">
+						<Icon name="eye" height={16} width={16} />
+						<span className="sr-only">Views</span>
+						<span className="text-black dark:text-white">{dashboard.viewCount || 0}</span>
+					</p>
+					<p className="flex items-center gap-1" title="Likes">
+						<Icon name="star" height={16} width={16} />
+						<span className="sr-only">Favorites</span>
+						<span className="text-black dark:text-white">{dashboard.likeCount || 0}</span>
+					</p>
 				</div>
 
-				{dashboard.data.items && dashboard.data.items.length > 0 && (
-					<div className="pro-text2 bg-opacity-30 inline-block rounded bg-(--bg-glass) px-2 py-1 text-xs">
-						{getItemTypeCount()}
-					</div>
-				)}
-
-				<div className="flex items-center gap-2">
-					<Icon name="clock" height={14} width={14} />
+				<p className="flex items-center gap-1 text-xs" title={new Date(dashboard.updated).toLocaleString()}>
+					<Icon name="clock" height={12} width={12} />
 					<span>Updated {new Date(dashboard.updated).toLocaleDateString()}</span>
-				</div>
-			</div>
-
-			<div className="mt-4 flex items-center justify-between border-t border-(--divider) pt-4">
-				<div className="flex items-center gap-3 text-sm">
-					<div className="flex items-center gap-1" title="Views">
-						<Icon name="eye" height={16} width={16} className="pro-text3" />
-						<span className="pro-text2">{dashboard.viewCount || 0}</span>
-					</div>
-					<div className="flex items-center gap-1" title="Likes">
-						<Icon name="star" height={16} width={16} className="pro-text3" />
-						<span className="pro-text2">{dashboard.likeCount || 0}</span>
-					</div>
-				</div>
-
-				{dashboard.tags && dashboard.tags.length > 0 && (
-					<div className="flex max-w-[60%] flex-wrap gap-1">
-						{dashboard.tags.slice(0, 2).map((tag) => (
-							<button
-								key={tag}
-								onClick={(e) => handleTagClick(e, tag)}
-								className="bg-opacity-50 pro-text2 pro-border z-10 border bg-(--bg-main) px-2 py-1 text-xs hover:border-(--divider) focus-visible:border-(--divider)"
-							>
-								{tag}
-							</button>
-						))}
-						{dashboard.tags.length > 2 && (
-							<span className="pro-text3 px-2 py-1 text-xs">+{dashboard.tags.length - 2}</span>
-						)}
-					</div>
-				)}
+				</p>
 			</div>
 			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
 				<span className="sr-only">View dashboard</span>
