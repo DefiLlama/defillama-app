@@ -25,7 +25,8 @@ export default function BarChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
-	customComponents
+	customComponents,
+	onReady
 }: IBarChartProps) {
 	const id = useId()
 
@@ -129,10 +130,15 @@ export default function BarChart({
 		if (!chartDom) return
 
 		let chartInstance = echarts.getInstanceByDom(chartDom)
+		const isNewInstance = !chartInstance
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}
 		chartRef.current = chartInstance
+
+		if (onReady && isNewInstance) {
+			onReady(chartInstance)
+		}
 
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
@@ -201,6 +207,9 @@ export default function BarChart({
 			}
 			if (chartRef.current) {
 				chartRef.current = null
+			}
+			if (onReady) {
+				onReady(null)
 			}
 		}
 	}, [id])

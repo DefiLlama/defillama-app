@@ -1,4 +1,5 @@
-import { lazy, memo, Suspense, useCallback } from 'react'
+import { lazy, memo, Suspense, useCallback, useState } from 'react'
+import * as echarts from 'echarts/core'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { download } from '~/utils'
@@ -7,6 +8,7 @@ import { Chain, CHART_TYPES, ChartConfig, Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
 import { ProTableCSVButton } from './ProTable/CsvButton'
+import { ImageExportButton } from './ProTable/ImageExportButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
@@ -23,6 +25,7 @@ interface ChartRendererProps {
 	hasError: boolean
 	refetch: () => void
 	color: string
+	onChartReady: (instance: echarts.ECharts | null) => void
 }
 
 const ChartRenderer = memo(function ChartRenderer({
@@ -31,7 +34,8 @@ const ChartRenderer = memo(function ChartRenderer({
 	isLoading,
 	hasError,
 	refetch,
-	color
+	color,
+	onChartReady
 }: ChartRendererProps) {
 	if (isLoading) {
 		return (
@@ -73,6 +77,7 @@ const ChartRenderer = memo(function ChartRenderer({
 					color={color}
 					hideDataZoom
 					hideDownloadButton
+					onReady={onChartReady}
 				/>
 			</Suspense>
 		)
@@ -86,6 +91,7 @@ const ChartRenderer = memo(function ChartRenderer({
 					height="300px"
 					hideDataZoom
 					hideDownloadButton
+					onReady={onChartReady}
 				/>
 			</Suspense>
 		)
@@ -94,6 +100,7 @@ const ChartRenderer = memo(function ChartRenderer({
 
 export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 	const { getChainInfo, getProtocolInfo, handleGroupingChange, handleCumulativeChange, isReadOnly } = useProDashboard()
+	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
 	const { data, isLoading, hasError, refetch } = chart
 	const chartTypeDetails = CHART_TYPES[chart.type]
 	const isGroupable = chartTypeDetails?.groupable
@@ -137,6 +144,9 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 		}.csv`
 		download(fileName, csvContent)
 	}, [processedData, itemName, chartTypeDetails])
+
+	const imageFilename = `${itemName}_${chartTypeDetails.title.replace(/\s+/g, '_')}`
+	const imageTitle = `${itemName} ${chartTypeDetails.title}`
 
 	return (
 		<div className="flex h-full flex-col px-4 pt-2 pb-4">
@@ -188,11 +198,14 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 						</>
 					)}
 					{processedData && processedData.length > 0 && (
-						<ProTableCSVButton
-							onClick={handleCsvExport}
-							smol
-							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-						/>
+						<>
+							<ImageExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+							<ProTableCSVButton
+								onClick={handleCsvExport}
+								smol
+								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+							/>
+						</>
 					)}
 				</div>
 			</div>
@@ -205,6 +218,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 					hasError={hasError}
 					refetch={refetch}
 					color={chartColor}
+					onChartReady={setChartInstance}
 				/>
 			</div>
 		</div>

@@ -488,6 +488,19 @@ export function download(filename, text) {
 	document.body.removeChild(element)
 }
 
+export function downloadDataURL(filename, dataURL) {
+	const element = document.createElement('a')
+	element.setAttribute('href', dataURL)
+	element.setAttribute('download', filename)
+
+	element.style.display = 'none'
+	document.body.appendChild(element)
+
+	element.click()
+
+	document.body.removeChild(element)
+}
+
 export function downloadCSV(filename, csvData, options = {}) {
 	try {
 		const { mimeType = 'text/csv;charset=utf-8;', addTimestamp = false } = options

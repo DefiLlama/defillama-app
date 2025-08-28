@@ -1,11 +1,13 @@
 import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { download } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ProTableCSVButton } from './ProTable/CsvButton'
+import { ImageExportButton } from './ProTable/ImageExportButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
@@ -22,6 +24,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		handleStackedChange,
 		isReadOnly
 	} = useProDashboard()
+	const { chartInstance, handleChartReady } = useChartImageExport()
 	const showStacked = multi.showStacked !== false
 	const showCumulative = multi.showCumulative || false
 
@@ -347,11 +350,19 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					</button>
 				)}
 				{series.length > 0 && (
-					<ProTableCSVButton
-						onClick={handleCsvExport}
-						smol
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-					/>
+					<>
+						<ImageExportButton
+							chartInstance={chartInstance}
+							filename={multi.name || 'multi_chart'}
+							title={multi.name || 'Multi Chart'}
+							smol
+						/>
+						<ProTableCSVButton
+							onClick={handleCsvExport}
+							smol
+							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+						/>
+					</>
 				)}
 			</div>
 
@@ -397,9 +408,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				) : (
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart
-							key={`${multi.id}-${showStacked}-${showPercentage}-${multi.items
-								?.map((i) => `${i.id}-${i.type}`)
-								.join('-')}`}
+							key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}`}
 							series={series}
 							valueSymbol={showPercentage ? '%' : '$'}
 							groupBy={
@@ -412,6 +421,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 											: 'daily'
 							}
 							hideDataZoom={true}
+							onReady={handleChartReady}
 							chartOptions={
 								showPercentage
 									? {

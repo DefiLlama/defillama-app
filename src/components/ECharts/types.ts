@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as echarts from 'echarts/core'
 
 type Value = string | number | boolean
 
@@ -37,6 +38,7 @@ export interface IChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	containerClassName?: string
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
@@ -92,6 +94,7 @@ export interface IMultiSeriesChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	title?: string
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface IPieChartProps {

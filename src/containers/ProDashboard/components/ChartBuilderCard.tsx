@@ -3,9 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { Icon } from '~/components/Icon'
 import { download } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
 import { ProTableCSVButton } from './ProTable/CsvButton'
+import { ImageExportButton } from './ProTable/ImageExportButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
@@ -78,6 +80,7 @@ function filterDataByTimePeriod(data: any[], timePeriod: string): any[] {
 export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const { handlePercentageChange, handleGroupingChange, handleHideOthersChange, isReadOnly, timePeriod } =
 		useProDashboard()
+	const { chartInstance, handleChartReady } = useChartImageExport()
 	const config = builder.config
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
@@ -280,11 +283,19 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						</button>
 					)}
 					{chartSeries.length > 0 && (
-						<ProTableCSVButton
-							onClick={handleCsvExport}
-							smol
-							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-						/>
+						<>
+							<ImageExportButton
+								chartInstance={chartInstance}
+								filename={builder.name || config.metric}
+								title={builder.name || `${config.metric} by Protocol`}
+								smol
+							/>
+							<ProTableCSVButton
+								onClick={handleCsvExport}
+								smol
+								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+							/>
+						</>
 					)}
 				</div>
 				<p className="mt-1 text-xs text-(--text3)">
@@ -304,7 +315,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				) : chartSeries.length > 0 ? (
 					<Suspense fallback={<></>}>
 						<MultiSeriesChart
-							key={`chart-${config.displayAs}-${config.chartType}-${builder.grouping || 'day'}-${config.hideOthers ? 'top' : 'all'}`}
+							key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}`}
 							series={chartSeries as any}
 							valueSymbol={config.displayAs === 'percentage' ? '%' : '$'}
 							groupBy={
@@ -317,6 +328,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 											: 'daily'
 							}
 							hideDataZoom={true}
+							onReady={handleChartReady}
 							chartOptions={{
 								grid: {
 									top: 40,

@@ -31,6 +31,7 @@ export default function AreaChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
+	onReady,
 	...props
 }: IChartProps) {
 	const id = useId()
@@ -220,10 +221,15 @@ export default function AreaChart({
 		if (!chartDom) return
 
 		let chartInstance = echarts.getInstanceByDom(chartDom)
+		const isNewInstance = !chartInstance
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}
 		chartRef.current = chartInstance
+
+		if (onReady && isNewInstance) {
+			onReady(chartInstance)
+		}
 
 		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
@@ -301,6 +307,9 @@ export default function AreaChart({
 			}
 			if (chartRef.current) {
 				chartRef.current = null
+			}
+			if (onReady) {
+				onReady(null)
 			}
 		}
 	}, [id])

@@ -27,6 +27,7 @@ interface IMultiSeriesChartProps {
 	hideDownloadButton?: boolean
 	title?: string
 	showAggregateInTooltip?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export default function MultiSeriesChart({
@@ -38,7 +39,8 @@ export default function MultiSeriesChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	alwaysShowTooltip,
-	showAggregateInTooltip = false
+	showAggregateInTooltip = false,
+	onReady
 }: IMultiSeriesChartProps) {
 	const id = useId()
 
@@ -108,10 +110,15 @@ export default function MultiSeriesChart({
 		if (!chartDom) return
 
 		let chartInstance = echarts.getInstanceByDom(chartDom)
+		const isNewInstance = !chartInstance
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}
 		chartRef.current = chartInstance
+
+		if (onReady && isNewInstance) {
+			onReady(chartInstance)
+		}
 
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
@@ -237,6 +244,9 @@ export default function MultiSeriesChart({
 				const chartInstance = echarts.getInstanceByDom(chartDom)
 				if (chartInstance) {
 					chartInstance.dispose()
+					if (onReady) {
+						onReady(null)
+					}
 				}
 			}
 			if (chartRef.current) {
