@@ -9,7 +9,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum, toNiceCsvDate } from '~/utils'
+import { chainIconUrl, formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
@@ -52,8 +52,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	}, [tvlSettings, props])
 
 	const categoryColumns = useMemo(() => {
-		return columns(props.category)
-	}, [props.category])
+		return columns(props.category, props.isRWA)
+	}, [props.category, props.isRWA])
 
 	const prepareCsv = useCallback(() => {
 		const headers = categoryColumns.map((col) => col.header as string)
@@ -100,7 +100,21 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					)}
 					{props.charts['TVL']?.data.length > 0 && (
 						<p className="flex flex-col">
-							<span className="text-sm text-(--text-label)">Total Value Locked</span>
+							{props.isRWA ? (
+								<Tooltip
+									content="Sum of value of all real world assets on chain"
+									className="!inline text-(--text-label) underline decoration-dotted"
+								>
+									Total RWA Value
+								</Tooltip>
+							) : (
+								<Tooltip
+									content="Sum of value of all coins held in smart contracts of all the protocols on the chain"
+									className="!inline text-(--text-label) underline decoration-dotted"
+								>
+									Total Value Locked
+								</Tooltip>
+							)}
 							<span className="font-jetbrains min-h-8 text-2xl font-semibold">
 								{formattedNum(charts['TVL']?.data[charts['TVL']?.data.length - 1][1], true)}
 							</span>
@@ -145,8 +159,10 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columns={categoryColumns}
 				placeholder="Search protocols..."
 				columnToSearch="name"
-				header="Protocol Rankings"
-				defaultSorting={sortByRevenue.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : []}
+				header={props.isRWA ? 'Assets Rankings' : 'Protocol Rankings'}
+				defaultSorting={
+					sortByRevenue.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : [{ id: 'tvl', desc: true }]
+				}
 				customFilters={<CSVDownloadButton prepareCsv={prepareCsv} />}
 			/>
 		</>
@@ -154,7 +170,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 }
 
 const columns = (
-	category: IProtocolByCategoryOrTagPageData['category']
+	category: IProtocolByCategoryOrTagPageData['category'],
+	isRWA: IProtocolByCategoryOrTagPageData['isRWA']
 ): ColumnDef<IProtocolByCategoryOrTagPageData['protocols'][0]>[] => [
 	{
 		id: 'name',
@@ -221,16 +238,64 @@ const columns = (
 		},
 		size: 280
 	},
+	...(['RWA'].includes(category)
+		? [
+				{
+					id: 'asset_class',
+					header: 'Asset Class',
+					accessorFn: (protocol) => protocol.tvl,
+					enableSorting: false,
+					cell: (info) => {
+						if (info.row.original.tags.length === 0) return null
+						return (
+							<span className="flex flex-nowrap justify-end gap-1">
+								<BasicLink
+									href={`/protocols/${slug(info.row.original.tags[0])}`}
+									className="text-sm font-medium whitespace-nowrap text-(--link-text) hover:underline"
+								>
+									{info.row.original.tags[0]}
+								</BasicLink>
+								{info.row.original.tags.length > 1 && (
+									<Tooltip
+										content={
+											<span className="flex flex-col gap-1">
+												{info.row.original.tags.slice(1).map((tag) => (
+													<BasicLink
+														key={`protocols-${category}-${tag}`}
+														href={`/protocols/${slug(tag)}`}
+														className="text-sm font-medium whitespace-nowrap text-(--link-text) hover:underline"
+													>
+														{tag}
+													</BasicLink>
+												))}
+											</span>
+										}
+									>
+										<span className="text-sm font-medium whitespace-nowrap text-(--text-disabled)">
+											{`+${info.row.original.tags.length - 1}`}
+										</span>
+									</Tooltip>
+								)}
+							</span>
+						)
+					},
+					meta: {
+						align: 'end'
+					},
+					size: 180
+				}
+			]
+		: []),
 	{
 		id: 'tvl',
-		header: 'TVL',
+		header: isRWA ? 'Total Assets' : 'TVL',
 		accessorFn: (protocol) => protocol.tvl,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
 		},
-		size: 100
+		size: 120
 	},
 	{
 		id: 'fees_7d',
@@ -239,7 +304,8 @@ const columns = (
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Fees paid by users in the last 7 days'
 		},
 		size: 100
 	},
@@ -250,7 +316,8 @@ const columns = (
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Revenue earned by the protocol in the last 7 days'
 		},
 		size: 128
 	},
@@ -263,7 +330,8 @@ const columns = (
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
 					meta: {
-						align: 'end'
+						align: 'end',
+						headerHelperText: 'Volume of spot trades in the last 7 days'
 					},
 					size: 140
 				}
@@ -278,7 +346,8 @@ const columns = (
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
 					meta: {
-						align: 'end'
+						align: 'end',
+						headerHelperText: 'Notional volume of all trades in the last 7 days'
 					},
 					size: 160
 				}
@@ -291,7 +360,8 @@ const columns = (
 		cell: (info) => <>{info.getValue() != null ? (info.getValue() as number) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Market cap / TVL ratio'
 		},
 		size: 110
 	},
@@ -302,7 +372,8 @@ const columns = (
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Fees paid by users in the last 30 days'
 		},
 		size: 100
 	},
@@ -313,7 +384,8 @@ const columns = (
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Revenue earned by the protocol in the last 30 days'
 		},
 		size: 128
 	},
@@ -326,7 +398,8 @@ const columns = (
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
 					meta: {
-						align: 'end'
+						align: 'end',
+						headerHelperText: 'Volume of spot trades in the last 30 days'
 					},
 					size: 148
 				}
@@ -341,7 +414,8 @@ const columns = (
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
 					meta: {
-						align: 'end'
+						align: 'end',
+						headerHelperText: 'Notional volume of all trades in the last 30 days'
 					},
 					size: 160
 				}
@@ -354,7 +428,8 @@ const columns = (
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Fees paid by users in the last 24 hours'
 		},
 		size: 100
 	},
@@ -365,7 +440,8 @@ const columns = (
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
 		},
 		size: 128
 	},
@@ -378,7 +454,8 @@ const columns = (
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
 					meta: {
-						align: 'end'
+						align: 'end',
+						headerHelperText: 'Volume of spot trades in the last 24 hours'
 					},
 					size: 148
 				}
@@ -393,7 +470,8 @@ const columns = (
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
 					meta: {
-						align: 'end'
+						align: 'end',
+						headerHelperText: 'Notional volume of all trades in the last 24 hours'
 					},
 					size: 160
 				}
@@ -408,7 +486,8 @@ const columns = (
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
 					meta: {
-						align: 'end'
+						align: 'end',
+						headerHelperText: 'Total amount borrowed from the protocol'
 					},
 					size: 100
 				},
@@ -419,7 +498,8 @@ const columns = (
 					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 					sortUndefined: 'last',
 					meta: {
-						align: 'end'
+						align: 'end',
+						headerHelperText: 'Total amount supplied to the protocol'
 					},
 					size: 100
 				},
@@ -430,7 +510,8 @@ const columns = (
 					cell: (info) => <>{info.getValue() ?? null}</>,
 					sortUndefined: 'last',
 					meta: {
-						align: 'end'
+						align: 'end',
+						headerHelperText: '(Total amount supplied / Total value locked) ratio'
 					},
 					size: 140
 				}

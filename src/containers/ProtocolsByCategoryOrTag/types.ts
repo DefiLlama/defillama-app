@@ -12,6 +12,7 @@ interface IProtocolByCategory {
 	revenue?: Record<string, number> | null
 	dexVolume?: Record<string, number>
 	perpVolume?: Record<string, number>
+	tags: Array<string>
 }
 
 interface IProtocolByCategoryWithSubRows extends IProtocolByCategory {
@@ -22,6 +23,7 @@ export interface IProtocolByCategoryOrTagPageData {
 	protocols: Array<IProtocolByCategoryWithSubRows>
 	category: string | null
 	tag: string | null
+	isRWA: boolean
 	chains: Array<{ label: string; to: string }>
 	chain: string
 	charts: ILineAndBarChartProps['charts']

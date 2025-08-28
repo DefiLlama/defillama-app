@@ -231,7 +231,8 @@ export async function getProtocolsByCategoryOrTag({
 				fees,
 				revenue,
 				dexVolume,
-				perpVolume
+				perpVolume,
+				tags: protocol.tags ?? []
 			}
 			if (protocol.parentProtocol) {
 				parentProtocolsStore[protocol.parentProtocol] = [
@@ -330,7 +331,8 @@ export async function getProtocolsByCategoryOrTag({
 				revenue: revenue.total24h == 0 && revenue.total7d == 0 && revenue.total30d == 0 ? null : revenue,
 				dexVolume: dexVolume.total24h == 0 && dexVolume.total7d == 0 && dexVolume.total30d == 0 ? null : dexVolume,
 				perpVolume: perpVolume.total24h == 0 && perpVolume.total7d == 0 && perpVolume.total30d == 0 ? null : perpVolume,
-				subRows: parentProtocolsStore[parentProtocol.id].sort((a, b) => b.tvl - a.tvl)
+				subRows: parentProtocolsStore[parentProtocol.id].sort((a, b) => b.tvl - a.tvl),
+				tags: Array.from(new Set(parentProtocolsStore[parentProtocol.id].flatMap((p) => p.tags ?? [])))
 			})
 		}
 	}
@@ -368,6 +370,9 @@ export async function getProtocolsByCategoryOrTag({
 		perpVolume7d += protocol.perpVolume?.total7d ?? 0
 	}
 
+	// todo need to use parent category of tag
+	const isRWA = category === 'RWA' || tag ? true : false
+
 	return {
 		charts: {
 			TVL: {
@@ -384,6 +389,7 @@ export async function getProtocolsByCategoryOrTag({
 		),
 		category: category ?? null,
 		tag: tag ?? null,
+		isRWA,
 		chains: [
 			{ label: 'All', to: `/protocols/${slug(category ?? tag)}` },
 			...chains.map((c) => ({ label: c, to: `/protocols/${slug(category ?? tag)}/${slug(c)}` }))
