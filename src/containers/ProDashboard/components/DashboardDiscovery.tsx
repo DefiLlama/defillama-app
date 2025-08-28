@@ -215,7 +215,7 @@ export function DashboardDiscovery() {
 								<Icon name="chevron-left" height={16} width={16} />
 							</button>
 
-							{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+							{Array.from({ length: Math.min(MAX_PAGES, totalPages) }, (_, i) => {
 								const pageNum = i + 1
 								return (
 									<button
@@ -231,7 +231,7 @@ export function DashboardDiscovery() {
 
 							<button
 								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-								disabled={page === totalPages}
+								disabled={page === MAX_PAGES}
 								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:opacity-0"
 							>
 								<Icon name="chevron-right" height={16} width={16} />
@@ -243,3 +243,5 @@ export function DashboardDiscovery() {
 		</>
 	)
 }
+
+const MAX_PAGES = 5
