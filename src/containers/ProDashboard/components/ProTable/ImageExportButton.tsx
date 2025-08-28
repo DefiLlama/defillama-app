@@ -58,7 +58,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 
 				const scale = 2
 				const headerHeight = title ? 36 * scale : 0
-				const footerHeight = 32 * scale
+				const footerHeight = 36 * scale
 				const sidePadding = 16 * scale
 				const canvas = document.createElement('canvas')
 				canvas.width = baseImg.naturalWidth
@@ -83,7 +83,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 				ctx.fillStyle = bgColor
 				ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight)
 				const wmText = 'Made with DefiLlama PRO'
-				ctx.font = `${12 * scale}px Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`
+				ctx.font = `${16 * scale}px Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`
 				ctx.fillStyle = isDark ? '#ffffff' : '#111111'
 				ctx.textBaseline = 'middle'
 				try {
@@ -93,7 +93,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 						i.onerror = reject
 						i.src = '/icons/llamafeed.svg'
 					})
-					const iconSize = 14 * scale
+					const iconSize = 18 * scale
 					const gap = 6 * scale
 					const textW = ctx.measureText(wmText).width
 					const totalW = iconSize + gap + textW
