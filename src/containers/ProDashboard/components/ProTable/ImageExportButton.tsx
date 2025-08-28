@@ -43,11 +43,44 @@ export const ImageExportButton = memo(function ImageExportButton({
 			try {
 				setIsLoading(true)
 
-				const baseURL = chartInstance.getDataURL({
-					type: 'png',
-					pixelRatio: 2,
-					backgroundColor: isDark ? '#0b1214' : '#ffffff'
-				})
+				const tempContainer = document.createElement('div')
+				tempContainer.style.width = '1280px'
+				tempContainer.style.height = '720px'
+				tempContainer.style.position = 'absolute'
+				tempContainer.style.left = '-99999px'
+				tempContainer.style.top = '0'
+				document.body.appendChild(tempContainer)
+
+				let baseURL: string
+				try {
+					const tempChart = echarts.init(tempContainer, null, {
+						width: 1280,
+						height: 720
+					})
+
+					const currentOptions = chartInstance.getOption()
+
+					tempChart.setOption({
+						...currentOptions,
+						animation: false,
+						animationDuration: 0,
+						animationEasing: 'linear',
+						animationDelay: 0,
+						animationDurationUpdate: 0,
+						animationEasingUpdate: 'linear',
+						animationDelayUpdate: 0
+					})
+
+					baseURL = tempChart.getDataURL({
+						type: 'png',
+						pixelRatio: 2,
+						backgroundColor: isDark ? '#0b1214' : '#ffffff'
+					})
+
+					tempChart.dispose()
+				} finally {
+					document.body.removeChild(tempContainer)
+				}
 
 				const baseImg = await new Promise<HTMLImageElement>((resolve, reject) => {
 					const img = new Image()
@@ -162,14 +195,3 @@ export const ImageExportButton = memo(function ImageExportButton({
 		</>
 	)
 })
-
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-	const radius = Math.min(r, w / 2, h / 2)
-	ctx.beginPath()
-	ctx.moveTo(x + radius, y)
-	ctx.arcTo(x + w, y, x + w, y + h, radius)
-	ctx.arcTo(x + w, y + h, x, y + h, radius)
-	ctx.arcTo(x, y + h, x, y, radius)
-	ctx.arcTo(x, y, x + w, y, radius)
-	ctx.closePath()
-}
