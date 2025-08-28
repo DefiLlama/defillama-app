@@ -14,7 +14,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, formatLineChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
-import { LoadingDots } from '~/components/LoadingDots'
+import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import {
 	BRIDGEVOLUME_API_SLUG,

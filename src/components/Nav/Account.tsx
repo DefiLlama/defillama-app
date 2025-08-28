@@ -1,10 +1,10 @@
 import { memo } from 'react'
 import { useRouter } from 'next/router'
+import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
-import { LoadingDots } from '../LoadingDots'
 
 export const Account = memo(function Account() {
 	const { asPath } = useRouter()

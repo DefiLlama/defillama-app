@@ -4,7 +4,7 @@ import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/catego
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
-import { LoadingDots } from '~/components/LoadingDots'
+import { LoadingDots } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TagGroup } from '~/components/TagGroup'

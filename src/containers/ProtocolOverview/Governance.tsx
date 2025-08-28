@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-table'
 import { formatGovernanceData } from '~/api/categories/protocols'
 import { Icon } from '~/components/Icon'
-import { LoadingDots } from '~/components/LoadingDots'
+import { LoadingDots } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'

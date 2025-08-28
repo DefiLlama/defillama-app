@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { LazyChart } from '~/components/LazyChart'
-import { LoadingDots } from '~/components/LoadingDots'
+import { LoadingDots } from '~/components/Loaders'
 import {
 	useConfigPool,
 	useYieldChartData,

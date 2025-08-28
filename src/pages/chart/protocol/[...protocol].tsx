@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { maxAgeForNext } from '~/api'
-import { LoadingDots } from '~/components/LoadingDots'
+import { LoadingDots } from '~/components/Loaders'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
 import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'

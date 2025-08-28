@@ -4,12 +4,12 @@ import * as Ariakit from '@ariakit/react'
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { useQuery } from '@tanstack/react-query'
 import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
+import { LoadingDots } from '~/components/Loaders'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { fetchJson } from '~/utils/async'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
-import { LoadingDots } from '../LoadingDots'
 import { SearchFallback } from './Fallback'
 
 const { searchClient } = instantMeiliSearch(

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { LoadingDots } from '~/components/LoadingDots'
+import { LoadingDots } from '~/components/Loaders'
 import { ForksByProtocol } from '~/containers/Forks'
 import { getForkPageData } from '~/containers/Forks/queries'
 

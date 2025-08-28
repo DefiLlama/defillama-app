@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { LoadingDots } from '~/components/LoadingDots'
+import { LoadingDots } from '~/components/Loaders'
 import { BRIDGETX_API } from '~/constants'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { download, toNiceCsvDate } from '~/utils'
