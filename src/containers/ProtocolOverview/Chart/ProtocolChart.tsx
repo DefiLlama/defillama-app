@@ -143,7 +143,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 				? typeof queryParams.groupBy === 'string' && INTERVALS_LIST.includes(queryParams.groupBy as any)
 					? (queryParams.groupBy as any)
 					: (props.defaultChartView ?? 'daily')
-				: (props.defaultChartView ?? 'daily'),
+				: 'daily',
 			defaultToggledCharts
 		}
 	}, [queryParamsString, props])
