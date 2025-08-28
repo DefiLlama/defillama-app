@@ -326,7 +326,7 @@ export default function Protocols(props) {
 								</Tooltip>
 							))}
 						</div>
-						{props.defaultCharts.length > 0 ? (
+						{props.defaultCharts.length > 1 ? (
 							<Select
 								allValues={props.defaultCharts}
 								selectedValues={charts}

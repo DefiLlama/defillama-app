@@ -333,6 +333,6 @@ export const useGroupAndFormatChains = ({
 			})
 		}
 
-		return { showByGroup, chainsTableData }
+		return { showByGroup, chainsTableData: chainsTableData.sort((a, b) => b.tvl - a.tvl) }
 	}, [category, chains, tvlSettings, minMaxTvl, chainsGroupbyParent, hideGroupBy])
 }
