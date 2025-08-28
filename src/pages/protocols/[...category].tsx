@@ -60,7 +60,7 @@ export default function Protocols(props) {
 		<Layout
 			title={
 				props.isRWA
-					? `${capitalizeFirstLetter(props.category ?? props.tag)} Rankings - DefiLlama`
+					? `${capitalizeFirstLetter(props.category ? 'Real World Assets on Chain (RWA)' : props.tag)} Rankings - DefiLlama`
 					: `${capitalizeFirstLetter(props.category ?? props.tag)} Protocols Rankings - DefiLlama`
 			}
 			includeInMetricsOptions={toggleOptions}
