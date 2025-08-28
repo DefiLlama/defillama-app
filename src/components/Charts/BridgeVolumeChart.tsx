@@ -1,9 +1,9 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import type { IBarChartProps } from '~/components/ECharts/types'
+import { LocalLoader } from '~/components/Loaders'
+import { TagGroup } from '~/components/TagGroup'
 import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
-import { LocalLoader } from '../LocalLoader'
-import { TagGroup } from '../TagGroup'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 

@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
 import { EnterpriseCardContent } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'

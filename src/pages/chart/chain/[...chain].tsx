@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { maxAgeForNext } from '~/api'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'

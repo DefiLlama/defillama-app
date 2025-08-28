@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { AccountHeader } from './components/AccountHeader'

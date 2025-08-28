@@ -4,7 +4,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 

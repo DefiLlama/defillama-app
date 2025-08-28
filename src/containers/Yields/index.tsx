@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Announcement } from '~/components/Announcement'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { download } from '~/utils'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
