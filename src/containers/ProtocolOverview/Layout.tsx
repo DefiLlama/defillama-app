@@ -79,6 +79,7 @@ export function ProtocolOverviewLayout({
 			includeInMetricsOptions={toggleOptions}
 			includeInMetricsOptionslabel={includeInMetricsOptionslabel}
 			customSEO
+			className="pt-2 lg:pt-1"
 		>
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<p className="relative rounded-md border border-(--bg-color) bg-(--btn-bg) p-2 text-center text-xs text-black dark:text-white">

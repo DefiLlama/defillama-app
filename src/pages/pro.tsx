@@ -91,45 +91,37 @@ function ProContent({
 	}
 
 	return (
-		<div className="pro-dashboard my-2 flex flex-1 flex-col gap-4">
+		<div className="pro-dashboard flex flex-1 flex-col gap-4 p-2 lg:px-0">
 			<div className="flex flex-wrap items-center justify-between gap-2">
-				<div className="flex gap-8">
+				<div className="flex overflow-x-auto">
 					{isAuthenticated && hasActiveSubscription && (
 						<button
 							onClick={() => setActiveTab('my-dashboards')}
-							className={`relative pb-3 text-base font-medium transition-colors ${
-								activeTab === 'my-dashboards' ? 'pro-text1' : 'pro-text3 hover:pro-text1'
-							}`}
+							data-active={activeTab === 'my-dashboards'}
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 						>
 							My Dashboards
-							{activeTab === 'my-dashboards' && (
-								<div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />
-							)}
 						</button>
 					)}
 
 					<button
 						onClick={() => setActiveTab('discover')}
-						className={`relative pb-3 text-base font-medium transition-colors ${
-							activeTab === 'discover' ? 'pro-text1' : 'pro-text3 hover:pro-text1'
-						}`}
+						data-active={activeTab === 'discover'}
+						className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 					>
 						Discover
-						{activeTab === 'discover' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
 					</button>
 					{isAuthenticated && (
 						<button
 							onClick={() => setActiveTab('favorites')}
-							className={`relative pb-3 text-base font-medium transition-colors ${
-								activeTab === 'favorites' ? 'pro-text1' : 'pro-text3 hover:pro-text1'
-							}`}
+							data-active={activeTab === 'favorites'}
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 						>
 							Favorites
-							{activeTab === 'favorites' && <div className="absolute right-0 bottom-0 left-0 h-0.5 bg-(--primary)" />}
 						</button>
 					)}
 				</div>
-				<div className="flex gap-2">
+				<div className="ml-auto flex flex-wrap gap-2">
 					{!featureFlagsLoading && hasFeature('dashboard-gen') && (
 						<button
 							onClick={

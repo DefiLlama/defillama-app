@@ -114,8 +114,8 @@ function ProDashboardContent() {
 	}
 
 	return (
-		<div className="pro-dashboard flex flex-1 flex-col gap-2">
-			<BasicLink href="/pro" className="pro-link my-2 mr-auto flex items-center gap-2">
+		<div className="pro-dashboard flex flex-1 flex-col gap-4 p-2 lg:px-0">
+			<BasicLink href="/pro" className="pro-link mr-auto flex items-center gap-2">
 				<Icon name="arrow-left" height={16} width={16} />
 				Back to Dashboards
 			</BasicLink>
