@@ -104,10 +104,10 @@ export function DashboardDiscovery() {
 			<div className="flex flex-col gap-1">
 				<h1>Explore public dashboards created by the community</h1>
 
-				<div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
+				<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 					<DashboardSearch searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
-					<div className="flex items-center gap-4">
+					<div className="ml-auto flex flex-wrap items-center gap-4">
 						<label className="flex items-center gap-2">
 							<span className="text-(--text-label)">Sort by:</span>
 							<select

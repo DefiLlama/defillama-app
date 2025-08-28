@@ -7,7 +7,7 @@ interface DashboardSearchProps {
 
 export function DashboardSearch({ searchQuery, onSearchChange }: DashboardSearchProps) {
 	return (
-		<div className="max-w-3xl flex-1">
+		<div className="w-full flex-1 lg:max-w-3xl">
 			<div className="relative flex-1">
 				<Icon name="search" height={16} width={16} className="absolute top-1/2 left-3 -translate-y-1/2" />
 				<input

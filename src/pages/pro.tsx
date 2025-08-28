@@ -122,7 +122,7 @@ function ProContent({
 						</BasicLink>
 					)}
 				</div>
-				<div className="ml-auto flex flex-wrap gap-2">
+				<div className="ml-auto flex flex-wrap justify-end gap-2">
 					{!featureFlagsLoading && hasFeature('dashboard-gen') && (
 						<button
 							onClick={
