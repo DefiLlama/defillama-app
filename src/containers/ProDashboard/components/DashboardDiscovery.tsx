@@ -1,17 +1,78 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
 import { LoadingSpinner } from './LoadingSpinner'
 
 type SortOption = 'popular' | 'recent' | 'likes'
-type ViewMode = 'grid' | 'list'
+
+const viewModes = ['grid', 'list'] as const
+type ViewMode = (typeof viewModes)[number]
+
+function getUrl({
+	base,
+	key,
+	value,
+	replace = false
+}: {
+	base: string
+	key: string
+	value: string | undefined
+	replace?: boolean
+}) {
+	if (typeof window === 'undefined') {
+		return `${base}?${new URLSearchParams({ [key]: value }).toString()}`
+	}
+
+	const params = new URLSearchParams(window.location.search)
+
+	if (value === '' || value == null) {
+		params.delete(key)
+	} else {
+		if (replace) {
+			// Replace: remove all existing values and set new one
+			params.delete(key)
+			params.append(key, value)
+		} else {
+			const existingValues = params.getAll(key)
+
+			if (existingValues.includes(value)) {
+				// Remove all instances of this key
+				params.delete(key)
+
+				// Re-add all values except the one to remove
+				existingValues.filter((oldValue) => oldValue !== value).forEach((value) => params.append(key, value))
+			} else {
+				// Append: add new value to existing ones
+				params.append(key, value)
+			}
+		}
+	}
+
+	return `${base}?${params.toString()}`
+}
 
 export function DashboardDiscovery() {
-	const [viewMode, setViewMode] = useState<ViewMode>('grid')
+	const router = useRouter()
+
+	const { viewMode, selectedTags, selectedTagsWithUrl } = useMemo(() => {
+		const { view, tag } = router.query
+
+		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
+		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
+
+		const selectedTagsWithUrl = selectedTags.map((tag) => ({
+			tag,
+			url: getUrl({ base: '/pro', key: 'tag', value: tag })
+		}))
+
+		return { viewMode, selectedTags, selectedTagsWithUrl }
+	}, [router.query])
+
 	const [sortBy, setSortBy] = useState<SortOption>('popular')
-	const [selectedTags, setSelectedTags] = useState<string[]>([])
 	const [searchQuery, setSearchQuery] = useState('')
 	const [page, setPage] = useState(1)
 
@@ -34,91 +95,95 @@ export function DashboardDiscovery() {
 	}, [searchQuery, selectedTags, sortBy, page])
 
 	const handleTagClick = (tag: string) => {
-		setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
+		router.push(getUrl({ base: '/pro', key: 'tag', value: tag }), undefined, { shallow: true })
 		setPage(1)
 	}
 
 	return (
-		<div>
-			<div className="mb-6">
-				<p className="pro-text3 mb-4">Explore public dashboards created by the community</p>
+		<>
+			<div className="flex flex-col gap-1">
+				<h1>Explore public dashboards created by the community</h1>
 
-				<div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
+				<div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
 					<DashboardSearch searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
 					<div className="flex items-center gap-4">
-						<div className="flex items-center gap-2">
-							<label className="pro-text3 text-sm">Sort by:</label>
+						<label className="flex items-center gap-2">
+							<span className="text-(--text-label)">Sort by:</span>
 							<select
 								value={sortBy}
 								onChange={(e) => {
 									setSortBy(e.target.value as SortOption)
 									setPage(1)
 								}}
-								className="pro-border pro-text1 border bg-(--bg-glass) px-3 py-1.5 focus:border-(--primary) focus:outline-hidden"
+								className="h-[32px] rounded-md border border-(--form-control-border) px-2 py-1.5 focus:border-(--primary) focus:outline-hidden"
 							>
 								<option value="popular">Most Popular</option>
 								<option value="recent">Recently Created</option>
 								<option value="likes">Most Liked</option>
 							</select>
-						</div>
+						</label>
 
-						<div className="pro-border flex items-center border">
-							<button
-								onClick={() => setViewMode('grid')}
-								className={`p-2 ${viewMode === 'grid' ? 'bg-(--primary) text-white' : 'pro-text3 hover:pro-text1'}`}
-								title="Grid view"
+						<div className="flex items-center rounded-md border border-(--form-control-border)">
+							<BasicLink
+								href={getUrl({ base: '/pro', key: 'view', value: 'grid', replace: true })}
+								shallow
+								data-active={viewMode === 'grid'}
+								className="rounded-l-md border-r border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								<Icon name="layers" height={16} width={16} />
-							</button>
-							<button
-								onClick={() => setViewMode('list')}
-								className={`p-2 ${viewMode === 'list' ? 'bg-(--primary) text-white' : 'pro-text3 hover:pro-text1'}`}
-								title="List view"
+								<span className="sr-only">View as grid</span>
+							</BasicLink>
+							<BasicLink
+								href={getUrl({ base: '/pro', key: 'view', value: 'list', replace: true })}
+								shallow
+								data-active={viewMode === 'list'}
+								className="rounded-r-md border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								<Icon name="align-left" height={16} width={16} />
-							</button>
+								<span className="sr-only">View as list</span>
+							</BasicLink>
 						</div>
 					</div>
 				</div>
 
-				{selectedTags.length > 0 && (
-					<div className="mt-4 flex items-center gap-2">
-						<span className="pro-text3 text-sm">Active filters:</span>
+				{selectedTagsWithUrl.length > 0 && (
+					<div className="mt-1 flex items-center gap-2 text-xs">
+						<h2>Active filters:</h2>
 						<div className="flex flex-wrap gap-2">
-							{selectedTags.map((tag) => (
-								<button
-									key={tag}
-									onClick={() => handleTagClick(tag)}
-									className="pro-border pro-text1 flex items-center gap-1 border bg-(--bg-glass) px-3 py-1 text-sm hover:border-(--pro-glass-border)"
+							{selectedTagsWithUrl.map(({ tag, url }) => (
+								<BasicLink
+									key={`pro-dashboard-tag-${tag}-${url}`}
+									href={url}
+									shallow
+									className="flex items-center gap-1 rounded-full border border-(--switch-border) px-2 py-1 text-xs hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
 								>
-									{tag}
+									<span className="sr-only">Remove</span>
+									<span>{tag}</span>
 									<Icon name="x" height={12} width={12} />
-								</button>
+								</BasicLink>
 							))}
 						</div>
-						<button
-							onClick={() => {
-								setSelectedTags([])
-								setPage(1)
-							}}
-							className="pro-text3 hover:pro-text1 text-sm"
+						<BasicLink
+							href={getUrl({ base: '/pro', key: 'tag', value: '', replace: true })}
+							shallow
+							className="text-(--text-label) hover:text-(--error)"
 						>
 							Clear all
-						</button>
+						</BasicLink>
 					</div>
 				)}
 			</div>
 
 			{isLoading ? (
-				<div className="flex h-64 items-center justify-center">
+				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 					<LoadingSpinner />
 				</div>
 			) : dashboards.length === 0 ? (
-				<div className="py-12 text-center">
-					<Icon name="search" height={48} width={48} className="pro-text3 mx-auto mb-4" />
-					<h3 className="pro-text1 mb-2 text-lg font-medium">No dashboards found</h3>
-					<p className="pro-text3">
+				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
+					<Icon name="search" height={48} width={48} className="text-(--text-label)" />
+					<h1 className="text-center text-2xl font-bold">No dashboards found</h1>
+					<p className="text-center text-(--text-label)">
 						{searchQuery || selectedTags.length > 0
 							? 'Try adjusting your search criteria'
 							: 'Be the first to share a public dashboard!'}
@@ -126,9 +191,9 @@ export function DashboardDiscovery() {
 				</div>
 			) : (
 				<>
-					<div className="pro-text3 mb-4 text-sm">
+					<p className="-mb-2 text-xs text-(--text-label)">
 						Showing {dashboards.length} of {totalItems} dashboards
-					</div>
+					</p>
 
 					<div
 						className={
@@ -141,11 +206,11 @@ export function DashboardDiscovery() {
 					</div>
 
 					{totalPages > 1 && (
-						<div className="mt-8 flex items-center justify-center gap-2">
+						<div className="flex items-center justify-center gap-2">
 							<button
 								onClick={() => setPage((p) => Math.max(1, p - 1))}
 								disabled={page === 1}
-								className={`px-3 py-1 ${page === 1 ? 'pro-text3 cursor-not-allowed' : 'pro-text1 hover:bg-(--bg-glass)'}`}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:opacity-0"
 							>
 								<Icon name="chevron-left" height={16} width={16} />
 							</button>
@@ -156,9 +221,8 @@ export function DashboardDiscovery() {
 									<button
 										key={pageNum}
 										onClick={() => setPage(pageNum)}
-										className={`px-3 py-1 ${
-											page === pageNum ? 'bg-(--primary) text-white' : 'pro-text1 hover:bg-(--bg-glass)'
-										}`}
+										data-active={page === pageNum}
+										className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
 										{pageNum}
 									</button>
@@ -168,9 +232,7 @@ export function DashboardDiscovery() {
 							<button
 								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
 								disabled={page === totalPages}
-								className={`px-3 py-1 ${
-									page === totalPages ? 'pro-text3 cursor-not-allowed' : 'pro-text1 hover:bg-(--bg-glass)'
-								}`}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:opacity-0"
 							>
 								<Icon name="chevron-right" height={16} width={16} />
 							</button>
@@ -178,6 +240,6 @@ export function DashboardDiscovery() {
 					)}
 				</>
 			)}
-		</div>
+		</>
 	)
 }

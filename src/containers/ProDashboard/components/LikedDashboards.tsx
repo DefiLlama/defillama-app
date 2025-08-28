@@ -18,7 +18,7 @@ export function LikedDashboards() {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 				<Icon name="star" height={48} width={48} className="text-(--text-label)" />
-				<h2 className="text-center text-2xl font-bold">No favorite dashboards yet</h2>
+				<h1 className="text-center text-2xl font-bold">No favorite dashboards yet</h1>
 				<p className="text-center text-(--text-label)">
 					Dashboards you mark as favorites will appear here. Start exploring dashboards from the Discover tab!
 				</p>

@@ -133,7 +133,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (tag: string) => void }) => {
 	if (!dashboard.tags || dashboard.tags.length === 0) return null
 	return (
-		<div className="flex max-w-[60%] flex-wrap gap-1">
+		<div className="flex max-w-[60%] flex-wrap items-center gap-1">
 			{dashboard.tags.slice(0, 2).map((tag) => (
 				<button
 					key={tag}
@@ -141,12 +141,12 @@ const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (t
 						e.stopPropagation()
 						onTagClick?.(tag)
 					}}
-					className="z-10 rounded-md border border-(--switch-border) px-2 py-1 text-xs hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+					className="z-10 rounded-full border border-(--switch-border) px-2 py-1 text-xs hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
 				>
 					{tag}
 				</button>
 			))}
-			{dashboard.tags.length > 2 && <span className="pro-text3 px-2 py-1 text-xs">+{dashboard.tags.length - 2}</span>}
+			{dashboard.tags.length > 2 && <span className="text-xs">+{dashboard.tags.length - 2}</span>}
 		</div>
 	)
 }

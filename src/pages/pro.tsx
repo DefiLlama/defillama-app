@@ -35,10 +35,6 @@ function ProPageContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()
 
-	const [activeTab, setActiveTab] = useState<'my-dashboards' | 'discover' | 'favorites'>(
-		isAuthenticated && subscription?.status === 'active' ? 'my-dashboards' : 'discover'
-	)
-
 	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
 
 	if (isAccountLoading) {
@@ -51,12 +47,7 @@ function ProPageContent() {
 
 	return (
 		<Layout title="DefiLlama - Pro Dashboard">
-			<ProContent
-				activeTab={activeTab}
-				setActiveTab={setActiveTab}
-				hasActiveSubscription={subscription?.status === 'active'}
-				isAuthenticated={isAuthenticated}
-			/>
+			<ProContent hasActiveSubscription={subscription?.status === 'active'} isAuthenticated={isAuthenticated} />
 		</Layout>
 	)
 }
@@ -67,8 +58,6 @@ function ProContent({
 	hasActiveSubscription,
 	isAuthenticated
 }: {
-	activeTab: 'my-dashboards' | 'discover' | 'favorites'
-	setActiveTab: (tab: 'my-dashboards' | 'discover' | 'favorites') => void
 	hasActiveSubscription: boolean
 	isAuthenticated: boolean
 }) {

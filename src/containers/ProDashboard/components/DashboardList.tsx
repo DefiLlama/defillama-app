@@ -39,7 +39,7 @@ export function DashboardList({ dashboards, isLoading, onCreateNew, onDeleteDash
 			{dashboards.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 					<Icon name="layers" height={48} width={48} className="text-(--text-label)" />
-					<h2 className="text-center text-2xl font-bold">No dashboards yet</h2>
+					<h1 className="text-center text-2xl font-bold">No dashboards yet</h1>
 					<p className="text-center text-(--text-label)">Create your first dashboard to get started</p>
 					<button
 						onClick={onCreateNew}
