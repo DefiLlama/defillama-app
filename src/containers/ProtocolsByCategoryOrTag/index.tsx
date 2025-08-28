@@ -297,6 +297,130 @@ const columns = (
 		},
 		size: 120
 	},
+	...(isRWA
+		? [
+				{
+					id: 'rwa_redeemable',
+					header: 'Redeemable',
+					accessorFn: (protocol) => protocol.rwaStats?.redeemable,
+					cell: (info) => (
+						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+						</span>
+					),
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Whether the asset can be redeemed'
+					},
+					size: 120
+				},
+				{
+					id: 'rwa_attestations',
+					header: 'Attestations',
+					accessorFn: (protocol) => protocol.rwaStats?.attestations,
+					cell: (info) => (
+						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+						</span>
+					),
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Whether the asset has attestations'
+					},
+					size: 120
+				},
+				{
+					id: 'rwa_cex_listed',
+					header: 'CEX Listed',
+					accessorFn: (protocol) => protocol.rwaStats?.cexListed,
+					cell: (info) => (
+						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+						</span>
+					),
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Whether the asset is listed on a CEX'
+					},
+					size: 120
+				},
+				{
+					id: 'rwa_kyc',
+					header: 'KYC',
+					accessorFn: (protocol) => protocol.rwaStats?.kyc,
+					cell: (info) => (
+						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+						</span>
+					),
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Whether the asset requires KYC'
+					},
+					size: 80
+				},
+				{
+					id: 'rwa_transferable',
+					header: 'Transferable',
+					accessorFn: (protocol) => protocol.rwaStats?.transferable,
+					cell: (info) => (
+						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+						</span>
+					),
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Whether the asset can be transferred'
+					},
+					size: 120
+				},
+				{
+					id: 'rwa_self_custody',
+					header: 'Self Custody',
+					accessorFn: (protocol) => protocol.rwaStats?.selfCustody,
+					cell: (info) => (
+						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+						</span>
+					),
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Whether the asset can be self-custodied'
+					},
+					size: 120
+				},
+				{
+					id: 'rwa_volume_7d',
+					header: 'Volume 7d',
+					accessorFn: (protocol) => protocol.rwaStats?.volumeUsd7d,
+					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Volume of all trades in the last 7 days'
+					},
+					size: 120
+				},
+				{
+					id: 'rwa_volume_24h',
+					header: 'Volume 24h',
+					accessorFn: (protocol) => protocol.rwaStats?.volumeUsd1d,
+					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Volume of all trades in the last 24 hours'
+					},
+					size: 120
+				}
+			]
+		: ([] as any)),
 	{
 		id: 'fees_7d',
 		header: 'Fees 7d',

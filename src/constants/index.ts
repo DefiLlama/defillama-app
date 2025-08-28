@@ -165,6 +165,7 @@ export const AUTH_SERVER = 'https://auth.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
 
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
+export const RWA_STATS_API = 'https://api.llama.fi/rwa/stats'
 
 export const removedCategoriesFromChainTvl = [
 	'Chain',
