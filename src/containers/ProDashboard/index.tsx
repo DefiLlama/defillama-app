@@ -517,6 +517,7 @@ function ProDashboardContent() {
 				<EmptyState
 					onAddChart={() => setShowAddModal(true)}
 					onGenerateWithAI={hasFeature('dashboard-gen') ? () => setShowIterateDashboardModal(true) : undefined}
+					isReadOnly={isReadOnly}
 				/>
 			)}
 
