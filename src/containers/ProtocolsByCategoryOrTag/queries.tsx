@@ -355,7 +355,7 @@ export async function getProtocolsByCategoryOrTag({
 				logo: tokenIconUrl(parentProtocol.name),
 				chains: parentProtocol.chains,
 				mcap: parentProtocol.mcap ?? null,
-				tvl: isRWA ? rwaStats.tvlUsd : tvl,
+				tvl,
 				...(category && ['Lending'].includes(category) ? { borrowed, supplied, suppliedTvl } : {}),
 				extraTvls,
 				fees: fees.total24h == 0 && fees.total7d == 0 && fees.total30d == 0 ? null : fees,
