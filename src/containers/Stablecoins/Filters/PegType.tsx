@@ -99,6 +99,12 @@ export const stablecoinPegTypeOptions = [
 		key: STABLECOINS_SETTINGS.PEGGEDRUB,
 		filterFn: (item) => item.pegType === 'peggedRUB',
 		help: 'Show stablecoins pegged to Russian Ruble'
+	},
+	{
+		name: 'PHP',
+		key: STABLECOINS_SETTINGS.PEGGEDPHP,
+		filterFn: (item) => item.pegType === 'peggedPHP',
+		help: 'Show stablecoins pegged to Philippine Peso'
 	}
 ]
 
