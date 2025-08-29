@@ -74,6 +74,8 @@ type Name =
 	| 'blocks'
 	| 'banknote'
 	| 'pin'
+	| 'chevrons-left'
+	| 'chevrons-right'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -81,7 +83,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v10.svg#${name}`} />
+			<use href={`/icons/v11.svg#${name}`} />
 		</svg>
 	)
 })

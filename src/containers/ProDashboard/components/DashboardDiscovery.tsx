@@ -64,6 +64,18 @@ export function DashboardDiscovery() {
 		)
 	}
 
+	const pagesToShow = useMemo(() => {
+		if (selectedPage === 1) {
+			return [1, 2, 3]
+		}
+
+		if (selectedPage === totalPages) {
+			return [totalPages - 2, totalPages - 1, totalPages]
+		}
+
+		return [selectedPage - 1, selectedPage, selectedPage + 1]
+	}, [totalPages, selectedPage])
+
 	return (
 		<>
 			<div className="flex flex-col gap-1">
@@ -241,7 +253,25 @@ export function DashboardDiscovery() {
 					</div>
 
 					{totalPages > 1 && (
-						<div className="flex items-center justify-center gap-2">
+						<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
+							<button
+								onClick={() => {
+									const { page, ...query } = router.query
+									router.push(
+										{
+											pathname: '/pro',
+											query
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}}
+								disabled={selectedPage < 3}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevrons-left" height={16} width={16} />
+							</button>
+
 							<button
 								onClick={() => {
 									router.push(
@@ -254,16 +284,25 @@ export function DashboardDiscovery() {
 									)
 								}}
 								disabled={selectedPage === 1}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:opacity-0"
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
 							>
 								<Icon name="chevron-left" height={16} width={16} />
 							</button>
 
-							{Array.from({ length: Math.min(MAX_PAGES, totalPages) }, (_, i) => {
-								const pageNum = i + 1
+							{pagesToShow.map((pageNum) => {
+								const isActive = selectedPage === pageNum
 								return (
 									<button
-										key={pageNum}
+										key={`page-to-navigate-to-${pageNum}`}
+										ref={(el) => {
+											if (el && isActive) {
+												el.scrollIntoView({
+													behavior: 'smooth',
+													block: 'nearest',
+													inline: 'center'
+												})
+											}
+										}}
 										onClick={() => {
 											router.push(
 												{
@@ -274,8 +313,8 @@ export function DashboardDiscovery() {
 												{ shallow: true }
 											)
 										}}
-										data-active={selectedPage === pageNum}
-										className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										data-active={isActive}
+										className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
 										{pageNum}
 									</button>
@@ -293,10 +332,26 @@ export function DashboardDiscovery() {
 										{ shallow: true }
 									)
 								}}
-								disabled={selectedPage === MAX_PAGES}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:opacity-0"
+								disabled={selectedPage === totalPages}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
 							>
 								<Icon name="chevron-right" height={16} width={16} />
+							</button>
+							<button
+								onClick={() => {
+									router.push(
+										{
+											pathname: '/pro',
+											query: { ...router.query, page: totalPages }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}}
+								disabled={selectedPage > totalPages - 2}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevrons-right" height={16} width={16} />
 							</button>
 						</div>
 					)}
@@ -305,5 +360,3 @@ export function DashboardDiscovery() {
 		</>
 	)
 }
-
-const MAX_PAGES = 5
