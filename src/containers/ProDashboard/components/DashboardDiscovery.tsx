@@ -294,15 +294,6 @@ export function DashboardDiscovery() {
 								return (
 									<button
 										key={`page-to-navigate-to-${pageNum}`}
-										ref={(el) => {
-											if (el && isActive) {
-												el.scrollIntoView({
-													behavior: 'smooth',
-													block: 'nearest',
-													inline: 'center'
-												})
-											}
-										}}
 										onClick={() => {
 											router.push(
 												{
