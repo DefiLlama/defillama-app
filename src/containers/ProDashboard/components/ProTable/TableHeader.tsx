@@ -178,18 +178,17 @@ export function TableHeader({
 
 			<ProTableCSVButton onClick={downloadCSV} smol />
 
-			<Tooltip content="Create custom calculated columns with formulas like 'tvl / mcap' or '(fees_24h + revenue_24h) * 365'">
-				<button
-					onClick={() => setShowColumnPanel(!showColumnPanel)}
-					className="pro-border pro-hover-bg pro-text1 pro-bg1 relative flex items-center gap-2 border px-3 py-1.5 text-sm transition-colors"
-				>
-					<Icon name="settings" height={14} width={14} />
-					<span className="flex items-center gap-1">
-						Customize Table
-						<span className="rounded-sm bg-(--primary) px-1.5 py-0.5 text-xs text-white">+ Custom Columns</span>
-					</span>
-					<Icon name={showColumnPanel ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
-				</button>
+			<Tooltip
+				content="Create custom calculated columns with formulas like 'tvl / mcap' or '(fees_24h + revenue_24h) * 365'"
+				render={<button onClick={() => setShowColumnPanel(!showColumnPanel)} />}
+				className="pro-border pro-hover-bg pro-text1 pro-bg1 relative flex items-center gap-2 border px-3 py-1.5 text-sm transition-colors"
+			>
+				<Icon name="settings" height={14} width={14} />
+				<span className="flex items-center gap-1">
+					Customize Table
+					<span className="rounded-sm bg-(--primary) px-1.5 py-0.5 text-xs text-white">+ Custom Columns</span>
+				</span>
+				<Icon name={showColumnPanel ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
 			</Tooltip>
 
 			{onSaveView && (

@@ -143,9 +143,9 @@ export function TrendingContractsDataset({
 	return (
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
-				<div className="flex items-center justify-between gap-4">
-					<h3 className="pro-text1 text-lg font-semibold">Trending Contracts</h3>
-					<div className="flex items-center gap-2">
+				<div className="flex flex-wrap items-center justify-end gap-4">
+					<h3 className="pro-text1 mr-auto text-lg font-semibold">Trending Contracts</h3>
+					<div className="flex flex-wrap items-center justify-end gap-2">
 						<TagGroup
 							selectedValue={timeframe}
 							setValue={(val: string) => {

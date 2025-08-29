@@ -210,7 +210,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							className={`${getColSpanClass(item.colSpan)}`}
 						>
 							<div className={`pro-glass relative h-full ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
-								<div className={item.kind === 'table' ? 'pr-12' : ''}>{renderItemContent(item)}</div>
+								<div className={item.kind === 'table' ? '' : ''}>{renderItemContent(item)}</div>
 							</div>
 						</div>
 					))}
