@@ -396,6 +396,18 @@ const columns = (
 					size: 120
 				},
 				{
+					id: 'rwa_liquidity',
+					header: 'Liquidity',
+					accessorFn: (protocol) => protocol.rwaStats?.tvlUsd,
+					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Liquidity of the asset in pools'
+					},
+					size: 120
+				},
+				{
 					id: 'rwa_volume_7d',
 					header: 'Volume 7d',
 					accessorFn: (protocol) => protocol.rwaStats?.volumeUsd7d,
