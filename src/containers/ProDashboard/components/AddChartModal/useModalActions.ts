@@ -54,15 +54,37 @@ export function useModalActions(
 		[chains]
 	)
 
-	const protocolOptions = useMemo(
-		() =>
-			protocols.map((protocol: Protocol) => ({
-				value: protocol.slug,
-				label: protocol.name,
-				logo: protocol.logo
-			})),
-		[protocols]
-	)
+	const protocolOptions = useMemo(() => {
+		const childrenByParentId = new Map<string, Protocol[]>()
+		const parentsOrSolo: Protocol[] = []
+
+		for (const p of protocols as Protocol[]) {
+			if (p.parentProtocol) {
+				const arr = childrenByParentId.get(p.parentProtocol) || []
+				arr.push(p)
+				childrenByParentId.set(p.parentProtocol, arr)
+			} else {
+				parentsOrSolo.push(p)
+			}
+		}
+
+		parentsOrSolo.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
+
+		const options: Array<{ value: string; label: string; logo?: string; isChild?: boolean }> = []
+
+		for (const parent of parentsOrSolo) {
+			options.push({ value: parent.slug, label: parent.name, logo: parent.logo })
+			const children = childrenByParentId.get(parent.id) || []
+			if (children.length > 0) {
+				children.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
+				for (const child of children) {
+					options.push({ value: child.slug, label: child.name, logo: child.logo, isChild: true })
+				}
+			}
+		}
+
+		return options
+	}, [protocols])
 
 	const handleChainChange = (option: any) => {
 		actions.setSelectedChain(option.value)

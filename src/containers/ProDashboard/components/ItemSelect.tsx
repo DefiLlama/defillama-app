@@ -6,9 +6,16 @@ import { getItemIconUrl } from '../utils'
 import { reactSelectStyles } from '../utils/reactSelectStyles'
 import { LoadingSpinner } from './LoadingSpinner'
 
+interface SelectOption {
+	value: string
+	label: string
+	logo?: string
+	isChild?: boolean
+}
+
 interface ItemSelectProps {
 	label: string
-	options: Array<{ value: string; label: string; logo?: string }>
+	options: Array<SelectOption>
 	selectedValue: string | null
 	onChange: (option: any) => void
 	isLoading: boolean
@@ -30,20 +37,65 @@ const CustomChainOption = ({ innerProps, label, data }) => (
 )
 
 const CustomProtocolOption = ({ innerProps, label, data }) => {
+	const isChild = !!data.isChild
+	const iconSize = isChild ? 18 : 20
 	const iconUrl = getItemIconUrl('protocol', data, data.value)
 	return (
-		<div {...innerProps} style={{ display: 'flex', alignItems: 'center', padding: '8px', cursor: 'pointer' }}>
+		<div
+			{...innerProps}
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				padding: '8px',
+				cursor: 'pointer',
+				paddingLeft: isChild ? 40 : 10,
+				marginLeft: isChild ? 0 : 0,
+				marginRight: 4,
+				backgroundColor: 'transparent',
+				transition: 'background-color 0.15s ease',
+				position: 'relative'
+			}}
+		>
+			{isChild && (
+				<>
+					<div
+						style={{
+							position: 'absolute',
+							left: 28,
+							top: '50%',
+							transform: 'translateY(-50%)',
+							width: 4,
+							height: 4,
+							borderRadius: '50%',
+							backgroundColor: 'var(--text-tertiary)',
+							opacity: 0.6
+						}}
+					/>
+				</>
+			)}
 			{data.logo ? (
 				<img
 					src={data.logo}
 					alt={label}
-					style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
+					style={{
+						width: iconSize,
+						height: iconSize,
+						marginRight: 10,
+						borderRadius: '50%',
+						opacity: 1
+					}}
 				/>
 			) : (
 				<img
 					src={iconUrl}
 					alt={label}
-					style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
+					style={{
+						width: iconSize,
+						height: iconSize,
+						marginRight: 10,
+						borderRadius: '50%',
+						opacity: isChild ? 0.85 : 1
+					}}
 					onError={(e) => {
 						const target = e.target as HTMLImageElement
 						target.style.display = 'none'
@@ -56,15 +108,23 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 			)}
 			<div
 				style={{
-					width: '20px',
-					height: '20px',
-					marginRight: '10px',
+					width: iconSize,
+					height: iconSize,
+					marginRight: 10,
 					borderRadius: '50%',
 					backgroundColor: 'var(--bg2)',
 					display: data.logo ? 'none' : 'none'
 				}}
 			/>
-			{label}
+			<span
+				style={{
+					fontWeight: isChild ? 400 : 500,
+					color: isChild ? 'var(--text-secondary)' : 'var(--text-primary)',
+					fontSize: isChild ? '0.95em' : '1em'
+				}}
+			>
+				{label}
+			</span>
 		</div>
 	)
 }

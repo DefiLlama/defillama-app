@@ -21,6 +21,30 @@ function generateChartKey(
 	return timePeriod ? `${keyWithGecko}-${timePeriod}` : keyWithGecko
 }
 
+export function useParentChildMapping() {
+	const { data: protocolsData } = useProtocolsAndChains()
+	const parentToChildren = new Map<string, string[]>()
+	if (protocolsData?.protocols?.length) {
+		const parentIdToSlug = new Map<string, string>()
+		for (const p of protocolsData.protocols) {
+			if (!p.parentProtocol && p.id && p.slug) {
+				parentIdToSlug.set(p.id, p.slug)
+				if (!parentToChildren.has(p.slug)) parentToChildren.set(p.slug, [])
+			}
+		}
+		for (const p of protocolsData.protocols) {
+			if (p.parentProtocol) {
+				const parentSlug = parentIdToSlug.get(p.parentProtocol)
+				if (!parentSlug) continue
+				const arr = parentToChildren.get(parentSlug) || []
+				arr.push(p.slug)
+				parentToChildren.set(parentSlug, arr)
+			}
+		}
+	}
+	return { data: parentToChildren }
+}
+
 function filterDataByTimePeriod(data: [number, number][], timePeriod: TimePeriod): [number, number][] {
 	if (timePeriod === 'all' || !data.length) {
 		return data
@@ -214,15 +238,55 @@ function getChartQueryFn(
 	itemType: 'chain' | 'protocol',
 	item: string,
 	geckoId?: string | null,
-	timePeriod?: TimePeriod
+	timePeriod?: TimePeriod,
+	parentMapping?: Map<string, string[]>
 ) {
 	if (itemType === 'protocol') {
 		const handler = protocolChartHandlers[type]
-		if (handler) {
-			return handler(item, geckoId, timePeriod)
+		if (!handler) {
+			console.error(`Unknown chart type for protocol: ${type}`)
+			return () => Promise.resolve([])
 		}
-		console.error(`Unknown chart type for protocol: ${type}`)
-		return () => Promise.resolve([])
+
+		const tokenTypes = new Set(['tokenMcap', 'tokenPrice', 'tokenVolume'])
+
+		return async () => {
+			if (tokenTypes.has(type)) {
+				return handler(item, geckoId, timePeriod)()
+			}
+
+			let direct: [number, number][] = []
+			try {
+				direct = await handler(item, geckoId, timePeriod)()
+			} catch (e) {
+				direct = []
+			}
+			if (Array.isArray(direct) && direct.length > 0) return direct
+
+			const children = parentMapping?.get(item) || []
+			if (children.length === 0) return direct
+
+			const settled = await Promise.allSettled(
+				children.map(async (childSlug) => {
+					try {
+						return await handler(childSlug, undefined, timePeriod)()
+					} catch (e) {
+						return [] as [number, number][]
+					}
+				})
+			)
+			const seriesList = settled
+				.map((res) => (res.status === 'fulfilled' ? res.value : ([] as [number, number][])))
+				.filter((arr) => Array.isArray(arr))
+
+			const acc = new Map<number, number>()
+			for (const series of seriesList) {
+				for (const [ts, val] of series || []) {
+					acc.set(ts, (acc.get(ts) || 0) + (val || 0))
+				}
+			}
+			return Array.from(acc.entries()).sort((a, b) => a[0] - b[0]) as [number, number][]
+		}
 	} else {
 		const handler = chainChartHandlers[type]
 		if (handler) {
@@ -243,9 +307,10 @@ export function useChartData(
 	geckoId?: string | null,
 	timePeriod?: TimePeriod
 ) {
+	const { data: parentMapping } = useParentChildMapping()
 	return useQuery({
 		queryKey: getChartQueryKey(type, itemType, item, geckoId, timePeriod),
-		queryFn: getChartQueryFn(type, itemType, item, geckoId, timePeriod),
+		queryFn: getChartQueryFn(type, itemType, item, geckoId, timePeriod, parentMapping),
 		enabled:
 			!!item &&
 			((itemType === 'protocol' && (!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) || !!geckoId)) ||
@@ -288,12 +353,45 @@ export function useProtocolsAndChains() {
 				...chain,
 				name: chain.name === 'Binance' ? 'BSC' : chain.name
 			}))
+			const parentProtocols = Array.isArray(protocolsData.parentProtocols) ? protocolsData.parentProtocols : []
+
+			const baseProtocols = (protocolsData.protocols || []).map((p) => ({
+				...p,
+				slug: sluggifyProtocol(p.name),
+				geckoId: p.geckoId || null,
+				parentProtocol: p.parentProtocol || null
+			}))
+
+			const parentTotals = new Map<string, number>()
+			for (const p of protocolsData.protocols || []) {
+				if (p.parentProtocol) {
+					parentTotals.set(
+						p.parentProtocol,
+						(parentTotals.get(p.parentProtocol) || 0) + (typeof p.tvl === 'number' ? p.tvl : 0)
+					)
+				}
+			}
+
+			const syntheticParents = parentProtocols.map((pp: any) => ({
+				id: pp.id,
+				name: pp.name,
+				logo: pp.logo,
+				slug: sluggifyProtocol(pp.name),
+				tvl: parentTotals.get(pp.id) || 0,
+				geckoId: null,
+				parentProtocol: null
+			}))
+
+			const mergedBySlug = new Map<string, any>()
+			for (const p of [...baseProtocols, ...syntheticParents]) {
+				const key = p.slug
+				if (!mergedBySlug.has(key)) mergedBySlug.set(key, p)
+			}
+
+			const mergedProtocols = Array.from(mergedBySlug.values())
+
 			return {
-				protocols: protocolsData.protocols.map((p) => ({
-					...p,
-					slug: sluggifyProtocol(p.name),
-					geckoId: p.geckoId || null
-				})),
+				protocols: mergedProtocols,
 				chains: transformedChains.sort((a, b) => b.tvl - a.tvl)
 			}
 		}
@@ -317,6 +415,7 @@ function createMemoizedGroupData() {
 }
 
 export function useChartsData(charts, timePeriod?: TimePeriod) {
+	const { data: parentMapping } = useParentChildMapping()
 	return useQueries({
 		queries: charts.map((chart) => {
 			const itemType = chart.protocol ? 'protocol' : 'chain'
@@ -329,7 +428,7 @@ export function useChartsData(charts, timePeriod?: TimePeriod) {
 					chart.grouping,
 					chart.id
 				],
-				queryFn: getChartQueryFn(chart.type, itemType, item, chart.geckoId, timePeriod),
+				queryFn: getChartQueryFn(chart.type, itemType, item, chart.geckoId, timePeriod, parentMapping),
 				keepPreviousData: true,
 				placeholderData: (prev) => prev,
 				select: (data) => {

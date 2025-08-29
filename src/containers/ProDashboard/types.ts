@@ -162,6 +162,7 @@ export interface Protocol {
 	slug: string
 	tvl: number
 	geckoId?: string | null
+	parentProtocol?: string | null
 }
 
 export const CHART_TYPES = {
