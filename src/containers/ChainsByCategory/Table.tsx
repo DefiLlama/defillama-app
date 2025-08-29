@@ -475,12 +475,13 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		}
 	},
 	{
-		header: 'Stables',
+		header: 'Stables MCap',
 		accessorKey: 'stablesMcap',
 		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
-		size: 120,
+		size: 128,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Sum of market cap of all stablecoins on the chain'
 		}
 	},
 	{
@@ -491,7 +492,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		size: 152,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Sum of volume of all DEXs on the chain. Updated daily at 00:00UTC'
+			headerHelperText: 'Sum of 24h volume on all DEXs on the chain. Updated daily at 00:00UTC'
 		}
 	},
 	{
@@ -501,7 +502,8 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Total fees paid by users when using the chain in the last 24h. Updated daily at 00:00UTC'
 		}
 	},
 	{
@@ -512,7 +514,8 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		size: 180,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Sum of revenue of all protocols on the chain. Updated daily at 00:00UTC'
+			headerHelperText:
+				'Total revenue earned by the apps on the chain in the last 24h. Excludes stablecoins, liquid staking apps, and gas fees. Updated daily at 00:00UTC'
 		}
 	},
 	{
@@ -533,16 +536,18 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		},
 		size: 148,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Market cap / DeFi TVL ratio'
 		}
 	},
 	{
-		header: 'NFT Volume',
+		header: '24h NFT Volume',
 		accessorKey: 'nftVolume',
 		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
-		size: 120,
+		size: 148,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Sum of 24h volume on all NFTs on the chain. Updated daily at 00:00UTC'
 		}
 	}
 ]
