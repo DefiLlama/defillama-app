@@ -19,19 +19,21 @@ type SortOption = (typeof sortOptions)[number]
 export function DashboardDiscovery() {
 	const router = useRouter()
 
-	const [sortBy, setSortBy] = useState<SortOption['key']>('popular')
 	const [searchQuery, setSearchQuery] = useState('')
 	const [page, setPage] = useState(1)
 
-	const { viewMode, selectedTags, sortByName } = useMemo(() => {
-		const { view, tag } = router.query
+	const { viewMode, selectedTags, selectedSortBy } = useMemo(() => {
+		const { view, tag, sortBy } = router.query
 
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
-		const sortByName = sortOptions.find((option) => option.key === sortBy)?.name ?? sortBy
+		const selectedSortBy =
+			typeof sortBy === 'string'
+				? (sortOptions.find((option) => option.key === sortBy) ?? sortOptions[0])
+				: sortOptions[0]
 
-		return { viewMode, selectedTags, sortByName }
-	}, [router.query, sortBy])
+		return { viewMode, selectedTags, selectedSortBy }
+	}, [router.query])
 
 	const { dashboards, isLoading, totalPages, totalItems, searchDashboards, discoverDashboards } =
 		useDashboardDiscovery()
@@ -42,14 +44,14 @@ export function DashboardDiscovery() {
 				query: searchQuery,
 				tags: selectedTags,
 				visibility: 'public',
-				sortBy,
+				sortBy: selectedSortBy.key,
 				page,
 				limit: 20
 			})
 		} else {
-			discoverDashboards({ page, limit: 20, sortBy })
+			discoverDashboards({ page, limit: 20, sortBy: selectedSortBy.key })
 		}
-	}, [searchQuery, selectedTags, sortBy, page])
+	}, [searchQuery, selectedTags, selectedSortBy, page])
 
 	const handleTagClick = (tag: string) => {
 		if (router.query.tag && router.query.tag.includes(tag)) {
@@ -81,12 +83,21 @@ export function DashboardDiscovery() {
 					<div className="ml-auto flex flex-wrap items-center gap-4">
 						<Select
 							allValues={sortOptions}
-							selectedValues={sortBy}
-							setSelectedValues={(value) => setSortBy(value as SortOption['key'])}
+							selectedValues={selectedSortBy.key}
+							setSelectedValues={(value) => {
+								router.push(
+									{
+										pathname: '/pro',
+										query: { ...router.query, sortBy: value as SortOption['key'] }
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}}
 							label={
 								<>
 									<span className="text-(--text-label)">Sort by:</span>
-									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{sortByName}</span>
+									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{selectedSortBy.name}</span>
 								</>
 							}
 							labelType="none"
