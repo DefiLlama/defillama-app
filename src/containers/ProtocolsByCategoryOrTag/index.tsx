@@ -311,7 +311,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Whether the asset can be redeemed'
+						headerHelperText: 'Whether the asset can be redeemed for the underlying'
 					},
 					size: 120
 				},
@@ -327,7 +327,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Whether the asset has attestations'
+						headerHelperText: 'Whether the platform publishes holdings reports'
 					},
 					size: 120
 				},
@@ -359,7 +359,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Whether the asset requires KYC'
+						headerHelperText: 'Whether the asset requires KYC to mint and redeem'
 					},
 					size: 80
 				},
@@ -375,7 +375,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Whether the asset can be transferred'
+						headerHelperText: 'Whether the asset can be transferred freely to third parties'
 					},
 					size: 120
 				},
@@ -403,7 +403,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Liquidity of the asset in pools'
+						headerHelperText: 'Liquidity of the asset in tracked pools'
 					},
 					size: 120
 				},
@@ -415,7 +415,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Volume of all trades in the last 7 days'
+						headerHelperText: 'Volume of trades across tracked pools in the last 7 days'
 					},
 					size: 120
 				},
@@ -427,7 +427,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Volume of all trades in the last 24 hours'
+						headerHelperText: 'Volume of trades across tracked pools in the last 24 hours'
 					},
 					size: 120
 				}
