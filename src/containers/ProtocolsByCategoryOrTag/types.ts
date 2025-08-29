@@ -1,5 +1,19 @@
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 
+export interface IRWAStats {
+	volumeUsd1d: number
+	volumeUsd7d: number
+	tvlUsd: number
+	symbols: Array<string>
+	matchExact?: boolean
+	redeemable?: boolean
+	attestations?: boolean
+	cexListed?: boolean
+	kyc?: boolean
+	transferable?: boolean
+	selfCustody?: boolean
+}
+
 interface IProtocolByCategory {
 	name: string
 	slug: string
@@ -13,6 +27,7 @@ interface IProtocolByCategory {
 	dexVolume?: Record<string, number>
 	perpVolume?: Record<string, number>
 	tags: Array<string>
+	rwaStats?: IRWAStats | null
 }
 
 interface IProtocolByCategoryWithSubRows extends IProtocolByCategory {

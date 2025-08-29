@@ -1,11 +1,11 @@
-import { CATEGORY_CHART_API, PROTOCOLS_API, TAGS_CHART_API } from '~/constants'
+import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API, TAGS_CHART_API } from '~/constants'
 import { oldBlue } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
-import { IProtocolByCategoryOrTagPageData } from './types'
+import { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
 
 export async function getProtocolsByCategoryOrTag({
 	category,
@@ -33,6 +33,9 @@ export async function getProtocolsByCategoryOrTag({
 		return null
 	}
 
+	// todo need to use parent category of tag
+	const isRWA = category === 'RWA' || tag ? true : false
+
 	const [
 		{ protocols, parentProtocols },
 		feesData,
@@ -40,7 +43,8 @@ export async function getProtocolsByCategoryOrTag({
 		dexVolumeData,
 		perpVolumeData,
 		chartData,
-		chainsByCategoriesOrTags
+		chainsByCategoriesOrTags,
+		rwaStats
 	]: [
 		{ protocols: Array<ILiteProtocol>; parentProtocols: Array<ILiteParentProtocol> },
 		IAdapterOverview | null,
@@ -48,7 +52,8 @@ export async function getProtocolsByCategoryOrTag({
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		Record<string, Record<string, number | null>>,
-		Record<string, Array<string>>
+		Record<string, Array<string>>,
+		Record<string, IRWAStats>
 	] = await Promise.all([
 		fetchJson(PROTOCOLS_API),
 		chainMetadata?.fees
@@ -89,7 +94,8 @@ export async function getProtocolsByCategoryOrTag({
 			: fetchJson(`${CATEGORY_CHART_API}/${slug(category)}${chain ? `/${slug(chain)}` : ''}`),
 		tag
 			? fetchJson('https://api.llama.fi/lite/chains-by-tags').catch(() => null)
-			: fetchJson('https://api.llama.fi/lite/chains-by-categories').catch(() => null)
+			: fetchJson('https://api.llama.fi/lite/chains-by-categories').catch(() => null),
+		isRWA ? fetchJson(RWA_STATS_API) : null
 	])
 
 	const chains = chainsByCategoriesOrTags?.[tag ?? category] ?? []
@@ -232,7 +238,8 @@ export async function getProtocolsByCategoryOrTag({
 				revenue,
 				dexVolume,
 				perpVolume,
-				tags: protocol.tags ?? []
+				tags: protocol.tags ?? [],
+				...(isRWA ? { rwaStats: rwaStats[protocol.defillamaId] ?? null } : {})
 			}
 			if (protocol.parentProtocol) {
 				parentProtocolsStore[protocol.parentProtocol] = [
@@ -318,6 +325,30 @@ export async function getProtocolsByCategoryOrTag({
 				}
 			)
 
+			const hasRWAStats = parentProtocolsStore[parentProtocol.id].some((p) => p.rwaStats != null)
+			const rwaStats: IRWAStats = {
+				volumeUsd1d: 0,
+				volumeUsd7d: 0,
+				tvlUsd: 0,
+				symbols: []
+			}
+			for (const protocol of parentProtocolsStore[parentProtocol.id]) {
+				if (protocol.rwaStats) {
+					rwaStats.volumeUsd1d += protocol.rwaStats.volumeUsd1d
+					rwaStats.volumeUsd7d += protocol.rwaStats.volumeUsd7d
+					rwaStats.tvlUsd += protocol.rwaStats.tvlUsd
+					rwaStats.symbols = Array.from(new Set([...rwaStats.symbols, ...protocol.rwaStats.symbols]))
+					// hide for parent protocols
+					// rwaStats.matchExact = rwaStats.matchExact && (protocol.rwaStats.matchExact ?? false)
+					// rwaStats.redeemable = rwaStats.redeemable && (protocol.rwaStats.redeemable ?? false)
+					// rwaStats.attestations = rwaStats.attestations && (protocol.rwaStats.attestations ?? false)
+					// rwaStats.cexListed = rwaStats.cexListed && (protocol.rwaStats.cexListed ?? false)
+					// rwaStats.kyc = rwaStats.kyc && (protocol.rwaStats.kyc ?? false)
+					// rwaStats.transferable = rwaStats.transferable && (protocol.rwaStats.transferable ?? false)
+					// rwaStats.selfCustody = rwaStats.selfCustody && (protocol.rwaStats.selfCustody ?? false)
+				}
+			}
+
 			finalProtocols.push({
 				name: parentProtocol.name,
 				slug: slug(parentProtocol.name),
@@ -332,7 +363,8 @@ export async function getProtocolsByCategoryOrTag({
 				dexVolume: dexVolume.total24h == 0 && dexVolume.total7d == 0 && dexVolume.total30d == 0 ? null : dexVolume,
 				perpVolume: perpVolume.total24h == 0 && perpVolume.total7d == 0 && perpVolume.total30d == 0 ? null : perpVolume,
 				subRows: parentProtocolsStore[parentProtocol.id].sort((a, b) => b.tvl - a.tvl),
-				tags: Array.from(new Set(parentProtocolsStore[parentProtocol.id].flatMap((p) => p.tags ?? [])))
+				tags: Array.from(new Set(parentProtocolsStore[parentProtocol.id].flatMap((p) => p.tags ?? []))),
+				...(hasRWAStats ? { rwaStats } : {})
 			})
 		}
 	}
@@ -369,9 +401,6 @@ export async function getProtocolsByCategoryOrTag({
 		dexVolume7d += protocol.dexVolume?.total7d ?? 0
 		perpVolume7d += protocol.perpVolume?.total7d ?? 0
 	}
-
-	// todo need to use parent category of tag
-	const isRWA = category === 'RWA' || tag ? true : false
 
 	return {
 		charts: {
