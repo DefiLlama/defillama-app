@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import Head from 'next/head'
 import { ADAPTOR_TYPES } from '~/api/categories/adaptors'
 import { useIsClient } from '~/hooks'
-import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
+import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 interface SEOProps {
 	cardName?: string
@@ -144,6 +144,8 @@ export const SEO = ({
 
 	return (
 		<Head>
+			<link rel="canonical" href={windowURL} />
+
 			<meta name="description" content={pageDescription} />
 
 			{pageKeywords !== '' && <meta name="keywords" content={pageKeywords} />}
