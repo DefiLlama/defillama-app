@@ -269,13 +269,13 @@ const chainsTableColumnOrders = formatColumnOrder({
 		'chainAssets',
 		'change_7d',
 		'protocols',
-		'users',
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
+		'users',
 		'mcaptvl'
 	],
 	400: [
@@ -284,21 +284,20 @@ const chainsTableColumnOrders = formatColumnOrder({
 		'tvl',
 		'chainAssets',
 		'protocols',
-		'users',
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
+		'users',
 		'mcaptvl'
 	],
 	600: [
 		'name',
 		'protocols',
-		'users',
-		'change_7d',
 		'tvl',
+		'change_7d',
 		'chainAssets',
 		'change_1d',
 		'change_1m',
@@ -306,21 +305,22 @@ const chainsTableColumnOrders = formatColumnOrder({
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
+		'users',
 		'mcaptvl'
 	],
 	900: [
 		'name',
 		'protocols',
-		'users',
+		'tvl',
 		'change_1d',
 		'change_7d',
 		'change_1m',
-		'tvl',
 		'chainAssets',
 		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
+		'users',
 		'mcaptvl'
 	]
 })
@@ -383,17 +383,18 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		}
 	},
 	{
-		header: 'Active Addresses',
-		accessorKey: 'users',
-		cell: (info) => <>{+info?.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
-		size: 180,
+		header: 'DeFi TVL',
+		accessorKey: 'tvl',
+		cell: (info) => {
+			return <>{formattedNum(info.getValue(), true)}</>
+		},
+		size: 120,
 		meta: {
-			align: 'end',
-			headerHelperText: 'Active addresses in the last 24h'
+			align: 'end'
 		}
 	},
 	{
-		header: '1d Change',
+		header: '1d TVL Change',
 		accessorKey: 'change_1d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
@@ -402,7 +403,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		}
 	},
 	{
-		header: '7d Change',
+		header: '7d TVL Change',
 		accessorKey: 'change_7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
@@ -411,21 +412,10 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		}
 	},
 	{
-		header: '1m Change',
+		header: '1m TVL Change',
 		accessorKey: 'change_1m',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'DeFi TVL',
-		accessorKey: 'tvl',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
-		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -518,6 +508,16 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of revenue of all protocols on the chain. Updated daily at 00:00UTC'
+		}
+	},
+	{
+		header: 'Active Addresses',
+		accessorKey: 'users',
+		cell: (info) => <>{+info?.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
+		size: 180,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Active addresses in the last 24h'
 		}
 	},
 	{
