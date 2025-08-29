@@ -38,6 +38,7 @@ interface ChartBuilderCardProps {
 			chartType: 'stackedBar' | 'stackedArea' | 'line'
 			displayAs: 'timeSeries' | 'percentage'
 			hideOthers?: boolean
+			groupByParent?: boolean
 			additionalFilters?: Record<string, any>
 		}
 		name?: string
@@ -94,6 +95,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			config.limit,
 			config.categories,
 			config.hideOthers,
+			config.groupByParent,
 			timePeriod
 		],
 		queryFn: async () => {
@@ -103,7 +105,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				config.metric,
 				config.chains,
 				config.limit,
-				config.categories
+				config.categories,
+				config.groupByParent
 			)
 
 			if (!data || !data.series) {
