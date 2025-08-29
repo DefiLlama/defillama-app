@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Dashboard } from '../services/DashboardAPI'
 import { DashboardCard } from './DashboardCard'
@@ -12,20 +11,6 @@ interface DashboardListProps {
 }
 
 export function DashboardList({ dashboards, isLoading, onCreateNew, onDeleteDashboard }: DashboardListProps) {
-	const [deletingId, setDeletingId] = useState<string | null>(null)
-
-	const handleDelete = async (dashboardId: string, e: React.MouseEvent) => {
-		e.stopPropagation()
-		if (!onDeleteDashboard) return
-
-		setDeletingId(dashboardId)
-		try {
-			onDeleteDashboard(dashboardId)
-		} finally {
-			setDeletingId(null)
-		}
-	}
-
 	if (isLoading) {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
@@ -52,13 +37,7 @@ export function DashboardList({ dashboards, isLoading, onCreateNew, onDeleteDash
 			) : (
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 					{dashboards.map((dashboard) => (
-						<DashboardCard
-							key={dashboard.id}
-							dashboard={dashboard}
-							onDelete={onDeleteDashboard ? handleDelete : undefined}
-							isDeleting={deletingId === dashboard.id}
-							viewMode="grid"
-						/>
+						<DashboardCard key={dashboard.id} dashboard={dashboard} onDelete={onDeleteDashboard} viewMode="grid" />
 					))}
 				</div>
 			)}

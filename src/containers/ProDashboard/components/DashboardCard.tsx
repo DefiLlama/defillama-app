@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -9,12 +9,25 @@ import { DashboardItemConfig } from '../types'
 interface DashboardCardProps {
 	dashboard: Dashboard
 	onTagClick?: (tag: string) => void
-	onDelete?: (dashboardId: string, e: React.MouseEvent) => void
+	onDelete?: (dashboardId: string) => void
 	isDeleting?: boolean
 	viewMode?: 'grid' | 'list'
 }
 
-export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, viewMode = 'grid' }: DashboardCardProps) {
+export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'grid' }: DashboardCardProps) {
+	const [isDeleting, setIsDeleting] = useState<boolean>(false)
+
+	const handleDelete = async (dashboardId: string, e: React.MouseEvent) => {
+		e.stopPropagation()
+		if (!onDelete) return
+		setIsDeleting(true)
+		try {
+			await onDelete(dashboardId)
+		} finally {
+			setIsDeleting(false)
+		}
+	}
+
 	const itemTypes = useMemo(() => {
 		const counts: Record<string, number> = {}
 		dashboard.data.items?.forEach((item: DashboardItemConfig) => {
@@ -81,7 +94,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 						)}
 						<Tooltip
 							content="Delete dashboard"
-							render={<button disabled={isDeleting} onClick={(e) => onDelete(dashboard.id, e)} />}
+							render={<button disabled={isDeleting} onClick={(e) => handleDelete(dashboard.id, e)} />}
 							className="z-10 flex items-center justify-center gap-2 rounded-md bg-red-500/10 px-2 py-1.75 text-sm font-medium text-(--error)"
 						>
 							{isDeleting ? <LoadingSpinner size={12} /> : <Icon name="trash-2" height={12} width={12} />}
