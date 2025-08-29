@@ -59,8 +59,8 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, isDeleting, vie
 		<div
 			className={`hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--text-label)`}
 		>
-			<div className="flex items-center gap-2">
-				<h2 className="mr-auto text-lg font-medium text-black dark:text-white">
+			<div className="flex flex-wrap items-center justify-end gap-2">
+				<h2 className="mr-auto text-lg font-medium text-wrap text-black dark:text-white">
 					{dashboard.data.dashboardName || 'Untitled Dashboard'}
 				</h2>
 

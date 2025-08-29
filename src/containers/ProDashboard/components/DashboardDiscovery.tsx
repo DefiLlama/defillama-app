@@ -79,7 +79,7 @@ export function DashboardDiscovery() {
 	return (
 		<>
 			<div className="flex flex-col gap-1">
-				<h1>Explore public dashboards created by the community</h1>
+				<h1 className="text-wrap">Explore public dashboards created by the community</h1>
 
 				<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 					<DashboardSearch defaultValue={searchQuery} />
