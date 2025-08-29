@@ -5,10 +5,10 @@ import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import { Tooltip } from './Tooltip'
 
 interface ISelect {
-	allValues: Array<{ key: string; name: string; help?: string }> | Array<string>
-	selectedValues: Array<string>
-	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
-	label: string
+	allValues: ReadonlyArray<{ key: string; name: string; help?: string }> | ReadonlyArray<string>
+	selectedValues: Array<string> | string
+	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string> | string>>
+	label: React.ReactNode
 	clearAll?: () => void
 	toggleAll?: () => void
 	selectOnlyOne?: (value: string) => void
@@ -36,6 +36,8 @@ export function Select({
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
+
+	const canSelectOnlyOne = typeof selectedValues === 'string'
 
 	if (nestedMenu) {
 		return (
@@ -117,13 +119,15 @@ export function Select({
 					<>
 						<span>{label}: </span>
 						<span className="text-(--link)">
-							{selectedValues.length > 2
-								? `${selectedValues[0]} + ${selectedValues.length - 1} others`
-								: selectedValues.join(', ')}
+							{canSelectOnlyOne
+								? selectedValues
+								: selectedValues.length > 2
+									? `${selectedValues[0]} + ${selectedValues.length - 1} others`
+									: selectedValues.join(', ')}
 						</span>
 					</>
 				) : (
-					<span>{label}</span>
+					<>{label}</>
 				)}
 				<Ariakit.SelectArrow />
 			</Ariakit.Select>
@@ -186,7 +190,11 @@ export function Select({
 											Only
 										</button>
 									) : null}
-									<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									{canSelectOnlyOne ? (
+										<Ariakit.SelectItemCheck />
+									) : (
+										<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									)}
 								</div>
 							</Ariakit.SelectItem>
 						))}

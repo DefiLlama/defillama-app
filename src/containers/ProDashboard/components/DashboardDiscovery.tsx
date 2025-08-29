@@ -1,31 +1,37 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { Select } from '~/components/Select'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
 import { LoadingSpinner } from './LoadingSpinner'
 
-type SortOption = 'popular' | 'recent' | 'likes'
-
 const viewModes = ['grid', 'list'] as const
 type ViewMode = (typeof viewModes)[number]
+const sortOptions = [
+	{ key: 'popular', name: 'Most Popular' },
+	{ key: 'recent', name: 'Recently Created' },
+	{ key: 'likes', name: 'Most Liked' }
+] as const
+type SortOption = (typeof sortOptions)[number]
 
 export function DashboardDiscovery() {
 	const router = useRouter()
 
-	const { viewMode, selectedTags } = useMemo(() => {
+	const [sortBy, setSortBy] = useState<SortOption['key']>('popular')
+	const [searchQuery, setSearchQuery] = useState('')
+	const [page, setPage] = useState(1)
+
+	const { viewMode, selectedTags, sortByName } = useMemo(() => {
 		const { view, tag } = router.query
 
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
+		const sortByName = sortOptions.find((option) => option.key === sortBy)?.name ?? sortBy
 
-		return { viewMode, selectedTags }
-	}, [router.query])
-
-	const [sortBy, setSortBy] = useState<SortOption>('popular')
-	const [searchQuery, setSearchQuery] = useState('')
-	const [page, setPage] = useState(1)
+		return { viewMode, selectedTags, sortByName }
+	}, [router.query, sortBy])
 
 	const { dashboards, isLoading, totalPages, totalItems, searchDashboards, discoverDashboards } =
 		useDashboardDiscovery()
@@ -73,21 +79,23 @@ export function DashboardDiscovery() {
 					<DashboardSearch searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
 					<div className="ml-auto flex flex-wrap items-center gap-4">
-						<label className="flex items-center gap-2">
-							<span className="text-(--text-label)">Sort by:</span>
-							<select
-								value={sortBy}
-								onChange={(e) => {
-									setSortBy(e.target.value as SortOption)
-									setPage(1)
-								}}
-								className="h-[32px] rounded-md border border-(--form-control-border) px-2 py-1.5 focus:border-(--primary) focus:outline-hidden"
-							>
-								<option value="popular">Most Popular</option>
-								<option value="recent">Recently Created</option>
-								<option value="likes">Most Liked</option>
-							</select>
-						</label>
+						<Select
+							allValues={sortOptions}
+							selectedValues={sortBy}
+							setSelectedValues={(value) => setSortBy(value as SortOption['key'])}
+							label={
+								<>
+									<span className="text-(--text-label)">Sort by:</span>
+									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{sortByName}</span>
+								</>
+							}
+							labelType="none"
+							triggerProps={{
+								className:
+									'rounded-md flex items-center gap-1 text-black dark:text-white flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+							}}
+							aria-label="Sort by"
+						/>
 
 						<div className="flex items-center rounded-md border border-(--form-control-border)">
 							<button
