@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
@@ -12,64 +11,16 @@ type SortOption = 'popular' | 'recent' | 'likes'
 const viewModes = ['grid', 'list'] as const
 type ViewMode = (typeof viewModes)[number]
 
-function getUrl({
-	base,
-	key,
-	value,
-	replace = false
-}: {
-	base: string
-	key: string
-	value: string | undefined
-	replace?: boolean
-}) {
-	if (typeof window === 'undefined') {
-		return `${base}?${new URLSearchParams({ [key]: value }).toString()}`
-	}
-
-	const params = new URLSearchParams(window.location.search)
-
-	if (value === '' || value == null) {
-		params.delete(key)
-	} else {
-		if (replace) {
-			// Replace: remove all existing values and set new one
-			params.delete(key)
-			params.append(key, value)
-		} else {
-			const existingValues = params.getAll(key)
-
-			if (existingValues.includes(value)) {
-				// Remove all instances of this key
-				params.delete(key)
-
-				// Re-add all values except the one to remove
-				existingValues.filter((oldValue) => oldValue !== value).forEach((value) => params.append(key, value))
-			} else {
-				// Append: add new value to existing ones
-				params.append(key, value)
-			}
-		}
-	}
-
-	return `${base}?${params.toString()}`
-}
-
 export function DashboardDiscovery() {
 	const router = useRouter()
 
-	const { viewMode, selectedTags, selectedTagsWithUrl } = useMemo(() => {
+	const { viewMode, selectedTags } = useMemo(() => {
 		const { view, tag } = router.query
 
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
 
-		const selectedTagsWithUrl = selectedTags.map((tag) => ({
-			tag,
-			url: getUrl({ base: '/pro', key: 'tag', value: tag })
-		}))
-
-		return { viewMode, selectedTags, selectedTagsWithUrl }
+		return { viewMode, selectedTags }
 	}, [router.query])
 
 	const [sortBy, setSortBy] = useState<SortOption>('popular')
@@ -95,7 +46,21 @@ export function DashboardDiscovery() {
 	}, [searchQuery, selectedTags, sortBy, page])
 
 	const handleTagClick = (tag: string) => {
-		router.push(getUrl({ base: '/pro', key: 'tag', value: tag }), undefined, { shallow: true })
+		if (router.query.tag && router.query.tag.includes(tag)) {
+			return
+		}
+
+		router.push(
+			{
+				pathname: '/pro',
+				query: {
+					...router.query,
+					tag: tag
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 		setPage(1)
 	}
 
@@ -125,52 +90,111 @@ export function DashboardDiscovery() {
 						</label>
 
 						<div className="flex items-center rounded-md border border-(--form-control-border)">
-							<BasicLink
-								href={getUrl({ base: '/pro', key: 'view', value: 'grid', replace: true })}
-								shallow
+							<button
+								onClick={() => {
+									router.push(
+										{
+											pathname: '/pro',
+											query: {
+												...router.query,
+												view: 'grid'
+											}
+										},
+										undefined,
+										{
+											shallow: true
+										}
+									)
+								}}
 								data-active={viewMode === 'grid'}
 								className="rounded-l-md border-r border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								<Icon name="layers" height={16} width={16} />
 								<span className="sr-only">View as grid</span>
-							</BasicLink>
-							<BasicLink
-								href={getUrl({ base: '/pro', key: 'view', value: 'list', replace: true })}
-								shallow
+							</button>
+							<button
+								onClick={() => {
+									router.push(
+										{
+											pathname: '/pro',
+											query: {
+												...router.query,
+												view: 'list'
+											}
+										},
+										undefined,
+										{
+											shallow: true
+										}
+									)
+								}}
 								data-active={viewMode === 'list'}
 								className="rounded-r-md border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								<Icon name="align-left" height={16} width={16} />
 								<span className="sr-only">View as list</span>
-							</BasicLink>
+							</button>
 						</div>
 					</div>
 				</div>
 
-				{selectedTagsWithUrl.length > 0 && (
+				{selectedTags.length > 0 && (
 					<div className="mt-1 flex items-center gap-2 text-xs">
 						<h2>Active filters:</h2>
 						<div className="flex flex-wrap gap-2">
-							{selectedTagsWithUrl.map(({ tag, url }) => (
-								<BasicLink
-									key={`pro-dashboard-tag-${tag}-${url}`}
-									href={url}
-									shallow
+							{selectedTags.map((tag) => (
+								<button
+									key={`pro-dashboard-tag-${tag}`}
+									onClick={() => {
+										const { tag: currentTag, ...query } = router.query
+										const newQuery = query
+										if (currentTag && currentTag.includes(tag)) {
+											// If the tag is an array, filter it to remove the tag
+											if (Array.isArray(currentTag)) {
+												newQuery.tag = currentTag.filter((t) => t !== tag)
+											} else {
+												// If the tag is a string, completely remove the key
+												delete newQuery.tag
+											}
+										}
+
+										router.push(
+											{
+												pathname: '/pro',
+												query: newQuery
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
 									className="flex items-center gap-1 rounded-full border border-(--switch-border) px-2 py-1 text-xs hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
 								>
 									<span className="sr-only">Remove</span>
 									<span>{tag}</span>
 									<Icon name="x" height={12} width={12} />
-								</BasicLink>
+								</button>
 							))}
 						</div>
-						<BasicLink
-							href={getUrl({ base: '/pro', key: 'tag', value: '', replace: true })}
-							shallow
+						<button
+							onClick={() => {
+								const { tag, ...query } = router.query
+
+								// Clear all tags
+								router.push(
+									{
+										pathname: '/pro',
+										query
+									},
+									undefined,
+									{
+										shallow: true
+									}
+								)
+							}}
 							className="text-(--text-label) hover:text-(--error)"
 						>
 							Clear all
-						</BasicLink>
+						</button>
 					</div>
 				)}
 			</div>
