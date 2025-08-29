@@ -79,7 +79,7 @@ export function DashboardDiscovery() {
 	return (
 		<>
 			<div className="flex flex-col gap-1">
-				<h1 className="text-wrap">Explore public dashboards created by the community</h1>
+				<h1 className="text-wrap text-(--text-label)">Explore public dashboards created by the community</h1>
 
 				<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 					<DashboardSearch defaultValue={searchQuery} />
@@ -107,7 +107,7 @@ export function DashboardDiscovery() {
 							labelType="none"
 							triggerProps={{
 								className:
-									'rounded-md flex items-center gap-1 text-black dark:text-white flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+									'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
 							}}
 							aria-label="Sort by"
 						/>
@@ -163,7 +163,7 @@ export function DashboardDiscovery() {
 
 				{selectedTags.length > 0 && (
 					<div className="mt-1 flex items-center gap-2 text-xs">
-						<h2>Active filters:</h2>
+						<h2 className="text-(--text-label)">Active filters:</h2>
 						<div className="flex flex-wrap gap-2">
 							{selectedTags.map((tag) => (
 								<button

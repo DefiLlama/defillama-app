@@ -406,10 +406,10 @@
 		--text-primary: oklch(0.239 0 0); /* Main text */
 		--text-secondary: oklch(0.47 0.025 273.6); /* Secondary text */
 		--text-tertiary: oklch(0.644 0.022 270.1); /* Tertiary text */
-		--text-form: oklch(0.51 0 0); /* Form controls & buttons */
-		--text-label: oklch(0.454 0.004 197); /* Labels & descriptions */
+		--text-form: oklch(0.45 0 0); /* Form controls & buttons */
+		--text-label: oklch(0.4 0 0); /* Labels & descriptions */
 		--text-meta: oklch(0.556 0 0); /* Metadata & governance */
-		--text-disabled: oklch(0.562 0 0); /* Disabled text */
+		--text-disabled: oklch(0.56 0 0); /* Disabled text */
 
 		/* Background Colors */
 		--bg-main: oklch(0.985 0 0); /* Main background */
@@ -479,10 +479,10 @@
 		--text-primary: oklch(0.985 0 0); /* Main text */
 		--text-secondary: oklch(0.824 0.009 271.3); /* Secondary text */
 		--text-tertiary: oklch(0.553 0.029 270.9); /* Tertiary text */
-		--text-form: oklch(0.66 0.006 274.9); /* Form controls & buttons */
+		--text-form: oklch(0.75 0 0); /* Form controls & buttons */
 		--text-label: oklch(0.845 0 0); /* Labels & descriptions */
 		--text-meta: oklch(0.735 0 0); /* Metadata & governance */
-		--text-disabled: oklch(0.683 0 0); /* Disabled text */
+		--text-disabled: oklch(0.65 0 0); /* Disabled text */
 
 		/* Background Colors */
 		--bg-main: oklch(0.259 0.01 260.7); /* Main background */

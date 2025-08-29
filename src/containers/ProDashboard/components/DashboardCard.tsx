@@ -70,10 +70,10 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 	return (
 		<div
-			className={`hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--text-label)`}
+			className={`hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5`}
 		>
 			<div className="flex flex-wrap items-center justify-end gap-2">
-				<h2 className="mr-auto text-lg font-medium text-wrap text-black dark:text-white">
+				<h2 className="mr-auto text-lg font-medium text-wrap">
 					{dashboard.data.dashboardName || 'Untitled Dashboard'}
 				</h2>
 
@@ -105,33 +105,40 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 			{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
 
-			{dashboard.description ? <p className="line-clamp-2 text-sm">{dashboard.description}</p> : null}
+			{dashboard.description ? (
+				<p className="line-clamp-2 text-sm text-(--text-label)">{dashboard.description}</p>
+			) : null}
 
 			{dashboard.data.items?.length ? (
 				<div className={`flex flex-col ${viewMode === 'grid' ? 'mt-5' : 'mt-2'}`}>
-					<span className="flex items-center gap-1 text-black dark:text-white">
+					<span className="flex items-center gap-1 text-(--text-label)">
 						<Icon name="layers" height={14} width={14} />
 						<p className="flex items-center gap-1">{dashboard.data.items.length} items</p>
 					</span>
-					<p className="text-xs">{itemTypes}</p>
+					<p className="text-xs text-(--text-form)">{itemTypes}</p>
 				</div>
 			) : null}
 
-			<div className={`mt-auto flex items-center justify-between gap-2 ${viewMode === 'grid' ? 'pt-5' : 'pt-2'}`}>
+			<div
+				className={`mt-auto flex items-center justify-between gap-2 text-(--text-label) ${viewMode === 'grid' ? 'pt-5' : 'pt-2'}`}
+			>
 				<div className="flex items-center gap-2">
 					<p className="flex items-center gap-1" title="Views">
 						<Icon name="eye" height={16} width={16} />
 						<span className="sr-only">Views</span>
-						<span className="text-black dark:text-white">{dashboard.viewCount || 0}</span>
+						<span>{dashboard.viewCount || 0}</span>
 					</p>
 					<p className="flex items-center gap-1" title="Likes">
 						<Icon name="star" height={16} width={16} />
 						<span className="sr-only">Favorites</span>
-						<span className="text-black dark:text-white">{dashboard.likeCount || 0}</span>
+						<span>{dashboard.likeCount || 0}</span>
 					</p>
 				</div>
 
-				<p className="flex items-center gap-1 text-xs" title={new Date(dashboard.updated).toLocaleString()}>
+				<p
+					className="flex items-center gap-1 text-xs text-(--text-form)"
+					title={new Date(dashboard.updated).toLocaleString()}
+				>
 					<Icon name="clock" height={12} width={12} />
 					<span>Updated {new Date(dashboard.updated).toLocaleDateString()}</span>
 				</p>
@@ -154,7 +161,7 @@ const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (t
 						e.stopPropagation()
 						onTagClick?.(tag)
 					}}
-					className="z-10 rounded-full border border-(--switch-border) px-2 py-1 text-xs hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+					className="z-10 rounded-full border border-(--switch-border) px-2 py-1 text-xs text-(--text-form) hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
 				>
 					{tag}
 				</button>
