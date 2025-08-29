@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
@@ -19,11 +19,8 @@ type SortOption = (typeof sortOptions)[number]
 export function DashboardDiscovery() {
 	const router = useRouter()
 
-	const [searchQuery, setSearchQuery] = useState('')
-	const [page, setPage] = useState(1)
-
-	const { viewMode, selectedTags, selectedSortBy } = useMemo(() => {
-		const { view, tag, sortBy } = router.query
+	const { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage } = useMemo(() => {
+		const { view, tag, sortBy, query, page } = router.query
 
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
@@ -31,45 +28,40 @@ export function DashboardDiscovery() {
 			typeof sortBy === 'string'
 				? (sortOptions.find((option) => option.key === sortBy) ?? sortOptions[0])
 				: sortOptions[0]
+		const searchQuery = typeof query === 'string' ? query : ''
+		const selectedPage = typeof page === 'string' && !Number.isNaN(Number(page)) ? parseInt(page) : 1
 
-		return { viewMode, selectedTags, selectedSortBy }
+		return { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage }
 	}, [router.query])
 
-	const { dashboards, isLoading, totalPages, totalItems, searchDashboards, discoverDashboards } =
-		useDashboardDiscovery()
-
-	useEffect(() => {
-		if (searchQuery || selectedTags.length > 0) {
-			searchDashboards({
-				query: searchQuery,
-				tags: selectedTags,
-				visibility: 'public',
-				sortBy: selectedSortBy.key,
-				page,
-				limit: 20
-			})
-		} else {
-			discoverDashboards({ page, limit: 20, sortBy: selectedSortBy.key })
-		}
-	}, [searchQuery, selectedTags, selectedSortBy, page])
+	const { dashboards, isLoading, totalPages, totalItems } = useDashboardDiscovery({
+		query: searchQuery,
+		tags: selectedTags,
+		visibility: 'public',
+		sortBy: selectedSortBy.key,
+		page: selectedPage,
+		limit: 20
+	})
 
 	const handleTagClick = (tag: string) => {
 		if (router.query.tag && router.query.tag.includes(tag)) {
 			return
 		}
 
+		// remove page from query
+		const { page, ...query } = router.query
+
 		router.push(
 			{
 				pathname: '/pro',
 				query: {
-					...router.query,
+					...query,
 					tag: tag
 				}
 			},
 			undefined,
 			{ shallow: true }
 		)
-		setPage(1)
 	}
 
 	return (
@@ -78,7 +70,7 @@ export function DashboardDiscovery() {
 				<h1>Explore public dashboards created by the community</h1>
 
 				<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-					<DashboardSearch searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+					<DashboardSearch defaultValue={searchQuery} />
 
 					<div className="ml-auto flex flex-wrap items-center gap-4">
 						<Select
@@ -251,8 +243,17 @@ export function DashboardDiscovery() {
 					{totalPages > 1 && (
 						<div className="flex items-center justify-center gap-2">
 							<button
-								onClick={() => setPage((p) => Math.max(1, p - 1))}
-								disabled={page === 1}
+								onClick={() => {
+									router.push(
+										{
+											pathname: '/pro',
+											query: { ...router.query, page: Math.max(1, selectedPage - 1) }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}}
+								disabled={selectedPage === 1}
 								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:opacity-0"
 							>
 								<Icon name="chevron-left" height={16} width={16} />
@@ -263,8 +264,17 @@ export function DashboardDiscovery() {
 								return (
 									<button
 										key={pageNum}
-										onClick={() => setPage(pageNum)}
-										data-active={page === pageNum}
+										onClick={() => {
+											router.push(
+												{
+													pathname: '/pro',
+													query: { ...router.query, page: pageNum }
+												},
+												undefined,
+												{ shallow: true }
+											)
+										}}
+										data-active={selectedPage === pageNum}
 										className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
 										{pageNum}
@@ -273,8 +283,17 @@ export function DashboardDiscovery() {
 							})}
 
 							<button
-								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-								disabled={page === MAX_PAGES}
+								onClick={() => {
+									router.push(
+										{
+											pathname: '/pro',
+											query: { ...router.query, page: Math.min(totalPages, selectedPage + 1) }
+										},
+										undefined,
+										{ shallow: true }
+									)
+								}}
+								disabled={selectedPage === MAX_PAGES}
 								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:opacity-0"
 							>
 								<Icon name="chevron-right" height={16} width={16} />
