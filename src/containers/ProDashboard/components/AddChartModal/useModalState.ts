@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChartConfig, DashboardItemConfig } from '../../types'
 import { ChartBuilderConfig, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
 
@@ -170,9 +170,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		chartBuilder
 	}
 
-	return {
-		state,
-		actions: {
+	const actionsObj = useMemo(
+		() => ({
 			setSelectedMainTab,
 			setSelectedChartTab,
 			setComposerItems,
@@ -192,7 +191,33 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setIncludeCex,
 			setChartBuilderName,
 			setChartBuilder
-		},
+		}),
+		[
+			setSelectedMainTab,
+			setSelectedChartTab,
+			setComposerItems,
+			setSelectedChain,
+			setSelectedChains,
+			setSelectedProtocol,
+			setSelectedChartType,
+			setSelectedChartTypes,
+			setUnifiedChartName,
+			setChartCreationMode,
+			setTextTitle,
+			setTextContent,
+			setSelectedTableType,
+			setSelectedDatasetChain,
+			setSelectedDatasetTimeframe,
+			setSelectedTokens,
+			setIncludeCex,
+			setChartBuilderName,
+			setChartBuilder
+		]
+	)
+
+	return {
+		state,
+		actions: actionsObj,
 		resetState
 	}
 }

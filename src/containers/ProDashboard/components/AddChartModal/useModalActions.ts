@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import {
 	Chain,
@@ -86,107 +86,148 @@ export function useModalActions(
 		return options
 	}, [protocols])
 
-	const handleChainChange = (option: any) => {
-		actions.setSelectedChain(option.value)
-		actions.setSelectedProtocol(null)
-		actions.setSelectedChartType('tvl')
-	}
+	const handleChainChange = useCallback(
+		(option: any) => {
+			actions.setSelectedChain(option.value)
+			actions.setSelectedProtocol(null)
+			actions.setSelectedChartType('tvl')
+		},
+		[actions]
+	)
 
-	const handleChainsChange = (options: any[]) => {
-		const selectedValues = options ? options.map((option) => option.value) : []
-		actions.setSelectedChains(selectedValues)
-	}
+	const handleChainsChange = useCallback(
+		(options: any[]) => {
+			const selectedValues = options ? options.map((option) => option.value) : []
+			actions.setSelectedChains(selectedValues)
+		},
+		[actions]
+	)
 
-	const handleProtocolChange = (option: any) => {
-		actions.setSelectedProtocol(option.value)
-		actions.setSelectedChain(null)
-		actions.setSelectedChartType('tvl')
-	}
+	const handleProtocolChange = useCallback(
+		(option: any) => {
+			actions.setSelectedProtocol(option.value)
+			actions.setSelectedChain(null)
+			actions.setSelectedChartType('tvl')
+		},
+		[actions]
+	)
 
-	const handleDatasetChainChange = (option: any) => {
-		actions.setSelectedDatasetChain(option.value)
-	}
+	const handleDatasetChainChange = useCallback(
+		(option: any) => {
+			actions.setSelectedDatasetChain(option.value)
+		},
+		[actions]
+	)
 
-	const handleTokensChange = (tokens: string[]) => {
-		if (tokens.length <= 4) {
-			actions.setSelectedTokens(tokens)
-		}
-	}
-
-	const handleAddToComposer = (typesToAdd?: string[]) => {
-		const chartTypesToAdd = typesToAdd || state.selectedChartTypes
-		let addedCount = 0
-
-		if (state.selectedChartTab === 'chain' && state.selectedChain && chartTypesToAdd.length > 0) {
-			const chain = chains.find((c: Chain) => c.name === state.selectedChain)
-
-			const filteredTypes = chartTypesToAdd.filter((chartType) => {
-				return !state.composerItems.some((item) => item.chain === state.selectedChain && item.type === chartType)
-			})
-
-			if (filteredTypes.length > 0) {
-				const newCharts = filteredTypes.map((chartType) => ({
-					id: `${state.selectedChain}-${chartType}-${Date.now()}-${Math.random()}`,
-					kind: 'chart' as const,
-					chain: state.selectedChain,
-					type: chartType,
-					grouping: 'day' as const,
-					geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
-				}))
-				actions.setComposerItems((prev) => [...prev, ...newCharts])
-				addedCount = filteredTypes.length
+	const handleTokensChange = useCallback(
+		(tokens: string[]) => {
+			if (tokens.length <= 4) {
+				actions.setSelectedTokens(tokens)
 			}
-		} else if (state.selectedChartTab === 'protocol' && state.selectedProtocol && chartTypesToAdd.length > 0) {
-			const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
+		},
+		[actions]
+	)
 
-			const filteredTypes = chartTypesToAdd.filter((chartType) => {
-				return !state.composerItems.some((item) => item.protocol === state.selectedProtocol && item.type === chartType)
-			})
+	const handleAddToComposer = useCallback(
+		(typesToAdd?: string[]) => {
+			const chartTypesToAdd = typesToAdd || state.selectedChartTypes
+			let addedCount = 0
 
-			if (filteredTypes.length > 0) {
-				const newCharts = filteredTypes.map((chartType) => ({
-					id: `${state.selectedProtocol}-${chartType}-${Date.now()}-${Math.random()}`,
-					kind: 'chart' as const,
-					protocol: state.selectedProtocol,
-					chain: '',
-					type: chartType,
-					grouping: 'day' as const,
-					geckoId: protocol?.geckoId
-				}))
-				actions.setComposerItems((prev) => [...prev, ...newCharts])
-				addedCount = filteredTypes.length
+			if (state.selectedChartTab === 'chain' && state.selectedChain && chartTypesToAdd.length > 0) {
+				const chain = chains.find((c: Chain) => c.name === state.selectedChain)
+
+				const filteredTypes = chartTypesToAdd.filter((chartType) => {
+					return !state.composerItems.some((item) => item.chain === state.selectedChain && item.type === chartType)
+				})
+
+				if (filteredTypes.length > 0) {
+					const newCharts = filteredTypes.map((chartType) => ({
+						id: `${state.selectedChain}-${chartType}-${Date.now()}-${Math.random()}`,
+						kind: 'chart' as const,
+						chain: state.selectedChain,
+						type: chartType,
+						grouping: 'day' as const,
+						geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
+					}))
+					actions.setComposerItems((prev) => [...prev, ...newCharts])
+					addedCount = filteredTypes.length
+				}
+			} else if (state.selectedChartTab === 'protocol' && state.selectedProtocol && chartTypesToAdd.length > 0) {
+				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
+
+				const filteredTypes = chartTypesToAdd.filter((chartType) => {
+					return !state.composerItems.some(
+						(item) => item.protocol === state.selectedProtocol && item.type === chartType
+					)
+				})
+
+				if (filteredTypes.length > 0) {
+					const newCharts = filteredTypes.map((chartType) => ({
+						id: `${state.selectedProtocol}-${chartType}-${Date.now()}-${Math.random()}`,
+						kind: 'chart' as const,
+						protocol: state.selectedProtocol,
+						chain: '',
+						type: chartType,
+						grouping: 'day' as const,
+						geckoId: protocol?.geckoId
+					}))
+					actions.setComposerItems((prev) => [...prev, ...newCharts])
+					addedCount = filteredTypes.length
+				}
 			}
-		}
-	}
+		},
+		[
+			actions,
+			chains,
+			protocols,
+			state.composerItems,
+			state.selectedChain,
+			state.selectedChartTab,
+			state.selectedChartTypes,
+			state.selectedProtocol
+		]
+	)
 
-	const handleRemoveFromComposer = (id: string) => {
-		actions.setComposerItems((prev) => prev.filter((item) => item.id !== id))
-	}
+	const handleRemoveFromComposer = useCallback(
+		(id: string) => {
+			actions.setComposerItems((prev) => prev.filter((item) => item.id !== id))
+		},
+		[actions]
+	)
 
-	const handleMainTabChange = (tab: MainTabType) => {
-		actions.setSelectedMainTab(tab)
-		actions.setSelectedChain(null)
-		actions.setSelectedProtocol(null)
-		actions.setSelectedChartType('tvl')
-		actions.setSelectedChartTypes([])
-		if (tab === 'charts') {
-			actions.setUnifiedChartName('')
-			actions.setChartCreationMode('separate')
-		}
-	}
+	const handleMainTabChange = useCallback(
+		(tab: MainTabType) => {
+			actions.setSelectedMainTab(tab)
+			actions.setSelectedChain(null)
+			actions.setSelectedProtocol(null)
+			actions.setSelectedChartType('tvl')
+			actions.setSelectedChartTypes([])
+			if (tab === 'charts') {
+				actions.setUnifiedChartName('')
+				actions.setChartCreationMode('separate')
+			}
+		},
+		[actions]
+	)
 
-	const handleChartTabChange = (tab: ChartTabType) => {
-		actions.setSelectedChartTab(tab)
-		actions.setSelectedChain(null)
-		actions.setSelectedProtocol(null)
-		actions.setSelectedChartType('tvl')
-	}
+	const handleChartTabChange = useCallback(
+		(tab: ChartTabType) => {
+			actions.setSelectedChartTab(tab)
+			actions.setSelectedChain(null)
+			actions.setSelectedProtocol(null)
+			actions.setSelectedChartType('tvl')
+		},
+		[actions]
+	)
 
-	const updateChartBuilder = (updates: Partial<typeof state.chartBuilder>) => {
-		actions.setChartBuilder((prev) => ({ ...prev, ...updates }))
-	}
+	const updateChartBuilder = useCallback(
+		(updates: Partial<typeof state.chartBuilder>) => {
+			actions.setChartBuilder((prev) => ({ ...prev, ...updates }))
+		},
+		[actions]
+	)
 
-	const handleSubmit = () => {
+	const handleSubmit = useCallback(() => {
 		if (editItem) {
 			let newItem: DashboardItemConfig | null = null
 
@@ -465,11 +506,23 @@ export function useModalActions(
 		// Clean up state
 		resetState()
 		onClose()
-	}
-
-	return {
+	}, [
+		editItem,
 		state,
-		actions: {
+		chains,
+		protocols,
+		handleEditItem,
+		handleAddMultiChart,
+		handleAddChart,
+		handleAddTable,
+		handleAddText,
+		handleAddChartBuilder,
+		resetState,
+		onClose
+	])
+
+	const uiActions = useMemo(
+		() => ({
 			...actions,
 			handleChainChange,
 			handleChainsChange,
@@ -483,14 +536,38 @@ export function useModalActions(
 			handleSubmit,
 			setChartBuilder: actions.setChartBuilder,
 			updateChartBuilder
-		},
-		computed: {
+		}),
+		[
+			actions,
+			handleChainChange,
+			handleChainsChange,
+			handleProtocolChange,
+			handleDatasetChainChange,
+			handleTokensChange,
+			handleAddToComposer,
+			handleRemoveFromComposer,
+			handleMainTabChange,
+			handleChartTabChange,
+			handleSubmit,
+			updateChartBuilder
+		]
+	)
+
+	const computed = useMemo(
+		() => ({
 			selectedProtocolData,
 			selectedChainData,
 			chainOptions,
 			protocolOptions,
 			protocolsLoading,
 			timePeriod
-		}
+		}),
+		[selectedProtocolData, selectedChainData, chainOptions, protocolOptions, protocolsLoading, timePeriod]
+	)
+
+	return {
+		state,
+		actions: uiActions,
+		computed
 	}
 }

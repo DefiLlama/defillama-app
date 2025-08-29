@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { QueryObserverResult, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
@@ -217,7 +217,7 @@ export function ProDashboardAPIProvider({
 	const { isAuthenticated, user } = useAuthContext()
 	const { data: { protocols = [], chains: rawChains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
 
-	const chains: Chain[] = rawChains
+	const chains = useMemo(() => rawChains as Chain[], [rawChains])
 	const [items, setItems] = useState<DashboardItemConfig[]>([])
 	const [timePeriod, setTimePeriodState] = useState<TimePeriod>('365d')
 	const [dashboardName, setDashboardName] = useState<string>('My Dashboard')
@@ -297,21 +297,6 @@ export function ProDashboardAPIProvider({
 				console.log('Dashboard not found or no permission:', initialDashboardId)
 				return null
 			}
-
-			if (!dashboard?.data?.items || !Array.isArray(dashboard.data.items)) {
-				console.error('Invalid dashboard data structure')
-				return null
-			}
-
-			setDashboardId(dashboard.id)
-			setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
-			setItems(dashboard.data.items)
-			setTimePeriodState(dashboard.data.timePeriod || '365d')
-			setCurrentDashboard(dashboard)
-			setDashboardVisibility(dashboard.visibility || 'private')
-			setDashboardTags(dashboard.tags || [])
-			setDashboardDescription(dashboard.description || '')
-
 			return dashboard
 		},
 		enabled: !!initialDashboardId
@@ -323,6 +308,9 @@ export function ProDashboardAPIProvider({
 			currentDashboard2 !== null &&
 			initialDashboardId === currentDashboard2?.id
 		) {
+			if (!currentDashboard2?.data?.items || !Array.isArray(currentDashboard2.data.items)) {
+				return
+			}
 			setDashboardId(currentDashboard2.id)
 			setDashboardName(currentDashboard2.data.dashboardName || 'My Dashboard')
 			setItems(currentDashboard2.data.items)
@@ -778,41 +766,51 @@ export function ProDashboardAPIProvider({
 		[navigateToDashboard]
 	)
 
-	const allChartItems: ChartConfig[] = []
-	items.forEach((item) => {
-		if (item.kind === 'chart') {
-			allChartItems.push(item)
-		} else if (item.kind === 'multi') {
-			allChartItems.push(...item.items)
-		}
-	})
+	const allChartItems: ChartConfig[] = useMemo(() => {
+		const chartItems: ChartConfig[] = []
+		items.forEach((item) => {
+			if (item.kind === 'chart') {
+				chartItems.push(item)
+			} else if (item.kind === 'multi') {
+				chartItems.push(...item.items)
+			}
+		})
+		return chartItems
+	}, [items])
 
 	const chartQueries = useChartsData(allChartItems, timePeriod)
+
+	const queryById = useMemo(() => {
+		const map = new Map<string, any>()
+		allChartItems.forEach((chartConfig, index) => {
+			if (chartQueries[index]) {
+				map.set(chartConfig.id, chartQueries[index])
+			}
+		})
+		return map
+	}, [allChartItems, chartQueries])
 
 	const chartsWithData: DashboardItemConfig[] = useMemo(
 		() =>
 			items.map((item) => {
 				if (item.kind === 'chart') {
-					const chart = item
-					const idx = allChartItems.findIndex((c) => c.id === chart.id)
-					const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
+					const query = queryById.get(item.id)
 					return {
-						...chart,
-						data: query.data || [],
-						isLoading: query.isLoading || false,
-						hasError: query.isError || false,
-						refetch: query.refetch || (() => {})
+						...item,
+						data: query?.data || [],
+						isLoading: query?.isLoading || false,
+						hasError: query?.isError || false,
+						refetch: query?.refetch || (() => {})
 					}
 				} else if (item.kind === 'multi') {
 					const processedItems = item.items.map((nestedChart) => {
-						const idx = allChartItems.findIndex((c) => c.id === nestedChart.id)
-						const query = chartQueries[idx] || ({} as QueryObserverResult<any, Error>)
+						const query = queryById.get(nestedChart.id)
 						return {
 							...nestedChart,
-							data: query.data || [],
-							isLoading: query.isLoading || false,
-							hasError: query.isError || false,
-							refetch: query.refetch || (() => {})
+							data: query?.data || [],
+							isLoading: query?.isLoading || false,
+							hasError: query?.isError || false,
+							refetch: query?.refetch || (() => {})
 						}
 					})
 					return {
@@ -822,198 +820,216 @@ export function ProDashboardAPIProvider({
 				}
 				return item
 			}),
-		[items, chartQueries, allChartItems]
+		[items, queryById]
 	)
 
 	// Handle adding items
-	const handleAddChart = (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
-		if (isReadOnly || (initialDashboardId && !currentDashboard)) {
-			return
-		}
-		const newChartId = generateItemId(chartType, item)
-		const chartTypeDetails = CHART_TYPES[chartType]
+	const handleAddChart = useCallback(
+		(item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
+			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
+				return
+			}
+			const newChartId = generateItemId(chartType, item)
+			const chartTypeDetails = CHART_TYPES[chartType]
 
-		const newChartBase: Partial<ChartConfig> = {
-			id: newChartId,
-			kind: 'chart',
-			type: chartType,
-			colSpan: 1
-		}
+			const newChartBase: Partial<ChartConfig> = {
+				id: newChartId,
+				kind: 'chart',
+				type: chartType,
+				colSpan: 1
+			}
 
-		if (chartTypeDetails?.groupable) {
-			newChartBase.grouping = 'day'
-		}
+			if (chartTypeDetails?.groupable) {
+				newChartBase.grouping = 'day'
+			}
 
-		let newChart: ChartConfig
-		if (itemType === 'protocol') {
-			newChart = {
-				...newChartBase,
-				protocol: item,
-				chain: '',
-				geckoId
-			} as ChartConfig
-		} else {
-			newChart = {
-				...newChartBase,
-				chain: item,
-				geckoId
-			} as ChartConfig
-		}
+			let newChart: ChartConfig
+			if (itemType === 'protocol') {
+				newChart = {
+					...newChartBase,
+					protocol: item,
+					chain: '',
+					geckoId
+				} as ChartConfig
+			} else {
+				newChart = {
+					...newChartBase,
+					chain: item,
+					geckoId
+				} as ChartConfig
+			}
 
-		setItems((prev) => {
-			const newItems = [...prev, newChart]
-			autoSave(newItems)
-			return newItems
-		})
-	}
-
-	const handleAddTable = (
-		chains: string[],
-		tableType: 'protocols' | 'dataset' = 'protocols',
-		datasetType?:
-			| 'stablecoins'
-			| 'cex'
-			| 'revenue'
-			| 'holders-revenue'
-			| 'earnings'
-			| 'token-usage'
-			| 'yields'
-			| 'dexs'
-			| 'perps'
-			| 'aggregators'
-			| 'options'
-			| 'bridge-aggregators'
-			| 'trending-contracts'
-			| 'chains'
-			| 'fees',
-		datasetChain?: string,
-		tokenSymbol?: string | string[],
-		includeCex?: boolean,
-		datasetTimeframe?: string
-	) => {
-		if (isReadOnly) {
-			return
-		}
-		const chainIdentifier = chains.length > 1 ? 'multi' : chains[0] || 'table'
-		const newTable: ProtocolsTableConfig = {
-			id: generateItemId('table', chainIdentifier),
-			kind: 'table',
-			tableType,
-			chains,
-			colSpan: 2,
-			...(tableType === 'dataset' && {
-				datasetType,
-				datasetChain,
-				...(datasetType === 'token-usage' && {
-					tokenSymbols: Array.isArray(tokenSymbol) ? tokenSymbol : tokenSymbol ? [tokenSymbol] : [],
-					includeCex
-				}),
-				...(datasetType === 'trending-contracts' && {
-					datasetTimeframe: datasetTimeframe || '1d'
-				})
+			setItems((prev) => {
+				const newItems = [...prev, newChart]
+				autoSave(newItems)
+				return newItems
 			})
-		}
-		setItems((prev) => {
-			const newItems = [...prev, newTable]
-			autoSave(newItems)
-			return newItems
-		})
-	}
+		},
+		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
+	)
 
-	const handleAddMultiChart = (chartItems: ChartConfig[], name?: string) => {
-		if (isReadOnly) {
-			return
-		}
-		const defaultGrouping = 'day'
-		const newMultiChart: MultiChartConfig = {
-			id: generateItemId('multi', ''),
-			kind: 'multi',
-			name: name || `Multi-Chart ${items.filter((item) => item.kind === 'multi').length + 1}`,
-			items: chartItems.map((chart) => ({
-				...chart,
-				grouping: chart.grouping || defaultGrouping
-			})),
-			grouping: defaultGrouping,
-			colSpan: 1
-		}
-		setItems((prev) => {
-			const newItems = [...prev, newMultiChart]
-			autoSave(newItems)
-			return newItems
-		})
-	}
-
-	const handleAddText = (title: string | undefined, content: string) => {
-		if (isReadOnly) {
-			return
-		}
-		const newText: TextConfig = {
-			id: generateItemId('text', ''),
-			kind: 'text',
-			title,
-			content,
-			colSpan: 1
-		}
-		setItems((prev) => {
-			const newItems = [...prev, newText]
-			autoSave(newItems)
-			return newItems
-		})
-	}
-
-	const handleAddChartBuilder = (
-		name: string | undefined,
-		config: {
-			metric:
-				| 'fees'
+	const handleAddTable = useCallback(
+		(
+			chains: string[],
+			tableType: 'protocols' | 'dataset' = 'protocols',
+			datasetType?:
+				| 'stablecoins'
+				| 'cex'
 				| 'revenue'
-				| 'volume'
-				| 'perps'
-				| 'options-notional'
-				| 'options-premium'
-				| 'bridge-aggregators'
-				| 'dex-aggregators'
-				| 'perps-aggregators'
-				| 'user-fees'
 				| 'holders-revenue'
-				| 'protocol-revenue'
-				| 'supply-side-revenue'
-			chains: string[]
-			categories: string[]
-			groupBy: 'protocol'
-			limit: number
-			chartType: 'stackedBar' | 'stackedArea' | 'line'
-			displayAs: 'timeSeries' | 'percentage'
-			additionalFilters?: Record<string, any>
-		}
-	) => {
-		if (isReadOnly) {
-			return
-		}
-		const newBuilder = {
-			id: generateItemId('builder', ''),
-			kind: 'builder' as const,
-			name,
-			config,
-			colSpan: 1 as const
-		}
-		setItems((prev) => {
-			const newItems = [...prev, newBuilder]
-			autoSave(newItems)
-			return newItems
-		})
-	}
+				| 'earnings'
+				| 'token-usage'
+				| 'yields'
+				| 'dexs'
+				| 'perps'
+				| 'aggregators'
+				| 'options'
+				| 'bridge-aggregators'
+				| 'trending-contracts'
+				| 'chains'
+				| 'fees',
+			datasetChain?: string,
+			tokenSymbol?: string | string[],
+			includeCex?: boolean,
+			datasetTimeframe?: string
+		) => {
+			if (isReadOnly) {
+				return
+			}
+			const chainIdentifier = chains.length > 1 ? 'multi' : chains[0] || 'table'
+			const newTable: ProtocolsTableConfig = {
+				id: generateItemId('table', chainIdentifier),
+				kind: 'table',
+				tableType,
+				chains,
+				colSpan: 2,
+				...(tableType === 'dataset' && {
+					datasetType,
+					datasetChain,
+					...(datasetType === 'token-usage' && {
+						tokenSymbols: Array.isArray(tokenSymbol) ? tokenSymbol : tokenSymbol ? [tokenSymbol] : [],
+						includeCex
+					}),
+					...(datasetType === 'trending-contracts' && {
+						datasetTimeframe: datasetTimeframe || '1d'
+					})
+				})
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newTable]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, autoSave]
+	)
 
-	const handleEditItem = (itemId: string, newItem: DashboardItemConfig) => {
-		if (isReadOnly) {
-			return
-		}
-		setItems((prev) => {
-			const newItems = prev.map((item) => (item.id === itemId ? newItem : item))
-			autoSave(newItems)
-			return newItems
-		})
-	}
+	const handleAddMultiChart = useCallback(
+		(chartItems: ChartConfig[], name?: string) => {
+			if (isReadOnly) {
+				return
+			}
+			const defaultGrouping = 'day'
+			const newMultiChart: MultiChartConfig = {
+				id: generateItemId('multi', ''),
+				kind: 'multi',
+				name: name || `Multi-Chart ${items.filter((item) => item.kind === 'multi').length + 1}`,
+				items: chartItems.map((chart) => ({
+					...chart,
+					grouping: chart.grouping || defaultGrouping
+				})),
+				grouping: defaultGrouping,
+				colSpan: 1
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newMultiChart]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, items, autoSave]
+	)
+
+	const handleAddText = useCallback(
+		(title: string | undefined, content: string) => {
+			if (isReadOnly) {
+				return
+			}
+			const newText: TextConfig = {
+				id: generateItemId('text', ''),
+				kind: 'text',
+				title,
+				content,
+				colSpan: 1
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newText]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, autoSave]
+	)
+
+	const handleAddChartBuilder = useCallback(
+		(
+			name: string | undefined,
+			config: {
+				metric:
+					| 'fees'
+					| 'revenue'
+					| 'volume'
+					| 'perps'
+					| 'options-notional'
+					| 'options-premium'
+					| 'bridge-aggregators'
+					| 'dex-aggregators'
+					| 'perps-aggregators'
+					| 'user-fees'
+					| 'holders-revenue'
+					| 'protocol-revenue'
+					| 'supply-side-revenue'
+				chains: string[]
+				categories: string[]
+				groupBy: 'protocol'
+				limit: number
+				chartType: 'stackedBar' | 'stackedArea' | 'line'
+				displayAs: 'timeSeries' | 'percentage'
+				additionalFilters?: Record<string, any>
+			}
+		) => {
+			if (isReadOnly) {
+				return
+			}
+			const newBuilder = {
+				id: generateItemId('builder', ''),
+				kind: 'builder' as const,
+				name,
+				config,
+				colSpan: 1 as const
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newBuilder]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, autoSave]
+	)
+
+	const handleEditItem = useCallback(
+		(itemId: string, newItem: DashboardItemConfig) => {
+			if (isReadOnly) {
+				return
+			}
+			setItems((prev) => {
+				const newItems = prev.map((item) => (item.id === itemId ? newItem : item))
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, autoSave]
+	)
 
 	const handleRemoveItem = useCallback(
 		(itemId: string) => {
@@ -1246,78 +1262,166 @@ export function ProDashboardAPIProvider({
 		[autoSave, isReadOnly]
 	)
 
-	const getChainInfo = (chainName: string) => {
-		return chains.find((chain) => chain.name === chainName)
-	}
+	const chainByName = useMemo(() => {
+		const map = new Map<string, Chain>()
+		chains.forEach((chain) => {
+			map.set(chain.name, chain)
+		})
+		return map
+	}, [chains])
 
-	const getProtocolInfo = (protocolId: string) => {
-		return protocols.find((p: Protocol) => p.slug === protocolId)
-	}
+	const protocolBySlug = useMemo(() => {
+		const map = new Map<string, Protocol>()
+		protocols.forEach((protocol: Protocol) => {
+			map.set(protocol.slug, protocol)
+		})
+		return map
+	}, [protocols])
 
-	const value: ProDashboardContextType = {
-		items,
-		chartsWithData,
-		protocols,
-		chains,
-		protocolsLoading,
-		timePeriod,
-		dashboardName,
-		dashboardId,
-		dashboards,
-		isLoadingDashboards,
-		isLoadingDashboard,
-		isReadOnly,
-		dashboardOwnerId,
-		dashboardVisibility,
-		dashboardTags,
-		dashboardDescription,
-		currentDashboard,
-		getCurrentRatingSession,
-		autoSkipOlderSessionsForRating,
-		setTimePeriod,
-		setDashboardName,
-		setDashboardVisibility,
-		setDashboardTags,
-		setDashboardDescription,
-		handleAddChart,
-		handleAddTable,
-		handleAddMultiChart,
-		handleAddText,
-		handleAddChartBuilder,
-		handleEditItem,
-		handleRemoveItem,
-		handleChartsReordered,
-		handleGroupingChange,
-		handleColSpanChange,
-		handleCumulativeChange,
-		handlePercentageChange,
-		handleStackedChange,
-		handleHideOthersChange,
-		handleTableFiltersChange,
-		handleTableColumnsChange,
-		getChainInfo,
-		getProtocolInfo,
-		createNewDashboard,
-		loadDashboard,
-		deleteDashboard: deleteDashboardWithConfirmation,
-		saveDashboard,
-		saveDashboardName,
-		copyDashboard,
-		showCreateDashboardModal,
-		setShowCreateDashboardModal,
-		showGenerateDashboardModal,
-		setShowGenerateDashboardModal,
-		showIterateDashboardModal,
-		setShowIterateDashboardModal,
-		handleCreateDashboard,
-		handleGenerateDashboard,
-		handleIterateDashboard,
-		submitRating,
-		skipRating,
-		dismissRating,
-		undoAIGeneration,
-		canUndo
-	}
+	const getChainInfo = useCallback(
+		(chainName: string) => {
+			return chainByName.get(chainName)
+		},
+		[chainByName]
+	)
+
+	const getProtocolInfo = useCallback(
+		(protocolId: string) => {
+			return protocolBySlug.get(protocolId)
+		},
+		[protocolBySlug]
+	)
+
+	const value: ProDashboardContextType = useMemo(
+		() => ({
+			items,
+			chartsWithData,
+			protocols,
+			chains,
+			protocolsLoading,
+			timePeriod,
+			dashboardName,
+			dashboardId,
+			dashboards,
+			isLoadingDashboards,
+			isLoadingDashboard,
+			isReadOnly,
+			dashboardOwnerId,
+			dashboardVisibility,
+			dashboardTags,
+			dashboardDescription,
+			currentDashboard,
+			getCurrentRatingSession,
+			autoSkipOlderSessionsForRating,
+			setTimePeriod,
+			setDashboardName,
+			setDashboardVisibility,
+			setDashboardTags,
+			setDashboardDescription,
+			handleAddChart,
+			handleAddTable,
+			handleAddMultiChart,
+			handleAddText,
+			handleAddChartBuilder,
+			handleEditItem,
+			handleRemoveItem,
+			handleChartsReordered,
+			handleGroupingChange,
+			handleColSpanChange,
+			handleCumulativeChange,
+			handlePercentageChange,
+			handleStackedChange,
+			handleHideOthersChange,
+			handleTableFiltersChange,
+			handleTableColumnsChange,
+			getChainInfo,
+			getProtocolInfo,
+			createNewDashboard,
+			loadDashboard,
+			deleteDashboard: deleteDashboardWithConfirmation,
+			saveDashboard,
+			saveDashboardName,
+			copyDashboard,
+			showCreateDashboardModal,
+			setShowCreateDashboardModal,
+			showGenerateDashboardModal,
+			setShowGenerateDashboardModal,
+			showIterateDashboardModal,
+			setShowIterateDashboardModal,
+			handleCreateDashboard,
+			handleGenerateDashboard,
+			handleIterateDashboard,
+			submitRating,
+			skipRating,
+			dismissRating,
+			undoAIGeneration,
+			canUndo
+		}),
+		[
+			items,
+			chartsWithData,
+			protocols,
+			chains,
+			protocolsLoading,
+			timePeriod,
+			dashboardName,
+			dashboardId,
+			dashboards,
+			isLoadingDashboards,
+			isLoadingDashboard,
+			isReadOnly,
+			dashboardOwnerId,
+			dashboardVisibility,
+			dashboardTags,
+			dashboardDescription,
+			currentDashboard,
+			getCurrentRatingSession,
+			autoSkipOlderSessionsForRating,
+			setTimePeriod,
+			setDashboardName,
+			setDashboardVisibility,
+			setDashboardTags,
+			setDashboardDescription,
+			handleAddChart,
+			handleAddTable,
+			handleAddMultiChart,
+			handleAddText,
+			handleAddChartBuilder,
+			handleEditItem,
+			handleRemoveItem,
+			handleChartsReordered,
+			handleGroupingChange,
+			handleColSpanChange,
+			handleCumulativeChange,
+			handlePercentageChange,
+			handleStackedChange,
+			handleHideOthersChange,
+			handleTableFiltersChange,
+			handleTableColumnsChange,
+			getChainInfo,
+			getProtocolInfo,
+			createNewDashboard,
+			loadDashboard,
+			deleteDashboardWithConfirmation,
+			saveDashboard,
+			saveDashboardName,
+			copyDashboard,
+			showCreateDashboardModal,
+			setShowCreateDashboardModal,
+			showGenerateDashboardModal,
+			setShowGenerateDashboardModal,
+			showIterateDashboardModal,
+			setShowIterateDashboardModal,
+			handleCreateDashboard,
+			handleGenerateDashboard,
+			handleIterateDashboard,
+			submitRating,
+			skipRating,
+			dismissRating,
+			undoAIGeneration,
+			canUndo
+		]
+	)
 
 	return <ProDashboardContext.Provider value={value}>{children}</ProDashboardContext.Provider>
 }

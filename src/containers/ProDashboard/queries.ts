@@ -1,3 +1,4 @@
+import { useMemo, useRef } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { CHAINS_API, PROTOCOLS_API } from '~/constants'
@@ -23,25 +24,28 @@ function generateChartKey(
 
 export function useParentChildMapping() {
 	const { data: protocolsData } = useProtocolsAndChains()
-	const parentToChildren = new Map<string, string[]>()
-	if (protocolsData?.protocols?.length) {
-		const parentIdToSlug = new Map<string, string>()
-		for (const p of protocolsData.protocols) {
-			if (!p.parentProtocol && p.id && p.slug) {
-				parentIdToSlug.set(p.id, p.slug)
-				if (!parentToChildren.has(p.slug)) parentToChildren.set(p.slug, [])
+	const parentToChildren = useMemo(() => {
+		const map = new Map<string, string[]>()
+		if (protocolsData?.protocols?.length) {
+			const parentIdToSlug = new Map<string, string>()
+			for (const p of protocolsData.protocols) {
+				if (!p.parentProtocol && p.id && p.slug) {
+					parentIdToSlug.set(p.id, p.slug)
+					if (!map.has(p.slug)) map.set(p.slug, [])
+				}
+			}
+			for (const p of protocolsData.protocols) {
+				if (p.parentProtocol) {
+					const parentSlug = parentIdToSlug.get(p.parentProtocol)
+					if (!parentSlug) continue
+					const arr = map.get(parentSlug) || []
+					arr.push(p.slug)
+					map.set(parentSlug, arr)
+				}
 			}
 		}
-		for (const p of protocolsData.protocols) {
-			if (p.parentProtocol) {
-				const parentSlug = parentIdToSlug.get(p.parentProtocol)
-				if (!parentSlug) continue
-				const arr = parentToChildren.get(parentSlug) || []
-				arr.push(p.slug)
-				parentToChildren.set(parentSlug, arr)
-			}
-		}
-	}
+		return map
+	}, [protocolsData])
 	return { data: parentToChildren }
 }
 
@@ -398,29 +402,26 @@ export function useProtocolsAndChains() {
 	})
 }
 
-function createMemoizedGroupData() {
-	let lastData: any = null
-	let lastGrouping: any = null
-	let lastResult: any = null
-
-	return (data: any, grouping: any) => {
-		if (data === lastData && grouping === lastGrouping) {
-			return lastResult
-		}
-		lastData = data
-		lastGrouping = grouping
-		lastResult = groupData(data, grouping)
-		return lastResult
-	}
+function computeGrouped(
+	groupingCache: Map<string, { data: any; grouping: any; result: any }>,
+	id: string,
+	data: any,
+	grouping: any
+) {
+	const prev = groupingCache.get(id)
+	if (prev && prev.data === data && prev.grouping === grouping) return prev.result
+	const result = groupData(data, grouping)
+	groupingCache.set(id, { data, grouping, result })
+	return result
 }
 
 export function useChartsData(charts, timePeriod?: TimePeriod) {
 	const { data: parentMapping } = useParentChildMapping()
+	const groupingCacheRef = useRef<Map<string, { data: any; grouping: any; result: any }>>(new Map())
 	return useQueries({
 		queries: charts.map((chart) => {
 			const itemType = chart.protocol ? 'protocol' : 'chain'
 			const item = chart.protocol || chart.chain
-			const memoizedGroupData = createMemoizedGroupData()
 
 			return {
 				queryKey: [
@@ -434,7 +435,7 @@ export function useChartsData(charts, timePeriod?: TimePeriod) {
 				select: (data) => {
 					const chartTypeDetails = CHART_TYPES[chart.type]
 					if (chartTypeDetails?.groupable && chart.grouping && chart.grouping !== 'day') {
-						return memoizedGroupData(data, chart.grouping)
+						return computeGrouped(groupingCacheRef.current, chart.id, data, chart.grouping)
 					}
 					return data
 				},
