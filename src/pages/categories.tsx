@@ -564,28 +564,28 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 		size: 135
 	},
 	{
-		header: '1d Change',
+		header: '1d TVL Change',
 		accessorKey: 'change_1d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 110,
+		size: 140,
 		meta: {
 			align: 'end'
 		}
 	},
 	{
-		header: '7d Change',
+		header: '7d TVL Change',
 		accessorKey: 'change_7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 110,
+		size: 140,
 		meta: {
 			align: 'end'
 		}
 	},
 	{
-		header: '1m Change',
+		header: '1m TVL Change',
 		accessorKey: 'change_1m',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 110,
+		size: 140,
 		meta: {
 			align: 'end'
 		}

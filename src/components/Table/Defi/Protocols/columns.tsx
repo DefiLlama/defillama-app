@@ -146,34 +146,34 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 120
 			}),
 			columnHelper.accessor('change_1d', {
-				header: '1d Change',
+				header: '1d TVL Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 24 hours'
 				},
-				size: 110
+				size: 140
 			}),
 			columnHelper.accessor('change_7d', {
-				header: '7d Change',
+				header: '7d TVL Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 7 days'
 				},
-				size: 110
+				size: 140
 			}),
 			columnHelper.accessor('change_1m', {
-				header: '1m Change',
+				header: '1m TVL Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 30 days'
 				},
-				size: 110
+				size: 140
 			}),
 
 			columnHelper.accessor('mcaptvl', {
@@ -546,39 +546,43 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
 		},
 		size: 120
 	},
 	{
-		header: '1d Change',
+		header: '1d TVL Change',
 		accessorKey: 'change_1d',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 24 hours'
 		},
-		size: 100
+		size: 140
 	},
 	{
-		header: '7d Change',
+		header: '7d TVL Change',
 		accessorKey: 'change_7d',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 7 days'
 		},
-		size: 100
+		size: 140
 	},
 	{
-		header: '1m Change',
+		header: '1m TVL Change',
 		accessorKey: 'change_1m',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 30 days'
 		},
-		size: 100
+		size: 140
 	},
 	{
 		header: 'Mcap/TVL',
@@ -936,14 +940,15 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		size: 100
 	},
 	{
-		header: '1d Change',
+		header: '1d TVL Change',
 		accessorKey: 'change_1d',
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 24 hours'
 		},
-		size: 120
+		size: 140
 	},
 	{
 		header: 'Mcap/TVL',

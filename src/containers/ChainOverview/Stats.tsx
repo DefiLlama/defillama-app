@@ -565,7 +565,12 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainAssets ? (
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-									<span className="text-(--text-label)">Bridged TVL</span>
+									<Tooltip
+										content="Value of all tokens held on the chain"
+										className="text-(--text-label) underline decoration-dotted"
+									>
+										Bridged TVL
+									</Tooltip>
 									<Icon
 										name="chevron-down"
 										height={16}

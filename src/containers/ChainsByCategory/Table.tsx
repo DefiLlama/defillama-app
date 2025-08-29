@@ -390,7 +390,8 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 		}
 	},
 	{
@@ -399,7 +400,8 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 24 hours'
 		}
 	},
 	{
@@ -408,7 +410,8 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 7 days'
 		}
 	},
 	{
@@ -417,7 +420,8 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 30 days'
 		}
 	},
 	{
@@ -466,7 +470,8 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		sortUndefined: 'last',
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Value of all tokens held on the chain'
 		}
 	},
 	{

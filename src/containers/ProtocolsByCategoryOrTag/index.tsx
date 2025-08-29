@@ -293,7 +293,8 @@ const columns = (
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		sortUndefined: 'last',
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
 		},
 		size: 120
 	},
