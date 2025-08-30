@@ -106,10 +106,6 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		setDeleteConfirmItem(null)
 	}
 
-	const getColSpanClass = (colSpan?: 1 | 2) => {
-		return colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
-	}
-
 	const renderItemContent = (item: DashboardItemConfig) => {
 		if (item.kind === 'chart') {
 			return <ChartCard chart={item} />
@@ -202,19 +198,15 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 	if (isReadOnly) {
 		return (
-			<div className="mt-2">
-				<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
-					{chartsWithData.map((item) => (
-						<div
-							key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-							className={`${getColSpanClass(item.colSpan)}`}
-						>
-							<div className={`pro-glass relative h-full ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
-								<div className={item.kind === 'table' ? '' : ''}>{renderItemContent(item)}</div>
-							</div>
-						</div>
-					))}
-				</div>
+			<div className="grid grid-flow-dense grid-cols-1 gap-2 md:grid-cols-2">
+				{chartsWithData.map((item) => (
+					<div
+						key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
+						className={`rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'}`}
+					>
+						{renderItemContent(item)}
+					</div>
+				))}
 			</div>
 		)
 	}
@@ -223,11 +215,11 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		<div className="mt-2">
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
-					<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
+					<div className="grid grid-flow-dense grid-cols-1 gap-2 md:grid-cols-2">
 						{chartsWithData.map((item) => (
 							<div
 								key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-								className={`${getColSpanClass(item.colSpan)}`}
+								className={`${item.colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'}`}
 							>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
 									<div
