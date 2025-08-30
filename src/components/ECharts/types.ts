@@ -41,6 +41,22 @@ export interface IChartProps {
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
+export interface ISingleSeriesChartProps
+	extends Omit<
+		IChartProps,
+		| 'stacks'
+		| 'stackColors'
+		| 'customLegendOptions'
+		| 'customLegendName'
+		| 'customYAxis'
+		| 'groupBy'
+		| 'tooltipOrderBottomUp'
+		| 'hideDownloadButton'
+		| 'containerClassName'
+	> {
+	chartType: 'line' | 'bar'
+}
+
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
 	stacks?: {
 		[stack: string]: string

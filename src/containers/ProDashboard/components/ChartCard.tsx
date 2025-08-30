@@ -1,6 +1,6 @@
 import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { download } from '~/utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
@@ -10,7 +10,9 @@ import { LoadingSpinner } from './LoadingSpinner'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 import { ImageExportButton } from './ProTable/ImageExportButton'
 
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+const SingleSeriesChart = lazy(
+	() => import('~/components/ECharts/SingleSeriesChart')
+) as React.FC<ISingleSeriesChartProps>
 
 interface ChartCardProps {
 	chart: ChartConfig
@@ -20,7 +22,7 @@ interface ChartRendererProps {
 	name: string
 	type: ChartConfig['type']
 	showCumulative: ChartConfig['showCumulative']
-	data: [number, number][]
+	data: [string, number][]
 	isLoading: boolean
 	hasError: boolean
 	refetch: () => void
@@ -31,7 +33,6 @@ interface ChartRendererProps {
 const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
 
 const ChartRenderer = memo(function ChartRenderer({
-	name,
 	type,
 	showCumulative = false,
 	data,
@@ -42,18 +43,6 @@ const ChartRenderer = memo(function ChartRenderer({
 	onChartReady
 }: ChartRendererProps) {
 	const chartType = CHART_TYPES[type]
-
-	const charts: ILineAndBarChartProps['charts'] = useMemo(() => {
-		return {
-			[name]: {
-				name: '', // keep name empty if you dont want to show in tooltip
-				stack: name,
-				type: chartType.chartType === 'bar' && !showCumulative ? 'bar' : 'line',
-				color: color,
-				data: data
-			}
-		}
-	}, [data, color, chartType, showCumulative, name])
 
 	if (isLoading) {
 		return (
@@ -83,7 +72,15 @@ const ChartRenderer = memo(function ChartRenderer({
 
 	return (
 		<Suspense fallback={<></>}>
-			<LineAndBarChart charts={charts} height="300px" valueSymbol={valueSymbol} onReady={onChartReady} hideDataZoom />
+			<SingleSeriesChart
+				chartType={chartType.chartType === 'bar' && !showCumulative ? 'bar' : 'line'}
+				chartData={data}
+				valueSymbol={valueSymbol}
+				height="300px"
+				color={color}
+				hideDataZoom
+				onReady={onChartReady}
+			/>
 		</Suspense>
 	)
 })
@@ -137,9 +134,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 			isGroupable,
 			isBarChart,
 			showCumulative,
-			processedData: (showCumulative && chart.data ? convertToCumulative(chart.data) : chart.data).map(
-				([timestamp, value]) => [Number(timestamp) * 1000, value]
-			) as [number, number][] // todo data from server should return time in ms, so we dont iterate all over again in browser
+			processedData: showCumulative && chart.data ? convertToCumulative(chart.data) : chart.data
 		}
 	}, [chart, getChainInfo, getProtocolInfo])
 

@@ -231,7 +231,7 @@ export default function AreaChart({
 			onReady(chartInstance)
 		}
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (option === 'dataZoom') {
@@ -255,14 +255,7 @@ export default function AreaChart({
 		chartInstance.setOption({
 			graphic,
 			tooltip,
-			grid: {
-				left: 12,
-				bottom: 68,
-				top: 12,
-				right: 12,
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
-			},
+			grid,
 			xAxis,
 			yAxis: {
 				...yAxis,
@@ -366,7 +359,7 @@ export default function AreaChart({
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : 'mx-0 my-auto min-h-[360px]'}
+				className={containerClassName ? containerClassName : `mx-0 my-auto ${height ? '' : 'min-h-[360px]'}`}
 				style={height ? { height } : undefined}
 			/>
 		</div>
