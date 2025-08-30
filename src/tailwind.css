@@ -601,6 +601,10 @@
 	#table-header::-webkit-scrollbar {
 		display: none; /* Safari and Chrome */
 	}
+
+	hr {
+		@apply border-black/20 dark:border-white/20;
+	}
 }
 
 @layer components {

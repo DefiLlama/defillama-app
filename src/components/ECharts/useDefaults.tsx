@@ -460,8 +460,7 @@ export function useDefaults({
 		hideOthersInTooltip,
 		tooltipValuesRelative,
 		groupBy,
-		alwaysShowTooltip,
-		showAggregateInTooltip
+		alwaysShowTooltip
 	])
 
 	return defaults

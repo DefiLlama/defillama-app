@@ -5,8 +5,6 @@ import { Icon } from '~/components/Icon'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
-import { ChartBuilderCard } from './ChartBuilderCard'
-import { ChartCard } from './ChartCard'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,
@@ -29,7 +27,9 @@ import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
 import { TextCard } from './TextCard'
 
+const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod.ChartCard })))
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
+const ChartBuilderCard = lazy(() => import('./ChartBuilderCard').then((mod) => ({ default: mod.ChartBuilderCard })))
 
 interface ChartGridProps {
 	onAddChartClick: () => void
@@ -106,25 +106,29 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		setDeleteConfirmItem(null)
 	}
 
-	const getColSpanClass = (colSpan?: 1 | 2) => {
-		return colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
-	}
-
 	const renderItemContent = (item: DashboardItemConfig) => {
 		if (item.kind === 'chart') {
-			return <ChartCard chart={item} />
+			return (
+				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+					<ChartCard chart={item} />
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'multi') {
 			return (
-				<Suspense fallback={<></>}>
+				<Suspense fallback={<div className="fflex min-h-[402px] flex-col p-1 md:min-h-[418px]" />}>
 					<MultiChartCard key={`${item.id}-${item.items?.map((i) => i.id).join('-')}`} multi={item} />
 				</Suspense>
 			)
 		}
 
 		if (item.kind === 'builder') {
-			return <ChartBuilderCard builder={item} />
+			return (
+				<Suspense fallback={<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]" />}>
+					<ChartBuilderCard builder={item} />
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'text') {
@@ -202,19 +206,15 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 	if (isReadOnly) {
 		return (
-			<div className="mt-2">
-				<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
-					{chartsWithData.map((item) => (
-						<div
-							key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-							className={`${getColSpanClass(item.colSpan)}`}
-						>
-							<div className={`pro-glass relative h-full ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
-								<div className={item.kind === 'table' ? '' : ''}>{renderItemContent(item)}</div>
-							</div>
-						</div>
-					))}
-				</div>
+			<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-2">
+				{chartsWithData.map((item) => (
+					<div
+						key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
+						className={`rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
+					>
+						{renderItemContent(item)}
+					</div>
+				))}
 			</div>
 		)
 	}
@@ -223,11 +223,11 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		<div className="mt-2">
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
-					<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
+					<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-2">
 						{chartsWithData.map((item) => (
 							<div
 								key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-								className={`${getColSpanClass(item.colSpan)}`}
+								className={`${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
 							>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
 									<div

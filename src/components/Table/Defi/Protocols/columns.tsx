@@ -8,7 +8,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { removedCategoriesFromChainTvl } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDaysAgo } from '~/utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
 
@@ -146,7 +146,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 120
 			}),
 			columnHelper.accessor('change_1d', {
-				header: '1d TVL Change',
+				header: '1d Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
@@ -156,7 +156,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 140
 			}),
 			columnHelper.accessor('change_7d', {
-				header: '7d TVL Change',
+				header: '7d Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {
@@ -166,7 +166,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				size: 140
 			}),
 			columnHelper.accessor('change_1m', {
-				header: '1m TVL Change',
+				header: '1m Change',
 				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 				sortUndefined: 'last',
 				meta: {

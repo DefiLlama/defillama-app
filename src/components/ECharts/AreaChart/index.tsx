@@ -6,7 +6,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { slug, toNiceCsvDate } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { stringToColour } from '../utils'
+import { mergeDeep, stringToColour } from '../utils'
 
 // TODO remove color prop and use stackColors by default
 export default function AreaChart({
@@ -231,7 +231,7 @@ export default function AreaChart({
 			onReady(chartInstance)
 		}
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (option === 'dataZoom') {
@@ -246,7 +246,7 @@ export default function AreaChart({
 					}
 				}
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
@@ -255,14 +255,7 @@ export default function AreaChart({
 		chartInstance.setOption({
 			graphic,
 			tooltip,
-			grid: {
-				left: 12,
-				bottom: 68,
-				top: 12,
-				right: 12,
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
-			},
+			grid,
 			xAxis,
 			yAxis: {
 				...yAxis,
@@ -366,7 +359,7 @@ export default function AreaChart({
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : 'mx-0 my-auto min-h-[360px]'}
+				className={containerClassName ? containerClassName : `mx-0 my-auto ${height ? '' : 'min-h-[360px]'}`}
 				style={height ? { height } : undefined}
 			/>
 		</div>

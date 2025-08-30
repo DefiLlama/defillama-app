@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useMemo } from 'react'
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
+import { mergeDeep } from '~/components/ECharts/utils'
 import { formattedNum } from '~/utils'
 import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
 
@@ -177,7 +178,7 @@ export default function ProtocolLineBarChart({
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}

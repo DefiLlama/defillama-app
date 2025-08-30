@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useDefaults } from '../useDefaults'
+import { mergeDeep } from '../utils'
 
 interface IMultiSeriesChartProps {
 	series?: Array<{
@@ -124,7 +125,7 @@ export default function MultiSeriesChart({
 			if (option === 'overrides') {
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}

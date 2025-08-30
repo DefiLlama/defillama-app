@@ -276,12 +276,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
 	return (
-		<div className="flex h-full min-h-[340px] flex-col gap-2 px-4 pt-2 pb-4">
-			<div className="flex items-center justify-end gap-2">
+		<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-1 md:p-3">
 				<div className="mr-auto flex items-center gap-2">
-					<h3 className="text-sm font-medium text-(--text-primary)">
-						{multi.name || `Multi-Chart (${multi.items.length})`}
-					</h3>
+					<h1 className="text-base font-semibold">{multi.name || `Multi-Chart (${multi.items.length})`}</h1>
 					{hasPartialFailures && (
 						<p className="flex items-center gap-1 text-xs text-yellow-500">
 							<Icon name="alert-triangle" height={12} width={12} />
@@ -368,126 +366,120 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			{/* Status info for failures */}
 			{(failedItems.length > 0 || loadingItems.length > 0) && (
-				<div className="mb-2 text-xs text-(--text-tertiary)">
+				<div className="px-1 text-xs text-(--text-form) md:px-3">
 					{loadingItems.length > 0 && (
-						<div>
+						<p>
 							Loading: {loadingItems.length} chart{loadingItems.length > 1 ? 's' : ''}
-						</div>
+						</p>
 					)}
 					{failedItems.length > 0 && (
-						<div>
+						<p>
 							Failed: {failedItems.length} chart{failedItems.length > 1 ? 's' : ''}
-						</div>
+						</p>
 					)}
 					{hasAnyData && (
-						<div>
+						<p>
 							Showing: {validItems.length} chart{validItems.length > 1 ? 's' : ''}
-						</div>
+						</p>
 					)}
 				</div>
 			)}
 
-			<div style={{ height: '300px', flexGrow: 1 }}>
-				{!hasAnyData && isAllLoading ? (
-					<div className="flex h-full items-center justify-center">
-						<div className="text-center">
-							<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
-							<p className="text-sm text-(--text-tertiary)">Loading charts...</p>
-						</div>
-					</div>
-				) : !hasAnyData ? (
-					<div className="flex h-full items-center justify-center">
-						<div className="text-center">
-							<Icon name="alert-triangle" height={24} width={24} className="mx-auto mb-2 text-red-500" />
-							<p className="text-sm text-(--text-tertiary)">Failed to load chart data</p>
-							<p className="mt-1 text-xs text-(--text-tertiary)">
-								{failedItems.length} of {multi.items.length} charts failed
-							</p>
-						</div>
-					</div>
-				) : (
-					<Suspense fallback={<></>}>
-						<MultiSeriesChart
-							key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}`}
-							series={series}
-							valueSymbol={showPercentage ? '%' : '$'}
-							groupBy={
-								multi.grouping === 'week'
-									? 'weekly'
-									: multi.grouping === 'month'
-										? 'monthly'
-										: multi.grouping === 'quarter'
-											? 'quarterly'
-											: 'daily'
-							}
-							hideDataZoom={true}
-							onReady={handleChartReady}
-							chartOptions={
-								showPercentage
-									? {
-											yAxis: {
-												max: 100,
-												min: 0,
-												axisLabel: {
-													formatter: '{value}%'
-												}
-											},
-											tooltip: {
-												valueFormatter: (value: number) => value.toFixed(2) + '%'
-											},
-											grid: {
-												top: series.length > 5 ? 120 : 80,
-												bottom: 68,
-												left: 12,
-												right: 12,
-												outerBoundsMode: 'same',
-												outerBoundsContain: 'axisLabel'
-											},
-											legend: {
-												top: 10,
-												type: 'scroll',
-												pageButtonPosition: 'end',
-												height: series.length > 5 ? 80 : 40
+			{!hasAnyData && isAllLoading ? (
+				<div className="flex flex-1 flex-col items-center justify-center">
+					<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
+					<p className="text-sm text-(--text-form)">Loading charts...</p>
+				</div>
+			) : !hasAnyData ? (
+				<div className="flex flex-1 flex-col items-center justify-center">
+					<Icon name="alert-triangle" height={24} width={24} className="mx-auto mb-2 text-red-500" />
+					<p className="text-sm text-(--text-label)">Failed to load chart data</p>
+					<p className="mt-1 text-xs text-(--text-form)">
+						{failedItems.length} of {multi.items.length} charts failed
+					</p>
+				</div>
+			) : (
+				<Suspense fallback={<div className="h-[360px]" />}>
+					<MultiSeriesChart
+						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}`}
+						series={series}
+						valueSymbol={showPercentage ? '%' : '$'}
+						groupBy={
+							multi.grouping === 'week'
+								? 'weekly'
+								: multi.grouping === 'month'
+									? 'monthly'
+									: multi.grouping === 'quarter'
+										? 'quarterly'
+										: 'daily'
+						}
+						hideDataZoom={true}
+						onReady={handleChartReady}
+						chartOptions={
+							showPercentage
+								? {
+										yAxis: {
+											max: 100,
+											min: 0,
+											axisLabel: {
+												formatter: '{value}%'
 											}
+										},
+										tooltip: {
+											valueFormatter: (value: number) => value.toFixed(2) + '%'
+										},
+										grid: {
+											top: series.length > 5 ? 80 : 80,
+											bottom: 12,
+											left: 12,
+											right: 12,
+											outerBoundsMode: 'same',
+											outerBoundsContain: 'axisLabel'
+										},
+										legend: {
+											top: 10,
+											type: 'scroll',
+											pageButtonPosition: 'end',
+											height: series.length > 5 ? 80 : 40
 										}
-									: {
-											yAxis: {
-												max: undefined,
-												min: undefined,
-												axisLabel: {
-													formatter: (value: number) => {
-														const absValue = Math.abs(value)
-														if (absValue >= 1e9) {
-															return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-														} else if (absValue >= 1e6) {
-															return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-														} else if (absValue >= 1e3) {
-															return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-														}
-														return value.toString()
+									}
+								: {
+										yAxis: {
+											max: undefined,
+											min: undefined,
+											axisLabel: {
+												formatter: (value: number) => {
+													const absValue = Math.abs(value)
+													if (absValue >= 1e9) {
+														return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+													} else if (absValue >= 1e6) {
+														return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+													} else if (absValue >= 1e3) {
+														return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
 													}
+													return '$' + value.toString()
 												}
-											},
-											grid: {
-												top: series.length > 5 ? 120 : 80,
-												bottom: 68,
-												left: 12,
-												right: 12,
-												outerBoundsMode: 'same',
-												outerBoundsContain: 'axisLabel'
-											},
-											legend: {
-												top: 10,
-												type: 'scroll',
-												pageButtonPosition: 'end',
-												height: series.length > 5 ? 80 : 40
 											}
+										},
+										grid: {
+											top: series.length > 5 ? 80 : 40,
+											bottom: 12,
+											left: 12,
+											right: 12,
+											outerBoundsMode: 'same',
+											outerBoundsContain: 'axisLabel'
+										},
+										legend: {
+											top: 0,
+											type: 'scroll',
+											pageButtonPosition: 'end',
+											height: series.length > 5 ? 80 : 40
 										}
-							}
-						/>
-					</Suspense>
-				)}
-			</div>
+									}
+						}
+					/>
+				</Suspense>
+			)}
 		</div>
 	)
 })

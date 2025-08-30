@@ -3,6 +3,7 @@ import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { ILineAndBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
+import { mergeDeep } from '../utils'
 
 export default function LineAndBarChart({
 	charts,
@@ -13,7 +14,9 @@ export default function LineAndBarChart({
 	valueSymbol,
 	groupBy,
 	alwaysShowTooltip,
-	solidChartAreaStyle = false
+	solidChartAreaStyle = false,
+	hideDataZoom,
+	onReady
 }: ILineAndBarChartProps) {
 	const id = useId()
 
@@ -109,13 +112,17 @@ export default function LineAndBarChart({
 		// create instance
 		const chartInstance = createInstance()
 
+		if (onReady) {
+			onReady(chartInstance)
+		}
+
 		// override default chart settings
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
 				// update tooltip formatter
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
@@ -129,7 +136,7 @@ export default function LineAndBarChart({
 			title: titleDefaults,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -140,7 +147,7 @@ export default function LineAndBarChart({
 				...yAxis,
 				...(expandTo100Percent ? { max: 100, min: 0 } : {})
 			},
-			dataZoom,
+			...(!hideDataZoom ? { dataZoom } : {}),
 			series
 		})
 
@@ -180,7 +187,7 @@ export default function LineAndBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, alwaysShowTooltip])
+	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, alwaysShowTooltip, hideDataZoom])
 
-	return <div id={id} className="min-h-[360px]" style={height ? { height } : undefined}></div>
+	return <div id={id} className={height ? '' : 'min-h-[360px]'} style={height ? { height } : undefined}></div>
 }
