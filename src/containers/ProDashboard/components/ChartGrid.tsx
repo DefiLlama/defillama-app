@@ -5,8 +5,6 @@ import { Icon } from '~/components/Icon'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
-import { ChartBuilderCard } from './ChartBuilderCard'
-import { ChartCard } from './ChartCard'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,
@@ -29,7 +27,9 @@ import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
 import { TextCard } from './TextCard'
 
+const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod.ChartCard })))
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
+const ChartBuilderCard = lazy(() => import('./ChartBuilderCard').then((mod) => ({ default: mod.ChartBuilderCard })))
 
 interface ChartGridProps {
 	onAddChartClick: () => void
@@ -108,19 +108,27 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 	const renderItemContent = (item: DashboardItemConfig) => {
 		if (item.kind === 'chart') {
-			return <ChartCard chart={item} />
+			return (
+				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+					<ChartCard chart={item} />
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'multi') {
 			return (
-				<Suspense fallback={<></>}>
+				<Suspense fallback={<div className="fflex min-h-[402px] flex-col p-1 md:min-h-[418px]" />}>
 					<MultiChartCard key={`${item.id}-${item.items?.map((i) => i.id).join('-')}`} multi={item} />
 				</Suspense>
 			)
 		}
 
 		if (item.kind === 'builder') {
-			return <ChartBuilderCard builder={item} />
+			return (
+				<Suspense fallback={<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]" />}>
+					<ChartBuilderCard builder={item} />
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'text') {

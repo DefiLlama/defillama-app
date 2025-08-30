@@ -3,6 +3,7 @@ import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { ILineAndBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
+import { mergeDeep } from '../utils'
 
 export default function LineAndBarChart({
 	charts,
@@ -121,7 +122,7 @@ export default function LineAndBarChart({
 				// update tooltip formatter
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}

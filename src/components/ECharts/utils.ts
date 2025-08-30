@@ -130,3 +130,22 @@ export function prepareChartCsv(data: Record<string, Array<[string | number, num
 
 	return { filename, rows: rows.sort((a, b) => a[0] - b[0]) }
 }
+
+// Deep merge function for nested objects
+export function mergeDeep(target: any, source: any): any {
+	if (source === null || source === undefined) return target
+	if (typeof source !== 'object') return source
+	if (Array.isArray(source)) return source
+
+	const result = { ...target }
+	for (const key in source) {
+		if (source.hasOwnProperty(key)) {
+			if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+				result[key] = mergeDeep(target[key] || {}, source[key])
+			} else {
+				result[key] = source[key]
+			}
+		}
+	}
+	return result
+}

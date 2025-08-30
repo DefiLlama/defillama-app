@@ -71,7 +71,7 @@ const ChartRenderer = memo(function ChartRenderer({
 	const valueSymbol = userMetricTypes.includes(type) ? '' : '$'
 
 	return (
-		<Suspense fallback={<></>}>
+		<Suspense fallback={<div className="h-[300px]" />}>
 			<SingleSeriesChart
 				chartType={chartType.chartType === 'bar' && !showCumulative ? 'bar' : 'line'}
 				chartData={data}
@@ -158,13 +158,13 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 				<div className="mr-auto flex items-center gap-1">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
-							<img src={itemIconUrl} alt={itemName} className="h-6 w-6 shrink-0 rounded-full" />
+							<img src={itemIconUrl} alt={itemName} className="h-5 w-5 shrink-0 rounded-full" />
 						) : (
 							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs text-gray-600">
 								{itemName?.charAt(0)?.toUpperCase()}
 							</div>
 						))}
-					<h1 className="text-lg font-semibold">
+					<h1 className="text-base font-semibold">
 						{itemName} {chartTypeDetails.title}
 					</h1>
 				</div>

@@ -3,7 +3,7 @@ import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { ISingleSeriesChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { stringToColour } from '../utils'
+import { mergeDeep, stringToColour } from '../utils'
 
 export default function SingleSeriesChart({
 	chartType,
@@ -116,7 +116,7 @@ export default function SingleSeriesChart({
 				// update tooltip formatter
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}

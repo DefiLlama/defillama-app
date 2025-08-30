@@ -6,7 +6,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { slug, toNiceCsvDate } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { stringToColour } from '../utils'
+import { mergeDeep, stringToColour } from '../utils'
 
 // TODO remove color prop and use stackColors by default
 export default function AreaChart({
@@ -246,7 +246,7 @@ export default function AreaChart({
 					}
 				}
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
