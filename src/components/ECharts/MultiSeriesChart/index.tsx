@@ -125,10 +125,6 @@ export default function MultiSeriesChart({
 			if (option === 'overrides') {
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				if (option === 'yAxis') {
-					console.log({ chartOptions })
-				}
-				// Deep merge nested objects instead of shallow merge
 				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }

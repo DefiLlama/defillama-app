@@ -133,7 +133,8 @@ export function prepareChartCsv(data: Record<string, Array<[string | number, num
 
 // Deep merge function for nested objects
 export function mergeDeep(target: any, source: any): any {
-	if (source === null || source === undefined) return target
+	if (source == null) return target
+	if (Array.isArray(source) && Array.isArray(target)) return [...target, ...source]
 	if (typeof source !== 'object') return source
 	if (Array.isArray(source)) return source
 
