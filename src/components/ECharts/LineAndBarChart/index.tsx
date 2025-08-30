@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { ILineAndBarChartProps } from '../types'
@@ -101,20 +101,17 @@ export default function LineAndBarChart({
 		return series
 	}, [charts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle])
 
-	const chartRef = useRef<echarts.ECharts | null>(null)
+	const createInstance = useCallback(() => {
+		const instance = echarts.getInstanceByDom(document.getElementById(id))
+
+		return instance || echarts.init(document.getElementById(id))
+	}, [id])
 
 	useEffect(() => {
-		const chartDom = document.getElementById(id)
-		if (!chartDom) return
+		// create instance
+		const chartInstance = createInstance()
 
-		let chartInstance = echarts.getInstanceByDom(chartDom)
-		const isNewInstance = !chartInstance
-		if (!chartInstance) {
-			chartInstance = echarts.init(chartDom)
-		}
-		chartRef.current = chartInstance
-
-		if (onReady && isNewInstance) {
+		if (onReady) {
 			onReady(chartInstance)
 		}
 
@@ -189,7 +186,7 @@ export default function LineAndBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, defaultChartSettings, series, chartOptions, expandTo100Percent, alwaysShowTooltip, onReady, hideDataZoom])
+	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, alwaysShowTooltip, hideDataZoom])
 
 	return <div id={id} className={height ? '' : 'min-h-[360px]'} style={height ? { height } : undefined}></div>
 }

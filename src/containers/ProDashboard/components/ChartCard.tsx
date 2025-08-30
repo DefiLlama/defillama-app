@@ -158,8 +158,8 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 	const imageTitle = `${itemName} ${chartTypeDetails.title}`
 
 	return (
-		<div className="flex min-h-[316px] flex-col md:min-h-[332px]">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-2 md:p-4">
+		<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-1 md:p-3">
 				<div className="mr-auto flex items-center gap-1">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
