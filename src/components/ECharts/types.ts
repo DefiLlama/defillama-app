@@ -71,6 +71,8 @@ export interface ILineAndBarChartProps {
 	alwaysShowTooltip?: boolean
 	containerClassName?: string
 	solidChartAreaStyle?: boolean
+	hideDataZoom?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface IMultiSeriesChartProps {

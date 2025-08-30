@@ -198,11 +198,11 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 	if (isReadOnly) {
 		return (
-			<div className="grid grid-flow-dense grid-cols-1 gap-2 md:grid-cols-2">
+			<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-2">
 				{chartsWithData.map((item) => (
 					<div
 						key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-						className={`rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'}`}
+						className={`rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
 					>
 						{renderItemContent(item)}
 					</div>
@@ -215,11 +215,11 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		<div className="mt-2">
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
-					<div className="grid grid-flow-dense grid-cols-1 gap-2 md:grid-cols-2">
+					<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-2">
 						{chartsWithData.map((item) => (
 							<div
 								key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-								className={`${item.colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'}`}
+								className={`${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
 							>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
 									<div

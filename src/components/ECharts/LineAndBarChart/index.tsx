@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { ILineAndBarChartProps } from '../types'
@@ -13,7 +13,9 @@ export default function LineAndBarChart({
 	valueSymbol,
 	groupBy,
 	alwaysShowTooltip,
-	solidChartAreaStyle = false
+	solidChartAreaStyle = false,
+	hideDataZoom,
+	onReady
 }: ILineAndBarChartProps) {
 	const id = useId()
 
@@ -99,15 +101,22 @@ export default function LineAndBarChart({
 		return series
 	}, [charts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
 	useEffect(() => {
-		// create instance
-		const chartInstance = createInstance()
+		const chartDom = document.getElementById(id)
+		if (!chartDom) return
+
+		let chartInstance = echarts.getInstanceByDom(chartDom)
+		const isNewInstance = !chartInstance
+		if (!chartInstance) {
+			chartInstance = echarts.init(chartDom)
+		}
+		chartRef.current = chartInstance
+
+		if (onReady && isNewInstance) {
+			onReady(chartInstance)
+		}
 
 		// override default chart settings
 		for (const option in chartOptions) {
@@ -129,7 +138,7 @@ export default function LineAndBarChart({
 			title: titleDefaults,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -140,7 +149,7 @@ export default function LineAndBarChart({
 				...yAxis,
 				...(expandTo100Percent ? { max: 100, min: 0 } : {})
 			},
-			dataZoom,
+			...(!hideDataZoom ? { dataZoom } : {}),
 			series
 		})
 
@@ -180,7 +189,7 @@ export default function LineAndBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, alwaysShowTooltip])
+	}, [id, defaultChartSettings, series, chartOptions, expandTo100Percent, alwaysShowTooltip, onReady, hideDataZoom])
 
-	return <div id={id} className="min-h-[360px]" style={height ? { height } : undefined}></div>
+	return <div id={id} className={height ? '' : 'min-h-[360px]'} style={height ? { height } : undefined}></div>
 }
