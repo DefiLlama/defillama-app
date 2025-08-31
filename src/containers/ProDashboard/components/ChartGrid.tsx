@@ -210,7 +210,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				{chartsWithData.map((item) => (
 					<div
 						key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-						className={`rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
+						className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'lg:col-span-2' : ''}`}
 					>
 						{renderItemContent(item)}
 					</div>
@@ -227,47 +227,41 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						{chartsWithData.map((item) => (
 							<div
 								key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-								className={`${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
+								className={`col-span-1 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
 							>
-								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
-									<div
-										className={`pro-glass relative h-full ${item.kind === 'table' ? 'pt-6' : ''} ${
-											item.kind === 'table' ? 'overflow-visible' : 'overflow-hidden'
-										}`}
-									>
-										<div className="flex items-center justify-end gap-1 p-1">
-											<button
-												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-												onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
-												aria-label={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
-												title={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
-											>
-												{item.colSpan === 1 ? (
-													<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(45deg)' }} />
-												) : (
-													<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(-135deg)' }} />
-												)}
-											</button>
-											{onEditItem && (
-												<button
-													className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-													onClick={() => onEditItem(item)}
-													aria-label="Edit item"
-													title="Edit item"
-												>
-													<Icon name="pencil" height={14} width={14} />
-												</button>
+								<SortableItem id={item.id} isTable={item.kind === 'table'} data-col={item.colSpan}>
+									<div className="flex flex-wrap items-center justify-end gap-1 px-2 pt-2 pb-0 lg:px-4 lg:pt-4">
+										<button
+											className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
+											onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
+											aria-label={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
+											title={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
+										>
+											{item.colSpan === 1 ? (
+												<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(45deg)' }} />
+											) : (
+												<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(-135deg)' }} />
 											)}
+										</button>
+										{onEditItem && (
 											<button
 												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-												onClick={() => handleDeleteClick(item.id)}
-												aria-label="Remove item"
+												onClick={() => onEditItem(item)}
+												aria-label="Edit item"
+												title="Edit item"
 											>
-												<Icon name="x" height={14} width={14} />
+												<Icon name="pencil" height={14} width={14} />
 											</button>
-										</div>
-										<div>{renderItemContent(item)}</div>
+										)}
+										<button
+											className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
+											onClick={() => handleDeleteClick(item.id)}
+											aria-label="Remove item"
+										>
+											<Icon name="x" height={14} width={14} />
+										</button>
 									</div>
+									<div>{renderItemContent(item)}</div>
 								</SortableItem>
 							</div>
 						))}
