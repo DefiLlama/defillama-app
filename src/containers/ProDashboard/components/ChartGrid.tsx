@@ -266,7 +266,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							</div>
 						))}
 						{currentRatingSession && !isReadOnly && (
-							<div className="md:col-span-2">
+							<div className="animate-ai-glow col-span-full flex flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 								<Rating
 									sessionId={currentRatingSession.sessionId}
 									mode={currentRatingSession.mode}
@@ -277,9 +277,9 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								/>
 							</div>
 						)}
-						<div
+						<button
 							onClick={onAddChartClick}
-							className="pro-border pro-bg7 hover:pro-bg2 flex min-h-[340px] cursor-pointer flex-col items-center justify-center border border-dashed transition-colors"
+							className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--old-blue)"
 						>
 							<svg
 								width="40"
@@ -290,13 +290,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								strokeWidth="2"
 								strokeLinecap="round"
 								strokeLinejoin="round"
-								className="mb-2 text-(--primary)"
 							>
 								<line x1="12" y1="5" x2="12" y2="19"></line>
 								<line x1="5" y1="12" x2="19" y2="12"></line>
 							</svg>
-							<span className="text-lg font-medium text-(--primary)">Add Item</span>
-						</div>
+							<span className="text-lg font-medium">Add Item</span>
+						</button>
 					</div>
 				</SortableContext>
 			</DndContext>
