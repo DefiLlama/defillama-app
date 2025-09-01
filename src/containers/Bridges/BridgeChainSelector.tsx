@@ -23,7 +23,22 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 
-	// return <SelectWithCombobox allValues={options} selectedValues={currentChain} setSelectedValues={handleClick} />
+	const comboboxRef = React.useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
+
 	return (
 		<Ariakit.ComboboxProvider
 			resetValueOnHide
@@ -64,7 +79,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 
 					{matches.length > 0 ? (
 						<>
-							<Ariakit.ComboboxList>
+							<Ariakit.ComboboxList ref={comboboxRef}>
 								{matches.slice(0, viewableMatches + 1).map((option) => (
 									<Ariakit.SelectItem
 										key={`bridge-chain-${option.name}`}
@@ -75,15 +90,18 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 										<span>{option.name}</span>
 									</Ariakit.SelectItem>
 								))}
+								{matches.length > viewableMatches ? (
+									<Ariakit.ComboboxItem
+										value="__see_more__"
+										setValueOnClick={false}
+										hideOnClick={false}
+										className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary) data-active-item:bg-(--bg-secondary)"
+										onClick={handleSeeMore}
+									>
+										See more...
+									</Ariakit.ComboboxItem>
+								) : null}
 							</Ariakit.ComboboxList>
-							{matches.length > viewableMatches ? (
-								<button
-									className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-									onClick={() => setViewableMatches((prev) => prev + 20)}
-								>
-									See more...
-								</button>
-							) : null}
 						</>
 					) : (
 						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>

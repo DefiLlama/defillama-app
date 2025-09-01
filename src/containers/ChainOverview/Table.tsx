@@ -458,7 +458,7 @@ export const ChainProtocolsTable = ({
 							}}
 							customFooter={
 								<button
-									className="mt-2 flex w-full items-center gap-2 rounded-md border border-(--form-control-border) bg-(--btn-bg) px-3 py-2 text-xs font-medium text-(--text-primary) hover:bg-(--btn-hover-bg)"
+									className="flex w-full items-center gap-2 rounded-md border border-(--form-control-border) bg-(--btn-bg) p-3 text-sm font-medium text-(--text-primary) hover:bg-(--btn-hover-bg)"
 									onClick={handleAddCustomColumn}
 									type="button"
 								>
