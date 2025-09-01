@@ -8,8 +8,16 @@ import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
-export const SignIn = ({ text, className }: { text?: string; className?: string }) => {
-	const dialogState = Ariakit.useDialogStore()
+export const SignIn = ({
+	text,
+	className,
+	onlyUseDialog = false
+}: {
+	text?: string
+	className?: string
+	onlyUseDialog?: boolean
+}) => {
+	const dialogState = Ariakit.useDialogStore({ defaultOpen: onlyUseDialog })
 	const { openConnectModal } = useConnectModal()
 	const { address } = useAccount()
 
@@ -135,28 +143,33 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 		return null
 	}
 
+	console.log('text', text)
+
 	return (
 		<>
-			<button
-				className={
-					className ??
-					'mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-3.5 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed'
-				}
-				onClick={dialogState.toggle}
-				suppressHydrationWarning
-			>
-				{text && text.includes('GitHub') ? (
-					<>
-						<Icon name="github" height={18} width={18} className="mr-2 inline-block" />
-						{text}
-					</>
-				) : (
-					(text ?? 'Sign In')
-				)}
-			</button>
+			{onlyUseDialog ? null : (
+				<button
+					className={
+						className ??
+						'mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-3.5 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed'
+					}
+					onClick={dialogState.toggle}
+					suppressHydrationWarning
+				>
+					{text && text.includes('GitHub') ? (
+						<>
+							<Icon name="github" height={18} width={18} className="mr-2 inline-block" />
+							{text}
+						</>
+					) : (
+						(text ?? 'Sign In')
+					)}
+				</button>
+			)}
 
 			<Ariakit.Dialog
 				store={dialogState}
+				hideOnInteractOutside={onlyUseDialog ? false : true}
 				className="dialog animate-fadeIn flex max-w-md flex-col rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 shadow-2xl backdrop-blur-md"
 				style={{
 					backgroundImage: 'radial-gradient(circle at center, rgba(92, 92, 249, 0.05), transparent 80%)'
@@ -166,13 +179,16 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 					<Ariakit.DialogHeading className="bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-2xl font-bold text-transparent">
 						{flow === 'signin' ? 'Sign In' : flow === 'signup' ? 'Create Account' : 'Reset Password'}
 					</Ariakit.DialogHeading>
-					<button
-						onClick={dialogState.hide}
-						className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
-					>
-						<Icon name="x" height={18} width={18} />
-						<span className="sr-only">Close</span>
-					</button>
+
+					{onlyUseDialog ? null : (
+						<button
+							onClick={dialogState.hide}
+							className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
+						>
+							<Icon name="x" height={18} width={18} />
+							<span className="sr-only">Close</span>
+						</button>
+					)}
 				</div>
 
 				<div className="flex w-full flex-col gap-3">
