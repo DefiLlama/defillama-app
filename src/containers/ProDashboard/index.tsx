@@ -1,27 +1,40 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { AddChartModal } from './components/AddChartModal'
-import { AIGenerationHistory } from './components/AIGenerationHistory'
 import { ChartGrid } from './components/ChartGrid'
-import { CreateDashboardModal } from './components/CreateDashboardModal'
-import { DashboardSettingsModal } from './components/DashboardSettingsModal'
-import { DemoPreview } from './components/DemoPreview'
 import { EmptyState } from './components/EmptyState'
-import { GenerateDashboardModal } from './components/GenerateDashboardModal'
-import { Rating } from './components/Rating'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
 import { AIGeneratedData, TimePeriod, useProDashboard } from './ProDashboardAPIContext'
 import { DashboardItemConfig } from './types'
+
+const DemoPreview = lazy(() => import('./components/DemoPreview').then((m) => ({ default: m.DemoPreview })))
+const SubscribeModal = lazy(() =>
+	import('~/components/Modal/SubscribeModal').then((m) => ({ default: m.SubscribeModal }))
+)
+const SubscribePlusCard = lazy(() =>
+	import('~/components/SubscribeCards/SubscribePlusCard').then((m) => ({ default: m.SubscribePlusCard }))
+)
+const AddChartModal = lazy(() => import('./components/AddChartModal').then((m) => ({ default: m.AddChartModal })))
+const CreateDashboardModal = lazy(() =>
+	import('./components/CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
+)
+const DashboardSettingsModal = lazy(() =>
+	import('./components/DashboardSettingsModal').then((m) => ({ default: m.DashboardSettingsModal }))
+)
+const GenerateDashboardModal = lazy(() =>
+	import('./components/GenerateDashboardModal').then((m) => ({ default: m.GenerateDashboardModal }))
+)
+const AIGenerationHistory = lazy(() =>
+	import('./components/AIGenerationHistory').then((m) => ({ default: m.AIGenerationHistory }))
+)
+const Rating = lazy(() => import('./components/Rating').then((m) => ({ default: m.Rating })))
 
 function ProDashboardContent() {
 	const router = useRouter()
@@ -110,7 +123,15 @@ function ProDashboardContent() {
 	}
 
 	if (!isAuthenticated && subscription?.status !== 'active' && dashboardVisibility !== 'public') {
-		return <DemoPreview />
+		return (
+			<Suspense
+				fallback={
+					<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
+				}
+			>
+				<DemoPreview />
+			</Suspense>
+		)
 	}
 
 	return (
@@ -483,15 +504,17 @@ function ProDashboardContent() {
 			)}
 
 			{currentRatingSession && !isReadOnly && (
-				<Rating
-					sessionId={currentRatingSession.sessionId}
-					mode={currentRatingSession.mode}
-					variant="banner"
-					prompt={currentRatingSession.prompt}
-					onRate={submitRating}
-					onSkip={skipRating}
-					onDismiss={dismissRating}
-				/>
+				<Suspense fallback={<></>}>
+					<Rating
+						sessionId={currentRatingSession.sessionId}
+						mode={currentRatingSession.mode}
+						variant="banner"
+						prompt={currentRatingSession.prompt}
+						onRate={submitRating}
+						onSkip={skipRating}
+						onDismiss={dismissRating}
+					/>
+				</Suspense>
 			)}
 
 			{items.length > 0 && (
@@ -504,14 +527,16 @@ function ProDashboardContent() {
 				/>
 			)}
 
-			<AddChartModal
-				isOpen={showAddModal}
-				onClose={() => {
-					setShowAddModal(false)
-					setEditItem(null)
-				}}
-				editItem={editItem}
-			/>
+			<Suspense fallback={<></>}>
+				<AddChartModal
+					isOpen={showAddModal}
+					onClose={() => {
+						setShowAddModal(false)
+						setEditItem(null)
+					}}
+					editItem={editItem}
+				/>
+			</Suspense>
 
 			{!protocolsLoading && items.length === 0 && (
 				<EmptyState
@@ -521,47 +546,59 @@ function ProDashboardContent() {
 				/>
 			)}
 
-			<DashboardSettingsModal
-				isOpen={showSettingsModal}
-				onClose={() => setShowSettingsModal(false)}
-				visibility={dashboardVisibility}
-				tags={dashboardTags}
-				description={dashboardDescription}
-				onVisibilityChange={setDashboardVisibility}
-				onTagsChange={setDashboardTags}
-				onDescriptionChange={setDashboardDescription}
-				onSave={saveDashboard}
-			/>
+			<Suspense fallback={<></>}>
+				<DashboardSettingsModal
+					isOpen={showSettingsModal}
+					onClose={() => setShowSettingsModal(false)}
+					visibility={dashboardVisibility}
+					tags={dashboardTags}
+					description={dashboardDescription}
+					onVisibilityChange={setDashboardVisibility}
+					onTagsChange={setDashboardTags}
+					onDescriptionChange={setDashboardDescription}
+					onSave={saveDashboard}
+				/>
+			</Suspense>
 
-			<CreateDashboardModal
-				isOpen={showCreateDashboardModal}
-				onClose={() => setShowCreateDashboardModal(false)}
-				onCreate={handleCreateDashboard}
-			/>
+			<Suspense fallback={<></>}>
+				<CreateDashboardModal
+					isOpen={showCreateDashboardModal}
+					onClose={() => setShowCreateDashboardModal(false)}
+					onCreate={handleCreateDashboard}
+				/>
+			</Suspense>
 
-			<GenerateDashboardModal
-				isOpen={showGenerateDashboardModal}
-				onClose={() => setShowGenerateDashboardModal(false)}
-				onGenerate={handleGenerateDashboard}
-			/>
+			<Suspense fallback={<></>}>
+				<GenerateDashboardModal
+					isOpen={showGenerateDashboardModal}
+					onClose={() => setShowGenerateDashboardModal(false)}
+					onGenerate={handleGenerateDashboard}
+				/>
+			</Suspense>
 
-			<GenerateDashboardModal
-				isOpen={showIterateDashboardModal}
-				onClose={() => setShowIterateDashboardModal(false)}
-				mode="iterate"
-				existingDashboard={{
-					dashboardName,
-					visibility: dashboardVisibility,
-					tags: dashboardTags,
-					description: dashboardDescription,
-					items
-				}}
-				onGenerate={handleIterateDashboard}
-			/>
+			<Suspense fallback={<></>}>
+				<GenerateDashboardModal
+					isOpen={showIterateDashboardModal}
+					onClose={() => setShowIterateDashboardModal(false)}
+					mode="iterate"
+					existingDashboard={{
+						dashboardName,
+						visibility: dashboardVisibility,
+						tags: dashboardTags,
+						description: dashboardDescription,
+						items
+					}}
+					onGenerate={handleIterateDashboard}
+				/>
+			</Suspense>
 
-			<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-				<SubscribePlusCard context="modal" returnUrl={router.asPath} />
-			</SubscribeModal>
+			<Suspense fallback={<></>}>
+				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
+					<Suspense fallback={<></>}>
+						<SubscribePlusCard context="modal" returnUrl={router.asPath} />
+					</Suspense>
+				</SubscribeModal>
+			</Suspense>
 		</div>
 	)
 }

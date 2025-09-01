@@ -3,9 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import type { ChartConfig, MultiChartConfig, TextConfig } from '../types'
-import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from '../types'
-import { ChartPreview } from './ChartPreview'
-import MultiChartCard from './MultiChartCard'
+import { CHART_TYPES } from '../types'
 import { ProtocolsByChainTable } from './ProTable'
 import { TextCard } from './TextCard'
 
@@ -14,8 +12,6 @@ const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart'))
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart'))
 
 const MultiSeriesChart = React.lazy(() => import('~/components/ECharts/MultiSeriesChart'))
-
-const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 
 const generateFakeChartData = (baseValue: number, volatility: number = 0.1): [string, number][] => {
 	const data: [string, number][] = []
