@@ -223,90 +223,35 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			</div>
 
 			{viewMode === 'Week' && weeklyChartData && (
-				<div className="mb-4 min-h-[350px]">
-					<LazyChart>
-						<Suspense fallback={<></>}>
-							<BarChart
-								chartData={weeklyChartData.chartData}
-								stacks={weeklyChartData.stacks}
-								stackColors={weeklyChartData.stackColors}
-								valueSymbol="$"
-								height="300px"
-								chartOptions={{
-									tooltip: {
-										trigger: 'axis',
-										formatter: (params: any) => {
-											if (!params || params.length === 0) return ''
-
-											const dateStr = dayjs(params[0].value[0]).format('MMM D, YYYY')
-											let tooltipContent = `<div class="font-semibold mb-1">${dateStr}</div>`
-											let totalValue = 0
-
-											const validParams = params
-												.filter((param) => param.value && param.value[1] > 0)
-												.sort((a, b) => b.value[1] - a.value[1])
-
-											if (validParams.length === 0) {
-												tooltipContent += 'No unlocks'
-											} else {
-												validParams.forEach((param) => {
-													const value = param.value[1]
-													totalValue += value
-													tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-													<span>${param.marker} ${param.seriesName}</span>
-													<span style="font-weight: 500;">${formattedNum(value, true)}</span>
-												</div>`
-												})
-												if (validParams.length > 1) {
-													tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-													<span><strong>Total</strong></span>
-													<span style="font-weight: 600;">${formattedNum(totalValue, true)}</span>
-												</div>`
-												}
-											}
-
-											return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
-										}
-									},
-									legend: {
-										type: 'scroll',
-										bottom: 0,
-										left: 'center',
-										itemGap: 15
-									},
-									grid: {
-										bottom: 40
-									}
-								}}
-							/>
-						</Suspense>
-					</LazyChart>
-				</div>
+				<Suspense fallback={<div className="min-h-[398px]" />}>
+					<BarChart
+						chartData={weeklyChartData.chartData}
+						stacks={weeklyChartData.stacks}
+						stackColors={weeklyChartData.stackColors}
+						valueSymbol="$"
+						height="360px"
+						chartOptions={chartOptions}
+					/>
+				</Suspense>
 			)}
 
 			{viewMode === 'TreeMap' ? (
-				<LazyChart className="h-[600px]">
-					<Suspense fallback={<></>}>
-						<UnlocksTreemapChart unlocksData={unlocksData} height="600px" filterYear={currentDate.year()} />
-					</Suspense>
-				</LazyChart>
+				<Suspense fallback={<div className="min-h-[600px]" />}>
+					<UnlocksTreemapChart unlocksData={unlocksData} height="600px" filterYear={currentDate.year()} />
+				</Suspense>
 			) : viewMode === 'Month' ? (
 				<>
 					{monthlyChartData && (
-						<div className="mb-4 min-h-[350px]">
-							<LazyChart>
-								<Suspense fallback={<></>}>
-									<BarChart
-										chartData={monthlyChartData.chartData}
-										stacks={monthlyChartData.stacks}
-										stackColors={monthlyChartData.stackColors}
-										valueSymbol="$"
-										height="300px"
-										chartOptions={chartOptions}
-									/>
-								</Suspense>
-							</LazyChart>
-						</div>
+						<Suspense fallback={<div className="min-h-[398px]" />}>
+							<BarChart
+								chartData={monthlyChartData.chartData}
+								stacks={monthlyChartData.stacks}
+								stackColors={monthlyChartData.stackColors}
+								valueSymbol="$"
+								height="360px"
+								chartOptions={chartOptions}
+							/>
+						</Suspense>
 					)}
 					<div className="grid grid-cols-7 py-2 text-center text-sm font-medium text-(--text-secondary)">
 						{DAYS_OF_WEEK.map((day) => (
@@ -376,12 +321,19 @@ const chartOptions = {
 	},
 	legend: {
 		type: 'scroll',
+		itemGap: 15,
+		top: 0,
 		bottom: 0,
-		left: 'center',
-		itemGap: 15
+		left: 12,
+		right: 12
 	},
 	grid: {
-		bottom: 40
+		top: 40,
+		right: 12,
+		bottom: 12,
+		left: 12,
+		outerBoundsMode: 'same',
+		outerBoundsContain: 'axisLabel'
 	},
 	xAxis: {
 		type: 'time'

@@ -166,7 +166,8 @@ export default function BarChart({
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
+				outerBoundsContain: 'axisLabel',
+				...grid
 			},
 			xAxis: {
 				...xAxis
