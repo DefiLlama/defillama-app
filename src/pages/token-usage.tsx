@@ -45,11 +45,7 @@ export default function Tokens({ searchData }) {
 	const { token, includecex } = router.query
 
 	const tokenSymbol = token ? (typeof token === 'string' ? token : token[0]) : null
-	const includeCentraliseExchanges = includecex
-		? typeof includecex === 'string' && includecex === 'true'
-			? true
-			: false
-		: false
+	const includeCentraliseExchanges = includecex === 'true' ? true : false
 
 	const { data: protocols, isLoading } = useQuery({
 		queryKey: ['protocols-by-token', tokenSymbol],
