@@ -83,7 +83,7 @@ export const DesktopNav = ({
 				) : null}
 
 				{userDashboards.length > 0 ? (
-					<div className="group mt-4">
+					<div className="group my-4">
 						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65">Your Dashboards</p>
 						<div>
 							{userDashboards.map(({ name, route }) => (

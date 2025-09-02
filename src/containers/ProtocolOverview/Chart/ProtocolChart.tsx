@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -51,7 +51,7 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-export function ProtocolChart(props: IProtocolOverviewPageData) {
+export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
 
@@ -387,7 +387,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			</div>
 		</div>
 	)
-}
+})
 
 export const useFetchAndFormatChartData = ({
 	name,
