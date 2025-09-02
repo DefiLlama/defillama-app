@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-		if (!metadataCache.chainMetadata[chain]?.perps) {
+		if (!metadataCache.chainMetadata[chain]?.openInterest) {
 			return { notFound: true }
 		}
 

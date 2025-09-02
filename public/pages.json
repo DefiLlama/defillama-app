@@ -309,7 +309,7 @@
       "route": "/open-interest",
       "category": "Volume",
       "description": "Total notional value of all outstanding perpetual futures positions",
-      "totalTrackedKey": "perpsOpenInterest.protocols",
+      "totalTrackedKey": "openInterest.protocols",
       "tab": "Protocols"
     },
     {

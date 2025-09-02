@@ -510,7 +510,7 @@ const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)
 	'Options Notional Volume': 'optionsNotionalVolume',
 	'DEX Volume': 'dexVolume',
 	'Perp Volume': 'perpVolume',
-	'Open Interest': 'perpVolume',
+	'Open Interest': 'openInterest',
 	'Bridge Aggregator Volume': 'bridgeAggregatorVolume',
 	'Perp Aggregator Volume': 'perpAggregatorVolume',
 	'DEX Aggregator Volume': 'dexAggregatorVolume',
@@ -1060,7 +1060,7 @@ const getColumnsByType = (
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
-					align: 'center',
+					align: 'end',
 					headerHelperText:
 						'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
 				},

@@ -162,7 +162,7 @@ export default function ProtocolLineBarChart({
 			series,
 			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>
 		}
-	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative])
+	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative, rangeHallmarks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -205,97 +205,31 @@ export default function ProtocolLineBarChart({
 			}
 
 			if (type === 'Token Price') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Token Price']
-						}
-					}
-				})
+				finalYAxis.push(options)
 			}
 
 			if (type === 'Token Volume') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Token Volume']
-						}
-					}
-				})
+				finalYAxis.push(options)
 			}
 
 			if (type === 'Token Liquidity') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Token Liquidity']
-						}
-					}
-				})
+				finalYAxis.push(options)
 			}
 
 			if (type === 'Bridge Deposits') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Bridge Deposits']
-						}
-					}
-				})
+				finalYAxis.push(options)
 			}
 
 			if (type === 'Fees') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartData['Fees']
-								? chartColors['Fees']
-								: chartData['Revenue']
-									? chartColors['Revenue']
-									: chartData['Holders Revenue']
-										? chartColors['Holders Revenue']
-										: chartData['Incentives']
-											? chartColors['Incentives']
-											: chartColors['Fees']
-						}
-					}
-				})
+				finalYAxis.push(options)
 			}
 
 			if (type === 'DEX Volume') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartData['DEX Volume']
-								? chartColors['DEX Volume']
-								: chartData['Perp Volume']
-									? chartColors['Perp Volume']
-									: chartData['Options Premium Volume']
-										? chartColors['Options Premium Volume']
-										: chartData['Options Notional Volume']
-											? chartColors['Options Notional Volume']
-											: chartData['Perp Aggregator Volume']
-												? chartColors['Perp Aggregator Volume']
-												: chartData['Bridge Aggregator Volume']
-													? chartColors['Bridge Aggregator Volume']
-													: chartData['DEX Aggregator Volume']
-														? chartColors['DEX Aggregator Volume']
-														: chartColors['DEX Volume']
-						}
-					}
-				})
+				finalYAxis.push(options)
+			}
+
+			if (type === 'Open Interest') {
+				finalYAxis.push(options)
 			}
 
 			if (type === 'Unlocks') {
@@ -303,12 +237,6 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => `${formattedNum(value)} ${unlockTokenSymbol}`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Unlocks']
-						}
 					}
 				})
 			}
@@ -318,16 +246,6 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartData['Active Addresses']
-								? chartColors['Active Addresses']
-								: chartData['New Addresses']
-									? chartColors['New Addresses']
-									: chartColors['Active Addresses']
-						}
 					}
 				})
 			}
@@ -337,52 +255,24 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Transactions']
-						}
 					}
 				})
 			}
 
 			if (type === 'Gas Used') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Gas Used']
-						}
-					}
-				})
+				finalYAxis.push(options)
 			}
 			if (type === 'Median APY') {
 				finalYAxis.push({
 					...options,
 					axisLabel: {
 						formatter: (value) => `${value}%`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Median APY']
-						}
 					}
 				})
 			}
 
 			if (type === 'USD Inflows') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['USD Inflows']
-						}
-					}
-				})
+				finalYAxis.push(options)
 			}
 
 			if (type === 'Total Proposals') {
@@ -405,26 +295,12 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Max Votes']
-						}
 					}
 				})
 			}
 
 			if (type === 'Treasury') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Treasury']
-						}
-					}
-				})
+				finalYAxis.push(options)
 			}
 
 			if (type === 'Tweets') {
@@ -432,26 +308,12 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => `${value} tweets`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['Tweets']
-						}
 					}
 				})
 			}
 
 			if (type === 'NFT Volume') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							color: chartColors['NFT Volume']
-						}
-					}
-				})
+				finalYAxis.push(options)
 			}
 		})
 
@@ -486,7 +348,16 @@ export default function ProtocolLineBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, chartColors, allYAxis])
+	}, [
+		createInstance,
+		defaultChartSettings,
+		series,
+		chartOptions,
+		unlockTokenSymbol,
+		chartColors,
+		allYAxis,
+		rangeHallmarks
+	])
 
 	return (
 		<div

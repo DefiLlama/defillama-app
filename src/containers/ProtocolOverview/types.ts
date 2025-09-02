@@ -12,6 +12,7 @@ export interface IProtocolMetadata {
 	holdersRevenue?: boolean
 	dexs?: boolean
 	perps?: boolean
+	openInterest?: boolean
 	dexAggregators?: boolean
 	optionsPremiumVolume?: boolean
 	optionsNotionalVolume?: boolean
@@ -39,6 +40,7 @@ export interface IProtocolPageMetrics {
 	tvlTab: boolean
 	dexs: boolean
 	perps: boolean
+	openInterest: boolean
 	optionsPremiumVolume: boolean
 	optionsNotionalVolume: boolean
 	dexAggregators: boolean
@@ -161,6 +163,7 @@ export interface IProtocolOverviewPageData {
 	dexVolume: IAdapterOverview | null
 	dexAggregatorVolume: IAdapterOverview | null
 	perpVolume: IAdapterOverview | null
+	openInterest: IAdapterOverview | null
 	perpAggregatorVolume: IAdapterOverview | null
 	bridgeAggregatorVolume: IAdapterOverview | null
 	optionsPremiumVolume: IAdapterOverview | null

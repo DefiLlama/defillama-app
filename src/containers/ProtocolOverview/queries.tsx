@@ -127,6 +127,7 @@ export const getProtocolMetrics = ({
 		tvlTab: tvlTab ? true : false,
 		dexs: metadata.dexs ? true : false,
 		perps: metadata.perps ? true : false,
+		openInterest: metadata.openInterest ? true : false,
 		optionsPremiumVolume: metadata.optionsPremiumVolume ? true : false,
 		optionsNotionalVolume: metadata.optionsNotionalVolume ? true : false,
 		dexAggregators: metadata.dexAggregators ? true : false,
@@ -171,6 +172,7 @@ export const getProtocolOverviewPageData = async ({
 		dexVolumeData,
 		dexAggregatorVolumeData,
 		perpVolumeData,
+		openInterestData,
 		perpAggregatorVolumeData,
 		bridgeAggregatorVolumeData,
 		optionsPremiumVolumeData,
@@ -226,6 +228,7 @@ export const getProtocolOverviewPageData = async ({
 		IProtocolOverviewPageData['dexVolume'],
 		IProtocolOverviewPageData['dexAggregatorVolume'],
 		IProtocolOverviewPageData['perpVolume'],
+		IProtocolOverviewPageData['openInterest'],
 		IProtocolOverviewPageData['perpAggregatorVolume'],
 		IProtocolOverviewPageData['bridgeAggregatorVolume'],
 		IProtocolOverviewPageData['optionsPremiumVolume'],
@@ -349,6 +352,17 @@ export const getProtocolOverviewPageData = async ({
 					excludeTotalDataChartBreakdown: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perps' }))
+					.catch(() => null)
+			: Promise.resolve(null),
+		metadata.openInterest
+			? getAdapterProtocolSummary({
+					adapterType: 'derivatives',
+					protocol: metadata.displayName,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true,
+					dataType: 'openInterestAtEnd'
+				})
+					.then((data) => formatAdapterData({ data, methodologyKey: 'openInterest' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		metadata.perpsAggregators
@@ -706,6 +720,10 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Perp Volume')
 	}
 
+	if (openInterestData) {
+		availableCharts.push('Open Interest')
+	}
+
 	if (optionsPremiumVolumeData) {
 		availableCharts.push('Options Premium Volume')
 	}
@@ -841,6 +859,7 @@ export const getProtocolOverviewPageData = async ({
 		dexVolume: dexVolumeData,
 		dexAggregatorVolume: dexAggregatorVolumeData,
 		perpVolume: perpVolumeData,
+		openInterest: openInterestData,
 		perpAggregatorVolume: perpAggregatorVolumeData,
 		bridgeAggregatorVolume: bridgeAggregatorVolumeData,
 		optionsPremiumVolume: optionsPremiumVolumeData,

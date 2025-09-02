@@ -274,6 +274,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<DexVolume formatPrice={props.formatPrice} {...props} />
 				<DexAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<PerpVolume formatPrice={props.formatPrice} {...props} />
+				<OpenInterest formatPrice={props.formatPrice} {...props} />
 				<PerpAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<BridgeAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<BridgeVolume formatPrice={props.formatPrice} {...props} />
@@ -849,6 +850,26 @@ function PerpVolume(props: IKeyMetricsProps) {
 			tooltipContent: null,
 			value: props.perpVolume.totalAllTime
 		})
+	}
+
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+		/>
+	)
+}
+
+function OpenInterest(props: IKeyMetricsProps) {
+	if (!props.openInterest) return null
+
+	const metrics = []
+
+	if (props.openInterest.total24h != null) {
+		metrics.push({ name: 'Open Interest', tooltipContent: null, value: props.openInterest.total24h })
 	}
 
 	return (
