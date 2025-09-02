@@ -94,7 +94,11 @@ export const DesktopNav = ({
 				) : null}
 
 				{footerLinks.map(({ category, pages }) => (
-					<details key={`desktop-nav-${category}`} className={`group ${category === 'More' ? 'mt-auto' : ''}`}>
+					<details
+						key={`desktop-nav-${category}`}
+						className={`group ${category === 'More' ? 'mt-auto' : ''}`}
+						open={category === 'More'}
+					>
 						<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5">
 							<span>{category}</span>
 							<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
