@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import ProDashboard from '~/containers/ProDashboard'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashboardEngagement'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
+
+const ProDashboard = lazy(() => import('~/containers/ProDashboard'))
 
 export default function DashboardPage() {
 	const router = useRouter()
@@ -87,83 +88,91 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 				<h1 className="text-3xl font-bold">Sign In Required</h1>
 				<p className="text-center text-base text-(--text-label)">Please sign in to create a new dashboard</p>
-				<button
-					onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
+				<BasicLink
+					href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}
 					className="pro-btn-purple mt-7 rounded-md px-6 py-3 font-medium"
 				>
 					Sign In
-				</button>
+				</BasicLink>
 			</div>
 		)
 	}
 
 	if (dashboardVisibility === 'public' && currentDashboard) {
-		return <ProDashboard />
+		return (
+			<Suspense
+				fallback={
+					<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
+				}
+			>
+				<ProDashboard />
+			</Suspense>
+		)
 	}
 
 	if (!isAuthenticated && dashboardVisibility === 'private') {
 		return (
-			<div className="flex min-h-[50vh] flex-col items-center justify-center p-4">
-				<div className="max-w-md space-y-6 text-center">
-					<h1 className="pro-text1 text-3xl font-bold">Sign In Required</h1>
-					<p className="pro-text2 text-lg">Please sign in to view this dashboard</p>
-					<button
-						onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
-						className="rounded-md bg-(--primary) px-6 py-3 font-medium text-white transition-colors hover:bg-(--primary-hover)"
-					>
-						Sign In
-					</button>
-				</div>
+			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+				<h1 className="text-3xl font-bold">Sign In Required</h1>
+				<p className="text-center text-base text-(--text-label)">Please sign in to view this dashboard</p>
+				<BasicLink
+					href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}
+					className="pro-btn-purple mt-7 rounded-md px-6 py-3 font-medium"
+				>
+					Sign In
+				</BasicLink>
 			</div>
 		)
 	}
 
 	if (subscription?.status !== 'active' && dashboardVisibility !== 'public') {
 		return (
-			<div className="flex min-h-[60vh] flex-col items-center justify-center p-4">
-				<div className="bg-opacity-30 w-full max-w-2xl rounded-lg border border-white/20 bg-(--bg-glass) p-8 shadow-lg backdrop-blur-xl md:p-12">
-					<div className="space-y-6 text-center">
-						<h1 className="pro-text1 text-3xl font-bold">Pro Dashboard Access</h1>
-						<p className="pro-text2 text-lg">Subscribe to Pro to access this dashboard and unlock advanced features</p>
+			<div className="flex flex-1 flex-col items-center justify-center gap-8 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+				<h1 className="text-3xl font-bold">Pro Dashboard Access</h1>
+				<p className="-mt-6 text-center text-base text-(--text-label)">
+					Subscribe to Pro to access this dashboard and unlock advanced features
+				</p>
 
-						<div className="my-8 grid grid-cols-2 gap-4 py-4 md:grid-cols-4">
-							<div className="pro-text2 flex items-center gap-2 text-sm">
-								<Icon name="bar-chart-2" height={16} width={16} className="shrink-0 text-(--primary)" />
-								<span>Customizable Charts</span>
-							</div>
-							<div className="pro-text2 flex items-center gap-2 text-sm">
-								<Icon name="activity" height={16} width={16} className="shrink-0 text-(--primary)" />
-								<span>Multiple Dashboards</span>
-							</div>
-							<div className="pro-text2 flex items-center gap-2 text-sm">
-								<Icon name="percent" height={16} width={16} className="shrink-0 text-(--primary)" />
-								<span>Advanced Analytics</span>
-							</div>
-							<div className="pro-text2 flex items-center gap-2 text-sm">
-								<Icon name="layers" height={16} width={16} className="shrink-0 text-(--primary)" />
-								<span>Multi-Charts</span>
-							</div>
-						</div>
-
-						<div className="pro-text1 text-3xl font-bold">
-							$49<span className="pro-text2 text-lg font-normal">/month</span>
-							<div className="pro-text2 text-sm font-normal">Pro subscription</div>
-						</div>
-
-						<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-							<button
-								onClick={() => router.push(`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`)}
-								className="inline-flex items-center gap-2 rounded-md bg-(--primary) px-8 py-3 font-medium text-white transition-colors hover:bg-(--primary-hover)"
-							>
-								<Icon name="arrow-right" height={16} width={16} />
-								Subscribe Now
-							</button>
-						</div>
+				<div className="mx-auto flex flex-wrap items-center justify-center gap-4">
+					<div className="flex items-center gap-2 text-sm">
+						<Icon name="bar-chart-2" height={16} width={16} className="shrink-0 text-(--old-blue)" />
+						<span>Customizable Charts</span>
+					</div>
+					<div className="flex items-center gap-2 text-sm">
+						<Icon name="activity" height={16} width={16} className="shrink-0 text-(--old-blue)" />
+						<span>Multiple Dashboards</span>
+					</div>
+					<div className="flex items-center gap-2 text-sm">
+						<Icon name="percent" height={16} width={16} className="shrink-0 text-(--old-blue)" />
+						<span>Advanced Analytics</span>
+					</div>
+					<div className="flex items-center gap-2 text-sm">
+						<Icon name="layers" height={16} width={16} className="shrink-0 text-(--old-blue)" />
+						<span>Multi-Charts</span>
 					</div>
 				</div>
+
+				<h2 className="pro-text1 text-3xl font-bold">
+					$49<span className="pro-text2 text-lg font-normal">/month</span>
+				</h2>
+
+				<BasicLink
+					href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}
+					className="pro-btn-purple rounded-md px-6 py-3 font-medium"
+				>
+					Subscribe Now
+				</BasicLink>
 			</div>
 		)
 	}
 
-	return <ProDashboard />
+	return (
+		<Suspense
+			fallback={
+				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
+			}
+		>
+			<ProDashboard />
+		</Suspense>
+	)
 }

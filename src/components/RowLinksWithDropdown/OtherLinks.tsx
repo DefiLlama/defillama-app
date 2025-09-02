@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
@@ -24,6 +24,21 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 	}, [options, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)
+	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="menuitem"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
 
 	return (
 		<Ariakit.ComboboxProvider
@@ -57,7 +72,6 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />
 					</Ariakit.PopoverDismiss>
-
 					<span className="relative mb-2 p-3">
 						<Ariakit.Combobox
 							placeholder="Search..."
@@ -66,22 +80,25 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 						/>
 					</span>
 					{matches.length > 0 ? (
-						<Ariakit.ComboboxList>
+						<Ariakit.ComboboxList ref={comboboxRef}>
 							{matches.slice(0, viewableMatches + 1).map((value) => (
 								<Item label={value.label} to={value.to} key={`other-link-${value.to}`} />
 							))}
+							{matches.length > viewableMatches ? (
+								<Ariakit.ComboboxItem
+									value="__see_more__"
+									setValueOnClick={false}
+									hideOnClick={false}
+									className="w-full px-3 py-4 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary) data-active-item:bg-(--bg-secondary)"
+									onClick={handleSeeMore}
+								>
+									See more...
+								</Ariakit.ComboboxItem>
+							) : null}
 						</Ariakit.ComboboxList>
 					) : (
 						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 					)}
-					{matches.length > viewableMatches ? (
-						<button
-							className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-							onClick={() => setViewableMatches((prev) => prev + 20)}
-						>
-							See more...
-						</button>
-					) : null}
 				</Ariakit.Menu>
 			</Ariakit.MenuProvider>
 		</Ariakit.ComboboxProvider>

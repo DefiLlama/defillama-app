@@ -241,12 +241,10 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	}, [chartSeries, builder.name, config.metric, config.chains, config.categories])
 
 	return (
-		<div className="flex h-full min-h-[340px] flex-col gap-2 px-4 pt-2 pb-4">
-			<div>
-				<div className="flex items-center justify-end gap-2">
-					<h3 className="mr-auto text-sm font-medium text-(--text1)">
-						{builder.name || `${config.metric} by Protocol`}
-					</h3>
+		<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]">
+			<div className="flex flex-col gap-1 p-1 md:p-3">
+				<div className="flex flex-wrap items-center justify-end gap-2">
+					<h1 className="mr-auto text-base font-semibold">{builder.name || `${config.metric} by Protocol`}</h1>
 					{!isReadOnly && !isTvlChart && (
 						<div className="flex overflow-hidden border border-(--form-control-border)">
 							{groupingOptions.map((option, index) => (
@@ -301,162 +299,159 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						</>
 					)}
 				</div>
-				<p className="mt-1 text-xs text-(--text3)">
+				<p className="text-xs text-(--text-label)">
 					{config.chains.join(', ')} • Top {config.limit} protocols{config.hideOthers ? ' only' : ''}
 					{config.categories.length > 0 && ` • ${config.categories.join(', ')}`}
 					{timePeriod && timePeriod !== 'all' && ` • ${timePeriod.toUpperCase()}`}
 				</p>
 			</div>
-			<div className="min-h-[300px] flex-1">
-				{isLoading ? (
-					<div className="flex h-full items-center justify-center">
-						<div className="text-center">
-							<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
-							<p className="text-sm text-(--text3)">Loading chart...</p>
-						</div>
-					</div>
-				) : chartSeries.length > 0 ? (
-					<Suspense fallback={<></>}>
-						<MultiSeriesChart
-							key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}`}
-							series={chartSeries as any}
-							valueSymbol={config.displayAs === 'percentage' ? '%' : '$'}
-							groupBy={
-								builder.grouping === 'week'
-									? 'weekly'
-									: builder.grouping === 'month'
-										? 'monthly'
-										: builder.grouping === 'quarter'
-											? 'quarterly'
-											: 'daily'
-							}
-							hideDataZoom={true}
-							onReady={handleChartReady}
-							chartOptions={{
-								grid: {
-									top: 40,
-									bottom: 0,
-									left: 12,
-									right: 12,
-									outerBoundsMode: 'same',
-									outerBoundsContain: 'axisLabel'
-								},
-								legend: {
-									show: true,
-									top: 0,
-									type: 'scroll',
-									selectedMode: 'multiple',
-									pageButtonItemGap: 5,
-									pageButtonGap: 20,
-									data: chartSeries?.map((s) => s.name) || []
-								},
-								tooltip: {
-									formatter: function (params: any) {
-										const date = new Date(params[0].value[0])
-										const chartdate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
 
-										let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
-										filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+			{isLoading ? (
+				<div className="flex flex-1 flex-col items-center justify-center">
+					<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
+					<p className="text-sm text-(--text-form)">Loading chart...</p>
+				</div>
+			) : chartSeries.length > 0 ? (
+				<Suspense fallback={<div className="min-h-[300px]" />}>
+					<MultiSeriesChart
+						key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}`}
+						series={chartSeries as any}
+						valueSymbol={config.displayAs === 'percentage' ? '%' : '$'}
+						groupBy={
+							builder.grouping === 'week'
+								? 'weekly'
+								: builder.grouping === 'month'
+									? 'monthly'
+									: builder.grouping === 'quarter'
+										? 'quarterly'
+										: 'daily'
+						}
+						hideDataZoom={true}
+						onReady={handleChartReady}
+						chartOptions={{
+							grid: {
+								top: 40,
+								bottom: 12,
+								left: 12,
+								right: 12,
+								outerBoundsMode: 'same',
+								outerBoundsContain: 'axisLabel'
+							},
+							legend: {
+								show: true,
+								top: 0,
+								type: 'scroll',
+								selectedMode: 'multiple',
+								pageButtonItemGap: 5,
+								pageButtonGap: 20,
+								data: chartSeries?.map((s) => s.name) || []
+							},
+							tooltip: {
+								formatter: function (params: any) {
+									const date = new Date(params[0].value[0])
+									const chartdate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
 
-										const formatValue = (value: number) => {
-											if (config.displayAs === 'percentage') {
-												return `${Math.round(value * 100) / 100}%`
-											}
-											const absValue = Math.abs(value)
-											if (absValue >= 1e9) {
-												return '$' + (value / 1e9).toFixed(1) + 'B'
-											} else if (absValue >= 1e6) {
-												return '$' + (value / 1e6).toFixed(1) + 'M'
-											} else if (absValue >= 1e3) {
-												return '$' + (value / 1e3).toFixed(0) + 'K'
-											}
-											return '$' + value.toFixed(0)
+									let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
+									filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+
+									const formatValue = (value: number) => {
+										if (config.displayAs === 'percentage') {
+											return `${Math.round(value * 100) / 100}%`
 										}
-
-										const useTwoColumns = config.limit > 10
-
-										const createItem = (curr: any, nameLength: number = 20) => {
-											let name = curr.seriesName
-											if (name.length > nameLength) {
-												name = name.substring(0, nameLength - 2) + '..'
-											}
-
-											return (
-												'<div style="display:flex;align-items:center;font-size:11px;line-height:1.4;white-space:nowrap">' +
-												curr.marker +
-												'<span style="margin-right:4px">' +
-												name +
-												'</span>' +
-												'<span style="margin-left:auto;font-weight:500">' +
-												formatValue(curr.value[1]) +
-												'</span>' +
-												'</div>'
-											)
+										const absValue = Math.abs(value)
+										if (absValue >= 1e9) {
+											return '$' + (value / 1e9).toFixed(1) + 'B'
+										} else if (absValue >= 1e6) {
+											return '$' + (value / 1e6).toFixed(1) + 'M'
+										} else if (absValue >= 1e3) {
+											return '$' + (value / 1e3).toFixed(0) + 'K'
 										}
+										return '$' + value.toFixed(0)
+									}
 
-										let content = ''
+									const useTwoColumns = config.limit > 10
 
-										if (useTwoColumns) {
-											const midpoint = Math.ceil(filteredParams.length / 2)
-											const leftColumn = filteredParams.slice(0, midpoint)
-											const rightColumn = filteredParams.slice(midpoint)
-
-											const leftColumnHtml = leftColumn.map((item: any) => createItem(item, 15)).join('')
-											const rightColumnHtml = rightColumn.map((item: any) => createItem(item, 15)).join('')
-
-											content =
-												`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
-												`<div>${leftColumnHtml}</div>` +
-												`<div>${rightColumnHtml}</div>` +
-												`</div>`
-										} else {
-											const singleColumnHtml = filteredParams.map((item: any) => createItem(item, 20)).join('')
-											content = `<div>${singleColumnHtml}</div>`
+									const createItem = (curr: any, nameLength: number = 20) => {
+										let name = curr.seriesName
+										if (name.length > nameLength) {
+											name = name.substring(0, nameLength - 2) + '..'
 										}
 
 										return (
-											`<div style="max-width:${useTwoColumns ? '400px' : '300px'}">` +
-											`<div style="font-size:12px;margin-bottom:4px;font-weight:500">${chartdate}</div>` +
-											content +
-											`</div>`
+											'<div style="display:flex;align-items:center;font-size:11px;line-height:1.4;white-space:nowrap">' +
+											curr.marker +
+											'<span style="margin-right:4px">' +
+											name +
+											'</span>' +
+											'<span style="margin-left:auto;font-weight:500">' +
+											formatValue(curr.value[1]) +
+											'</span>' +
+											'</div>'
 										)
-									},
-									confine: true
+									}
+
+									let content = ''
+
+									if (useTwoColumns) {
+										const midpoint = Math.ceil(filteredParams.length / 2)
+										const leftColumn = filteredParams.slice(0, midpoint)
+										const rightColumn = filteredParams.slice(midpoint)
+
+										const leftColumnHtml = leftColumn.map((item: any) => createItem(item, 15)).join('')
+										const rightColumnHtml = rightColumn.map((item: any) => createItem(item, 15)).join('')
+
+										content =
+											`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
+											`<div>${leftColumnHtml}</div>` +
+											`<div>${rightColumnHtml}</div>` +
+											`</div>`
+									} else {
+										const singleColumnHtml = filteredParams.map((item: any) => createItem(item, 20)).join('')
+										content = `<div>${singleColumnHtml}</div>`
+									}
+
+									return (
+										`<div style="max-width:${useTwoColumns ? '400px' : '300px'}">` +
+										`<div style="font-size:12px;margin-bottom:4px;font-weight:500">${chartdate}</div>` +
+										content +
+										`</div>`
+									)
 								},
-								yAxis:
-									config.displayAs === 'percentage'
-										? {
-												max: 100,
-												min: 0,
-												axisLabel: {
-													formatter: '{value}%'
-												}
+								confine: true
+							},
+							yAxis:
+								config.displayAs === 'percentage'
+									? {
+											max: 100,
+											min: 0,
+											axisLabel: {
+												formatter: '{value}%'
 											}
-										: {
-												type: 'value',
-												axisLabel: {
-													formatter: (value: number) => {
-														const absValue = Math.abs(value)
-														if (absValue >= 1e9) {
-															return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-														} else if (absValue >= 1e6) {
-															return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-														} else if (absValue >= 1e3) {
-															return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-														}
-														return '$' + value.toFixed(0)
+										}
+									: {
+											type: 'value',
+											axisLabel: {
+												formatter: (value: number) => {
+													const absValue = Math.abs(value)
+													if (absValue >= 1e9) {
+														return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+													} else if (absValue >= 1e6) {
+														return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+													} else if (absValue >= 1e3) {
+														return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
 													}
+													return '$' + value.toFixed(0)
 												}
 											}
-							}}
-						/>
-					</Suspense>
-				) : (
-					<div className="flex h-full items-center justify-center">
-						<p className="text-sm text-(--text3)">No data available</p>
-					</div>
-				)}
-			</div>
+										}
+						}}
+					/>
+				</Suspense>
+			) : (
+				<div className="flex flex-1 flex-col items-center justify-center">
+					<p className="text-sm text-(--text-label)">No data available</p>
+				</div>
+			)}
 		</div>
 	)
 }

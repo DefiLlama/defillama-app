@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
+import { mergeDeep } from '~/components/ECharts/utils'
 import { formattedNum, getRandomColor } from '~/utils'
 import {
 	BAR_CHARTS,
@@ -123,7 +124,7 @@ export default function ChainLineBarChart({
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}

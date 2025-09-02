@@ -1,4 +1,4 @@
-import { startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, Suspense, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -229,6 +229,22 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 
 	const [open, setOpen] = useState(false)
 
+	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
+
 	return (
 		<Ariakit.ComboboxProvider
 			resetValueOnHide
@@ -270,7 +286,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				className="z-10 flex max-h-[var(--popover-available-height)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
 			>
 				{matches.length ? (
-					<>
+					<Ariakit.ComboboxList ref={comboboxRef}>
 						{matches.slice(0, viewableMatches + 1).map((data) => (
 							<Ariakit.ComboboxItem
 								key={`token-usage-${data.name}`}
@@ -291,16 +307,18 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 								<span>{data.name}</span>
 							</Ariakit.ComboboxItem>
 						))}
-
 						{matches.length > viewableMatches ? (
-							<button
-								className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-								onClick={() => setViewableMatches((prev) => prev + 20)}
+							<Ariakit.ComboboxItem
+								value="__see_more__"
+								setValueOnClick={false}
+								hideOnClick={false}
+								className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary) data-active-item:bg-(--bg-secondary)"
+								onClick={handleSeeMore}
 							>
 								See more...
-							</button>
+							</Ariakit.ComboboxItem>
 						) : null}
-					</>
+					</Ariakit.ComboboxList>
 				) : (
 					<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 				)}

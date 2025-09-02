@@ -92,7 +92,7 @@ export default class ProtocolCharts {
 	static async medianApy(protocol: string): Promise<[number, number][]> {
 		const response = await fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
 		const { data } = await response.json()
-		const res = data.map((item) => [dayjs(item.timestamp).unix(), item.medianApy])
+		const res = data.map((item) => [dayjs(item.timestamp).unix(), item.medianAPY])
 		return res
 	}
 }

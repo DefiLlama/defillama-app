@@ -148,7 +148,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						<CSVDownloadButton prepareCsv={prepareCsvFromChart} smol className="mt-auto mr-auto" />
 					</div>
 				</div>
-				<div className="col-span-2 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) py-2">
+				<div className="col-span-2 min-h-[370px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<LineAndBarChart charts={charts} valueSymbol="$" />
 					</Suspense>

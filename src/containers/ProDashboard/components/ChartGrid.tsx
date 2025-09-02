@@ -5,8 +5,6 @@ import { Icon } from '~/components/Icon'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
-import { ChartBuilderCard } from './ChartBuilderCard'
-import { ChartCard } from './ChartCard'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,
@@ -29,7 +27,9 @@ import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
 import { TextCard } from './TextCard'
 
+const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod.ChartCard })))
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
+const ChartBuilderCard = lazy(() => import('./ChartBuilderCard').then((mod) => ({ default: mod.ChartBuilderCard })))
 
 interface ChartGridProps {
 	onAddChartClick: () => void
@@ -106,25 +106,29 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		setDeleteConfirmItem(null)
 	}
 
-	const getColSpanClass = (colSpan?: 1 | 2) => {
-		return colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
-	}
-
 	const renderItemContent = (item: DashboardItemConfig) => {
 		if (item.kind === 'chart') {
-			return <ChartCard chart={item} />
+			return (
+				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+					<ChartCard chart={item} />
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'multi') {
 			return (
-				<Suspense fallback={<></>}>
+				<Suspense fallback={<div className="fflex min-h-[402px] flex-col p-1 md:min-h-[418px]" />}>
 					<MultiChartCard key={`${item.id}-${item.items?.map((i) => i.id).join('-')}`} multi={item} />
 				</Suspense>
 			)
 		}
 
 		if (item.kind === 'builder') {
-			return <ChartBuilderCard builder={item} />
+			return (
+				<Suspense fallback={<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]" />}>
+					<ChartBuilderCard builder={item} />
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'text') {
@@ -202,19 +206,15 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 	if (isReadOnly) {
 		return (
-			<div className="mt-2">
-				<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
-					{chartsWithData.map((item) => (
-						<div
-							key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-							className={`${getColSpanClass(item.colSpan)}`}
-						>
-							<div className={`pro-glass relative h-full ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
-								<div className={item.kind === 'table' ? '' : ''}>{renderItemContent(item)}</div>
-							</div>
-						</div>
-					))}
-				</div>
+			<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-2">
+				{chartsWithData.map((item) => (
+					<div
+						key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
+						className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'lg:col-span-2' : ''}`}
+					>
+						{renderItemContent(item)}
+					</div>
+				))}
 			</div>
 		)
 	}
@@ -223,56 +223,50 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		<div className="mt-2">
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
-					<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
+					<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-2">
 						{chartsWithData.map((item) => (
 							<div
 								key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-								className={`${getColSpanClass(item.colSpan)}`}
+								className={`col-span-1 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
 							>
-								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
-									<div
-										className={`pro-glass relative h-full ${item.kind === 'table' ? 'pt-6' : ''} ${
-											item.kind === 'table' ? 'overflow-visible' : 'overflow-hidden'
-										}`}
-									>
-										<div className="flex items-center justify-end gap-1 p-1">
-											<button
-												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-												onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
-												aria-label={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
-												title={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
-											>
-												{item.colSpan === 1 ? (
-													<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(45deg)' }} />
-												) : (
-													<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(-135deg)' }} />
-												)}
-											</button>
-											{onEditItem && (
-												<button
-													className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-													onClick={() => onEditItem(item)}
-													aria-label="Edit item"
-													title="Edit item"
-												>
-													<Icon name="pencil" height={14} width={14} />
-												</button>
+								<SortableItem id={item.id} isTable={item.kind === 'table'} data-col={item.colSpan}>
+									<div className="flex flex-wrap items-center justify-end gap-1 px-2 pt-2 pb-0 lg:px-4 lg:pt-4">
+										<button
+											className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
+											onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
+											aria-label={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
+											title={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
+										>
+											{item.colSpan === 1 ? (
+												<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(45deg)' }} />
+											) : (
+												<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(-135deg)' }} />
 											)}
+										</button>
+										{onEditItem && (
 											<button
 												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-												onClick={() => handleDeleteClick(item.id)}
-												aria-label="Remove item"
+												onClick={() => onEditItem(item)}
+												aria-label="Edit item"
+												title="Edit item"
 											>
-												<Icon name="x" height={14} width={14} />
+												<Icon name="pencil" height={14} width={14} />
 											</button>
-										</div>
-										<div>{renderItemContent(item)}</div>
+										)}
+										<button
+											className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
+											onClick={() => handleDeleteClick(item.id)}
+											aria-label="Remove item"
+										>
+											<Icon name="x" height={14} width={14} />
+										</button>
 									</div>
+									<div>{renderItemContent(item)}</div>
 								</SortableItem>
 							</div>
 						))}
 						{currentRatingSession && !isReadOnly && (
-							<div className="md:col-span-2">
+							<div className="animate-ai-glow col-span-full flex flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 								<Rating
 									sessionId={currentRatingSession.sessionId}
 									mode={currentRatingSession.mode}
@@ -283,9 +277,9 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								/>
 							</div>
 						)}
-						<div
+						<button
 							onClick={onAddChartClick}
-							className="pro-border pro-bg7 hover:pro-bg2 flex min-h-[340px] cursor-pointer flex-col items-center justify-center border border-dashed transition-colors"
+							className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--old-blue)"
 						>
 							<svg
 								width="40"
@@ -296,13 +290,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								strokeWidth="2"
 								strokeLinecap="round"
 								strokeLinejoin="round"
-								className="mb-2 text-(--primary)"
 							>
 								<line x1="12" y1="5" x2="12" y2="19"></line>
 								<line x1="5" y1="12" x2="19" y2="12"></line>
 							</svg>
-							<span className="text-lg font-medium text-(--primary)">Add Item</span>
-						</div>
+							<span className="text-lg font-medium">Add Item</span>
+						</button>
 					</div>
 				</SortableContext>
 			</DndContext>

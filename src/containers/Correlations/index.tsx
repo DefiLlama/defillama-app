@@ -73,7 +73,6 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 							</button>
 						)
 					})}
-
 					{resultsLength < filteredCoins.length ? (
 						<button
 							className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"

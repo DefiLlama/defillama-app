@@ -6,7 +6,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { slug, toNiceCsvDate } from '~/utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { stringToColour } from '../utils'
+import { mergeDeep, stringToColour } from '../utils'
 
 export default function BarChart({
 	chartData,
@@ -145,7 +145,7 @@ export default function BarChart({
 				// update tooltip formatter
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
@@ -166,7 +166,8 @@ export default function BarChart({
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
+				outerBoundsContain: 'axisLabel',
+				...grid
 			},
 			xAxis: {
 				...xAxis
@@ -265,7 +266,7 @@ export default function BarChart({
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : 'my-auto min-h-[360px]'}
+				className={containerClassName ? containerClassName : `mx-0 my-auto ${height ? '' : 'min-h-[360px]'}`}
 				style={height ? { height } : undefined}
 			></div>
 		</div>

@@ -30,8 +30,9 @@ const columnSizesKeys = Object.keys(bridgesColumnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
 
-export function BridgesTable({ data }) {
+export function BridgesTable({ data, searchValue = '', onSearchChange = null }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'lastDailyVolume', desc: true }])
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const windowSize = useWindowSize()
@@ -41,15 +42,26 @@ export function BridgesTable({ data }) {
 		columns: bridgesColumn,
 		state: {
 			sorting,
+			columnFilters,
 			columnOrder,
 			columnSizing
 		},
 		onSortingChange: setSorting,
+		onColumnFiltersChange: setColumnFilters,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
+
+	React.useEffect(() => {
+		const column = instance.getColumn('displayName')
+		const id = setTimeout(() => {
+			column?.setFilterValue(searchValue)
+		}, 200)
+		return () => clearTimeout(id)
+	}, [searchValue, instance])
 
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)

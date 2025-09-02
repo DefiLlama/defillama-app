@@ -4,7 +4,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { stringToColour } from '../utils'
+import { mergeDeep, stringToColour } from '../utils'
 
 // AreaChart where tooltip is always shown
 export default function AreaChart({
@@ -106,7 +106,7 @@ export default function AreaChart({
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
