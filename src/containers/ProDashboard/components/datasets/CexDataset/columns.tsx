@@ -146,7 +146,8 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Total notional value of all outstanding perpetual futures positions'
 		}
 	},
 	{
