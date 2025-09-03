@@ -132,7 +132,12 @@ export default function Protocols({ emissions }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`Calendar - DefiLlama`}>
+		<Layout
+			title={`Calendar - DefiLlama`}
+			description={`Crypto calendar on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`crypto calendar, defillama`}
+			canonicalUrl={`/calendar`}
+		>
 			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

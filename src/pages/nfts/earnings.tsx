@@ -25,7 +25,13 @@ const pageName = ['Earnings', 'by', 'NFTs']
 function Earnings({ earnings }) {
 	//x
 	return (
-		<Layout title="NFT Earnings - DefiLlama" pageName={pageName}>
+		<Layout
+			title="NFT Earnings - DefiLlama"
+			description={`NFT Earnings by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`nft earnings, defi nft earnings`}
+			canonicalUrl={`/nfts/earnings`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={earnings}
 				columns={earningsColumns}

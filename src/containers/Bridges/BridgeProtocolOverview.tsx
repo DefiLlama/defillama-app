@@ -4,7 +4,7 @@ import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { BridgeAddressesTable, BridgeTokensTable } from '~/components/Table/Bridges'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -156,8 +156,13 @@ const BridgeInfo = ({
 
 export function BridgeProtocolOverview(props) {
 	return (
-		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`} customSEO>
-			<SEO cardName={props.displayName} token={props.displayName} />
+		<Layout
+			title={`${props.displayName}: Bridge Volume - DefiLlama`}
+			description={`Track bridge volume and cross-chain transfers on ${props.displayName}. View bridged assets, transfer volumes, and DeFi bridge analytics from DefiLlama.`}
+			keywords={`bridge volume ${props.displayName}, cross-chain transfers ${props.displayName}, DeFi bridges ${props.displayName}, bridged assets ${props.displayName}, bridge protocol ${props.displayName}`}
+			canonicalUrl={`/bridges/${props.displayName}`}
+		>
+			<LinkPreviewCard cardName={props.displayName} token={props.displayName} />
 			<BridgeInfo {...props} />
 		</Layout>
 	)

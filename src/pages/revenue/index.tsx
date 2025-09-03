@@ -33,8 +33,11 @@ const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`${type} by Protocol - DefiLlama`}
-			includeInMetricsOptions={feesOptions}
-			includeInMetricsOptionslabel="Include in Revenue"
+			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by protocol`}
+			canonicalUrl={`/revenue`}
+			metricFilters={feesOptions}
+			metricFiltersLabel="Include in Revenue"
 			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />

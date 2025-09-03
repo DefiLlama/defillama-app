@@ -32,7 +32,12 @@ export function NFTCollectionContainer() {
 	})
 	if (fetchingData) {
 		return (
-			<Layout title={'NFT Collection - DefiLlama'}>
+			<Layout
+				title={'NFT Collection - DefiLlama'}
+				description=""
+				keywords=""
+				canonicalUrl={`/nfts/collection/${router.query.collection}`}
+			>
 				<div className="m-auto flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
 				</div>
@@ -46,7 +51,12 @@ export function NFTCollectionContainer() {
 	const includeOutliers = router.isReady && router.query.includeOutliers === 'true' ? true : false
 
 	return (
-		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
+		<Layout
+			title={(name || 'NFTs') + ' - DefiLlama'}
+			description={`Track ${name || 'NFTs'} - View floor price, 24h volume and total supply of ${name}. Real-time DeFi analytics from DefiLlama.`}
+			keywords={`${name || 'NFTs'} floor price, ${name} 24h volume, ${name} total supply`}
+			canonicalUrl={`/nfts/collection/${router.query.collection}`}
+		>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex items-center gap-2 text-xl">

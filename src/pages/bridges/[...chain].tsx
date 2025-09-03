@@ -51,7 +51,13 @@ export default function Bridges({
 	//backgroundColor
 }) {
 	return (
-		<Layout title={`Bridge Volume - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Bridges Volume on ${chain} - DefiLlama`}
+			description={`Track Bridge Volume deployed on ${chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${chain} bridge volume`}
+			canonicalUrl={`/bridges/${chain}`}
+			pageName={pageName}
+		>
 			<BridgesOverviewByChain
 				chains={chains}
 				selectedChain={chain}

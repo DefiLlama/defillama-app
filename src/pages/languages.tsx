@@ -78,7 +78,13 @@ const pageName = ['TVL', 'by', 'Smart Contract Languages']
 
 export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (
-		<Layout title={`Languages - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Languages - DefiLlama`}
+			description={`TVL breakdown by smart contract languages that the protocols smart contracts are written in. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`languages, smart contract languages, tvl by language`}
+			canonicalUrl={`/languages`}
+			pageName={pageName}
+		>
 			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
 				Breakdown by Smart Contract Languages
 			</h1>

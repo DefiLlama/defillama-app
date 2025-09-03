@@ -77,7 +77,13 @@ export default function YieldBorrow(data) {
 	})
 
 	return (
-		<Layout title={`Borrow Aggregator - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Borrow Aggregator - DefiLlama`}
+			description={`Simple view of optimal lending routes by collateral to borrow assets. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`borrow aggregator, lending routes, optimal lending routes, borrow assets on blockchain`}
+			canonicalUrl={`/borrow`}
+			pageName={pageName}
+		>
 			<Announcement>{disclaimer}</Announcement>
 			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[180px]">
 				<div className="flex w-full flex-col gap-5 overflow-y-auto p-3">

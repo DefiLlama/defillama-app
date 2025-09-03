@@ -28,7 +28,13 @@ const pageName = ['Protocols', 'ranked by', type]
 
 const DexsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
-		<Layout title={`${type} by Protocol - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`${type} by Protocol - DefiLlama`}
+			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by protocol`}
+			canonicalUrl={`/dexs`}
+			pageName={pageName}
+		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

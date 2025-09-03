@@ -32,7 +32,12 @@ export default function TopGainersLosers({ protocols }) {
 	}, [data])
 
 	return (
-		<Layout title={`Top Gainers and Losers - DefiLlama`}>
+		<Layout
+			title={`Top Gainers and Losers - DefiLlama`}
+			description={`Top Gainers and Losers by their TVL. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`top gainers, top losers, defi top gainers, defi top losers, top gainers and losers by tvl`}
+			canonicalUrl={`/top-gainers-and-losers`}
+		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Gainers</h1>
 				<TopGainersAndLosers data={topGainers} />

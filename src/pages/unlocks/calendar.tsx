@@ -182,7 +182,13 @@ export default function UnlocksCalendar({
 	precomputedData: PrecomputedData
 }) {
 	return (
-		<Layout title={`Token Unlocks Calendar - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Token Unlocks Calendar - DefiLlama`}
+			description={`Upcoming token unlocks. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`token unlocks calendar, defi token unlocks calendar, upcoming token unlocks, tokken emissions calendar`}
+			canonicalUrl={`/unlocks/calendar`}
+			pageName={pageName}
+		>
 			<Announcement notCancellable>
 				<span>Are we missing any protocol?</span>{' '}
 				<a

@@ -21,7 +21,13 @@ const pageName = ['Bridge Inflows', 'by', 'Chain']
 
 export default function BridgeChains(props) {
 	return (
-		<Layout title={`Bridges - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Bridges Inflows by Chain - DefiLlama`}
+			description={`Track bridges inflows by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`bridges inflows by chain, bridge inflows`}
+			canonicalUrl={`/bridges/chains`}
+			pageName={pageName}
+		>
 			<BridgeChainsOverview {...props} />
 		</Layout>
 	)

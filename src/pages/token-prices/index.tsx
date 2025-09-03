@@ -19,7 +19,13 @@ const pageName = ['Protocols', 'ranked by', 'Token Price']
 
 export default function ProtocolsTokenPrices(props) {
 	return (
-		<Layout title="Token Prices - DefiLlama" pageName={pageName}>
+		<Layout
+			title="Token Prices - DefiLlama"
+			description={`Token Prices by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`token prices by protocol`}
+			canonicalUrl={`/token-prices`}
+			pageName={pageName}
+		>
 			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)

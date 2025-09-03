@@ -23,7 +23,13 @@ const pageName = ['Chains', 'ranked by', type]
 
 const HoldersRevenueByChain = (props: IChainsByAdapterPageData) => {
 	return (
-		<Layout title={`${type} by Chain - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`${type} by Chain - DefiLlama`}
+			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by chain`}
+			canonicalUrl={`/app-revenue/chains`}
+			pageName={pageName}
+		>
 			<ChainsByAdapter {...props} type={type} />
 		</Layout>
 	)

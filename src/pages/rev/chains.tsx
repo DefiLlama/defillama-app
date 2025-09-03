@@ -25,7 +25,13 @@ const pageName = ['Chains', 'ranked by', 'REV']
 
 const REVByChain = (props: IChainsByREVPageData) => {
 	return (
-		<Layout title="REV by chain - DefiLlama" pageName={pageName}>
+		<Layout
+			title="REV by chain - DefiLlama"
+			description={`REV by chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`rev by chain, defi rev by chain`}
+			canonicalUrl={`/rev/chains`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={props.chains}
 				columns={columns}

@@ -96,4 +96,6 @@ export interface IChainsByCategoryData {
 	chains: Array<IChain>
 	totalTvlByDate: Record<string, Record<number, number>>
 	tvlChartsByChain: Record<string, Record<string, Record<number, number>>>
+	description: string
+	keywords: string
 }

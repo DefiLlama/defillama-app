@@ -159,7 +159,13 @@ export default function CompareProtocolsTvls({ protocols }) {
 	}, [selectedProtocols, protocols])
 
 	return (
-		<Layout title={`Compare Protocols - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Compare Protocols - DefiLlama`}
+			description={`Compare protocols on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`compare protocols, compare protocols on blockchain`}
+			canonicalUrl={`/compare-protocols`}
+			pageName={pageName}
+		>
 			<div className="flex items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<MultiSelectCombobox
 					data={sortedProtocols}

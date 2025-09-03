@@ -19,6 +19,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import useWindowSize from '~/hooks/useWindowSize'
 import Layout from '~/layout'
+import { slug } from '~/utils'
 import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 
@@ -133,7 +134,13 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 	}, [filteredRaisesList])
 
 	return (
-		<Layout title={`Raises - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Raises - DefiLlama`}
+			description={`Track ${investorName} investments, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${investorName.toLowerCase()} investments, total funding amount, total funding rounds`}
+			canonicalUrl={`/raises/${slug(investorName)}`}
+			pageName={pageName}
+		>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a

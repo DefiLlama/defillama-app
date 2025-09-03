@@ -17,7 +17,12 @@ export default function DashboardPage() {
 	const initialId = dashboardId === 'new' ? undefined : dashboardId
 
 	return (
-		<Layout title="DefiLlama - Pro Dashboard">
+		<Layout
+			title="DefiLlama - Pro Dashboard"
+			description={`Pro Dashboard on DefiLlama. Custom no-code dashboards with TVL, Fees, Volume, and other metrics. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords=""
+			canonicalUrl={`/pro/${dashboardId}`}
+		>
 			{router.isReady ? (
 				<ProDashboardAPIProvider initialDashboardId={initialId} key={`dashboard-api-provider-${dashboardId}`}>
 					<DashboardPageContent dashboardId={dashboardId} />

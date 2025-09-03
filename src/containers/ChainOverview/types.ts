@@ -101,6 +101,8 @@ export interface IChainOverviewData {
 	} | null
 	tvlAndFeesOptions: Array<{ name: string; key: string }>
 	charts: ChainChartLabels[]
+	description: string
+	keywords: string
 }
 
 export interface ILiteChart {
