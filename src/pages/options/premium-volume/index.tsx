@@ -30,7 +30,13 @@ const pageName = ['Protocols', 'ranked by', type]
 
 const PremiumVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
-		<Layout title={`${type} by Protocol - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`${type} by Protocol - DefiLlama`}
+			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by protocol`}
+			canonicalUrl={`/options/premium-volume`}
+			pageName={pageName}
+		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

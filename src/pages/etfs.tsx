@@ -222,7 +222,13 @@ const pageName = ['ETFs: Overview']
 
 export default function ETFs(props: PageViewProps) {
 	return (
-		<Layout title={`Exchange Traded Funds - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Exchange Traded Funds - DefiLlama`}
+			description={`Exchange Traded Funds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`etfs, crypto etfs, exchange traded funds`}
+			canonicalUrl={`/etfs`}
+			pageName={pageName}
+		>
 			<PageView {...props} />
 		</Layout>
 	)

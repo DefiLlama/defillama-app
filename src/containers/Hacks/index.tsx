@@ -128,7 +128,13 @@ export const HacksContainer = ({
 	}, [monthlyHacksChartData, pieChartData, chartType])
 
 	return (
-		<Layout title={`Hacks - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Hacks - DefiLlama`}
+			description={`Track hacks on all chains and DeFi protocols. View total value lost, breakdown by technique, and DeFi hacks on DefiLlama.`}
+			keywords={`total value hacked, total value lost in hacks, blockchain hacks, hacks on DeFi protocols, DeFi hacks`}
+			canonicalUrl={`/hacks`}
+			pageName={pageName}
+		>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col">

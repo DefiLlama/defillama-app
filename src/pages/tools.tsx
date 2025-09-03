@@ -18,7 +18,12 @@ export default function Tools() {
 	}, [deferredSearchValue])
 
 	return (
-		<Layout title="Tools - DefiLlama">
+		<Layout
+			title="Tools - DefiLlama"
+			description={`Tools on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`tools, defi tools`}
+			canonicalUrl={`/tools`}
+		>
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h1 className="text-2xl font-bold">Tools</h1>
 				<div className="relative">

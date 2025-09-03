@@ -403,6 +403,12 @@
       "tab": "Protocols"
     },
     {
+      "name": "Treasury: Entities",
+      "route": "/treasury/entities",
+      "category": "Treasury",
+      "description": "Treasury by entity"
+    },
+    {
       "name": "Raises: Overview",
       "route": "/raises",
       "category": "Raises",

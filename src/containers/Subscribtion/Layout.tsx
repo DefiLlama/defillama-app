@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { BasicLink } from '~/components/Link'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignIn } from './SignIn'
@@ -14,7 +14,7 @@ export function SubscribeLayout({ children }) {
 				<title>Subscribe - DefiLlama</title>
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
-			<SEO />
+			<LinkPreviewCard />
 			<div className="col-span-full flex min-h-screen w-full flex-col bg-[#13141a] text-white">
 				<header className="sticky top-0 z-50 border-b border-[#39393E]/40 bg-[#13141a]/80 backdrop-blur-md">
 					<div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 xl:max-w-7xl 2xl:max-w-[1440px]">

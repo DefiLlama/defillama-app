@@ -75,7 +75,13 @@ const pageName = ['Chains', 'ranked by', 'Stablecoins Supply']
 
 export default function PeggedAssets(props) {
 	return (
-		<Layout title={`Stablecoins Circulating - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Stablecoins Circulating - DefiLlama`}
+			description={`Stablecoins Circulating by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`stablecoins circulating by chain, stablecoins supply by chain, stablecoins market cap by chain`}
+			canonicalUrl={`/stablecoins/chains`}
+			pageName={pageName}
+		>
 			<ChainsWithStablecoins {...props} />
 		</Layout>
 	)

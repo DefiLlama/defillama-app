@@ -260,6 +260,8 @@ export interface IProtocolOverviewPageData {
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IUpdatedProtocol['warningBanners']
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	seoDescription: string
+	seoKeywords: string
 }
 
 interface ICredit {

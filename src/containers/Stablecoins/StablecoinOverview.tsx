@@ -6,7 +6,7 @@ import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -21,6 +21,7 @@ import {
 	getBlockExplorer,
 	peggedAssetIconUrl,
 	preparePieChartData,
+	slug,
 	toNiceCsvDate
 } from '~/utils'
 import { PeggedAssetByChainTable } from './Table'
@@ -39,15 +40,20 @@ const risksHelperTexts = {
 }
 
 export default function PeggedContainer(props) {
-	let { name } = props.peggedAssetData
-
+	let { name, symbol } = props.peggedAssetData
+	const nameWithSymbol = name + (symbol && symbol !== '-' ? ` (${symbol})` : '')
 	return (
-		<Layout title={`${name}: Circulating and stats - DefiLlama`} customSEO>
-			<SEO
+		<Layout
+			title={`${nameWithSymbol} - DefiLlama`}
+			description={`Track ${nameWithSymbol} supply, market cap, price, and inflows on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${nameWithSymbol.toLowerCase()} total supply, ${nameWithSymbol.toLowerCase()} market cap, ${nameWithSymbol.toLowerCase()} price, ${nameWithSymbol.toLowerCase()} circulating, ${nameWithSymbol.toLowerCase()} stats`}
+			canonicalUrl={`/stablecoin/${slug(name)}`}
+		>
+			<LinkPreviewCard
 				stablePage={true}
 				cardName={name}
 				token={name}
-				logo={props.logo}
+				logo={peggedAssetIconUrl(name)}
 				tvl={formattedNum(props.mcap, true)?.toString()}
 			/>
 			<PeggedAssetInfo {...props} />

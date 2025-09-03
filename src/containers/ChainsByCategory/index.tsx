@@ -23,7 +23,9 @@ export function ChainsByCategory({
 	allCategories,
 	category,
 	tvlChartsByChain,
-	totalTvlByDate
+	totalTvlByDate,
+	description,
+	keywords
 }: IChainsByCategoryData) {
 	const { pieChartData, dominanceCharts } = useFormatChartData({
 		tvlChartsByChain,
@@ -62,8 +64,11 @@ export function ChainsByCategory({
 	return (
 		<Layout
 			title={`${category} Chains DeFi TVL - DefiLlama`}
-			includeInMetricsOptions={tvlOptions}
-			includeInMetricsOptionslabel="Include in TVL"
+			description={description}
+			keywords={keywords}
+			canonicalUrl={`/chains${category === 'All' ? '' : `/${category}`}`}
+			metricFilters={tvlOptions}
+			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
 		>
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />

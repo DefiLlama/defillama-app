@@ -181,7 +181,13 @@ const pageName = ['LSTs: Overview']
 
 export default function LSDs(props) {
 	return (
-		<Layout title={`Liquid Staking Tokens - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Liquid Staking Tokens - DefiLlama`}
+			description={`Total Value Locked ETH Liquid Staking Tokens. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`liquid staking tokens, defi lst, total value locked eth lst`}
+			canonicalUrl={`/lst`}
+			pageName={pageName}
+		>
 			<PageView {...props} />
 		</Layout>
 	)

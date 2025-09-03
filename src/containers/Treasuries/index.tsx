@@ -16,7 +16,8 @@ import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
 import { formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
 
-const pageName = ['Protocols', 'ranked by', 'Treasury']
+const pageName = ['Projects', 'ranked by', 'Treasury']
+const entityPageName = ['Entities', 'ranked by', 'Treasury']
 
 export function Treasuries({ data, entity }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -85,7 +86,13 @@ export function Treasuries({ data, entity }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} pageName={entity ? null : pageName}>
+		<Layout
+			title={`Treasuries - DefiLlama`}
+			description={`Track treasuries on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`blockchain project treasuries, blockchain entity treasuries, protocol treasuries, entity treasuries`}
+			canonicalUrl={entity ? `/entities` : `/treasuries`}
+			pageName={entity ? entityPageName : pageName}
+		>
 			<TableWithSearch
 				data={data}
 				columns={tableColumns}

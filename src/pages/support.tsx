@@ -48,7 +48,12 @@ function Support() {
 	}
 
 	return (
-		<Layout title="Support - DefiLlama">
+		<Layout
+			title="Support - DefiLlama"
+			description={`Get support from DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`defillama support, support from defillama`}
+			canonicalUrl={`/support`}
+		>
 			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11">
 				<form
 					onSubmit={onSubmit}

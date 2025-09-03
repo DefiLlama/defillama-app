@@ -41,7 +41,13 @@ function Marketplaces({
 	const [viewType, setViewType] = React.useState<ViewType>('Absolute')
 
 	return (
-		<Layout title="NFT Marketplaces - DefiLlama" pageName={pageName}>
+		<Layout
+			title="NFT Marketplaces - DefiLlama"
+			description={`NFT Marketplaces by Volume. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`nft marketplaces by volume, defi nft marketplaces`}
+			canonicalUrl={`/nfts/marketplaces`}
+			pageName={pageName}
+		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex items-center justify-between gap-2 p-2">
 					<TagGroup

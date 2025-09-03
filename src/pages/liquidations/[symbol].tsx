@@ -4,7 +4,7 @@ import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 import { maxAgeForNext } from '~/api'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { ISearchItem } from '~/components/Search/types'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { LiquidationsContent } from '~/containers/Liquidations/LiquidationsContent'
 import { LiqPositionsTable } from '~/containers/Liquidations/PositionsTable'
@@ -64,16 +64,18 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 	const [liqsSettings] = useLocalStorageSettingsManager('liquidations')
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
-
+	const nameAndSymbol = `${data.name} (${data.symbol.toUpperCase()})`
 	return (
 		<Layout
-			title={`${data.name} (${data.symbol.toUpperCase()}) Liquidation Levels - DefiLlama`}
-			customSEO
+			title={`${nameAndSymbol} Liquidation Levels - DefiLlama`}
+			description={`${nameAndSymbol} Liquidation Levels on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${nameAndSymbol.toLowerCase()} liquidation levels, liquidation levels on blockchain`}
+			canonicalUrl={`/liquidations/${data.symbol.toLowerCase()}`}
 			pageName={pageName}
 		>
-			<SEO
+			<LinkPreviewCard
 				liqsPage
-				cardName={`${data.name} (${data.symbol.toUpperCase()})`}
+				cardName={nameAndSymbol}
 				logo={'https://defillama.com' + liquidationsIconUrl(data.symbol.toLowerCase(), true)}
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>

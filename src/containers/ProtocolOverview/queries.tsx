@@ -814,9 +814,27 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
+	const name = protocolData.name ?? metadata.displayName ?? ''
+	let seoDescription = `Track ${name} metrics on DefiLlama. Including ${availableCharts.filter((chart) => !['Successfull Proposals', 'Total Proposals', 'Max Votes'].includes(chart)).join(', ')}`
+	let seoKeywords = `${availableCharts.map((chart) => `${name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}`
+	if (expenses) {
+		seoDescription += `, Expenses`
+		seoKeywords += `, ${name.toLowerCase()} expenses`
+	}
+	if (revenueData && incentives) {
+		seoDescription += `, Earnings`
+		seoKeywords += `, ${name.toLowerCase()} earnings`
+	}
+	if (incomeStatement) {
+		seoDescription += `, Income Statement`
+		seoKeywords += `, ${name.toLowerCase()} income statement, ${name.toLowerCase()} financial statement`
+	}
+	seoDescription += ' and their methodologies'
+	seoKeywords += `, ${name.toLowerCase()} methodologies`
+
 	return {
 		id: String(protocolData.id),
-		name: protocolData.name ?? metadata.displayName ?? null,
+		name: name,
 		category: protocolData.category ?? null,
 		tags: protocolData.tags ?? null,
 		otherProtocols: protocolData.otherProtocols ?? null,
@@ -931,7 +949,9 @@ export const getProtocolOverviewPageData = async ({
 			bridgeAggregatorVolumeData?.defaultChartView ??
 			optionsPremiumVolumeData?.defaultChartView ??
 			optionsNotionalVolumeData?.defaultChartView ??
-			'daily'
+			'daily',
+		seoDescription,
+		seoKeywords
 	}
 }
 

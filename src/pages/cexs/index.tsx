@@ -135,7 +135,13 @@ const pageName = ['CEXs', 'ranked by', 'Assets']
 
 export default function CexsPage({ cexs }) {
 	return (
-		<Layout title={`CEX Transparency - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`CEX Transparency - DefiLlama`}
+			description={`CEX Transparency on DefiLlama. CEXs ranked by assets. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`cex transparency, cex assets, cex rankings`}
+			canonicalUrl={`/cexs`}
+			pageName={pageName}
+		>
 			<Cexs cexs={cexs} />
 		</Layout>
 	)

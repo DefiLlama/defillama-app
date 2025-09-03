@@ -140,7 +140,13 @@ export default function Chains({ data, uniqueCategories }) {
 	}, [data, uniqueCategories])
 
 	return (
-		<Layout title="Top Protocols by chain on each category - DefiLlama" pageName={pageName}>
+		<Layout
+			title="Top Protocols by chain on each category - DefiLlama"
+			description={`Top Protocols by chain on each category. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`top protocols, defi top protocols, top protocols by chain, top protocols by category`}
+			canonicalUrl={`/top-protocols`}
+			pageName={pageName}
+		>
 			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-bg) bg-(--cards-bg) p-3">
 				<h1 className="mr-auto text-xl font-semibold">Protocols with highest TVL by chain on each category</h1>
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />

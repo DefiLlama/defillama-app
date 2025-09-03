@@ -63,7 +63,13 @@ const pageName = ['Safe Harbor Agreements']
 
 export default function SafeHarborAgreements({ protocols }) {
 	return (
-		<Layout title="Safe Harbor Agreements" pageName={pageName}>
+		<Layout
+			title="Safe Harbor Agreements"
+			description={`Safe Harbor Agreements by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`safe harbor agreements, defi safe harbor agreements, safe harbor agreements by protocol`}
+			canonicalUrl={`/safe-harbor-agreements`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={protocols}
 				columns={columns}

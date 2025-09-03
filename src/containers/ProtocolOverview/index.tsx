@@ -8,7 +8,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -96,8 +96,10 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			metrics={props.metrics}
 			warningBanners={props.warningBanners}
 			tab="information"
+			seoDescription={props.seoDescription}
+			seoKeywords={props.seoKeywords}
 		>
-			<SEO
+			<LinkPreviewCard
 				cardName={props.name}
 				token={props.name}
 				logo={tokenIconUrl(props.name)}

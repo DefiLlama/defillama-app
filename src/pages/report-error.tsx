@@ -42,7 +42,12 @@ function ReportError() {
 	}
 
 	return (
-		<Layout title="Report Error - DefiLlama">
+		<Layout
+			title="Report Error - DefiLlama"
+			description={`Report Error on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`report error, defi report error, report error on blockchain, report error on defillama, report error on protocol`}
+			canonicalUrl={`/report-error`}
+		>
 			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11">
 				<form
 					onSubmit={onSubmit}
