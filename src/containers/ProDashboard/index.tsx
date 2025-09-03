@@ -415,7 +415,7 @@ const LikeDashboardButton = ({
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
 			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
-			className="hover:pro-btn-blue focus-visible:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1 py-0.5 text-xs hover:border-transparent focus-visible:border-transparent"
+			className={`hover:pro-btn-blue focus-visible:pro-btn-blue ${currentDashboard?.liked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1 py-0.5 text-xs hover:border-transparent focus-visible:border-transparent`}
 		>
 			<Icon name="star" height={14} width={14} className="" />
 			<span>{currentDashboard?.likeCount || 0}</span>
