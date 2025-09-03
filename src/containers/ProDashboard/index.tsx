@@ -135,8 +135,8 @@ function ProDashboardContent() {
 
 			<div className="grid grid-cols-12 gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 md:p-4">
 				<div className="col-span-full flex flex-col gap-2 md:col-span-8">
-					<div className="flex flex-col">
-						<span className="flex items-center gap-4">
+					<div className="flex flex-col gap-1">
+						<span className="flex flex-wrap items-center gap-1">
 							<h1 className="text-lg font-semibold">{dashboardName}</h1>
 							{isReadOnly && (
 								<p className="flex flex-nowrap items-center gap-1 rounded-md border border-(--cards-border) px-1 py-0.5 text-xs text-(--text-disabled)">
@@ -148,9 +148,9 @@ function ProDashboardContent() {
 						<p className="text-sm text-(--text-form)">{dashboardDescription}</p>
 					</div>
 					{dashboardTags.length > 0 && (
-						<div className="flex flex-wrap items-center gap-1">
+						<div className="flex flex-nowrap items-start gap-1">
 							<Tooltip content="Tags">
-								<Icon name="tag" height={16} width={16} className="text-(--text-form)" />
+								<Icon name="tag" height={16} width={16} className="mt-1 text-(--text-form)" />
 							</Tooltip>
 							<div className="flex flex-wrap items-center gap-1">
 								{dashboardTags.map((tag) => (
@@ -175,7 +175,7 @@ function ProDashboardContent() {
 					) : null}
 				</div>
 				<div className="col-span-full flex flex-col gap-2 md:col-span-4">
-					<div className="flex items-center justify-end gap-2">
+					<div className="flex flex-wrap items-center justify-end gap-2">
 						{isAuthenticated ? (
 							<>
 								{isReadOnly ? (
@@ -205,7 +205,7 @@ function ProDashboardContent() {
 							</>
 						) : null}
 					</div>
-					<div className="mt-auto ml-auto flex items-center gap-1">
+					<div className="mt-auto ml-auto flex flex-wrap items-center gap-1">
 						<Tooltip
 							content="Views"
 							render={<p />}
