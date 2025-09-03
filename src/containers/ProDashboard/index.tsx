@@ -148,16 +148,13 @@ function ProDashboardContent() {
 						<p className="text-sm text-(--text-form)">{dashboardDescription}</p>
 					</div>
 					{dashboardTags.length > 0 && (
-						<div className="flex flex-nowrap items-start gap-1">
+						<div className="flex flex-nowrap items-start gap-1 text-(--text-disabled)">
 							<Tooltip content="Tags">
-								<Icon name="tag" height={16} width={16} className="mt-1 text-(--text-form)" />
+								<Icon name="tag" height={16} width={16} className="mt-1" />
 							</Tooltip>
 							<div className="flex flex-wrap items-center gap-1">
 								{dashboardTags.map((tag) => (
-									<p
-										key={tag}
-										className="rounded-md border border-(--cards-border) px-1 py-0.5 text-xs text-(--text-disabled)"
-									>
+									<p key={tag} className="rounded-md border border-(--cards-border) px-1 py-0.5 text-xs">
 										{tag}
 									</p>
 								))}
@@ -408,14 +405,15 @@ const LikeDashboardButton = ({
 	dashboardVisibility: 'private' | 'public'
 	dashboardId: string
 }) => {
-	const { isAuthenticated } = useAuthContext()
+	const { user, isAuthenticated } = useAuthContext()
 	const { toggleLike, isLiking } = useDashboardEngagement(dashboardId)
 	if (dashboardVisibility === 'private') return null
+	const isLiked = user.id && currentDashboard?.likedBy?.includes(user.id) ? true : false
 	return (
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
 			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
-			className={`hover:pro-btn-blue focus-visible:pro-btn-blue ${currentDashboard?.liked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1 py-0.5 text-xs hover:border-transparent focus-visible:border-transparent`}
+			className={`hover:pro-btn-blue focus-visible:pro-btn-blue ${isLiked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1 py-0.5 text-xs hover:border-transparent focus-visible:border-transparent`}
 		>
 			<Icon name="star" height={14} width={14} className="" />
 			<span>{currentDashboard?.likeCount || 0}</span>
