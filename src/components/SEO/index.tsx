@@ -148,7 +148,7 @@ export interface ISEOProps {
 }
 
 export const SEO = memo(function SEO({ title, description, keywords, canonicalUrl }: ISEOProps) {
-	const url = `https://defillama.com${slug(canonicalUrl)}`
+	const url = `https://defillama.com${slug(canonicalUrl ?? '')}`
 	return (
 		<Head>
 			<link rel="canonical" href={url} />
