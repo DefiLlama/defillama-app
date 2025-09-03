@@ -37,7 +37,7 @@ export function generateICSContent(event: UnlockEvent, tokenName: string, tokenV
 
 	return `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//DeFiLlama Unlocks//EN
+PRODID:-//DefiLlama Unlocks//EN
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
 DTSTAMP:${dayjs().utc().format('YYYYMMDD[T]HHmmss[Z]')}

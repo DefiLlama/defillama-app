@@ -178,7 +178,7 @@ export default function Protocols(props) {
 		<Layout
 			title="Tokenless protocols that may airdrop 🧑‍🌾 - Defi Llama"
 			description={`Tokenless protocols that may airdrop. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`tokenless protocols, DeFi airdrops, potential airdrops, crypto airdrops, DeFiLlama airdrops`}
+			keywords={`tokenless protocols, DeFi airdrops, potential airdrops, crypto airdrops, DefiLlama airdrops`}
 			canonicalUrl={`/airdrops`}
 			pageName={pageName}
 		>
