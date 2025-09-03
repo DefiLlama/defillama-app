@@ -188,6 +188,8 @@ export default function ProtocolLineBarChart({
 
 		const noOffset = allYAxis.length < 3
 
+		const chartsInSeries = new Set(series.map((s) => s.name))
+
 		allYAxis.forEach(([type, index]) => {
 			const options = {
 				...yAxis,
@@ -205,31 +207,123 @@ export default function ProtocolLineBarChart({
 			}
 
 			if (type === 'Token Price') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Token Price']
+						}
+					}
+				})
 			}
 
 			if (type === 'Token Volume') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Token Volume']
+						}
+					}
+				})
 			}
 
 			if (type === 'Token Liquidity') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Token Liquidity']
+						}
+					}
+				})
 			}
 
 			if (type === 'Bridge Deposits') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Bridge Deposits']
+						}
+					}
+				})
 			}
 
 			if (type === 'Fees') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartsInSeries.has('Fees')
+								? chartColors['Fees']
+								: chartsInSeries.has('Revenue')
+									? chartColors['Revenue']
+									: chartsInSeries.has('Holders Revenue')
+										? chartColors['Holders Revenue']
+										: chartsInSeries.has('Incentives')
+											? chartColors['Incentives']
+											: chartColors['Fees']
+						}
+					}
+				})
 			}
 
 			if (type === 'DEX Volume') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartsInSeries.has('DEX Volume')
+								? chartColors['DEX Volume']
+								: chartsInSeries.has('Perp Volume')
+									? chartColors['Perp Volume']
+									: chartsInSeries.has('Options Premium Volume')
+										? chartColors['Options Premium Volume']
+										: chartsInSeries.has('Options Notional Volume')
+											? chartColors['Options Notional Volume']
+											: chartsInSeries.has('Perp Aggregator Volume')
+												? chartColors['Perp Aggregator Volume']
+												: chartsInSeries.has('Bridge Aggregator Volume')
+													? chartColors['Bridge Aggregator Volume']
+													: chartsInSeries.has('DEX Aggregator Volume')
+														? chartColors['DEX Aggregator Volume']
+														: chartColors['DEX Volume']
+						}
+					}
+				})
 			}
 
 			if (type === 'Open Interest') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Open Interest']
+						}
+					}
+				})
 			}
 
 			if (type === 'Unlocks') {
@@ -237,6 +331,14 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => `${formattedNum(value)} ${unlockTokenSymbol}`
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Unlocks']
+						}
 					}
 				})
 			}
@@ -246,6 +348,18 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => formattedNum(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartsInSeries.has('Active Addresses')
+								? chartColors['Active Addresses']
+								: chartsInSeries.has('New Addresses')
+									? chartColors['New Addresses']
+									: chartColors['Active Addresses']
+						}
 					}
 				})
 			}
@@ -255,24 +369,60 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => formattedNum(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Transactions']
+						}
 					}
 				})
 			}
 
 			if (type === 'Gas Used') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Gas Used']
+						}
+					}
+				})
 			}
 			if (type === 'Median APY') {
 				finalYAxis.push({
 					...options,
 					axisLabel: {
 						formatter: (value) => `${value}%`
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Median APY']
+						}
 					}
 				})
 			}
 
 			if (type === 'USD Inflows') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['USD Inflows']
+						}
+					}
+				})
 			}
 
 			if (type === 'Total Proposals') {
@@ -284,6 +434,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Total Proposals']
 						}
 					}
@@ -295,12 +447,30 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => formattedNum(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Max Votes']
+						}
 					}
 				})
 			}
 
 			if (type === 'Treasury') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Treasury']
+						}
+					}
+				})
 			}
 
 			if (type === 'Tweets') {
@@ -308,12 +478,30 @@ export default function ProtocolLineBarChart({
 					...options,
 					axisLabel: {
 						formatter: (value) => `${value} tweets`
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Tweets']
+						}
 					}
 				})
 			}
 
 			if (type === 'NFT Volume') {
-				finalYAxis.push(options)
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['NFT Volume']
+						}
+					}
+				})
 			}
 		})
 
