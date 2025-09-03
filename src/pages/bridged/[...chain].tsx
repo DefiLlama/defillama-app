@@ -37,7 +37,7 @@ export default function Bridged(props) {
 			title={`${props.chainName} Bridged TVL - DefiLlama`}
 			description={`Track bridged TVL on ${props.chainName} - View total value of all tokens held on ${props.chainName}. Real-time DeFi bridge analytics from DefiLlama.`}
 			keywords={`bridged tvl ${props.chainName}, tokens value on ${props.chainName}`}
-			canonicalUrl={`/bridged-tvl/${props.chain}`}
+			canonicalUrl={`/bridged/${props.chain}`}
 			pageName={pageName}
 		>
 			<BridgedTVLByChain {...props} />
