@@ -89,7 +89,7 @@ export function YieldsSearch({
 									value="__see_more__"
 									setValueOnClick={false}
 									hideOnClick={false}
-									className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary) data-active-item:bg-(--bg-secondary)"
+									className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
 									onClick={handleSeeMore}
 								>
 									See more...
