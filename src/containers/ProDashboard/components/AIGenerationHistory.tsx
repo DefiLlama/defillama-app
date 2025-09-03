@@ -19,7 +19,7 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 	if (sessions.length === 0) return null
 
 	return (
-		<div className="mb-4">
+		<div className="">
 			<button
 				onClick={() => setIsExpanded(!isExpanded)}
 				className="pro-text2 hover:pro-text1 flex items-center gap-2 text-sm transition-colors"

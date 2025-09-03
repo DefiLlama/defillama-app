@@ -76,6 +76,8 @@ type Name =
 	| 'pin'
 	| 'chevrons-left'
 	| 'chevrons-right'
+	| 'tag'
+	| 'file-lock-2'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -83,7 +85,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v11.svg#${name}`} />
+			<use href={`/icons/v12.svg#${name}`} />
 		</svg>
 	)
 })
