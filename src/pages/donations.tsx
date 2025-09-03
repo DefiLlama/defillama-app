@@ -6,6 +6,8 @@ import { tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const hideProtocols = ['Mycelium', 'Hubble Exchange', 'NEX']
+
 export const getStaticProps = withPerformanceLogging('donations', async () => {
 	const { protocols, parentProtocols } = await fetchJson(PROTOCOLS_API)
 
@@ -45,6 +47,7 @@ export const getStaticProps = withPerformanceLogging('donations', async () => {
 
 	const finalProtocols = []
 	for (const protocol in protocolsWithReferralurl) {
+		if (hideProtocols.includes(protocolsWithReferralurl[protocol].name)) continue
 		finalProtocols.push(protocolsWithReferralurl[protocol])
 	}
 
