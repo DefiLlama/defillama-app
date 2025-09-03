@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
@@ -415,7 +416,7 @@ const LikeDashboardButton = ({
 			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
 			className={`hover:pro-btn-blue focus-visible:pro-btn-blue ${isLiked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1 py-0.5 text-xs hover:border-transparent focus-visible:border-transparent`}
 		>
-			<Icon name="star" height={14} width={14} className="" />
+			{isLiking ? <LoadingSpinner size={14} /> : <Icon name="star" height={14} width={14} className="" />}
 			<span>{currentDashboard?.likeCount || 0}</span>
 			<span className="sr-only">Likes</span>
 		</Tooltip>
