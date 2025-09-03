@@ -36,9 +36,6 @@ function generateSiteMap(protocols, chains, categories, parentProtocols, stablec
 	}
 	return `<?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <url>
-      <loc>${baseUrl}</loc>
-    </url>
 		${Array.from(new Set(navPages)).map(url).join('')}
     ${chains.map(prefixedUrl('chain')).join('')}
     ${protocols.map(prefixedUrl('protocol')).join('')}
@@ -67,7 +64,7 @@ export async function getServerSideProps({ res }) {
 		protocolCategories.map((c) => slug(c)),
 		parentProtocols.map(({ name }) => slug(name)),
 		stablecoins.map(({ name }) => slug(name)),
-		cexs.map(({ slug: cexSlug }) => slug(cexSlug))
+		cexs.filter((c) => c.slug != null).map(({ slug: cexSlug }) => slug(cexSlug))
 	)
 
 	res.setHeader('Content-Type', 'text/xml')
