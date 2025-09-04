@@ -204,6 +204,17 @@ function ProDashboardContent() {
 						) : null}
 					</div>
 					<div className="mt-auto ml-auto flex flex-wrap items-center gap-1">
+						{currentDashboard?.visibility === 'public' ? (
+							<p className="bg-pro-green-100 text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+								<Icon name="earth" height={12} width={12} />
+								<span>Public </span>
+							</p>
+						) : (
+							<p className="bg-pro-gold-100 text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+								<Icon name="key" height={12} width={12} />
+								<span>Private</span>
+							</p>
+						)}
 						<Tooltip
 							content="Views"
 							render={<p />}
