@@ -1,6 +1,8 @@
 import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { download } from '~/utils'
+import { Select } from '~/components/Select'
+import { Tooltip } from '~/components/Tooltip'
+import { capitalizeFirstLetter, download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { CHART_TYPES, MultiChartConfig } from '../types'
@@ -289,63 +291,80 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					)}
 				</div>
 				{!isReadOnly && allChartsGroupable && hasAnyData && (
-					<div className="flex overflow-hidden border border-(--form-control-border)">
-						{groupingOptions.map((option, index) => (
-							<button
-								key={option}
-								onClick={() => handleGroupingChange(multi.id, option)}
-								className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
-									multi.grouping === option
-										? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
-										: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
-								}`}
+					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+						{groupingOptions.map((dataInterval) => (
+							<Tooltip
+								content={capitalizeFirstLetter(dataInterval)}
+								render={<button />}
+								className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
+								data-active={multi.grouping === dataInterval}
+								onClick={() => handleGroupingChange(multi.id, dataInterval)}
+								key={`${multi.id}-options-groupBy-${dataInterval}`}
 							>
-								<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
-								<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
-							</button>
+								{dataInterval.slice(0, 1).toUpperCase()}
+							</Tooltip>
 						))}
 					</div>
 				)}
+
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && allChartsAreBarType && (
-					<button
-						onClick={() => {
-							handleCumulativeChange(multi.id, !showCumulative)
-							if (!showCumulative) {
+					<Select
+						allValues={[
+							{ name: 'Show individual values', key: 'Individual' },
+							{ name: `Show cumulative values`, key: `Cumulative` }
+						]}
+						selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
+						setSelectedValues={(value) => {
+							handleCumulativeChange(multi.id, value === 'Cumulative' ? true : false)
+							if (value === 'Cumulative') {
 								handleStackedChange(multi.id, false)
 							}
 						}}
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-						title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
-					>
-						<Icon name="trending-up" height={12} width={12} />
-						<span className="hidden xl:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
-					</button>
+						label={showCumulative ? 'Cumulative' : 'Individual'}
+						labelType="none"
+						triggerProps={{
+							className:
+								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+						}}
+					/>
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && (
-					<button
-						onClick={() => {
-							handleStackedChange(multi.id, !showStacked)
+					<Select
+						allValues={[
+							{ name: 'Show separate', key: 'Separate' },
+							{ name: `Show stacked`, key: `Stacked` }
+						]}
+						selectedValues={showStacked ? 'Stacked' : 'Separate'}
+						setSelectedValues={(value) => {
+							handleStackedChange(multi.id, value === 'Separate' ? false : true)
 							handlePercentageChange(multi.id, false)
 						}}
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-						title={showStacked ? 'Show separate' : 'Show stacked'}
-					>
-						<Icon name="layers" height={12} width={12} />
-						<span className="hidden xl:inline">{showStacked ? 'Stacked' : 'Separate'}</span>
-					</button>
+						label={showStacked ? 'Stacked' : 'Separate'}
+						labelType="none"
+						triggerProps={{
+							className:
+								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+						}}
+					/>
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
-					<button
-						onClick={() => {
-							handlePercentageChange(multi.id, !showPercentage)
+					<Select
+						allValues={[
+							{ name: 'Show absolute ($)', key: '$ Absolute' },
+							{ name: `Show percentage (%)`, key: `% Percentage` }
+						]}
+						selectedValues={showPercentage ? '% Percentage' : '$ Absolute'}
+						setSelectedValues={(value) => {
+							handlePercentageChange(multi.id, value === '% Percentage' ? true : false)
 							handleStackedChange(multi.id, false)
 						}}
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-						title={showPercentage ? 'Show absolute values' : 'Show percentage'}
-					>
-						<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
-						<span className="hidden xl:inline">{showPercentage ? 'Percentage' : 'Absolute'}</span>
-					</button>
+						label={showPercentage ? '% Percentage' : '$ Absolute'}
+						labelType="none"
+						triggerProps={{
+							className:
+								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+						}}
+					/>
 				)}
 				{series.length > 0 && (
 					<>
@@ -358,7 +377,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
-							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</>
 				)}

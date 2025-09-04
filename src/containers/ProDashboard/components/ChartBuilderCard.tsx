@@ -1,8 +1,9 @@
 import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { Icon } from '~/components/Icon'
-import { download } from '~/utils'
+import { Select } from '~/components/Select'
+import { Tooltip } from '~/components/Tooltip'
+import { capitalizeFirstLetter, download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
@@ -246,42 +247,56 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				<div className="flex flex-wrap items-center justify-end gap-2">
 					<h1 className="mr-auto text-base font-semibold">{builder.name || `${config.metric} by Protocol`}</h1>
 					{!isReadOnly && !isTvlChart && (
-						<div className="flex overflow-hidden border border-(--form-control-border)">
-							{groupingOptions.map((option, index) => (
-								<button
-									key={option}
-									onClick={() => handleGroupingChange(builder.id, option)}
-									className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
-										builder.grouping === option || (!builder.grouping && option === 'day')
-											? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
-											: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
-									}`}
+						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+							{groupingOptions.map((dataInterval) => (
+								<Tooltip
+									content={capitalizeFirstLetter(dataInterval)}
+									render={<button />}
+									className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
+									data-active={builder.grouping === dataInterval}
+									onClick={() => handleGroupingChange(builder.id, dataInterval)}
+									key={`${builder.id}-options-groupBy-${dataInterval}`}
 								>
-									<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
-									<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
-								</button>
+									{dataInterval.slice(0, 1).toUpperCase()}
+								</Tooltip>
 							))}
 						</div>
 					)}
 					{!isReadOnly && (
-						<button
-							onClick={() => handlePercentageChange(builder.id, config.displayAs !== 'percentage')}
-							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-							title={config.displayAs === 'percentage' ? 'Show absolute values' : 'Show percentage'}
-						>
-							<Icon name={config.displayAs === 'percentage' ? 'percent' : 'dollar-sign'} height={12} width={12} />
-							<span className="hidden xl:inline">{config.displayAs === 'percentage' ? 'Percentage' : 'Absolute'}</span>
-						</button>
+						<Select
+							allValues={[
+								{ name: 'Show absolute ($)', key: '$ Absolute' },
+								{ name: `Show percentage (%)`, key: `% Percentage` }
+							]}
+							selectedValues={config.displayAs === 'percentage' ? '% Percentage' : '$ Absolute'}
+							setSelectedValues={(value) => {
+								handlePercentageChange(builder.id, value === '% Percentage' ? true : false)
+							}}
+							label={config.displayAs === 'percentage' ? '% Percentage' : '$ Absolute'}
+							labelType="none"
+							triggerProps={{
+								className:
+									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+							}}
+						/>
 					)}
 					{!isReadOnly && (
-						<button
-							onClick={() => handleHideOthersChange(builder.id, !config.hideOthers)}
-							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-							title={config.hideOthers ? 'Show all protocols' : 'Show only top protocols'}
-						>
-							<Icon name="layers" height={12} width={12} />
-							<span className="hidden xl:inline">{config.hideOthers ? `Top ${config.limit}` : 'All'}</span>
-						</button>
+						<Select
+							allValues={[
+								{ name: 'Show all protocols', key: 'All' },
+								{ name: `Show only top protocols`, key: `Top ${config.limit}` }
+							]}
+							selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
+							setSelectedValues={(value) => {
+								handleHideOthersChange(builder.id, value === 'All' ? false : true)
+							}}
+							label={config.hideOthers ? `Top ${config.limit}` : 'All'}
+							labelType="none"
+							triggerProps={{
+								className:
+									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+							}}
+						/>
 					)}
 					{chartSeries.length > 0 && (
 						<>
@@ -294,7 +309,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							<ProTableCSVButton
 								onClick={handleCsvExport}
 								smol
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+								className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 							/>
 						</>
 					)}

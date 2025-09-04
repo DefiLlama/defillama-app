@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 
-interface ITooltip {
+interface ITooltip extends Ariakit.TooltipOptions {
 	content: string | null | React.ReactNode
 	href?: string
 	shallow?: boolean

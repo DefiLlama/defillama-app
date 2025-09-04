@@ -137,12 +137,17 @@ function ProDashboardContent() {
 			<div className="grid grid-cols-12 gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 md:p-4">
 				<div className="col-span-full flex flex-col gap-2 md:col-span-8">
 					<div className="flex flex-col gap-1">
-						<span className="flex flex-wrap items-center gap-1">
+						<span className="flex flex-wrap items-center gap-2">
 							<h1 className="text-lg font-semibold">{dashboardName}</h1>
-							{isReadOnly && (
-								<p className="flex flex-nowrap items-center gap-1 rounded-md border border-(--cards-border) px-1 py-0.5 text-xs text-(--text-disabled)">
-									<Icon name="file-lock-2" height={14} width={14} />
-									Read Only
+							{currentDashboard?.visibility === 'public' ? (
+								<p className="bg-pro-green-100 text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+									<Icon name="earth" height={12} width={12} />
+									<span>Public </span>
+								</p>
+							) : (
+								<p className="bg-pro-gold-100 text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+									<Icon name="key" height={12} width={12} />
+									<span>Private</span>
 								</p>
 							)}
 						</span>
@@ -166,9 +171,9 @@ function ProDashboardContent() {
 					hasFeature('dashboard-gen') &&
 					currentDashboard?.aiGenerated &&
 					Object.keys(currentDashboard.aiGenerated).length > 0 ? (
-						<p className="flex items-center gap-1">
-							<Icon name="sparkles" height={14} width={14} className="text-(--primary)" />
-							<span className="text-xs font-medium text-(--old-blue)">AI Generated</span>
+						<p className="flex items-center gap-1 text-(--old-blue)">
+							<Icon name="sparkles" height={14} width={14} />
+							<span className="text-xs font-medium">AI Generated</span>
 						</p>
 					) : null}
 				</div>
@@ -207,7 +212,7 @@ function ProDashboardContent() {
 						<Tooltip
 							content="Views"
 							render={<p />}
-							className="flex items-center gap-1 rounded-md border border-(--cards-border) px-1 py-0.5 text-xs text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--cards-border) px-1.5 py-1 text-xs text-(--text-disabled)"
 						>
 							<Icon name="eye" height={14} width={14} />
 							<span>{currentDashboard?.viewCount || 0}</span>
@@ -414,7 +419,7 @@ const LikeDashboardButton = ({
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
 			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
-			className={`hover:pro-btn-blue focus-visible:pro-btn-blue ${isLiked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1 py-0.5 text-xs hover:border-transparent focus-visible:border-transparent`}
+			className={`hover:pro-btn-blue focus-visible:pro-btn-blue ${isLiked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent`}
 		>
 			{isLiking ? <LoadingSpinner size={14} /> : <Icon name="star" height={14} width={14} className="" />}
 			<span>{currentDashboard?.likeCount || 0}</span>
@@ -443,7 +448,8 @@ const CopyDashboardLinkButton = ({
 				dashboardVisibility === 'private' ? 'Make dashboard public to share' : 'Copy dashboard link to clipboard'
 			}
 			render={<button onClick={copy} disabled={dashboardVisibility === 'private'} />}
-			className="hover:pro-btn-blue focus-visible:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1 py-0.5 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+			className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+			{...(dashboardVisibility === 'private' && { title: 'Make dashboard public to share' })}
 		>
 			{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="link" height={14} width={14} />}
 			<span>Share</span>
