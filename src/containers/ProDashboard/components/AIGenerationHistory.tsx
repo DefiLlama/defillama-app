@@ -30,7 +30,7 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 					>
 						<Icon name="sparkles" height={14} width={14} className="shrink-0 text-(--old-blue)" />
 						<div className="flex flex-col gap-1">
-							<div className="flex flex-wrap items-center gap-2 text-xs">
+							<div className="-mt-0.5 flex flex-wrap items-center gap-2 text-xs">
 								<h1 className="text-sm font-medium">
 									{session.mode === 'create' ? 'Initial Generation' : 'Iteration'} #{sessions.length - index}
 								</h1>
