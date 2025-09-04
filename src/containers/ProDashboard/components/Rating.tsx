@@ -144,7 +144,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 
 	return (
 		<>
-			<Icon name="sparkles" height={24} width={24} className="text-(--old-blue)" />
+			<Icon name="sparkles" height={24} width={24} className="text-pro-blue-400 dark:text-pro-blue-200 shrink-0" />
 
 			<h3 className="-mt-5 text-xl font-semibold">{currentTexts.title}</h3>
 			<p className="-mt-5 text-sm text-(--text-label)">{currentTexts.subtitle}</p>

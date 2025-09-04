@@ -322,7 +322,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 							{props.chartDenominations.map((denom) => (
 								<button
 									key={`denomination-${denom.symbol}`}
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--old-blue)"
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={
 										toggledMetrics.denomination === denom.symbol ||
 										(denom.symbol === 'USD' && !toggledMetrics.denomination)
