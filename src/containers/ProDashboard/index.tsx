@@ -166,9 +166,9 @@ function ProDashboardContent() {
 					hasFeature('dashboard-gen') &&
 					currentDashboard?.aiGenerated &&
 					Object.keys(currentDashboard.aiGenerated).length > 0 ? (
-						<p className="flex items-center gap-1">
-							<Icon name="sparkles" height={14} width={14} className="text-(--primary)" />
-							<span className="text-xs font-medium text-(--old-blue)">AI Generated</span>
+						<p className="flex items-center gap-1 text-(--old-blue)">
+							<Icon name="sparkles" height={14} width={14} />
+							<span className="text-xs font-medium">AI Generated</span>
 						</p>
 					) : null}
 				</div>

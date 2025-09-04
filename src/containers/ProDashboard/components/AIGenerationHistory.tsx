@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AIGeneratedData } from '../ProDashboardAPIContext'
 
@@ -7,8 +6,6 @@ interface AIGenerationHistoryProps {
 }
 
 export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
-	const [isExpanded, setIsExpanded] = useState(false)
-
 	const sessions = Object.entries(aiGenerated)
 		.map(([sessionId, data]) => ({
 			sessionId,
@@ -19,56 +16,50 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 	if (sessions.length === 0) return null
 
 	return (
-		<div className="">
-			<button
-				onClick={() => setIsExpanded(!isExpanded)}
-				className="pro-text2 hover:pro-text1 flex items-center gap-2 text-sm transition-colors"
-			>
-				<Icon name="sparkles" height={16} width={16} className="text-(--primary)" />
+		<details className="group flex flex-col gap-2">
+			<summary className="pro-link flex items-center gap-2">
+				<Icon name="sparkles" height={16} width={16} />
 				<span>View AI Generation History</span>
-				<Icon
-					name="chevron-down"
-					height={14}
-					width={14}
-					className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-				/>
-			</button>
-
-			{isExpanded && (
-				<div className="mt-3 space-y-3">
-					{sessions.map((session, index) => (
-						<div key={session.sessionId} className="pro-bg1 pro-border border p-3">
-							<div className="mb-2 flex items-center gap-2">
-								<Icon name="sparkles" height={14} width={14} className="text-(--primary)" />
-								<span className="pro-text1 text-sm font-medium">
+				<Icon name="chevron-down" height={14} width={14} className="transition-transform group-open:rotate-180" />
+			</summary>
+			<>
+				{sessions.map((session, index) => (
+					<div
+						key={session.sessionId}
+						className="flex flex-nowrap gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 pl-1 md:p-4 md:pl-2"
+					>
+						<Icon name="sparkles" height={14} width={14} className="shrink-0 text-(--old-blue)" />
+						<div className="flex flex-col gap-1">
+							<div className="flex flex-wrap items-center gap-2 text-xs">
+								<h1 className="text-sm font-medium">
 									{session.mode === 'create' ? 'Initial Generation' : 'Iteration'} #{sessions.length - index}
-								</span>
-								<span className="pro-text3 text-xs">{new Date(session.timestamp).toLocaleDateString()}</span>
+								</h1>
+								<p className="text-(--text-form)">{new Date(session.timestamp).toLocaleDateString()}</p>
 								{session.rating !== undefined && session.rating !== -1 && (
-									<div className="flex items-center gap-1">
+									<p className="flex items-center gap-1">
+										<span className="sr-only">Rating: </span>
 										{session.rating === -99 ? (
 											<>
 												<Icon name="arrow-left" height={12} width={12} className="text-orange-500" />
-												<span className="text-xs text-orange-500">Undone</span>
+												<span className="text-orange-500">Undone</span>
 											</>
 										) : (
 											<>
 												<Icon name="star" height={12} width={12} className="fill-current text-yellow-400" />
-												<span className="pro-text2 text-xs">{session.rating}/5</span>
+												<span>{session.rating}/5</span>
 											</>
 										)}
-									</div>
+									</p>
 								)}
 							</div>
-
-							<div className="pro-text2 text-sm">
+							<p>
 								<span className="font-medium">Prompt: </span>
-								<span className="pro-text3">{session.prompt || 'No prompt recorded'}</span>
-							</div>
+								<span className="text-(--text-label)">{session.prompt || 'No prompt recorded'}</span>
+							</p>
 						</div>
-					))}
-				</div>
-			)}
-		</div>
+					</div>
+				))}
+			</>
+		</details>
 	)
 }
