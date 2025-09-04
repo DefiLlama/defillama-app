@@ -6,7 +6,7 @@ import Layout from '~/layout'
 async function submitSupportRequest(formData: FormData) {
 	try {
 		const data = await fetch(
-			'https://webhook.frontapp.com/forms/0f7e04ca1380d461a597/F-gV64YL71ksNtFfBSteerjcsVT2UusHNyigTYyWlSg_j9Va6r7w3rk7sG7BqL0_RbBV4EFPAITxrs7uaTjThq7V5ZEJEoUfeYI1EWXvjbXD2HOhb3fm0OUHJJVOcOg',
+			'https://api.llama.fi/reportSupport',
 			{
 				method: 'POST',
 				body: formData
