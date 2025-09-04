@@ -16,7 +16,7 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 	if (sessions.length === 0) return null
 
 	return (
-		<details className="group flex flex-col gap-2">
+		<details className="group flex flex-col">
 			<summary className="pro-link flex items-center gap-2">
 				<Icon name="sparkles" height={16} width={16} />
 				<span>View AI Generation History</span>
@@ -26,7 +26,7 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 				{sessions.map((session, index) => (
 					<div
 						key={session.sessionId}
-						className="flex flex-nowrap gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 pl-1 md:p-4 md:pl-2"
+						className="mt-2 flex flex-nowrap gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 pl-1 md:p-4 md:pl-2"
 					>
 						<Icon name="sparkles" height={14} width={14} className="shrink-0 text-(--old-blue)" />
 						<div className="flex flex-col gap-1">
