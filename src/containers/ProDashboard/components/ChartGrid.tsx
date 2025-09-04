@@ -220,7 +220,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	}
 
 	return (
-		<div className="mt-2">
+		<>
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
 					<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-2">
@@ -309,6 +309,6 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				confirmText="Remove"
 				cancelText="Cancel"
 			/>
-		</div>
+		</>
 	)
 }
