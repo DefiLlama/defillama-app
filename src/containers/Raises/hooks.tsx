@@ -174,8 +174,8 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 		let totalAmountRaised = 0
 
 		for (const date in monthlyInvestment) {
-			finalMonthlyInvestment.push([new Date(date).getTime(), monthlyInvestment[date]])
-			totalAmountRaised += monthlyInvestment[date]
+			finalMonthlyInvestment.push([new Date(date).getTime(), monthlyInvestment[date] * 1e6])
+			totalAmountRaised += monthlyInvestment[date] * 1e6
 		}
 		for (const category in raisesByCategory) {
 			finalRaisesByCategory.push({ name: category, value: raisesByCategory[category] })

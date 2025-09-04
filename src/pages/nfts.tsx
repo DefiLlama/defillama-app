@@ -19,7 +19,13 @@ const pageName = ['NFTs Collections']
 
 export default function NFTHomePage(props) {
 	return (
-		<Layout title="NFTs Collections - DefiLlama" pageName={pageName}>
+		<Layout
+			title="NFTs Collections - DefiLlama"
+			description={`Track NFTs collections floor price, 24h volume and total supply. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`nfts collections, nfts on blockchain`}
+			canonicalUrl={`/nfts`}
+			pageName={pageName}
+		>
 			<NftsCollectionTable data={props.collections || []} />
 		</Layout>
 	)

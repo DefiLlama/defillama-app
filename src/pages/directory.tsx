@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { maxAgeForNext } from '~/api'
@@ -39,8 +39,29 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 
 	const [viewableMatches, setViewableMatches] = useState(20)
 
+	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
+
 	return (
-		<Layout title={`Protocols Directory - DefiLlama`}>
+		<Layout
+			title={`Protocols Directory - DefiLlama`}
+			description={`Protocols website directory on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`protocols directory, defi protocols`}
+			canonicalUrl={`/directory`}
+		>
 			<Announcement notCancellable>
 				Search any protocol to go straight into their website, avoiding scam results from google. Bookmark this page for
 				better access and security
@@ -67,7 +88,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 					className="z-10 h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
 				>
 					{matches.length ? (
-						<>
+						<Ariakit.ComboboxList ref={comboboxRef}>
 							{matches.slice(0, viewableMatches + 1).map((option) => (
 								<Ariakit.ComboboxItem
 									key={option.name}
@@ -86,16 +107,18 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 									<span>{option.name}</span>
 								</Ariakit.ComboboxItem>
 							))}
-
 							{matches.length > viewableMatches ? (
-								<button
-									className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-									onClick={() => setViewableMatches((prev) => prev + 20)}
+								<Ariakit.ComboboxItem
+									value="__see_more__"
+									setValueOnClick={false}
+									hideOnClick={false}
+									className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+									onClick={handleSeeMore}
 								>
 									See more...
-								</button>
+								</Ariakit.ComboboxItem>
 							) : null}
-						</>
+						</Ariakit.ComboboxList>
 					) : (
 						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 					)}

@@ -438,7 +438,14 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	}, [tableData, extaTvlsEnabled])
 
 	return (
-		<Layout title={`Categories - DefiLlama`} includeInMetricsOptions={finalTvlOptions} pageName={pageName}>
+		<Layout
+			title={`Categories - DefiLlama`}
+			description={`Combined TVL, Revenue and other metrics by category of all protocols that are tracked by DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`protocols categories, defi categories`}
+			canonicalUrl={`/categories`}
+			metricFilters={finalTvlOptions}
+			pageName={pageName}
+		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Categories</h1>
@@ -472,7 +479,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					columns={categoriesColumn}
 					columnToSearch={'name'}
 					placeholder={'Search category...'}
-					defaultSorting={[{ id: 'tvl', desc: true }]}
+					sortingState={[{ id: 'tvl', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>

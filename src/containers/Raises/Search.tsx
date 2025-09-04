@@ -20,6 +20,22 @@ export function RaisesSearch({ list }) {
 
 	const [open, setOpen] = useState(false)
 
+	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
+
 	return (
 		<div className="relative hidden flex-col rounded-md data-[alwaysdisplay=true]:flex lg:flex">
 			<Ariakit.ComboboxProvider
@@ -46,22 +62,23 @@ export function RaisesSearch({ list }) {
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />
 					</Ariakit.PopoverDismiss>
-
 					{matches.length ? (
-						<>
+						<Ariakit.ComboboxList ref={comboboxRef}>
 							{matches.slice(0, viewableMatches + 1).map((option) => (
 								<Row key={option} name={option} setOpen={setOpen} />
 							))}
-
 							{matches.length > viewableMatches ? (
-								<button
-									className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-									onClick={() => setViewableMatches((prev) => prev + 20)}
+								<Ariakit.ComboboxItem
+									value="__see_more__"
+									setValueOnClick={false}
+									hideOnClick={false}
+									className="w-full cursor-pointer px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+									onClick={handleSeeMore}
 								>
 									See more...
-								</button>
+								</Ariakit.ComboboxItem>
 							) : null}
-						</>
+						</Ariakit.ComboboxList>
 					) : (
 						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 					)}

@@ -81,7 +81,13 @@ export default function Protocols({ data, unlockStats }) {
 	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
 
 	return (
-		<Layout title={`Unlocks - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Unlocks - DefiLlama`}
+			description={`Unlocks by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`unlocks, defi unlocks, upcoming token unlocks, token emissions, emissions`}
+			canonicalUrl={`/unlocks`}
+			pageName={pageName}
+		>
 			<Announcement notCancellable>
 				<span>Are we missing any protocol?</span>{' '}
 				<a

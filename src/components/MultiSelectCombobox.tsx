@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { Icon } from './Icon'
@@ -26,9 +26,25 @@ export const MultiSelectCombobox = ({
 		})
 	}, [data, deferredSearchValue])
 
-	const [viewableMatches, setResultsCount] = useState(10)
+	const [viewableMatches, setViewableMatches] = useState(10)
 
 	const [open, setOpen] = useState(false)
+
+	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
 
 	return (
 		<Ariakit.ComboboxProvider
@@ -95,7 +111,7 @@ export const MultiSelectCombobox = ({
 					/>
 				</span>
 
-				<Ariakit.ComboboxList>
+				<Ariakit.ComboboxList ref={comboboxRef}>
 					{matches.slice(0, viewableMatches).map((item) => (
 						<Ariakit.ComboboxItem
 							key={`multi-select-${item.value}`}
@@ -108,15 +124,18 @@ export const MultiSelectCombobox = ({
 							<Ariakit.ComboboxItemCheck />
 						</Ariakit.ComboboxItem>
 					))}
+					{matches.length > viewableMatches ? (
+						<Ariakit.ComboboxItem
+							value="__see_more__"
+							setValueOnClick={false}
+							hideOnClick={false}
+							className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+							onClick={handleSeeMore}
+						>
+							See more...
+						</Ariakit.ComboboxItem>
+					) : null}
 				</Ariakit.ComboboxList>
-				{matches.length > viewableMatches ? (
-					<button
-						className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-						onClick={() => setResultsCount((prev) => prev + 20)}
-					>
-						See more...
-					</button>
-				) : null}
 			</Ariakit.ComboboxPopover>
 		</Ariakit.ComboboxProvider>
 	)

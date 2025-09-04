@@ -13,7 +13,7 @@ interface ITableProps {
 	skipVirtualization?: boolean
 	rowSize?: number
 	columnResizeMode?: 'onChange' | 'onEnd'
-	renderSubComponent?: ({ row }: { row: any }) => JSX.Element
+	renderSubComponent?: ({ row }: { row: any }) => React.ReactNode
 	stripedBg?: boolean
 	style?: React.CSSProperties
 	compact?: boolean

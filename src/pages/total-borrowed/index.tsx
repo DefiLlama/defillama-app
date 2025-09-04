@@ -19,7 +19,13 @@ const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
 
 export default function TotalBorrowed(props) {
 	return (
-		<Layout title="Total Borrowed - DefiLlama" pageName={pageName}>
+		<Layout
+			title="Total Borrowed - DefiLlama"
+			description={`Total Borrowed by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`total value borrowed by protocol`}
+			canonicalUrl={`/total-borrowed`}
+			pageName={pageName}
+		>
 			<BorrowedProtocolsTVLByChain {...props} />
 		</Layout>
 	)

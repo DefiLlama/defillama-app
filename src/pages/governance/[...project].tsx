@@ -107,7 +107,12 @@ export async function getStaticPaths() {
 
 export default function Protocol({ data, governanceType }) {
 	return (
-		<Layout title={`${data.metadata.name} Governance - DefiLlama`}>
+		<Layout
+			title={`${data.metadata.name} Governance - DefiLlama`}
+			description={`${data.metadata.name} Governance on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${data.metadata.name} governance, governance on blockchain`}
+			canonicalUrl={`/governance/${data.metadata.name}`}
+		>
 			<div className="relative isolate flex flex-col gap-9 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 xl:grid-cols-[auto_1fr]">
 				<h1 className="flex items-center gap-2 text-xl font-semibold">
 					<TokenLogo logo={tokenIconUrl(data.metadata.name)} />

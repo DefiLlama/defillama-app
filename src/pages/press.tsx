@@ -42,7 +42,12 @@ const pressList = [
 
 function PressPage() {
 	return (
-		<Layout title="Press - DefiLlama">
+		<Layout
+			title="Press - DefiLlama"
+			description={`Press and media on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`press, media, defi press, defi media`}
+			canonicalUrl={`/press`}
+		>
 			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
 				Press & Media
 			</h1>

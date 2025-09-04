@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getProtocolEmissons } from '~/api/categories/protocols'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { Emissions } from '~/containers/ProtocolOverview/Emissions/index'
 import Layout from '~/layout'
 import { formattedNum, tokenIconUrl } from '~/utils'
@@ -65,16 +65,19 @@ export async function getStaticPaths() {
 
 export default function Protocol({ emissions, totalUnlockValue, eventCountdown, noUpcomingEvent }) {
 	return (
-		<Layout title={`${emissions.name} Unlocks - DefiLlama`} customSEO>
-			<SEO
+		<Layout
+			title={`${emissions.name} ${emissions.tokenPrice.symbol} Token Unlocks & Vesting Schedules - DefiLlama`}
+			description={`Track upcoming ${emissions.name} token unlocks, detailed vesting schedules, and key emission data on DefiLlama. Stay informed on ${emissions.tokenPrice.symbol} release events and supply changes.`}
+			keywords={`${emissions.name} ${emissions.tokenPrice.symbol} token unlocks, vesting schedules, emission data, DefiLlama, ${emissions.tokenPrice.symbol}, ${emissions.name}, ${emissions.tokenPrice.symbol} Tokenomics, ${emissions.tokenPrice.symbol} Unlocks, ${emissions.tokenPrice.symbol} Vesting Schedule, ${emissions.name} Unlocks, ${emissions.name} Vesting Schedule, ${emissions.name} Tokenomics`}
+			canonicalUrl={`/unlocks/${emissions.name}`}
+		>
+			<LinkPreviewCard
 				unlockPage={true}
 				cardName={emissions.name}
-				symbol={emissions.tokenPrice.symbol}
 				logo={tokenIconUrl(emissions.name)}
 				unlockAmount={`$${formattedNum(totalUnlockValue)}`}
 				tvl={noUpcomingEvent ? 'No Events' : eventCountdown}
 			/>
-
 			<Emissions data={emissions} isEmissionsPage />
 		</Layout>
 	)

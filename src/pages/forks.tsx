@@ -46,7 +46,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 
 		const tokensList = tvls.map(({ name, value }) => {
 			const tokenTvl = forkedTokensData.find((p) => p.name.toLowerCase() === name.toLowerCase())?.tvl ?? null
-			const ftot = tokenTvl ? (value / tokenTvl) * 100 : null
+			const ftot = tokenTvl ? (Number(value.toFixed(2)) / Number(tokenTvl.toFixed(2))) * 100 : null
 
 			return {
 				name,
@@ -74,7 +74,13 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 	}, [tokensList])
 
 	return (
-		<Layout title={`Forks - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Forks - DefiLlama`}
+			description={`Overview of protocols by their forks value. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`forks, protocol forks, forks on blockchain`}
+			canonicalUrl={`/forks`}
+			pageName={pageName}
+		>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
 				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
@@ -111,6 +117,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 					placeholder={'Search protocols...'}
 					columnToSearch={'name'}
 					header={'Protocol Rankings'}
+					sortingState={[{ id: 'tvl', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>

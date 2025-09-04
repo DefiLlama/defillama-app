@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CATEGORY_CHART_API, CHART_API, DIMENISIONS_OVERVIEW_API, PROTOCOL_API, PROTOCOLS_API } from '~/constants'
+import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 
 interface ChartSeries {
 	name: string
@@ -21,18 +22,18 @@ interface ProtocolSplitData {
 	}
 }
 
-const COLORS = [
-	'#8884d8',
-	'#82ca9d',
-	'#ffc658',
-	'#ff7c7c',
-	'#8dd1e1',
-	'#d084d0',
-	'#82d982',
-	'#ffb347',
-	'#67b7dc',
-	'#a4de6c'
-]
+// const COLORS = [
+// 	'#8884d8',
+// 	'#82ca9d',
+// 	'#ffc658',
+// 	'#ff7c7c',
+// 	'#8dd1e1',
+// 	'#d084d0',
+// 	'#82d982',
+// 	'#ffb347',
+// 	'#67b7dc',
+// 	'#a4de6c'
+// ]
 
 const METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metricName: string }> = {
 	tvl: { endpoint: 'tvl', metricName: 'TVL' },
@@ -340,7 +341,7 @@ const getTvlData = async (
 	const alignedProtocolSeries: ChartSeries[] = protocolSeries.map((s, idx) => ({
 		name: s.name,
 		data: alignSeries(allTimestamps, s.data),
-		color: COLORS[idx % COLORS.length]
+		color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
 	}))
 
 	const alignedTotal = alignSeries(allTimestamps, totalSeries)
@@ -694,7 +695,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			series.push({
 				name: protocol,
 				data: alignedData,
-				color: COLORS[index % COLORS.length]
+				color: EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
 			})
 		})
 

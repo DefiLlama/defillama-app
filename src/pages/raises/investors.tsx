@@ -70,7 +70,8 @@ const ActiveInvestors = ({ data }) => {
 
 	const onPeriodClick = (newPeriod) => {
 		if (newPeriod === 'All') {
-			;(setPeriod(newPeriod), addOption(columns))
+			setPeriod(newPeriod)
+			addOption(columns)
 		} else {
 			setPeriod(newPeriod)
 		}
@@ -142,7 +143,13 @@ const ActiveInvestors = ({ data }) => {
 	}, [investorName, instance])
 
 	return (
-		<Layout title={`Investors - DefiLlama`} className="gap-4" pageName={pageName}>
+		<Layout
+			title={`Investors - DefiLlama`}
+			description={`Deals by Investors. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`cryptoinvestors, defi investors, blockchain investors, latest blockchain deals`.toLowerCase()}
+			canonicalUrl={`/raises/investors`}
+			pageName={pageName}
+		>
 			{/* <Announcement notCancellable>
 				<span>Looking for investors?</span>{' '}
 				<a href="/pitch" className="text-(--blue) underline font-medium" target="_blank" rel="noopener noreferrer">

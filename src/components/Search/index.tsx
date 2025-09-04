@@ -107,7 +107,7 @@ const Mobile = () => {
 						/>
 					</span>
 
-					<div className="flex flex-col gap-1">
+					<Ariakit.ComboboxList className="flex flex-col gap-1">
 						{query ? (
 							status === 'loading' ? (
 								<p className="flex items-center justify-center gap-1 p-4">
@@ -142,7 +142,7 @@ const Mobile = () => {
 								))}
 							</>
 						)}
-					</div>
+					</Ariakit.ComboboxList>
 				</Ariakit.ComboboxProvider>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
@@ -215,40 +215,42 @@ const Desktop = () => {
 				className="max-sm:drawer z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
 				portal
 			>
-				{query ? (
-					status === 'loading' ? (
+				<Ariakit.ComboboxList>
+					{query ? (
+						status === 'loading' ? (
+							<p className="flex items-center justify-center gap-1 p-4">
+								Loading
+								<LoadingDots />
+							</p>
+						) : error ? (
+							<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
+						) : !results?.hits?.length ? (
+							<p className="flex items-center justify-center p-4">No results found</p>
+						) : (
+							results.hits.map((route: ISearchItem) => (
+								<SearchItem key={`gs-${route.name}-${route.route}-${route.subName}`} route={route} />
+							))
+						)
+					) : isLoadingSearchList ? (
 						<p className="flex items-center justify-center gap-1 p-4">
 							Loading
 							<LoadingDots />
 						</p>
-					) : error ? (
-						<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
-					) : !results?.hits?.length ? (
+					) : errorSearchList ? (
+						<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
+					) : !searchList?.length ? (
 						<p className="flex items-center justify-center p-4">No results found</p>
 					) : (
-						results.hits.map((route: ISearchItem) => (
-							<SearchItem key={`gs-${route.name}-${route.route}-${route.subName}`} route={route} />
-						))
-					)
-				) : isLoadingSearchList ? (
-					<p className="flex items-center justify-center gap-1 p-4">
-						Loading
-						<LoadingDots />
-					</p>
-				) : errorSearchList ? (
-					<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
-				) : !searchList?.length ? (
-					<p className="flex items-center justify-center p-4">No results found</p>
-				) : (
-					<>
-						{recentSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`gs-r-${route.name}-${route.route}-${route.subName}`} route={route} recent />
-						))}
-						{defaultSearchList.map((route: ISearchItem) => (
-							<SearchItem key={`gs-dl-${route.name}-${route.route}-${route.subName}`} route={route} />
-						))}
-					</>
-				)}
+						<>
+							{recentSearchList.map((route: ISearchItem) => (
+								<SearchItem key={`gs-r-${route.name}-${route.route}-${route.subName}`} route={route} recent />
+							))}
+							{defaultSearchList.map((route: ISearchItem) => (
+								<SearchItem key={`gs-dl-${route.name}-${route.route}-${route.subName}`} route={route} />
+							))}
+						</>
+					)}
+				</Ariakit.ComboboxList>
 			</Ariakit.ComboboxPopover>
 		</Ariakit.ComboboxProvider>
 	)
@@ -258,7 +260,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
-			className="flex flex-wrap items-center gap-2 px-2 py-2 hover:bg-(--link-bg) lg:px-4"
+			className="flex flex-wrap items-center gap-2 px-2 py-2 hover:bg-(--link-bg) focus-visible:bg-(--link-bg) data-active-item:bg-(--link-bg) lg:px-4"
 			render={
 				<BasicLink
 					href={route.route}

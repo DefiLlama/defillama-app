@@ -1,9 +1,11 @@
 import * as React from 'react'
+import { ColumnDef } from '@tanstack/react-table'
 import { getETFData } from '~/api/categories/protocols'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { IconsRow } from '~/components/IconsRow'
+import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select'
-import { ETFColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
@@ -153,7 +155,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 
 	return (
 		<>
-			<div className="flex min-h-[434px] flex-col gap-1 md:flex-row">
+			<div className="flex min-h-[408px] flex-col gap-1 md:flex-row">
 				<div className="flex w-full flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) md:w-80">
 					<div className="flex flex-col gap-1 p-3">
 						<h1 className="text-xl font-semibold">Daily Stats</h1>
@@ -177,7 +179,7 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 					</div>
 				</div>
 				<div className="flex w-full flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex flex-wrap justify-end gap-2 p-3">
+					<div className="flex flex-wrap justify-end gap-2 p-2">
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
 						<TagGroup setValue={(val) => setGroupBy(val)} values={groupByList} selectedValue={groupBy} />
 						<Select
@@ -209,10 +211,11 @@ const PageView = ({ snapshot, flows, totalsByAsset, lastUpdated }: PageViewProps
 			</div>
 			<TableWithSearch
 				data={snapshot}
-				columns={ETFColumn}
+				columns={columns}
 				columnToSearch={'ticker'}
 				placeholder={'Search ETF...'}
 				header="Exchange Traded Funds"
+				sortingState={[{ id: 'aum', desc: true }]}
 			/>
 		</>
 	)
@@ -222,8 +225,109 @@ const pageName = ['ETFs: Overview']
 
 export default function ETFs(props: PageViewProps) {
 	return (
-		<Layout title={`Exchange Traded Funds - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Exchange Traded Funds - DefiLlama`}
+			description={`Exchange Traded Funds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`etfs, crypto etfs, exchange traded funds`}
+			canonicalUrl={`/etfs`}
+			pageName={pageName}
+		>
 			<PageView {...props} />
 		</Layout>
 	)
 }
+
+interface IETFRow {
+	ticker: string
+	issuer: string
+	etf_name: string
+	custodian: string
+	pct_fee: number
+	url: string
+	price: number
+	volume: number
+	aum: number
+	shares: number
+	btc: number
+	flows: number
+}
+
+export const columns: ColumnDef<IETFRow>[] = [
+	{
+		header: 'Ticker',
+		accessorKey: 'ticker',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<span className="relative flex items-center gap-2">
+					<span className="shrink-0">{index + 1}</span>
+					<BasicLink
+						href={row.original.url}
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+					>
+						{getValue() as string | null}
+					</BasicLink>
+				</span>
+			)
+		},
+		size: 100
+	},
+	{
+		header: 'Issuer',
+		accessorKey: 'issuer',
+		meta: {
+			align: 'end'
+		},
+		size: 160
+	},
+	{
+		header: 'Coin',
+		accessorKey: 'chain',
+		enableSorting: true,
+		cell: ({ getValue }) => (
+			<IconsRow links={getValue() as Array<string>} url="" iconType="chain" disableLinks={true} />
+		),
+		meta: {
+			align: 'end'
+		},
+		size: 160
+	},
+	{
+		header: 'Flows',
+		accessorKey: 'flows',
+		cell: ({ getValue }) => {
+			const value = getValue() as number | null
+			const formattedValue = value != null ? formattedNum(value, true) : null
+
+			return (
+				<span className={`${value && value > 0 ? 'text-(--success)' : value && value < 0 ? 'text-(--error)' : ''}`}>
+					{formattedValue}
+				</span>
+			)
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'AUM',
+		accessorKey: 'aum',
+		cell: ({ getValue }) => <>{getValue() !== null ? formattedNum(getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: 'Volume',
+		accessorKey: 'volume',
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	}
+]

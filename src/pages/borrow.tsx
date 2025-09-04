@@ -77,7 +77,13 @@ export default function YieldBorrow(data) {
 	})
 
 	return (
-		<Layout title={`Borrow Aggregator - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Borrow Aggregator - DefiLlama`}
+			description={`Simple view of optimal lending routes by collateral to borrow assets. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`borrow aggregator, lending routes, optimal lending routes, borrow assets on blockchain`}
+			canonicalUrl={`/borrow`}
+			pageName={pageName}
+		>
 			<Announcement>{disclaimer}</Announcement>
 			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[180px]">
 				<div className="flex w-full flex-col gap-5 overflow-y-auto p-3">
@@ -160,6 +166,22 @@ const TokensSelect = ({
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 
+	const comboboxRef = React.useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
+
 	return (
 		<div className="flex w-full flex-col gap-1">
 			<Ariakit.ComboboxProvider
@@ -206,7 +228,7 @@ const TokensSelect = ({
 
 						{matches.length > 0 ? (
 							<>
-								<Ariakit.ComboboxList>
+								<Ariakit.ComboboxList ref={comboboxRef}>
 									{matches.slice(0, viewableMatches + 1).map((option) => (
 										<Ariakit.SelectItem
 											key={`${queryParam}-${option.symbol}`}
@@ -217,15 +239,18 @@ const TokensSelect = ({
 											{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : `${option.symbol}`}
 										</Ariakit.SelectItem>
 									))}
+									{matches.length > viewableMatches ? (
+										<Ariakit.ComboboxItem
+											value="__see_more__"
+											setValueOnClick={false}
+											hideOnClick={false}
+											className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+											onClick={handleSeeMore}
+										>
+											See more...
+										</Ariakit.ComboboxItem>
+									) : null}
 								</Ariakit.ComboboxList>
-								{matches.length > viewableMatches ? (
-									<button
-										className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-										onClick={() => setViewableMatches((prev) => prev + 20)}
-									>
-										See more...
-									</button>
-								) : null}
 							</>
 						) : (
 							<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>

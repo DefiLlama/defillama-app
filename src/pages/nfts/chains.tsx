@@ -1,3 +1,4 @@
+import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -38,19 +39,26 @@ const pageName = ['Chains', 'ranked by', 'NFT Volume']
 
 export default function NftsOnAllChains(props) {
 	return (
-		<Layout title="NFTs - DefiLlama" pageName={pageName}>
+		<Layout
+			title="NFTs Volume by Chain - DefiLlama"
+			description={`NFTs volume by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`nfts volume by chain, defi nfts volume`}
+			canonicalUrl={`/nfts/chains`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={props.chains}
 				columns={columns}
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				sortingState={[{ id: 'total24h', desc: true }]}
 			/>
 		</Layout>
 	)
 }
 
-const columns = [
+const columns: ColumnDef<any>[] = [
 	{
 		id: 'name',
 		header: 'Name',

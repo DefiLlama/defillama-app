@@ -1,4 +1,4 @@
-import { startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, Suspense, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -45,11 +45,7 @@ export default function Tokens({ searchData }) {
 	const { token, includecex } = router.query
 
 	const tokenSymbol = token ? (typeof token === 'string' ? token : token[0]) : null
-	const includeCentraliseExchanges = includecex
-		? typeof includecex === 'string' && includecex === 'true'
-			? true
-			: false
-		: false
+	const includeCentraliseExchanges = includecex === 'true' ? true : false
 
 	const { data: protocols, isLoading } = useQuery({
 		queryKey: ['protocols-by-token', tokenSymbol],
@@ -80,7 +76,13 @@ export default function Tokens({ searchData }) {
 	}
 
 	return (
-		<Layout title="Token Usage - DefiLlama" pageName={pageName}>
+		<Layout
+			title="Token Usage - DefiLlama"
+			description={`Token usage in protocols. Checkout how a token is used in protocols on chain as well as CEXs. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`token usage, defi token usage, token usage in protocols, token usage in protocols on chain, token usage on cexes`}
+			canonicalUrl={`/token-usage`}
+			pageName={pageName}
+		>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 
 			<Search searchData={searchData} />
@@ -229,6 +231,22 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 
 	const [open, setOpen] = useState(false)
 
+	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
+
 	return (
 		<Ariakit.ComboboxProvider
 			resetValueOnHide
@@ -270,7 +288,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				className="z-10 flex max-h-[var(--popover-available-height)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
 			>
 				{matches.length ? (
-					<>
+					<Ariakit.ComboboxList ref={comboboxRef}>
 						{matches.slice(0, viewableMatches + 1).map((data) => (
 							<Ariakit.ComboboxItem
 								key={`token-usage-${data.name}`}
@@ -291,16 +309,18 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 								<span>{data.name}</span>
 							</Ariakit.ComboboxItem>
 						))}
-
 						{matches.length > viewableMatches ? (
-							<button
-								className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-								onClick={() => setViewableMatches((prev) => prev + 20)}
+							<Ariakit.ComboboxItem
+								value="__see_more__"
+								setValueOnClick={false}
+								hideOnClick={false}
+								className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+								onClick={handleSeeMore}
 							>
 								See more...
-							</button>
+							</Ariakit.ComboboxItem>
 						) : null}
-					</>
+					</Ariakit.ComboboxList>
 				) : (
 					<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 				)}

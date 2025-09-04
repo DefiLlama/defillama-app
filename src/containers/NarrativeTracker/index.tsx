@@ -1,9 +1,11 @@
 import * as React from 'react'
+import { ColumnDef } from '@tanstack/react-table'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
-import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
+import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
+import { formattedNum, formattedPercent } from '~/utils'
 
 interface IChartProps {
 	chartData: any[]
@@ -199,6 +201,7 @@ export const CategoryPerformanceContainer = ({
 				columnToSearch={'name'}
 				placeholder={'Search...'}
 				header="Categories"
+				sortingState={[{ id: 'change', desc: true }]}
 			/>
 		</>
 	)
@@ -209,3 +212,143 @@ const areaChartoptions = {
 		position: 'right'
 	}
 }
+
+interface CategoryPerformanceRow {
+	id: string
+	name: string
+	mcap: number
+	change1W: number
+	change1M: number
+	change1Y: number
+	nbCoins: number
+}
+
+interface CoinPerformanceRow {
+	id: string
+	mcap: number
+	change1W: number
+	change1M: number
+	change1Y: number
+}
+
+const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
+	{
+		header: 'Coin',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return (
+				<span className="relative flex items-center gap-2">
+					<span>{index + 1}.</span>
+					<BasicLink
+						href={`https://www.coingecko.com/en/coins/${row.original.id}`}
+						target="_blank"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+					>
+						{getValue() as string | null}
+					</BasicLink>
+				</span>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Δ%',
+		accessorKey: 'change',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
+		},
+		size: 120
+	},
+	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '24h Volume',
+		accessorKey: 'volume1D',
+		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	}
+]
+
+const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
+	{
+		header: 'Category',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<span className="relative flex items-center gap-2">
+					<span className="shrink-0">{index + 1}</span>
+					{['bitcoin', 'ethereum', 'solana'].includes(row.original.id) ? (
+						<BasicLink
+							href={`https://www.coingecko.com/en/coins/${row.original.id}`}
+							target="_blank"
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						>
+							{getValue() as string | null}
+						</BasicLink>
+					) : (
+						<BasicLink
+							href={`/narrative-tracker/${row.original.id}`}
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						>
+							{getValue() as string | null}
+						</BasicLink>
+					)}
+				</span>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Δ%',
+		accessorKey: 'change',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`
+		},
+		size: 120
+	},
+	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '24h Volume',
+		accessorKey: 'volume1D',
+		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: '# of Coins',
+		accessorKey: 'nbCoins',
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	}
+]

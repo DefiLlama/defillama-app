@@ -69,9 +69,12 @@ const pageName = ['Protocols', 'ranked by', type]
 const FeesOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${props.chain} - ${type} - DefiLlama`}
-			includeInMetricsOptions={feesOptions}
-			includeInMetricsOptionslabel="Include in Fees"
+			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
+			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
+			canonicalUrl={`/fees/chain/${props.chain}`}
+			metricFilters={feesOptions}
+			metricFiltersLabel="Include in Fees"
 			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />

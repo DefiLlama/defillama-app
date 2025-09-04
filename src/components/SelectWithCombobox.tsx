@@ -61,6 +61,22 @@ export function SelectWithCombobox({
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 
+	const comboboxRef = React.useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
+
 	if (nestedMenu) {
 		return (
 			<Ariakit.ComboboxProvider
@@ -97,34 +113,39 @@ export function SelectWithCombobox({
 								) : null}
 							</span>
 						) : null}
-						{matches.slice(0, viewableMatches + 1).map((option) => (
-							<NestedMenuItem
-								key={valuesAreAnArrayOfStrings ? option : option.key}
-								render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
-								hideOnClick={false}
-								className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
-							>
-								{valuesAreAnArrayOfStrings ? (
-									<span>{option}</span>
-								) : option.help ? (
-									<Tooltip content={option.help}>
-										<span className="mr-1">{option.name}</span>
-										<Icon name="help-circle" height={15} width={15} />
-									</Tooltip>
-								) : (
-									<span>{option.name}</span>
-								)}
-								<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
-							</NestedMenuItem>
-						))}
-						{matches.length > viewableMatches ? (
-							<button
-								className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-								onClick={() => setViewableMatches((prev) => prev + 20)}
-							>
-								See more...
-							</button>
-						) : null}
+						<Ariakit.ComboboxList>
+							{matches.slice(0, viewableMatches + 1).map((option) => (
+								<NestedMenuItem
+									key={valuesAreAnArrayOfStrings ? option : option.key}
+									render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
+									hideOnClick={false}
+									className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+								>
+									{valuesAreAnArrayOfStrings ? (
+										<span>{option}</span>
+									) : option.help ? (
+										<Tooltip content={option.help}>
+											<span className="mr-1">{option.name}</span>
+											<Icon name="help-circle" height={15} width={15} />
+										</Tooltip>
+									) : (
+										<span>{option.name}</span>
+									)}
+									<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+								</NestedMenuItem>
+							))}
+							{matches.length > viewableMatches ? (
+								<Ariakit.SelectItem
+									value="__see_more__"
+									setValueOnClick={false}
+									hideOnClick={false}
+									className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+									onClick={() => setViewableMatches((prev) => prev + 20)}
+								>
+									See more...
+								</Ariakit.SelectItem>
+							) : null}
+						</Ariakit.ComboboxList>
 					</NestedMenu>
 				</Ariakit.SelectProvider>
 			</Ariakit.ComboboxProvider>
@@ -209,14 +230,14 @@ export function SelectWithCombobox({
 									) : null}
 								</span>
 							) : null}
-							<Ariakit.ComboboxList>
+							<Ariakit.ComboboxList ref={comboboxRef}>
 								{matches.slice(0, viewableMatches + 1).map((option) => {
 									const isCustom = typeof option === 'object' && option.isCustom
 									return (
 										<Ariakit.SelectItem
 											key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 											value={valuesAreAnArrayOfStrings ? option : option.key}
-											className="group flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+											className="group flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md last-of-type:border-b-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 											render={<Ariakit.ComboboxItem />}
 										>
 											{valuesAreAnArrayOfStrings ? (
@@ -272,18 +293,21 @@ export function SelectWithCombobox({
 										</Ariakit.SelectItem>
 									)
 								})}
+
+								{matches.length > viewableMatches ? (
+									<Ariakit.SelectItem
+										value="__see_more__"
+										setValueOnClick={false}
+										hideOnClick={false}
+										className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+										onClick={handleSeeMore}
+										render={<Ariakit.ComboboxItem />}
+									>
+										See more...
+									</Ariakit.SelectItem>
+								) : null}
 							</Ariakit.ComboboxList>
-							{matches.length > viewableMatches ? (
-								<button
-									className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-									onClick={() => setViewableMatches((prev) => prev + 20)}
-								>
-									See more...
-								</button>
-							) : null}
-							{customFooter ? (
-								<div className="mt-2 border-t border-(--form-control-border) pt-2">{customFooter}</div>
-							) : null}
+							{customFooter ? <>{customFooter}</> : null}
 						</>
 					) : (
 						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>

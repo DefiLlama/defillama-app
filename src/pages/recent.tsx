@@ -34,7 +34,13 @@ const pageName = ['Recently Listed Protocols']
 
 export default function Protocols(props) {
 	return (
-		<Layout title="Recently Listed Protocols - DefiLlama" pageName={pageName}>
+		<Layout
+			title="Recently Listed Protocols - DefiLlama"
+			description={`Recently Listed Protocols on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`recently listed protocols, defi recently listed protocols`}
+			canonicalUrl={`/recent`}
+			pageName={pageName}
+		>
 			<RecentProtocols {...props} />
 		</Layout>
 	)

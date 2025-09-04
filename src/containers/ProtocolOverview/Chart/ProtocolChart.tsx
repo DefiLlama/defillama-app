@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -51,7 +51,7 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-export function ProtocolChart(props: IProtocolOverviewPageData) {
+export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
 
@@ -387,7 +387,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			</div>
 		</div>
 	)
-}
+})
 
 export const useFetchAndFormatChartData = ({
 	name,
@@ -638,6 +638,25 @@ export const useFetchAndFormatChartData = ({
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isPerpsVolumeEnabled
+	})
+
+	const isOpenInterestEnabled =
+		toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady ? true : false
+	const { data: openInterestData = null, isLoading: fetchingOpenInterest } = useQuery<IAdapterSummary>({
+		queryKey: ['openInterest', name, isOpenInterestEnabled],
+		queryFn: () =>
+			isOpenInterestEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'derivatives',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'openInterestAtEnd'
+					})
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isOpenInterestEnabled
 	})
 
 	const isOptionsPremiumVolumeEnabled =
@@ -923,6 +942,9 @@ export const useFetchAndFormatChartData = ({
 		if (fetchingPerpVolume) {
 			loadingCharts.push('Perp Volume')
 		}
+		if (fetchingOpenInterest) {
+			loadingCharts.push('Open Interest')
+		}
 		if (fetchingOptionsPremiumVolume) {
 			loadingCharts.push('Options Premium Volume')
 		}
@@ -1177,6 +1199,15 @@ export const useFetchAndFormatChartData = ({
 			})
 		}
 
+		if (openInterestData) {
+			const chartName: ProtocolChartsLabels = 'Open Interest' as const
+			charts[chartName] = formatBarChart({
+				data: openInterestData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
 		if (optionsPremiumVolumeData) {
 			const chartName: ProtocolChartsLabels = 'Options Premium Volume' as const
 			charts[chartName] = formatBarChart({
@@ -1412,6 +1443,8 @@ export const useFetchAndFormatChartData = ({
 		dexVolumeData,
 		fetchingPerpVolume,
 		perpsVolumeData,
+		fetchingOpenInterest,
+		openInterestData,
 		fetchingOptionsPremiumVolume,
 		optionsPremiumVolumeData,
 		fetchingOptionsNotionalVolume,

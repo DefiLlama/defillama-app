@@ -8,7 +8,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -96,8 +96,10 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			metrics={props.metrics}
 			warningBanners={props.warningBanners}
 			tab="information"
+			seoDescription={props.seoDescription}
+			seoKeywords={props.seoKeywords}
 		>
-			<SEO
+			<LinkPreviewCard
 				cardName={props.name}
 				token={props.name}
 				logo={tokenIconUrl(props.name)}
@@ -274,6 +276,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<DexVolume formatPrice={props.formatPrice} {...props} />
 				<DexAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<PerpVolume formatPrice={props.formatPrice} {...props} />
+				<OpenInterest formatPrice={props.formatPrice} {...props} />
 				<PerpAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<BridgeAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<BridgeVolume formatPrice={props.formatPrice} {...props} />
@@ -848,6 +851,30 @@ function PerpVolume(props: IKeyMetricsProps) {
 			name: 'Cumulative Perp Volume',
 			tooltipContent: null,
 			value: props.perpVolume.totalAllTime
+		})
+	}
+
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+		/>
+	)
+}
+
+function OpenInterest(props: IKeyMetricsProps) {
+	if (!props.openInterest) return null
+
+	const metrics = []
+
+	if (props.openInterest.total24h != null) {
+		metrics.push({
+			name: 'Open Interest',
+			tooltipContent: 'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC',
+			value: props.openInterest.total24h
 		})
 	}
 

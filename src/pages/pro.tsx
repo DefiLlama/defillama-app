@@ -39,14 +39,24 @@ function ProPageContent() {
 
 	if (isAccountLoading) {
 		return (
-			<Layout title="DefiLlama - Pro Dashboard">
+			<Layout
+				title="DefiLlama - Pro Dashboard"
+				description={`Pro Dashboard on DefiLlama. Custom no-code dashboards with TVL, Fees, Volume, and other metrics. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+				keywords={`pro dashboard, defi pro dashboard, custom dashboard`}
+				canonicalUrl={`/pro`}
+			>
 				<ProDashboardLoader />
 			</Layout>
 		)
 	}
 
 	return (
-		<Layout title="DefiLlama - Pro Dashboard">
+		<Layout
+			title="DefiLlama - Pro Dashboard"
+			description={`Pro Dashboard on DefiLlama. Custom no-code dashboards with TVL, Fees, Volume, and other metrics. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`pro dashboard, defi pro dashboard, custom dashboard`}
+			canonicalUrl={`/pro`}
+		>
 			<ProContent hasActiveSubscription={subscription?.status === 'active'} isAuthenticated={isAuthenticated} />
 		</Layout>
 	)

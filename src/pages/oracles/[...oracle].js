@@ -107,7 +107,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 					</p>
 				</div>
 
-				<div className="col-span-2 flex min-h-[370px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 min-h-[370px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<></>}>
 						<LineAndBarChart charts={charts} alwaysShowTooltip />
 					</Suspense>
@@ -122,7 +122,14 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 const pageName = ['Protocols TVS', 'by', 'Oracle']
 export default function Oracles(props) {
 	return (
-		<Layout title={`Oracles - DefiLlama`} includeInMetricsOptions={tvlOptions} pageName={pageName}>
+		<Layout
+			title={`Oracles - DefiLlama`}
+			description={`Total Value Secured by Oracles. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`blockchain oracles , total value secured by oracles, defi total value secured by oracles`}
+			canonicalUrl={`/oracles/${props.oracle}`}
+			metricFilters={tvlOptions}
+			pageName={pageName}
+		>
 			<PageView {...props} />
 		</Layout>
 	)

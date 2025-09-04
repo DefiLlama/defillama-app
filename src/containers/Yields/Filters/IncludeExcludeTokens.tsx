@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
@@ -73,7 +73,8 @@ export function IncludeExcludeTokens({
 		})
 	}, [tokens, deferredSearchValue])
 
-	const [viewableMatches, setViewableMatches] = useState(20)
+	const [tokensViewableMatches, setTokensViewableMatches] = useState(20)
+	const [pairsViewableMatches, setPairsViewableMatches] = useState(20)
 
 	const [newPairTokens, setNewPairTokens] = useState<Array<string>>([])
 
@@ -83,6 +84,37 @@ export function IncludeExcludeTokens({
 		router.push({ pathname: router.pathname, query: { ...router.query, token_pair: pairQueryParams } }, undefined, {
 			shallow: true
 		})
+	}
+
+	const tokensComboboxRef = useRef<HTMLDivElement>(null)
+	const pairsComboboxRef = useRef<HTMLDivElement>(null)
+
+	const handleTokensSeeMore = () => {
+		const previousCount = tokensViewableMatches
+		setTokensViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = tokensComboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
+
+	const handlePairsSeeMore = () => {
+		const previousCount = pairsViewableMatches
+		setPairsViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = pairsComboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
 	}
 
 	return (
@@ -200,8 +232,8 @@ export function IncludeExcludeTokens({
 								/>
 							</div>
 							{matches.length ? (
-								<div className="flex flex-col gap-2">
-									{matches.slice(0, viewableMatches + 1).map((token) => (
+								<Ariakit.ComboboxList className="flex flex-col gap-2" ref={tokensComboboxRef}>
+									{matches.slice(0, tokensViewableMatches + 1).map((token) => (
 										<Ariakit.ComboboxItem
 											key={token.name}
 											onClick={() => {
@@ -245,16 +277,18 @@ export function IncludeExcludeTokens({
 											</div>
 										</Ariakit.ComboboxItem>
 									))}
-
-									{matches.length > viewableMatches ? (
-										<button
-											onClick={() => setViewableMatches((prev) => prev + 20)}
-											className="w-full rounded-md px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+									{matches.length > tokensViewableMatches ? (
+										<Ariakit.ComboboxItem
+											value="__see_more__"
+											setValueOnClick={false}
+											hideOnClick={false}
+											className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+											onClick={handleTokensSeeMore}
 										>
 											See more...
-										</button>
+										</Ariakit.ComboboxItem>
 									) : null}
-								</div>
+								</Ariakit.ComboboxList>
 							) : (
 								<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 							)}
@@ -289,8 +323,8 @@ export function IncludeExcludeTokens({
 								/>
 							</div>
 							{matches.length ? (
-								<div className="flex flex-col gap-2">
-									{matches.slice(0, viewableMatches + 1).map((token) => (
+								<Ariakit.ComboboxList className="flex flex-col gap-2" ref={pairsComboboxRef}>
+									{matches.slice(0, pairsViewableMatches + 1).map((token) => (
 										<Ariakit.ComboboxItem
 											key={token.name}
 											onClick={() => {
@@ -310,16 +344,17 @@ export function IncludeExcludeTokens({
 											<span>{`${token.symbol}`}</span>
 										</Ariakit.ComboboxItem>
 									))}
-
-									{matches.length > viewableMatches ? (
-										<button
-											onClick={() => setViewableMatches((prev) => prev + 20)}
-											className="w-full rounded-md px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+									{matches.length > pairsViewableMatches ? (
+										<Ariakit.ComboboxItem
+											value="__see_more__"
+											setValueOnClick={false}
+											hideOnClick={false}
+											className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+											onClick={handlePairsSeeMore}
 										>
 											See more...
-										</button>
+										</Ariakit.ComboboxItem>
 									) : null}
-
 									<button
 										className="disabled:text-opacity-50 sticky bottom-0 w-full rounded-md bg-(--old-blue) py-2 text-white disabled:cursor-not-allowed"
 										onClick={() => {
@@ -333,7 +368,7 @@ export function IncludeExcludeTokens({
 									>
 										Confirm
 									</button>
-								</div>
+								</Ariakit.ComboboxList>
 							) : (
 								<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 							)}

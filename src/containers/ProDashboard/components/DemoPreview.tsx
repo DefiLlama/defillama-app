@@ -3,9 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import type { ChartConfig, MultiChartConfig, TextConfig } from '../types'
-import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from '../types'
-import { ChartPreview } from './ChartPreview'
-import MultiChartCard from './MultiChartCard'
+import { CHART_TYPES } from '../types'
 import { ProtocolsByChainTable } from './ProTable'
 import { TextCard } from './TextCard'
 
@@ -14,8 +12,6 @@ const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart'))
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart'))
 
 const MultiSeriesChart = React.lazy(() => import('~/components/ECharts/MultiSeriesChart'))
-
-const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 
 const generateFakeChartData = (baseValue: number, volatility: number = 0.1): [string, number][] => {
 	const data: [string, number][] = []
@@ -52,42 +48,41 @@ const DemoChartCard = ({ chart }: { chart: ChartConfig }) => {
 	)
 
 	return (
-		<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
-			<div className="flex h-full flex-col p-4">
-				<div className="mb-2 flex items-center gap-2">
-					<div className="flex h-6 w-6 items-center justify-center rounded-full bg-(--primary) text-xs font-bold text-white">
-						{itemName.charAt(0).toUpperCase()}
-					</div>
-					<h2 className="text-lg font-semibold text-(--text-primary)">
-						{itemName} {chartTypeDetails.title}
-					</h2>
+		<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]">
+			<div className="mr-auto flex items-center gap-1 p-1 md:p-3">
+				<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--old-blue) text-xs text-white">
+					{itemName.charAt(0).toUpperCase()}
 				</div>
-
-				<div style={{ height: '300px', flexGrow: 1 }}>
-					{chartTypeDetails.chartType === 'bar' ? (
-						<React.Suspense fallback={<></>}>
-							<BarChart
-								chartData={fakeData}
-								valueSymbol="$"
-								height="300px"
-								color={chartTypeDetails.color}
-								hideDataZoom
-								hideDownloadButton
-							/>
-						</React.Suspense>
-					) : (
-						<React.Suspense fallback={<></>}>
-							<AreaChart
-								chartData={fakeData}
-								valueSymbol="$"
-								color={chartTypeDetails.color}
-								height="300px"
-								hideDataZoom
-								hideDownloadButton
-							/>
-						</React.Suspense>
-					)}
-				</div>
+				<h1 className="text-base font-semibold">
+					{itemName} {chartTypeDetails.title}
+				</h1>
+			</div>
+			<div className="flex-1">
+				{chartTypeDetails.chartType === 'bar' ? (
+					<React.Suspense fallback={<></>}>
+						<BarChart
+							chartData={fakeData}
+							valueSymbol="$"
+							height="300px"
+							color={chartTypeDetails.color}
+							hideDataZoom
+							hideDownloadButton
+							chartOptions={chartOptions}
+						/>
+					</React.Suspense>
+				) : (
+					<React.Suspense fallback={<></>}>
+						<AreaChart
+							chartData={fakeData}
+							valueSymbol="$"
+							color={chartTypeDetails.color}
+							height="300px"
+							hideDataZoom
+							hideDownloadButton
+							chartOptions={chartOptions}
+						/>
+					</React.Suspense>
+				)}
 			</div>
 		</div>
 	)
@@ -115,17 +110,49 @@ const DemoMultiChartCard = ({ multi }: { multi: MultiChartConfig }) => {
 	})
 
 	return (
-		<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
-			<div className="flex h-full flex-col p-4">
-				<div className="mb-2 flex items-center gap-2">
-					<h3 className="text-sm font-medium text-(--text-primary)">{multi.name}</h3>
-				</div>
-
-				<div style={{ height: '300px', flexGrow: 1 }}>
-					<React.Suspense fallback={<></>}>
-						<MultiSeriesChart series={series} valueSymbol="$" hideDataZoom={true} />
-					</React.Suspense>
-				</div>
+		<div className="flex min-h-[400px] flex-col p-1 md:min-h-[416px]">
+			<h1 className="p-1 text-base font-semibold md:p-3">{multi.name}</h1>
+			<div className="flex-1">
+				<React.Suspense fallback={<></>}>
+					<MultiSeriesChart
+						series={series}
+						valueSymbol="$"
+						hideDataZoom={true}
+						chartOptions={{
+							yAxis: {
+								max: undefined,
+								min: undefined,
+								axisLabel: {
+									formatter: (value: number) => {
+										const absValue = Math.abs(value)
+										if (absValue >= 1e9) {
+											return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+										} else if (absValue >= 1e6) {
+											return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+										} else if (absValue >= 1e3) {
+											return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+										}
+										return '$' + value.toString()
+									}
+								}
+							},
+							grid: {
+								top: series.length > 5 ? 80 : 40,
+								bottom: 12,
+								left: 12,
+								right: 12,
+								outerBoundsMode: 'same',
+								outerBoundsContain: 'axisLabel'
+							},
+							legend: {
+								top: 0,
+								type: 'scroll',
+								pageButtonPosition: 'end',
+								height: series.length > 5 ? 80 : 40
+							}
+						}}
+					/>
+				</React.Suspense>
 			</div>
 		</div>
 	)
@@ -511,81 +538,95 @@ export const DemoPreview = () => {
 				</div>
 			</div>
 
-			<div className="bg-opacity-20 border-t border-(--divider) bg-(--bg-glass) py-2 pt-6">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6">
-					<div className="flex items-center justify-center">
-						<span className="text-xs text-(--text-secondary) italic opacity-75">
-							Demo Preview - All data shown below is simulated for demonstration purposes
-						</span>
-					</div>
+			<div className="mx-auto grid w-full max-w-7xl grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-2">
+				<p className="col-span-full p-2 text-center text-xs text-(--text-form) italic">
+					Demo Preview - All data shown below is simulated for demonstration purposes
+				</p>
+
+				<div
+					className={`${demoTextCard.colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+				>
+					<TextCard text={demoTextCard} />
 				</div>
-			</div>
 
-			<div className="bg-opacity-30 bg-(--bg-glass) py-6">
-				<div className="mx-auto max-w-[1400px]">
-					<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
-						<div className="min-h-[340px] md:col-span-1">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
-								<TextCard text={demoTextCard} />
-							</div>
-						</div>
-
-						{demoCharts.slice(0, 2).map((chart) => (
-							<div key={chart.id} className="min-h-[340px] md:col-span-1">
-								<DemoChartCard chart={chart} />
-							</div>
-						))}
-
-						<div className="min-h-[340px] md:col-span-2">
-							<DemoMultiChartCard multi={demoMultiCharts[0]} />
-						</div>
-
-						{demoCharts.slice(2, 4).map((chart) => (
-							<div key={chart.id} className="min-h-[340px] md:col-span-1">
-								<DemoChartCard chart={chart} />
-							</div>
-						))}
-
-						<div className="min-h-[400px] md:col-span-2">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
-								<ProtocolsByChainTable tableId="demo-ethereum-protocols" chains={['Ethereum']} colSpan={2} />
-							</div>
-						</div>
-
-						<div className="min-h-[340px] md:col-span-1">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
-								<TextCard text={demoTextCard2} />
-							</div>
-						</div>
-
-						<div className="min-h-[340px] md:col-span-1">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
-								<TextCard text={demoTextCard3} />
-							</div>
-						</div>
-
-						<div className="min-h-[340px] md:col-span-2">
-							<DemoMultiChartCard multi={demoMultiCharts[1]} />
-						</div>
-
-						{demoCharts.slice(4).map((chart) => (
-							<div key={chart.id} className="min-h-[340px] md:col-span-1">
-								<DemoChartCard chart={chart} />
-							</div>
-						))}
-
-						<div className="min-h-[340px] md:col-span-1">
-							<div className="bg-opacity-30 h-full border border-white/30 bg-(--bg-glass)">
-								<TextCard text={demoTextCard4} />
-							</div>
-						</div>
-
-						<div className="min-h-[340px] md:col-span-1">
-							<DemoMultiChartCard multi={demoMultiCharts[2]} />
-						</div>
+				{demoCharts.slice(0, 2).map((chart) => (
+					<div
+						key={chart.id}
+						className={`${chart.colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+					>
+						<DemoChartCard chart={chart} />
 					</div>
+				))}
+
+				<div
+					className={`${demoMultiCharts[0].colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+				>
+					<DemoMultiChartCard multi={demoMultiCharts[0]} />
+				</div>
+
+				{demoCharts.slice(2, 4).map((chart) => (
+					<div
+						key={chart.id}
+						className={`${chart.colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+					>
+						<DemoChartCard chart={chart} />
+					</div>
+				))}
+
+				<div className={`col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)`}>
+					<ProtocolsByChainTable tableId="demo-ethereum-protocols" chains={['Ethereum']} colSpan={2} />
+				</div>
+
+				<div
+					className={`${demoTextCard2.colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+				>
+					<TextCard text={demoTextCard2} />
+				</div>
+
+				<div
+					className={`${demoTextCard3.colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+				>
+					<TextCard text={demoTextCard3} />
+				</div>
+
+				<div
+					className={`${demoMultiCharts[1].colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+				>
+					<DemoMultiChartCard multi={demoMultiCharts[1]} />
+				</div>
+
+				{demoCharts.slice(4).map((chart) => (
+					<div
+						key={chart.id}
+						className={`${chart.colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+					>
+						<DemoChartCard chart={chart} />
+					</div>
+				))}
+
+				<div
+					className={`${demoTextCard4.colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+				>
+					<TextCard text={demoTextCard4} />
+				</div>
+
+				<div
+					className={`${demoMultiCharts[2].colSpan === 1 ? 'col-span-1' : 'col-span-full'} rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+				>
+					<DemoMultiChartCard multi={demoMultiCharts[2]} />
 				</div>
 			</div>
 		</div>
 	)
+}
+
+const chartOptions = {
+	grid: {
+		left: 8,
+		right: 8,
+		bottom: 8,
+		top: 8,
+		outerBoundsMode: 'same',
+		outerBoundsContain: 'axisLabel'
+	}
 }

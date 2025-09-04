@@ -89,66 +89,86 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 
 	return (
 		<>
-			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
+			{props.chains.length > 1 ? <RowLinksWithDropdown links={props.chains} activeLink={props.chain} /> : null}
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
-					{props.chain !== 'All' && props.chain && (
-						<h1 className="flex items-center gap-2">
-							<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
-							<span className="text-xl font-semibold">{props.chain}</span>
-						</h1>
-					)}
-					{props.charts['TVL']?.data.length > 0 && (
-						<p className="flex flex-col">
-							{props.isRWA ? (
-								<Tooltip
-									content="Sum of value of all real world assets on chain"
-									className="!inline text-(--text-label) underline decoration-dotted"
-								>
-									Total RWA Value
-								</Tooltip>
-							) : (
-								<Tooltip
-									content="Sum of value of all coins held in smart contracts of all the protocols on the chain"
-									className="!inline text-(--text-label) underline decoration-dotted"
-								>
-									Total Value Locked
-								</Tooltip>
-							)}
-							<span className="font-jetbrains min-h-8 text-2xl font-semibold">
-								{formattedNum(charts['TVL']?.data[charts['TVL']?.data.length - 1][1], true)}
-							</span>
-						</p>
+					{props.chain === 'All' ? (
+						<h1 className="text-lg font-semibold">{`${props.category} Protocols`}</h1>
+					) : (
+						<h1 className="text-lg font-semibold">{`${props.category} Protocols on ${props.chain}`}</h1>
 					)}
 					<div className="mb-auto flex flex-1 flex-col gap-2">
+						{props.charts['TVL']?.data.length > 0 && (
+							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+								{props.isRWA ? (
+									<Tooltip
+										content="Sum of value of all real world assets on chain"
+										className="font-normal text-(--text-label) underline decoration-dotted"
+									>
+										Total RWA Value
+									</Tooltip>
+								) : (
+									<Tooltip
+										content="Sum of value of all coins held in smart contracts of all the protocols on the chain"
+										className="font-normal text-(--text-label) underline decoration-dotted"
+									>
+										Total Value Locked
+									</Tooltip>
+								)}
+
+								<span className="font-jetbrains text-right">
+									{formattedNum(charts['TVL']?.data[charts['TVL']?.data.length - 1][1], true)}
+								</span>
+							</p>
+						)}
 						{props.fees7d != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<span className="font-normal text-(--text-label)">Fees (7d)</span>
+								<Tooltip
+									content={`Total fees paid by users when using the ${props.category.toLowerCase()} protocols on the chain in the last 7 days`}
+									className="font-normal text-(--text-label) underline decoration-dotted"
+								>
+									Fees (7d)
+								</Tooltip>
 								<span className="font-jetbrains text-right">{formattedNum(props.fees7d, true)}</span>
 							</p>
 						)}
 						{props.revenue7d != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<span className="font-normal text-(--text-label)">Revenue (7d)</span>
+								<Tooltip
+									content={`Total revenue earned by the ${props.category.toLowerCase()} protocols on the chain in the last 7 days`}
+									className="font-normal text-(--text-label) underline decoration-dotted"
+								>
+									Revenue (7d)
+								</Tooltip>
 								<span className="font-jetbrains text-right">{formattedNum(props.revenue7d, true)}</span>
 							</p>
 						)}
 						{props.dexVolume7d != null && ['Dexs', 'DEX Aggregators'].includes(props.category) && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<span className="font-normal text-(--text-label)">DEX Volume (7d)</span>
+								<Tooltip
+									content={`Total volume of all spot token swaps on protocols on the chain in the last 7 days`}
+									className="font-normal text-(--text-label) underline decoration-dotted"
+								>
+									DEX Volume (7d)
+								</Tooltip>
 								<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
 							</p>
 						)}
 						{props.perpVolume7d != null && ['Derivatives'].includes(props.category) && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<span className="font-normal text-(--text-label)">Perp Volume (7d)</span>
+								<Tooltip
+									content={`Notional volume of all perpetual futures trades including leverage on protocols on the chain in the last 7 days`}
+									className="font-normal text-(--text-label) underline decoration-dotted"
+								>
+									Perp Volume (7d)
+								</Tooltip>
 								<span className="font-jetbrains text-right">{formattedNum(props.perpVolume7d, true)}</span>
 							</p>
 						)}
 						<CSVDownloadButton prepareCsv={prepareCsvFromChart} smol className="mt-auto mr-auto" />
 					</div>
 				</div>
-				<div className="col-span-2 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) py-2">
+				<div className="col-span-2 min-h-[370px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<LineAndBarChart charts={charts} valueSymbol="$" />
 					</Suspense>
@@ -160,7 +180,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				placeholder="Search protocols..."
 				columnToSearch="name"
 				header={props.isRWA ? 'Assets Rankings' : 'Protocol Rankings'}
-				defaultSorting={
+				sortingState={
 					sortByRevenue.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : [{ id: 'tvl', desc: true }]
 				}
 				customFilters={<CSVDownloadButton prepareCsv={prepareCsv} />}

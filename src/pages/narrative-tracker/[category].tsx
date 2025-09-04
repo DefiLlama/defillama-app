@@ -29,7 +29,13 @@ const pageName = ['Narrative Tracker', 'by', 'Category']
 
 export default function Returns(props) {
 	return (
-		<Layout title={`Narrative Tracker - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Narrative Tracker - DefiLlama`}
+			description={`Narrative Tracker by ${props.category}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`narrative tracker, defi narrative tracker, narrative tracker by ${props.category}`}
+			canonicalUrl={`/narrative-tracker/${props.category}`}
+			pageName={pageName}
+		>
 			<CategoryPerformanceContainer {...props} />
 		</Layout>
 	)

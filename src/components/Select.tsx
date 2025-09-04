@@ -35,9 +35,25 @@ export function Select({
 }: ISelect) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
-	const [viewableMatches, setViewableMatches] = React.useState(20)
+	const [viewableMatches, setViewableMatches] = React.useState(5)
 
 	const canSelectOnlyOne = typeof selectedValues === 'string'
+
+	const selectRef = React.useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = () => {
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = selectRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
 
 	if (nestedMenu) {
 		return (
@@ -83,12 +99,15 @@ export function Select({
 						</NestedMenuItem>
 					))}
 					{allValues.length > viewableMatches ? (
-						<button
-							className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
+						<Ariakit.SelectItem
+							value="__see_more__"
+							setValueOnClick={false}
+							hideOnClick={false}
+							className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
 							onClick={() => setViewableMatches((prev) => prev + 20)}
 						>
 							See more...
-						</button>
+						</Ariakit.SelectItem>
 					) : null}
 				</NestedMenu>
 			</Ariakit.SelectProvider>
@@ -140,6 +159,7 @@ export function Select({
 				}}
 				className="max-sm:drawer z-10 flex h-[calc(100vh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] lg:h-full lg:max-h-[var(--popover-available-height)] dark:border-[hsl(204,3%,32%)]"
 				portal={portal || false}
+				ref={selectRef}
 			>
 				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 					<Icon name="x" className="h-5 w-5" />
@@ -198,14 +218,16 @@ export function Select({
 								</div>
 							</Ariakit.SelectItem>
 						))}
-
 						{allValues.length > viewableMatches ? (
-							<button
-								className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-								onClick={() => setViewableMatches((prev) => prev + 20)}
+							<Ariakit.SelectItem
+								value="__see_more__"
+								setValueOnClick={false}
+								hideOnClick={false}
+								className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+								onClick={handleSeeMore}
 							>
 								See more...
-							</button>
+							</Ariakit.SelectItem>
 						) : null}
 					</>
 				) : (

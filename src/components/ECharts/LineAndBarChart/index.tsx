@@ -11,7 +11,7 @@ export default function LineAndBarChart({
 	height,
 	hallmarks,
 	expandTo100Percent,
-	valueSymbol,
+	valueSymbol = '$',
 	groupBy,
 	alwaysShowTooltip,
 	solidChartAreaStyle = false,

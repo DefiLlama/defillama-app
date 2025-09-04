@@ -28,9 +28,14 @@ export const getStaticProps = withPerformanceLogging('about', async () => {
 
 function AboutPage(props: any) {
 	return (
-		<Layout title="About - DeFiLlama">
+		<Layout
+			title="About - DefiLlama"
+			description={`About DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`about DefiLlama, DefiLlama about, DeFi analytics platform, DeFi data provider`}
+			canonicalUrl={`/about`}
+		>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h1 className="text-lg font-semibold">About DeFiLlama</h1>
+				<h1 className="text-lg font-semibold">About DefiLlama</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
@@ -117,7 +122,7 @@ function AboutPage(props: any) {
 					</a>
 				</p>
 				<p>
-					DeFiLlama is a part of{' '}
+					DefiLlama is a part of{' '}
 					<a
 						className="text-(--blue) hover:underline"
 						target="_blank"

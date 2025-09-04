@@ -23,6 +23,7 @@ const PageView = ({ airdrops }) => {
 				columns={AirdropColumn}
 				columnToSearch={'name'}
 				placeholder={'Search Airdrop...'}
+				sortingState={[{ id: 'name', desc: true }]}
 			/>
 		</>
 	)
@@ -30,7 +31,12 @@ const PageView = ({ airdrops }) => {
 
 export default function Airdrops(props) {
 	return (
-		<Layout title={`Airdrop Directory - DefiLlama`}>
+		<Layout
+			title={`Airdrop Directory - DefiLlama`}
+			description={`Airdrop directory on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`airdrop directory, airdrops`}
+			canonicalUrl={`/airdrop-directory`}
+		>
 			<PageView {...props} />
 		</Layout>
 	)

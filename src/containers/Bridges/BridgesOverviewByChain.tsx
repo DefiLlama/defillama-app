@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { BridgesTable } from '~/components/Table/Bridges'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
@@ -34,6 +35,7 @@ export function BridgesOverviewByChain({
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging'>('bridges')
+	const [searchValue, setSearchValue] = React.useState('')
 
 	useEffect(() => {
 		setChartView('netflow')
@@ -341,7 +343,7 @@ export function BridgesOverviewByChain({
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex items-center justify-between p-3">
+				<div className="flex items-center justify-between gap-3 p-3">
 					<div className="flex items-center">
 						<button
 							className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
@@ -358,6 +360,21 @@ export function BridgesOverviewByChain({
 							Messaging Protocols
 						</button>
 					</div>
+					<label className="relative w-full sm:max-w-[280px]">
+						<span className="sr-only">Search bridges</span>
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+						/>
+						<input
+							value={searchValue}
+							onChange={(e) => setSearchValue(e.target.value)}
+							placeholder="Search..."
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 py-0.5 pl-7 text-base text-black dark:bg-black dark:text-white"
+						/>
+					</label>
 					<div className="ml-auto">
 						<TxsTableSwitch />
 					</div>
@@ -366,7 +383,7 @@ export function BridgesOverviewByChain({
 				{isBridgesShowingTxs ? (
 					<LargeTxsTable data={largeTxsData} chain={selectedChain} />
 				) : (
-					<BridgesTable data={activeTab === 'bridges' ? filteredBridges : messagingProtocols} />
+					<BridgesTable data={activeTab === 'bridges' ? filteredBridges : messagingProtocols} searchValue={searchValue} onSearchChange={setSearchValue} />
 				)}
 			</div>
 		</>
