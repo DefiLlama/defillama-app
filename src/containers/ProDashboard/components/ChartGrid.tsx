@@ -231,11 +231,11 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								className={`col-span-1 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
 							>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} data-col={item.colSpan}>
-									<div className="flex flex-wrap items-center justify-end gap-1 border-b border-(--cards-border)">
+									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
 										<Tooltip
 											content={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
 											render={<button onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)} />}
-											className="hover:pro-btn-blue p-2"
+											className="hover:pro-btn-blue px-3 py-2"
 										>
 											{item.colSpan === 1 ? (
 												<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(45deg)' }} />
@@ -247,7 +247,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											<Tooltip
 												content="Edit item"
 												render={<button onClick={() => onEditItem(item)} />}
-												className="hover:pro-btn-blue p-2"
+												className="hover:pro-btn-blue px-3 py-2"
 											>
 												<Icon name="pencil" height={14} width={14} />
 												<span className="sr-only">Edit item</span>
@@ -256,7 +256,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 										<Tooltip
 											content="Remove item"
 											render={<button onClick={() => handleDeleteClick(item.id)} />}
-											className="rounded-tr-md p-2 hover:bg-red-500/10 hover:text-(--error)"
+											className="rounded-tr-md px-3 py-2 hover:bg-red-500/10 hover:text-(--error)"
 										>
 											<Icon name="x" height={14} width={14} />
 											<span className="sr-only">Remove item</span>
