@@ -417,8 +417,8 @@ export function ProtocolsTableWithSearch({
 	)
 }
 
-export function TopGainersAndLosers({ data }: { data: Array<IProtocolRow> }) {
-	const [sorting, setSorting] = React.useState<SortingState>([])
+export function TopGainersAndLosers({ data, sortingState }: { data: Array<IProtocolRow>; sortingState: SortingState }) {
+	const [sorting, setSorting] = React.useState<SortingState>(sortingState)
 
 	const instance = useReactTable({
 		data,

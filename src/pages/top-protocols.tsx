@@ -1,11 +1,5 @@
 import * as React from 'react'
-import {
-	createColumnHelper,
-	getCoreRowModel,
-	getSortedRowModel,
-	SortingState,
-	useReactTable
-} from '@tanstack/react-table'
+import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -64,15 +58,14 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 
 const pageName = ['Top Protocols']
 
-export default function Chains({ data, uniqueCategories }) {
-	const [sorting, setSorting] = React.useState<SortingState>([])
-
-	const columnHelper = createColumnHelper<any>()
-
+export default function TopProtocols({ data, uniqueCategories }) {
 	const columns = React.useMemo(() => {
+		const columnHelper = createColumnHelper<any>()
+
 		const baseColumns = [
 			columnHelper.accessor('chain', {
 				header: 'Chain',
+				enableSorting: false,
 				cell: (info) => {
 					const chain = info.getValue()
 					const rowIndex = info.row.index
@@ -96,6 +89,7 @@ export default function Chains({ data, uniqueCategories }) {
 		const categoryColumns = uniqueCategories.map((cat) =>
 			columnHelper.accessor(cat, {
 				header: cat,
+				enableSorting: false,
 				cell: (info) => {
 					const protocolName = info.getValue()
 					return protocolName ? (
@@ -117,12 +111,8 @@ export default function Chains({ data, uniqueCategories }) {
 	const table = useReactTable({
 		data,
 		columns,
-		state: {
-			sorting
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
+
+		getCoreRowModel: getCoreRowModel()
 	})
 
 	const prepareCsv = React.useCallback(() => {

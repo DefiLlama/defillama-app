@@ -23,6 +23,7 @@ const PageView = ({ airdrops }) => {
 				columns={AirdropColumn}
 				columnToSearch={'name'}
 				placeholder={'Search Airdrop...'}
+				sortingState={[{ id: 'name', desc: true }]}
 			/>
 		</>
 	)

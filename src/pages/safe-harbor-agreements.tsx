@@ -64,7 +64,7 @@ const pageName = ['Safe Harbor Agreements']
 export default function SafeHarborAgreements({ protocols }) {
 	return (
 		<Layout
-			title="Safe Harbor Agreements"
+			title="Safe Harbor Agreements - DefiLlama"
 			description={`Safe Harbor Agreements by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`safe harbor agreements, defi safe harbor agreements, safe harbor agreements by protocol`}
 			canonicalUrl={`/safe-harbor-agreements`}
@@ -76,6 +76,7 @@ export default function SafeHarborAgreements({ protocols }) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				compact
+				sortingState={[{ id: 'tvl', desc: true }]}
 			/>
 		</Layout>
 	)
@@ -168,7 +169,7 @@ const columns: ColumnDef<{
 	},
 	{
 		header: 'TVL',
-		accessorFn: (protocol) => protocol.tvl,
+		accessorKey: 'tvl',
 		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
 			align: 'end'
@@ -176,7 +177,7 @@ const columns: ColumnDef<{
 	},
 	{
 		header: '24h Fees',
-		accessorFn: (protocol) => protocol.fees,
+		accessorKey: 'fees',
 		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
 			align: 'end'
@@ -184,7 +185,7 @@ const columns: ColumnDef<{
 	},
 	{
 		header: '24h Revenue',
-		accessorFn: (protocol) => protocol.revenue,
+		accessorKey: 'revenue',
 		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
 			align: 'end'
@@ -192,7 +193,7 @@ const columns: ColumnDef<{
 	},
 	{
 		header: '24h DEX Volume',
-		accessorFn: (protocol) => protocol.dexVolume,
+		accessorKey: 'dexVolume',
 		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
 		meta: {
 			align: 'end'

@@ -70,7 +70,8 @@ const ActiveInvestors = ({ data }) => {
 
 	const onPeriodClick = (newPeriod) => {
 		if (newPeriod === 'All') {
-			;(setPeriod(newPeriod), addOption(columns))
+			setPeriod(newPeriod)
+			addOption(columns)
 		} else {
 			setPeriod(newPeriod)
 		}

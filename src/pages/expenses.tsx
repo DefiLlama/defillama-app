@@ -58,6 +58,7 @@ export default function Protocols(props) {
 				columnToSearch={'name'}
 				placeholder={'Search protocol...'}
 				header={'Protocol Expenses'}
+				sortingState={[{ id: 'sumAnnualUsdExpenses', desc: true }]}
 			/>
 		</Layout>
 	)

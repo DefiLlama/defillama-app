@@ -59,6 +59,7 @@ export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageDat
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				sortingState={[{ id: 'pool2Tvl', desc: true }]}
 			/>
 		</>
 	)

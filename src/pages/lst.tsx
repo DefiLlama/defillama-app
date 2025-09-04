@@ -172,6 +172,7 @@ const PageView = ({
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
 				header="Liquid Staking Protocols"
+				sortingState={[{ id: 'stakedEth', desc: true }]}
 			/>
 		</>
 	)

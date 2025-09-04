@@ -47,12 +47,13 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 				data={data}
 				columns={bridgedColumns}
 				placeholder={'Search chains...'}
-				columnToSearch={['name']}
+				columnToSearch={'name'}
 				customFilters={
 					<>
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
+				sortingState={[{ id: 'total', desc: true }]}
 			/>
 		</>
 	)

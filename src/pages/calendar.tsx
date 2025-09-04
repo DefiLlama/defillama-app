@@ -2,6 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
+	ColumnDef,
 	ColumnFiltersState,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -12,12 +13,12 @@ import {
 import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
-import { calendarColumns } from '~/components/Table/Defi/columns'
+import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import calendarEvents from '~/constants/calendar'
 import Layout from '~/layout'
-import { formatPercentage } from '~/utils'
+import { formatPercentage, slug, toNiceDayMonthYear, toNiceHour } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -62,7 +63,7 @@ const options = ['Unlock', 'Close', 'Macro', 'Crypto']
 
 export default function Protocols({ emissions }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'timestamp', desc: false }])
 	const router = useRouter()
 	const { type } = router.query
 
@@ -262,5 +263,81 @@ export default function Protocols({ emissions }) {
 				<VirtualTable instance={instance} />
 			</div>
 		</Layout>
+	)
+}
+
+export const calendarColumns: ColumnDef<any>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<span className="relative flex items-center gap-2">
+					<span className="shrink-0">{index + 1}</span>
+					{row.original.type === 'Unlock' ? (
+						<BasicLink
+							href={`/unlocks/${slug(row.original.link)}`}
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						(getValue() as string)
+					)}
+				</span>
+			)
+		},
+		size: 220
+	},
+	{
+		header: 'Type',
+		accessorKey: 'type',
+		size: 100
+	},
+	{
+		header: 'Date',
+		id: 'timestamp',
+		accessorKey: 'timestamp',
+		cell: ({ getValue, row }) => {
+			return <SimpleUpcomingEvent timestamp={(getValue() as number) / 1e3} name={row.original.name} />
+		},
+		size: 800
+	}
+]
+
+const SimpleUpcomingEvent = ({ timestamp, name }) => {
+	const timeLeft = timestamp - Date.now() / 1e3
+	const days = Math.floor(timeLeft / 86400)
+	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
+	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
+	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
+
+	const [_, rerender] = React.useState(1)
+
+	React.useEffect(() => {
+		const id = setInterval(() => rerender((value) => value + 1), 1000)
+
+		return () => clearInterval(id)
+	}, [])
+
+	return (
+		<span className="flex items-center gap-2">
+			<span>{name}</span>
+			<span className="h-10 w-px bg-(--bg-border)" />
+			<span className="flex items-center gap-1">
+				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{days}D</span>
+				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{hours}H</span>
+				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{minutes}M</span>
+				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{seconds}S</span>
+			</span>
+			<span className="h-10 w-px bg-(--bg-border)" />
+			<span className="flex items-center justify-between gap-2">
+				<span>{toNiceDayMonthYear(timestamp)}</span>
+				<span>{toNiceHour(timestamp)}</span>
+			</span>
+		</span>
 	)
 }

@@ -1,13 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-	ColumnDef,
-	ColumnFiltersState,
-	getCoreRowModel,
-	getFilteredRowModel,
-	getSortedRowModel,
-	SortingState,
-	useReactTable
-} from '@tanstack/react-table'
+import { useCallback, useMemo } from 'react'
+import { ColumnDef } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -20,27 +12,10 @@ const pageName = ['Projects', 'ranked by', 'Treasury']
 const entityPageName = ['Entities', 'ranked by', 'Treasury']
 
 export function Treasuries({ data, entity }) {
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = useState<SortingState>([])
 	const tableColumns = useMemo(
-		() => (entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey)) : columns),
+		() => (entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl', 'mcap'].includes(c.accessorKey)) : columns),
 		[entity]
 	)
-	const instance = useReactTable({
-		data,
-		columns: entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey)) : columns,
-		state: {
-			columnFilters,
-			sorting
-		},
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
-	})
-
-	const [projectName, setProjectName] = useState('')
 
 	const prepareCsv = useCallback(() => {
 		const headers = [
@@ -77,14 +52,6 @@ export function Treasuries({ data, entity }) {
 		return { filename: 'treasuries.csv', rows: rows as (string | number | boolean)[][] }
 	}, [data])
 
-	useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [projectName, instance])
-
 	return (
 		<Layout
 			title={`Treasuries - DefiLlama`}
@@ -99,6 +66,7 @@ export function Treasuries({ data, entity }) {
 				columnToSearch={'name'}
 				placeholder={'Search projects...'}
 				header={'Treasuries'}
+				sortingState={entity ? [{ id: 'tvl', desc: true }] : [{ id: 'coreTvl', desc: true }]}
 				customFilters={
 					<>
 						<CSVDownloadButton prepareCsv={prepareCsv} />
@@ -248,7 +216,7 @@ export const columns: ColumnDef<any>[] = [
 	{
 		header: 'Total Treasury',
 		accessorKey: 'tvl',
-		id: 'total-treasury',
+		id: 'tvl',
 		cell: (info) => {
 			return <>{formattedNum(info.getValue(), true)}</>
 		},

@@ -1,3 +1,4 @@
+import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -51,12 +52,13 @@ export default function NftsOnAllChains(props) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				sortingState={[{ id: 'total24h', desc: true }]}
 			/>
 		</Layout>
 	)
 }
 
-const columns = [
+const columns: ColumnDef<any>[] = [
 	{
 		id: 'name',
 		header: 'Name',

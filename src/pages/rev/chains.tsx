@@ -40,6 +40,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 				header="Protocol Rankings"
 				rowSize={64}
 				compact
+				sortingState={[{ id: 'total24h', desc: true }]}
 			/>
 		</Layout>
 	)

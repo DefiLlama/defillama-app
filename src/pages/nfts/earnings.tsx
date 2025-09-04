@@ -38,6 +38,7 @@ function Earnings({ earnings }) {
 				columnToSearch={'name'}
 				placeholder={'Search collections...'}
 				header="NFT Collection Earnings"
+				sortingState={[{ id: 'totalEarnings', desc: true }]}
 			/>
 		</Layout>
 	)

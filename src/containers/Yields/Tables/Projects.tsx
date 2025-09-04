@@ -82,7 +82,7 @@ const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 ]
 
 export function YieldsProjectsTable({ data }: { data: Array<IYieldsProjectsTableRow> }) {
-	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
 
 	const instance = useReactTable({
 		data,

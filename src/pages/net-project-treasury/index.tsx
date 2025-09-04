@@ -58,6 +58,7 @@ const NetProjectTreasuries = (props) => {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				sortingState={[{ id: 'netTreasury', desc: true }]}
 			/>
 		</Layout>
 	)

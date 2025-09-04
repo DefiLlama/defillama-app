@@ -479,7 +479,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					columns={categoriesColumn}
 					columnToSearch={'name'}
 					placeholder={'Search category...'}
-					defaultSorting={[{ id: 'tvl', desc: true }]}
+					sortingState={[{ id: 'tvl', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>

@@ -180,7 +180,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				placeholder="Search protocols..."
 				columnToSearch="name"
 				header={props.isRWA ? 'Assets Rankings' : 'Protocol Rankings'}
-				defaultSorting={
+				sortingState={
 					sortByRevenue.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : [{ id: 'tvl', desc: true }]
 				}
 				customFilters={<CSVDownloadButton prepareCsv={prepareCsv} />}

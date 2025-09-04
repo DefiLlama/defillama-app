@@ -46,7 +46,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 
 		const tokensList = tvls.map(({ name, value }) => {
 			const tokenTvl = forkedTokensData.find((p) => p.name.toLowerCase() === name.toLowerCase())?.tvl ?? null
-			const ftot = tokenTvl ? (value / tokenTvl) * 100 : null
+			const ftot = tokenTvl ? (Number(value.toFixed(2)) / Number(tokenTvl.toFixed(2))) * 100 : null
 
 			return {
 				name,
@@ -117,6 +117,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 					placeholder={'Search protocols...'}
 					columnToSearch={'name'}
 					header={'Protocol Rankings'}
+					sortingState={[{ id: 'tvl', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>

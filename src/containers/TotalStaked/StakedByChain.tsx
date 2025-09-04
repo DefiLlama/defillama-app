@@ -59,6 +59,7 @@ export function StakedProtocolsTVLByChain(props: ITotalStakedByChainPageData) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				sortingState={[{ id: 'totalStaked', desc: true }]}
 			/>
 		</>
 	)

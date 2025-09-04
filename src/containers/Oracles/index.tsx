@@ -105,6 +105,7 @@ export const OraclesByChain = ({
 					columnToSearch={'name'}
 					placeholder={'Search oracles...'}
 					header={'Oracle Rankings'}
+					sortingState={[{ id: 'tvs', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>

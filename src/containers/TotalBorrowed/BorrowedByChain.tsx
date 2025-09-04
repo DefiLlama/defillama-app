@@ -59,6 +59,7 @@ export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				sortingState={[{ id: 'totalBorrowed', desc: true }]}
 			/>
 		</>
 	)

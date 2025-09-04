@@ -82,6 +82,7 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
+				sortingState={[{ id: 'Net User Loss', desc: true }]}
 			/>
 		</Layout>
 	)

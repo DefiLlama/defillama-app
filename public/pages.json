@@ -504,17 +504,17 @@
       "description": "MCap-Weighted category performance to track narrative changes in the ecosystem"
     },
     {
-      "name": "Staked ETH by Protocol",
-      "route": "/lst",
-      "category": "Others",
-      "description": "Total value of ETH staked on LSTs",
-      "tab": "Protocols"
-    },
-    {
       "name": "Recently Listed Protocols",
       "route": "/recent",
       "category": "Others",
       "description": "List of recently listed protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Staked ETH by Protocol",
+      "route": "/lst",
+      "category": "Others",
+      "description": "Total value of ETH staked on LSTs",
       "tab": "Protocols"
     },
     {
