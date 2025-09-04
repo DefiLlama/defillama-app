@@ -207,7 +207,7 @@ function ProDashboardContent() {
 						<Tooltip
 							content="Views"
 							render={<p />}
-							className="flex items-center gap-1 rounded-md border border-(--cards-border) px-1 py-0.5 text-xs text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--cards-border) px-1.5 py-1 text-xs text-(--text-disabled)"
 						>
 							<Icon name="eye" height={14} width={14} />
 							<span>{currentDashboard?.viewCount || 0}</span>
@@ -414,7 +414,7 @@ const LikeDashboardButton = ({
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
 			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
-			className={`hover:pro-btn-blue focus-visible:pro-btn-blue ${isLiked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1 py-0.5 text-xs hover:border-transparent focus-visible:border-transparent`}
+			className={`hover:pro-btn-blue focus-visible:pro-btn-blue ${isLiked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent`}
 		>
 			{isLiking ? <LoadingSpinner size={14} /> : <Icon name="star" height={14} width={14} className="" />}
 			<span>{currentDashboard?.likeCount || 0}</span>
@@ -443,7 +443,7 @@ const CopyDashboardLinkButton = ({
 				dashboardVisibility === 'private' ? 'Make dashboard public to share' : 'Copy dashboard link to clipboard'
 			}
 			render={<button onClick={copy} disabled={dashboardVisibility === 'private'} />}
-			className="hover:pro-btn-blue focus-visible:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1 py-0.5 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+			className="hover:pro-btn-blue focus-visible:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 		>
 			{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="link" height={14} width={14} />}
 			<span>Share</span>
