@@ -2198,7 +2198,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					{incomeStatementGroupByOptions.map((groupOption) => (
 						<button
 							key={`income-statement-${groupOption}`}
-							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--old-blue)"
+							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 							data-active={groupOption === groupBy}
 							onClick={() => {
 								setGroupBy(groupOption)

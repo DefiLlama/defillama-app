@@ -26,9 +26,6 @@
 	--color-pro-gold-300: oklch(0.612 0.15 60); /* Vibrant gold */
 	--color-pro-gold-400: oklch(0.41 0.12 60); /* Deep gold */
 
-	--color-pro-link-100: oklch(0.59 0.18 262.36);
-	--color-pro-link-900: oklch(0.45 0.14 262.83);
-
 	--animate-loader: loader 800ms linear infinite;
 	--animate-wiggle: wiggle 300ms ease-out;
 	--animate-slidein: slidein 300ms ease-out;
@@ -380,10 +377,6 @@
 
 @utility pro-btn-blue-outline {
 	@apply border-pro-blue-100 text-pro-blue-400 hover:bg-pro-blue-300/20 focus-visible:bg-pro-blue-300/20 dark:border-pro-blue-300/20 dark:text-pro-blue-200 hover:dark:bg-pro-blue-300/30 focus-visible:dark:bg-pro-blue-300/30 border;
-}
-
-@utility pro-link {
-	@apply hover:text-pro-link-900 dark:hover:text-pro-link-100 text-(--text-label);
 }
 
 @layer base {

@@ -280,7 +280,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						)}
 						<button
 							onClick={onAddChartClick}
-							className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--old-blue)"
+							className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--link-text)"
 						>
 							<svg
 								width="40"

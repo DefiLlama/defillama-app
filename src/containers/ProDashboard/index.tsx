@@ -129,7 +129,10 @@ function ProDashboardContent() {
 
 	return (
 		<div className="pro-dashboard flex flex-1 flex-col gap-2 p-2 lg:px-0">
-			<BasicLink href="/pro" className="pro-link mr-auto mb-2 flex items-center gap-2">
+			<BasicLink
+				href="/pro"
+				className="mr-auto mb-2 flex items-center gap-2 text-(--text-label) hover:text-(--link-text)"
+			>
 				<Icon name="arrow-left" height={16} width={16} />
 				Back to Dashboards
 			</BasicLink>
@@ -150,6 +153,15 @@ function ProDashboardContent() {
 									<span>Private</span>
 								</p>
 							)}
+							{!featureFlagsLoading &&
+							hasFeature('dashboard-gen') &&
+							currentDashboard?.aiGenerated &&
+							Object.keys(currentDashboard.aiGenerated).length > 0 ? (
+								<p className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+									<Icon name="sparkles" height={14} width={14} />
+									<span className="text-xs font-medium">AI Generated</span>
+								</p>
+							) : null}
 						</span>
 						<p className="text-sm text-(--text-form)">{dashboardDescription}</p>
 					</div>
@@ -167,15 +179,6 @@ function ProDashboardContent() {
 							</div>
 						</div>
 					)}
-					{!featureFlagsLoading &&
-					hasFeature('dashboard-gen') &&
-					currentDashboard?.aiGenerated &&
-					Object.keys(currentDashboard.aiGenerated).length > 0 ? (
-						<p className="flex items-center gap-1 text-(--old-blue)">
-							<Icon name="sparkles" height={14} width={14} />
-							<span className="text-xs font-medium">AI Generated</span>
-						</p>
-					) : null}
 				</div>
 				<div className="col-span-full flex flex-col gap-2 md:col-span-4">
 					<div className="flex flex-wrap items-center justify-end gap-2">
@@ -227,6 +230,24 @@ function ProDashboardContent() {
 					</div>
 				</div>
 			</div>
+
+			{!featureFlagsLoading && hasFeature('dashboard-gen') && currentDashboard?.aiGenerated && (
+				<AIGenerationHistory aiGenerated={currentDashboard.aiGenerated as AIGeneratedData} />
+			)}
+
+			{currentRatingSession && !isReadOnly && (
+				<Suspense fallback={<></>}>
+					<Rating
+						sessionId={currentRatingSession.sessionId}
+						mode={currentRatingSession.mode}
+						variant="banner"
+						prompt={currentRatingSession.prompt}
+						onRate={submitRating}
+						onSkip={skipRating}
+						onDismiss={dismissRating}
+					/>
+				</Suspense>
+			)}
 
 			{!isReadOnly && (
 				<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -292,24 +313,6 @@ function ProDashboardContent() {
 						</button>
 					</div>
 				</div>
-			)}
-
-			{!featureFlagsLoading && hasFeature('dashboard-gen') && currentDashboard?.aiGenerated && (
-				<AIGenerationHistory aiGenerated={currentDashboard.aiGenerated as AIGeneratedData} />
-			)}
-
-			{currentRatingSession && !isReadOnly && (
-				<Suspense fallback={<></>}>
-					<Rating
-						sessionId={currentRatingSession.sessionId}
-						mode={currentRatingSession.mode}
-						variant="banner"
-						prompt={currentRatingSession.prompt}
-						onRate={submitRating}
-						onSkip={skipRating}
-						onDismiss={dismissRating}
-					/>
-				</Suspense>
 			)}
 
 			{items.length > 0 && (
@@ -419,7 +422,7 @@ const LikeDashboardButton = ({
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
 			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
-			className={`hover:pro-btn-blue focus-visible:pro-btn-blue ${isLiked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent`}
+			className={`hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue ${isLiked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent`}
 		>
 			{isLiking ? <LoadingSpinner size={14} /> : <Icon name="star" height={14} width={14} className="" />}
 			<span>{currentDashboard?.likeCount || 0}</span>

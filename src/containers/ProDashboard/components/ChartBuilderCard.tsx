@@ -252,7 +252,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								<Tooltip
 									content={capitalizeFirstLetter(dataInterval)}
 									render={<button />}
-									className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
+									className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue shrink-0 px-2 py-1 text-xs whitespace-nowrap data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
 									data-active={builder.grouping === dataInterval}
 									onClick={() => handleGroupingChange(builder.id, dataInterval)}
 									key={`${builder.id}-options-groupBy-${dataInterval}`}

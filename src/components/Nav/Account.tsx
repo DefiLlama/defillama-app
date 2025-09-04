@@ -28,7 +28,7 @@ export const Account = memo(function Account() {
 							{user && (
 								<BasicLink
 									href="/subscription"
-									className="pro-link flex items-center gap-1.5 truncate text-sm font-medium hover:underline"
+									className="flex items-center gap-1.5 truncate text-sm font-medium text-(--text-label) hover:text-(--link-text) hover:underline"
 								>
 									<Icon name="users" className="h-4 w-4 shrink-0" />
 									{user.email}
