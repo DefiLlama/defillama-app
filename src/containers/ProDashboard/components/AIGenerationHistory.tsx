@@ -17,7 +17,7 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 
 	return (
 		<details className="group flex flex-col">
-			<summary className="pro-link flex items-center gap-2">
+			<summary className="flex items-center gap-2 text-(--text-label) hover:text-(--link-text)">
 				<Icon name="sparkles" height={16} width={16} />
 				<span>View AI Generation History</span>
 				<Icon name="chevron-down" height={14} width={14} className="transition-transform group-open:rotate-180" />

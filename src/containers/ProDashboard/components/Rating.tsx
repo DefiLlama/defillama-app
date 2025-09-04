@@ -88,7 +88,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 					{onDismiss && (
 						<button
 							onClick={() => onDismiss(sessionId)}
-							className="ml-auto p-2 text-(--text-label) hover:text-(--text-old-blue)"
+							className="ml-auto rounded-md p-2 hover:bg-red-500/10 hover:text-(--error)"
 							disabled={isSubmitting}
 							title="Dismiss"
 						>
